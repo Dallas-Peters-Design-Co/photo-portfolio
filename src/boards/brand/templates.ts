@@ -45,7 +45,14 @@ export interface Template {
 
 export const TEMPLATES: readonly Template[] = [
   {
-    area: { h: 0.63, w: 0.48, x: 0.281, y: 0.059 },
+    /*
+     * Inset from the panel, not flush to it.
+     *
+     * The first pass filled the lit panel edge to edge, which is not how
+     * anything is ever printed — a poster has a margin, and without one the
+     * mark reads as the billboard rather than as artwork on it.
+     */
+    area: { h: 0.5, w: 0.36, x: 0.34, y: 0.125 },
     /*
      * Multiply, so the panel's own light falls on the artwork.
      *
@@ -68,7 +75,7 @@ export const TEMPLATES: readonly Template[] = [
      * Small on purpose: an embroidered mark on a cap is small, and drawing it
      * large would flatter the artwork by testing something nobody prints.
      */
-    area: { h: 0.17, w: 0.26, x: 0.37, y: 0.42 },
+    area: { h: 0.13, w: 0.15, x: 0.425, y: 0.44 },
     blend: "screen",
     caption:
       "Embroidered on a cap, in one light ink on dark cloth. The seam runs through it and the weave shows.",
@@ -79,7 +86,7 @@ export const TEMPLATES: readonly Template[] = [
     opacity: 0.92,
   },
   {
-    area: { h: 0.14, w: 0.2, x: 0.4, y: 0.36 },
+    area: { h: 0.12, w: 0.13, x: 0.435, y: 0.42 },
     blend: "screen",
     caption: "On a lanyard, at the size a badge carries it.",
     id: "lanyard",

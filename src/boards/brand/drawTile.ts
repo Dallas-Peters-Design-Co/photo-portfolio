@@ -1,4 +1,5 @@
 import { caption, fitted, ground, inked } from "./drawMark";
+import { inkBounds } from "./markMetrics";
 import type { ProofTile } from "./proofTiles";
 import { TEMPLATES } from "./templates";
 
@@ -240,6 +241,47 @@ const drawTemplate: Draw = (ctx, mark, tile, context) => {
 };
 
 /**
+ * The mark's own bounding box, drawn around it.
+ *
+ * This tile had no branch and fell through to "draw it plainly", which on a
+ * sheet of tests reads as a tile that did not render. The claim it makes needs
+ * the box: a mark that does not fill its file arrives smaller than the size it
+ * was placed at, and the gap between the artwork and its edges is the only
+ * picture of that.
+ */
+const drawOutline: Draw = (ctx, mark) => {
+  const out = inner();
+  const box = fitted(mark, out, { enlarge: false });
+  ctx.globalAlpha = 0.35;
+  ctx.drawImage(mark, box.x, box.y, box.width, box.height);
+  ctx.globalAlpha = 1;
+
+  // The file's edge, and the ink's. Two rectangles, and the space between
+  // them is the finding.
+  ctx.strokeStyle = "#b8b8b8";
+  ctx.setLineDash([5, 5]);
+  ctx.strokeRect(box.x, box.y, box.width, box.height);
+  ctx.setLineDash([]);
+
+  const bounds = inkBounds({
+    data: ctx.getImageData(box.x, box.y, box.width, box.height).data,
+    height: Math.round(box.height),
+    width: Math.round(box.width),
+  });
+  if (bounds) {
+    ctx.strokeStyle = "#d1453f";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+      box.x + bounds.x,
+      box.y + bounds.y,
+      bounds.width,
+      bounds.height
+    );
+    ctx.lineWidth = 1;
+  }
+};
+
+/**
  * The mark, as it is, on whatever ground the tile asked for.
  *
  * Serves the tiles whose whole test is the ground or a filter — greyscale,
@@ -279,6 +321,7 @@ const DRAWS: Partial<Record<ProofTile["kind"], Draw>> = {
   dotmatrix: drawDotMatrix,
   emboss: drawEmboss,
   lockup: drawLockup,
+  outline: drawOutline,
   pattern: drawPattern,
   scale: drawScale,
   surface: drawTemplate,

@@ -18,25 +18,76 @@ import { drawProofSheet, proofBoardTitle, proofItems } from "./buildProofBoard";
  * half the value the first time somebody changes a logo.
  */
 
-/** The artwork, loaded so a canvas can draw it. */
-const loadMark = (url: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const image = new Image();
+/**
+ * The artwork, rasterised once at a known size.
+ *
+ * An <img> is not enough, and the reason is specific: an SVG written with
+ * `width="100%" height="100%"` — which is what a designer's export tool
+ * produces — has no intrinsic size at all. The element reports zero, every
+ * canvas built from `mark.width x mark.height` comes out empty, and each tile
+ * that recolours the mark draws nothing. That is one bug wearing five masks:
+ * the app icon, the knockout, the relief, the cap and the lanyard all went
+ * through the same missing number.
+ *
+ * So the viewBox is read for the aspect and the mark is drawn once into a
+ * canvas of real pixels. Everything downstream then has a width and a height
+ * it can trust, and none of it needs to know the artwork was ever a vector.
+ */
+const MARK_PX = 1024;
+const SVG_URL = /\.svg(\?|#|$)/i;
+const VIEWBOX = /viewBox\s*=\s*"[\d.-]+\s+[\d.-]+\s+([\d.]+)\s+([\d.]+)"/i;
+
+/** The aspect an SVG declares, when the element will not say. */
+const aspectOf = async (url: string): Promise<number> => {
+  if (!SVG_URL.test(url)) {
+    return 0;
+  }
+  try {
+    const [, w, h] = VIEWBOX.exec(await (await fetch(url)).text()) ?? [];
+    const width = Number(w);
+    const height = Number(h);
+    return width > 0 && height > 0 ? width / height : 0;
+  } catch {
+    return 0;
+  }
+};
+
+const loadMark = async (url: string): Promise<HTMLCanvasElement> => {
+  const declared = await aspectOf(url);
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const element = new Image();
     /*
      * Deliberately asking for CORS here, unlike measureRaster.
      *
-     * The opposite call, for the opposite reason: this one *does* read pixels
-     * — every tile draws the mark into a canvas and reads it back — and a
-     * tainted canvas makes toBlob throw. The blob store serves
-     * Access-Control-Allow-Origin, and a logo adopted into it before the kit
-     * version was written is the only kind that gets here.
+     * The opposite call for the opposite reason: this one reads pixels back —
+     * every tile draws the mark into a canvas and reads it — and a tainted
+     * canvas makes toBlob throw. The blob store serves the header, and a logo
+     * adopted into it before the kit version was written is the only kind
+     * that reaches here.
      */
-    image.crossOrigin = "anonymous";
-    image.onload = () => resolve(image);
-    image.onerror = () =>
+    element.crossOrigin = "anonymous";
+    element.onload = () => resolve(element);
+    element.onerror = () =>
       reject(new Error("That logo could not be loaded to draw from"));
-    image.src = url;
+    element.src = url;
   });
+
+  // The element's own size when it has one, the viewBox when it does not, and
+  // a square as the last resort — a mark with neither is unusual enough that
+  // guessing square is better than refusing to draw it.
+  const aspect =
+    image.naturalWidth > 0 && image.naturalHeight > 0
+      ? image.naturalWidth / image.naturalHeight
+      : declared || 1;
+  const canvas = document.createElement("canvas");
+  canvas.width = aspect >= 1 ? MARK_PX : Math.round(MARK_PX * aspect);
+  canvas.height = aspect >= 1 ? Math.round(MARK_PX / aspect) : MARK_PX;
+  const ctx = canvas.getContext("2d");
+  // Drawn with an explicit size, which is the whole point: an SVG with no
+  // intrinsic dimensions draws nothing when asked to draw at its own.
+  ctx?.drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas;
+};
 
 export const useProofBoard = () => {
   const navigate = useNavigate();
