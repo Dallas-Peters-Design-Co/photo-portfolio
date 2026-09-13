@@ -1,0 +1,17 @@
+# The source mockups stay out of git.
+#
+# Six of them come to just under a gigabyte, and git keeps every version of a
+# binary for ever — one commit of these would be a permanent tax on every
+# clone the repo ever serves. They are bought files that live on this machine
+# and in whatever backs it up.
+#
+# What ships is the flattened JPEG beside each one, which is what the browser
+# can use anyway: a 240MB layered document is not something a canvas opens.
+# Remaking one after editing the PSD:
+#
+#   sips -s format png --resampleWidth 1400 <file>.psd --out /tmp/t.png
+#   magick /tmp/t.png -quality 84 src/templates/<name>.jpg
+#
+# Then re-measure its `area` in templates.ts, because a re-export can move the
+# subject by a few pixels and the placement is in fractions of the image.
+*.psd

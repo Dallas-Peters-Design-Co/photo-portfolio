@@ -272,11 +272,27 @@ export const useCanvasViewport = (
     return () => observer.disconnect();
   }, [frame, containerRef]);
 
-  /** Centres the whole canvas — the on-screen Fit button. */
+  /**
+   * Frames what is on the board — the on-screen Fit button.
+   *
+   * It used to centre the empty 4000×3000 canvas instead, which is a different
+   * question and usually the wrong one. Items are dropped near the middle but
+   * a proof sheet is fifty tiles laid out in bands, and a board whose content
+   * runs past the canvas or sits in one corner came back from Fit no better
+   * framed than before — the button appeared to do nothing.
+   *
+   * The automatic framing on load already measured the content. Fit now asks
+   * the same question by hand, and only falls back to the whole canvas when
+   * there is nothing on it or the container has not been measured yet.
+   */
   const fit = useCallback(() => {
     markUserMoved();
+    const bounds = getContentBoundsRef.current?.() ?? null;
+    if (bounds && fitToBounds(bounds)) {
+      return;
+    }
     fitCanvas();
-  }, [fitCanvas, markUserMoved]);
+  }, [fitCanvas, fitToBounds, markUserMoved]);
 
   // Anything that sets state — framing, the zoom buttons, a restored view —
   // must leave the ref agreeing with it, or the next gesture would start from

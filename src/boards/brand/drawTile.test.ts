@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
 import { fitted, inked } from "./drawMark";
-import { drawTile, TILE } from "./drawTile";
+import { drawTile, TILE_PX } from "./drawTile";
 import { proofTilesFor } from "./proofTiles";
 
 /**
@@ -156,7 +156,7 @@ describe("drawTile", () => {
     const mark = markOf();
     for (const tile of proofTilesFor(kit, "Imprint")) {
       const drawn = drawTile(mark, tile, context);
-      expect(drawn.width, tile.kind).toBe(TILE);
+      expect(drawn.width, tile.kind).toBe(TILE_PX);
       expect(painted(drawn), tile.kind).toBeGreaterThan(0);
     }
   });

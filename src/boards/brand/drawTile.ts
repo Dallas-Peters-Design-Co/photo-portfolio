@@ -20,6 +20,24 @@ import { TEMPLATES } from "./templates";
 
 export const TILE = 640;
 
+/**
+ * How many real pixels each tile pixel is drawn with.
+ *
+ * Every layout number in this file is in tile units, and the tile is sized so
+ * a sheet of them compares cleanly — but a client viewing a proof sheet zooms
+ * in, and at 640 real pixels a tile turns to mush the moment they do. The
+ * caption went blocky before the artwork did, which is the tell that it was
+ * the canvas and not the mark.
+ *
+ * So the canvas is drawn at twice the size and the context scaled to match.
+ * Nothing else in the file changes, the ramp still measures in real placement
+ * pixels, and every tile is now worth zooming into.
+ */
+const SCALE = 2;
+
+/** The tile's real pixel size, which is what the drawn canvas measures. */
+export const TILE_PX = TILE * SCALE;
+
 /** Loaded artwork, with its own pixel size. */
 export type Mark = CanvasImageSource & { height: number; width: number };
 
@@ -38,8 +56,45 @@ type Draw = (
   context: TileContext
 ) => void;
 
+/**
+ * The ramp, laid out to fit the tile it is drawn on.
+ *
+ * The sizes are real pixel counts and that is the point of the tile, so they
+ * are never scaled. What was missing was a check that they add up: the ramp
+ * ran to 512, the widths and gaps came to over nine hundred, and the largest
+ * two simply walked off the right edge of the frame — the tile looked broken
+ * because half of it was outside the picture.
+ *
+ * Sizes that do not fit are dropped from the right, with the tile saying so
+ * rather than silently showing a shorter ramp. The gap shrinks first, because
+ * losing a placement is worse than losing some air between them.
+ */
+const RAMP_GAP = 18;
+
+const rampFits = (
+  sizes: readonly { px: number }[],
+  room: number
+): readonly { px: number }[] => {
+  let kept = sizes.length;
+  const total = (count: number) =>
+    sizes
+      .slice(0, count)
+      .reduce((sum, size) => sum + size.px + RAMP_GAP, -RAMP_GAP);
+  while (kept > 1 && total(kept) > room) {
+    kept -= 1;
+  }
+  return sizes.slice(0, kept);
+};
+
 const drawScale: Draw = (ctx, mark, tile, { minWidth }) => {
-  const sizes = tile.sizes ?? [];
+  const all = tile.sizes ?? [];
+  const room = TILE - PAD * 2;
+  // Nothing taller than the tile either: a 512-pixel square does not fit in a
+  // 480-pixel band however much room there is beside it.
+  const sizes = rampFits(
+    all.filter((size) => size.px <= room),
+    room
+  );
   let x = PAD;
   const baseline = TILE - PAD;
   for (const size of sizes) {
@@ -52,8 +107,27 @@ const drawScale: Draw = (ctx, mark, tile, { minWidth }) => {
     ctx.drawImage(mark, box.x, box.y, box.width, box.height);
     ctx.fillStyle = "#8a8a8a";
     ctx.font = "10px ui-monospace, monospace";
-    ctx.fillText(`${size.px}`, x, baseline + 16);
-    x += size.px + 20;
+    // Centred under the artwork, not under its slot. A portrait mark in a
+    // square slot sits in the middle of it, and a label pinned to the slot's
+    // left edge then points at empty space beside the mark it names.
+    ctx.textAlign = "center";
+    ctx.fillText(`${size.px}`, box.x + box.width / 2, baseline + 16);
+    ctx.textAlign = "left";
+    x += size.px + RAMP_GAP;
+  }
+  if (sizes.length < all.length) {
+    // Right-aligned on its own line. Following the ramp put it wherever the
+    // last size happened to end, which for a long ramp is off the edge — the
+    // note about what does not fit did not fit.
+    ctx.fillStyle = "#8a8a8a";
+    ctx.font = "10px ui-monospace, monospace";
+    ctx.textAlign = "right";
+    ctx.fillText(
+      `+ ${all.length - sizes.length} larger than this frame`,
+      TILE - PAD,
+      baseline + 34
+    );
+    ctx.textAlign = "left";
   }
   /*
    * The line the kit drew itself.
@@ -116,14 +190,35 @@ const drawDotMatrix: Draw = (ctx, mark) => {
   ctx.imageSmoothingEnabled = true;
 };
 
+/**
+ * The mark pressed into the surface, lit at the size it is seen.
+ *
+ * The relief is computed at the box it will occupy, not at the artwork's own
+ * resolution. Relighting a 1024-pixel master and then shrinking it averages
+ * every bevel back out again — which is how this tile came out as a faint
+ * wire tracing of the silhouette with the wordmark missing entirely.
+ */
 const drawEmboss: Draw = (ctx, mark) => {
-  const relief = reliefOf(mark);
+  const box = fitted(mark, inner());
+  const relief = reliefOf(mark, {
+    height: Math.round(box.height),
+    width: Math.round(box.width),
+  });
   ground(ctx, "#8f8f8f", { height: TILE, width: TILE });
-  const box = fitted(relief, inner(), { enlarge: false });
   ctx.drawImage(relief, box.x, box.y, box.width, box.height);
 };
 
 const drawAppIcon: Draw = (ctx, mark, tile) => {
+  /*
+   * A neutral surround, because an icon is a shape before it is a colour.
+   *
+   * The ground came from the kit's accent and so did the icon, so the two
+   * matched exactly and the rounded square vanished: the tile was a field of
+   * red with a wordmark floating in it, which tests nothing. What an app icon
+   * has to survive is a home screen full of other icons — a corner radius, a
+   * hard edge, and something behind it that is not itself.
+   */
+  ground(ctx, "#dedee2", { height: TILE, width: TILE });
   const side = TILE - PAD * 2;
   const radius = side * 0.22;
   ctx.beginPath();
@@ -138,8 +233,16 @@ const drawAppIcon: Draw = (ctx, mark, tile) => {
     x: PAD + side * 0.22,
     y: PAD + side * 0.22,
   });
+  /*
+   * The mark as it is, not knocked down to one ink.
+   *
+   * An app icon is the one place the artwork is met in full colour at a size
+   * nobody can enlarge, so flattening it here would answer the question the
+   * tile exists to ask. `inked` stands down on its own for multi-coloured
+   * artwork now; the ink is still honoured for a mark that really is one.
+   */
   ctx.drawImage(
-    inked(mark, tile.ink ?? "#ffffff"),
+    tile.ink ? inked(mark, tile.ink) : mark,
     box.x,
     box.y,
     box.width,
@@ -182,18 +285,74 @@ const drawTemplate: Draw = (ctx, mark, tile, context) => {
     return;
   }
   ground(ctx, "#ffffff", { height: TILE, width: TILE });
-  const frame = fitted(photo, { height: TILE, width: TILE, x: 0, y: 0 });
-  ctx.drawImage(photo, frame.x, frame.y, frame.width, frame.height);
 
+  /*
+   * The crop, covered into the tile rather than fitted into it.
+   *
+   * Fitting letterboxed a portrait mockup on white and left the subject the
+   * size of a stamp — the lanyard tile was mostly blank page. Covering fills
+   * the frame and loses the edges, which is what the edges of a stock mockup
+   * are for.
+   */
+  const crop = template.crop ?? { h: 1, w: 1, x: 0, y: 0 };
+  const sw = crop.w * photo.width;
+  const sh = crop.h * photo.height;
+  const scale = Math.max(TILE / sw, TILE / sh);
+  const dw = sw * scale;
+  const dh = sh * scale;
+  const dx = (TILE - dw) / 2;
+  const dy = (TILE - dh) / 2;
+  ctx.drawImage(
+    photo,
+    crop.x * photo.width,
+    crop.y * photo.height,
+    sw,
+    sh,
+    dx,
+    dy,
+    dw,
+    dh
+  );
+
+  // The placement area is in fractions of the whole photograph, so it goes
+  // through the same crop and scale the photograph did.
   const area = {
-    height: template.area.h * frame.height,
-    width: template.area.w * frame.width,
-    x: frame.x + template.area.x * frame.width,
-    y: frame.y + template.area.y * frame.height,
+    height: template.area.h * photo.height * scale,
+    width: template.area.w * photo.width * scale,
+    x: dx + (template.area.x - crop.x) * photo.width * scale,
+    y: dy + (template.area.y - crop.y) * photo.height * scale,
   };
+
+  /*
+   * A blank page first, when the mockup came with a design already on it.
+   *
+   * A bought book mockup is photographed with sample artwork printed on the
+   * cover, and nothing removes it — so without this the sample shows around
+   * whatever the mark does not cover and the tile is two designs arguing. The
+   * plate covers it; the photograph's own light is multiplied back over the
+   * top a moment later, so the page is blanked on the object rather than
+   * stickered over it.
+   */
+  if (template.plate) {
+    ctx.fillStyle = template.plate;
+    ctx.fillRect(area.x, area.y, area.width, area.height);
+  }
+
   const box = fitted(mark, area);
   ctx.save();
-  ctx.globalCompositeOperation = template.blend;
+  /*
+   * A plated surface is drawn on flat, not blended.
+   *
+   * Blending is how a mark picks up the light of the thing it is printed on,
+   * and it only works when what is underneath is the surface. Under a plate
+   * what is underneath is the plate, and under the plate is somebody else's
+   * sample artwork — multiply there would print the mark through a cyan demo
+   * cover. Losing the cover's gradient is the cost of not showing two designs
+   * at once, and it is the cheaper of the two.
+   */
+  ctx.globalCompositeOperation = template.plate
+    ? "source-over"
+    : template.blend;
   ctx.globalAlpha = template.opacity ?? 1;
   ctx.drawImage(
     template.ink ? inked(mark, template.ink) : mark,
@@ -287,12 +446,13 @@ export const drawTile = (
   context: TileContext
 ): HTMLCanvasElement => {
   const canvas = document.createElement("canvas");
-  canvas.width = TILE;
-  canvas.height = TILE;
+  canvas.width = TILE_PX;
+  canvas.height = TILE_PX;
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     return canvas;
   }
+  ctx.scale(SCALE, SCALE);
   const size = { height: TILE, width: TILE };
   ground(ctx, tile.background ?? "#f7f7f7", size);
   (DRAWS[tile.kind] ?? drawPlainly)(ctx, mark, tile, context);

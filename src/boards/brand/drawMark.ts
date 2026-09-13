@@ -86,6 +86,59 @@ export const hasTransparency = (
 };
 
 /**
+ * Whether recolouring the artwork would still leave a mark.
+ *
+ * `inked` replaces every colour inside the shape with one, which is the right
+ * answer for the artwork it was written for — a single-ink mark on
+ * transparency, where the ink is arbitrary and the shape is the whole design.
+ *
+ * It is the wrong answer for artwork whose colours *are* the design. Knock a
+ * red plate carrying a portrait down to one ink and the plate and the portrait
+ * become the same white rectangle: the app icon, the knockout and every
+ * surface tile came back as a solid block with a wordmark beside it. Nothing
+ * failed — the tile faithfully drew a shape that happens to be a rectangle —
+ * and that is exactly why it has to be caught here, where the question is
+ * whether one ink can say what the mark says.
+ *
+ * Answered by spread, not by counting colours. Sampled opaque pixels whose
+ * channels stay within a narrow band are one ink plus its anti-aliasing; a
+ * mark with a plate and a figure on it spreads across the whole range, and no
+ * single ink can hold both.
+ */
+const INK_SPREAD = 76;
+
+export const isOneInk = (
+  mark: CanvasImageSource & { height: number; width: number }
+): boolean => {
+  const canvas = document.createElement("canvas");
+  canvas.width = SAMPLE;
+  canvas.height = SAMPLE;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    return true;
+  }
+  ctx.drawImage(mark, 0, 0, SAMPLE, SAMPLE);
+  const { data } = ctx.getImageData(0, 0, SAMPLE, SAMPLE);
+  const low = [255, 255, 255];
+  const high = [0, 0, 0];
+  for (let at = 0; at < data.length; at += 4) {
+    // Only solid pixels. A soft edge is every value between the ink and
+    // nothing, so counting it would call every mark multi-coloured.
+    if ((data[at + 3] ?? 0) < 250) {
+      continue;
+    }
+    for (let channel = 0; channel < 3; channel += 1) {
+      const value = data[at + channel] ?? 0;
+      low[channel] = Math.min(low[channel] ?? 255, value);
+      high[channel] = Math.max(high[channel] ?? 0, value);
+    }
+  }
+  return [0, 1, 2].every(
+    (channel) => (high[channel] ?? 0) - (low[channel] ?? 255) <= INK_SPREAD
+  );
+};
+
+/**
  * The mark, recoloured to a single ink — or left alone if it cannot be.
  *
  * Drawn through its own alpha rather than by filtering: `source-in` keeps the
@@ -107,7 +160,7 @@ export const inked = (
   mark: CanvasImageSource & { height: number; width: number },
   colour: string
 ): CanvasImageSource & { height: number; width: number } => {
-  if (!hasTransparency(mark)) {
+  if (!(hasTransparency(mark) && isOneInk(mark))) {
     return mark;
   }
   const canvas = document.createElement("canvas");

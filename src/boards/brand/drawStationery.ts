@@ -54,13 +54,29 @@ export const drawCard = (
   ctx.restore();
 
   const pad = width * 0.09;
-  const box = fitted(mark, {
-    height: height * 0.2,
-    width: width * 0.34,
+  /*
+   * A box the mark can actually use, and then pushed to the left edge of it.
+   *
+   * The first version gave the mark a slot a third of the card wide and a
+   * fifth of it tall. A wide mark filled that; a portrait one — a plate, a
+   * crest, a book spine — fitted to the *height* and came out as a postage
+   * stamp adrift in the corner, with the rest of the card empty. The slot was
+   * describing a shape rather than an amount of room.
+   *
+   * So the slot is square-ish, sized by the smaller dimension, and whatever
+   * the mark does not use is given back to the card rather than left as
+   * padding on the left of it. Centring inside the slot is what put the mark
+   * in the middle of nowhere; a card's mark sits on the same margin as its
+   * type or it reads as a mistake.
+   */
+  const slot = {
+    height: height * 0.46,
+    width: width * 0.42,
     x: left + pad,
     y: top + pad,
-  });
-  ctx.drawImage(mark, box.x, box.y, box.width, box.height);
+  };
+  const box = fitted(mark, slot);
+  ctx.drawImage(mark, slot.x, box.y, box.width, box.height);
 
   /*
    * A hairline above the details.
@@ -156,7 +172,7 @@ export const drawFavicon = (
     ctx.beginPath();
     ctx.roundRect(tabX, tabY, tabW, tabH, 6);
     ctx.fill();
-    const icon = 16;
+    const icon = Math.round(tabH * 0.62);
     const box = fitted(mark, {
       height: icon,
       width: icon,
@@ -164,6 +180,18 @@ export const drawFavicon = (
       y: tabY + (tabH - icon) / 2,
     });
     if (index === 1) {
+      /*
+       * A white chip under the favicon, which is what a browser really gives
+       * it.
+       *
+       * Drawn straight onto the tab, a mark with a light plate disappeared
+       * into the tab's own white and the whole test read as an empty tab. The
+       * chip is the square a favicon is composited into; without it the tile
+       * was flattering artwork that happens to be dark and failing artwork
+       * that happens not to be.
+       */
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(tabX + 8, tabY + (tabH - icon) / 2, icon, icon);
       ctx.drawImage(mark, box.x, box.y, box.width, box.height);
     } else {
       ctx.fillStyle = "#c9c9cf";
@@ -179,30 +207,46 @@ export const drawFavicon = (
     );
   }
 
-  // The three served sizes, laid out below, each on the white a browser
-  // actually composites a favicon onto.
-  let x = left + size * 0.08;
-  const row = top + chromeH + size * 0.12;
-  for (const px of FAVICON_SIZES) {
-    const plate = px + 16;
+  /*
+   * The three served sizes below, each on the white a browser composites a
+   * favicon onto, and the row centred under the window.
+   *
+   * It used to start at a fixed inset and step by a fixed gap, which put the
+   * whole row hard against the left of the tile with a third of the frame
+   * empty beside it. The plates are real pixel sizes and must stay that way —
+   * that is the test — so the row is measured first and the leftover space
+   * split, rather than the plates being nudged to suit the layout.
+   */
+  const gap = size * 0.05;
+  const plates = FAVICON_SIZES.map((px) => px + 16);
+  const rowW = plates.reduce((sum, plate) => sum + plate + gap, -gap);
+  const tallest = Math.max(...plates);
+  let x = (size - rowW) / 2;
+  const row = top + chromeH + size * 0.14;
+  FAVICON_SIZES.forEach((px, index) => {
+    const plate = plates[index] ?? px + 16;
+    // Bottom-aligned, so the ramp reads as a ramp instead of as three plates
+    // floating at three different heights.
+    const plateY = row + (tallest - plate);
     ctx.fillStyle = "#ffffff";
     ctx.beginPath();
-    ctx.roundRect(x, row + (64 - plate) / 2, plate, plate, 4);
+    ctx.roundRect(x, plateY, plate, plate, 4);
     ctx.fill();
     const box = fitted(mark, {
       height: px,
       width: px,
       x: x + 8,
-      y: row + (64 - plate) / 2 + 8,
+      y: plateY + 8,
     });
     ctx.drawImage(mark, box.x, box.y, box.width, box.height);
     ctx.fillStyle = "#8a8a90";
     ctx.font = `${Math.round(size * 0.016)}px ${MONO}`;
     ctx.textAlign = "center";
-    ctx.fillText(`${px} PX`, x + plate / 2, row + 78);
+    ctx.textBaseline = "top";
+    ctx.fillText(`${px} PX`, x + plate / 2, row + tallest + 10);
     ctx.textAlign = "left";
-    x += plate + size * 0.06;
-  }
+    x += plate + gap;
+  });
 };
 
 /**
