@@ -1,4 +1,6 @@
 import { caption, fitted, ground, inked } from "./drawMark";
+import { reliefOf } from "./drawRelief";
+import { drawCard, drawFavicon } from "./drawStationery";
 import { inkBounds } from "./markMetrics";
 import type { ProofTile } from "./proofTiles";
 import { TEMPLATES } from "./templates";
@@ -113,49 +115,11 @@ const drawDotMatrix: Draw = (ctx, mark) => {
   ctx.imageSmoothingEnabled = true;
 };
 
-/** Two copies offset and tinted: the shape read as depth rather than as ink. */
 const drawEmboss: Draw = (ctx, mark) => {
-  const box = fitted(mark, inner(), { enlarge: false });
-  ctx.globalAlpha = 0.55;
-  ctx.drawImage(
-    inked(mark, "#ffffff"),
-    box.x,
-    box.y - 2,
-    box.width,
-    box.height
-  );
-  ctx.drawImage(
-    inked(mark, "#9a9a9a"),
-    box.x,
-    box.y + 2,
-    box.width,
-    box.height
-  );
-  ctx.globalAlpha = 1;
-};
-
-const drawCard: Draw = (ctx, mark, tile) => {
-  const words = tile.words ?? "";
-  // 3.5 x 2 inches, the one physical size everybody already knows.
-  const cardWidth = TILE - PAD * 2;
-  const cardHeight = (cardWidth / 3.5) * 2;
-  const top = (TILE - cardHeight) / 2;
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(PAD, top, cardWidth, cardHeight);
-  ctx.strokeStyle = "#e4e4e4";
-  ctx.strokeRect(PAD, top, cardWidth, cardHeight);
-  const box = fitted(mark, {
-    height: 44,
-    width: 44,
-    x: PAD + 28,
-    y: top + 28,
-  });
-  ctx.drawImage(mark, box.x, box.y, box.width, box.height);
-  if (words) {
-    ctx.fillStyle = "#101a2b";
-    ctx.font = "13px system-ui, sans-serif";
-    ctx.fillText(words, PAD + 28, top + cardHeight - 34);
-  }
+  const relief = reliefOf(mark);
+  ground(ctx, "#8f8f8f", { height: TILE, width: TILE });
+  const box = fitted(relief, inner(), { enlarge: false });
+  ctx.drawImage(relief, box.x, box.y, box.width, box.height);
 };
 
 const drawAppIcon: Draw = (ctx, mark, tile) => {
@@ -317,9 +281,12 @@ const drawPlainly: Draw = (ctx, mark, tile) => {
  */
 const DRAWS: Partial<Record<ProofTile["kind"], Draw>> = {
   appicon: drawAppIcon,
-  card: drawCard,
+  card: (ctx, mark, tile) =>
+    drawCard(ctx, TILE, { mark, name: tile.words ?? "", tile }),
   dotmatrix: drawDotMatrix,
   emboss: drawEmboss,
+  favicon: (ctx, mark, tile) =>
+    drawFavicon(ctx, TILE, { mark, name: tile.words ?? "", tile }),
   lockup: drawLockup,
   outline: drawOutline,
   pattern: drawPattern,

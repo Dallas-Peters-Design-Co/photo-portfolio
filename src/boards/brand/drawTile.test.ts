@@ -175,3 +175,78 @@ describe("drawTile", () => {
     expect(() => drawTile(blank, greyscale, context)).not.toThrow();
   });
 });
+
+describe("the relief", () => {
+  it("reads interior detail, not just the silhouette", async () => {
+    /*
+     * The whole reason the offset-copies version was wrong. Two marks with the
+     * same outline and different insides came out identical, because that
+     * trick only ever looked at the edge. A lit surface cannot: an edge inside
+     * the shape catches light the way an edge in foil does.
+     */
+    const { reliefOf } = await import("./drawRelief");
+    const plain = document.createElement("canvas");
+    plain.width = 64;
+    plain.height = 64;
+    const plainCtx = plain.getContext("2d");
+    if (plainCtx) {
+      plainCtx.fillStyle = "#808080";
+      plainCtx.fillRect(8, 8, 48, 48);
+    }
+
+    const detailed = document.createElement("canvas");
+    detailed.width = 64;
+    detailed.height = 64;
+    const detailCtx = detailed.getContext("2d");
+    if (detailCtx) {
+      detailCtx.fillStyle = "#808080";
+      detailCtx.fillRect(8, 8, 48, 48);
+      // Same outline, a bright bar inside it.
+      detailCtx.fillStyle = "#ffffff";
+      detailCtx.fillRect(20, 20, 24, 8);
+    }
+
+    const readBack = (canvas: HTMLCanvasElement) =>
+      reliefOf(canvas).getContext("2d")?.getImageData(0, 0, 64, 64).data ??
+      new Uint8ClampedArray();
+    const a = readBack(plain);
+    const b = readBack(detailed);
+    let different = 0;
+    for (let at = 0; at < a.length; at += 4) {
+      if (a[at] !== b[at]) {
+        different += 1;
+      }
+    }
+    expect(different).toBeGreaterThan(0);
+  });
+
+  it("leaves a flat field flat", async () => {
+    // A surface with no slope has nothing to catch light. If a flat area came
+    // out shaded, the lighting would be reading noise rather than the mark.
+    const { reliefOf } = await import("./drawRelief");
+    const flat = document.createElement("canvas");
+    flat.width = 32;
+    flat.height = 32;
+    const ctx = flat.getContext("2d");
+    if (ctx) {
+      ctx.fillStyle = "#808080";
+      ctx.fillRect(0, 0, 32, 32);
+    }
+    const data = reliefOf(flat).getContext("2d")?.getImageData(8, 8, 8, 8).data;
+    const middle = data?.[0] ?? 0;
+    for (let at = 0; at < (data?.length ?? 0); at += 4) {
+      expect(data?.[at]).toBe(middle);
+    }
+  });
+
+  it("comes back opaque, because a pressed surface has no outside", async () => {
+    const { reliefOf } = await import("./drawRelief");
+    const mark = document.createElement("canvas");
+    mark.width = 16;
+    mark.height = 16;
+    const data = reliefOf(mark)
+      .getContext("2d")
+      ?.getImageData(0, 0, 16, 16).data;
+    expect(data?.[3]).toBe(255);
+  });
+});

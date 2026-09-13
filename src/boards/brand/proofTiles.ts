@@ -43,6 +43,7 @@ export type TileKind =
   | "contrast"
   | "dotmatrix"
   | "emboss"
+  | "favicon"
   | "greyscale"
   | "ground"
   | "lockup"
@@ -178,10 +179,22 @@ export const proofTilesFor = (
       label: "Low resolution",
     },
     {
+      /*
+       * Lit, not faked. Luminance is height, so an edge inside the mark
+       * catches light the way a die would — and a mark with no interior
+       * detail comes out flat, which is the finding.
+       */
       caption:
-        "Single colour, in relief. Debossed, foiled, or cut — every process that has no ink, only depth.",
+        "Pressed into the surface, lit from one side. Light parts stand proud, dark parts sink — the way foil, a deboss or a die reads it.",
       kind: "emboss",
       label: "Relief",
+    },
+    {
+      caption:
+        "In a browser tab beside three others, and at the three sizes a favicon is served. Marks that pass the scale ramp still fail here, because a ramp gives them an empty field and a tab gives them company.",
+      kind: "favicon",
+      label: "Favicon",
+      words: name,
     },
     {
       caption:
