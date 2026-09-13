@@ -99,7 +99,11 @@ export const unmetRequirement = (
    * renders in the browser is covered by having a capability rather than by
    * somebody remembering this function exists.
    */
-  if (capability === "board.composite" || capability === "board.shader") {
+  if (
+    capability === "board.composite" ||
+    capability === "board.cover" ||
+    capability === "board.shader"
+  ) {
     return null;
   }
   const mask = maskRefusal(model, masked, models);
