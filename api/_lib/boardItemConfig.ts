@@ -111,6 +111,12 @@ export const settingStored = (
  * They survive a save for the same reason `selectedVersion` does. */
 export const OWNED_TEXT_KEYS = [
   { key: "compositeUrl", max: 2000 },
+  // The three finishing nodes — Cover, Print wrap, Mockup — write theirs the
+  // same way. Without these here a save stripped `coverUrl` and every run
+  // said the cover had not been rendered, however many times it had.
+  { key: "coverUrl", max: 2000 },
+  { key: "mockupUrl", max: 2000 },
+  { key: "wrapUrl", max: 2000 },
   // What the browser rendered for a shader node, written the same way and for
   // the same reason as compositeUrl: only the browser can produce it, and the
   // run reads it back.

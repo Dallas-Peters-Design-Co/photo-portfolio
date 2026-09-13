@@ -1,4 +1,5 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../../../config/canvas.js";
+import { FINISHER_URL_KEYS } from "../../../boards/canvas/finishers";
 import type { BoardItem } from "../../../types";
 
 /**
@@ -74,11 +75,14 @@ export const dropComposites = (list: BoardItem[]): BoardItem[] =>
     ) {
       return { ...item, config: { ...item.config, compositeUrl: null } };
     }
-    // A cover is a picture of its artwork, its words and its finishing, so
-    // the same reasoning applies: anything that moves can invalidate it, and a
-    // stale one would export last week's title over this week's art.
-    if (item.nodeType === "cover" && typeof item.config?.coverUrl === "string") {
-      return { ...item, config: { ...item.config, coverUrl: null } };
+    // A cover, a print wrap or a mockup is a picture of what feeds it and
+    // its settings, so the same reasoning applies: anything that moves can
+    // invalidate it, and a stale one would export last week's title over this
+    // week's art. Which key each keeps its render under is the finishers
+    // table's business.
+    const finished = item.nodeType ? FINISHER_URL_KEYS[item.nodeType] : null;
+    if (finished && typeof item.config?.[finished] === "string") {
+      return { ...item, config: { ...item.config, [finished]: null } };
     }
     // A halftone is a picture of its settings and its wired image, so any edit
     // can invalidate it for exactly the reason a composite can. Left behind, a

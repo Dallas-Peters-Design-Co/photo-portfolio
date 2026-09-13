@@ -8,13 +8,9 @@ import {
 } from "../../../../config/canvas.js";
 import { containedBy } from "../../../../config/graph.js";
 import { MAX_SHADER_RENDERS } from "../../../../config/nodes/limits.js";
-import { renderCover } from "../../../boards/canvas/renderCoverNode";
+import { finishItems } from "../../../boards/canvas/finishers";
 import { renderHalftone } from "../../../boards/canvas/renderShaderNode";
-import {
-  wiredImageFor,
-  wiredImagesFor,
-  wiredTextFor,
-} from "../../../boards/canvas/wiredPreviews";
+import { wiredImagesFor } from "../../../boards/canvas/wiredPreviews";
 import {
   maskOf,
   naturalSizeOf,
@@ -386,42 +382,24 @@ export const useBoardRun = (deps: BoardRunDeps) => {
       })
     );
 
-    /* Covers render here for the reason composites and shaders do: only the
-       browser has the GPU and the font metrics, and a run is the first moment
-       the picture has to exist as a file. `coverUrl` is cleared on any edit —
-       see dropComposites — so one that survived to here is current. */
-    const covered = await Promise.all(
-      composed.map(async (item) => {
-        if (item.nodeType !== "cover") {
-          return item;
-        }
-        const config = item.config ?? {};
-        if (typeof config.coverUrl === "string") {
-          return item;
-        }
-        const graph = {
-          items: pending.current.items,
-          wires: pending.current.wires,
-        };
-        try {
-          const blob = await renderCover(
-            config,
-            wiredImageFor(item.id, graph),
-            wiredTextFor(item.id, graph)
-          );
-          const { url } = await portfolioService.uploadImageFile(
-            new File([blob], "cover.png", { type: "image/png" }),
+    /* Covers, print wraps and mockups render here for the reason composites
+       and shaders do: only the browser has the GPU and the font metrics, and a
+       run is the first moment the picture has to exist as a file. Their URLs
+       are cleared on any edit — see dropComposites — so one that survived to
+       here is current. The table of them, and the order they must go in, is
+       finishers.ts. */
+    const covered = await finishItems(
+      composed,
+      (items) => ({ items, wires: pending.current.wires }),
+      async (blob, file, folder) =>
+        (
+          await portfolioService.uploadImageFile(
+            new File([blob], file, { type: "image/png" }),
             undefined,
-            "boards/covers"
-          );
-          return { ...item, config: { ...config, coverUrl: url } };
-        } catch (err) {
-          toast.error(
-            err instanceof Error ? err.message : "Could not render the cover"
-          );
-          return item;
-        }
-      })
+            folder
+          )
+        ).url,
+      (message) => toast.error(message)
     );
 
     /*

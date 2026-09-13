@@ -18,6 +18,7 @@ import { useFrameActions } from "../FrameOpenContext";
 import { isSvgUrl } from "../io/affinity";
 import { frameSummary } from "../io/copyToBoard";
 import { downloadImage } from "../io/downloadImage";
+import { PrintRow } from "./PrintRow";
 import { outputImageOf, outputImagesOf } from "../itemOutput";
 import type { CanvasMenuTarget } from "./CanvasMenu";
 import { CollectionRow, hasTools, ToolsRow } from "./CanvasMenuPanels";
@@ -228,6 +229,8 @@ function SingleItemRows({
           }
         />
       ) : null}
+
+      {onlyPicked ? <PrintRow item={onlyPicked} rowClass={rowClass} /> : null}
 
       {onlyPicked?.nodeType === "brand" && onProofMark ? (
         <ProofRow onProof={() => onProofMark(onlyPicked.id)} />

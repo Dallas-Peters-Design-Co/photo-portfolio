@@ -224,7 +224,12 @@ export const jobsFor = ({
   // wiring describes a single run no matter how many references feed it.
   // Fanning out here would bill one description per image and then throw all
   // but the last away.
-  if (capability === "board.composite" || capability === "board.cover") {
+  if (
+    capability === "board.composite" ||
+    capability === "board.cover" ||
+    capability === "board.mockup" ||
+    capability === "board.wrap"
+  ) {
     // One run however many pictures feed it: the images are its material, not
     // a batch to iterate over. Fanning out here would store the same rendered
     // composite — or cover — once per source.

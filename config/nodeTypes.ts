@@ -38,10 +38,12 @@ import { ICON } from "./nodes/icon.js";
 import { ITERATE } from "./nodes/iterate.js";
 import { JOIN } from "./nodes/join.js";
 import { LIST } from "./nodes/list.js";
+import { MOCKUP } from "./nodes/mockup.js";
 import { PALETTE } from "./nodes/palette.js";
 import { PROMPT } from "./nodes/prompt.js";
 import { STANDARD } from "./nodes/standard.js";
 import { VIDEO } from "./nodes/video.js";
+import { WRAP } from "./nodes/wrap.js";
 import { OUTPUT_PORT_KEY } from "./ports.js";
 
 /** What travels down a wire. A new one is an entry here plus a handle colour. */
@@ -176,7 +178,9 @@ export type SettingDef =
 export type NodeCapability =
   | "board.composite"
   | "board.cover"
+  | "board.mockup"
   | "board.shader"
+  | "board.wrap"
   | "fal.describe"
   | "fal.image"
   | "fal.video"
@@ -194,10 +198,12 @@ export type NodeTypeId =
   | "iterate"
   | "join"
   | "list"
+  | "mockup"
   | "palette"
   | "prompt"
   | "standard"
-  | "video";
+  | "video"
+  | "wrap";
 
 export interface NodeType {
   /** Absent on source nodes, which produce their value without spending. */
@@ -221,10 +227,12 @@ export const NODE_TYPES: Record<NodeTypeId, NodeType> = {
   iterate: ITERATE,
   join: JOIN,
   list: LIST,
+  mockup: MOCKUP,
   palette: PALETTE,
   prompt: PROMPT,
   standard: STANDARD,
   video: VIDEO,
+  wrap: WRAP,
 };
 
 /** Read off the registry: a restated list disagrees the moment one is added. */

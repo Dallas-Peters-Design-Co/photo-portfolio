@@ -102,6 +102,8 @@ export const unmetRequirement = (
   if (
     capability === "board.composite" ||
     capability === "board.cover" ||
+    capability === "board.mockup" ||
+    capability === "board.wrap" ||
     capability === "board.shader"
   ) {
     return null;

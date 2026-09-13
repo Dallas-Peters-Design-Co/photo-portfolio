@@ -1,6 +1,5 @@
 import { coverGlOptionsFrom, CoverGlError, paintCover } from "./coverGl";
 import {
-  type CoverLayout,
   type CoverVariant,
   COVER_HEIGHT,
   COVER_WIDTH,
@@ -39,10 +38,11 @@ const seedFrom = (url: string): number => {
   return Math.abs(hash % 1000);
 };
 
-const text = (value: unknown): string =>
+/** A text setting, or nothing. Shared with the wrap and mockup renderers. */
+export const readText = (value: unknown): string =>
   typeof value === "string" ? value : "";
 
-const color = (value: unknown, fallback: string): string =>
+export const readColor = (value: unknown, fallback: string): string =>
   typeof value === "string" && /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value.trim())
     ? value.trim()
     : fallback;
@@ -54,11 +54,11 @@ const color = (value: unknown, fallback: string): string =>
  * fallback, which is visibly wrong and recoverable; a thrown error is no cover
  * at all. The console line is there so it is diagnosable rather than mysterious.
  */
-const loadFaces = async (layout: CoverLayout): Promise<void> => {
+export const loadFaces = async (faces: readonly string[]): Promise<void> => {
   if (!document.fonts) {
     return;
   }
-  const wanted = new Set(layout.runs.map((run) => `700 100px ${run.face}`));
+  const wanted = new Set(faces.map((face) => `700 100px ${face}`));
   await Promise.all(
     [...wanted].map((spec) =>
       document.fonts.load(spec).catch((err: unknown) => {
@@ -135,14 +135,14 @@ export const renderCover = async (
     {
       // Settings win over the wire, so a node can override one line without
       // detaching what feeds it.
-      author: text(config.author) || fromWire.author || "",
-      subtitle: text(config.subtitle) || fromWire.subtitle || "",
-      title: text(config.title) || fromWire.title || "",
+      author: readText(config.author) || fromWire.author || "",
+      subtitle: readText(config.subtitle) || fromWire.subtitle || "",
+      title: readText(config.title) || fromWire.title || "",
     },
     {
-      accent: color(config.accent, "#fa7c62"),
-      band: color(config.band, "#293341"),
-      ink: color(config.ink, "#efe6d2"),
+      accent: readColor(config.accent, "#fa7c62"),
+      band: readColor(config.band, "#293341"),
+      ink: readColor(config.ink, "#efe6d2"),
     },
     (sample, face) => {
       // The measurer the layout asks for: one glyph run at 1px, on a scratch
@@ -156,7 +156,7 @@ export const renderCover = async (
     }
   );
 
-  await loadFaces(layout);
+  await loadFaces(layout.runs.map((run) => run.face));
 
   const gl = document.createElement("canvas");
   gl.width = width;

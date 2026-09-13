@@ -299,6 +299,20 @@ export const produce = async (
       "The composite has not been rendered yet"
     );
   }
+  if (capability === "board.wrap") {
+    return browserRendered(
+      args.item.config,
+      "wrapUrl",
+      "The print wrap has not been rendered yet"
+    );
+  }
+  if (capability === "board.mockup") {
+    return browserRendered(
+      args.item.config,
+      "mockupUrl",
+      "The mockup has not been rendered yet"
+    );
+  }
   if (capability === "board.cover") {
     return browserRendered(
       args.item.config,
