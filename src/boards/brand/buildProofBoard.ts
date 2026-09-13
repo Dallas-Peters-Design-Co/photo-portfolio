@@ -3,6 +3,7 @@ import type { BoardItem } from "../../types";
 import { newItemId } from "../io/newItemId";
 import { drawTile, type Mark, TILE } from "./drawTile";
 import { proofTilesFor } from "./proofTiles";
+import { TEMPLATES } from "./templates";
 
 /**
  * A proof sheet, as items on a board.
@@ -16,6 +17,27 @@ import { proofTilesFor } from "./proofTiles";
  * handing somebody a link are all things a board already does — so the feature
  * is "make the pictures", and everything around them comes for free.
  */
+
+/**
+ * Every template photograph, decoded and ready to draw.
+ *
+ * A template that cannot be loaded is left out rather than failing the sheet:
+ * one missing photograph should cost its own tile, not the fourteen others.
+ */
+const loadTemplates = async (): Promise<Map<string, Mark>> => {
+  const loaded = await Promise.all(
+    TEMPLATES.map(
+      (template) =>
+        new Promise<[string, HTMLImageElement] | null>((resolve) => {
+          const image = new Image();
+          image.onload = () => resolve([template.id, image]);
+          image.onerror = () => resolve(null);
+          image.src = template.image;
+        })
+    )
+  );
+  return new Map(loaded.filter((entry) => entry !== null));
+};
 
 /** Room between tiles, so the sheet reads as a grid rather than a wall. */
 const GAP = 48;
@@ -43,6 +65,10 @@ export const drawProofSheet = async (
 ): Promise<ProofItem[]> => {
   const context = {
     minWidth: logo.minWidth > 0 ? logo.minWidth : 24,
+    // Loaded once, before anything draws: every template tile needs its
+    // photograph decoded, and decoding inside the draw would make each tile
+    // wait for a file the one before it already fetched.
+    photos: await loadTemplates(),
     typeface: doc.typefaces[0]?.name ?? "system-ui",
   };
   const drawn: ProofItem[] = [];

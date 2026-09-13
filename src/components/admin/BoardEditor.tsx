@@ -47,6 +47,7 @@ import { useBoardRun } from "./boardEditor/useBoardRun";
 import { useBoardUploads } from "./boardEditor/useBoardUploads";
 import { useBoardVectorTools } from "./boardEditor/useBoardVectorTools";
 import { useDropPoint } from "./boardEditor/useDropPoint";
+import { useProofMark } from "./boardEditor/useProofMark";
 import { useRecipes } from "./boardEditor/useRecipes";
 import { useSelectedItem } from "./boardEditor/useSelectedItem";
 
@@ -156,8 +157,7 @@ export function BoardEditor({
     wires,
   });
 
-  const train = (id: string) => void trainOnFrame(id);
-
+  const { proofMark } = useProofMark(items, change, dropPoint);
   const { applyRun, createFromPort, flushBeforeRun } = useBoardRun({
     items,
     pending,
@@ -348,7 +348,7 @@ export function BoardEditor({
               the published board's own view. */}
           <FrameOpenProvider
             linkFor={(id) => frameLink(publicUrl, items, id)}
-            onTrainOnFrame={train}
+            onTrainOnFrame={(id) => void trainOnFrame(id)}
           >
             <BoardCanvas
               autoEditId={autoEditId}
@@ -375,7 +375,8 @@ export function BoardEditor({
               onExportItem={(itemId) => void exportItem(itemId)}
               onGroupIntoFrame={groupIntoFrame}
               onMaskStroke={addMaskStroke}
-              onOpenInAffinity={(itemId) => void openItemInAffinity(itemId)}
+              onOpenInAffinity={(id) => void openItemInAffinity(id)}
+              onProofMark={(id) => void proofMark(id)}
               onRemoveVersion={(itemId, index) =>
                 void removeVersion(itemId, index)
               }

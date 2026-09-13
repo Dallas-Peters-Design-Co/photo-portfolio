@@ -190,6 +190,8 @@ interface BoardCanvasProps {
    */
   /** Sends a node's SVG to Affinity and syncs its edits back. */
   onOpenInAffinity?: (itemId: string) => void;
+  /** Places a proof sheet for a Brand node's mark on this board. */
+  onProofMark?: (itemId: string) => void;
   /** Deletes one stored version of a node's output. */
   onRemoveVersion?: (itemId: string, index: number) => void;
   /** Runs one node. `force` ignores a stored result that is still current. */
@@ -290,6 +292,7 @@ export function BoardCanvas({
   onGroupIntoFrame,
   onMaskStroke,
   onOpenInAffinity,
+  onProofMark,
   onBringToFront,
   onSendToBack,
   drawTool = null,
@@ -353,6 +356,22 @@ export function BoardCanvas({
   } | null>(null);
   /** The canvas was right-clicked; what is offered depends on where. */
   const [menu, setMenu] = useState<CanvasMenuTarget | null>(null);
+
+  /**
+   * Runs a menu action and closes the menu.
+   *
+   * Every row on that menu did both, written out each time, which made
+   * nine four-line handlers whose only difference was which callback they
+   * named — and a tenth is what pushed this file back over its ceiling. The
+   * menu is dismissed the instant anything is chosen, so "and then close"
+   * is a property of the menu rather than a decision each row remakes.
+   */
+  const closing =
+    <T,>(run?: (value: T) => void) =>
+    (value: T) => {
+      run?.(value);
+      setMenu(null);
+    };
   // Owned here rather than in CanvasMenu so a run outlives the menu that
   // started it: the menu is dismissed the instant a tool is picked.
   const tools = useBoardTools({
@@ -1287,36 +1306,19 @@ export function BoardCanvas({
       <CanvasMenu
         items={items}
         menu={menu}
-        onArrange={(itemId) => {
-          onArrangeFrame?.(itemId);
-          setMenu(null);
-        }}
-        onBringToFront={(itemId) => {
-          onBringToFront?.(itemId);
-          setMenu(null);
-        }}
+        onArrange={closing(onArrangeFrame)}
+        onBringToFront={closing(onBringToFront)}
         onCopyFrame={(frame, title) => {
           onCopyFrame?.(frame, title);
           setMenu(null);
         }}
         onDismiss={() => setMenu(null)}
-        onExport={(itemId) => {
-          onExportItem?.(itemId);
-          setMenu(null);
-        }}
-        onGroup={(chosen) => {
-          onGroupIntoFrame?.(chosen);
-          setMenu(null);
-        }}
-        onOpenInAffinity={(itemId) => {
-          onOpenInAffinity?.(itemId);
-          setMenu(null);
-        }}
+        onExport={closing(onExportItem)}
+        onGroup={closing(onGroupIntoFrame)}
+        onOpenInAffinity={closing(onOpenInAffinity)}
+        onProofMark={closing(onProofMark)}
         onRunTool={readOnly ? undefined : tools.run}
-        onSaveElement={(chosen) => {
-          onSaveElement?.(chosen);
-          setMenu(null);
-        }}
+        onSaveElement={closing(onSaveElement)}
         onSaveRecipe={
           readOnly || !onSaveRecipe
             ? undefined
@@ -1325,14 +1327,8 @@ export function BoardCanvas({
                 setMenu(null);
               }
         }
-        onSendToBack={(itemId) => {
-          onSendToBack?.(itemId);
-          setMenu(null);
-        }}
-        onSendToCanva={(item) => {
-          onSendToCanva?.(item);
-          setMenu(null);
-        }}
+        onSendToBack={closing(onSendToBack)}
+        onSendToCanva={closing(onSendToCanva)}
         onVectorize={(itemId) => {
           onVectorize?.(itemId);
           setMenu(null);

@@ -1,6 +1,6 @@
 import { caption, fitted, ground, inked } from "./drawMark";
-import { MOCKUPS } from "./mockups";
 import type { ProofTile } from "./proofTiles";
+import { TEMPLATES } from "./templates";
 
 /**
  * One tile, drawn.
@@ -197,60 +197,46 @@ const drawLockup: Draw = (ctx, mark, tile, { typeface }) => {
 };
 
 /**
- * The mark on a surface, in a scene.
+ * The mark on a photographed surface.
  *
- * Drawn rather than generated, which is the point: a sheet that asks "does
- * this survive a real sign" while showing a sign a model invented is not
- * evidence. Four numbers describe the surface and four more the mark's place
- * on it, so a real photograph can replace the drawing later without touching
- * this.
+ * The drawn rectangles this replaces were a stand-in and read like one. A
+ * client sees a flat grey box as a diagram and a lit billboard as the thing
+ * itself, and that difference decides whether the sheet is evidence or a
+ * wireframe.
+ *
+ * The blend is what makes it a mockup rather than a sticker: multiplied, the
+ * panel's own hotspot falls across the artwork as well as around it;
+ * screened, a cap's seam and weave show through light ink instead of stopping
+ * at its edge.
  */
-const drawMockup: Draw = (ctx, mark, tile) => {
-  const mockup = MOCKUPS.find((entry) => entry.label === tile.label);
-  if (!mockup) {
+const drawTemplate: Draw = (ctx, mark, tile, context) => {
+  const template = TEMPLATES.find((entry) => entry.id === tile.templateId);
+  const photo = template ? context.photos.get(template.id) : undefined;
+  if (!(template && photo)) {
     return;
   }
-  ground(ctx, mockup.backdrop, { height: TILE, width: TILE });
-  const face = {
-    height: mockup.surface.h * TILE,
-    width: mockup.surface.w * TILE,
-    x: mockup.surface.x * TILE,
-    y: mockup.surface.y * TILE,
+  ground(ctx, "#ffffff", { height: TILE, width: TILE });
+  const frame = fitted(photo, { height: TILE, width: TILE, x: 0, y: 0 });
+  ctx.drawImage(photo, frame.x, frame.y, frame.width, frame.height);
+
+  const area = {
+    height: template.area.h * frame.height,
+    width: template.area.w * frame.width,
+    x: frame.x + template.area.x * frame.width,
+    y: frame.y + template.area.y * frame.height,
   };
-  ctx.fillStyle = mockup.surface.colour;
-  ctx.fillRect(face.x, face.y, face.width, face.height);
-
-  const box = fitted(
-    mark,
-    {
-      height: mockup.mark.h * face.height,
-      width: mockup.mark.w * face.width,
-      x: face.x + mockup.mark.x * face.width,
-      y: face.y + mockup.mark.y * face.height,
-    },
-    { enlarge: true }
+  const box = fitted(mark, area);
+  ctx.save();
+  ctx.globalCompositeOperation = template.blend;
+  ctx.globalAlpha = template.opacity ?? 1;
+  ctx.drawImage(
+    template.ink ? inked(mark, template.ink) : mark,
+    box.x,
+    box.y,
+    box.width,
+    box.height
   );
-  ctx.drawImage(inked(mark, mockup.ink), box.x, box.y, box.width, box.height);
-
-  /*
-   * A band of shade over everything, mark included.
-   *
-   * The difference between a mockup and a sticker: light falls on the surface
-   * *and* on what is printed on it. Drawn last and over both so the mark sits
-   * in the scene rather than on top of it.
-   */
-  if (mockup.shade) {
-    const gradient = ctx.createLinearGradient(
-      face.x,
-      face.y,
-      face.x + face.width,
-      face.y + face.height
-    );
-    gradient.addColorStop(0, `rgba(0,0,0,${mockup.shade})`);
-    gradient.addColorStop(0.6, "rgba(0,0,0,0)");
-    ctx.fillStyle = gradient;
-    ctx.fillRect(face.x, face.y, face.width, face.height);
-  }
+  ctx.restore();
 };
 
 /**
@@ -295,12 +281,14 @@ const DRAWS: Partial<Record<ProofTile["kind"], Draw>> = {
   lockup: drawLockup,
   pattern: drawPattern,
   scale: drawScale,
-  surface: drawMockup,
+  surface: drawTemplate,
 };
 
 export interface TileContext {
   /** The declared floor, drawn as a line on the scale ramp. */
   minWidth: number;
+  /** The template photographs, loaded before any drawing starts. */
+  photos: Map<string, Mark>;
   /** The kit's first typeface, for the lockup. */
   typeface: string;
 }

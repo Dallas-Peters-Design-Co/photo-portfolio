@@ -83,6 +83,23 @@ function EditorRow({ onOpen }: { onOpen: () => void }) {
 }
 
 /** Traces a placed picture into vector art with the Recraft vectorizer. */
+/**
+ * Drops a proof sheet for this Brand node's mark onto the board you are on.
+ *
+ * The kit panel's button makes a board of its own, which is right when a
+ * review is what you sat down to do. This is the other case: you are mid-work
+ * with the mark already wired into something, and being sent elsewhere to look
+ * at it is the interruption rather than the help.
+ */
+function ProofRow({ onProof }: { onProof: () => void }) {
+  return (
+    <button className={rowClass} onClick={onProof} type="button">
+      <HugeiconsIcon aria-hidden icon={PenTool01Icon} size={14} />
+      <span>Proof this mark</span>
+    </button>
+  );
+}
+
 function VectorizeRow({ onVectorize }: { onVectorize: () => void }) {
   return (
     <button className={rowClass} onClick={onVectorize} type="button">
@@ -136,6 +153,7 @@ function SingleItemRows({
   onBringToFront,
   onExport,
   onOpenInAffinity,
+  onProofMark,
   onSendToCanva,
   onSendToBack,
   onVectorize,
@@ -145,6 +163,8 @@ function SingleItemRows({
   onBringToFront: (itemId: string) => void;
   onExport: (itemId: string) => void;
   onOpenInAffinity?: (itemId: string) => void;
+  /** Places a proof sheet for a Brand node's chosen mark on this board. */
+  onProofMark?: (itemId: string) => void;
   onSendToCanva?: (item: BoardItem) => void;
   onSendToBack: (itemId: string) => void;
   onVectorize?: (itemId: string) => void;
@@ -178,6 +198,10 @@ function SingleItemRows({
 
       {onlyPicked && pickedImage && onOpenInAffinity ? (
         <EditorRow onOpen={() => onOpenInAffinity(onlyPicked.id)} />
+      ) : null}
+
+      {onlyPicked?.nodeType === "brand" && onProofMark ? (
+        <ProofRow onProof={() => onProofMark(onlyPicked.id)} />
       ) : null}
 
       {onlyPicked && placedImage && onVectorize ? (
@@ -297,6 +321,7 @@ export function MenuRows({
   onSaveElement,
   onSaveRecipe,
   onOpenInAffinity,
+  onProofMark,
   onSendToCanva,
   onSendToBack,
   onTools,
@@ -318,6 +343,8 @@ export function MenuRows({
   /** Absent on a board that cannot save one — a visitor, or a read-only view. */
   onSaveRecipe?: (items: BoardItem[]) => void;
   onOpenInAffinity?: (itemId: string) => void;
+  /** Places a proof sheet for a Brand node's chosen mark on this board. */
+  onProofMark?: (itemId: string) => void;
   onSendToCanva?: (item: BoardItem) => void;
   onSendToBack: (itemId: string) => void;
   /** Opens the tool picker on the one selected item. Absent, the row is too. */
@@ -361,6 +388,7 @@ export function MenuRows({
         onExport={onExport}
         onlyPicked={onlyPicked}
         onOpenInAffinity={onOpenInAffinity}
+        onProofMark={onProofMark}
         onSendToBack={onSendToBack}
         onSendToCanva={onSendToCanva}
         onVectorize={onVectorize}

@@ -40,7 +40,13 @@ describe("proofTilesFor", () => {
     expect(grounds).toEqual(["#ffffff", "#000000"]);
   });
 
-  it("adds a tile for every colour the brand owns", () => {
+  it("asks the brand's own ground once, not once per colour", () => {
+    /*
+     * A square per palette entry filled most of the sheet with near-identical
+     * pictures. A sheet a client scrolls past is worth less than a shorter one
+     * they read, and black and white already ask the contrast question — this
+     * asks it again only on the colour the brand leads with.
+     */
     const tiles = proofTilesFor(
       kit([
         { name: "Ink", role: "text", value: "#101a2b" },
@@ -48,12 +54,9 @@ describe("proofTilesFor", () => {
       ])
     );
     const contrast = tiles.filter((tile) => tile.kind === "contrast");
-    expect(contrast.map((tile) => tile.background)).toEqual([
-      "#101a2b",
-      "#2e84f5",
-    ]);
+    expect(contrast).toHaveLength(1);
+    expect(contrast[0].background).toBe("#101a2b");
     expect(contrast[0].label).toBe("Ink");
-    expect(contrast[0].caption).toContain("text");
   });
 
   it("falls back to the hex when a colour was never named", () => {
@@ -101,43 +104,49 @@ describe("PLACEMENT_SIZES", () => {
 
 describe("the drawn surfaces", () => {
   it("puts one tile on the sheet for each", async () => {
-    const { MOCKUPS } = await import("./mockups");
+    const { TEMPLATES } = await import("./templates");
     const surfaces = proofTilesFor(EMPTY_KIT).filter(
       (tile) => tile.kind === "surface"
     );
-    expect(surfaces).toHaveLength(MOCKUPS.length);
+    expect(surfaces).toHaveLength(TEMPLATES.length);
     expect(surfaces.map((tile) => tile.label)).toEqual(
-      MOCKUPS.map((mockup) => mockup.label)
+      TEMPLATES.map((template) => template.label)
     );
   });
 
   it("labels them the way the renderer looks them up", async () => {
     // drawMockup finds its config by label. A tile whose label drifts from
     // its entry draws an empty square, which reads as a broken renderer.
-    const { MOCKUPS } = await import("./mockups");
-    for (const mockup of MOCKUPS) {
+    const { TEMPLATES } = await import("./templates");
+    for (const template of TEMPLATES) {
       expect(
-        proofTilesFor(EMPTY_KIT).some((tile) => tile.label === mockup.label),
-        mockup.label
+        proofTilesFor(EMPTY_KIT).some((tile) => tile.label === template.label),
+        template.label
       ).toBe(true);
     }
   });
 
-  it("keeps the mark inside the surface it is printed on", async () => {
-    // A mark placed past the edge of the thing it sits on is drawn over the
-    // scene behind it, which reads as a rendering bug rather than a mockup.
-    const { MOCKUPS } = await import("./mockups");
-    for (const { label, mark } of MOCKUPS) {
-      expect(mark.x + mark.w, label).toBeLessThanOrEqual(1);
-      expect(mark.y + mark.h, label).toBeLessThanOrEqual(1);
+  it("keeps the mark inside the photograph it is printed on", async () => {
+    // An area running past the edge draws the mark over the scene behind the
+    // surface, which reads as a rendering bug rather than as a mockup.
+    const { TEMPLATES } = await import("./templates");
+    for (const { area, label } of TEMPLATES) {
+      expect(area.x + area.w, label).toBeLessThanOrEqual(1);
+      expect(area.y + area.h, label).toBeLessThanOrEqual(1);
     }
   });
 
-  it("keeps every surface inside the tile", async () => {
-    const { MOCKUPS } = await import("./mockups");
-    for (const { label, surface } of MOCKUPS) {
-      expect(surface.x + surface.w, label).toBeLessThanOrEqual(1);
-      expect(surface.y + surface.h, label).toBeLessThanOrEqual(1);
+  it("gives every surface tile a template to find", async () => {
+    // drawTemplate looks its photograph up by id. A tile without one draws
+    // the bare photo and no mark, which looks like a failed upload.
+    const { TEMPLATES } = await import("./templates");
+    const ids = new Set(TEMPLATES.map((template) => template.id));
+    for (const tile of proofTilesFor(EMPTY_KIT)) {
+      if (tile.kind === "surface") {
+        expect(tile.templateId && ids.has(tile.templateId), tile.label).toBe(
+          true
+        );
+      }
     }
   });
 });

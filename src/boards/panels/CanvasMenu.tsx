@@ -49,6 +49,8 @@ interface CanvasMenuProps {
   onGroup: (items: BoardItem[]) => void;
   /** Opens a node's SVG in Affinity, and syncs its edits back. */
   onOpenInAffinity?: (itemId: string) => void;
+  /** Places a proof sheet for a Brand node's mark on this board. */
+  onProofMark?: (itemId: string) => void;
   /**
    * Runs a registry tool on the one selected item.
    *
@@ -80,6 +82,7 @@ export function CanvasMenu({
   onExport,
   onGroup,
   onOpenInAffinity,
+  onProofMark,
   onRunTool,
   onSaveElement,
   onSaveRecipe,
@@ -225,6 +228,7 @@ export function CanvasMenu({
       onExport={onExport}
       onGroup={onGroup}
       onOpenInAffinity={onOpenInAffinity}
+      onProofMark={onProofMark}
       onSaveElement={onSaveElement}
       onSaveRecipe={
         onSaveRecipe

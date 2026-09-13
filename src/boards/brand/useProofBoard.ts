@@ -111,5 +111,41 @@ export const useProofBoard = () => {
           )
       : undefined;
 
-  return { makeProofBoard, proofHandlerFor };
+  /**
+   * The same sheet, dropped onto the board you are already on.
+   *
+   * The panel button makes a board because that is where a review starts. A
+   * Brand node is the other way round: you are mid-work, the mark is already
+   * wired into something, and sending you to a different board to look at it
+   * is the interruption. So this returns the items and lets the canvas place
+   * them where it likes.
+   */
+  const proofItemsFor = async (
+    kit: { doc: BrandKitDoc; name: string },
+    logo: LogoEntry,
+    at: { x: number; y: number }
+  ) => {
+    const mark = await loadMark(logo.url);
+    const sheet = await drawProofSheet(mark, kit.doc, logo, kit.name);
+    const uploaded = await Promise.all(
+      sheet.map(async (tile) => {
+        const file = new File([tile.blob], `${tile.label}.png`, {
+          type: "image/png",
+        });
+        const { url } = await portfolioService.uploadImageFile(
+          file,
+          undefined,
+          "boards/proof"
+        );
+        return { caption: tile.caption, label: tile.label, url };
+      })
+    );
+    return proofItems(uploaded).map((item) => ({
+      ...item,
+      x: item.x + at.x,
+      y: item.y + at.y,
+    }));
+  };
+
+  return { makeProofBoard, proofHandlerFor, proofItemsFor };
 };

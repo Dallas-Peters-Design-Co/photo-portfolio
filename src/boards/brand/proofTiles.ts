@@ -1,5 +1,5 @@
 import type { BrandKitDoc } from "../../../config/brandKit.js";
-import { MOCKUPS } from "./mockups";
+import { TEMPLATES } from "./templates";
 
 /**
  * What a proof board is made of.
@@ -66,6 +66,8 @@ export interface ProofTile {
   label: string;
   /** The placement sizes this tile renders, for the scale ramp. */
   sizes?: readonly { label: string; px: number }[];
+  /** Which photograph this tile places the mark on. See templates.ts. */
+  templateId?: string;
   /** Words to set beside the mark, for a lockup. */
   words?: string;
 }
@@ -197,11 +199,12 @@ export const proofTilesFor = (
    * tiles above ask whether the mark works; these ask whether it looks right
    * somewhere, which is a question about the drawing as much as the mark.
    */
-  for (const mockup of MOCKUPS) {
+  for (const template of TEMPLATES) {
     tiles.push({
-      caption: mockup.caption,
+      caption: template.caption,
       kind: "surface",
-      label: mockup.label,
+      label: template.label,
+      templateId: template.id,
     });
   }
 
@@ -235,18 +238,20 @@ export const proofTilesFor = (
   }
 
   /*
-   * Every colour the brand actually owns.
+   * One tile for the brand's own ground, not thirteen.
    *
-   * The pairs nobody checks: a mark legible on white and invisible on the
-   * brand's own second colour is a fault in the palette rather than in the
-   * mark, and it is only ever found after something is printed.
+   * A square per palette entry filled most of the sheet with near-identical
+   * pictures, and a sheet a client scrolls past is worth less than a shorter
+   * one they read. Black and white already ask the contrast question; this
+   * asks it once more on the colour the brand actually leads with.
    */
-  for (const entry of doc.palette) {
+  const [lead] = doc.palette;
+  if (lead) {
     tiles.push({
-      background: entry.value,
-      caption: `On ${entry.name || entry.value}${entry.role ? ` — the brand's ${entry.role}` : ""}. Contrast is measured, not judged.`,
+      background: lead.value,
+      caption: `On ${lead.name || lead.value}, the brand's own ground. Contrast is measured, not judged.`,
       kind: "contrast",
-      label: entry.name || entry.value,
+      label: lead.name || lead.value,
     });
   }
 
