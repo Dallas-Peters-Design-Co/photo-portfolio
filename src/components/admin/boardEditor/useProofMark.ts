@@ -31,13 +31,29 @@ export const useProofMark = (
     const node = items.find((item) => item.id === itemId);
     const config = (node?.config ?? {}) as Record<string, unknown>;
     const kit = kits.find((entry) => entry.id === config.brandKitId);
-    const logo = kit?.resolvedDoc.logos.find(
-      (entry) => entry.url === config.logoUrl
-    );
-    if (!(kit && logo)) {
+    if (!kit) {
       toast.error(
-        "Pick a brand kit and a logo on this node before proofing it"
+        kits.length === 0
+          ? "Brand kits are still loading"
+          : "Pick a brand kit on this node before proofing it"
       );
+      return;
+    }
+    /*
+     * The node's chosen mark, or the kit's first.
+     *
+     * The logo picker on a Brand node answers a different question — which
+     * mark gets stamped onto a generation — and most nodes never touch it,
+     * because most boards never stamp. Requiring it here refused three nodes
+     * out of four for a setting that has nothing to do with proofing.
+     *
+     * A kit with no logos at all is the real refusal, and it says so.
+     */
+    const { logos } = kit.resolvedDoc;
+    const logo =
+      logos.find((entry) => entry.url === config.logoUrl) ?? logos[0];
+    if (!logo) {
+      toast.error(`"${kit.name}" has no logo to proof yet`);
       return;
     }
     const toastId = toast.loading("Drawing the proof sheet…");

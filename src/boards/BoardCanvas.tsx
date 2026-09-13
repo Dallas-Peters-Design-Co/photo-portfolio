@@ -1,4 +1,4 @@
-import type { MouseEvent as ReactMouseEvent, RefObject } from "react";
+import type { RefObject } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CANVAS_HEIGHT,
@@ -57,6 +57,7 @@ import {
   type Box as SnapBox,
   type SnapIndex,
 } from "./geometry/snapIndex";
+import { useCanvasMenu } from "./hooks/useCanvasMenu";
 import { useCanvasViewport } from "./hooks/useCanvasViewport";
 import { useDeleteKey } from "./hooks/useDeleteKey";
 import { usePanModifier } from "./hooks/usePanModifier";
@@ -689,38 +690,19 @@ export function BoardCanvas({
     [items]
   );
 
-  /**
-   * Right-clicking a frame offers to copy it to a board of its own.
-   *
-   * Anywhere else keeps the browser's own menu, which is still how an image
-   * gets saved or a link copied — so this only preempts it over a frame.
-   */
-  const openMenu = useCallback(
-    (e: ReactMouseEvent) => {
-      if (readOnly) {
-        return;
-      }
-      // Both targets are gathered and the menu offers whichever apply. Asking
-      // "is there a frame here?" first made grouping unreachable on any board
-      // with a frame spread under the work — which is most of them.
-      const chosen = selectedItems(selection, items);
-      const frame = onCopyFrame
-        ? frameAt(view.toCanvas(e.clientX, e.clientY))
-        : null;
-      if (chosen.length === 0 && !frame) {
-        // Nothing to offer, so the browser's own menu stays — which is still
-        // how an image gets saved or a link copied.
-        return;
-      }
-      e.preventDefault();
-      setMenu({
-        frame,
-        point: { x: e.clientX, y: e.clientY },
-        selection: onGroupIntoFrame ? chosen : [],
-      });
-    },
-    [frameAt, items, onCopyFrame, onGroupIntoFrame, readOnly, selection, view]
-  );
+  // What a right-click offers, and what it picks up on the way. See
+  // useCanvasMenu.
+  const openMenu = useCanvasMenu({
+    frameAt,
+    items,
+    onCopyFrame,
+    onGroupIntoFrame,
+    readOnly,
+    selection,
+    setMenu,
+    setSelection,
+    view,
+  });
 
   /**
    * Everything the swept rectangle touches.
