@@ -1,6 +1,7 @@
 import type { BrandKitDoc, LogoEntry } from "../../../config/brandKit.js";
 import type { BoardItem } from "../../types";
 import { newItemId } from "../io/newItemId";
+import { pathsOfSvg } from "./bezierPaths";
 import { drawTile, type Mark, TILE } from "./drawTile";
 import { loadGrounds, photoGrounds } from "./onPhoto";
 import { proofTilesFor } from "./proofTiles";
@@ -42,6 +43,7 @@ const loadTemplates = async (): Promise<Map<string, Mark>> => {
 
 /** Room between tiles, so the sheet reads as a grid rather than a wall. */
 const GAP = 48;
+const SVG_SOURCE = /\.svg(\?|#|$)/i;
 const COLUMNS = 4;
 
 /** How the caption under each tile is worded, for the item's own label. */
@@ -58,6 +60,18 @@ export interface ProofItem {
  * a browser asked for fifteen at once is a browser deciding which to keep. The
  * whole sheet is a second or so of work, all of it local.
  */
+/** The SVG's curves, or null for raster artwork — see bezierPaths. */
+const markPaths = async (url: string) => {
+  if (!SVG_SOURCE.test(url)) {
+    return null;
+  }
+  try {
+    return pathsOfSvg(await (await fetch(url)).text());
+  } catch {
+    return null;
+  }
+};
+
 export const drawProofSheet = async (
   mark: Mark,
   doc: BrandKitDoc,
@@ -65,14 +79,17 @@ export const drawProofSheet = async (
   name: string
 ): Promise<ProofItem[]> => {
   const context = {
-    // Loaded once, before anything draws: every template tile needs its
-    // photograph decoded, and decoding inside the draw would make each tile
-    // wait for a file the one before it already fetched.
     // Fetched before anything draws, and in parallel with the templates: one
     // round trip to Unsplash rather than one per tile, and a failure here
     // leaves the tile empty rather than the sheet unmade.
     grounds: await loadGrounds(await photoGrounds()).catch(() => []),
     minWidth: logo.minWidth > 0 ? logo.minWidth : 24,
+    // Loaded once, before anything draws: every template tile needs its
+    // photograph decoded, and decoding inside the draw would make each tile
+    // wait for a file the one before it already fetched.
+    // The mark's own curves, when it is vector. Read from the source rather
+    // than from the raster, because anchors do not survive rasterising.
+    paths: await markPaths(logo.url),
     photos: await loadTemplates(),
     typeface: doc.typefaces[0]?.name ?? "system-ui",
   };

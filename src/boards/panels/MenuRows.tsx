@@ -17,6 +17,7 @@ import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { isSvgUrl } from "../io/affinity";
 import { frameSummary } from "../io/copyToBoard";
+import { downloadImage } from "../io/downloadImage";
 import { outputImageOf, outputImagesOf } from "../itemOutput";
 import type { CanvasMenuTarget } from "./CanvasMenu";
 import { CollectionRow, hasTools, ToolsRow } from "./CanvasMenuPanels";
@@ -96,6 +97,23 @@ function ProofRow({ onProof }: { onProof: () => void }) {
     <button className={rowClass} onClick={onProof} type="button">
       <HugeiconsIcon aria-hidden icon={PenTool01Icon} size={14} />
       <span>Proof this mark</span>
+    </button>
+  );
+}
+
+/**
+ * Saves whatever picture this item is showing.
+ *
+ * There was already a download for a Generate node's batch, and nothing at all
+ * for a plain picture — a dropped reference, a photograph, a proof tile. Those
+ * are most of what sits on a board, and the only way to get one back out was
+ * to find it in blob storage.
+ */
+function SaveRow({ onSave }: { onSave: () => void }) {
+  return (
+    <button className={rowClass} onClick={onSave} type="button">
+      <HugeiconsIcon aria-hidden icon={Download01Icon} size={14} />
+      <span>Save this picture</span>
     </button>
   );
 }
@@ -198,6 +216,17 @@ function SingleItemRows({
 
       {onlyPicked && pickedImage && onOpenInAffinity ? (
         <EditorRow onOpen={() => onOpenInAffinity(onlyPicked.id)} />
+      ) : null}
+
+      {onlyPicked && pickedImage && madeCount === 0 ? (
+        <SaveRow
+          onSave={() =>
+            void downloadImage(
+              outputImageOf(onlyPicked, items) ?? "",
+              onlyPicked.body ?? "image"
+            )
+          }
+        />
       ) : null}
 
       {onlyPicked?.nodeType === "brand" && onProofMark ? (

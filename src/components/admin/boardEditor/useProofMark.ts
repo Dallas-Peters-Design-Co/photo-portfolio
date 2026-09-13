@@ -49,18 +49,32 @@ export const useProofMark = (
      *
      * A kit with no logos at all is the real refusal, and it says so.
      */
+    /*
+     * Every mark, not one.
+     *
+     * A kit holds several and they fail differently — a wordmark dies at
+     * favicon size where the symbol survives — so proofing one of them tested
+     * the one nobody was worried about. The node's chosen mark goes first
+     * when it has one, since that is the one being worked on.
+     */
     const { logos } = kit.resolvedDoc;
-    const logo =
-      logos.find((entry) => entry.url === config.logoUrl) ?? logos[0];
-    if (!logo) {
+    if (logos.length === 0) {
       toast.error(`"${kit.name}" has no logo to proof yet`);
       return;
     }
-    const toastId = toast.loading("Drawing the proof sheet…");
+    const chosen = logos.find((entry) => entry.url === config.logoUrl);
+    const order = chosen
+      ? [chosen, ...logos.filter((entry) => entry !== chosen)]
+      : logos;
+    const toastId = toast.loading(
+      logos.length === 1
+        ? "Drawing the proof sheet…"
+        : `Drawing ${logos.length} proof sheets…`
+    );
     try {
       const placed = await proofItemsFor(
         { doc: kit.resolvedDoc, name: kit.name },
-        logo,
+        order,
         dropPoint(items, 640, 480)
       );
       change([...items, ...placed]);

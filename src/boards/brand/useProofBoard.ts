@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import type { BrandKitDoc, LogoEntry } from "../../../config/brandKit.js";
 import { boardsApi, portfolioService } from "../../services/portfolioService";
+import type { BoardItem } from "../../types";
 import { drawProofSheet, proofBoardTitle, proofItems } from "./buildProofBoard";
 
 /**
@@ -171,7 +172,7 @@ export const useProofBoard = () => {
    * is the interruption. So this returns the items and lets the canvas place
    * them where it likes.
    */
-  const proofItemsFor = async (
+  const oneSheet = async (
     kit: { doc: BrandKitDoc; name: string },
     logo: LogoEntry,
     at: { x: number; y: number }
@@ -188,7 +189,14 @@ export const useProofBoard = () => {
           undefined,
           "boards/proof"
         );
-        return { caption: tile.caption, label: tile.label, url };
+        return {
+          caption: tile.caption,
+          // The mark's name on every tile, because a board carrying three
+          // sheets is otherwise fifty pictures with no way to tell which
+          // belongs to which.
+          label: logo.label ? `${logo.label} — ${tile.label}` : tile.label,
+          url,
+        };
       })
     );
     return proofItems(uploaded).map((item) => ({
@@ -196,6 +204,33 @@ export const useProofBoard = () => {
       x: item.x + at.x,
       y: item.y + at.y,
     }));
+  };
+
+  /**
+   * Every mark in the kit, each with its own band.
+   *
+   * A kit holds several marks and they fail differently — a wordmark dies at
+   * favicon size where the symbol survives, and that comparison is the reason
+   * to have both. Proofing only one of them tested the one nobody was worried
+   * about.
+   *
+   * Sequential rather than parallel: each sheet allocates seventeen full-size
+   * canvases, and three at once is a browser deciding which to keep.
+   */
+  const proofItemsFor = async (
+    kit: { doc: BrandKitDoc; name: string },
+    logos: LogoEntry[],
+    at: { x: number; y: number }
+  ) => {
+    const placed: BoardItem[] = [];
+    let { y } = at;
+    for (const logo of logos) {
+      // biome-ignore lint/performance/noAwaitInLoops: one sheet's canvases at a time — see above
+      const items = await oneSheet(kit, logo, { x: at.x, y });
+      placed.push(...items);
+      y += Math.max(...items.map((item) => item.y + item.height)) - y + 160;
+    }
+    return placed;
   };
 
   return { makeProofBoard, proofHandlerFor, proofItemsFor };

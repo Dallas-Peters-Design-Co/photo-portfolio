@@ -134,9 +134,9 @@ export const proofTilesFor = (
     },
     {
       caption:
-        "The outline alone, with the artwork's own bounding box. A mark that does not fill its file arrives smaller than it was placed.",
+        "The drawing under the drawing: every anchor, every handle, and how many of each it took. The view a designer works in, which no rendering of the finished mark can show.",
       kind: "outline",
-      label: "Outline",
+      label: "Bezier handles",
     },
   ];
 

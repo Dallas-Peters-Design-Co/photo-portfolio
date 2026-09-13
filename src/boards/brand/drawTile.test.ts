@@ -136,6 +136,7 @@ describe("drawTile", () => {
   const context = {
     grounds: [],
     minWidth: 24,
+    paths: null,
     photos: new Map(),
     typeface: "Georgia",
   };
