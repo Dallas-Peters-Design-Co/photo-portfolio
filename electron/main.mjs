@@ -52,15 +52,29 @@ const site = siteArg || process.env.ELECTRON_SITE || "dallas-images";
 const originArg = process.argv
   .find((a) => a.startsWith("--origin="))
   ?.slice("--origin=".length);
-const originOverride = (originArg || process.env.ELECTRON_ORIGIN || "").trim();
-if (originOverride && !/^https?:\/\//.test(originOverride)) {
-  console.error(
-    `[electron] ELECTRON_ORIGIN must be a full http(s) URL, got "${originOverride}"`
-  );
-  app.exit(1);
-}
 
-const origin = originOverride.replace(/\/$/, "") || SITE_URLS[site];
+/**
+ * One clean https://host out of whatever was typed.
+ *
+ * Accepts a bare host, a full URL, a URL with a path, and a URL that has been
+ * through a shell or a copy-paste and come out as "https://https//host" — the
+ * exact string this first shipped against. Everything up to the host is
+ * discarded and the scheme put back once, so the only thing that can be wrong
+ * is the host itself, which is the only thing that was ever meant to vary.
+ */
+const normaliseOrigin = (raw) => {
+  const host = raw
+    .trim()
+    .replace(/^(?:https?:?\/*)+/i, "")
+    .replace(/[/?#].*$/, "");
+  return host ? `https://${host}` : "";
+};
+
+const originOverride = normaliseOrigin(
+  originArg || process.env.ELECTRON_ORIGIN || ""
+);
+
+const origin = originOverride || SITE_URLS[site];
 if (!origin) {
   console.error(
     `[electron] unknown site "${site}"; known: ${Object.keys(SITE_URLS).join(", ")}`
