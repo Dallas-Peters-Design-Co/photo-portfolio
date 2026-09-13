@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm db:migrate && pnpm build",
+  "buildCommand": "{ [ \"$VERCEL_ENV\" != production ] || pnpm db:migrate; } && pnpm build",
   "headers": [
     {
       "source": "/(.*)",
