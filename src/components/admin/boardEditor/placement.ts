@@ -74,6 +74,12 @@ export const dropComposites = (list: BoardItem[]): BoardItem[] =>
     ) {
       return { ...item, config: { ...item.config, compositeUrl: null } };
     }
+    // A cover is a picture of its artwork, its words and its finishing, so
+    // the same reasoning applies: anything that moves can invalidate it, and a
+    // stale one would export last week's title over this week's art.
+    if (item.nodeType === "cover" && typeof item.config?.coverUrl === "string") {
+      return { ...item, config: { ...item.config, coverUrl: null } };
+    }
     // A halftone is a picture of its settings and its wired image, so any edit
     // can invalidate it for exactly the reason a composite can. Left behind, a
     // stale render would export yesterday's colours while the node on screen

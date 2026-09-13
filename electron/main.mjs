@@ -8,6 +8,14 @@
  * Pick the site with the ELECTRON_SITE variable or `--site=<key>`:
  *   ELECTRON_SITE=addison pnpm electron:dev
  *
+ * Or point it at one exact deployment, which is how a branch gets looked at:
+ *   ELECTRON_ORIGIN=https://<branch-preview>.vercel.app pnpm electron:dev
+ *   pnpm electron:dev -- --origin=https://<branch-preview>.vercel.app
+ *
+ * An origin wins over a site. Reviewing a branch means naming a deployment, and
+ * a preview URL belongs to no site key — so there is nothing to add to
+ * SITE_URLS and nothing to remember to take out again afterwards.
+ *
  * Boot on demand: the app exits when the window closes, including on macOS.
  */
 import { spawn } from "node:child_process";
@@ -40,12 +48,27 @@ const siteArg = process.argv
   .find((a) => a.startsWith("--site="))
   ?.slice("--site=".length);
 const site = siteArg || process.env.ELECTRON_SITE || "dallas-images";
-const origin = SITE_URLS[site];
+
+const originArg = process.argv
+  .find((a) => a.startsWith("--origin="))
+  ?.slice("--origin=".length);
+const originOverride = (originArg || process.env.ELECTRON_ORIGIN || "").trim();
+if (originOverride && !/^https?:\/\//.test(originOverride)) {
+  console.error(
+    `[electron] ELECTRON_ORIGIN must be a full http(s) URL, got "${originOverride}"`
+  );
+  app.exit(1);
+}
+
+const origin = originOverride.replace(/\/$/, "") || SITE_URLS[site];
 if (!origin) {
   console.error(
     `[electron] unknown site "${site}"; known: ${Object.keys(SITE_URLS).join(", ")}`
   );
   app.exit(1);
+}
+if (originOverride) {
+  console.log(`[electron] origin override: ${origin}`);
 }
 
 /**

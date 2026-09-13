@@ -30,6 +30,7 @@
 import { BATCH } from "./nodes/batch.js";
 import { BRAND } from "./nodes/brand.js";
 import { COMPOSITE } from "./nodes/composite.js";
+import { COVER } from "./nodes/cover.js";
 import { DESCRIBE } from "./nodes/describe.js";
 import { ELEMENT } from "./nodes/element.js";
 import { GENERATE } from "./nodes/generate.js";
@@ -174,6 +175,7 @@ export type SettingDef =
  */
 export type NodeCapability =
   | "board.composite"
+  | "board.cover"
   | "board.shader"
   | "fal.describe"
   | "fal.image"
@@ -184,6 +186,7 @@ export type NodeTypeId =
   | "batch"
   | "brand"
   | "composite"
+  | "cover"
   | "describe"
   | "element"
   | "generate"
@@ -210,6 +213,7 @@ export const NODE_TYPES: Record<NodeTypeId, NodeType> = {
   batch: BATCH,
   brand: BRAND,
   composite: COMPOSITE,
+  cover: COVER,
   describe: DESCRIBE,
   element: ELEMENT,
   generate: GENERATE,

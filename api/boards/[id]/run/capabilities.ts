@@ -299,6 +299,13 @@ export const produce = async (
       "The composite has not been rendered yet"
     );
   }
+  if (capability === "board.cover") {
+    return browserRendered(
+      args.item.config,
+      "coverUrl",
+      "The cover has not been rendered yet"
+    );
+  }
   if (capability === "board.shader") {
     return browserRendered(
       args.item.config,

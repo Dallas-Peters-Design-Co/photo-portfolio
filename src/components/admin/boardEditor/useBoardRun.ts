@@ -8,8 +8,13 @@ import {
 } from "../../../../config/canvas.js";
 import { containedBy } from "../../../../config/graph.js";
 import { MAX_SHADER_RENDERS } from "../../../../config/nodes/limits.js";
+import { renderCover } from "../../../boards/canvas/renderCoverNode";
 import { renderHalftone } from "../../../boards/canvas/renderShaderNode";
-import { wiredImagesFor } from "../../../boards/canvas/wiredPreviews";
+import {
+  wiredImageFor,
+  wiredImagesFor,
+  wiredTextFor,
+} from "../../../boards/canvas/wiredPreviews";
 import {
   maskOf,
   naturalSizeOf,
@@ -381,8 +386,46 @@ export const useBoardRun = (deps: BoardRunDeps) => {
       })
     );
 
+    /* Covers render here for the reason composites and shaders do: only the
+       browser has the GPU and the font metrics, and a run is the first moment
+       the picture has to exist as a file. `coverUrl` is cleared on any edit —
+       see dropComposites — so one that survived to here is current. */
+    const covered = await Promise.all(
+      composed.map(async (item) => {
+        if (item.nodeType !== "cover") {
+          return item;
+        }
+        const config = item.config ?? {};
+        if (typeof config.coverUrl === "string") {
+          return item;
+        }
+        const graph = {
+          items: pending.current.items,
+          wires: pending.current.wires,
+        };
+        try {
+          const blob = await renderCover(
+            config,
+            wiredImageFor(item.id, graph),
+            wiredTextFor(item.id, graph)
+          );
+          const { url } = await portfolioService.uploadImageFile(
+            new File([blob], "cover.png", { type: "image/png" }),
+            undefined,
+            "boards/covers"
+          );
+          return { ...item, config: { ...config, coverUrl: url } };
+        } catch (err) {
+          toast.error(
+            err instanceof Error ? err.message : "Could not render the cover"
+          );
+          return item;
+        }
+      })
+    );
+
     /*
-     * What the three stages above actually produced, keyed by item.
+     * What the four stages above actually produced, keyed by item.
      *
      * All any of them writes is `config` — a mask URL, a list of render URLs, a
      * composite URL — so that is all that is carried forward. Collected as a
@@ -390,7 +433,7 @@ export const useBoardRun = (deps: BoardRunDeps) => {
      * over a *different* list.
      */
     const flushed = new Map<string, BoardItem["config"]>();
-    composed.forEach((item, i) => {
+    covered.forEach((item, i) => {
       if (item !== started[i]) {
         flushed.set(item.id, item.config);
       }
