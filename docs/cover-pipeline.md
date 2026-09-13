@@ -22,7 +22,9 @@ pnpm cover:seed "<parts folder>" --variant poster --book "<book.json>"
 ```
 
 `parts/` is a folder of full-frame PNGs with alpha plus an `index.json` that
-names each part's role and where its pixels are. The script crops each one to
+names each part's role and where its pixels are. `book.json` is the book's
+file from `_pipeline/schema/books/` in the project folder — title, subtitle,
+author, print block — read as is. The script crops each one to
 its box, uploads it, and makes a new board with a frame holding the parts in
 stacking order, wired into the four nodes with the book's title, subtitle,
 author, page count, paper and trim already filled in.
