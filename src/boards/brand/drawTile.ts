@@ -1,6 +1,6 @@
 import { caption, fitted, ground, inked } from "./drawMark";
 import { reliefOf } from "./drawRelief";
-import { drawCard, drawFavicon } from "./drawStationery";
+import { drawCard, drawFavicon, drawOnPhoto } from "./drawStationery";
 import { inkBounds } from "./markMetrics";
 import type { ProofTile } from "./proofTiles";
 import { TEMPLATES } from "./templates";
@@ -288,6 +288,8 @@ const DRAWS: Partial<Record<ProofTile["kind"], Draw>> = {
   favicon: (ctx, mark, tile) =>
     drawFavicon(ctx, TILE, { mark, name: tile.words ?? "", tile }),
   lockup: drawLockup,
+  onphoto: (ctx, mark, _tile, context) =>
+    drawOnPhoto(ctx, TILE, mark, context.grounds),
   outline: drawOutline,
   pattern: drawPattern,
   scale: drawScale,
@@ -295,6 +297,13 @@ const DRAWS: Partial<Record<ProofTile["kind"], Draw>> = {
 };
 
 export interface TileContext {
+  /**
+   * Photographs the mark is stood on, fetched from Unsplash before drawing.
+   *
+   * Empty when none could be had, which the tile says rather than hides — a
+   * proof sheet that quietly drops a test is worse than one that is short.
+   */
+  grounds: { credit: string; image: CanvasImageSource; label: string }[];
   /** The declared floor, drawn as a line on the scale ramp. */
   minWidth: number;
   /** The template photographs, loaded before any drawing starts. */

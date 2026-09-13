@@ -204,3 +204,66 @@ export const drawFavicon = (
     x += plate + size * 0.06;
   }
 };
+
+/**
+ * The mark on three photographs it did not choose.
+ *
+ * Panels rather than one image, because the comparison *is* the tile: the same
+ * mark at the same size against dark, light and colour, side by side, where a
+ * weakness shows as a difference rather than as a feeling.
+ *
+ * The mark is drawn as it is, with no plate behind it and no recolouring. A
+ * plate would be the answer to the question this tile asks, and answering it
+ * here would mean the sheet never asks it.
+ */
+export const drawOnPhoto = (
+  ctx: CanvasRenderingContext2D,
+  size: number,
+  mark: CanvasImageSource & { height: number; width: number },
+  grounds: { credit: string; image: CanvasImageSource; label: string }[]
+): void => {
+  ground(ctx, "#1b1b1e", { height: size, width: size });
+  if (grounds.length === 0) {
+    ctx.fillStyle = "#8a8a8a";
+    ctx.font = `${Math.round(size * 0.022)}px ${MONO}`;
+    ctx.fillText("No photographs could be fetched", size * 0.08, size * 0.5);
+    return;
+  }
+
+  const pad = size * 0.04;
+  const panelW = (size - pad * (grounds.length + 1)) / grounds.length;
+  const panelH = size - pad * 2 - size * 0.06;
+
+  grounds.forEach((entry, index) => {
+    const x = pad + index * (panelW + pad);
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x, pad, panelW, panelH, 6);
+    ctx.clip();
+    // Covered rather than fitted: a photograph with letterboxing around it is
+    // a picture of a photograph, not a surface the mark is sitting on.
+    const source = entry.image as { height: number; width: number };
+    const scale = Math.max(panelW / source.width, panelH / source.height);
+    ctx.drawImage(
+      entry.image,
+      x + (panelW - source.width * scale) / 2,
+      pad + (panelH - source.height * scale) / 2,
+      source.width * scale,
+      source.height * scale
+    );
+    const box = fitted(mark, {
+      height: panelH * 0.22,
+      width: panelW * 0.62,
+      x: x + panelW * 0.19,
+      y: pad + panelH * 0.39,
+    });
+    ctx.drawImage(mark, box.x, box.y, box.width, box.height);
+    ctx.restore();
+
+    ctx.fillStyle = "#9a9a9a";
+    ctx.font = `${Math.round(size * 0.016)}px ${MONO}`;
+    ctx.textAlign = "center";
+    ctx.fillText(entry.label.toUpperCase(), x + panelW / 2, size - pad * 1.2);
+    ctx.textAlign = "left";
+  });
+};

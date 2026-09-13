@@ -48,6 +48,7 @@ export type TileKind =
   | "ground"
   | "lockup"
   | "negative"
+  | "onphoto"
   | "outline"
   | "pattern"
   | "scale"
@@ -188,6 +189,12 @@ export const proofTilesFor = (
         "Pressed into the surface, lit from one side. Light parts stand proud, dark parts sink — the way foil, a deboss or a die reads it.",
       kind: "emboss",
       label: "Relief",
+    },
+    {
+      caption:
+        "On three photographs it did not choose — dark, light, and one with colour flying about. A mark that reads on all three is safe anywhere; one that vanishes needs a plate behind it, and this is where that is decided.",
+      kind: "onphoto",
+      label: "On photo",
     },
     {
       caption:

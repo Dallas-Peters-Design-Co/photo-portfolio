@@ -133,7 +133,12 @@ describe("inked", () => {
 });
 
 describe("drawTile", () => {
-  const context = { minWidth: 24, photos: new Map(), typeface: "Georgia" };
+  const context = {
+    grounds: [],
+    minWidth: 24,
+    photos: new Map(),
+    typeface: "Georgia",
+  };
 
   it("draws every kind the plan can produce", () => {
     /*

@@ -150,3 +150,20 @@ describe("the drawn surfaces", () => {
     }
   });
 });
+
+describe("the photographic ground", () => {
+  it("is on the sheet", () => {
+    const kinds = proofTilesFor(EMPTY_KIT).map((tile) => tile.kind);
+    expect(kinds).toContain("onphoto");
+    expect(kinds).toContain("favicon");
+  });
+
+  it("asks its question in the caption", () => {
+    // The tile is only worth its space if it says what a failure looks like:
+    // a mark that vanishes on the light frame needs a plate behind it.
+    const [tile] = proofTilesFor(EMPTY_KIT).filter(
+      (entry) => entry.kind === "onphoto"
+    );
+    expect(tile.caption).toContain("plate");
+  });
+});

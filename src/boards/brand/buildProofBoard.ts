@@ -2,6 +2,7 @@ import type { BrandKitDoc, LogoEntry } from "../../../config/brandKit.js";
 import type { BoardItem } from "../../types";
 import { newItemId } from "../io/newItemId";
 import { drawTile, type Mark, TILE } from "./drawTile";
+import { loadGrounds, photoGrounds } from "./onPhoto";
 import { proofTilesFor } from "./proofTiles";
 import { TEMPLATES } from "./templates";
 
@@ -64,10 +65,14 @@ export const drawProofSheet = async (
   name: string
 ): Promise<ProofItem[]> => {
   const context = {
-    minWidth: logo.minWidth > 0 ? logo.minWidth : 24,
     // Loaded once, before anything draws: every template tile needs its
     // photograph decoded, and decoding inside the draw would make each tile
     // wait for a file the one before it already fetched.
+    // Fetched before anything draws, and in parallel with the templates: one
+    // round trip to Unsplash rather than one per tile, and a failure here
+    // leaves the tile empty rather than the sheet unmade.
+    grounds: await loadGrounds(await photoGrounds()).catch(() => []),
+    minWidth: logo.minWidth > 0 ? logo.minWidth : 24,
     photos: await loadTemplates(),
     typeface: doc.typefaces[0]?.name ?? "system-ui",
   };
