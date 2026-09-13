@@ -55,6 +55,39 @@ export interface TrainingStarted {
   lora: { trigger: string | null } | null;
 }
 
+/*
+ * Told, not discovered.
+ *
+ * The watch only polls while it believes something is training, and it finds
+ * that out by asking. A training started *after* its last answer of "nothing"
+ * was invisible to it until the screen remounted — which is how a style
+ * trained from a board could finish on fal with nobody collecting it and no
+ * sign on the board that anything was happening. So starting a training says
+ * so, here, and every watch on the page wakes up.
+ */
+const TRAINING_STARTED = "boards:training-started";
+
+export const announceTrainingStarted = (started: TrainingStarted): void => {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent<TrainingStarted>(TRAINING_STARTED, { detail: started })
+    );
+  }
+};
+
+export const onTrainingStarted = (
+  listener: (started: TrainingStarted) => void
+): (() => void) => {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+  const handler = (event: Event) => {
+    listener((event as CustomEvent<TrainingStarted>).detail);
+  };
+  window.addEventListener(TRAINING_STARTED, handler);
+  return () => window.removeEventListener(TRAINING_STARTED, handler);
+};
+
 /**
  * Hands a built dataset to fal's trainer and returns the model row it made.
  *
@@ -78,7 +111,9 @@ export const startTraining = async (
   if (!res.ok) {
     throw new Error(await readPageError(res, "Could not start the training"));
   }
-  return (await res.json()) as TrainingStarted;
+  const started = (await res.json()) as TrainingStarted;
+  announceTrainingStarted(started);
+  return started;
 };
 
 /**
@@ -87,10 +122,21 @@ export const startTraining = async (
  * Safe to call as often as wanted: the endpoint is idempotent, so a second
  * caller cannot turn one training into two models.
  */
-export const pollTraining = async (): Promise<{
+/** A run fal has accepted and not yet finished. */
+export interface TrainingPending {
+  id: string;
+  label: string;
+  /** ISO time the job was handed to fal, for "going for four minutes". */
+  startedAt: string | null;
+}
+
+export interface TrainingPoll {
   finished: TrainingStarted[];
+  pending: TrainingPending[];
   training: number;
-}> => {
+}
+
+export const pollTraining = async (): Promise<TrainingPoll> => {
   const res = await fetch(`${apiBase()}/api/models/training`, {
     headers: jsonHeaders(),
     method: "POST",
@@ -98,8 +144,5 @@ export const pollTraining = async (): Promise<{
   if (!res.ok) {
     throw new Error(await readPageError(res, "Could not check the training"));
   }
-  return (await res.json()) as {
-    finished: TrainingStarted[];
-    training: number;
-  };
+  return (await res.json()) as TrainingPoll;
 };
