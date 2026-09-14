@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { durationFor } from "../../../config/nodes/videoDuration.js";
 import { getBearerUser } from "../../_lib/auth.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
@@ -64,21 +65,29 @@ const failed = (res: VercelResponse, e: unknown, fallback: string) => {
  * naming a field nobody had heard of.
  */
 const bodyFor = (
+  model: string,
   imageParam: string,
   imageUrl: string,
   prompt: string,
   duration: string
-): Record<string, unknown> => ({
-  [imageParam || "image_url"]: imageUrl,
-  // Only when there is one. Background removal and upscaling take a clip and
-  // nothing else, and an empty `prompt` sent to a schema that declares no such
-  // field is a 422 — after the call has been made, like every other way of
-  // getting a video request wrong.
-  ...(prompt ? { prompt } : {}),
-  // A string, because every schema that takes it declares an enum of strings —
-  // "5", "10" — and a number is rejected after the request has been made.
-  ...(duration ? { duration } : {}),
-});
+): Record<string, unknown> => {
+  // The length in the endpoint's own vocabulary, or nothing at all when it
+  // declares no duration. The node used to send its own "5" or "10" to
+  // everything, which Veo refused — after billing — with "Input should be
+  // '4s', '6s' or '8s'". See config/nodes/videoDuration.ts.
+  const seconds = duration ? durationFor(model, duration) : null;
+  return {
+    [imageParam || "image_url"]: imageUrl,
+    // Only when there is one. Background removal and upscaling take a clip and
+    // nothing else, and an empty `prompt` sent to a schema that declares no
+    // such field is a 422 — after the call has been made, like every other way
+    // of getting a video request wrong.
+    ...(prompt ? { prompt } : {}),
+    // A string, because every schema that takes it declares an enum of strings
+    // — "5", "4s" — and a number is rejected after the request has been made.
+    ...(seconds ? { duration: seconds } : {}),
+  };
+};
 
 /**
  * Submits the job and hands back where to watch it.
@@ -142,7 +151,7 @@ const submit = async (
     const receipt = await submitToQueue(
       key,
       known.id,
-      bodyFor(known.image_param, imageUrl, prompt, duration)
+      bodyFor(known.id, known.image_param, imageUrl, prompt, duration)
     );
     return res.status(200).json(receipt);
   } catch (e) {

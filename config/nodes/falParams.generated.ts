@@ -24,6 +24,9 @@ export type FalParamSupport = Readonly<Record<string, readonly string[]>>;
 
 export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
   {
+  "alibaba/happy-horse/image-to-video": {
+    "duration": []
+  },
   "bytedance/seedance-2.0/fast/image-to-video": {
     "aspect_ratio": [
       "16:9",
@@ -33,10 +36,55 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "4:3",
       "9:16",
       "auto"
+    ],
+    "duration": [
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "auto"
     ]
   },
   "bytedance/seedance-2.5/image-to-video": {
-    "aspect_ratio": []
+    "aspect_ratio": [],
+    "duration": [
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19",
+      "20",
+      "21",
+      "22",
+      "23",
+      "24",
+      "25",
+      "26",
+      "27",
+      "28",
+      "29",
+      "30",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9",
+      "auto"
+    ]
   },
   "fal-ai/birefnet/v2": {
     "output_format": [
@@ -156,6 +204,46 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "square_hd"
     ]
   },
+  "fal-ai/kling-video/v2.5-turbo/pro/image-to-video": {
+    "duration": [
+      "10",
+      "5"
+    ]
+  },
+  "fal-ai/kling-video/v3/pro/image-to-video": {
+    "duration": [
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ]
+  },
+  "fal-ai/kling-video/v3/standard/image-to-video": {
+    "duration": [
+      "10",
+      "11",
+      "12",
+      "13",
+      "14",
+      "15",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7",
+      "8",
+      "9"
+    ]
+  },
   "fal-ai/krea-2/turbo": {
     "image_size": [
       "landscape_16_9",
@@ -225,6 +313,9 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "webp"
     ]
   },
+  "fal-ai/pixverse/v6/image-to-video": {
+    "duration": []
+  },
   "fal-ai/recraft/v4.1/text-to-vector": {
     "image_size": [
       "landscape_16_9",
@@ -250,6 +341,11 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "16:9",
       "9:16",
       "auto"
+    ],
+    "duration": [
+      "4s",
+      "6s",
+      "8s"
     ]
   },
   "fal-ai/veo3.1/image-to-video": {
@@ -257,6 +353,11 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "16:9",
       "9:16",
       "auto"
+    ],
+    "duration": [
+      "4s",
+      "6s",
+      "8s"
     ]
   },
   "fal-ai/veo3.1/lite/image-to-video": {
@@ -264,7 +365,15 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "16:9",
       "9:16",
       "auto"
+    ],
+    "duration": [
+      "4s",
+      "6s",
+      "8s"
     ]
+  },
+  "fal-ai/wan/v2.7/image-to-video": {
+    "duration": []
   },
   "ideogram/v4/image-to-image": {
     "image_size": [
@@ -294,6 +403,9 @@ export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
       "jpeg",
       "png"
     ]
+  },
+  "minimax/h3/image-to-video": {
+    "duration": []
   },
   "openai/gpt-image-2": {
     "image_size": [

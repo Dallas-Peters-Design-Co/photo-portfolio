@@ -36,7 +36,19 @@ UA = {"User-Agent": "Mozilla/5.0"}
 
 # The parameters the panel can set, and nothing else — this table exists to
 # answer "may I send this field", not to mirror fal's whole schema.
-TRACKED = ("image_size", "aspect_ratio", "output_format", "num_inference_steps", "quality")
+TRACKED = (
+    "image_size",
+    "aspect_ratio",
+    "output_format",
+    "num_inference_steps",
+    "quality",
+    # Seconds of footage, for the Video node. Added after a generation was
+    # billed and then refused with "Input should be '4s', '6s' or '8s'": the
+    # node offered "5" and "10" to every endpoint, and the endpoints do not
+    # agree — some take plain seconds, some take them with a suffix, and the
+    # sets differ. Exactly the guessing this table exists to stop.
+    "duration",
+)
 
 # Endpoints no row names, but which runs actually reach. See endpointFor in
 # api/_lib/fal.ts: a LoRA resolves to flux-lora, a mask to an inpainting

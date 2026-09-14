@@ -16,6 +16,7 @@ import { NodeNotes } from "./NodeNotes";
 import { PaletteSwatches } from "./PaletteSwatches";
 import { ResultImages } from "./ResultImages";
 import { SettingField } from "./SettingField";
+import { VideoDurationField } from "./VideoDurationField";
 import "./OpNodeView.css";
 import { Button } from "@/components/ui/button";
 
@@ -403,6 +404,19 @@ function NodeBody({
                 readOnly={readOnly}
                 value={config.items}
                 wired={wiredItems}
+              />
+            );
+          }
+          // The Seconds menu is drawn from the endpoint's own schema, not from
+          // a fixed pair; see VideoDurationField.
+          if (item.nodeType === "video" && setting.key === "duration") {
+            return (
+              <VideoDurationField
+                label={setting.label}
+                model={typeof config.model === "string" ? config.model : ""}
+                onChange={(value) => set(setting.key, value)}
+                readOnly={readOnly}
+                stored={fieldValue(setting.key, config)}
               />
             );
           }
