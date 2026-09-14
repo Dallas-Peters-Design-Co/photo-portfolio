@@ -214,6 +214,10 @@ export const parseNodeConfig = (
   if (traces) {
     config.traceUrls = traces;
   }
+  const mockups = ownedList(source.mockupUrls);
+  if (mockups) {
+    config.mockupUrls = mockups;
+  }
 
   for (const setting of type.settings) {
     const stored = settingStored(setting, source[setting.key]);

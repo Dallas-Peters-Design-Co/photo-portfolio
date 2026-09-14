@@ -84,6 +84,11 @@ The templates are baked once with `scripts/bake-mockup.py` (needs
 `src/boards/canvas/mockupTemplate.ts` and `config/nodes/mockup.ts`. Re-bake
 after editing a PSD; nothing else changes.
 
+- Finished covers made elsewhere work too: drop the PNGs on the board, wire
+  them (or a frame of them) into the Mockup's Cover port, pick a template,
+  run. Many covers in are many mockups out, one per cover in wire order, the
+  way Cover fans out. One wrap serves all of them.
+
 ## 6. Trace (optional)
 
 Any picture on the board — a cover, a variation from Generate, a single part —

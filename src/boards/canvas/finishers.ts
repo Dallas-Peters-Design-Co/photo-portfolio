@@ -15,7 +15,7 @@ import {
 } from "./wiredPreviews";
 
 /**
- * The nodes the browser finishes before a run: Cover, Print wrap, Mockup.
+ * The nodes the browser finishes before a run: Trace, Cover, Print wrap, Mockup.
  *
  * All three are pictures only the browser can draw — a GPU pass, real font
  * metrics, a homography — and all three follow the shape Composite set: the
@@ -99,13 +99,15 @@ export const FINISHERS: readonly Finisher[] = [
     urlKey: "wrapUrl",
   },
   {
+    each: "cover",
     failure: "Could not render the mockup",
     file: "mockup.png",
     folder: "boards/mockups",
     nodeType: "mockup",
-    render: (config, itemId, graph) =>
+    render: (config, itemId, graph, picture) =>
       renderMockup(config, {
-        cover: requirePicture(itemId, "cover", "Cover", graph),
+        cover: picture ?? requirePicture(itemId, "cover", "Cover", graph),
+        // One wrap for all of them: the back is the same book's back.
         wrap: wiredImageOnPort(itemId, "wrap", graph),
       }),
     urlKey: "mockupUrl",

@@ -23,7 +23,11 @@ export const MOCKUP: NodeType = {
   id: "mockup",
   inputs: [
     {
-      arity: "one",
+      /*
+       * Many, as the Cover takes many: six finished covers wired in — or a
+       * frame of them — are six mockups on the same template, in wire order.
+       */
+      arity: "many",
       key: "cover",
       label: "Cover",
       required: true,

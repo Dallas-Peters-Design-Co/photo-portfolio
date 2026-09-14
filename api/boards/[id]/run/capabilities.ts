@@ -319,7 +319,9 @@ export const produce = async (
     return browserRendered(
       args.item.config,
       "mockupUrl",
-      "The mockup has not been rendered yet"
+      "The mockup has not been rendered yet",
+      args.variation,
+      "mockupUrls"
     );
   }
   if (capability === "board.cover") {

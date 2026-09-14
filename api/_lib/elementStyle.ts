@@ -224,13 +224,23 @@ export const jobsFor = ({
   // wiring describes a single run no matter how many references feed it.
   // Fanning out here would bill one description per image and then throw all
   // but the last away.
-  if (capability === "board.cover" || capability === "board.trace") {
-    // One cover — or one trace — per picture wired in: four variations of
-    // the field are four covers to compare. The browser rendered them in
-    // this order (finishers.ts) and stores them under coverUrls or
-    // traceUrls; the run asks for the nth. Nothing wired is one job, which
+  if (
+    capability === "board.cover" ||
+    capability === "board.trace" ||
+    capability === "board.mockup"
+  ) {
+    // One cover — or one trace, or one mockup — per picture wired in: four
+    // variations of the field are four covers to compare, six finished
+    // covers are six mockups. The browser rendered them in this order
+    // (finishers.ts) and stores them under coverUrls, traceUrls or
+    // mockupUrls; the run asks for the nth. Nothing wired is one job, which
     // the missing-input check has already refused.
-    const art = (capability === "board.cover" ? values.art : values.image) ?? [];
+    const art =
+      (capability === "board.cover"
+        ? values.art
+        : capability === "board.mockup"
+          ? values.cover
+          : values.image) ?? [];
     return (art.length > 0 ? art : [null]).map((image) => ({
       blendWith: [],
       image,
@@ -238,11 +248,7 @@ export const jobsFor = ({
       prompt: "",
     }));
   }
-  if (
-    capability === "board.composite" ||
-    capability === "board.mockup" ||
-    capability === "board.wrap"
-  ) {
+  if (capability === "board.composite" || capability === "board.wrap") {
     // One run however many pictures feed it: the images are its material, not
     // a batch to iterate over. Fanning out here would store the same rendered
     // composite once per source.
