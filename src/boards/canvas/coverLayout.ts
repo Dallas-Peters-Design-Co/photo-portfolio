@@ -37,7 +37,7 @@ export interface CoverColors {
 }
 
 export interface Run {
-  align: "left" | "center";
+  align: "left" | "center" | "right";
   /** Distance from the top of the trim to the baseline. */
   baseline: number;
   face: string;
@@ -58,10 +58,21 @@ export interface Band {
   fill: string;
 }
 
+/** A filled rectangle under the byline, in the band colour. Poster only. */
+export interface Plate {
+  fill: string;
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
 export interface CoverLayout {
   /** Absent on Horizon, which sets its type straight over the artwork. */
   band: Band | null;
   height: number;
+  /** Absent on Horizon, and on Poster when there is no byline to sit on it. */
+  plate: Plate | null;
   runs: readonly Run[];
   width: number;
 }
@@ -104,14 +115,25 @@ const fitted = (
   return Math.max(1, Math.min(max, (width - gaps * tracking) / unit));
 };
 
+/*
+ * Poster, as the Centrifuge artboard in BookCovers.psd has it (Sept 2026):
+ * the title runs the full width of the trim, nearly bleed to bleed, on a
+ * band that stops at 482; the subtitle is centred under it and overlaps the
+ * top of the artwork; the byline sits right-aligned on a plate in the band
+ * colour at the lower right. Measured off the PSD rather than guessed, so
+ * the node's cover and the designer's line up.
+ */
 const POSTER = {
-  authorBaseline: 2520,
-  authorSize: 54,
-  bandHeight: 560,
-  subtitleBaseline: 492,
-  subtitleMax: 62,
-  titleBaseline: 396,
-  titleMax: 300,
+  authorBaseline: 2547,
+  authorRight: 1628,
+  authorSize: 128,
+  bandHeight: 482,
+  plate: { height: 167, width: 672, x: 1043, y: 2418 },
+  subtitleBaseline: 572,
+  subtitleMax: 66,
+  titleBaseline: 450,
+  titleMargin: 20,
+  titleMax: 560,
 } as const;
 
 const HORIZON = {
@@ -148,6 +170,11 @@ export const coverLayout = (
   const tracking = horizon ? HORIZON.titleTracking : 0;
 
   if (title) {
+    // Poster's title is set wider than the live area on purpose: it is the
+    // one thing on the cover allowed to touch the edges, and in the PSD it
+    // does. Horizon keeps the ordinary margin.
+    const titleX = horizon ? MARGIN : POSTER.titleMargin;
+    const titleWidth = COVER_WIDTH - titleX * 2;
     runs.push({
       align: horizon ? "center" : "left",
       baseline: M.titleBaseline,
@@ -155,17 +182,17 @@ export const coverLayout = (
       fill: colors.ink,
       opacity: 1,
       role: "title",
-      size: fitted(title, TITLE_FACE, LIVE, measure, M.titleMax, tracking),
+      size: fitted(title, TITLE_FACE, titleWidth, measure, M.titleMax, tracking),
       text: title,
       tracking,
-      width: LIVE,
-      x: MARGIN,
+      width: titleWidth,
+      x: titleX,
     });
   }
 
   if (subtitle) {
     runs.push({
-      align: horizon ? "center" : "left",
+      align: "center",
       baseline: M.subtitleBaseline,
       face: TITLE_FACE,
       // Poster puts the subtitle in the accent on a solid band, which is where
@@ -184,24 +211,44 @@ export const coverLayout = (
   }
 
   if (author) {
-    runs.push({
-      align: "center",
-      baseline: M.authorBaseline,
-      face: AUTHOR_FACE,
-      fill: colors.ink,
-      opacity: 1,
-      role: "author",
-      size: M.authorSize,
-      text: author,
-      tracking: 8,
-      width: LIVE,
-      x: MARGIN,
-    });
+    runs.push(
+      horizon
+        ? {
+            align: "center",
+            baseline: M.authorBaseline,
+            face: AUTHOR_FACE,
+            fill: colors.ink,
+            opacity: 1,
+            role: "author",
+            size: M.authorSize,
+            text: author,
+            tracking: 8,
+            width: LIVE,
+            x: MARGIN,
+          }
+        : {
+            // Right-aligned inside the plate: `x` is the plate's left edge
+            // and `width` reaches the text's right edge, so a longer name
+            // grows leftward across the plate.
+            align: "right",
+            baseline: POSTER.authorBaseline,
+            face: AUTHOR_FACE,
+            fill: colors.ink,
+            opacity: 1,
+            role: "author",
+            size: POSTER.authorSize,
+            text: author,
+            tracking: 0,
+            width: POSTER.authorRight - POSTER.plate.x,
+            x: POSTER.plate.x,
+          }
+    );
   }
 
   return {
     band: horizon ? null : { fill: colors.band, height: POSTER.bandHeight },
     height: COVER_HEIGHT,
+    plate: horizon || !author ? null : { fill: colors.band, ...POSTER.plate },
     runs,
     width: COVER_WIDTH,
   };

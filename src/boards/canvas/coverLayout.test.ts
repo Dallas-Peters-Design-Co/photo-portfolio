@@ -41,7 +41,7 @@ describe("coverLayout", () => {
   it("gives Poster a band and Horizon none", () => {
     expect(coverLayout("poster", WORDS, COLORS, measure).band).toEqual({
       fill: "#293341",
-      height: 560,
+      height: 482,
     });
     expect(coverLayout("horizon", WORDS, COLORS, measure).band).toBeNull();
   });
@@ -76,7 +76,28 @@ describe("coverLayout", () => {
 
   it("caps the size so a one-word title is not a billboard", () => {
     const layout = coverLayout("poster", { ...WORDS, title: "I" }, COLORS, measure);
-    expect(run(layout, "title")?.size).toBe(300);
+    expect(run(layout, "title")?.size).toBe(560);
+  });
+
+  it("sets the Poster byline on a plate, right-aligned, and Horizon's without", () => {
+    const poster = coverLayout("poster", WORDS, COLORS, measure);
+    expect(poster.plate).toEqual({
+      fill: "#293341",
+      height: 167,
+      width: 672,
+      x: 1043,
+      y: 2418,
+    });
+    const author = run(poster, "author");
+    expect(author?.align).toBe("right");
+    expect((author?.x ?? 0) + (author?.width ?? 0)).toBe(1628);
+    expect(coverLayout("horizon", WORDS, COLORS, measure).plate).toBeNull();
+  });
+
+  it("drops the plate when there is no byline to sit on it", () => {
+    expect(
+      coverLayout("poster", { ...WORDS, author: "" }, COLORS, measure).plate
+    ).toBeNull();
   });
 
   it("pays for tracking out of the column, not past its edge", () => {
@@ -114,7 +135,7 @@ describe("coverLayout", () => {
 
   it("falls back to the cap when the measurer says nothing", () => {
     const layout = coverLayout("poster", WORDS, COLORS, () => 0);
-    expect(run(layout, "title")?.size).toBe(300);
+    expect(run(layout, "title")?.size).toBe(560);
   });
 });
 

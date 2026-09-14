@@ -97,7 +97,9 @@ const drawRun = (
   let x =
     run.align === "center"
       ? (run.x + run.width / 2) * scale - width / 2
-      : run.x * scale;
+      : run.align === "right"
+        ? (run.x + run.width) * scale - width
+        : run.x * scale;
 
   for (const glyph of glyphs) {
     ctx.fillText(glyph, x, run.baseline * scale);
@@ -175,6 +177,11 @@ export const renderCover = async (
   if (layout.band) {
     ctx.fillStyle = layout.band.fill;
     ctx.fillRect(0, 0, width, Math.round(layout.band.height * scale));
+  }
+  if (layout.plate) {
+    const p = layout.plate;
+    ctx.fillStyle = p.fill;
+    ctx.fillRect(p.x * scale, p.y * scale, p.width * scale, p.height * scale);
   }
   for (const run of layout.runs) {
     drawRun(ctx, run, scale);
