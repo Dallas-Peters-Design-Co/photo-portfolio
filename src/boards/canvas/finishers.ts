@@ -104,12 +104,21 @@ export const FINISHERS: readonly Finisher[] = [
     file: "mockup.png",
     folder: "boards/mockups",
     nodeType: "mockup",
-    render: (config, itemId, graph, picture) =>
-      renderMockup(config, {
-        cover: picture ?? requirePicture(itemId, "cover", "Cover", graph),
+    render: (config, itemId, graph, picture) => {
+      const all = wiredImagesOnPort(itemId, "cover", graph);
+      const cover = picture ?? requirePicture(itemId, "cover", "Cover", graph);
+      // The rest of the batch, starting after this one, for a template of
+      // several books: mockup n leads with cover n and the others follow, so
+      // five covers on a three-book template are five different rows.
+      const at = Math.max(0, all.indexOf(cover));
+      const others = [...all.slice(at + 1), ...all.slice(0, at)];
+      return renderMockup(config, {
+        cover,
+        others,
         // One wrap for all of them: the back is the same book's back.
         wrap: wiredImageOnPort(itemId, "wrap", graph),
-      }),
+      });
+    },
     urlKey: "mockupUrl",
   },
 ];
@@ -206,9 +215,20 @@ export const finishItems = async (
         }
         const config = item.config ?? {};
         const listKey = `${finisher.urlKey}s`;
-        if (
+        const list = Array.isArray(config[listKey]) ? config[listKey] : null;
+        if (finisher.each) {
+          // Current only when there is one render per picture wired in. A
+          // lone URL with no list is a render from before the node fanned
+          // out, and a list of the wrong length is from before a wire moved
+          // — either would hand the run one mockup for five covers.
+          const wanted = wiredImagesOnPort(item.id, finisher.each, graph)
+            .slice(0, MAX_SHADER_RENDERS).length;
+          if (list && list.length === wanted && wanted > 0) {
+            return item;
+          }
+        } else if (
           typeof config[finisher.urlKey] === "string" ||
-          (Array.isArray(config[listKey]) && config[listKey].length > 0)
+          (list && list.length > 0)
         ) {
           return item;
         }

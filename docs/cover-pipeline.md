@@ -87,7 +87,9 @@ after editing a PSD; nothing else changes.
 - Finished covers made elsewhere work too: drop the PNGs on the board, wire
   them (or a frame of them) into the Mockup's Cover port, pick a template,
   run. Many covers in are many mockups out, one per cover in wire order, the
-  way Cover fans out. One wrap serves all of them.
+  way Cover fans out. One wrap serves all of them. On a template that shows
+  several books (three in a row, stacked, open and closed) each mockup leads
+  with its own cover and the rest of the batch fills the other books.
 
 ## 6. Trace (optional)
 

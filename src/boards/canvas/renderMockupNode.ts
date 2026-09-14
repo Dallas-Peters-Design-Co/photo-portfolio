@@ -22,6 +22,12 @@ export class MockupError extends Error {}
 
 export interface MockupSources {
   cover: string | null;
+  /**
+   * The other covers on the board, for a template that shows several
+   * books: they fill the books after the first, in this order. Optional,
+   * and a template of one book ignores them.
+   */
+  others?: string[];
   /** The print wrap, for a template that shows the back. */
   wrap: string | null;
 }
@@ -103,16 +109,17 @@ export const renderMockup = async (
     throw new MockupError("That mockup template is not available.");
   }
 
-  const [cover, wrap] = await Promise.all([
+  const [cover, wrap, ...others] = await Promise.all([
     loadImage(sources.cover),
     sources.wrap ? loadImage(sources.wrap) : Promise.resolve(null),
+    ...(sources.others ?? []).map((url) => loadImage(url)),
   ]);
   const [trimW, trimH] = TRIMS[isTrim(config.trim) ? config.trim : "6x9"];
   const spine =
     config.back === "colour"
       ? readColor(config.spine, "#293341")
       : edgeColorOf(cover);
-  const canvas = await renderTemplate(template.base, cover, {
+  const canvas = await renderTemplate(template.base, [cover, ...others], {
     back: wrap
       ? {
           image: wrap,

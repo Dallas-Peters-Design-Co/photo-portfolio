@@ -24,6 +24,12 @@
 export interface MockupTemplateManifest {
   /** True when the template shows a back cover too (k.jpg + uvb.png). */
   back?: boolean;
+  /**
+   * How many separate books the template shows, when more than one. Then
+   * books.png says which book each pixel belongs to (1..n, 0 for none), and
+   * the render takes a cover per book.
+   */
+  books?: number;
   coverAspect: number;
   /** The window worth showing, in template pixels. */
   crop: { height: number; width: number; x: number; y: number };
@@ -97,6 +103,8 @@ interface LoadedTemplate {
   /** Shading for the back cover, where the template shows one. */
   k: ImageData | null;
   manifest: MockupTemplateManifest;
+  /** Which book each pixel belongs to, for a template of several. */
+  books: ImageData | null;
   s: ImageData | null;
   uv: ImageData;
   uvb: ImageData | null;
@@ -114,17 +122,20 @@ export const loadTemplate = (base: string): Promise<LoadedTemplate> => {
     }
     const manifest = (await res.json()) as MockupTemplateManifest;
     const { width, height } = manifest;
-    const [a, b, uv, s, k, uvb] = await Promise.all([
+    const several = (manifest.books ?? 1) > 1;
+    const [a, b, uv, s, k, uvb, books] = await Promise.all([
       loadPicture(`${base}/a.jpg`),
       loadPicture(`${base}/b.jpg`),
       loadPicture(`${base}/uv.png`),
       manifest.spine ? loadPicture(`${base}/s.jpg`) : Promise.resolve(null),
       manifest.back ? loadPicture(`${base}/k.jpg`) : Promise.resolve(null),
       manifest.back ? loadPicture(`${base}/uvb.png`) : Promise.resolve(null),
+      several ? loadPicture(`${base}/books.png`) : Promise.resolve(null),
     ]);
     return {
       a: pixelsOf(a, width, height),
       b: pixelsOf(b, width, height),
+      books: books ? pixelsOf(books, width, height) : null,
       k: k ? pixelsOf(k, width, height) : null,
       manifest,
       s: s ? pixelsOf(s, width, height) : null,
@@ -138,19 +149,32 @@ export const loadTemplate = (base: string): Promise<LoadedTemplate> => {
 };
 
 /**
+ * How far a cover's proportions may be from the template's before it is
+ * shown whole rather than stretched. A 6 × 9 cover on a book the mockup's
+ * author drew at 0.70 is a 6% stretch, invisible in a photograph; a square
+ * cover on the same book is not, and gets the whole picture with the edge
+ * colour either side.
+ */
+const STRETCH_TOLERANCE = 0.08;
+
+/**
  * The cover, fitted to the template's expected proportions.
  *
- * A template was warped for a 2:3 book. A cover that is not 2:3 is
- * centre-cropped to it rather than stretched, which is what a printer would
- * do with it too. Sampled at twice the largest the cover will appear, so
- * bilinear lookup below has something to average.
+ * A template was warped for the book its author drew, which is rarely the
+ * exact trim of the cover it is handed. Cropping cut the title off a 6 × 9
+ * cover on a 0.70 book, so a near miss is stretched to fit — nothing lost —
+ * and a far one is shown whole on the cover's own edge colour. Sampled at
+ * twice the largest the cover will appear, so bilinear lookup below has
+ * something to average.
  */
 const fitCover = (
   cover: HTMLImageElement,
   aspect: number,
   size: number,
   /** Which part of the picture to use, as fractions; the whole by default. */
-  window: [number, number, number, number] = [0, 0, 1, 1]
+  window: [number, number, number, number] = [0, 0, 1, 1],
+  /** What shows beside a cover too far from the template's proportions. */
+  fill = "#293341"
 ): ImageData => {
   const w = size;
   const h = Math.round(size / aspect);
@@ -158,9 +182,6 @@ const fitCover = (
   const sy = window[1] * cover.naturalHeight;
   const sw = (window[2] - window[0]) * cover.naturalWidth;
   const sh = (window[3] - window[1]) * cover.naturalHeight;
-  const scale = Math.max(w / sw, h / sh);
-  const dw = sw * scale;
-  const dh = sh * scale;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -168,7 +189,17 @@ const fitCover = (
   if (!ctx) {
     throw new Error("This browser cannot read pixels back.");
   }
-  ctx.drawImage(cover, sx, sy, sw, sh, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  const own = sw / sh;
+  if (Math.abs(own - aspect) / aspect <= STRETCH_TOLERANCE) {
+    ctx.drawImage(cover, sx, sy, sw, sh, 0, 0, w, h);
+  } else {
+    ctx.fillStyle = fill;
+    ctx.fillRect(0, 0, w, h);
+    const scale = Math.min(w / sw, h / sh);
+    const dw = sw * scale;
+    const dh = sh * scale;
+    ctx.drawImage(cover, sx, sy, sw, sh, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }
   return ctx.getImageData(0, 0, w, h);
 };
 
@@ -243,7 +274,12 @@ const uvAt = (U: Uint8ClampedArray, p: number): [number, number] | null =>
  */
 export const renderTemplate = async (
   base: string,
-  cover: HTMLImageElement,
+  /**
+   * The cover — or, for a template of several books, the covers in book
+   * order, left to right. Fewer covers than books wraps around, so one
+   * cover on a three-book template is that cover three times.
+   */
+  cover: HTMLImageElement | HTMLImageElement[],
   options: {
     /** The print wrap, for templates that show the back. */
     back?: { image: HTMLImageElement; window: [number, number, number, number] } | null;
@@ -254,11 +290,17 @@ export const renderTemplate = async (
   const t = await loadTemplate(base);
   const { width, height, coverAspect, crop } = t.manifest;
 
-  const src = fitCover(cover, coverAspect, 2048);
+  const covers = Array.isArray(cover) ? cover : [cover];
+  if (covers.length === 0) {
+    throw new Error("A mockup needs a cover.");
+  }
+  const srcs = covers.map((c) => fitCover(c, coverAspect, 2048, undefined, options.spine));
+  const src = srcs[0];
   const backSrc =
     t.k && options.back
-      ? fitCover(options.back.image, coverAspect, 2048, options.back.window)
+      ? fitCover(options.back.image, coverAspect, 2048, options.back.window, options.spine)
       : null;
+  const Bk = t.books?.data ?? null;
 
   const A = t.a.data;
   const B = t.b.data;
@@ -283,7 +325,8 @@ export const renderTemplate = async (
     }
     const uv = uvAt(U, p);
     if (uv) {
-      sample(src, uv[0], uv[1], px);
+      const which = Bk ? Bk[p] : 0;
+      sample(which > 1 ? srcs[(which - 1) % srcs.length] : src, uv[0], uv[1], px);
       r += (B[p] * px[0]) / 255;
       g += (B[p + 1] * px[1]) / 255;
       bl += (B[p + 2] * px[2]) / 255;
