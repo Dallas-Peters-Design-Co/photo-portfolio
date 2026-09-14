@@ -36,19 +36,7 @@ UA = {"User-Agent": "Mozilla/5.0"}
 
 # The parameters the panel can set, and nothing else — this table exists to
 # answer "may I send this field", not to mirror fal's whole schema.
-TRACKED = (
-    "image_size",
-    "aspect_ratio",
-    "output_format",
-    "num_inference_steps",
-    "quality",
-    # Seconds of footage, for the Video node. Added after a generation was
-    # billed and then refused with "Input should be '4s', '6s' or '8s'": the
-    # node offered "5" and "10" to every endpoint, and the endpoints do not
-    # agree — some take plain seconds, some take them with a suffix, and the
-    # sets differ. Exactly the guessing this table exists to stop.
-    "duration",
-)
+TRACKED = ("image_size", "aspect_ratio", "output_format", "num_inference_steps", "quality")
 
 # Endpoints no row names, but which runs actually reach. See endpointFor in
 # api/_lib/fal.ts: a LoRA resolves to flux-lora, a mask to an inpainting
@@ -117,9 +105,60 @@ def enum_of(spec: dict) -> list[str]:
     return sorted({v for v in values if v != "null"})
 
 
+def duration_of(properties: dict) -> "dict | None":
+    """
+    How this endpoint wants a clip's length, or None if it takes none.
+
+    Type as well as values, because the two failures are different and both cost
+    a generation. Veo declares `duration` as a string enum of "4s"/"6s"/"8s" and
+    refuses "5"; Wan and MiniMax declare it as an *integer* and refuse "5" for
+    being a string. Recording only the allowed values, as this first did, fixes
+    the first and leaves the second.
+
+    A range with no enum (MiniMax 5-15, PixVerse 1-15) is kept as min/max: the
+    endpoint constrains the length without listing it.
+    """
+    spec = properties.get("duration")
+    if not isinstance(spec, dict):
+        return None
+
+    # anyOf is how a schema spells "this or null"; the real declaration is inside.
+    branches = [spec, *(b for b in (spec.get("anyOf") or []) if isinstance(b, dict))]
+
+    values: list[str] = []
+    kind = None
+    low = high = None
+    for branch in branches:
+        if branch.get("type") in ("integer", "number") and kind is None:
+            kind = "integer"
+        elif branch.get("type") == "string" and kind is None:
+            kind = "string"
+        for value in branch.get("enum") or []:
+            if isinstance(value, bool) or value is None:
+                continue
+            if isinstance(value, (int, float)):
+                values.append(str(int(value)))
+                kind = kind or "integer"
+            elif isinstance(value, str):
+                values.append(value)
+                kind = kind or "string"
+        if branch.get("minimum") is not None:
+            low = branch["minimum"]
+        if branch.get("maximum") is not None:
+            high = branch["maximum"]
+
+    entry: dict = {"kind": kind or "string", "values": sorted(set(values))}
+    if low is not None:
+        entry["min"] = int(low)
+    if high is not None:
+        entry["max"] = int(high)
+    return entry
+
+
 def main() -> int:
     endpoints = sorted(seeded_ids() | IMPLIED)
     table: dict[str, dict[str, list[str]]] = {}
+    durations: dict[str, dict] = {}
     failed: list[str] = []
 
     for endpoint in endpoints:
@@ -136,13 +175,17 @@ def main() -> int:
         }
         if accepted:
             table[endpoint] = accepted
-        print(f"  {endpoint:48} {sorted(accepted) or '—'}")
+        seconds = duration_of(properties)
+        if seconds:
+            durations[endpoint] = seconds
+        print(f"  {endpoint:48} {sorted(accepted) or '—'}  duration={seconds or '—'}")
 
     if not table:
         print("No schemas read — fal's OpenAPI route has changed.", file=sys.stderr)
         return 1
 
     body = json.dumps(table, indent=2, sort_keys=True)
+    seconds_body = json.dumps(durations, indent=2, sort_keys=True)
     OUT.write_text(f'''/**
  * What each fal endpoint will accept, read from fal's own OpenAPI schemas.
  *
@@ -169,6 +212,30 @@ export type FalParamSupport = Readonly<Record<string, readonly string[]>>;
 
 export const FAL_PARAM_SUPPORT: Readonly<Record<string, FalParamSupport>> =
   {body} as const;
+
+/**
+ * How an endpoint wants a clip's length.
+ *
+ * Its own table rather than a field in the one above, because that one holds
+ * string allowlists and a duration is not always a string: Veo declares
+ * "4s"/"6s"/"8s", Kling declares "5"/"10", and Wan, MiniMax, PixVerse and
+ * Happy Horse declare a plain integer. Sending the wrong *type* is refused the
+ * same way sending the wrong value is — 422, after the generation is billed.
+ *
+ * `values` empty means the endpoint constrains the length by range instead;
+ * `min`/`max` carry it. An endpoint absent here takes no duration at all.
+ */
+export interface FalDuration {{
+  /** "integer" means send a number, not the string of one. */
+  kind: "integer" | "string";
+  max?: number;
+  min?: number;
+  /** The allowed lengths, written as text whatever the wire type. */
+  values: readonly string[];
+}}
+
+export const FAL_DURATION: Readonly<Record<string, FalDuration>> =
+  {seconds_body} as const;
 ''')
     print(f"\n{len(table)} endpoints -> {OUT.relative_to(ROOT)}")
     for line in failed:

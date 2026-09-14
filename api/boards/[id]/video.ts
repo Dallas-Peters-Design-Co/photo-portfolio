@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { durationFor } from "../../../config/nodes/videoDuration.js";
+import { durationValueFor } from "../../../config/nodes/videoDuration.js";
 import { getBearerUser } from "../../_lib/auth.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
@@ -71,11 +71,12 @@ const bodyFor = (
   prompt: string,
   duration: string
 ): Record<string, unknown> => {
-  // The length in the endpoint's own vocabulary, or nothing at all when it
-  // declares no duration. The node used to send its own "5" or "10" to
-  // everything, which Veo refused — after billing — with "Input should be
-  // '4s', '6s' or '8s'". See config/nodes/videoDuration.ts.
-  const seconds = duration ? durationFor(model, duration) : null;
+  // The length in the endpoint's own vocabulary and its own type, or nothing
+  // at all when it declares no duration. The node used to send its own "5" or
+  // "10" to everything: Veo refused it as a value ("Input should be '4s', '6s'
+  // or '8s'") and Wan refuses it as a string. Both after billing. See
+  // config/nodes/videoDuration.ts.
+  const seconds = duration ? durationValueFor(model, duration) : null;
   return {
     [imageParam || "image_url"]: imageUrl,
     // Only when there is one. Background removal and upscaling take a clip and
@@ -83,9 +84,9 @@ const bodyFor = (
     // such field is a 422 — after the call has been made, like every other way
     // of getting a video request wrong.
     ...(prompt ? { prompt } : {}),
-    // A string, because every schema that takes it declares an enum of strings
-    // — "5", "4s" — and a number is rejected after the request has been made.
-    ...(seconds ? { duration: seconds } : {}),
+    // Whatever type the endpoint declared: a string where it lists "5" or
+    // "4s", a number where it declares an integer.
+    ...(seconds === null ? {} : { duration: seconds }),
   };
 };
 

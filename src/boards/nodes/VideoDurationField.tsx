@@ -1,5 +1,5 @@
 import {
-  durationFor,
+  durationLabelFor,
   durationOptionsFor,
 } from "../../../config/nodes/videoDuration.js";
 import { SettingField } from "./SettingField";
@@ -48,7 +48,7 @@ export function VideoDurationField({
       setting={{
         // Five seconds where the endpoint has one, its nearest length where it
         // does not — never a value the menu cannot show.
-        default: durationFor(model, "5") ?? seconds[0],
+        default: durationLabelFor(model, "5") ?? seconds[0],
         key: "duration",
         kind: "select",
         label,
@@ -57,7 +57,7 @@ export function VideoDurationField({
       value={
         stored === undefined
           ? undefined
-          : (durationFor(model, stored) ?? undefined)
+          : (durationLabelFor(model, stored) ?? undefined)
       }
     />
   );
