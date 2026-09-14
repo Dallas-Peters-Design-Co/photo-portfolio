@@ -90,6 +90,15 @@ export function BoardHeaderActions({
       {/* Each frame's own link, beside the board's. See FrameLinks on why it
           cannot live on the frame itself. */}
       <FrameLinks boardUrl={publicUrl} items={items} />
+      {publicUrl ? (
+        <Button
+          onClick={() => window.open(`${publicUrl}/present`, "_blank")}
+          type="button"
+          variant="ghost"
+        >
+          Present
+        </Button>
+      ) : null}
       <Button
         disabled={isPublishing}
         onClick={onPublish}

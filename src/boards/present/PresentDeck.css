@@ -1,0 +1,175 @@
+/*
+ * A board, presented: black, full window, one thing at a time.
+ *
+ * Fixed colours, as the frame viewer has: a presentation is looked at on a
+ * dark ground whatever the visitor's machine prefers.
+ */
+
+.present {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal-scrim);
+  overflow: hidden;
+  color: oklch(1 0 0);
+  user-select: none;
+  background: oklch(0.08 0 0);
+}
+
+.present--idle {
+  cursor: none;
+}
+
+.present__slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 10)
+    calc(var(--spacing) * 18);
+}
+
+.present__picture {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  box-shadow: 0 30px 80px color-mix(in oklch, oklch(0 0 0) 60%, transparent);
+}
+
+/* A title or section card: type alone on the dark ground. */
+.present__card {
+  max-width: 24ch;
+  text-align: center;
+}
+
+.present__title {
+  font-size: clamp(2.5rem, 7vw, 6rem);
+  font-weight: 300;
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.present__section {
+  font-size: clamp(1.75rem, 4.5vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.present__subtitle {
+  margin-block-start: calc(var(--spacing) * 5);
+  font-size: var(--text-micro-md);
+  color: color-mix(in oklch, oklch(1 0 0) 50%, transparent);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
+}
+
+/* Each half of the window turns a page. Under the bar, over the slide. */
+.present__half {
+  position: absolute;
+  inset-block: 0 calc(var(--spacing) * 16);
+  width: 50%;
+  cursor: inherit;
+  background: transparent;
+  border: 0;
+}
+
+.present__half--prev {
+  left: 0;
+}
+
+.present__half--next {
+  right: 0;
+}
+
+.present__bar {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 6);
+  transition: opacity 0.4s ease;
+}
+
+.present--idle .present__bar {
+  opacity: 0;
+}
+
+.present__caption {
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  align-items: baseline;
+  min-width: 0;
+  font-size: var(--text-micro-md);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
+}
+
+.present__where {
+  color: oklch(1 0 0);
+}
+
+.present__what {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: color-mix(in oklch, oklch(1 0 0) 60%, transparent);
+  text-transform: none;
+  letter-spacing: var(--tracking-micro);
+  white-space: nowrap;
+}
+
+.present__count {
+  font-size: var(--text-micro-xs);
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklch, oklch(1 0 0) 40%, transparent);
+}
+
+.present__actions {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+}
+
+.present__button {
+  display: grid;
+  place-items: center;
+  width: calc(var(--spacing) * 9);
+  height: calc(var(--spacing) * 9);
+  color: color-mix(in oklch, oklch(1 0 0) 60%, transparent);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+}
+
+.present__button:hover,
+.present__button[aria-pressed="true"] {
+  color: oklch(1 0 0);
+  background: color-mix(in oklch, oklch(1 0 0) 10%, transparent);
+}
+
+/* A hairline along the very bottom, filled to where the deck is. */
+.present__progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background: color-mix(in oklch, oklch(1 0 0) 70%, transparent);
+  transform-origin: left;
+  transition: transform 0.45s ease;
+}
+
+.present__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: var(--text-micro-md);
+  color: color-mix(in oklch, oklch(1 0 0) 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
+}

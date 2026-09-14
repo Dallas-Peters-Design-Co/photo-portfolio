@@ -1,8 +1,8 @@
-import { coverGlOptionsFrom, CoverGlError, paintCover } from "./coverGl";
+import { CoverGlError, coverGlOptionsFrom, paintCover } from "./coverGl";
 import {
-  type CoverVariant,
   COVER_HEIGHT,
   COVER_WIDTH,
+  type CoverVariant,
   coverLayout,
   type Run,
   wordsFromText,
@@ -43,7 +43,8 @@ export const readText = (value: unknown): string =>
   typeof value === "string" ? value : "";
 
 export const readColor = (value: unknown, fallback: string): string =>
-  typeof value === "string" && /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value.trim())
+  typeof value === "string" &&
+  /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value.trim())
     ? value.trim()
     : fallback;
 

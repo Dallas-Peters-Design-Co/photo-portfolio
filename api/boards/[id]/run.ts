@@ -169,7 +169,8 @@ const prepare = async (
     // input" with a wire plainly attached sent people checking the wire, when
     // the thing to check was whatever the wire came from.
     const feeding = wireRows.filter(
-      (wire) => wire.target_item_id === item.id && wire.target_port === missingPort
+      (wire) =>
+        wire.target_item_id === item.id && wire.target_port === missingPort
     );
     const sources = feeding
       .map((wire) => rows.find((row) => row.id === wire.source_item_id))

@@ -180,9 +180,7 @@ export const useTrainingWatch = (
               },
             ]
       );
-      showPending([
-        { id: started.id, label: started.label, startedAt: null },
-      ]);
+      showPending([{ id: started.id, label: started.label, startedAt: null }]);
       start();
     });
 

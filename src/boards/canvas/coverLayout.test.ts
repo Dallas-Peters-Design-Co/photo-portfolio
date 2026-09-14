@@ -3,8 +3,8 @@ import {
   AUTHOR_FACE,
   COVER_HEIGHT,
   COVER_WIDTH,
-  coverLayout,
   type CoverWords,
+  coverLayout,
   TITLE_FACE,
   wordsFromText,
 } from "./coverLayout";
@@ -62,7 +62,12 @@ describe("coverLayout", () => {
   });
 
   it("shrinks a longer title so it still fits the column", () => {
-    const short = coverLayout("poster", { ...WORDS, title: "Drift" }, COLORS, measure);
+    const short = coverLayout(
+      "poster",
+      { ...WORDS, title: "Drift" },
+      COLORS,
+      measure
+    );
     const long = coverLayout(
       "poster",
       { ...WORDS, title: "The Great Equalizer" },
@@ -75,7 +80,12 @@ describe("coverLayout", () => {
   });
 
   it("caps the size so a one-word title is not a billboard", () => {
-    const layout = coverLayout("poster", { ...WORDS, title: "I" }, COLORS, measure);
+    const layout = coverLayout(
+      "poster",
+      { ...WORDS, title: "I" },
+      COLORS,
+      measure
+    );
     expect(run(layout, "title")?.size).toBe(560);
   });
 
@@ -115,12 +125,12 @@ describe("coverLayout", () => {
   });
 
   it("keeps the Poster subtitle in the accent and steps the Horizon one back", () => {
-    expect(run(coverLayout("poster", WORDS, COLORS, measure), "subtitle")).toMatchObject(
-      { fill: "#fa7c62", opacity: 1 }
-    );
-    expect(run(coverLayout("horizon", WORDS, COLORS, measure), "subtitle")).toMatchObject(
-      { fill: "#efe6d2", opacity: 0.85 }
-    );
+    expect(
+      run(coverLayout("poster", WORDS, COLORS, measure), "subtitle")
+    ).toMatchObject({ fill: "#fa7c62", opacity: 1 });
+    expect(
+      run(coverLayout("horizon", WORDS, COLORS, measure), "subtitle")
+    ).toMatchObject({ fill: "#efe6d2", opacity: 0.85 });
   });
 
   it("omits a run rather than drawing an empty one", () => {
@@ -147,7 +157,9 @@ describe("wordsFromText", () => {
   });
 
   it("reads three plain lines in order", () => {
-    expect(wordsFromText("Citizen Scientist\nHow it happened\nMitch Kelly")).toEqual({
+    expect(
+      wordsFromText("Citizen Scientist\nHow it happened\nMitch Kelly")
+    ).toEqual({
       author: "Mitch Kelly",
       subtitle: "How it happened",
       title: "Citizen Scientist",

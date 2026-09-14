@@ -31,6 +31,12 @@ import {
  */
 
 export interface Finisher {
+  /**
+   * One render, or — when `each` is set — one per picture on that port, in
+   * wire order. The run asks for the nth under `${urlKey}s`, as the Halftone
+   * does with renderUrls; `urlKey` alone still holds the first.
+   */
+  each?: string;
   /** Message when the render throws something that is not an Error. */
   failure: string;
   /** File name for the upload, which the blob store keeps as a hint. */
@@ -38,12 +44,6 @@ export interface Finisher {
   /** Folder in the blob store. */
   folder: string;
   nodeType: string;
-  /**
-   * One render, or — when `each` is set — one per picture on that port, in
-   * wire order. The run asks for the nth under `${urlKey}s`, as the Halftone
-   * does with renderUrls; `urlKey` alone still holds the first.
-   */
-  each?: string;
   render: (
     config: Record<string, unknown>,
     itemId: string,
@@ -160,7 +160,9 @@ const explainEmpty = (
     const resolved = outputImagesOf(source, graph).length;
     return `${label} is wired from a Batch with ${feeding.length} wire${feeding.length === 1 ? "" : "s"} into it that resolve to ${resolved} picture${resolved === 1 ? "" : "s"}.`;
   }
-  const name = source.nodeType ? `the ${source.nodeType} node` : `the ${source.kind}`;
+  const name = source.nodeType
+    ? `the ${source.nodeType} node`
+    : `the ${source.kind}`;
   return `${label} is wired from ${name} (${source.id.slice(0, 8)}), which has no picture yet — run it first.`;
 };
 
@@ -198,10 +200,76 @@ export const FINISHER_URL_KEYS: Readonly<Record<string, string>> =
  * A failure is reported and the item left as it was, so one broken node
  * does not stop the rest of the board running.
  */
+type Upload = (blob: Blob, file: string, folder: string) => Promise<string>;
+
+/** The pictures a fanning-out finisher renders, in wire order, capped. */
+const picturesFor = (item: BoardItem, port: string, graph: Graph): string[] =>
+  wiredImagesOnPort(item.id, port, graph).slice(0, MAX_SHADER_RENDERS);
+
+/**
+ * Whether the node's stored render is still current.
+ *
+ * For a node that fans out, only a list with one render per picture wired
+ * in counts: a lone URL with no list is a render from before the node
+ * fanned out, and a list of the wrong length is from before a wire moved —
+ * either would hand the run one mockup for five covers.
+ */
+const isCurrent = (
+  item: BoardItem,
+  finisher: Finisher,
+  graph: Graph
+): boolean => {
+  const config = item.config ?? {};
+  const list = config[`${finisher.urlKey}s`];
+  const stored = Array.isArray(list) ? list : null;
+  if (finisher.each) {
+    const wanted = picturesFor(item, finisher.each, graph).length;
+    return stored !== null && wanted > 0 && stored.length === wanted;
+  }
+  return (
+    typeof config[finisher.urlKey] === "string" ||
+    (stored !== null && stored.length > 0)
+  );
+};
+
+/** One node rendered and uploaded: its config with the URL, or URLs, in. */
+const finishOne = async (
+  item: BoardItem,
+  finisher: Finisher,
+  graph: Graph,
+  upload: Upload
+): Promise<BoardItem> => {
+  const config = item.config ?? {};
+  if (!finisher.each) {
+    const blob = await finisher.render(config, item.id, graph);
+    const url = await upload(blob, finisher.file, finisher.folder);
+    return { ...item, config: { ...config, [finisher.urlKey]: url } };
+  }
+  // One per picture, in wire order, so variation n is picture n.
+  const pictures = picturesFor(item, finisher.each, graph);
+  if (pictures.length === 0) {
+    requirePicture(item.id, finisher.each, finisher.each, graph);
+  }
+  const urls = await Promise.all(
+    pictures.map(async (picture) => {
+      const blob = await finisher.render(config, item.id, graph, picture);
+      return await upload(blob, finisher.file, finisher.folder);
+    })
+  );
+  return {
+    ...item,
+    config: {
+      ...config,
+      [finisher.urlKey]: urls[0],
+      [`${finisher.urlKey}s`]: urls,
+    },
+  };
+};
+
 export const finishItems = async (
   items: BoardItem[],
   graphOf: (items: BoardItem[]) => Graph,
-  upload: (blob: Blob, file: string, folder: string) => Promise<string>,
+  upload: Upload,
   report: (message: string) => void
 ): Promise<BoardItem[]> => {
   let current = items;
@@ -210,50 +278,14 @@ export const finishItems = async (
     // biome-ignore lint/performance/noAwaitInLoops: stages depend on each other — a Wrap reads the Cover's URL the stage before wrote
     current = await Promise.all(
       current.map(async (item) => {
-        if (item.nodeType !== finisher.nodeType) {
-          return item;
-        }
-        const config = item.config ?? {};
-        const listKey = `${finisher.urlKey}s`;
-        const list = Array.isArray(config[listKey]) ? config[listKey] : null;
-        if (finisher.each) {
-          // Current only when there is one render per picture wired in. A
-          // lone URL with no list is a render from before the node fanned
-          // out, and a list of the wrong length is from before a wire moved
-          // — either would hand the run one mockup for five covers.
-          const wanted = wiredImagesOnPort(item.id, finisher.each, graph)
-            .slice(0, MAX_SHADER_RENDERS).length;
-          if (list && list.length === wanted && wanted > 0) {
-            return item;
-          }
-        } else if (
-          typeof config[finisher.urlKey] === "string" ||
-          (list && list.length > 0)
+        if (
+          item.nodeType !== finisher.nodeType ||
+          isCurrent(item, finisher, graph)
         ) {
           return item;
         }
         try {
-          if (!finisher.each) {
-            const blob = await finisher.render(config, item.id, graph);
-            const url = await upload(blob, finisher.file, finisher.folder);
-            return { ...item, config: { ...config, [finisher.urlKey]: url } };
-          }
-          // One per picture, in wire order, so variation n is picture n.
-          const pictures = wiredImagesOnPort(item.id, finisher.each, graph)
-            .slice(0, MAX_SHADER_RENDERS);
-          if (pictures.length === 0) {
-            requirePicture(item.id, finisher.each, finisher.each, graph);
-          }
-          const urls = await Promise.all(
-            pictures.map(async (picture) => {
-              const blob = await finisher.render(config, item.id, graph, picture);
-              return await upload(blob, finisher.file, finisher.folder);
-            })
-          );
-          return {
-            ...item,
-            config: { ...config, [finisher.urlKey]: urls[0], [listKey]: urls },
-          };
+          return await finishOne(item, finisher, graph, upload);
         } catch (err) {
           report(err instanceof Error ? err.message : finisher.failure);
           return item;

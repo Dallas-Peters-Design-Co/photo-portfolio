@@ -298,7 +298,10 @@ export const paintCover = (
     uniform("palN"),
     Math.min(MAX_PALETTE, Math.max(0, options.palette.length))
   );
-  gl.uniform1f(uniform("clampAmt"), options.palette.length > 0 ? options.clamp : 0);
+  gl.uniform1f(
+    uniform("clampAmt"),
+    options.palette.length > 0 ? options.clamp : 0
+  );
   gl.uniform1f(uniform("dot_"), Math.max(0, options.dot));
   gl.uniform1f(uniform("gamma"), Math.max(0.01, options.gamma));
   gl.uniform1f(uniform("grain"), Math.max(0, options.grain));

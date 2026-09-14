@@ -28,19 +28,19 @@ export const SPINE_TEXT_MIN_PAGES = 79;
 
 /** Inches per page, by KDP paper stock. */
 export const PAPER_THICKNESS_IN = {
-  "color-premium": 0.002252,
+  "color-premium": 0.002_252,
   "color-standard": 0.0032,
   cream: 0.0025,
-  white: 0.002252,
+  white: 0.002_252,
 } as const;
 
 export type Paper = keyof typeof PAPER_THICKNESS_IN;
 
 /** Trim sizes as width × height in inches. The ones KDP lists for trade books. */
 export const TRIMS = {
-  "5x8": [5, 8],
-  "5.25x8": [5.25, 8],
   "5.5x8.5": [5.5, 8.5],
+  "5.25x8": [5.25, 8],
+  "5x8": [5, 8],
   "6x9": [6, 9],
 } as const;
 
@@ -60,12 +60,12 @@ export interface RectPx {
 }
 
 export interface WrapSpec {
-  /** Where KDP will print the barcode; keep it clear. Inside the back's trim. */
-  barcode: RectPx;
   /** The back panel, trim only (bleed lies outside it). */
   back: RectPx;
   /** The back's live area — where copy may go. */
   backSafe: RectPx;
+  /** Where KDP will print the barcode; keep it clear. Inside the back's trim. */
+  barcode: RectPx;
   bleedPx: number;
   /** The whole file, bleed included. */
   canvas: { height: number; width: number };
@@ -93,11 +93,7 @@ export const px = (inches: number): number => Math.round(inches * DPI);
  * `pages` is the interior page count KDP will print, which is the number the
  * manuscript's PDF has — not the chapter count, and not "about 300".
  */
-export const wrapSpec = (
-  trim: Trim,
-  paper: Paper,
-  pages: number
-): WrapSpec => {
+export const wrapSpec = (trim: Trim, paper: Paper, pages: number): WrapSpec => {
   const [tw, th] = TRIMS[trim];
   const count = Math.max(24, Math.min(828, Math.round(pages)));
   const spineIn = count * PAPER_THICKNESS_IN[paper];

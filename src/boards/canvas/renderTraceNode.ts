@@ -1,4 +1,6 @@
-import ImageTracer, { type ImageTracerOptions } from "../../vendor/imagetracer.js";
+import ImageTracer, {
+  type ImageTracerOptions,
+} from "../../vendor/imagetracer.js";
 import { loadImage } from "./halftoneGl";
 
 /**
@@ -47,10 +49,10 @@ export const traceOptionsFrom = (config: TraceSettings): ImageTracerOptions => {
     ...detail,
     blurdelta: 64,
     blurradius: number(config.blur, 0, 0, 5),
+    colorquantcycles: 3,
     // Deterministic sampling: the same picture traces the same way twice,
     // which is what "re-run to pick up a setting change" relies on.
     colorsampling: 2,
-    colorquantcycles: 3,
     layering: config.layering === "cutout" ? 1 : 0,
     numberofcolors: Math.round(number(config.colors, 32, 2, 256)),
     pathomit: Math.round(number(config.speckle, 8, 0, 64)),
@@ -62,7 +64,10 @@ export const traceOptionsFrom = (config: TraceSettings): ImageTracerOptions => {
 
 /** The picture's pixels at the trace size. */
 const pixelsOf = (image: HTMLImageElement, longest: number): ImageData => {
-  const scale = Math.min(1, longest / Math.max(image.naturalWidth, image.naturalHeight));
+  const scale = Math.min(
+    1,
+    longest / Math.max(image.naturalWidth, image.naturalHeight)
+  );
   const w = Math.max(1, Math.round(image.naturalWidth * scale));
   const h = Math.max(1, Math.round(image.naturalHeight * scale));
   const canvas = document.createElement("canvas");
@@ -100,7 +105,9 @@ export const renderTrace = async (
   const pixels = pixelsOf(image, longest);
   const svg = ImageTracer.imagedataToSVG(pixels, traceOptionsFrom(config));
   if (!svg.includes("<path")) {
-    throw new TraceError("Nothing traced — the picture may be one flat colour.");
+    throw new TraceError(
+      "Nothing traced — the picture may be one flat colour."
+    );
   }
   const sized = atOriginalSize(svg, image.naturalWidth, image.naturalHeight);
   return new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${sized}`], {

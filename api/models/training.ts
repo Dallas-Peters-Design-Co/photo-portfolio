@@ -85,8 +85,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
    * nothing else; a board that started a training wants to say which one and
    * how long it has been going, and a number cannot.
    */
-  const pending: { id: string; label: string; startedAt: string | null }[] =
-    [];
+  const pending: { id: string; label: string; startedAt: string | null }[] = [];
 
   for (const row of rows) {
     // A row whose receipt is missing cannot be collected, and polling it every

@@ -1,6 +1,6 @@
 import "./BoardViewPage.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { frameForSlug, frameSlugs } from "../../config/frameSlug";
 import { containedBy } from "../../config/graph";
@@ -62,6 +62,12 @@ function PublishedActions({
       >
         Comments{commentCount > 0 ? ` (${commentCount})` : ""}
       </button>
+      <Link
+        className="board-view-page__action"
+        to={`/board/${board.slug ?? ""}/present`}
+      >
+        Present
+      </Link>
       <ShareButtons
         description={board.title}
         imageUrl={board.coverUrl ?? undefined}

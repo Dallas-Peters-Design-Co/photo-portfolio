@@ -140,12 +140,16 @@ const main = async (): Promise<void> => {
       .extract({ height: y1 - y0, left: x0, top: y0, width: x1 - x0 })
       .png()
       .toBuffer();
-    const blob = await put(`boards/parts/${slug}/${variant}/${layer.role}.png`, cropped, {
-      access: "public",
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      contentType: "image/png",
-    });
+    const blob = await put(
+      `boards/parts/${slug}/${variant}/${layer.role}.png`,
+      cropped,
+      {
+        access: "public",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+        contentType: "image/png",
+      }
+    );
     uploaded.push({ layer, url: blob.url });
     process.stdout.write(`  ${layer.role.padEnd(20)} ${x1 - x0}×${y1 - y0}\n`);
   }

@@ -107,6 +107,17 @@ Affinity or Illustrator with real layers.
   is the picture's own size.
 - Many pictures wired in trace to many SVGs, like the Cover fan-out.
 
+## Presenting a board
+
+A published board plays as a slideshow at `/board/<slug>/present` — the
+**Present** button in the board header (once published) and on the public
+page. Frames are the sections, in reading order across the board; each
+frame's name is a section card and each picture in it is a slide, so
+arranging the presentation is arranging frames. Pictures outside a frame
+are not shown. Arrow keys, space, click or swipe to move; F for full screen;
+P plays it by itself, five seconds a slide; Escape leaves. A clip in a
+frame plays as a slide.
+
 ## Iterating
 
 - Move a part on the frame, change a colour, retype the title: the run

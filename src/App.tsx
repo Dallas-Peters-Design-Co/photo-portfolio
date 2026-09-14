@@ -29,6 +29,11 @@ const BoardPage = lazy(() =>
 const BoardViewPage = lazy(() =>
   import("./pages/BoardViewPage").then((m) => ({ default: m.BoardViewPage }))
 );
+const BoardPresentPage = lazy(() =>
+  import("./pages/BoardPresentPage").then((m) => ({
+    default: m.BoardPresentPage,
+  }))
+);
 const ContentPage = lazy(() =>
   import("./pages/ContentPage").then((m) => ({ default: m.ContentPage }))
 );
@@ -59,6 +64,9 @@ export default function App() {
             <Route element={<ResetPasswordPage />} path="/reset-password" />
             <Route element={<PhotoPage />} path="/photo/:id" />
             <Route element={<BoardViewPage />} path="/board/:slug" />
+            {/* The board as slides. A static segment, so the router ranks it
+                above the frame route below whatever a frame is named. */}
+            <Route element={<BoardPresentPage />} path="/board/:slug/present" />
             {/* A frame on a published board, at its own address. The same page:
                 it reads the extra segment and opens that frame, so the board is
                 still behind the viewer and closing it is a navigation rather

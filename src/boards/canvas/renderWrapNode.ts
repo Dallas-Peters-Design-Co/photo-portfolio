@@ -131,11 +131,16 @@ const drawBackCopy = (
     .filter(Boolean);
 
   paragraphs.forEach((paragraph, index) => {
-    const hook = index === 0 && paragraph.length < 120 && !/[.!?]$/.test(paragraph);
+    const hook =
+      index === 0 && paragraph.length < 120 && !/[.!?]$/.test(paragraph);
     const size = hook ? pt(20) : pt(11.5);
     const leading = size * (hook ? 1.2 : 1.45);
     ctx.font = `${size}px ${hook ? TITLE_FACE : AUTHOR_FACE}`;
-    const lines = wrapLines(ctx, hook ? paragraph.toLocaleUpperCase() : paragraph, width);
+    const lines = wrapLines(
+      ctx,
+      hook ? paragraph.toLocaleUpperCase() : paragraph,
+      width
+    );
     y += size;
     for (const line of lines) {
       if (y > bottom) {

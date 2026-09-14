@@ -54,8 +54,8 @@ export interface Run {
 }
 
 export interface Band {
-  height: number;
   fill: string;
+  height: number;
 }
 
 /** A filled rectangle under the byline, in the band colour. Poster only. */
@@ -182,7 +182,14 @@ export const coverLayout = (
       fill: colors.ink,
       opacity: 1,
       role: "title",
-      size: fitted(title, TITLE_FACE, titleWidth, measure, M.titleMax, tracking),
+      size: fitted(
+        title,
+        TITLE_FACE,
+        titleWidth,
+        measure,
+        M.titleMax,
+        tracking
+      ),
       text: title,
       tracking,
       width: titleWidth,
