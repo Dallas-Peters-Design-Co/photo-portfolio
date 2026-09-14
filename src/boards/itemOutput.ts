@@ -1,6 +1,7 @@
 import { containedBy } from "../../config/graph.js";
 import { DEFAULT_PLACEHOLDER } from "../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../config/nodes/palette.js";
+import { renderedUrlOf } from "../../config/nodes/rendered.js";
 import type { BoardItem, BoardItemVariation, BoardWire } from "../types";
 import { parseItems } from "./listItems";
 
@@ -426,6 +427,13 @@ export const outputImageOf = (
   if (item.nodeType === "element") {
     const stored = item.config?.imageUrl;
     return typeof stored === "string" && stored ? stored : null;
+  }
+  // A browser-rendered node's fresh render counts as its output before the
+  // run has stored it, for the reason config/nodes/rendered.ts gives: the
+  // next node's flush reads it in the same pass.
+  const rendered = renderedUrlOf(item.nodeType, item.config);
+  if (rendered) {
+    return rendered;
   }
   const images = pickImages(item.result).filter((image) => Boolean(image?.url));
   if (images.length === 0) {

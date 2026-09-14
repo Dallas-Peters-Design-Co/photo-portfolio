@@ -1,3 +1,4 @@
+import { RENDER_URL_KEYS } from "../../../config/nodes/rendered.js";
 import type { BoardItem } from "../../types";
 import { renderCover } from "./renderCoverNode";
 import { renderMockup } from "./renderMockupNode";
@@ -84,9 +85,15 @@ export const FINISHERS: readonly Finisher[] = [
   },
 ];
 
-/** nodeType → the config key its render lives under. */
+/**
+ * nodeType → the config key its render lives under, for the three finishers.
+ * Read off the shared table rather than restated, so the server, the canvas
+ * and this stage cannot disagree about a key.
+ */
 export const FINISHER_URL_KEYS: Readonly<Record<string, string>> =
-  Object.fromEntries(FINISHERS.map((f) => [f.nodeType, f.urlKey]));
+  Object.fromEntries(
+    FINISHERS.map((f) => [f.nodeType, RENDER_URL_KEYS[f.nodeType] ?? f.urlKey])
+  );
 
 /**
  * Renders every finisher node that has no current render, in pipeline order.

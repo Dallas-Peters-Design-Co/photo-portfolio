@@ -3,6 +3,7 @@ import { containedBy, type GraphWire } from "../../../../config/graph.js";
 import { DEFAULT_PLACEHOLDER } from "../../../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../../../config/nodes/palette.js";
 import { isRunnableNodeType } from "../../../../config/nodeTypes.js";
+import { renderedUrlOf } from "../../../../config/nodes/rendered.js";
 import type { BoardItemRow } from "../../../_lib/boards.js";
 import { columnsOf, expandTemplate, LINES, splitValues } from "./expand.js";
 import { asObject, toBox } from "./rows.js";
@@ -382,6 +383,13 @@ export const singleOutputOf = (
   if (!isRunnableNodeType(row.node_type)) {
     const config = asObject(row.config);
     return settingTextOf(config.text ?? config.prompt);
+  }
+  // A node the browser renders hands over its render as soon as the flush
+  // has written it — before its own run has stored a result — so the node it
+  // feeds can run in the same pass. See config/nodes/rendered.ts.
+  const rendered = renderedUrlOf(row.node_type, asObject(row.config));
+  if (rendered) {
+    return rendered;
   }
   // Everything left is a node that runs, so what it hands over is whatever the
   // run left on it.
