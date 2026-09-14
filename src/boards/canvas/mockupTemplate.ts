@@ -46,9 +46,9 @@ export const MOCKUP_TEMPLATES: readonly Omit<MockupTemplate, "coverAspect" | "cr
   { base: "/mockups/book-tilt", id: "book-tilt", label: "Tilted" },
   { base: "/mockups/book-stack", id: "book-stack", label: "Stacked" },
   { base: "/mockups/book-open", id: "book-open", label: "Open and closed" },
-  { base: "/mockups/book-soft-02", id: "book-soft-02", label: "Softcover, from above" },
-  { base: "/mockups/book-soft-04", id: "book-soft-04", label: "Softcover, standing" },
-  { base: "/mockups/book-soft-05", id: "book-soft-05", label: "Softcover, in a row" },
+  { base: "/mockups/book-soft-02", id: "book-soft-02", label: "Softcover, front and back" },
+  { base: "/mockups/book-soft-04", id: "book-soft-04", label: "Softcover, front over back" },
+  { base: "/mockups/book-soft-05", id: "book-soft-05", label: "Softcover, three in a row" },
 ];
 
 export const isMockupTemplateId = (value: unknown): boolean =>

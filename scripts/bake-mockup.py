@@ -157,7 +157,13 @@ def render(layers, viewport, fills):
             i += 1
             if not clip.visible:
                 continue
-            c = raster(clip, viewport)
+            if clip in fills:
+                value, alpha = fills[clip]
+                c = np.zeros((h, w, 4), np.float32)
+                c[..., :3] = value
+                c[..., 3] = alpha
+            else:
+                c = raster(clip, viewport)
             c[..., 3] *= src[..., 3]
             base_alpha = src[..., 3:4].copy()
             src = over(src, c, clip.blend_mode, clip.opacity / 255)
@@ -196,7 +202,13 @@ def render_into(stack, group, viewport, fills):
             i += 1
             if not clip.visible:
                 continue
-            c = raster(clip, viewport)
+            if clip in fills:
+                value, alpha = fills[clip]
+                c = np.zeros((h, w, 4), np.float32)
+                c[..., :3] = value
+                c[..., 3] = alpha
+            else:
+                c = raster(clip, viewport)
             c[..., 3] *= src[..., 3]
             base_alpha = src[..., 3:4].copy()
             src = over(src, c, clip.blend_mode, clip.opacity / 255)
@@ -420,6 +432,16 @@ def main():
     def save_rgb(arr, name, quality=90):
         im = Image.fromarray((arr * 255).round().astype(np.uint8), "RGB").resize((ow, oh), Image.LANCZOS)
         im.save(os.path.join(out_dir, name), quality=quality, subsampling=0)
+
+    # A cover that carries none of its colour through is a bake that replaced
+    # nothing — the tell-tale of a Smart Object the render never reached.
+    inside = uv[..., 0] >= 0
+    from scipy import ndimage as ndi  # noqa: E402
+    b_small = np.asarray(Image.fromarray((B * 255).astype(np.uint8)).resize((ow, oh)))
+    carried = float(b_small[inside].mean() / 255) if inside.any() else 0.0
+    print(f"cover colour carried through: {carried:.2f} (expect > 0.5)")
+    if carried < 0.2:
+        sys.exit("The cover Smart Object was not replaced — nothing of the cover reaches the output.")
 
     save_rgb(A, "a.jpg")
     save_rgb(B, "b.jpg")

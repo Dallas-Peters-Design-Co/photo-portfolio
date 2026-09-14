@@ -58,9 +58,9 @@ export const MOCKUP: NodeType = {
       optionLabels: {
         "book-front": "Face up",
         "book-open": "Open and closed",
-        "book-soft-02": "Softcover, from above",
-        "book-soft-04": "Softcover, standing",
-        "book-soft-05": "Softcover, in a row",
+        "book-soft-02": "Softcover, front and back",
+        "book-soft-04": "Softcover, front over back",
+        "book-soft-05": "Softcover, three in a row",
         "book-stack": "Stacked",
         "book-tilt": "Tilted",
       },
