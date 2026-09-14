@@ -89,7 +89,7 @@ export const TEMPLATES: readonly Template[] = [
      * anything is ever printed — a poster has a margin, and without one the
      * mark reads as the billboard rather than as artwork on it.
      */
-    area: { h: 0.4, w: 0.4, x: 0.3, y: 0.16 },
+    area: { h: 0.53, w: 0.39, x: 0.32, y: 0.11 },
     /*
      * Multiply, so the panel's own light falls on the artwork.
      *
@@ -101,7 +101,15 @@ export const TEMPLATES: readonly Template[] = [
     blend: "multiply",
     caption:
       "On a lit billboard, at the size it is read from across a street. The first place a fine line disappears.",
-    crop: { h: 0.76, w: 0.72, x: 0.14, y: 0 },
+    /*
+     * Square, and measured: the lit panel is x 0.287–0.742, y 0.067–0.685 of
+     * the photograph and its frame runs to y 0.75. The crop is cover-fitted
+     * into a square tile, so a crop that is not itself square loses its top
+     * and bottom — the old one took the top of the frame off and left the
+     * mark sitting high. This one is 947 px each way, centred on the panel,
+     * with the frame whole and a little of the stand.
+     */
+    crop: { h: 0.78, w: 0.784, x: 0.117, y: 0.01 },
     id: "billboard",
     image: billboard,
     label: "Billboard",
