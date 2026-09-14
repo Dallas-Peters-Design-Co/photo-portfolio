@@ -6,6 +6,7 @@ imprint except the defaults.
 
 ```
 parts/  ──cover:seed──▶  Frame ──▶ Composite ──▶ Cover ──▶ Print wrap ──▶ Mockup
+                                              └──▶ Trace (SVG)
                                                    │                        ▲
                                                    └────────────────────────┘
 ```
@@ -82,6 +83,22 @@ The templates are baked once with `scripts/bake-mockup.py` (needs
 `a.jpg`, `b.jpg`, `uv.png`, `template.json` — and listed in
 `src/boards/canvas/mockupTemplate.ts` and `config/nodes/mockup.ts`. Re-bake
 after editing a PSD; nothing else changes.
+
+## 6. Trace (optional)
+
+Any picture on the board — a cover, a variation from Generate, a single part —
+into a layered SVG, traced in the browser. The Vectorize tool sends the picture
+to Recraft, which reduces it to a handful of flat fills with no colour control;
+Trace has a **Colours** count (2–256), a **Detail** dial and a **Blur** for
+taming halftone grain, and writes one `<path>` per colour so the file opens in
+Affinity or Illustrator with real layers.
+
+- 32 colours, balanced, no blur is the poster look and ~1.5 MB for the art.
+- Raise colours to 64–96 to keep the spiral's gradients as visible bands;
+  files grow to several MB. Blur 1–2 removes grain and shrinks them again.
+- Trace at (px) caps the traced size; coordinates are scaled back so the SVG
+  is the picture's own size.
+- Many pictures wired in trace to many SVGs, like the Cover fan-out.
 
 ## Iterating
 

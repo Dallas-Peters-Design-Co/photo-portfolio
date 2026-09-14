@@ -11,6 +11,7 @@ import {
   NotebookIcon,
   PaintBoardIcon,
   PaintBucketIcon,
+  PenTool01Icon,
   PrinterIcon,
   RepeatIcon,
   SearchVisualIcon,
@@ -174,6 +175,13 @@ const BASE_ENTRIES: Entry[] = [
     hint: "brand kit palette voice typeface look guidelines identity",
     icon: PaintBucketIcon,
     label: "Brand",
+    section: "Nodes",
+  },
+  {
+    action: { kind: "node", nodeType: "trace" },
+    hint: "trace vector svg colours full colour posterize outline vectorize",
+    icon: PenTool01Icon,
+    label: "Trace",
     section: "Nodes",
   },
   // The cover pipeline, in the order it runs. See docs/cover-pipeline.md.

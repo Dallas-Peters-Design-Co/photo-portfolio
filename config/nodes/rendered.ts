@@ -22,6 +22,7 @@ export const RENDER_URL_KEYS: Readonly<Record<string, string>> = {
   composite: "compositeUrl",
   cover: "coverUrl",
   mockup: "mockupUrl",
+  trace: "traceUrl",
   wrap: "wrapUrl",
 };
 

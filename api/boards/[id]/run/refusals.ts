@@ -103,6 +103,7 @@ export const unmetRequirement = (
     capability === "board.composite" ||
     capability === "board.cover" ||
     capability === "board.mockup" ||
+    capability === "board.trace" ||
     capability === "board.wrap" ||
     capability === "board.shader"
   ) {

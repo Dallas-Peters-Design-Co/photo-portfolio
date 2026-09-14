@@ -5,6 +5,7 @@ import type { BoardItem } from "../../types";
 import { outputImagesOf } from "../itemOutput";
 import { renderCover } from "./renderCoverNode";
 import { renderMockup } from "./renderMockupNode";
+import { renderTrace } from "./renderTraceNode";
 import { renderWrap } from "./renderWrapNode";
 import {
   type Graph,
@@ -55,6 +56,19 @@ export interface Finisher {
 }
 
 export const FINISHERS: readonly Finisher[] = [
+  {
+    each: "image",
+    failure: "Could not trace the picture",
+    file: "trace.svg",
+    folder: "boards/traces",
+    nodeType: "trace",
+    render: (config, itemId, graph, picture) =>
+      renderTrace(
+        config,
+        picture ?? requirePicture(itemId, "image", "Image", graph)
+      ),
+    urlKey: "traceUrl",
+  },
   {
     each: "art",
     failure: "Could not render the cover",

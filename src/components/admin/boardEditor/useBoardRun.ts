@@ -394,7 +394,7 @@ export const useBoardRun = (deps: BoardRunDeps) => {
       async (blob, file, folder) =>
         (
           await portfolioService.uploadImageFile(
-            new File([blob], file, { type: "image/png" }),
+            new File([blob], file, { type: blob.type || "image/png" }),
             undefined,
             folder
           )

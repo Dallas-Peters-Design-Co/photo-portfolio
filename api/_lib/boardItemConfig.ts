@@ -116,6 +116,7 @@ export const OWNED_TEXT_KEYS = [
   // said the cover had not been rendered, however many times it had.
   { key: "coverUrl", max: 2000 },
   { key: "mockupUrl", max: 2000 },
+  { key: "traceUrl", max: 2000 },
   { key: "wrapUrl", max: 2000 },
   // What the browser rendered for a shader node, written the same way and for
   // the same reason as compositeUrl: only the browser can produce it, and the
@@ -208,6 +209,10 @@ export const parseNodeConfig = (
   const covers = ownedList(source.coverUrls);
   if (covers) {
     config.coverUrls = covers;
+  }
+  const traces = ownedList(source.traceUrls);
+  if (traces) {
+    config.traceUrls = traces;
   }
 
   for (const setting of type.settings) {

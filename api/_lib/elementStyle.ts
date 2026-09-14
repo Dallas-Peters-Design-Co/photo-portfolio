@@ -224,13 +224,13 @@ export const jobsFor = ({
   // wiring describes a single run no matter how many references feed it.
   // Fanning out here would bill one description per image and then throw all
   // but the last away.
-  if (capability === "board.cover") {
-    // One cover per picture on the art port: four variations of the field
-    // are four covers to compare. The browser rendered them in this order
-    // (finishers.ts) and stores them under coverUrls; the run asks for the
-    // nth. Nothing wired is one job, which the missing-input check has
-    // already refused.
-    const art = values.art ?? [];
+  if (capability === "board.cover" || capability === "board.trace") {
+    // One cover — or one trace — per picture wired in: four variations of
+    // the field are four covers to compare. The browser rendered them in
+    // this order (finishers.ts) and stores them under coverUrls or
+    // traceUrls; the run asks for the nth. Nothing wired is one job, which
+    // the missing-input check has already refused.
+    const art = (capability === "board.cover" ? values.art : values.image) ?? [];
     return (art.length > 0 ? art : [null]).map((image) => ({
       blendWith: [],
       image,

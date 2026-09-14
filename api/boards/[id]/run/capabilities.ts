@@ -306,6 +306,15 @@ export const produce = async (
       "The print wrap has not been rendered yet"
     );
   }
+  if (capability === "board.trace") {
+    return browserRendered(
+      args.item.config,
+      "traceUrl",
+      "The trace has not been rendered yet",
+      args.variation,
+      "traceUrls"
+    );
+  }
   if (capability === "board.mockup") {
     return browserRendered(
       args.item.config,
