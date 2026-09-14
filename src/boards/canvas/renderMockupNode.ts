@@ -26,6 +26,43 @@ export interface MockupSources {
   wrap: string | null;
 }
 
+/**
+ * The colour along the cover's spine edge, as a hex string.
+ *
+ * The left three per cent of the cover, averaged. On a Poster that is the
+ * band and the ground; on a Horizon the ground; on a finished cover from
+ * anywhere else it is whatever runs to the spine, which is what a printed
+ * back would be if nobody designed one. Averaged rather than sampled, so a
+ * spiral crossing the edge gives a mid-tone and not one stripe.
+ */
+export const edgeColorOf = (cover: HTMLImageElement): string => {
+  const w = Math.max(1, Math.round(cover.naturalWidth * 0.03));
+  const h = Math.min(cover.naturalHeight, 512);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    return "#293341";
+  }
+  ctx.drawImage(cover, 0, 0, w, cover.naturalHeight, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  let r = 0;
+  let g = 0;
+  let b = 0;
+  const n = w * h;
+  for (let i = 0; i < d.length; i += 4) {
+    r += d[i];
+    g += d[i + 1];
+    b += d[i + 2];
+  }
+  const hex = (v: number) =>
+    Math.round(v / n)
+      .toString(16)
+      .padStart(2, "0");
+  return `#${hex(r)}${hex(g)}${hex(b)}`;
+};
+
 export const renderMockup = async (
   config: MockupSettings,
   sources: MockupSources
@@ -46,14 +83,22 @@ export const renderMockup = async (
     sources.wrap ? loadImage(sources.wrap) : Promise.resolve(null),
   ]);
   const [trimW, trimH] = TRIMS[isTrim(config.trim) ? config.trim : "6x9"];
+  const spine =
+    config.back === "colour"
+      ? readColor(config.spine, "#293341")
+      : edgeColorOf(cover);
   const canvas = await renderTemplate(template.base, cover, {
     back: wrap
       ? {
           image: wrap,
-          window: wrapBackWindow(wrap.naturalWidth / wrap.naturalHeight, trimW, trimH),
+          window: wrapBackWindow(
+            wrap.naturalWidth / wrap.naturalHeight,
+            trimW,
+            trimH
+          ),
         }
       : null,
-    spine: readColor(config.spine, "#293341"),
+    spine,
   });
 
   const blob = await new Promise<Blob | null>((resolve) => {

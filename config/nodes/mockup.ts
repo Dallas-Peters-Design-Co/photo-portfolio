@@ -55,7 +55,7 @@ export const MOCKUP: NodeType = {
        * the ids here must match its entries, and adding a template is baking
        * it and listing it in both.
        */
-      default: "book-front",
+      default: "book-soft-02",
       key: "template",
       kind: "select",
       label: "Template",
@@ -88,8 +88,8 @@ export const MOCKUP: NodeType = {
       kind: "select",
       label: "Trim",
       optionLabels: {
-        "5.25x8": "5.25 × 8",
         "5.5x8.5": "5.5 × 8.5",
+        "5.25x8": "5.25 × 8",
         "5x8": "5 × 8",
         "6x9": "6 × 9",
       },
@@ -98,14 +98,33 @@ export const MOCKUP: NodeType = {
     },
     {
       /*
-       * The colour of a spine, where the template shows one. A spine strip
-       * on these mockups is a few dozen pixels wide, too narrow for type to
-       * read, so it takes the band colour rather than a slice of the wrap.
+       * What a back panel or spine strip shows when no wrap is wired. Off the
+       * cover, it takes the colour along the cover's spine edge — the band
+       * colour on a Poster, the ground on a Horizon — so a cream cover gets a
+       * cream back rather than somebody else's navy. "Colour" uses the one
+       * below, for a proof in a deliberate ink.
+       */
+      default: "cover",
+      key: "back",
+      kind: "select",
+      label: "Back & spine",
+      optionLabels: {
+        colour: "The colour below",
+        cover: "From the cover's edge",
+      },
+      options: ["cover", "colour"],
+      panel: true,
+    },
+    {
+      /*
+       * The colour of a back panel or spine when Back & spine is "colour". A
+       * spine strip on these mockups is a few dozen pixels wide, too narrow
+       * for type to read, so it is a colour rather than a slice of the wrap.
        */
       default: "#293341",
       key: "spine",
       kind: "color",
-      label: "Spine & back",
+      label: "Colour",
       panel: true,
     },
   ],
