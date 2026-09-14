@@ -56,10 +56,19 @@ import { asObject, toGraphItems, toGraphWires } from "./run/rows.js";
  * not open this — an anonymous caller gets a 401 either way.
  */
 
+/*
+ * The geometry columns are not optional. A frame contains its pictures by
+ * sitting under them — see containedBy — and outputsOf works that out from
+ * x, y, width and height. Without them every frame resolved to nothing on
+ * the server, so a node fed through a frame (or a Batch fed by one) was
+ * refused for a missing input while the canvas, which has the geometry,
+ * showed twelve pictures on the wire.
+ */
 const loadItems = async (sql: Sql, boardId: string) =>
   (await sql`
     SELECT i.id, i.kind, i.body, i.image_url, i.node_type, i.config,
            i.result, i.run_state, i.photo_id,
+           i.x, i.y, i.width, i.height, i.z_index,
            p.url AS photo_url
     FROM board_items i
     LEFT JOIN photos p ON p.id = i.photo_id
