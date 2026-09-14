@@ -109,7 +109,15 @@ const submit = async (
 
   const model = typeof body.model === "string" ? body.model : "";
   const rows = await loadModelRows();
-  const known = rows.find((row) => row.id === model);
+  // "auto" is what every other model setting on the board defaults to, and the
+  // Video node's was no exception — so a node nobody had touched submitted the
+  // literal string "auto" and was told "that model is not one we know", which
+  // reads as a broken feature rather than as an unmade choice. Resolved here,
+  // where the table is already in hand, to the first enabled video row.
+  const known =
+    !model || model === "auto"
+      ? rows.find((row) => row.output === "video" && row.enabled !== false)
+      : rows.find((row) => row.id === model);
   if (!known) {
     return res.status(400).json({ error: "That model is not one we know." });
   }
@@ -128,9 +136,12 @@ const submit = async (
   const duration = typeof body.duration === "string" ? body.duration : "";
 
   try {
+    // `known.id`, not the requested string: "auto" resolved to a row above, and
+    // submitting the word "auto" to the queue is a 404 naming an endpoint
+    // nobody chose.
     const receipt = await submitToQueue(
       key,
-      model,
+      known.id,
       bodyFor(known.image_param, imageUrl, prompt, duration)
     );
     return res.status(200).json(receipt);

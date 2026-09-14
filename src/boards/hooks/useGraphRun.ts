@@ -20,6 +20,16 @@ interface UseGraphRunArgs {
   boardId: string;
   items: BoardItem[];
   onPatch: (itemId: string, patch: Partial<BoardItem>) => void;
+  /**
+   * How to run a Video node, which this runner cannot.
+   *
+   * A board run walks every node itself, so the fork that the single-node Run
+   * button makes in `useVideoNode` never applied here: a board containing a
+   * Video node ran it through the image endpoint and was billed for the
+   * refusal. Handed in rather than imported so this file keeps knowing nothing
+   * about fal's queue. See src/boards/hooks/useVideoNode.ts.
+   */
+  runVideo?: (itemId: string) => Promise<void>;
   wires: BoardWire[];
 }
 
@@ -256,6 +266,7 @@ export function useGraphRun({
   boardId,
   items,
   onPatch,
+  runVideo,
   wires,
 }: UseGraphRunArgs) {
   const [isRunning, setIsRunning] = useState(false);
@@ -428,7 +439,13 @@ export function useGraphRun({
           // at all, which is the same answer.
           isRunnable: isRunnableNodeType(byId.get(id)?.nodeType),
           onPatch,
-          runOne: (nodeId) => runOne(nodeId, false, controller.signal),
+          // A Video node takes its own road. Without this the board run sent
+          // it to the image endpoint, which fails after the request has been
+          // made — the one failure this whole split exists to avoid.
+          runOne: (nodeId) =>
+            byId.get(nodeId)?.nodeType === "video" && runVideo
+              ? runVideo(nodeId)
+              : runOne(nodeId, false, controller.signal),
         });
         if (!carryOn) {
           break;
@@ -439,7 +456,7 @@ export function useGraphRun({
       setIsRunning(false);
       abort.current = null;
     }
-  }, [beforeRun, items, onPatch, runOne, wires]);
+  }, [beforeRun, items, onPatch, runOne, runVideo, wires]);
 
   return { cancel, error, isRunning, runBoard, runNode };
 }

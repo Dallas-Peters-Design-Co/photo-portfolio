@@ -18,7 +18,7 @@ import {
 import { FrameOpenProvider, frameLink } from "../../boards/FrameOpenContext";
 import { useBoardHistory } from "../../boards/hooks/useBoardHistory";
 import { useGraphRun } from "../../boards/hooks/useGraphRun";
-import { useVideoNode } from "../../boards/hooks/useVideoNode";
+import { useVideoNode, useVideoRunner } from "../../boards/hooks/useVideoNode";
 import { ModelsProvider } from "../../boards/ModelsContext";
 import { CommentsPanel } from "../../boards/panels/CommentsPanel";
 import { ElementModal } from "../../boards/panels/ElementModal";
@@ -168,11 +168,13 @@ export function BoardEditor({
     wires,
   });
 
+  const videoRun = useVideoRunner(boardId, items, wires, change);
   const graphRun = useGraphRun({
     beforeRun: flushBeforeRun,
     boardId,
     items,
     onPatch: applyRun,
+    runVideo: videoRun,
     wires,
   });
 
@@ -181,9 +183,7 @@ export function BoardEditor({
       toast.error(graphRun.error);
     }
   }, [graphRun.error]);
-
-  // A video cannot travel the graph runner's one-request path; see useVideoNode.
-  const runNode = useVideoNode(boardId, items, wires, change, graphRun.runNode);
+  const runNode = useVideoNode(items, videoRun, graphRun.runNode);
 
   const { placeRecipe, recipes, saveRecipe, uses } = useRecipes({
     board,

@@ -14,12 +14,21 @@ import { outputImageOf } from "../itemOutput";
  * the image branch and hand a video model id to fal.run, which fails after the
  * request has been made.
  *
- * So the Run button forks here on node type. That fork is the only thing that
- * makes the node work at all; everything under it was already built.
+ * So the Run button forks on node type. That fork is the only thing that makes
+ * the node work at all; everything under it was already built.
+ *
+ * Two doors, because there are two Run buttons. `useVideoRunner` is the work,
+ * and the board's own Run needs it too: `runBoard` walks every node itself and
+ * never saw this fork, so a board containing a Video node ran that node through
+ * the image endpoint — the exact failure described above, reachable from the
+ * larger of the two buttons. `useVideoNode` is the fork for a single node.
  */
 
 /** Runs a node: a video here, anything else through the graph runner. */
 export type RunNode = (itemId: string, force: boolean) => Promise<void>;
+
+/** Runs one Video node. Throws when it fails, so a board run can stop after it. */
+export type RunVideo = (itemId: string) => Promise<void>;
 
 /** What a Video node reads off its own settings. */
 const settingsOf = (item: BoardItem) => {
@@ -35,13 +44,19 @@ const settingsOf = (item: BoardItem) => {
   return { duration: text("duration") || "5", model: text("model"), prompt };
 };
 
-export const useVideoNode = (
+/**
+ * The work itself, with no opinion about which button asked for it.
+ *
+ * Refusals (nothing wired in, no board saved) toast and return; a generation
+ * that actually failed throws, because a board run has to know not to spend
+ * money on the nodes downstream of it.
+ */
+export const useVideoRunner = (
   boardId: string | null,
   items: BoardItem[],
   wires: { sourceItemId: string; targetItemId: string; targetPort: string }[],
-  onChange: (items: BoardItem[]) => void,
-  fallback: RunNode
-): RunNode => {
+  onChange: (items: BoardItem[]) => void
+): RunVideo => {
   // The board as it is *now*, not as it was when the run started.
   //
   // A video takes minutes, and every write below happens after that wait — so
@@ -52,14 +67,10 @@ export const useVideoNode = (
   latest.current = items;
 
   return useCallback(
-    async (itemId: string, force: boolean): Promise<void> => {
+    async (itemId: string): Promise<void> => {
       const item = latest.current.find((c) => c.id === itemId);
-      // Everything that is not a video goes where it always went. The fork is
-      // here rather than inside the graph runner so that runner keeps its one
-      // rule — every node answers within a request — instead of gaining an
-      // exception for the single node type that cannot.
-      if (item?.nodeType !== "video") {
-        return fallback(itemId, force);
+      if (!item) {
+        return;
       }
       if (!boardId) {
         toast.error("Save the board before generating a video");
@@ -81,10 +92,6 @@ export const useVideoNode = (
       }
 
       const { duration, model, prompt } = settingsOf(item);
-      if (!model) {
-        toast.error("Choose a video model");
-        return;
-      }
 
       // Written onto the item, not into a hook-local flag: the node reads its
       // own `runState`, and that is the only thing on screen that can say a
@@ -126,8 +133,42 @@ export const useVideoNode = (
         const message = e instanceof Error ? e.message : "The video failed";
         patch({ runError: message, runState: "failed" });
         toast.error(message);
+        // Rethrown for the board run, which marks everything downstream skipped
+        // rather than paying for nodes fed by a clip that never arrived. The
+        // single-node caller below swallows it again — the node is already red.
+        throw e instanceof Error ? e : new Error(message);
       }
     },
-    [boardId, fallback, onChange, wires]
+    [boardId, onChange, wires]
+  );
+};
+
+/** The single-node Run button: a video here, anything else where it always went. */
+export const useVideoNode = (
+  items: BoardItem[],
+  runOneVideo: RunVideo,
+  fallback: RunNode
+): RunNode => {
+  const latest = useRef(items);
+  latest.current = items;
+
+  return useCallback(
+    async (itemId: string, force: boolean): Promise<void> => {
+      const item = latest.current.find((c) => c.id === itemId);
+      // Everything that is not a video goes where it always went. The fork is
+      // here rather than inside the graph runner so that runner keeps its one
+      // rule — every node answers within a request — instead of gaining an
+      // exception for the single node type that cannot.
+      if (item?.nodeType !== "video") {
+        return fallback(itemId, force);
+      }
+      try {
+        await runOneVideo(itemId);
+      } catch {
+        // Already toasted and already written onto the node. Nothing downstream
+        // is waiting on this one, so there is nothing further to say.
+      }
+    },
+    [fallback, runOneVideo]
   );
 };

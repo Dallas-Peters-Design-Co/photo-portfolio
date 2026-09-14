@@ -266,6 +266,28 @@ export function BrandKitSetting({
 }
 
 /**
+ * The rows a model setting is allowed to offer.
+ *
+ * `video` was declared on both the Video node's model setting and the tool
+ * registry's — each with a comment explaining what it filters — and read by
+ * nobody. So every picker on the board listed every model: a Video node offered
+ * image endpoints, and an Edit tool offered video ones. Either choice is refused
+ * by fal *after* the request has been billed, which is the exact failure the
+ * flag was added to prevent.
+ *
+ * Absent means "pictures", not "everything". A setting that has not thought
+ * about video is an image setting; the video rows are the exception and they
+ * have to be asked for.
+ */
+export const allowedModels = <T extends { output?: string }>(
+  models: readonly T[],
+  wantsVideo: boolean | undefined
+): T[] =>
+  models.filter((model) =>
+    wantsVideo === true ? model.output === "video" : model.output !== "video"
+  );
+
+/**
  * The model setting: a select whose choices are the `models` table rather than
  * a static option list.
  *
@@ -281,12 +303,13 @@ export function ModelSetting({
   setting: Extract<SettingDef, { kind: "model" }>;
 }) {
   const { failed, models, reload } = useModels();
+  const allowed = allowedModels(models, setting.video);
   // While the list is loading — or on a visitor's read-only board, where the
   // fetch is refused — the node still has to say what it is set to, even if
   // that means the raw id for a label.
   const options =
-    models.length > 0
-      ? models
+    allowed.length > 0
+      ? allowed
       : [{ id: value || setting.default, label: value || setting.default }];
   return (
     <div className="setting-field">
