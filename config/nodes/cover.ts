@@ -28,11 +28,13 @@ export const COVER: NodeType = {
       /*
        * The finished artwork, cover-fitted into the trim.
        *
-       * One, not many. A cover has a single field, and a second wire is
-       * somebody changing which render to use rather than asking for two
-       * covers. To fan out, put the Batch upstream.
+       * Many, because that is how variations are judged: a Generate node
+       * making four takes on the field hands over four pictures, and the
+       * question is which one works *as a cover* — with the title on the
+       * band and the byline in place. So every picture wired in becomes a
+       * cover, one variation each, the way a Halftone fans out.
        */
-      arity: "one",
+      arity: "many",
       key: "art",
       label: "Art",
       required: true,

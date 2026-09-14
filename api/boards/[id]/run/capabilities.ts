@@ -317,7 +317,9 @@ export const produce = async (
     return browserRendered(
       args.item.config,
       "coverUrl",
-      "The cover has not been rendered yet"
+      "The cover has not been rendered yet",
+      args.variation,
+      "coverUrls"
     );
   }
   if (capability === "board.shader") {

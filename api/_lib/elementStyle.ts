@@ -224,15 +224,28 @@ export const jobsFor = ({
   // wiring describes a single run no matter how many references feed it.
   // Fanning out here would bill one description per image and then throw all
   // but the last away.
+  if (capability === "board.cover") {
+    // One cover per picture on the art port: four variations of the field
+    // are four covers to compare. The browser rendered them in this order
+    // (finishers.ts) and stores them under coverUrls; the run asks for the
+    // nth. Nothing wired is one job, which the missing-input check has
+    // already refused.
+    const art = values.art ?? [];
+    return (art.length > 0 ? art : [null]).map((image) => ({
+      blendWith: [],
+      image,
+      mask: null,
+      prompt: "",
+    }));
+  }
   if (
     capability === "board.composite" ||
-    capability === "board.cover" ||
     capability === "board.mockup" ||
     capability === "board.wrap"
   ) {
     // One run however many pictures feed it: the images are its material, not
     // a batch to iterate over. Fanning out here would store the same rendered
-    // composite — or cover — once per source.
+    // composite once per source.
     return [{ blendWith: [], image: null, mask: null, prompt: "" }];
   }
   if (capability === "fal.describe") {

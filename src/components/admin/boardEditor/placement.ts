@@ -81,8 +81,18 @@ export const dropComposites = (list: BoardItem[]): BoardItem[] =>
     // week's art. Which key each keeps its render under is the finishers
     // table's business.
     const finished = item.nodeType ? FINISHER_URL_KEYS[item.nodeType] : null;
-    if (finished && typeof item.config?.[finished] === "string") {
-      return { ...item, config: { ...item.config, [finished]: null } };
+    if (
+      finished &&
+      (typeof item.config?.[finished] === "string" ||
+        Array.isArray(item.config?.[`${finished}s`]))
+    ) {
+      // The single URL and the list together, as with renderUrls: the run
+      // reads the list first, so a stale list beside a cleared URL would
+      // keep exactly the pictures this is throwing away.
+      return {
+        ...item,
+        config: { ...item.config, [finished]: null, [`${finished}s`]: null },
+      };
     }
     // A halftone is a picture of its settings and its wired image, so any edit
     // can invalidate it for exactly the reason a composite can. Left behind, a

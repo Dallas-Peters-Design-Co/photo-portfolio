@@ -204,6 +204,11 @@ export const parseNodeConfig = (
   if (renders) {
     config.renderUrls = renders;
   }
+  // The Cover's list, kept for the same reason as the shader's.
+  const covers = ownedList(source.coverUrls);
+  if (covers) {
+    config.coverUrls = covers;
+  }
 
   for (const setting of type.settings) {
     const stored = settingStored(setting, source[setting.key]);

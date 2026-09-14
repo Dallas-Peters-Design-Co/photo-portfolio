@@ -1,4 +1,5 @@
 import { containedBy } from "../../../config/graph.js";
+import { MAX_SHADER_RENDERS } from "../../../config/nodes/limits.js";
 import { RENDER_URL_KEYS } from "../../../config/nodes/rendered.js";
 import type { BoardItem } from "../../types";
 import { outputImagesOf } from "../itemOutput";
@@ -8,6 +9,7 @@ import { renderWrap } from "./renderWrapNode";
 import {
   type Graph,
   wiredImageOnPort,
+  wiredImagesOnPort,
   wiredTextOnPort,
 } from "./wiredPreviews";
 
@@ -35,10 +37,18 @@ export interface Finisher {
   /** Folder in the blob store. */
   folder: string;
   nodeType: string;
+  /**
+   * One render, or — when `each` is set — one per picture on that port, in
+   * wire order. The run asks for the nth under `${urlKey}s`, as the Halftone
+   * does with renderUrls; `urlKey` alone still holds the first.
+   */
+  each?: string;
   render: (
     config: Record<string, unknown>,
     itemId: string,
-    graph: Graph
+    graph: Graph,
+    /** The picture this render is for, when `each` is set. */
+    picture?: string
   ) => Promise<Blob>;
   /** Where in config the run reads the URL from. Matches capabilities.ts. */
   urlKey: string;
@@ -46,14 +56,15 @@ export interface Finisher {
 
 export const FINISHERS: readonly Finisher[] = [
   {
+    each: "art",
     failure: "Could not render the cover",
     file: "cover.png",
     folder: "boards/covers",
     nodeType: "cover",
-    render: (config, itemId, graph) =>
+    render: (config, itemId, graph, picture) =>
       renderCover(
         config,
-        requirePicture(itemId, "art", "Art", graph),
+        picture ?? requirePicture(itemId, "art", "Art", graph),
         wiredTextOnPort(itemId, "words", graph)
       ),
     urlKey: "coverUrl",
@@ -178,13 +189,35 @@ export const finishItems = async (
           return item;
         }
         const config = item.config ?? {};
-        if (typeof config[finisher.urlKey] === "string") {
+        const listKey = `${finisher.urlKey}s`;
+        if (
+          typeof config[finisher.urlKey] === "string" ||
+          (Array.isArray(config[listKey]) && config[listKey].length > 0)
+        ) {
           return item;
         }
         try {
-          const blob = await finisher.render(config, item.id, graph);
-          const url = await upload(blob, finisher.file, finisher.folder);
-          return { ...item, config: { ...config, [finisher.urlKey]: url } };
+          if (!finisher.each) {
+            const blob = await finisher.render(config, item.id, graph);
+            const url = await upload(blob, finisher.file, finisher.folder);
+            return { ...item, config: { ...config, [finisher.urlKey]: url } };
+          }
+          // One per picture, in wire order, so variation n is picture n.
+          const pictures = wiredImagesOnPort(item.id, finisher.each, graph)
+            .slice(0, MAX_SHADER_RENDERS);
+          if (pictures.length === 0) {
+            requirePicture(item.id, finisher.each, finisher.each, graph);
+          }
+          const urls = await Promise.all(
+            pictures.map(async (picture) => {
+              const blob = await finisher.render(config, item.id, graph, picture);
+              return await upload(blob, finisher.file, finisher.folder);
+            })
+          );
+          return {
+            ...item,
+            config: { ...config, [finisher.urlKey]: urls[0], [listKey]: urls },
+          };
         } catch (err) {
           report(err instanceof Error ? err.message : finisher.failure);
           return item;
