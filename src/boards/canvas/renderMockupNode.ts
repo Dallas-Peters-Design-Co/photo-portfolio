@@ -32,9 +32,13 @@ export interface MockupSources {
  * The left three per cent of the cover, averaged. On a Poster that is the
  * band and the ground; on a Horizon the ground; on a finished cover from
  * anywhere else it is whatever runs to the spine, which is what a printed
- * back would be if nobody designed one. Averaged rather than sampled, so a
- * spiral crossing the edge gives a mid-tone and not one stripe.
+ * back would be if nobody designed one. The commonest colour there, so a
+ * spiral crossing the edge does not average to mud.
  */
+/** A pixel's bin: 16 levels a channel, so near-identical pixels count together. */
+const binOf = (r: number, g: number, b: number): number =>
+  Math.floor(r / 16) * 256 + Math.floor(g / 16) * 16 + Math.floor(b / 16);
+
 export const edgeColorOf = (cover: HTMLImageElement): string => {
   const w = Math.max(1, Math.round(cover.naturalWidth * 0.03));
   const h = Math.min(cover.naturalHeight, 512);
@@ -47,17 +51,38 @@ export const edgeColorOf = (cover: HTMLImageElement): string => {
   }
   ctx.drawImage(cover, 0, 0, w, cover.naturalHeight, 0, 0, w, h);
   const d = ctx.getImageData(0, 0, w, h).data;
+  // The commonest colour, not the mean: a spiral crossing the edge averages
+  // to mud, while the ground it sits on is the colour that occurs most.
+  const counts = new Map<number, number>();
+  for (let i = 0; i < d.length; i += 4) {
+    const key = binOf(d[i], d[i + 1], d[i + 2]);
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  let best = 0;
+  let bestCount = -1;
+  for (const [key, count] of counts) {
+    if (count > bestCount) {
+      best = key;
+      bestCount = count;
+    }
+  }
+  // The average of the pixels in the winning bin, so the result is a real
+  // colour from the cover and not the bin's centre.
   let r = 0;
   let g = 0;
   let b = 0;
-  const n = w * h;
+  let n = 0;
   for (let i = 0; i < d.length; i += 4) {
-    r += d[i];
-    g += d[i + 1];
-    b += d[i + 2];
+    const key = binOf(d[i], d[i + 1], d[i + 2]);
+    if (key === best) {
+      r += d[i];
+      g += d[i + 1];
+      b += d[i + 2];
+      n += 1;
+    }
   }
   const hex = (v: number) =>
-    Math.round(v / n)
+    Math.round(v / Math.max(1, n))
       .toString(16)
       .padStart(2, "0");
   return `#${hex(r)}${hex(g)}${hex(b)}`;
