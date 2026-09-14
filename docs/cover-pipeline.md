@@ -82,7 +82,9 @@ The templates are baked once with `scripts/bake-mockup.py` (needs
 `pip install psd-tools numpy pillow scipy`) into `public/mockups/<id>/` —
 `a.jpg`, `b.jpg`, `uv.png`, `template.json` — and listed in
 `src/boards/canvas/mockupTemplate.ts` and `config/nodes/mockup.ts`. Re-bake
-after editing a PSD; nothing else changes.
+after editing a PSD; nothing else changes. The softcover templates are
+baked at the PSD's full 5000 × 3500 (`--scale 1.0`), so a mockup comes out
+around 4000 px wide; the others are at 0.6.
 
 - Finished covers made elsewhere work too: drop the PNGs on the board, wire
   them (or a frame of them) into the Mockup's Cover port, pick a template,

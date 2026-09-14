@@ -250,12 +250,15 @@ const finishOne = async (
   if (pictures.length === 0) {
     requirePicture(item.id, finisher.each, finisher.each, graph);
   }
-  const urls = await Promise.all(
-    pictures.map(async (picture) => {
-      const blob = await finisher.render(config, item.id, graph, picture);
-      return await upload(blob, finisher.file, finisher.folder);
-    })
-  );
+  // One at a time, not all at once: a full-resolution mockup holds seven
+  // template-sized pixel planes while it renders, and five of those in
+  // flight together is more memory than a tab is given.
+  const urls: string[] = [];
+  for (const picture of pictures) {
+    // biome-ignore lint/performance/noAwaitInLoops: deliberate — see above
+    const blob = await finisher.render(config, item.id, graph, picture);
+    urls.push(await upload(blob, finisher.file, finisher.folder));
+  }
   return {
     ...item,
     config: {
