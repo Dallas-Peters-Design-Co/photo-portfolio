@@ -31,7 +31,7 @@ import {
   type RunnableItem,
   resolveInputs,
 } from "./run/inputs.js";
-import { paletteHexesOf } from "./run/outputs.js";
+import { outputsOf, paletteHexesOf } from "./run/outputs.js";
 import { unmetRequirement, validatedJobs } from "./run/refusals.js";
 import {
   type Prepared,
@@ -156,8 +156,24 @@ const prepare = async (
 
   const { lists, missingPort, values } = resolveInputs(item, rows, wireRows);
   if (missingPort) {
+    // Say what is on the other end of the wire, if anything: "needs its art
+    // input" with a wire plainly attached sent people checking the wire, when
+    // the thing to check was whatever the wire came from.
+    const feeding = wireRows.filter(
+      (wire) => wire.target_item_id === item.id && wire.target_port === missingPort
+    );
+    const sources = feeding
+      .map((wire) => rows.find((row) => row.id === wire.source_item_id))
+      .map((row) =>
+        row
+          ? `${row.node_type ?? row.kind} ${row.id.slice(0, 8)} → ${outputsOf(row, rows, toGraphWires(wireRows)).length} picture(s)`
+          : "a missing item"
+      );
     return refuse(422, {
-      error: `This node needs its ${missingPort} input before it can run.`,
+      error:
+        sources.length === 0
+          ? `This node needs its ${missingPort} input before it can run — nothing is wired into it.`
+          : `This node needs its ${missingPort} input before it can run — wired from ${sources.join(", ")}.`,
       missingPort,
     });
   }

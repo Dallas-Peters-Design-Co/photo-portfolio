@@ -1,5 +1,7 @@
+import { containedBy } from "../../../config/graph.js";
 import { RENDER_URL_KEYS } from "../../../config/nodes/rendered.js";
 import type { BoardItem } from "../../types";
+import { outputImagesOf } from "../itemOutput";
 import { renderCover } from "./renderCoverNode";
 import { renderMockup } from "./renderMockupNode";
 import { renderWrap } from "./renderWrapNode";
@@ -106,14 +108,23 @@ const explainEmpty = (
     return `Wire a picture into ${label}.`;
   }
   const source = graph.items.find((i) => i.id === wire.sourceItemId);
-  if (source?.kind === "frame") {
-    return `${label} is wired from a frame with nothing inside it — a picture counts as inside when its centre is over the frame.`;
+  if (!source) {
+    return `${label} is wired from an item that is no longer on the board (${wire.sourceItemId.slice(0, 8)}).`;
   }
-  if (source?.nodeType === "batch") {
-    return `${label} is wired from a Batch that has nothing wired into it.`;
+  if (source.kind === "frame") {
+    const inside = containedBy(source, graph.items);
+    const pictured = inside.filter((i) => i.imageUrl).length;
+    return `${label} is wired from a frame holding ${inside.length} item${inside.length === 1 ? "" : "s"}, ${pictured} with a picture — a picture counts as inside when its centre is over the frame.`;
   }
-  const name = source?.nodeType ? `the ${source.nodeType} node` : "the item";
-  return `${label} is wired from ${name}, which has no picture yet — run it first.`;
+  if (source.nodeType === "batch") {
+    const feeding = graph.wires.filter(
+      (w) => w.targetItemId === source.id && w.targetPort === "image"
+    );
+    const resolved = outputImagesOf(source, graph).length;
+    return `${label} is wired from a Batch with ${feeding.length} wire${feeding.length === 1 ? "" : "s"} into it that resolve to ${resolved} picture${resolved === 1 ? "" : "s"}.`;
+  }
+  const name = source.nodeType ? `the ${source.nodeType} node` : `the ${source.kind}`;
+  return `${label} is wired from ${name} (${source.id.slice(0, 8)}), which has no picture yet — run it first.`;
 };
 
 const requirePicture = (
