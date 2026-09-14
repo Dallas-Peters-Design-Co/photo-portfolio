@@ -54,14 +54,31 @@ interface Index {
   variants: Record<string, { layers: Layer[] }>;
 }
 
+/**
+ * A book, as _pipeline/schema/books/*.json in the project folder describes
+ * it. Only the fields the nodes need; the rest of that schema (concept,
+ * palette, outputs) is the design brief and stays where it is.
+ */
 interface Book {
   author?: string;
-  pages?: number;
-  paper?: string;
+  print?: {
+    blurb?: string;
+    page_count?: number;
+    paper?: string;
+    trim_h_in?: number;
+    trim_w_in?: number;
+  };
   subtitle?: string;
   title?: string;
-  trim?: string;
+  variant?: string;
 }
+
+/** "6x9" from the schema's separate width and height. */
+const trimOf = (book: Book): string => {
+  const w = book.print?.trim_w_in;
+  const h = book.print?.trim_h_in;
+  return w && h ? `${w}x${h}` : "6x9";
+};
 
 const arg = (flag: string): string | undefined => {
   const i = process.argv.indexOf(flag);
@@ -76,9 +93,12 @@ const main = async (): Promise<void> => {
       'Usage: pnpm cover:seed "<parts folder>" [--variant poster] [--book book.json] [--title "Board title"] [--all-parts]'
     );
   }
-  const variant = arg("--variant") ?? "poster";
-  const allParts = process.argv.includes("--all-parts");
   const bookPath = arg("--book");
+  const book: Book = bookPath
+    ? (JSON.parse(await readFile(resolve(bookPath), "utf8")) as Book)
+    : {};
+  const variant = arg("--variant") ?? book.variant ?? "poster";
+  const allParts = process.argv.includes("--all-parts");
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is required (set in .env or .env.local)");
@@ -102,9 +122,6 @@ const main = async (): Promise<void> => {
   if (!layers?.length) {
     throw new Error(`No "${variant}" variant in ${join(root, "index.json")}`);
   }
-  const book: Book = bookPath
-    ? (JSON.parse(await readFile(resolve(bookPath), "utf8")) as Book)
-    : {};
   const title =
     arg("--title") ?? `${book.title ?? basename(root)} — ${variant}`;
 
@@ -230,15 +247,16 @@ const main = async (): Promise<void> => {
       {
         config: {
           author: book.author ?? "",
-          pages: book.pages ? String(book.pages) : "",
-          paper: book.paper ?? "cream",
+          copy: book.print?.blurb ?? "",
+          pages: book.print?.page_count ? String(book.print.page_count) : "",
+          paper: book.print?.paper ?? "cream",
           title: book.title ?? "",
-          trim: book.trim ?? "6x9",
+          trim: trimOf(book),
         },
         nodeType: "wrap",
       },
       {
-        config: { trim: book.trim ?? "6x9", view: "angled" },
+        config: { trim: trimOf(book), view: "angled" },
         nodeType: "mockup",
       },
     ].map((node, i) => ({

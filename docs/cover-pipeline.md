@@ -5,9 +5,8 @@ board. Built for the Unruly Chain series; nothing in it is specific to that
 imprint except the defaults.
 
 ```
-parts/  ──cover:seed──▶  Frame ──▶ Composite ──▶ Cover ──▶ Print wrap ──▶ Mockup
-                                                   │                        ▲
-                                                   └────────────────────────┘
+parts/  ──cover:seed──▶  Frame ──▶ Composite ──▶ Cover ──▶ Print wrap
+                                                   └──▶ Mockup
 ```
 
 Every node right of the frame is rendered in the browser and stored by the
@@ -70,9 +69,16 @@ browser. That is the file KDP takes. Turn guides off first.
 
 ## 5. Mockup
 
-Takes the Cover on `cover` and, optionally, the wrap on `wrap`. Three views:
-standing (spine showing — from the wrap if wired, a flat colour if not),
-flat, and the wrap laid open. Output is 2400 × 1800.
+Takes the Cover on `cover` and draws it into one of the bought Photoshop
+mockups from `src/templates` — the photograph, its shading and its warp, not
+a model of a book. Pick the template on the node; the spine colour is a
+setting where a template shows one.
+
+The templates are baked once with `scripts/bake-mockup.py` (needs
+`pip install psd-tools numpy pillow scipy`) into `public/mockups/<id>/` —
+`a.jpg`, `b.jpg`, `uv.png`, `template.json` — and listed in
+`src/boards/canvas/mockupTemplate.ts` and `config/nodes/mockup.ts`. Re-bake
+after editing a PSD; nothing else changes.
 
 ## Iterating
 

@@ -51,7 +51,7 @@ export const FINISHERS: readonly Finisher[] = [
     render: (config, itemId, graph) =>
       renderCover(
         config,
-        wiredImageOnPort(itemId, "art", graph),
+        requirePicture(itemId, "art", "Art", graph),
         wiredTextOnPort(itemId, "words", graph)
       ),
     urlKey: "coverUrl",
@@ -65,7 +65,7 @@ export const FINISHERS: readonly Finisher[] = [
       (
         await renderWrap(config, {
           back: wiredImageOnPort(itemId, "back", graph),
-          front: wiredImageOnPort(itemId, "front", graph),
+          front: requirePicture(itemId, "front", "Front", graph),
           words: wiredTextOnPort(itemId, "words", graph),
         })
       ).blob,
@@ -78,12 +78,56 @@ export const FINISHERS: readonly Finisher[] = [
     nodeType: "mockup",
     render: (config, itemId, graph) =>
       renderMockup(config, {
-        cover: wiredImageOnPort(itemId, "cover", graph),
-        wrap: wiredImageOnPort(itemId, "wrap", graph),
+        cover: requirePicture(itemId, "cover", "Cover", graph),
       }),
     urlKey: "mockupUrl",
   },
 ];
+
+/**
+ * Why a required picture port has nothing on it, in words that say what to
+ * fix.
+ *
+ * "Wire a picture in" is the wrong advice when a wire is already there and
+ * what is on the other end is empty — a Batch nobody has fed, a frame with
+ * nothing inside it, a node that has not run. That was the message for every
+ * one of those, and it sent people checking a wire that was fine.
+ */
+const explainEmpty = (
+  itemId: string,
+  port: string,
+  label: string,
+  graph: Graph
+): string => {
+  const wire = graph.wires.find(
+    (w) => w.targetItemId === itemId && w.targetPort === port
+  );
+  if (!wire) {
+    return `Wire a picture into ${label}.`;
+  }
+  const source = graph.items.find((i) => i.id === wire.sourceItemId);
+  if (source?.kind === "frame") {
+    return `${label} is wired from a frame with nothing inside it — a picture counts as inside when its centre is over the frame.`;
+  }
+  if (source?.nodeType === "batch") {
+    return `${label} is wired from a Batch that has nothing wired into it.`;
+  }
+  const name = source?.nodeType ? `the ${source.nodeType} node` : "the item";
+  return `${label} is wired from ${name}, which has no picture yet — run it first.`;
+};
+
+const requirePicture = (
+  itemId: string,
+  port: string,
+  label: string,
+  graph: Graph
+): string => {
+  const url = wiredImageOnPort(itemId, port, graph);
+  if (!url) {
+    throw new Error(explainEmpty(itemId, port, label, graph));
+  }
+  return url;
+};
 
 /**
  * nodeType → the config key its render lives under, for the three finishers.
