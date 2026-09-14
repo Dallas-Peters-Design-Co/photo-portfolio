@@ -1,0 +1,16 @@
+{
+  "id": "book-tilt",
+  "label": "Tilted",
+  "width": 2700,
+  "height": 1800,
+  "back": false,
+  "coverAspect": 0.6666666666666666,
+  "crop": {
+    "x": 260,
+    "y": 264,
+    "width": 2087,
+    "height": 1391
+  },
+  "spine": false,
+  "source": "9180-3-book-cover-mockup.psd"
+}

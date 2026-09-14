@@ -63,7 +63,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const db = getDb();
-  const pending = await db
+  const rows = await db
     .select({
       id: schema.models.id,
       label: schema.models.label,
@@ -74,14 +74,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .from(schema.models)
     .where(eq(schema.models.trainingStatus, "training"));
 
-  if (pending.length === 0) {
-    return res.status(200).json({ finished: [], training: 0 });
+  if (rows.length === 0) {
+    return res.status(200).json({ finished: [], pending: [], training: 0 });
   }
 
   const finished: unknown[] = [];
   let stillTraining = 0;
+  /*
+   * Named, not just counted. A count answers "is anything happening" and
+   * nothing else; a board that started a training wants to say which one and
+   * how long it has been going, and a number cannot.
+   */
+  const pending: { id: string; label: string; startedAt: string | null }[] =
+    [];
 
-  for (const row of pending) {
+  for (const row of rows) {
     // A row whose receipt is missing cannot be collected, and polling it every
     // few seconds forever is worse than saying so once.
     if (!(row.statusUrl && row.responseUrl)) {
@@ -114,6 +121,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         continue;
       }
       stillTraining += 1;
+      pending.push({
+        id: row.id,
+        label: row.label,
+        startedAt:
+          row.startedAt instanceof Date
+            ? row.startedAt.toISOString()
+            : (row.startedAt ?? null),
+      });
       continue;
     }
 
@@ -144,5 +159,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  return res.status(200).json({ finished, training: stillTraining });
+  return res.status(200).json({ finished, pending, training: stillTraining });
 }

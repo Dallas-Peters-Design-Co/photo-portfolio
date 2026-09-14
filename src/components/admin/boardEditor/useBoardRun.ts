@@ -8,6 +8,7 @@ import {
 } from "../../../../config/canvas.js";
 import { containedBy } from "../../../../config/graph.js";
 import { MAX_SHADER_RENDERS } from "../../../../config/nodes/limits.js";
+import { finishItems } from "../../../boards/canvas/finishers";
 import { renderHalftone } from "../../../boards/canvas/renderShaderNode";
 import { wiredImagesFor } from "../../../boards/canvas/wiredPreviews";
 import {
@@ -381,8 +382,28 @@ export const useBoardRun = (deps: BoardRunDeps) => {
       })
     );
 
+    /* Covers, print wraps and mockups render here for the reason composites
+       and shaders do: only the browser has the GPU and the font metrics, and a
+       run is the first moment the picture has to exist as a file. Their URLs
+       are cleared on any edit — see dropComposites — so one that survived to
+       here is current. The table of them, and the order they must go in, is
+       finishers.ts. */
+    const covered = await finishItems(
+      composed,
+      (items) => ({ items, wires: pending.current.wires }),
+      async (blob, file, folder) =>
+        (
+          await portfolioService.uploadImageFile(
+            new File([blob], file, { type: blob.type || "image/png" }),
+            undefined,
+            folder
+          )
+        ).url,
+      (message) => toast.error(message)
+    );
+
     /*
-     * What the three stages above actually produced, keyed by item.
+     * What the four stages above actually produced, keyed by item.
      *
      * All any of them writes is `config` — a mask URL, a list of render URLs, a
      * composite URL — so that is all that is carried forward. Collected as a
@@ -390,7 +411,7 @@ export const useBoardRun = (deps: BoardRunDeps) => {
      * over a *different* list.
      */
     const flushed = new Map<string, BoardItem["config"]>();
-    composed.forEach((item, i) => {
+    covered.forEach((item, i) => {
       if (item !== started[i]) {
         flushed.set(item.id, item.config);
       }

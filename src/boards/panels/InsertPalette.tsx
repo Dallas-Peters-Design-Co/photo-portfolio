@@ -1,5 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
+  Book02Icon,
+  BookOpen01Icon,
   FileStackIcon,
   FrameIcon,
   GroupLayersIcon,
@@ -9,6 +11,8 @@ import {
   NotebookIcon,
   PaintBoardIcon,
   PaintBucketIcon,
+  PenTool01Icon,
+  PrinterIcon,
   RepeatIcon,
   SearchVisualIcon,
   SparklesIcon,
@@ -171,6 +175,35 @@ const BASE_ENTRIES: Entry[] = [
     hint: "brand kit palette voice typeface look guidelines identity",
     icon: PaintBucketIcon,
     label: "Brand",
+    section: "Nodes",
+  },
+  {
+    action: { kind: "node", nodeType: "trace" },
+    hint: "trace vector svg colours full colour posterize outline vectorize",
+    icon: PenTool01Icon,
+    label: "Trace",
+    section: "Nodes",
+  },
+  // The cover pipeline, in the order it runs. See docs/cover-pipeline.md.
+  {
+    action: { kind: "node", nodeType: "cover" },
+    hint: "cover book title type finish palette halftone grain jacket",
+    icon: Book02Icon,
+    label: "Cover",
+    section: "Nodes",
+  },
+  {
+    action: { kind: "node", nodeType: "wrap" },
+    hint: "print wrap kdp spine bleed back cover paperback pdf",
+    icon: PrinterIcon,
+    label: "Print wrap",
+    section: "Nodes",
+  },
+  {
+    action: { kind: "node", nodeType: "mockup" },
+    hint: "mockup book 3d present render standing spine client",
+    icon: BookOpen01Icon,
+    label: "Mockup",
     section: "Nodes",
   },
 ];

@@ -1,0 +1,17 @@
+{
+  "id": "book-soft-05",
+  "label": "Softcover, three in a row",
+  "width": 3000,
+  "height": 2100,
+  "back": false,
+  "coverAspect": 0.7048387096774194,
+  "crop": {
+    "x": 177,
+    "y": 183,
+    "width": 2679,
+    "height": 1786
+  },
+  "spine": false,
+  "source": "Book-softcover-top-05.psd",
+  "books": 3
+}

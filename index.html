@@ -19,6 +19,15 @@
     <link href="/api/manifest" rel="manifest" type="application/manifest+json">
     <title>%SITE_NAME%</title>
     <!--
+      Vinyl and Rift, for the Cover node.
+
+      Canvas2d resolves a font the way CSS does, so a face the document has not
+      loaded is a cover silently set in the fallback. Adobe Fonts rather than
+      the desktop binaries: a Typekit kit is a *web* licence, which is the one
+      that covers drawing type in a browser.
+    -->
+    <link href="https://use.typekit.net/zyw2lhc.css" rel="stylesheet">
+    <!--
       The theme, before the first paint.
 
       React cannot do this: by the time it mounts, the page has already been

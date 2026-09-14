@@ -31,7 +31,7 @@ import {
   type RunnableItem,
   resolveInputs,
 } from "./run/inputs.js";
-import { paletteHexesOf } from "./run/outputs.js";
+import { outputsOf, paletteHexesOf } from "./run/outputs.js";
 import { unmetRequirement, validatedJobs } from "./run/refusals.js";
 import {
   type Prepared,
@@ -56,10 +56,19 @@ import { asObject, toGraphItems, toGraphWires } from "./run/rows.js";
  * not open this — an anonymous caller gets a 401 either way.
  */
 
+/*
+ * The geometry columns are not optional. A frame contains its pictures by
+ * sitting under them — see containedBy — and outputsOf works that out from
+ * x, y, width and height. Without them every frame resolved to nothing on
+ * the server, so a node fed through a frame (or a Batch fed by one) was
+ * refused for a missing input while the canvas, which has the geometry,
+ * showed twelve pictures on the wire.
+ */
 const loadItems = async (sql: Sql, boardId: string) =>
   (await sql`
     SELECT i.id, i.kind, i.body, i.image_url, i.node_type, i.config,
            i.result, i.run_state, i.photo_id,
+           i.x, i.y, i.width, i.height, i.z_index,
            p.url AS photo_url
     FROM board_items i
     LEFT JOIN photos p ON p.id = i.photo_id
@@ -156,8 +165,24 @@ const prepare = async (
 
   const { lists, missingPort, values } = resolveInputs(item, rows, wireRows);
   if (missingPort) {
+    // Say what is on the other end of the wire, if anything: "needs its art
+    // input" with a wire plainly attached sent people checking the wire, when
+    // the thing to check was whatever the wire came from.
+    const feeding = wireRows.filter(
+      (wire) => wire.target_item_id === item.id && wire.target_port === missingPort
+    );
+    const sources = feeding
+      .map((wire) => rows.find((row) => row.id === wire.source_item_id))
+      .map((row) =>
+        row
+          ? `${row.node_type ?? row.kind} ${row.id.slice(0, 8)} → ${outputsOf(row, rows, toGraphWires(wireRows)).length} picture(s)`
+          : "a missing item"
+      );
     return refuse(422, {
-      error: `This node needs its ${missingPort} input before it can run.`,
+      error:
+        sources.length === 0
+          ? `This node needs its ${missingPort} input before it can run — nothing is wired into it.`
+          : `This node needs its ${missingPort} input before it can run — wired from ${sources.join(", ")}.`,
       missingPort,
     });
   }

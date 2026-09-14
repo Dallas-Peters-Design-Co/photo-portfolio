@@ -8,6 +8,19 @@
  * Pick the site with the ELECTRON_SITE variable or `--site=<key>`:
  *   ELECTRON_SITE=addison pnpm electron:dev
  *
+ * Or point it at one exact deployment, which is how a branch gets looked at:
+ *   ELECTRON_ORIGIN=https://<branch-preview>.vercel.app pnpm electron:dev
+ *   pnpm electron:dev -- --origin=https://<branch-preview>.vercel.app
+ *
+ * An origin wins over a site. Reviewing a branch means naming a deployment, and
+ * a preview URL belongs to no site key — so there is nothing to add to
+ * SITE_URLS and nothing to remember to take out again afterwards.
+ *
+ * A preview is behind Vercel Authentication. Either sign in when the wall
+ * appears — the window is allowed to follow the redirect with an override in
+ * force — or skip it with the project's bypass secret:
+ *   ELECTRON_BYPASS=<secret> ELECTRON_ORIGIN=<preview> pnpm electron:dev
+ *
  * Boot on demand: the app exits when the window closes, including on macOS.
  */
 import { spawn } from "node:child_process";
@@ -40,12 +53,41 @@ const siteArg = process.argv
   .find((a) => a.startsWith("--site="))
   ?.slice("--site=".length);
 const site = siteArg || process.env.ELECTRON_SITE || "dallas-images";
-const origin = SITE_URLS[site];
+
+const originArg = process.argv
+  .find((a) => a.startsWith("--origin="))
+  ?.slice("--origin=".length);
+
+/**
+ * One clean https://host out of whatever was typed.
+ *
+ * Accepts a bare host, a full URL, a URL with a path, and a URL that has been
+ * through a shell or a copy-paste and come out as "https://https//host" — the
+ * exact string this first shipped against. Everything up to the host is
+ * discarded and the scheme put back once, so the only thing that can be wrong
+ * is the host itself, which is the only thing that was ever meant to vary.
+ */
+const normaliseOrigin = (raw) => {
+  const host = raw
+    .trim()
+    .replace(/^(?:https?:?\/*)+/i, "")
+    .replace(/[/?#].*$/, "");
+  return host ? `https://${host}` : "";
+};
+
+const originOverride = normaliseOrigin(
+  originArg || process.env.ELECTRON_ORIGIN || ""
+);
+
+const origin = originOverride || SITE_URLS[site];
 if (!origin) {
   console.error(
     `[electron] unknown site "${site}"; known: ${Object.keys(SITE_URLS).join(", ")}`
   );
   app.exit(1);
+}
+if (originOverride) {
+  console.log(`[electron] origin override: ${origin}`);
 }
 
 /**
@@ -107,7 +149,22 @@ const isInsideSite = (url) => {
   try {
     const host = new URL(url).hostname;
     const siteHost = new URL(origin).hostname;
-    return host === siteHost || host === `www.${siteHost}`;
+    if (host === siteHost || host === `www.${siteHost}`) {
+      return true;
+    }
+    /*
+     * Pointed at a deployment by hand, the window is a review tool, and it
+     * has to be allowed to go wherever signing in takes it.
+     *
+     * A preview sits behind Vercel Authentication. Signing in is a redirect
+     * through vercel.com — and through GitHub or Google behind that — which
+     * has to complete *in this window* for the session cookie to land here.
+     * Bounced to the system browser instead, the sign-in succeeds over there
+     * and this window stays on the login wall forever. So with an override
+     * in force, nothing is sent outside. Production, with no override, keeps
+     * sending off-site links to the browser exactly as before.
+     */
+    return Boolean(originOverride);
   } catch {
     return false;
   }
@@ -175,6 +232,41 @@ const createWindow = () => {
       shell.openExternal(url);
     }
   });
+
+  /*
+   * The other way past Vercel Authentication: a bypass secret on every request.
+   *
+   * Vercel issues one per project — Settings → Deployment Protection →
+   * Protection Bypass for Automation — precisely for tools that cannot do an
+   * interactive sign-in. Sent as a header on requests to the deployment it
+   * skips the login wall outright, and the set-bypass-cookie flag makes the
+   * deployment hand back a cookie so the page's own fetches pass too.
+   *
+   *   ELECTRON_BYPASS=<secret> ELECTRON_ORIGIN=<preview> pnpm electron:dev
+   *
+   * Scoped to the origin host: the secret is never attached to a request
+   * that leaves the deployment.
+   */
+  const bypass = (process.env.ELECTRON_BYPASS ?? "").trim();
+  if (bypass && originOverride) {
+    const siteHost = new URL(origin).hostname;
+    win.webContents.session.webRequest.onBeforeSendHeaders(
+      (details, callback) => {
+        let host = "";
+        try {
+          host = new URL(details.url).hostname;
+        } catch {
+          // Not a URL we can read; send it untouched.
+        }
+        if (host === siteHost) {
+          details.requestHeaders["x-vercel-protection-bypass"] = bypass;
+          details.requestHeaders["x-vercel-set-bypass-cookie"] = "true";
+        }
+        callback({ requestHeaders: details.requestHeaders });
+      }
+    );
+    console.log("[electron] protection bypass header enabled");
+  }
 
   win.loadURL(`${origin}${START_PATH}`);
   return win;

@@ -1,5 +1,5 @@
 {
-  "name": "photo-portfolio",
+  "name": "addison-photos",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,6 +16,7 @@
     "check:size": "tsx scripts/check-file-size.ts",
     "check:utilities": "tsx scripts/check-utilities.ts",
     "clean": "rm -rf dist",
+    "cover:seed": "tsx scripts/seed-cover-board.ts",
     "db:add-user": "tsx scripts/add-user.ts",
     "db:info": "tsx scripts/db-info.ts",
     "db:migrate": "tsx scripts/migrate.ts",
@@ -29,6 +30,7 @@
     "dev:dallas-images": "cross-env VITE_SITE=dallas-images node scripts/dev-stack.mjs",
     "electron:build": "electron-builder --mac",
     "electron:dev": "electron .",
+    "electron:dev-temp": "ELECTRON_ORIGIN=https://dallas-images-git-cover-node-dallaspeters.vercel.app electron .",
     "fix": "npx ultracite fix --claude",
     "lint": "tsc --noEmit && tsx scripts/check-esm-imports.ts && tsx scripts/check-file-size.ts && tsx scripts/check-migrations.ts && tsx scripts/check-utilities.ts src/boards && tsx scripts/check-utilities.ts src/pages",
     "lora:upload": "tsx scripts/upload-lora.ts",

@@ -145,9 +145,21 @@ export const wiredImageCountFor = (
     ? wiredImagesFor(item.id, graph).length
     : undefined;
 
-export const wiredImagesFor = (itemId: string, graph: Graph): string[] =>
+/**
+ * Every picture arriving on one named input, in wire order.
+ *
+ * The finishing nodes take their pictures on ports of their own — a Cover's
+ * `art`, a Print wrap's `front` and `back`, a Mockup's `cover` and `wrap` —
+ * so "the image port" is not a fixed name. This is the resolver with the port
+ * as an argument; wiredImagesFor is it applied to "image".
+ */
+export const wiredImagesOnPort = (
+  itemId: string,
+  port: string,
+  graph: Graph
+): string[] =>
   graph.wires
-    .filter((w) => w.targetItemId === itemId && w.targetPort === "image")
+    .filter((w) => w.targetItemId === itemId && w.targetPort === port)
     .flatMap((w) =>
       outputImagesOf(
         graph.items.find((i) => i.id === w.sourceItemId) ?? null,
@@ -155,6 +167,35 @@ export const wiredImagesFor = (itemId: string, graph: Graph): string[] =>
       )
     )
     .filter((url) => Boolean(url?.trim()));
+
+export const wiredImageOnPort = (
+  itemId: string,
+  port: string,
+  graph: Graph
+): string | null => wiredImagesOnPort(itemId, port, graph)[0] ?? null;
+
+/**
+ * The text arriving on one named input, lines joined.
+ *
+ * Unlike wiredTextFor this does not cross wires into runs: a Cover's `words`
+ * or a wrap's `copy` is one block of text, and a Note with three lines in it
+ * is three lines of one thing, not three prompts.
+ */
+export const wiredTextOnPort = (
+  itemId: string,
+  port: string,
+  graph: Graph
+): string | null => {
+  const lines = graph.wires
+    .filter((w) => w.targetItemId === itemId && w.targetPort === port)
+    .map((w) => graph.items.find((i) => i.id === w.sourceItemId) ?? null)
+    .flatMap((source) => outputListOf(source, graph))
+    .filter((text) => text.trim());
+  return lines.length > 0 ? lines.join("\n") : null;
+};
+
+export const wiredImagesFor = (itemId: string, graph: Graph): string[] =>
+  wiredImagesOnPort(itemId, "image", graph);
 
 /**
  * The picture feeding an item's image input, for the kinds that render one

@@ -18,6 +18,29 @@ export default defineConfig({
   // size — the checkbox rendered 414x69 instead of 16x16 and every hit test
   // was meaningless.
   plugins: [tailwindcss()],
+  /*
+   * Pre-bundle the dependencies Vite would otherwise discover mid-run.
+   *
+   * In browser mode a dependency Vite first meets while tests are already
+   * executing triggers a re-optimise and a page reload, and every test file
+   * in flight at that moment is torn out of the module graph. It reports
+   * "0 test" and the run counts it as a failed file — four of them, none of
+   * which had anything wrong with them, on a run where every assertion
+   * passed. Vitest names the culprits in its warning; this is that list.
+   *
+   * Listing them here is what vitest itself asks for. It does not change what
+   * any test does; it only stops the ground moving under them.
+   */
+  optimizeDeps: {
+    include: [
+      "@vercel/analytics/react",
+      "bcryptjs",
+      "dotenv",
+      "jsonwebtoken",
+      "posthog-js",
+      "react-router-dom",
+    ],
+  },
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "./src") },
   },

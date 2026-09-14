@@ -1,0 +1,16 @@
+{
+  "id": "book-soft-04",
+  "label": "Softcover, front over back",
+  "width": 3000,
+  "height": 2100,
+  "back": true,
+  "coverAspect": 0.7048387096774194,
+  "crop": {
+    "x": 231,
+    "y": 171,
+    "width": 2568,
+    "height": 1712
+  },
+  "spine": false,
+  "source": "Book-softcover-top-04.psd"
+}
