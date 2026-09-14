@@ -10,6 +10,8 @@ import { PHOTO_COLUMNS, type PhotoRow, rowToDto } from "./_lib/photos.js";
 import { getSite } from "./_lib/site.js";
 
 const PHOTO_PATH = /^\/photo\/([0-9a-fA-F-]{36})$/;
+/** A published board, or one of its frames, or its presentation. */
+const BOARD_PATH = /^\/board\/([^/]+)(?:\/([^/]+))?$/;
 const TITLE_TAG = /<title>[^<]*<\/title>/;
 
 /**
@@ -126,6 +128,60 @@ const photoMeta = (
   };
 };
 
+/**
+ * A published board's card: its title, and its cover — or, with no cover
+ * set, the picture nearest the top of the pile — as the image.
+ *
+ * A shared board link was unfurling as the site's own card, which for a
+ * board of cover designs sent to a client is a link that says nothing about
+ * what it opens. A frame link names the frame; a /present link says so.
+ */
+const boardMeta = async (
+  sql: ReturnType<typeof getSql>,
+  slug: string,
+  rest: string | undefined,
+  settings: ResolvedSiteSettings,
+  origin: string
+): Promise<Meta | null> => {
+  const rows = (await sql`
+    SELECT b.id, b.title, b.cover_url,
+      (SELECT count(*) FROM board_items i WHERE i.board_id = b.id AND i.image_url IS NOT NULL) AS pictures,
+      (SELECT i.image_url FROM board_items i WHERE i.board_id = b.id AND i.image_url IS NOT NULL
+         ORDER BY i.z_index DESC LIMIT 1) AS top_url
+    FROM boards b WHERE b.slug = ${slug} AND b.is_public = true LIMIT 1
+  `) as {
+    cover_url: string | null;
+    id: string;
+    pictures: number | string;
+    title: string;
+    top_url: string | null;
+  }[];
+  const [board] = rows;
+  if (!board) {
+    return null;
+  }
+  const count = Number(board.pictures) || 0;
+  const whatFor = (): string => {
+    if (rest === "present") {
+      return "A presentation";
+    }
+    if (rest) {
+      return `${rest.replace(/-/g, " ")} — a frame`;
+    }
+    return `A board of ${count} ${count === 1 ? "picture" : "pictures"}`;
+  };
+  const what = whatFor();
+  const picture = board.cover_url ?? board.top_url;
+  return {
+    description: `${what} from ${settings.name}.`,
+    image: picture
+      ? `${origin}/_vercel/image?url=${encodeURIComponent(picture)}&w=1200&q=85`
+      : undefined,
+    title: `${board.title} — ${settings.name}`,
+    url: `${origin}/board/${slug}${rest ? `/${rest}` : ""}`,
+  };
+};
+
 const personJsonLd = (settings: ResolvedSiteSettings, origin: string): string =>
   JSON.stringify({
     "@context": "https://schema.org",
@@ -173,6 +229,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (row) {
         meta = photoMeta(row, settings, origin);
       }
+    } else if (BOARD_PATH.test(path)) {
+      const [, slug, rest] = BOARD_PATH.exec(path) as RegExpExecArray;
+      meta = (await boardMeta(sql, slug, rest, settings, origin)) ?? meta;
     } else if (path === "/" || path === "") {
       // The site card uses the newest photograph, so it reflects current work.
       const rows = (await sql`

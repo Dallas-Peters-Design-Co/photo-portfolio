@@ -71,6 +71,28 @@
       "destination": "/api/shell?path=/photo/:id"
     },
     {
+      "source": "/board/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(.*(bot|crawler|spider|facebookexternalhit|slackbot|twitterbot|whatsapp|telegram|discord|linkedin|embedly|pinterest|redditbot|applebot|bingpreview|preview|unfurl).*)"
+        }
+      ],
+      "destination": "/api/shell?path=/board/:slug"
+    },
+    {
+      "source": "/board/:slug/:rest",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(.*(bot|crawler|spider|facebookexternalhit|slackbot|twitterbot|whatsapp|telegram|discord|linkedin|embedly|pinterest|redditbot|applebot|bingpreview|preview|unfurl).*)"
+        }
+      ],
+      "destination": "/api/shell?path=/board/:slug/:rest"
+    },
+    {
       "source": "/:slug",
       "has": [
         {
