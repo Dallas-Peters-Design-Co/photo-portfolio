@@ -81,6 +81,7 @@ export const FINISHERS: readonly Finisher[] = [
     render: (config, itemId, graph) =>
       renderMockup(config, {
         cover: requirePicture(itemId, "cover", "Cover", graph),
+        wrap: wiredImageOnPort(itemId, "wrap", graph),
       }),
     urlKey: "mockupUrl",
   },

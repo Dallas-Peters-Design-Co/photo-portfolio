@@ -256,7 +256,7 @@ const main = async (): Promise<void> => {
         nodeType: "wrap",
       },
       {
-        config: { trim: trimOf(book), view: "angled" },
+        config: { template: "book-soft-02", trim: trimOf(book) },
         nodeType: "mockup",
       },
     ].map((node, i) => ({

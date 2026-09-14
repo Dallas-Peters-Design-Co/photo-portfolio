@@ -8,7 +8,7 @@
  * Object's perspective and its warp mesh, resolved to 12 bits. The finished picture is
  * then, per pixel,
  *
- *     out = a + b · cover(uv)        (+ s · spineColour, where a spine shows)
+ *     out = a + b · cover(uv)  (+ s · spineColour, + k · back(uvb), where shown)
  *
  * which is one texture lookup and a multiply-add. All the shading the
  * mockup's author painted — the page curl, the sheen, the shadow across the
@@ -22,6 +22,8 @@
  */
 
 export interface MockupTemplateManifest {
+  /** True when the template shows a back cover too (k.jpg + uvb.png). */
+  back?: boolean;
   coverAspect: number;
   /** The window worth showing, in template pixels. */
   crop: { height: number; width: number; x: number; y: number };
@@ -92,9 +94,12 @@ const loaded = new Map<string, Promise<LoadedTemplate>>();
 interface LoadedTemplate {
   a: ImageData;
   b: ImageData;
+  /** Shading for the back cover, where the template shows one. */
+  k: ImageData | null;
   manifest: MockupTemplateManifest;
   s: ImageData | null;
   uv: ImageData;
+  uvb: ImageData | null;
 }
 
 export const loadTemplate = (base: string): Promise<LoadedTemplate> => {
@@ -109,18 +114,22 @@ export const loadTemplate = (base: string): Promise<LoadedTemplate> => {
     }
     const manifest = (await res.json()) as MockupTemplateManifest;
     const { width, height } = manifest;
-    const [a, b, uv, s] = await Promise.all([
+    const [a, b, uv, s, k, uvb] = await Promise.all([
       loadPicture(`${base}/a.jpg`),
       loadPicture(`${base}/b.jpg`),
       loadPicture(`${base}/uv.png`),
       manifest.spine ? loadPicture(`${base}/s.jpg`) : Promise.resolve(null),
+      manifest.back ? loadPicture(`${base}/k.jpg`) : Promise.resolve(null),
+      manifest.back ? loadPicture(`${base}/uvb.png`) : Promise.resolve(null),
     ]);
     return {
       a: pixelsOf(a, width, height),
       b: pixelsOf(b, width, height),
+      k: k ? pixelsOf(k, width, height) : null,
       manifest,
       s: s ? pixelsOf(s, width, height) : null,
       uv: pixelsOf(uv, width, height),
+      uvb: uvb ? pixelsOf(uvb, width, height) : null,
     };
   })();
   loaded.set(base, loading);
@@ -139,13 +148,19 @@ export const loadTemplate = (base: string): Promise<LoadedTemplate> => {
 const fitCover = (
   cover: HTMLImageElement,
   aspect: number,
-  size: number
+  size: number,
+  /** Which part of the picture to use, as fractions; the whole by default. */
+  window: [number, number, number, number] = [0, 0, 1, 1]
 ): ImageData => {
   const w = size;
   const h = Math.round(size / aspect);
-  const scale = Math.max(w / cover.naturalWidth, h / cover.naturalHeight);
-  const dw = cover.naturalWidth * scale;
-  const dh = cover.naturalHeight * scale;
+  const sx = window[0] * cover.naturalWidth;
+  const sy = window[1] * cover.naturalHeight;
+  const sw = (window[2] - window[0]) * cover.naturalWidth;
+  const sh = (window[3] - window[1]) * cover.naturalHeight;
+  const scale = Math.max(w / sw, h / sh);
+  const dw = sw * scale;
+  const dh = sh * scale;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -153,34 +168,106 @@ const fitCover = (
   if (!ctx) {
     throw new Error("This browser cannot read pixels back.");
   }
-  ctx.drawImage(cover, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  ctx.drawImage(cover, sx, sy, sw, sh, (w - dw) / 2, (h - dh) / 2, dw, dh);
   return ctx.getImageData(0, 0, w, h);
 };
+
+/**
+ * Where the back panel sits in a KDP wrap, as fractions of the picture.
+ *
+ * Worked out from the wrap's proportions and the trim: the sheet is
+ * 2 × trim + spine + 2 × bleed wide and trim + 2 × bleed tall, the height is
+ * known, so the spine is what is left over and the back is the first trim
+ * width after the bleed.
+ */
+export const wrapBackWindow = (
+  wrapAspect: number,
+  trimWidthIn: number,
+  trimHeightIn: number
+): [number, number, number, number] => {
+  const bleed = 0.125;
+  const totalH = trimHeightIn + bleed * 2;
+  const totalW = wrapAspect * totalH;
+  return [
+    bleed / totalW,
+    bleed / totalH,
+    (bleed + trimWidthIn) / totalW,
+    (bleed + trimHeightIn) / totalH,
+  ];
+};
+
+/** One bilinear sample from an ImageData at (u, v) in 0..1. */
+const sample = (
+  img: ImageData,
+  u: number,
+  v: number,
+  out: [number, number, number]
+): void => {
+  const sw = img.width;
+  const sh = img.height;
+  const S = img.data;
+  const x = u * (sw - 1);
+  const y = v * (sh - 1);
+  const x0 = x | 0;
+  const y0 = y | 0;
+  const x1 = x0 + 1 < sw ? x0 + 1 : x0;
+  const y1 = y0 + 1 < sh ? y0 + 1 : y0;
+  const fx = x - x0;
+  const fy = y - y0;
+  const i00 = (y0 * sw + x0) * 4;
+  const i10 = (y0 * sw + x1) * 4;
+  const i01 = (y1 * sw + x0) * 4;
+  const i11 = (y1 * sw + x1) * 4;
+  const w00 = (1 - fx) * (1 - fy);
+  const w10 = fx * (1 - fy);
+  const w01 = (1 - fx) * fy;
+  const w11 = fx * fy;
+  out[0] = S[i00] * w00 + S[i10] * w10 + S[i01] * w01 + S[i11] * w11;
+  out[1] = S[i00 + 1] * w00 + S[i10 + 1] * w10 + S[i01 + 1] * w01 + S[i11 + 1] * w11;
+  out[2] = S[i00 + 2] * w00 + S[i10 + 2] * w10 + S[i01 + 2] * w01 + S[i11 + 2] * w11;
+};
+
+/** u and v out of the UV map's pixel at byte offset p, or null when outside. */
+const uvAt = (U: Uint8ClampedArray, p: number): [number, number] | null =>
+  U[p] | U[p + 1] | U[p + 2]
+    ? [((U[p] << 4) | (U[p + 2] >> 4)) / 4095, ((U[p + 1] << 4) | (U[p + 2] & 15)) / 4095]
+    : null;
 
 /**
  * Renders the cover into the template and returns the cropped window.
  *
  * Bilinear on the cover, because the UV map has sub-pixel precision and a
  * nearest lookup would show the cover's pixel grid as moiré across the warp.
+ * Where the template shows a back cover, it takes the wrap's back panel when
+ * a wrap is given and the spine colour otherwise.
  */
 export const renderTemplate = async (
   base: string,
   cover: HTMLImageElement,
-  options: { spine: string; outputWidth?: number }
+  options: {
+    /** The print wrap, for templates that show the back. */
+    back?: { image: HTMLImageElement; window: [number, number, number, number] } | null;
+    outputWidth?: number;
+    spine: string;
+  }
 ): Promise<HTMLCanvasElement> => {
   const t = await loadTemplate(base);
   const { width, height, coverAspect, crop } = t.manifest;
 
   const src = fitCover(cover, coverAspect, 2048);
-  const sw = src.width;
-  const sh = src.height;
-  const S = src.data;
+  const backSrc =
+    t.k && options.back
+      ? fitCover(options.back.image, coverAspect, 2048, options.back.window)
+      : null;
 
   const A = t.a.data;
   const B = t.b.data;
   const U = t.uv.data;
+  const K = t.k?.data ?? null;
+  const UB = t.uvb?.data ?? null;
   const Sp = t.s?.data ?? null;
   const [sr, sg, sb] = hexToRgb(options.spine);
+  const px: [number, number, number] = [0, 0, 0];
 
   const out = new ImageData(width, height);
   const O = out.data;
@@ -194,34 +281,27 @@ export const renderTemplate = async (
       g += (Sp[p + 1] * sg) / 255;
       bl += (Sp[p + 2] * sb) / 255;
     }
-    // 12 bits per axis across R, G and B — see encode_uv in bake-mockup.py
-    // for why the alpha channel is not used for data.
-    const inside = U[p] | U[p + 1] | U[p + 2];
-    if (inside) {
-      const u = ((U[p] << 4) | (U[p + 2] >> 4)) / 4095;
-      const v = ((U[p + 1] << 4) | (U[p + 2] & 15)) / 4095;
-      const x = u * (sw - 1);
-      const y = v * (sh - 1);
-      const x0 = x | 0;
-      const y0 = y | 0;
-      const x1 = x0 + 1 < sw ? x0 + 1 : x0;
-      const y1 = y0 + 1 < sh ? y0 + 1 : y0;
-      const fx = x - x0;
-      const fy = y - y0;
-      const i00 = (y0 * sw + x0) * 4;
-      const i10 = (y0 * sw + x1) * 4;
-      const i01 = (y1 * sw + x0) * 4;
-      const i11 = (y1 * sw + x1) * 4;
-      const w00 = (1 - fx) * (1 - fy);
-      const w10 = fx * (1 - fy);
-      const w01 = (1 - fx) * fy;
-      const w11 = fx * fy;
-      const cr = S[i00] * w00 + S[i10] * w10 + S[i01] * w01 + S[i11] * w11;
-      const cg = S[i00 + 1] * w00 + S[i10 + 1] * w10 + S[i01 + 1] * w01 + S[i11 + 1] * w11;
-      const cb = S[i00 + 2] * w00 + S[i10 + 2] * w10 + S[i01 + 2] * w01 + S[i11 + 2] * w11;
-      r += (B[p] * cr) / 255;
-      g += (B[p + 1] * cg) / 255;
-      bl += (B[p + 2] * cb) / 255;
+    const uv = uvAt(U, p);
+    if (uv) {
+      sample(src, uv[0], uv[1], px);
+      r += (B[p] * px[0]) / 255;
+      g += (B[p + 1] * px[1]) / 255;
+      bl += (B[p + 2] * px[2]) / 255;
+    }
+    if (K && UB) {
+      const uvb = uvAt(UB, p);
+      if (uvb) {
+        if (backSrc) {
+          sample(backSrc, uvb[0], uvb[1], px);
+        } else {
+          px[0] = sr;
+          px[1] = sg;
+          px[2] = sb;
+        }
+        r += (K[p] * px[0]) / 255;
+        g += (K[p + 1] * px[1]) / 255;
+        bl += (K[p + 2] * px[2]) / 255;
+      }
     }
     O[p] = r > 255 ? 255 : r;
     O[p + 1] = g > 255 ? 255 : g;

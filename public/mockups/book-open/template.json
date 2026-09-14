@@ -1,0 +1,16 @@
+{
+  "id": "book-open",
+  "label": "Open and closed",
+  "width": 2100,
+  "height": 1380,
+  "back": false,
+  "coverAspect": 0.6410256410256411,
+  "crop": {
+    "x": 211,
+    "y": 167,
+    "width": 1662,
+    "height": 1108
+  },
+  "spine": true,
+  "source": "open-&-closed-book-mockup-01.psd"
+}

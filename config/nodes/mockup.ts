@@ -29,6 +29,18 @@ export const MOCKUP: NodeType = {
       required: true,
       type: "image",
     },
+    {
+      /*
+       * The print wrap, for the templates that show the back of the book.
+       * Its back panel is cut out by the trim below; without it the back is
+       * the spine colour, which is what a blank proof looks like.
+       */
+      arity: "one",
+      key: "wrap",
+      label: "Print wrap",
+      required: false,
+      type: "image",
+    },
   ],
   label: "Mockup",
   outputs: [{ key: OUTPUT_PORT_KEY, label: "Image", type: "image" }],
@@ -64,6 +76,24 @@ export const MOCKUP: NodeType = {
     },
     {
       /*
+       * The trim the wrap was made at, so its back panel can be found. Same
+       * options as the Print wrap node, and it should match it.
+       */
+      default: "6x9",
+      key: "trim",
+      kind: "select",
+      label: "Trim",
+      optionLabels: {
+        "5.25x8": "5.25 × 8",
+        "5.5x8.5": "5.5 × 8.5",
+        "5x8": "5 × 8",
+        "6x9": "6 × 9",
+      },
+      options: ["6x9", "5.5x8.5", "5.25x8", "5x8"],
+      panel: true,
+    },
+    {
+      /*
        * The colour of a spine, where the template shows one. A spine strip
        * on these mockups is a few dozen pixels wide, too narrow for type to
        * read, so it takes the band colour rather than a slice of the wrap.
@@ -71,7 +101,7 @@ export const MOCKUP: NodeType = {
       default: "#293341",
       key: "spine",
       kind: "color",
-      label: "Spine",
+      label: "Spine & back",
       panel: true,
     },
   ],

@@ -1,0 +1,16 @@
+{
+  "id": "book-stack",
+  "label": "Stacked",
+  "width": 2700,
+  "height": 1800,
+  "back": false,
+  "coverAspect": 0.6666666666666666,
+  "crop": {
+    "x": 216,
+    "y": 216,
+    "width": 2255,
+    "height": 1503
+  },
+  "spine": true,
+  "source": "9180-2-book-cover-mockup.psd"
+}

@@ -3,8 +3,10 @@ import {
   isMockupTemplateId,
   MOCKUP_TEMPLATES,
   renderTemplate,
+  wrapBackWindow,
 } from "./mockupTemplate";
 import { readColor } from "./renderCoverNode";
+import { isTrim, TRIMS } from "./wrapLayout";
 
 /**
  * Rendering a Mockup node to a file.
@@ -20,6 +22,8 @@ export class MockupError extends Error {}
 
 export interface MockupSources {
   cover: string | null;
+  /** The print wrap, for a template that shows the back. */
+  wrap: string | null;
 }
 
 export const renderMockup = async (
@@ -37,8 +41,18 @@ export const renderMockup = async (
     throw new MockupError("That mockup template is not available.");
   }
 
-  const cover = await loadImage(sources.cover);
+  const [cover, wrap] = await Promise.all([
+    loadImage(sources.cover),
+    sources.wrap ? loadImage(sources.wrap) : Promise.resolve(null),
+  ]);
+  const [trimW, trimH] = TRIMS[isTrim(config.trim) ? config.trim : "6x9"];
   const canvas = await renderTemplate(template.base, cover, {
+    back: wrap
+      ? {
+          image: wrap,
+          window: wrapBackWindow(wrap.naturalWidth / wrap.naturalHeight, trimW, trimH),
+        }
+      : null,
     spine: readColor(config.spine, "#293341"),
   });
 

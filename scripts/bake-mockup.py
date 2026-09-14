@@ -89,10 +89,35 @@ def over(dst, src, mode, opacity):
 
 def raster(layer, viewport):
     """A layer alone, straight alpha, as floats on the whole canvas."""
+    h, w = viewport[3] - viewport[1], viewport[2] - viewport[0]
     im = layer.composite(viewport=viewport)
-    if im is None:
-        return np.zeros((viewport[3] - viewport[1], viewport[2] - viewport[0], 4), np.float32)
-    return np.asarray(im.convert("RGBA")).astype(np.float32) / 255
+    out = (
+        np.asarray(im.convert("RGBA")).astype(np.float32) / 255
+        if im is not None
+        else np.zeros((h, w, 4), np.float32)
+    )
+    if out[..., 3].max() > 0:
+        return out
+    # psd-tools composites a clipped Smart Object (one drawn only where the
+    # layer under it has pixels) as nothing at all. Its own pixels are still
+    # there; place them at the layer's box and let the clipping step decide
+    # where they show.
+    try:
+        px = layer.numpy()
+    except Exception:
+        return out
+    if px is None or px.ndim != 3:
+        return out
+    if px.shape[-1] == 3:
+        px = np.concatenate([px, np.ones(px.shape[:2] + (1,), px.dtype)], axis=-1)
+    x0, y0, x1, y1 = layer.bbox
+    sx0, sy0 = max(0, x0 - viewport[0]), max(0, y0 - viewport[1])
+    sx1, sy1 = min(w, x1 - viewport[0]), min(h, y1 - viewport[1])
+    if sx1 <= sx0 or sy1 <= sy0:
+        return out
+    ox, oy = sx0 - (x0 - viewport[0]), sy0 - (y0 - viewport[1])
+    out[sy0:sy1, sx0:sx1] = px[oy : oy + (sy1 - sy0), ox : ox + (sx1 - sx0)].astype(np.float32)
+    return out
 
 
 def render(layers, viewport, fills):
@@ -309,18 +334,38 @@ def main():
     args = ap.parse_args()
 
     psd = PSDImage.open(args.psd)
-    viewport = psd.bbox
+    # The canvas, not psd.bbox: a mockup's shadow layer often runs past the
+    # edge of the document, and bbox is the union of the layers.
     W, H = psd.size
+    viewport = (0, 0, W, H)
 
     sos = [l for l in psd.descendants() if l.kind == "smartobject" and l.visible and l.opacity > 0]
     if args.layer:
         sos = [l for l in sos if l.name == args.layer]
+
+    # Some mockups carry a second, root-level copy of each design layer with
+    # the same name and placement — a leftover of how they were built. It
+    # would paint over the shading, so a duplicate of one already seen is
+    # dropped, and hidden from the render.
+    seen = set()
+    kept = []
+    for l in sos:
+        key = (l.name, tuple(round(v) for v in l.smart_object.transform_box))
+        if key in seen:
+            l.visible = False
+            continue
+        seen.add(key)
+        kept.append(l)
+    sos = kept
     if not sos:
         sys.exit("No visible Smart Object to replace")
 
-    # A Smart Object is a cover or a spine by the shape of what it expects:
-    # a 1800×2700 source is a front, a 270×2700 one is the strip beside it.
+    # A Smart Object is a front, a back or a spine: by name when the mockup
+    # says, otherwise by the shape of what it expects — a 1800×2700 source is
+    # a front, a 270×2700 one is the strip beside it.
     def role_of(layer):
+        if "back" in layer.name.lower():
+            return "back"
         b = layer.smart_object.warp[b"bounds"]
         sw = float(b[b"Rght"]) - float(b[b"Left"])
         sh = float(b[b"Btom"]) - float(b[b"Top "])
@@ -331,29 +376,42 @@ def main():
     for l in sos:
         print(f"  {roles[l]:5s} {l.name!r} bbox={l.bbox}")
 
-    def fills(cover, spine):
-        return {l: (cover if roles[l] == "cover" else spine, alphas[l]) for l in sos}
+    def fills(cover, spine, back):
+        return {
+            l: ({"cover": cover, "spine": spine, "back": back}[roles[l]], alphas[l])
+            for l in sos
+        }
 
     print("Rendering: everything black…")
-    base = render(list(psd), viewport, fills(0.0, 0.0))
+    base = render(list(psd), viewport, fills(0.0, 0.0, 0.0))
     A = np.clip(base[..., :3], 0, 1)
+    del base
     print("Rendering: covers white…")
-    B = np.clip(render(list(psd), viewport, fills(1.0, 0.0))[..., :3] - A, 0, 1)
+    B = np.clip(render(list(psd), viewport, fills(1.0, 0.0, 0.0))[..., :3] - A, 0, 1)
     has_spine = any(r == "spine" for r in roles.values())
+    has_back = any(r == "back" for r in roles.values())
     if has_spine:
         print("Rendering: spines white…")
-        S = np.clip(render(list(psd), viewport, fills(0.0, 1.0))[..., :3] - A, 0, 1)
-    del base
+        S = np.clip(render(list(psd), viewport, fills(0.0, 1.0, 0.0))[..., :3] - A, 0, 1)
+    if has_back:
+        print("Rendering: backs white…")
+        K = np.clip(render(list(psd), viewport, fills(0.0, 0.0, 1.0))[..., :3] - A, 0, 1)
 
-    print("Building the UV map…")
+    print("Building the UV maps…")
     uv = None
+    uvb = None
     aspect = None
     for l in sos:
-        if roles[l] != "cover":
+        if roles[l] == "spine":
             continue
         this, (sw, sh) = uv_map(l, viewport, alphas[l], args.scale)
         aspect = sw / sh
-        uv = this if uv is None else np.where((this[..., :1] >= 0), this, uv)
+        if roles[l] == "cover":
+            uv = this if uv is None else np.where((this[..., :1] >= 0), this, uv)
+        else:
+            uvb = this if uvb is None else np.where((this[..., :1] >= 0), this, uvb)
+    if uv is None:
+        sys.exit("No front cover Smart Object found")
 
     out_dir = os.path.join(args.out, args.id)
     os.makedirs(out_dir, exist_ok=True)
@@ -367,6 +425,9 @@ def main():
     save_rgb(B, "b.jpg")
     if has_spine:
         save_rgb(S, "s.jpg")
+    if has_back:
+        save_rgb(K, "k.jpg")
+        Image.fromarray(encode_uv(uvb), "RGBA").save(os.path.join(out_dir, "uvb.png"), optimize=True)
     Image.fromarray(encode_uv(uv), "RGBA").save(os.path.join(out_dir, "uv.png"), optimize=True)
 
     # Where to look: the books, with air around them, as a 3:2 window. A
@@ -378,7 +439,7 @@ def main():
     ys, xs = np.where(union)
     x0, x1, y0, y1 = xs.min() * args.scale, xs.max() * args.scale, ys.min() * args.scale, ys.max() * args.scale
     bw, bh = x1 - x0, y1 - y0
-    cw, ch = bw * 1.5, bh * 1.35
+    cw, ch = bw * 1.3, bh * 1.18
     if cw / ch < 1.5:
         cw = ch * 1.5
     else:
@@ -397,6 +458,7 @@ def main():
         "label": args.label,
         "width": ow,
         "height": oh,
+        "back": has_back,
         "coverAspect": aspect,
         "crop": crop,
         "spine": has_spine,
@@ -413,7 +475,9 @@ def main():
             design = raster(l, viewport)
             if roles[l] == "cover":
                 ours = ours + B * design[..., :3] * (alphas[l][..., None] > 0)
-            elif has_spine:
+            elif roles[l] == "back":
+                ours = ours + K * design[..., :3] * (alphas[l][..., None] > 0)
+            else:
                 ours = ours + S * design[..., :3] * (alphas[l][..., None] > 0)
         Image.fromarray((np.clip(ours, 0, 1) * 255).astype(np.uint8), "RGB").resize((ow, oh)).save(os.path.join(out_dir, "check-ours.jpg"), quality=85)
         ps = psd.composite(viewport=viewport).convert("RGB").resize((ow, oh))
