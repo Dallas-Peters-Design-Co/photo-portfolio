@@ -80,6 +80,9 @@ const trimOf = (book: Book): string => {
   return w && h ? `${w}x${h}` : "6x9";
 };
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const arg = (flag: string): string | undefined => {
   const i = process.argv.indexOf(flag);
   return i === -1 ? undefined : process.argv[i + 1];
@@ -90,7 +93,7 @@ const main = async (): Promise<void> => {
   const folder = process.argv[2];
   if (!folder || folder.startsWith("--")) {
     throw new Error(
-      'Usage: pnpm cover:seed "<parts folder>" [--variant poster] [--book book.json] [--title "Board title"] [--all-parts]'
+      'Usage: pnpm cover:seed "<parts folder>" [--variant poster] [--book book.json] [--title "Board title"] [--all-parts] [--board <uuid>]'
     );
   }
   const bookPath = arg("--book");
@@ -99,6 +102,14 @@ const main = async (): Promise<void> => {
     : {};
   const variant = arg("--variant") ?? book.variant ?? "poster";
   const allParts = process.argv.includes("--all-parts");
+  // --board <uuid> refreshes an EXISTING board in place. Without it every
+  // publish minted another board, so the canvas filled with near-identical
+  // boards and the one already open on screen was never the one that got the
+  // new art.
+  const targetBoard = arg("--board");
+  if (targetBoard && !UUID_RE.test(targetBoard)) {
+    throw new Error(`--board expects a uuid, got "${targetBoard}"`);
+  }
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
     throw new Error("DATABASE_URL is required (set in .env or .env.local)");
@@ -158,13 +169,42 @@ const main = async (): Promise<void> => {
   await client.connect();
   try {
     await client.query("BEGIN");
-    const boardRes = await client.query<{ id: string }>(
-      "INSERT INTO boards (title) VALUES ($1) RETURNING id",
-      [title]
-    );
-    const boardId = boardRes.rows[0]?.id;
-    if (!boardId) {
-      throw new Error("Could not create the board");
+    let boardId: string;
+    if (targetBoard) {
+      const found = await client.query<{ id: string }>(
+        "SELECT id FROM boards WHERE id = $1",
+        [targetBoard]
+      );
+      const existing = found.rows[0]?.id;
+      if (!existing) {
+        throw new Error(`No board ${targetBoard}`);
+      }
+      boardId = existing;
+      // Replace the contents, keep the board. The row, its id and the URL you
+      // already have open all survive; only the items and wires change.
+      // Wires first - they reference board_items, so the other order trips the
+      // foreign key.
+      await client.query("DELETE FROM board_wires WHERE board_id = $1", [
+        boardId,
+      ]);
+      await client.query("DELETE FROM board_items WHERE board_id = $1", [
+        boardId,
+      ]);
+      await client.query("UPDATE boards SET title = $1 WHERE id = $2", [
+        title,
+        boardId,
+      ]);
+      process.stdout.write(`  refreshing board ${boardId}\n`);
+    } else {
+      const boardRes = await client.query<{ id: string }>(
+        "INSERT INTO boards (title) VALUES ($1) RETURNING id",
+        [title]
+      );
+      const created = boardRes.rows[0]?.id;
+      if (!created) {
+        throw new Error("Could not create the board");
+      }
+      boardId = created;
     }
 
     const insertItem = async (item: {
