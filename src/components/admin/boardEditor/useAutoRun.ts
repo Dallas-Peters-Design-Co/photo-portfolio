@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { BoardItem } from "../../../types";
 
 /**
@@ -20,11 +20,8 @@ export const useAutoRun = ({
   items: BoardItem[];
   runBoard: () => Promise<void>;
 }) => {
-  /** Once per mount, not once per render. */
-  const didRun = useRef(false);
-
   useEffect(() => {
-    if (didRun.current || isRunning) {
+    if (isRunning) {
       return;
     }
     const params = new URLSearchParams(window.location.search);
@@ -39,10 +36,11 @@ export const useAutoRun = ({
     if (!items.some((item) => item.kind === "op")) {
       return;
     }
-    didRun.current = true;
-    // Strip the flag so a refresh does not run it again. replaceState rather
-    // than navigate(): the editor does not own the route, and a router
-    // navigation here would remount it mid-run.
+    // Stripping the flag is what makes this run once: it happens before
+    // runBoard, synchronously, so any later pass — a re-render, or React's
+    // double-invoke in development — finds no flag and returns above. A ref
+    // guard would be redundant, and the returns that happen before this point
+    // are deliberate: a board still loading should be able to run later.
     params.delete("run");
     const query = params.toString();
     window.history.replaceState(

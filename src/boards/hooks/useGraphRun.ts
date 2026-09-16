@@ -7,13 +7,13 @@ import {
   topologicalOrder,
 } from "../../../config/graph.js";
 import { isRunnableNodeType } from "../../../config/nodeTypes.js";
+import { useAutoRun } from "../../components/admin/boardEditor/useAutoRun";
 import {
   boardsApi,
   type RunNodeFailure,
   type RunNodeResponse,
 } from "../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../types";
-import { useAutoRun } from "../../components/admin/boardEditor/useAutoRun";
 
 interface UseGraphRunArgs {
   /** Flushes unsaved work first — the server runs the *stored* graph. */
