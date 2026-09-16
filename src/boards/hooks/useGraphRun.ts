@@ -7,6 +7,7 @@ import {
   topologicalOrder,
 } from "../../../config/graph.js";
 import { isRunnableNodeType } from "../../../config/nodeTypes.js";
+import { useAutoRun } from "../../components/admin/boardEditor/useAutoRun";
 import {
   boardsApi,
   type RunNodeFailure,
@@ -457,6 +458,11 @@ export function useGraphRun({
       abort.current = null;
     }
   }, [beforeRun, items, onPatch, runOne, runVideo, wires]);
+
+  // ?run=1 in the URL runs the board once, as soon as it has something to
+  // run. Here rather than in BoardEditor because this hook already owns
+  // runBoard and isRunning, and that component is on the line limit.
+  useAutoRun({ isRunning, items, runBoard });
 
   return { cancel, error, isRunning, runBoard, runNode };
 }
