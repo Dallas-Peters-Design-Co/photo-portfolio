@@ -13,6 +13,7 @@ import {
   type RunNodeResponse,
 } from "../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../types";
+import { useAutoRun } from "../../components/admin/boardEditor/useAutoRun";
 
 interface UseGraphRunArgs {
   /** Flushes unsaved work first — the server runs the *stored* graph. */
@@ -457,6 +458,11 @@ export function useGraphRun({
       abort.current = null;
     }
   }, [beforeRun, items, onPatch, runOne, runVideo, wires]);
+
+  // ?run=1 in the URL runs the board once, as soon as it has something to
+  // run. Here rather than in BoardEditor because this hook already owns
+  // runBoard and isRunning, and that component is on the line limit.
+  useAutoRun({ isRunning, items, runBoard });
 
   return { cancel, error, isRunning, runBoard, runNode };
 }
