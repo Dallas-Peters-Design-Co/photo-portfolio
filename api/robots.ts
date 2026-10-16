@@ -16,6 +16,7 @@ export default function handler(_req: VercelRequest, res: VercelResponse) {
     "Disallow: /reset-password",
     // A proposal is sent to one client by link; it is not for a search index.
     "Disallow: /proposal/",
+    "Disallow: /review/",
     "",
     `Sitemap: https://${site.domain}/sitemap.xml`,
     "",
