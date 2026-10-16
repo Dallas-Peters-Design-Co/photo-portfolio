@@ -1,0 +1,500 @@
+/*
+ * A proposal, read as a numbered agreement on a sheet.
+ *
+ * The site is dark; the proposal is a document, so it sits on a light sheet the
+ * way an invoice or a contract does inside the apps that send them. The sheet
+ * is the one place on the site with its own surface colours, so they are
+ * declared once here as sheet tokens rather than scattered as raw values; the
+ * shell around it (masthead, footer) stays on the site's own tokens.
+ *
+ * Type: the title and clause headings take the site's sans (`--font-sans`,
+ * loaded per site), body copy the prose step the CMS pages read at. Nothing
+ * below the micro ladder, and nothing from the heading scale used for
+ * paragraphs.
+ */
+
+.proposal-page {
+  --sheet: oklch(0.995 0 0);
+  --sheet-ink: oklch(0.17 0 0);
+  --sheet-ink-soft: oklch(0.5 0 0);
+  --sheet-rule: oklch(0.9 0 0);
+  --sheet-tint: oklch(0.965 0 0);
+}
+
+/*
+ * 75rem (1200px), wider than the 42rem reading measure the CMS pages use: the
+ * sheet carries a two-column parties block and fees in a margin, which the
+ * narrow column had stacking.
+ */
+.proposal-page__masthead,
+.proposal-page__main {
+  max-width: 75rem;
+}
+
+.proposal-page__masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block-start: calc(var(--spacing) * 10);
+}
+
+.proposal-page__wordmark {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+  font-size: var(--text-sm-ui);
+  font-weight: 600;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
+  transition: opacity 150ms ease-out;
+}
+
+.proposal-page__wordmark:hover {
+  opacity: 0.8;
+}
+
+.proposal-page__logo {
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+}
+
+.proposal-page__main {
+  padding-block: calc(var(--spacing) * 10) calc(var(--spacing) * 16);
+}
+
+.proposal-page__notice-title {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+}
+
+/* The sheet */
+
+.proposal-page__sheet {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 9);
+  padding: clamp(calc(var(--spacing) * 7), 6vw, calc(var(--spacing) * 13));
+  color: var(--sheet-ink);
+  background: var(--sheet);
+  border-radius: calc(var(--spacing) * 2);
+}
+
+.proposal-page__sheet .label {
+  color: var(--sheet-ink-soft);
+}
+
+/*
+ * The CMS renderer (PageContent) colours itself from --foreground, which is the
+ * site's white. Inside the sheet, foreground is the ink, and its paragraphs
+ * keep the same measure as the proposal's own.
+ */
+.proposal-page__sheet {
+  --foreground: var(--sheet-ink);
+  border-top: 12px solid oklch(45.99% 0.28 265.12);
+}
+
+.proposal-page__sheet .page-content__paragraph,
+.proposal-page__sheet .page-content__list {
+  max-width: 68ch;
+}
+
+.proposal-page__kicker {
+  letter-spacing: var(--tracking-micro-wide);
+}
+
+.proposal-page__title {
+  font-family: var(--font-sans);
+  font-size: var(--text-3xl);
+  font-variation-settings: "wght" 800;
+  line-height: 1.1;
+  letter-spacing: -0.05em;
+}
+
+/*
+ * Amber on purpose and not a token: it must read as a warning on the sheet
+ * and the shell alike, and only a signed-in admin ever sees it.
+ */
+.proposal-page__draft {
+  color: oklch(0.65 0.15 70);
+}
+
+.proposal-page__parties {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: calc(var(--spacing) * 4);
+}
+
+@media (min-width: 40rem) {
+  .proposal-page__parties {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.proposal-page__party {
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+  font-size: var(--text-sm-ui);
+  line-height: 1.5;
+  border: 1px solid var(--sheet-rule);
+  border-radius: calc(var(--spacing) * 1);
+}
+
+.proposal-page__party dt {
+  margin-block-start: calc(var(--spacing) * 3);
+}
+
+.proposal-page__party dt:first-child {
+  margin-block-start: 0;
+}
+
+.proposal-page__party dd {
+  margin-block-start: calc(var(--spacing) * 1);
+}
+
+/* Clauses */
+
+.proposal-page__clause {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);
+  padding-block-end: calc(var(--spacing) * 8);
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.proposal-page__clause--last {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+.proposal-page__clause-title {
+  font-family: var(--font-sans);
+  font-size: 2.2rem;
+  font-variation-settings: "wght" 800;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.04em;
+}
+
+.proposal-page__prose {
+  max-width: 68ch;
+  font-size: var(--text-prose);
+  line-height: var(--leading-prose);
+}
+
+.proposal-page__run {
+  font-weight: 600;
+}
+
+.proposal-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  max-width: 68ch;
+  padding-inline-start: calc(var(--spacing) * 5);
+  font-size: var(--text-prose);
+  line-height: 1.6;
+  list-style: disc;
+}
+
+.proposal-page__list--small {
+  font-size: var(--text-sm-ui);
+}
+
+/* Options: 2.1, 2.2, 2.3 with the fee in the margin */
+
+.proposal-page__option {
+  display: grid;
+  grid-template-columns: calc(var(--spacing) * 9) 1fr auto;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3);
+  border-radius: calc(var(--spacing) * 1);
+}
+
+.proposal-page__option--suggested {
+  background: var(--sheet-tint);
+}
+
+.proposal-page__option-index {
+  font-size: var(--text-prose);
+  font-weight: 600;
+  line-height: var(--leading-prose);
+}
+
+.proposal-page__option-facts {
+  font-size: var(--text-sm-ui);
+  color: var(--sheet-ink-soft);
+}
+
+.proposal-page__option-fee {
+  font-size: var(--text-prose);
+  font-weight: 600;
+  line-height: var(--leading-prose);
+  text-align: end;
+  white-space: nowrap;
+}
+
+.proposal-page__option-fee-note {
+  display: block;
+  font-size: var(--text-xs-ui);
+  font-weight: 400;
+  color: var(--sheet-ink-soft);
+}
+
+@media (max-width: 40rem) {
+  .proposal-page__option {
+    grid-template-columns: calc(var(--spacing) * 9) 1fr;
+  }
+
+  .proposal-page__option-fee {
+    grid-column: 2;
+    text-align: start;
+  }
+}
+
+/* Add-ons */
+
+.proposal-page__addons {
+  display: flex;
+  flex-direction: column;
+}
+
+.proposal-page__addon {
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  justify-content: space-between;
+  padding-block: calc(var(--spacing) * 3);
+  font-size: var(--text-prose);
+  line-height: 1.45;
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.proposal-page__addon:last-child {
+  border-block-end: 0;
+}
+
+.proposal-page__addon dd {
+  flex-shrink: 0;
+  color: var(--sheet-ink-soft);
+}
+
+/* Steps as a numbered list with run-in titles */
+
+.proposal-page__steps {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  padding-inline-start: calc(var(--spacing) * 5);
+  font-size: var(--text-prose);
+  line-height: 1.6;
+  list-style: decimal;
+}
+
+/* Acceptance */
+
+.proposal-page__signatures {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: calc(var(--spacing) * 8);
+  padding-block-start: calc(var(--spacing) * 6);
+  font-size: var(--text-sm-ui);
+}
+
+@media (min-width: 40rem) {
+  .proposal-page__signatures {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.proposal-page__signatures .label {
+  display: block;
+}
+
+.proposal-page__sig-line {
+  height: calc(var(--spacing) * 9);
+  margin-block-end: calc(var(--spacing) * 2);
+  border-block-end: 1px solid var(--sheet-ink);
+}
+
+.proposal-page__signed {
+  min-height: calc(var(--spacing) * 9);
+  padding-block-end: calc(var(--spacing) * 1);
+  margin-block-end: calc(var(--spacing) * 2);
+  font-family: var(--font-sans);
+  font-size: var(--text-xl-ui);
+  line-height: 1.2;
+  border-block-end: 1px solid var(--sheet-ink);
+}
+
+/*
+ * The signature line is the input: same rule under it as the signed state, so
+ * the page does not change shape when the name lands.
+ */
+.proposal-page__sig-input {
+  width: 100%;
+  min-height: calc(var(--spacing) * 9);
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-xl-ui);
+  color: var(--sheet-ink);
+  background: transparent;
+  border: 0;
+  border-block-end: 1px solid var(--sheet-ink);
+  border-radius: 0;
+}
+
+.proposal-page__sig-input--quiet {
+  min-height: calc(var(--spacing) * 7);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm-ui);
+  border-block-end-color: var(--sheet-rule);
+}
+
+.proposal-page__sig-input::placeholder {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm-ui);
+  color: var(--sheet-ink-soft);
+}
+
+.proposal-page__sig-input:focus {
+  outline: none;
+  border-block-end-color: var(--sheet-ink);
+}
+
+.proposal-page__choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
+  padding: 0;
+  margin: 0;
+  font-size: var(--text-sm-ui);
+  border: 0;
+}
+
+.proposal-page__choice legend {
+  margin-block-end: calc(var(--spacing) * 2);
+}
+
+.proposal-page__choice-item {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.proposal-page__choice-item input {
+  accent-color: var(--sheet-ink);
+}
+
+.proposal-page__accepted {
+  align-self: center;
+  color: var(--sheet-ink);
+}
+
+.proposal-page__error {
+  font-size: var(--text-sm-ui);
+  color: oklch(0.55 0.2 25);
+}
+
+.proposal-page__accept:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.proposal-page__sig-note {
+  display: block;
+  color: var(--sheet-ink-soft);
+}
+
+.proposal-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  margin-block-start: calc(var(--spacing) * 6);
+}
+
+.proposal-page__pdf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--spacing) * 10);
+  padding-inline: calc(var(--spacing) * 6);
+  font: inherit;
+  font-size: var(--text-sm-ui);
+  font-weight: 500;
+  color: var(--sheet-ink);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--sheet-rule);
+  border-radius: 999px;
+}
+
+.proposal-page__accept {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  min-height: calc(var(--spacing) * 10);
+  padding-inline: calc(var(--spacing) * 6);
+  font: inherit;
+  font-size: var(--text-sm-ui);
+  font-weight: 500;
+  color: var(--sheet);
+  cursor: pointer;
+  background: var(--sheet-ink);
+  border: 0;
+  border-radius: 999px;
+  transition: opacity 150ms ease-out;
+}
+
+.proposal-page__accept:hover {
+  opacity: 0.85;
+}
+
+.proposal-page__footer {
+  padding-block: calc(var(--spacing) * 6);
+  text-align: center;
+}
+
+/*
+ * Print: the sheet becomes the page. The dark shell, the masthead and the
+ * buttons go; the sheet loses its rounded corners and padding to the page
+ * margins; clauses avoid breaking across a page where they can.
+ */
+@media print {
+  .proposal-page {
+    color: var(--sheet-ink);
+    background: #fff;
+  }
+
+  .proposal-page__masthead,
+  .proposal-page__footer,
+  .proposal-page__actions,
+  .proposal-page__draft {
+    display: none;
+  }
+
+  .proposal-page__main {
+    max-width: none;
+    padding: 0;
+  }
+
+  .proposal-page__sheet {
+    gap: calc(var(--spacing) * 7);
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .proposal-page__clause,
+  .proposal-page__option,
+  .proposal-page__party {
+    break-inside: avoid;
+  }
+
+  .proposal-page__signatures {
+    break-before: auto;
+  }
+}
+
+@page {
+  margin: 18mm 16mm;
+}

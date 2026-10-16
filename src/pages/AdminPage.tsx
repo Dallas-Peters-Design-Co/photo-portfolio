@@ -12,6 +12,7 @@ import { ConfirmProvider } from "../components/admin/ConfirmProvider";
 import { LightroomPanel } from "../components/admin/LightroomPanel";
 import { ModelsPanel } from "../components/admin/ModelsPanel";
 import { PagesPanel } from "../components/admin/PagesPanel";
+import { ProposalsPanel } from "../components/admin/ProposalsPanel";
 import { SiteSettingsPanel } from "../components/admin/SiteSettingsPanel";
 import { SitesPanel } from "../components/admin/SitesPanel";
 import { Button } from "../components/ui/button";
@@ -40,6 +41,7 @@ const SECTIONS = [
   { end: false, label: "Brand kits", to: "/admin/brand-kits" },
   { end: false, label: "Lightroom", to: "/admin/lightroom" },
   { end: false, label: "Pages", to: "/admin/pages" },
+  { end: false, label: "Proposals", to: "/admin/proposals" },
   { end: false, label: "Models", to: "/admin/models" },
   { end: false, label: "Settings", to: "/admin/settings" },
 ];
@@ -163,6 +165,8 @@ export function AdminPage() {
               {/* Same component: it reads the slug and opens that page, so the
                   editor has an address you can link to and come back to. */}
               <Route element={<PagesPanel />} path="pages/:slug" />
+              <Route element={<ProposalsPanel />} path="proposals" />
+              <Route element={<ProposalsPanel />} path="proposals/:slug" />
               <Route
                 element={
                   <div className="admin-page__settings">

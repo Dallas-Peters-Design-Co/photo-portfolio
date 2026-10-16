@@ -40,6 +40,9 @@ const ContentPage = lazy(() =>
 const LegalPage = lazy(() =>
   import("./pages/LegalPage").then((m) => ({ default: m.LegalPage }))
 );
+const ProposalPage = lazy(() =>
+  import("./pages/ProposalPage").then((m) => ({ default: m.ProposalPage }))
+);
 
 /** Deliberately blank: a spinner that flashes for 80ms reads worse than nothing. */
 const RouteFallback = () => (
@@ -74,6 +77,9 @@ export default function App() {
             <Route element={<BoardViewPage />} path="/board/:slug/:frameSlug" />
             {/* Reserved before the CMS splat: a legal page must never be
                 shadowed by a page with the same slug. */}
+            {/* Its own prefix, so a proposal's address can never shadow a
+                CMS page or the admin. */}
+            <Route element={<ProposalPage />} path="/proposal/:slug" />
             <Route element={<LegalPage kind="privacy" />} path="/privacy" />
             <Route element={<LegalPage kind="terms" />} path="/terms" />
             {/* Last: a CMS slug must never shadow a built-in route. The API also

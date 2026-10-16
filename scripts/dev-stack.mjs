@@ -130,7 +130,7 @@ if (dbUrl) {
   }
 } else {
   // vercel dev pulls env itself, so this is the normal case locally.
-  console.log("  database → pulled by vercel dev; run `pnpm db:info` to see\n");
+  console.log("  database → from the env files; run `pnpm db:info` to see\n");
 }
 
 // The browser bundle reads VITE_SITE, but the serverless functions read SITE —
@@ -143,11 +143,68 @@ if (env.VITE_SITE && !env.SITE) {
 }
 
 const pnpm = isWin ? "pnpm.cmd" : "pnpm";
-const child = spawn(pnpm, ["exec", "vercel", "dev", "--listen", String(PORT)], {
-  cwd: root,
-  env,
-  stdio: "inherit",
-});
+
+// Two ways to run the stack.
+//
+// Default: Vite on PORT for the browser, and scripts/api-dev.ts on API_PORT for
+// /api, with Vite proxying between them (vite.config.ts reads
+// VITE_API_PROXY_TARGET). `vercel dev` bundled every function on every request,
+// which cost about a second per /api call and seven to eight seconds for a
+// cold admin; api-dev imports each function once.
+//
+// `pnpm dev:vercel` (or --vercel) is the old path: vercel dev on PORT doing
+// both jobs, for when something needs Vercel's own runtime behaviour.
+const useVercel =
+  process.argv.includes("--vercel") || env.DEV_STACK === "vercel";
+const API_PORT = Number(env.API_PORT) || 3007;
+
+let child;
+let api = null;
+if (useVercel) {
+  child = spawn(pnpm, ["exec", "vercel", "dev", "--listen", String(PORT)], {
+    cwd: root,
+    env,
+    stdio: "inherit",
+  });
+} else {
+  killPort(API_PORT);
+  // `tsx watch` restarts the API when any file it imported changes, so an
+  // edit under api/ is live on the next request rather than after a manual
+  // restart. The handler cache in api-dev.ts is per process, so this is what
+  // invalidates it.
+  api = spawn(
+    pnpm,
+    ["exec", "tsx", "watch", "--clear-screen=false", "scripts/api-dev.ts"],
+    {
+      cwd: root,
+      env: { ...env, API_PORT: String(API_PORT) },
+      stdio: "inherit",
+    }
+  );
+  child = spawn(
+    pnpm,
+    [
+      "exec",
+      "vite",
+      "--port",
+      String(PORT),
+      "--strictPort",
+      "--clearScreen",
+      "false",
+    ],
+    {
+      cwd: root,
+      env: { ...env, VITE_API_PROXY_TARGET: `http://127.0.0.1:${API_PORT}` },
+      stdio: "inherit",
+    }
+  );
+  api.on("exit", (code, signal) => {
+    if (signal) {
+      return;
+    }
+    console.log(`\n[api-dev] exited (code ${code})\n`);
+  });
+}
 
 // The canvas's "Open in <editor>" button reaches a local HTTP server, so it
 // has to come up with the rest of the stack. It is optional in spirit — the
@@ -179,5 +236,6 @@ child.on("exit", (code, signal) => {
     process.kill(process.pid, signal);
   }
   bridge.kill("SIGTERM");
+  api?.kill("SIGTERM");
   process.exit(code ?? 1);
 });

@@ -88,9 +88,10 @@ const arg = (flag: string): string | undefined => {
   return i === -1 ? undefined : process.argv[i + 1];
 };
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: a one-shot seed script read top to bottom; splitting it hides the order the rows are written in
 const main = async (): Promise<void> => {
   loadEnv();
-  const folder = process.argv[2];
+  const { 2: folder } = process.argv;
   if (!folder || folder.startsWith("--")) {
     throw new Error(
       'Usage: pnpm cover:seed "<parts folder>" [--variant poster] [--book book.json] [--title "Board title"] [--all-parts] [--board <uuid>]'
@@ -180,6 +181,29 @@ const main = async (): Promise<void> => {
         throw new Error(`No board ${targetBoard}`);
       }
       boardId = existing;
+
+      // REFUSE TO OVERWRITE A BOARD THAT HAS WORK ON IT.
+      //
+      // --board replaces the board's contents. That is fine for a board this
+      // script made, and it is destructive for one that has been arranged,
+      // added to, or shared - there is no undo, and "it printed an id so it
+      // worked" is how a shared board of 46 items became 7. Anything with more
+      // items than this run is about to add now needs --force, said out loud.
+      const before = await client.query<{ n: string }>(
+        "SELECT count(*)::int AS n FROM board_items WHERE board_id = $1",
+        [boardId]
+      );
+      const had = Number(before.rows[0]?.n ?? 0);
+      const forcing = process.argv.indexOf("--force") !== -1;
+      if (had > layers.length + 6 && !forcing) {
+        throw new Error(
+          `Board ${boardId} already holds ${had} items and this run would ` +
+            `replace them with ${layers.length} part(s).\n` +
+            "Nothing has been changed. If you really mean to replace it, add " +
+            "--force. To put it somewhere new, drop --board and a fresh board " +
+            "is created."
+        );
+      }
       // Replace the contents, keep the board. The row, its id and the URL you
       // already have open all survive; only the items and wires change.
       // Wires first - they reference board_items, so the other order trips the
@@ -271,8 +295,9 @@ const main = async (): Promise<void> => {
         width: Math.round((x1 - x0) * SCALE),
         x: Math.round(x0 * SCALE),
         y: Math.round(y0 * SCALE),
-        z: z++,
+        z,
       });
+      z += 1;
     }
 
     // The pipeline, left to right beside the frame.

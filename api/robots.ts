@@ -14,6 +14,8 @@ export default function handler(_req: VercelRequest, res: VercelResponse) {
     // one-time reset link if it ever leaked into a referrer.
     "Disallow: /admin",
     "Disallow: /reset-password",
+    // A proposal is sent to one client by link; it is not for a search index.
+    "Disallow: /proposal/",
     "",
     `Sitemap: https://${site.domain}/sitemap.xml`,
     "",
