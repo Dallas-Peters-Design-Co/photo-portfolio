@@ -186,7 +186,8 @@ describe("Download PDF", () => {
     expect(downloadProposalPdf).toHaveBeenCalledWith(
       expect.objectContaining({ slug: "viaskai-pretext-launch" }),
       "Dallas Peters",
-      "16 October 2026"
+      "16 October 2026",
+      { display: "inter", sans: "inter" }
     );
     expect(accept).not.toHaveBeenCalled();
     root?.unmount();

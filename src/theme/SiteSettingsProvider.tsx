@@ -73,15 +73,20 @@ const applyTheme = (settings: ResolvedSiteSettings): void => {
 
   const sans = findFont(theme.sansFont);
   const serif = findFont(theme.serifFont);
+  const display = findFont(theme.displayFont) ?? sans;
   if (sans) {
     root.style.setProperty("--font-sans", sans.stack);
   }
   if (serif) {
     root.style.setProperty("--font-serif", serif.stack);
   }
+  if (display) {
+    root.style.setProperty("--font-display", display.stack);
+  }
 
   void loadFont(theme.sansFont);
   void loadFont(theme.serifFont);
+  void loadFont(theme.displayFont);
 
   document
     .querySelector('meta[name="theme-color"]')

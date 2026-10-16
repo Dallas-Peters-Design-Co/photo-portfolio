@@ -8,6 +8,7 @@
 /** biome-ignore-all lint/suspicious/noUnnecessaryConditions: reasons */
 
 export type FontId =
+  | "barlow-semi-condensed"
   | "geist"
   | "inter"
   | "space-grotesk"
@@ -51,6 +52,13 @@ export const FONT_CHOICES: FontChoice[] = [
     id: "figtree",
     label: "Figtree",
     stack: '"Figtree", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 300 },
+  },
+  {
+    category: "sans",
+    id: "barlow-semi-condensed",
+    label: "Barlow Semi Condensed",
+    stack: '"Barlow Semi Condensed", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 900, min: 300 },
   },
   {
@@ -120,6 +128,8 @@ export const FONT_CHOICES: FontChoice[] = [
 
 export const SANS_FONTS = FONT_CHOICES.filter((f) => f.category === "sans");
 export const SERIF_FONTS = FONT_CHOICES.filter((f) => f.category === "serif");
+/** Titles may be set in any family. */
+export const DISPLAY_FONTS = FONT_CHOICES;
 
 export const findFont = (id: string | undefined): FontChoice | undefined =>
   FONT_CHOICES.find((f) => f.id === id);
@@ -133,6 +143,12 @@ export interface SiteTheme {
   /** Hero wordmark and highlights. Replaces the old hard-coded Tailwind class. */
   accent: string;
   background: string;
+  /**
+   * Titles: the proposal's title and clause headings, and anything else set
+   * in display type. Any family, so a condensed sans can head a body set in
+   * a wider one. Falls back to the sans when unset.
+   */
+  displayFont: FontId;
   foreground: string;
   sansFont: FontId;
   serifFont: FontId;
@@ -142,6 +158,7 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
   addison: {
     accent: "#ffffff",
     background: "#000000",
+    displayFont: "inter",
     foreground: "#ffffff",
     sansFont: "inter",
     serifFont: "cormorant-garamond",
@@ -150,6 +167,7 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
     // Matches the text-cyan-200 the wordmark used before theming moved to the DB.
     accent: "#a5f3fc",
     background: "#000000",
+    displayFont: "inter",
     foreground: "#ffffff",
     sansFont: "inter",
     serifFont: "cormorant-garamond",
@@ -192,11 +210,15 @@ export const normalizeTheme = (
   fallback: SiteTheme
 ): SiteTheme => {
   const t = (raw ?? {}) as Partial<SiteTheme>;
+  const sansFont = findFont(t.sansFont)?.id ?? fallback.sansFont;
   return {
     accent: isHexColor(t.accent) ? t.accent : fallback.accent,
     background: isHexColor(t.background) ? t.background : fallback.background,
+    // Themes saved before there was a display font head with their sans.
+    displayFont:
+      findFont(t.displayFont)?.id ?? fallback.displayFont ?? sansFont,
     foreground: isHexColor(t.foreground) ? t.foreground : fallback.foreground,
-    sansFont: findFont(t.sansFont)?.id ?? fallback.sansFont,
+    sansFont,
     serifFont: findFont(t.serifFont)?.id ?? fallback.serifFont,
   };
 };

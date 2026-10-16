@@ -8,6 +8,7 @@ import {
 } from "../../../config/siteSettings";
 import {
   contrastRatio,
+  DISPLAY_FONTS,
   type FontId,
   SANS_FONTS,
   SERIF_FONTS,
@@ -277,11 +278,16 @@ export function SiteSettingsPanel() {
 
           <div className="space-y-4">
             <h3 className={labelClass}>Fonts</h3>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               {(
                 [
                   { key: "sansFont", label: "Sans", options: SANS_FONTS },
                   { key: "serifFont", label: "Serif", options: SERIF_FONTS },
+                  {
+                    key: "displayFont",
+                    label: "Display (titles)",
+                    options: DISPLAY_FONTS,
+                  },
                 ] as const
               ).map(({ key, label, options }) => (
                 <div className="space-y-2" key={key}>

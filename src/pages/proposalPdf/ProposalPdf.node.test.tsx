@@ -3,7 +3,7 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { PDFParse } from "pdf-parse";
 import { beforeAll, describe, expect, it } from "vitest";
 import type { ProposalRecord } from "../../services/proposalService";
-import { registerProposalFonts } from "./fonts";
+import { pdfFontFiles, pdfFontFor, registerProposalFonts } from "./fonts";
 import { formatPdfDate, ProposalPdf } from "./ProposalPdf";
 
 /**
@@ -17,8 +17,7 @@ import { formatPdfDate, ProposalPdf } from "./ProposalPdf";
  */
 
 const require = createRequire(import.meta.url);
-const font = (file: string) =>
-  require.resolve(`@fontsource/inter/files/${file}`);
+const font = (file: string) => require.resolve(`@fontsource/${file}`);
 
 const DOC: ProposalRecord["doc"] = {
   addOns: [
@@ -150,12 +149,50 @@ const render = async (proposal: ProposalRecord) => {
   };
 };
 
+const sources = (id: Parameters<typeof pdfFontFiles>[0]) => {
+  const files = pdfFontFiles(id);
+  return {
+    id,
+    src: {
+      extrabold: font(files.extrabold),
+      italic: font(files.italic),
+      regular: font(files.regular),
+      semibold: font(files.semibold),
+    },
+  };
+};
+
 beforeAll(() => {
-  registerProposalFonts({
-    extrabold: font("inter-latin-800-normal.woff"),
-    italic: font("inter-latin-400-italic.woff"),
-    regular: font("inter-latin-400-normal.woff"),
-    semibold: font("inter-latin-600-normal.woff"),
+  // Body in Inter, titles in the condensed face: the two-family case.
+  registerProposalFonts(sources("inter"), sources("barlow-semi-condensed"));
+});
+
+describe("pdf fonts", () => {
+  it("uses the theme's sans when a static package exists, Inter otherwise", () => {
+    expect(pdfFontFor("barlow-semi-condensed")).toBe("barlow-semi-condensed");
+    expect(pdfFontFor("figtree")).toBe("figtree");
+    expect(pdfFontFor("geist")).toBe("inter");
+    expect(pdfFontFor("space-grotesk")).toBe("inter");
+  });
+
+  it("names four files that exist for every family it offers", () => {
+    for (const id of [
+      "barlow-semi-condensed",
+      "figtree",
+      "inter",
+      "mulish",
+    ] as const) {
+      for (const file of Object.values(pdfFontFiles(id))) {
+        expect(() => font(file), file).not.toThrow();
+      }
+    }
+  });
+
+  it("embeds both families in the file: body and titles", async () => {
+    const { buffer } = await render(PROPOSAL);
+    const raw = buffer.toString("latin1");
+    expect(raw).toContain("BarlowSemiCondensed");
+    expect(raw).toContain("Inter");
   });
 });
 

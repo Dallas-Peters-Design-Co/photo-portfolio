@@ -6,6 +6,20 @@ import type { FontId } from "../../config/theme";
  * instead of all seven.
  */
 const FONT_LOADERS: Record<FontId, () => Promise<unknown>> = {
+  // A static family rather than a variable one: @fontsource ships each
+  // weight as its own stylesheet, so the range config/theme.ts declares is
+  // loaded here cut by cut.
+  "barlow-semi-condensed": () =>
+    Promise.all([
+      import("@fontsource/barlow-semi-condensed/300.css"),
+      import("@fontsource/barlow-semi-condensed/400.css"),
+      import("@fontsource/barlow-semi-condensed/400-italic.css"),
+      import("@fontsource/barlow-semi-condensed/500.css"),
+      import("@fontsource/barlow-semi-condensed/600.css"),
+      import("@fontsource/barlow-semi-condensed/700.css"),
+      import("@fontsource/barlow-semi-condensed/800.css"),
+      import("@fontsource/barlow-semi-condensed/900.css"),
+    ]),
   "cormorant-garamond": () =>
     import("@fontsource-variable/cormorant-garamond/index.css"),
   figtree: () => import("@fontsource-variable/figtree/index.css"),

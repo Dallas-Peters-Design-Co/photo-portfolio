@@ -18,7 +18,7 @@ import {
 
 const MAX_TEXT = 200;
 const COLOR_KEYS = ["background", "foreground", "accent"] as const;
-const FONT_KEYS = ["sansFont", "serifFont"] as const;
+const FONT_KEYS = ["sansFont", "serifFont", "displayFont"] as const;
 
 const str = (body: Record<string, unknown>, key: string): string | null => {
   const raw = body[key];

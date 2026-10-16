@@ -7,8 +7,9 @@
  * declared once here as sheet tokens rather than scattered as raw values; the
  * shell around it (masthead, footer) stays on the site's own tokens.
  *
- * Type: the title and clause headings take the site's sans (`--font-sans`,
- * loaded per site), body copy the prose step the CMS pages read at. Nothing
+ * Type: the title and clause headings take the site's display font
+ * (`--font-display`, the sans when none is set), body copy the sans at the
+ * prose step the CMS pages read at. Nothing
  * below the micro ladder, and nothing from the heading scale used for
  * paragraphs.
  */
@@ -105,7 +106,7 @@
 }
 
 .proposal-page__title {
-  font-family: var(--font-sans);
+  font-family: var(--font-display, var(--font-sans));
   font-size: var(--text-3xl);
   font-variation-settings: "wght" 800;
   line-height: 1.1;
@@ -168,7 +169,7 @@
 }
 
 .proposal-page__clause-title {
-  font-family: var(--font-sans);
+  font-family: var(--font-display, var(--font-sans));
   font-size: 2.2rem;
   font-variation-settings: "wght" 800;
   font-weight: 500;

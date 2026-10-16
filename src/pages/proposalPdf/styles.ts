@@ -1,5 +1,5 @@
 import { StyleSheet } from "@react-pdf/renderer";
-import { PROPOSAL_FONT } from "./fonts";
+import { PROPOSAL_DISPLAY_FONT, PROPOSAL_FONT } from "./fonts";
 
 /**
  * The sheet's tokens, in points. Same ink, rule and tint as ProposalPage.css,
@@ -40,6 +40,7 @@ export const styles = StyleSheet.create({
   },
   clauseLast: { borderBottomWidth: 0, marginBottom: 0 },
   clauseTitle: {
+    fontFamily: PROPOSAL_DISPLAY_FONT,
     fontSize: 20,
     fontWeight: 800,
     letterSpacing: -0.6,
@@ -161,6 +162,7 @@ export const styles = StyleSheet.create({
   stepNumber: { width: 16 },
   stepText: { flex: 1 },
   title: {
+    fontFamily: PROPOSAL_DISPLAY_FONT,
     fontSize: 26,
     fontWeight: 800,
     letterSpacing: -1,
