@@ -11,7 +11,7 @@ import {
   type ProposalRow,
   rowToDto,
 } from "../../_lib/proposals.js";
-import { getSite } from "../../_lib/site.js";
+import { emailBrand, getSite } from "../../_lib/site.js";
 
 /**
  * Sends the proposal link to the client.
@@ -75,6 +75,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const site = getSite();
     const url = `https://${site.domain}/proposal/${slug}`;
     const mail = proposalLinkEmail({
+      brand: emailBrand(site),
       note,
       ownerName: site.ownerName,
       proposal: rowToDto(row),

@@ -103,9 +103,17 @@ const PROPOSAL: ProposalDto = {
   updatedAt: "2026-10-16T00:00:00.000Z",
 };
 
+const BRAND = {
+  domain: "dallaspeters.com",
+  key: "dallas-images",
+  ownerName: "Dallas Peters",
+  tagline: "Product Designer",
+};
+
 const input = (over: Partial<ProposalEmailInput> = {}): ProposalEmailInput => ({
   acceptedName: "Vin Patel",
   acceptedTitle: "Founder",
+  brand: BRAND,
   chosen: { name: "Launch Package", price: "$9,500" },
   ownerName: "Dallas Peters",
   proposal: PROPOSAL,
@@ -298,7 +306,7 @@ describe("proposalCopyEmail", () => {
     const { html } = proposalCopyEmail(input());
     expect(html).toContain("Thanks, Vin.");
     expect(html).toContain(
-      '<a href="https://dallaspeters.com/proposal/viaskai-pretext-launch">'
+      'href="https://dallaspeters.com/proposal/viaskai-pretext-launch"'
     );
   });
 
@@ -307,6 +315,29 @@ describe("proposalCopyEmail", () => {
     expect(html).not.toContain("<style");
     expect(html).not.toContain("<link");
     expect(html).not.toContain('class="');
+  });
+
+  it("sits in the branded frame: logo, wordmark, blue rule, footer", () => {
+    for (const mail of [
+      proposalCopyEmail(input()),
+      acceptanceNoticeEmail(input()),
+      proposalLinkEmail({
+        brand: BRAND,
+        note: "",
+        ownerName: "Dallas Peters",
+        proposal: PROPOSAL,
+        url: "https://dallaspeters.com/proposal/x",
+      }),
+    ]) {
+      expect(mail.html).toContain(
+        'src="https://dallaspeters.com/sites/dallas-images/logo-email.png"'
+      );
+      expect(mail.html).toContain("border-top:8px solid #0e29f1");
+      expect(mail.html).toContain("Dallas Peters · Product Designer");
+      expect(mail.html).toContain('href="https://dallaspeters.com"');
+      expect(mail.html).toContain("<!doctype html>");
+      expect(mail.html).not.toContain("<svg");
+    }
   });
 });
 
@@ -340,6 +371,7 @@ describe("acceptanceNoticeEmail", () => {
 describe("proposalLinkEmail", () => {
   it("greets by first name, carries the note and the link, signs off", () => {
     const { subject, html, text } = proposalLinkEmail({
+      brand: BRAND,
       note: "Good talking yesterday.\n\nHere it is, as promised.",
       ownerName: "Dallas Peters",
       proposal: PROPOSAL,
@@ -351,18 +383,21 @@ describe("proposalLinkEmail", () => {
       expect(body).toContain("Good talking yesterday.");
       expect(body).toContain("Here it is, as promised.");
       expect(body).toContain("save it as a PDF");
-      expect(body).toContain("The pricing holds until 2026-11-15.");
+      expect(body).toContain("The pricing holds until November 15, 2026.");
       expect(body).toContain(
         "https://dallaspeters.com/proposal/viaskai-pretext-launch"
       );
       expect(body).toContain("Dallas Peters");
     }
     expect(html).toContain(">Open the proposal</a>");
-    expect(html.split("Good talking yesterday.")).toHaveLength(2);
+    // Once in the inbox preheader, once in the body; never doubled in the body.
+    expect(html.split("Good talking yesterday.")).toHaveLength(3);
+    expect(text.split("Good talking yesterday.")).toHaveLength(2);
   });
 
   it("falls back to a default note and a plain greeting", () => {
     const { text } = proposalLinkEmail({
+      brand: BRAND,
       note: "   ",
       ownerName: "Dallas Peters",
       proposal: {
@@ -379,6 +414,7 @@ describe("proposalLinkEmail", () => {
 
   it("escapes the note, so a pasted angle bracket is text", () => {
     const { html } = proposalLinkEmail({
+      brand: BRAND,
       note: "Costs <$10k> & change",
       ownerName: "Dallas",
       proposal: PROPOSAL,

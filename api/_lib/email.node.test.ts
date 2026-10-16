@@ -15,9 +15,11 @@ vi.mock("./site.js", () => ({
     defaultAdminEmail: "dallaspeters@gmail.com",
     domain: "dallaspeters.com",
     emailFrom: "Dallas Peters <noreply@dallaspeters.com>",
+    key: "dallas-images",
     name: "Dallas Peters",
     origins: [],
     ownerName: "Dallas",
+    tagline: "Product Designer",
   }),
 }));
 

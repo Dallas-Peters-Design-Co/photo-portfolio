@@ -4,6 +4,7 @@ import {
   type SiteConfig,
 } from "../../config/sites.js";
 import { bootstrapEnv } from "./bootstrapEnv.js";
+import type { EmailBrand } from "./emailLayout.js";
 
 bootstrapEnv();
 
@@ -13,5 +14,13 @@ bootstrapEnv();
  */
 export const getSite = (): SiteConfig =>
   applySiteOverrides(resolveSite(process.env.SITE), process.env);
+
+/** The parts of a site an email's frame needs. */
+export const emailBrand = (site: SiteConfig): EmailBrand => ({
+  domain: site.domain,
+  key: site.key,
+  ownerName: site.ownerName,
+  tagline: site.tagline,
+});
 
 export type { SiteConfig } from "../../config/sites.js";

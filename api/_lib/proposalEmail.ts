@@ -1,26 +1,30 @@
 /**
- * The proposal as an email: the copy the client gets when they accept, and
- * the note the owner gets.
+ * The proposal as email: the link that sends it, the signed copy the client
+ * gets on accepting, and the note the owner gets.
  *
- * Plain HTML with inline styles, since mail clients ignore stylesheets. The
- * rich-text bodies are walked directly: paragraphs, headings, lists, bold,
- * italic and links, which is what the CMS editor produces. Anything else
- * (an image, a video) becomes its link or is skipped; a signed copy is a
- * record, not a layout.
+ * All three sit in the branded frame from emailLayout. The rich-text bodies
+ * are walked directly: paragraphs, headings, lists, bold, italic and links,
+ * which is what the CMS editor produces. Anything else (an image, a video)
+ * becomes its link or is skipped; a signed copy is a record, not a layout.
  */
 import {
   type ProposalDoc,
   type RichText,
   textToBlocks,
 } from "../../config/proposal.js";
+import {
+  button,
+  type EmailBrand,
+  emailFrame,
+  escapeHtml,
+  H,
+  H3,
+  LI,
+  P,
+  rule,
+  SOFT,
+} from "./emailLayout.js";
 import type { ProposalDto } from "./proposals.js";
-
-const escapeHtml = (s: string): string =>
-  s
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
 
 interface Node {
   attrs?: Record<string, unknown>;
@@ -29,10 +33,6 @@ interface Node {
   text?: string;
   type?: string;
 }
-
-const P = 'style="margin:0 0 12px;font-size:15px;line-height:1.6"';
-const H = 'style="margin:28px 0 8px;font-size:17px;line-height:1.3"';
-const LI = 'style="margin:0 0 6px;font-size:15px;line-height:1.5"';
 
 const applyMark = (
   out: string,
@@ -69,7 +69,7 @@ const block = (n: Node): string => {
     case "paragraph":
       return `<p ${P}>${inline(n.content)}</p>`;
     case "heading":
-      return `<h3 ${H}>${inline(n.content)}</h3>`;
+      return `<h3 ${H3}>${inline(n.content)}</h3>`;
     case "bulletList":
       return `<ul style="margin:0 0 12px;padding-left:20px">${(n.content ?? []).map(block).join("")}</ul>`;
     case "orderedList":
@@ -118,9 +118,30 @@ const richTextToText = (value: RichText): string => {
   return (value.content as Node[]).map(walk).join("\n").trim();
 };
 
+const WORD_BREAK = /\s+/;
+const PARAGRAPH_BREAK = /\n\s*\n/;
+const LINE_BREAK = /\n/g;
+
+/** "2026-11-15" as "November 15, 2026"; anything unparseable as given. */
+const longDate = (iso: string): string => {
+  const d = new Date(iso.length === 10 ? `${iso}T00:00:00Z` : iso);
+  return Number.isNaN(d.getTime())
+    ? iso
+    : d.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "long",
+        timeZone: "UTC",
+        year: "numeric",
+      });
+};
+
+const firstName = (label: string): string =>
+  label.trim().split(WORD_BREAK)[0] ?? "";
+
 export interface ProposalEmailInput {
   acceptedName: string;
   acceptedTitle: string;
+  brand: EmailBrand;
   chosen: { name: string; price: string } | null;
   ownerName: string;
   proposal: ProposalDto;
@@ -132,6 +153,7 @@ export const proposalCopyEmail = ({
   proposal,
   acceptedName,
   acceptedTitle,
+  brand,
   chosen,
   ownerName,
   url,
@@ -142,9 +164,7 @@ export const proposalCopyEmail = ({
   let n = 0;
   const clause = (title: string, body: string, plain: string) => {
     n += 1;
-    parts.push(
-      `<h2 ${H.replace("17px", "19px")}>${n}. ${escapeHtml(title)}</h2>${body}`
-    );
+    parts.push(`<h2 ${H}>${n}. ${escapeHtml(title)}</h2>${body}`);
     textParts.push(`${n}. ${title}\n${plain}\n`);
   };
 
@@ -205,12 +225,14 @@ export const proposalCopyEmail = ({
   );
 
   const subject = `Your signed copy: ${proposal.title}`;
-  const intro = `<p ${P}>Thanks, ${escapeHtml(acceptedName.split(" ")[0] ?? acceptedName)}. This is your copy of the proposal you accepted. It stays online at <a href="${escapeHtml(url)}">${escapeHtml(url)}</a>.</p>`;
-  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111;max-width:640px;margin:0 auto;padding:24px">
-<p style="margin:0 0 4px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#666">Design proposal</p>
-<h1 style="margin:0 0 20px;font-size:24px;line-height:1.2">${escapeHtml(proposal.title)}</h1>
-${intro}${richTextToHtml(doc.intro)}${parts.join("")}
-<p style="margin:28px 0 0;font-size:13px;color:#666">${escapeHtml(ownerName)}</p></div>`;
+  const intro = `<p ${P}>Thanks, ${escapeHtml(firstName(acceptedName) || acceptedName)}. This is your copy of the proposal you accepted. It stays online at <a href="${escapeHtml(url)}" style="color:inherit">${escapeHtml(url)}</a>.</p>`;
+  const html = emailFrame({
+    brand,
+    content: `${intro}${button(url, "Open the proposal")}${richTextToHtml(doc.intro)}${rule()}${parts.join("")}`,
+    kicker: "Signed copy",
+    preheader: `Your copy of the proposal you accepted${chosen ? `: ${chosen.name}` : ""}.`,
+    title: proposal.title,
+  });
   const text = [
     proposal.title,
     "",
@@ -229,6 +251,7 @@ export const acceptanceNoticeEmail = ({
   proposal,
   acceptedName,
   acceptedTitle,
+  brand,
   chosen,
   url,
 }: ProposalEmailInput) => {
@@ -241,14 +264,25 @@ export const acceptanceNoticeEmail = ({
     proposal.clientName ? `Client: ${proposal.clientName}` : "",
     url,
   ].filter((l) => l !== "");
+  const html = emailFrame({
+    brand,
+    content: `${lines
+      .slice(0, -1)
+      .map((l) => `<p ${P}>${escapeHtml(l)}</p>`)
+      .join("")}${button(url, "Open the proposal")}`,
+    kicker: "Accepted",
+    preheader: lines[0] ?? "",
+    title: `${acceptedName} signed`,
+  });
   return {
-    html: lines.map((l) => `<p ${P}>${escapeHtml(l)}</p>`).join(""),
+    html,
     subject: `Accepted: ${proposal.title}`,
     text: lines.join("\n"),
   };
 };
 
 export interface ProposalLinkInput {
+  brand: EmailBrand;
   /** A few lines from the owner above the link, or empty for the default. */
   note: string;
   ownerName: string;
@@ -256,19 +290,13 @@ export interface ProposalLinkInput {
   url: string;
 }
 
-const WORD_BREAK = /\s+/;
-const PARAGRAPH_BREAK = /\n\s*\n/;
-const LINE_BREAK = /\n/g;
-
-const firstName = (label: string): string =>
-  label.trim().split(WORD_BREAK)[0] ?? "";
-
 /**
  * The email that sends the proposal to the client: a short note and the
  * link. The proposal itself stays on the page, where it can be read, saved as
  * a PDF and accepted; the mail is the invitation, not the document.
  */
 export const proposalLinkEmail = ({
+  brand,
   proposal,
   note,
   ownerName,
@@ -280,7 +308,7 @@ export const proposalLinkEmail = ({
     ? note.trim()
     : "Here's the proposal we talked about. It covers what I heard, how I'd approach it, and the options with pricing.";
   const until = proposal.doc.validUntil
-    ? ` The pricing holds until ${proposal.doc.validUntil}.`
+    ? ` The pricing holds until ${longDate(proposal.doc.validUntil)}.`
     : "";
   const how = `You can read it at the link below, save it as a PDF from the page, and accept it there when you're ready.${until} Reply to this email with any questions.`;
 
@@ -288,13 +316,18 @@ export const proposalLinkEmail = ({
     .split(PARAGRAPH_BREAK)
     .map((p) => p.trim())
     .filter(Boolean);
-  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111;max-width:640px;margin:0 auto;padding:24px">
-<p ${P}>${escapeHtml(greeting)}</p>
+  const html = emailFrame({
+    brand,
+    content: `<p ${P}>${escapeHtml(greeting)}</p>
 ${paragraphs.map((p) => `<p ${P}>${escapeHtml(p).replace(LINE_BREAK, "<br>")}</p>`).join("")}
 <p ${P}>${escapeHtml(how)}</p>
-<p ${P}><a href="${escapeHtml(url)}" style="display:inline-block;padding:10px 16px;border:1px solid #111;color:#111;text-decoration:none">Open the proposal</a></p>
-<p ${P}><a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>
-<p style="margin:28px 0 0;font-size:13px;color:#666">${escapeHtml(ownerName)}</p></div>`;
+${button(url, "Open the proposal")}
+<p ${SOFT}><a href="${escapeHtml(url)}" style="color:inherit">${escapeHtml(url)}</a></p>
+<p ${P}>${escapeHtml(ownerName)}</p>`,
+    kicker: "Design proposal",
+    preheader: body.split(PARAGRAPH_BREAK)[0]?.trim() ?? "",
+    title: proposal.title,
+  });
   const text = [greeting, "", body, "", how, "", url, "", ownerName].join("\n");
   return { html, subject: `Proposal: ${proposal.title}`, text };
 };

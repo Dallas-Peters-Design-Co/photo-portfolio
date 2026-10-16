@@ -18,13 +18,26 @@ class EmailNotConfiguredError extends Error {}
 vi.mock("../../_lib/email.js", () => ({ EmailNotConfiguredError, sendEmail }));
 vi.mock("../../_lib/auth.js", () => ({ getBearerUser }));
 vi.mock("../../_lib/site.js", () => ({
+  emailBrand: (site: {
+    domain: string;
+    key: string;
+    ownerName: string;
+    tagline: string;
+  }) => ({
+    domain: site.domain,
+    key: site.key,
+    ownerName: site.ownerName,
+    tagline: site.tagline,
+  }),
   getSite: () => ({
     defaultAdminEmail: "dallaspeters@gmail.com",
     domain: "dallaspeters.com",
     emailFrom: "Dallas Peters <noreply@dallaspeters.com>",
+    key: "dallas-images",
     name: "Dallas Peters",
     origins: ["https://dallaspeters.com"],
     ownerName: "Dallas Peters",
+    tagline: "Product Designer",
   }),
 }));
 
