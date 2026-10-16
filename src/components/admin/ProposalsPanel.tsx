@@ -39,10 +39,19 @@ const listStatus = (proposal: ProposalSummary): string => {
   return proposal.sent ? "sent" : proposal.status;
 };
 
-const statusClass = (status: ProposalSummary["status"]): string =>
-  status === "published"
-    ? "text-[10px] uppercase tracking-[0.16em] text-emerald-400/70"
-    : "text-[10px] uppercase tracking-[0.16em] text-amber-400/70";
+/** The status, coloured by how far along it is: draft, published, sent, accepted. */
+const statusClass = (proposal: ProposalSummary): string => {
+  const base = "shrink-0 text-[11px] uppercase tracking-[0.16em]";
+  if (proposal.acceptance) {
+    return `${base} text-emerald-400`;
+  }
+  if (proposal.sent) {
+    return `${base} text-sky-400/90`;
+  }
+  return proposal.status === "published"
+    ? `${base} text-emerald-400/70`
+    : `${base} text-amber-400/70`;
+};
 
 /**
  * The proposals list, and the editor for whichever one the address names.
@@ -258,58 +267,59 @@ export function ProposalsPanel() {
           add the packages and send the link.
         </p>
       ) : (
-        <ul className="grid grid-cols-1 divide-y divide-white/6">
+        <ul className="divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10 bg-white/2">
           {proposals.map((proposal) => (
-            <Card className="border-white bg-white/2" key={proposal.id}>
-              <CardContent>
-                <li className="flex items-center gap-3 py-3">
-                  <button
-                    className="flex-1 text-left"
-                    onClick={() => openProposal(proposal.slug)}
-                    type="button"
-                  >
-                    <span className="text-sm text-white/85">
-                      {proposal.title}
-                    </span>
-                    {proposal.clientName ? (
-                      <span className="ml-2 text-white/60 text-xs">
-                        {proposal.clientName}
-                      </span>
-                    ) : null}
-                    <span className="ml-2 font-mono text-[10px] text-white/80">
-                      /proposal/{proposal.slug}
-                    </span>
-                  </button>
-                  <span className={statusClass(proposal.status)}>
-                    {listStatus(proposal)}
+            <li
+              className="flex flex-wrap items-center gap-x-6 gap-y-3 px-6 py-5"
+              key={proposal.id}
+            >
+              <button
+                className="min-w-0 flex-1 text-left"
+                onClick={() => openProposal(proposal.slug)}
+                type="button"
+              >
+                <span className="block truncate text-lg text-white leading-snug">
+                  {proposal.title}
+                </span>
+                <span className="mt-1 flex flex-wrap items-center gap-x-3 text-sm text-white/60">
+                  {proposal.clientName ? (
+                    <span>{proposal.clientName}</span>
+                  ) : null}
+                  <span className="font-mono text-[13px]">
+                    /proposal/{proposal.slug}
                   </span>
-                  <a
-                    className="text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"
-                    href={`/proposal/${proposal.slug}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    View
-                  </a>
-                  <button
-                    aria-label={`Edit ${proposal.title}`}
-                    className="text-white/80 transition-colors hover:text-blue-400"
-                    onClick={() => openProposal(proposal.slug)}
-                    type="button"
-                  >
-                    <HugeiconsIcon icon={Edit02Icon} size={14} />
-                  </button>
-                  <button
-                    aria-label={`Delete ${proposal.title}`}
-                    className="text-white/80 transition-colors hover:text-red-400"
-                    onClick={() => void handleDelete(proposal)}
-                    type="button"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={14} />
-                  </button>
-                </li>
-              </CardContent>
-            </Card>
+                </span>
+              </button>
+              <span className={statusClass(proposal)}>
+                {listStatus(proposal)}
+              </span>
+              <div className="flex items-center gap-1">
+                <a
+                  className="rounded-md px-3 py-2 text-[11px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:bg-white/5 hover:text-white"
+                  href={`/proposal/${proposal.slug}`}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  View
+                </a>
+                <button
+                  aria-label={`Edit ${proposal.title}`}
+                  className="rounded-md p-2 text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                  onClick={() => openProposal(proposal.slug)}
+                  type="button"
+                >
+                  <HugeiconsIcon icon={Edit02Icon} size={18} />
+                </button>
+                <button
+                  aria-label={`Delete ${proposal.title}`}
+                  className="rounded-md p-2 text-white/80 transition-colors hover:bg-white/5 hover:text-red-400"
+                  onClick={() => void handleDelete(proposal)}
+                  type="button"
+                >
+                  <HugeiconsIcon icon={Delete02Icon} size={18} />
+                </button>
+              </div>
+            </li>
           ))}
         </ul>
       )}
