@@ -13,6 +13,7 @@ import { type ProposalRecord, proposalsApi } from "../services/proposalService";
 import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate, ProposalAcceptance } from "./ProposalAcceptance";
+import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./proposalPdf/logo";
 
 /**
  * The proposal as the client reads it: a numbered agreement on a sheet.
@@ -66,13 +67,25 @@ export function ProposalPage() {
     <div className="page proposal-page">
       <header className="page__body proposal-page__masthead">
         <Link className="proposal-page__wordmark" to="/">
-          <img
-            alt=""
+          {/*
+            The mark inline, in the text colour: the favicon file carries its
+            own fills (the brand blue, a dark-mode rule), which is right for a
+            browser tab and wrong on the site's dark masthead, where it has
+            to read in the foreground like the wordmark beside it.
+          */}
+          <svg
+            aria-hidden
             className="proposal-page__logo"
+            fill="currentColor"
             height={20}
-            src={`/sites/${siteConfig.key}/favicon.svg`}
+            viewBox={LOGO_VIEW_BOX}
             width={20}
-          />
+          >
+            <title>{settings.ownerName}</title>
+            <g transform={LOGO_TRANSFORM}>
+              <path d={LOGO_PATH} />
+            </g>
+          </svg>
           {settings.ownerName}
         </Link>
         <span className="label label--quiet">Proposal</span>
