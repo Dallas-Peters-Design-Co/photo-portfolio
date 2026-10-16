@@ -118,6 +118,8 @@ const PROPOSAL: ProposalRecord = {
 };
 
 const WHITESPACE = /\s+/g;
+const FOOTER = /Pretext launch.*$/;
+const BARE_TITLE_AT_END = /\d+\. [A-Za-z ]+$/;
 
 const render = async (proposal: ProposalRecord) => {
   const buffer = await renderToBuffer(
@@ -134,12 +136,15 @@ const render = async (proposal: ProposalRecord) => {
   // Letter-spaced labels come back from the extractor one character at a
   // time ("S I G N E D"), so the text is also kept with spaces removed for
   // matching those.
-  const text = (await parser.getText()).text.replace(WHITESPACE, " ");
+  const result = await parser.getText();
+  const text = result.text.replace(WHITESPACE, " ");
+  const pageTexts = result.pages.map((p) => p.text.replace(WHITESPACE, " "));
   const info = await parser.getInfo();
   await parser.destroy();
   return {
     buffer,
     pages: info.total,
+    pageTexts,
     squeezed: text.replace(WHITESPACE, ""),
     text,
   };
@@ -260,6 +265,59 @@ describe("ProposalPdf", () => {
     const { text, pages } = await render(PROPOSAL);
     expect(text).toContain(`${PROPOSAL.title} · Dallas Peters · 1 / ${pages}`);
     expect(text).toContain(`${pages} / ${pages}`);
+  });
+});
+
+describe("ProposalPdf page breaks", () => {
+  it("keeps every clause on one page, title with its body", async () => {
+    // Enough sections of a size that some must move to a later page.
+    const body = Array.from(
+      { length: 6 },
+      (_, i) =>
+        `Paragraph ${i + 1} of this section, long enough to take a line or two on the page when set at the body size.`
+    ).join("\n\n");
+    const sections = Array.from({ length: 7 }, (_, i) => ({
+      body,
+      heading: `Section ${i + 1}`,
+      id: `sec-${i}`,
+    }));
+    const { pageTexts, pages } = await render({
+      ...PROPOSAL,
+      doc: { ...DOC, sections },
+    });
+    expect(pages).toBeGreaterThan(2);
+
+    for (const [i, section] of sections.entries()) {
+      const title = `${i + 2}. ${section.heading}`;
+      const page = pageTexts.find((t) => t.includes(title));
+      expect(page, `${title} is on some page`).toBeDefined();
+      // Its first and last paragraph sit on the same page as the title.
+      expect(page, `${title} starts on its page`).toContain(
+        "Paragraph 1 of this section"
+      );
+      expect(page, `${title} ends on its page`).toContain(
+        "Paragraph 6 of this section"
+      );
+      // And the next clause's title, when on the same page, comes after
+      // this clause's last paragraph; nothing of this clause spills over.
+      const nextTitle =
+        i + 1 < sections.length ? `${i + 3}. ${sections[i + 1]?.heading}` : "";
+      if (nextTitle && page?.includes(nextTitle)) {
+        expect(page.indexOf(nextTitle)).toBeGreaterThan(page.indexOf(title));
+      }
+    }
+    // No page ends on a bare clause title.
+    for (const t of pageTexts) {
+      const stripped = t.replace(FOOTER, "").trim();
+      expect(stripped).not.toMatch(BARE_TITLE_AT_END);
+    }
+  });
+
+  it("keeps the signature block whole", async () => {
+    const { pageTexts } = await render(PROPOSAL);
+    const page = pageTexts.find((t) => t.includes("8. Acceptance"));
+    expect(page).toContain("Name, title and date");
+    expect(page?.replace(WHITESPACE, "")).toContain("SIGNEDBYTHEDESIGNER");
   });
 });
 

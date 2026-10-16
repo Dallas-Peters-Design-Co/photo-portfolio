@@ -282,8 +282,13 @@ function Clause({
   children: ReactNode;
 }) {
   return (
-    <View style={last ? [styles.clause, styles.clauseLast] : styles.clause}>
-      <Text minPresenceAhead={80} style={styles.clauseTitle}>
+    // A clause is read as one thing, so it moves to the next page whole
+    // rather than breaking across two.
+    <View
+      style={last ? [styles.clause, styles.clauseLast] : styles.clause}
+      wrap={false}
+    >
+      <Text style={styles.clauseTitle}>
         {n}. {title}
       </Text>
       {children}
