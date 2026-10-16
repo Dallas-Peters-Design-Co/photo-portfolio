@@ -27,6 +27,8 @@ export interface ProposalRow {
   /** Joined from the kit's current version; null when there is no kit. */
   kit_name?: string | null;
   kit_palette?: unknown;
+  sent_at?: string | Date | null;
+  sent_to?: string | null;
   slug: string;
   status: ProposalStatus;
   title: string;
@@ -47,6 +49,12 @@ export interface ProposalAcceptance {
   title: string | null;
 }
 
+/** The last time the link went to the client, and where. */
+export interface ProposalSent {
+  at: string;
+  to: string;
+}
+
 export interface ProposalDto {
   acceptance: ProposalAcceptance | null;
   brand: ProposalBrand | null;
@@ -56,6 +64,7 @@ export interface ProposalDto {
   createdAt: string;
   doc: ProposalDoc;
   id: string;
+  sent: ProposalSent | null;
   slug: string;
   status: ProposalStatus;
   title: string;
@@ -118,6 +127,11 @@ const rowToAcceptance = (row: ProposalRow): ProposalAcceptance | null =>
       }
     : null;
 
+const rowToSent = (row: ProposalRow): ProposalSent | null =>
+  row.sent_at && row.sent_to
+    ? { at: toIso(row.sent_at), to: row.sent_to }
+    : null;
+
 export const rowToSummary = (row: ProposalRow): ProposalSummaryDto => ({
   acceptance: rowToAcceptance(row),
   brand: rowToBrand(row),
@@ -126,6 +140,7 @@ export const rowToSummary = (row: ProposalRow): ProposalSummaryDto => ({
   clientName: row.client_name,
   createdAt: toIso(row.created_at),
   id: row.id,
+  sent: rowToSent(row),
   slug: row.slug,
   status: row.status,
   title: row.title,
@@ -180,6 +195,7 @@ export const PROPOSAL_SELECT = `
   p.id, p.slug, p.title, p.client_name, p.client_email, p.brand_kit_id, p.doc, p.status,
   p.created_at, p.updated_at,
   p.accepted_at, p.accepted_name, p.accepted_title, p.accepted_option,
+  p.sent_at, p.sent_to,
   bk.name AS kit_name,
   v.doc -> 'palette' AS kit_palette
   FROM proposals p

@@ -32,6 +32,13 @@ const slugify = (title: string): string =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 
+const listStatus = (proposal: ProposalSummary): string => {
+  if (proposal.acceptance) {
+    return "accepted";
+  }
+  return proposal.sent ? "sent" : proposal.status;
+};
+
 const statusClass = (status: ProposalSummary["status"]): string =>
   status === "published"
     ? "text-[10px] uppercase tracking-[0.16em] text-emerald-400/70"
@@ -274,7 +281,7 @@ export function ProposalsPanel() {
                     </span>
                   </button>
                   <span className={statusClass(proposal.status)}>
-                    {proposal.acceptance ? "accepted" : proposal.status}
+                    {listStatus(proposal)}
                   </span>
                   <a
                     className="text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"

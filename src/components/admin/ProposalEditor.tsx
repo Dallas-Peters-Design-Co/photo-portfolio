@@ -26,13 +26,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { ProposalPackagesEditor } from "./ProposalPackagesEditor";
-
-export const proposalLabelClass =
-  "text-[10px] uppercase tracking-widest text-white/90";
-export const proposalInputClass =
-  "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
-export const proposalTextareaClass =
-  "w-full min-h-28 rounded-md border border-white/10 bg-black/40 px-3 py-2 text-base leading-relaxed text-white/90 transition-colors placeholder:text-white/30 focus:border-white/40 focus:outline-none";
+import { ProposalSendPanel } from "./ProposalSendPanel";
+import {
+  proposalInputClass,
+  proposalLabelClass,
+  proposalTextareaClass,
+} from "./proposalStyles";
 
 /**
  * The editor takes a TipTap document. Text written before the editor (seeded
@@ -421,23 +420,15 @@ export function ProposalEditor({
           </div>
         </section>
 
-        {draft.acceptance ? (
-          <div className="flex flex-wrap items-center gap-3 rounded-md border border-emerald-400/30 p-3 text-sm text-white/85">
-            <span>
-              Accepted by {draft.acceptance.name}
-              {draft.acceptance.title ? `, ${draft.acceptance.title}` : ""} on{" "}
-              {new Date(draft.acceptance.at).toLocaleDateString()}
-            </span>
-            <Button
-              disabled={isSaving}
-              onClick={() => void resetAcceptance()}
-              type="button"
-              variant="ghost"
-            >
-              Reset acceptance
-            </Button>
-          </div>
-        ) : null}
+        <ProposalSendPanel
+          busy={isSaving}
+          onChange={(next) => {
+            setDraft((d) => ({ ...d, sent: next.sent }));
+            void onSaved(next);
+          }}
+          onReset={() => void resetAcceptance()}
+          proposal={draft}
+        />
 
         <div className="flex flex-wrap items-center gap-3">
           <Button

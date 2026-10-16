@@ -10,6 +10,8 @@ export class EmailNotConfiguredError extends Error {
 
 export interface SendEmailInput {
   html: string;
+  /** Where a reply lands when From is a no-reply address. */
+  replyTo?: string;
   subject: string;
   text: string;
   to: string;
@@ -27,6 +29,7 @@ export const sendEmail = async ({
   subject,
   html,
   text,
+  replyTo,
 }: SendEmailInput): Promise<void> => {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -37,6 +40,7 @@ export const sendEmail = async ({
     body: JSON.stringify({
       from: getSite().emailFrom,
       html,
+      ...(replyTo ? { reply_to: replyTo } : {}),
       subject,
       text,
       to: [to],

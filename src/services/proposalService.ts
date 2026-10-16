@@ -19,6 +19,11 @@ export interface ProposalAcceptance {
   title: string | null;
 }
 
+export interface ProposalSent {
+  at: string;
+  to: string;
+}
+
 export interface ProposalSummary {
   acceptance: ProposalAcceptance | null;
   brand: ProposalBrand | null;
@@ -27,6 +32,7 @@ export interface ProposalSummary {
   clientName: string;
   createdAt: string;
   id: string;
+  sent: ProposalSent | null;
   slug: string;
   status: ProposalStatus;
   title: string;
@@ -117,6 +123,25 @@ export const proposalsApi = {
       return;
     }
     throw new Error(await readPageError(res, "Could not delete proposal"));
+  },
+
+  /** Admin only: emails the link to the client address on file. */
+  send: async (
+    slug: string,
+    input: { note?: string } = {}
+  ): Promise<ProposalRecord> => {
+    const res = await fetch(
+      `${proposalsPath()}/${encodeURIComponent(slug)}/send`,
+      {
+        body: JSON.stringify(input),
+        headers: jsonHeaders(),
+        method: "POST",
+      }
+    );
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Could not send proposal"));
+    }
+    return (await res.json()) as ProposalRecord;
   },
 
   update: async (

@@ -247,3 +247,54 @@ export const acceptanceNoticeEmail = ({
     text: lines.join("\n"),
   };
 };
+
+export interface ProposalLinkInput {
+  /** A few lines from the owner above the link, or empty for the default. */
+  note: string;
+  ownerName: string;
+  proposal: ProposalDto;
+  url: string;
+}
+
+const WORD_BREAK = /\s+/;
+const PARAGRAPH_BREAK = /\n\s*\n/;
+const LINE_BREAK = /\n/g;
+
+const firstName = (label: string): string =>
+  label.trim().split(WORD_BREAK)[0] ?? "";
+
+/**
+ * The email that sends the proposal to the client: a short note and the
+ * link. The proposal itself stays on the page, where it can be read, saved as
+ * a PDF and accepted; the mail is the invitation, not the document.
+ */
+export const proposalLinkEmail = ({
+  proposal,
+  note,
+  ownerName,
+  url,
+}: ProposalLinkInput) => {
+  const who = firstName(proposal.clientName);
+  const greeting = who ? `Hi ${who},` : "Hi,";
+  const body = note.trim()
+    ? note.trim()
+    : "Here's the proposal we talked about. It covers what I heard, how I'd approach it, and the options with pricing.";
+  const until = proposal.doc.validUntil
+    ? ` The pricing holds until ${proposal.doc.validUntil}.`
+    : "";
+  const how = `You can read it at the link below, save it as a PDF from the page, and accept it there when you're ready.${until} Reply to this email with any questions.`;
+
+  const paragraphs = body
+    .split(PARAGRAPH_BREAK)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const html = `<div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#111;max-width:640px;margin:0 auto;padding:24px">
+<p ${P}>${escapeHtml(greeting)}</p>
+${paragraphs.map((p) => `<p ${P}>${escapeHtml(p).replace(LINE_BREAK, "<br>")}</p>`).join("")}
+<p ${P}>${escapeHtml(how)}</p>
+<p ${P}><a href="${escapeHtml(url)}" style="display:inline-block;padding:10px 16px;border:1px solid #111;color:#111;text-decoration:none">Open the proposal</a></p>
+<p ${P}><a href="${escapeHtml(url)}">${escapeHtml(url)}</a></p>
+<p style="margin:28px 0 0;font-size:13px;color:#666">${escapeHtml(ownerName)}</p></div>`;
+  const text = [greeting, "", body, "", how, "", url, "", ownerName].join("\n");
+  return { html, subject: `Proposal: ${proposal.title}`, text };
+};

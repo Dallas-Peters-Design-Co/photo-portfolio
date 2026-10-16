@@ -67,6 +67,17 @@ describe("sendEmail", () => {
     });
   });
 
+  it("passes a reply-to when given one, and omits it otherwise", async () => {
+    fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
+    await sendEmail({ ...MAIL, replyTo: "dallaspeters@gmail.com" });
+    await sendEmail(MAIL);
+    const bodies = fetchMock.mock.calls.map(([, init]) =>
+      JSON.parse(String((init as RequestInit).body))
+    );
+    expect(bodies[0].reply_to).toBe("dallaspeters@gmail.com");
+    expect(bodies[1]).not.toHaveProperty("reply_to");
+  });
+
   it("never sends from another site's address", async () => {
     fetchMock.mockResolvedValue(new Response("{}", { status: 200 }));
     await sendEmail(MAIL);

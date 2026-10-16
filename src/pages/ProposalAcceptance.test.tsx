@@ -77,6 +77,7 @@ const PROPOSAL: ProposalRecord = {
     validUntil: "",
   },
   id: "p1",
+  sent: null,
   slug: "viaskai-pretext-launch",
   status: "published",
   title: "Pretext launch",

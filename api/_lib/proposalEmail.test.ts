@@ -4,6 +4,7 @@ import {
   acceptanceNoticeEmail,
   type ProposalEmailInput,
   proposalCopyEmail,
+  proposalLinkEmail,
   richTextToHtml,
 } from "./proposalEmail.js";
 import type { ProposalDto } from "./proposals.js";
@@ -95,6 +96,7 @@ const PROPOSAL: ProposalDto = {
   createdAt: "2026-10-16T00:00:00.000Z",
   doc: DOC,
   id: "p1",
+  sent: null,
   slug: "viaskai-pretext-launch",
   status: "published",
   title: "Pretext launch: brand, product and promotion",
@@ -332,5 +334,56 @@ describe("acceptanceNoticeEmail", () => {
     expect(text).not.toContain("Option:");
     expect(text).not.toContain("Client:");
     expect(text).toContain(`Vin Patel accepted "${PROPOSAL.title}".`);
+  });
+});
+
+describe("proposalLinkEmail", () => {
+  it("greets by first name, carries the note and the link, signs off", () => {
+    const { subject, html, text } = proposalLinkEmail({
+      note: "Good talking yesterday.\n\nHere it is, as promised.",
+      ownerName: "Dallas Peters",
+      proposal: PROPOSAL,
+      url: "https://dallaspeters.com/proposal/viaskai-pretext-launch",
+    });
+    expect(subject).toBe(`Proposal: ${PROPOSAL.title}`);
+    for (const body of [html, text]) {
+      expect(body).toContain("Hi Vin,");
+      expect(body).toContain("Good talking yesterday.");
+      expect(body).toContain("Here it is, as promised.");
+      expect(body).toContain("save it as a PDF");
+      expect(body).toContain("The pricing holds until 2026-11-15.");
+      expect(body).toContain(
+        "https://dallaspeters.com/proposal/viaskai-pretext-launch"
+      );
+      expect(body).toContain("Dallas Peters");
+    }
+    expect(html).toContain(">Open the proposal</a>");
+    expect(html.split("Good talking yesterday.")).toHaveLength(2);
+  });
+
+  it("falls back to a default note and a plain greeting", () => {
+    const { text } = proposalLinkEmail({
+      note: "   ",
+      ownerName: "Dallas Peters",
+      proposal: {
+        ...PROPOSAL,
+        clientName: "",
+        doc: { ...DOC, validUntil: "" },
+      },
+      url: "https://dallaspeters.com/proposal/x",
+    });
+    expect(text).toContain("Hi,");
+    expect(text).toContain("Here's the proposal we talked about.");
+    expect(text).not.toContain("pricing holds");
+  });
+
+  it("escapes the note, so a pasted angle bracket is text", () => {
+    const { html } = proposalLinkEmail({
+      note: "Costs <$10k> & change",
+      ownerName: "Dallas",
+      proposal: PROPOSAL,
+      url: "https://dallaspeters.com/proposal/x",
+    });
+    expect(html).toContain("Costs &lt;$10k&gt; &amp; change");
   });
 });
