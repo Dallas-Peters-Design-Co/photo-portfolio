@@ -13,11 +13,6 @@ import { defineConfig } from "vitest/config";
  * for the toolchain and asserts on real pixels.
  */
 export default defineConfig({
-  // Tailwind must run here too. A test that asks what sits under the pointer
-  // is asking about geometry, and without the utilities the control has no
-  // size — the checkbox rendered 414x69 instead of 16x16 and every hit test
-  // was meaningless.
-  plugins: [tailwindcss()],
   /*
    * Pre-bundle the dependencies Vite would otherwise discover mid-run.
    *
@@ -41,47 +36,77 @@ export default defineConfig({
       "react-router-dom",
     ],
   },
+  // Tailwind must run here too. A test that asks what sits under the pointer
+  // is asking about geometry, and without the utilities the control has no
+  // size — the checkbox rendered 414x69 instead of 16x16 and every hit test
+  // was meaningless.
+  plugins: [tailwindcss()],
   resolve: {
     alias: { "@": path.resolve(import.meta.dirname, "./src") },
   },
   test: {
-    browser: {
-      enabled: true,
-      headless: true,
-      instances: [{ browser: "chromium" }],
-      provider: playwright(),
-      screenshotFailures: false,
-    },
-    /*
-     * Anything that renders a shader cannot be checked here as things stand.
-     *
-     * The library draws through WebGPU, and Playwright's bundled Chromium has
-     * no adapter: `navigator.gpu` exists and `requestAdapter()` resolves null,
-     * so every capture comes back blank. Google Chrome does have one — headless
-     * included — reached with
-     *
-     *   provider: playwright({ launchOptions: { channel: "chrome" } })
-     *
-     * and it needs a secure context, which the localhost origin Vitest already
-     * serves from provides and `about:blank` does not. That is not the default
-     * because CI installs Chromium rather than Chrome, and because a headless
-     * CI machine has no GPU to find either. Switch it on locally to look at a
-     * shader; put it back before committing.
-     */
-    // api/ is in here for the pure helpers the run endpoint leans on — job
-    // shaping decides what a run costs and whether a wired style is sent at
-    // all, and it fails silently when it is wrong. Those files touch neither
-    // the database nor the network, so they run in this browser like any other.
-    // config/ is here for the same reason api/ is: these modules are the shared
-    // truth both the browser and the functions read, they are dependency-free by
-    // construction, and the arithmetic in them — colour distance deciding what
-    // counts as off-brand — is exactly the kind that fails quietly and in the
-    // direction nobody checks.
-    include: [
-      "api/**/*.test.ts",
-      "config/**/*.test.ts",
-      "src/**/*.test.ts",
-      "src/**/*.test.tsx",
+    projects: [
+      {
+        extends: true,
+        test: {
+          browser: {
+            enabled: true,
+            headless: true,
+            instances: [{ browser: "chromium" }],
+            provider: playwright(),
+            screenshotFailures: false,
+          },
+          /*
+           * Anything that renders a shader cannot be checked here as things stand.
+           *
+           * The library draws through WebGPU, and Playwright's bundled Chromium has
+           * no adapter: `navigator.gpu` exists and `requestAdapter()` resolves null,
+           * so every capture comes back blank. Google Chrome does have one — headless
+           * included — reached with
+           *
+           *   provider: playwright({ launchOptions: { channel: "chrome" } })
+           *
+           * and it needs a secure context, which the localhost origin Vitest already
+           * serves from provides and `about:blank` does not. That is not the default
+           * because CI installs Chromium rather than Chrome, and because a headless
+           * CI machine has no GPU to find either. Switch it on locally to look at a
+           * shader; put it back before committing.
+           */
+          // api/ is in here for the pure helpers the run endpoint leans on — job
+          // shaping decides what a run costs and whether a wired style is sent at
+          // all, and it fails silently when it is wrong. Those files touch neither
+          // the database nor the network, so they run in this browser like any other.
+          // config/ is here for the same reason api/ is: these modules are the shared
+          // truth both the browser and the functions read, they are dependency-free by
+          // construction, and the arithmetic in them — colour distance deciding what
+          // counts as off-brand — is exactly the kind that fails quietly and in the
+          // direction nobody checks.
+          exclude: ["**/node_modules/**", "**/*.node.test.ts"],
+          include: [
+            "api/**/*.test.ts",
+            "config/**/*.test.ts",
+            "src/**/*.test.ts",
+            "src/**/*.test.tsx",
+          ],
+          name: "browser",
+        },
+      },
+      /*
+       * The functions that are not pure: the Resend transport and the accept
+       * handler. They read process.env, import node:fs through bootstrapEnv
+       * and talk to fetch and the database, none of which exists in the
+       * browser project above, so they run under Node with those seams
+       * stubbed. The file name is the switch: anything ending in
+       * `.node.test.ts` lands here and nowhere else.
+       */
+      {
+        extends: true,
+        test: {
+          environment: "node",
+          include: ["api/**/*.node.test.ts"],
+          name: "node",
+        },
+      },
     ],
   },
 });

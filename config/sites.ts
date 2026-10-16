@@ -102,7 +102,7 @@ export const SITES: Record<SiteKey, SiteConfig> = {
     analyticsHost: "https://t.addisonsphotos.com",
     defaultAdminEmail: "dallaspeters@gmail.com",
     domain: "dallaspeters.com",
-    emailFrom: "Addison's Photos <noreply@addisonsphotos.com>",
+    emailFrom: "Dallas Peters <noreply@dallaspeters.com>",
     heroTitle: "Addison's POV",
     instagramHandle: "@dallas_saves",
     instagramUrl: "https://www.instagram.com/dallas_saves",
