@@ -31,6 +31,16 @@ vi.mock("../services/proposalService", () => ({
   proposalsApi: { accept },
 }));
 
+const downloadProposalPdf =
+  vi.fn<
+    (
+      proposal: ProposalRecord,
+      ownerName: string,
+      issued: string
+    ) => Promise<void>
+  >();
+vi.mock("./proposalPdf/download", () => ({ downloadProposalPdf }));
+
 const { ProposalAcceptance, formatDate } = await import("./ProposalAcceptance");
 
 const PROPOSAL: ProposalRecord = {
@@ -152,6 +162,8 @@ const button = (el: ParentNode, text: string): HTMLButtonElement => {
 
 beforeEach(() => {
   accept.mockReset();
+  downloadProposalPdf.mockReset();
+  downloadProposalPdf.mockResolvedValue(undefined);
 });
 
 afterEach(() => {
@@ -163,14 +175,19 @@ afterEach(() => {
 });
 
 describe("Download PDF", () => {
-  it("is the browser's print, before and after signing", async () => {
-    const print = vi.spyOn(window, "print").mockImplementation(() => undefined);
-
+  it("renders the proposal to a file, before and after signing", async () => {
     const { ui } = mount();
-    const before = button(await ui, "Download PDF");
+    const el = await ui;
+    const before = button(el, "Download PDF");
     expect(before.type).toBe("button");
     before.click();
-    expect(print).toHaveBeenCalledTimes(1);
+    await flush();
+    expect(downloadProposalPdf).toHaveBeenCalledTimes(1);
+    expect(downloadProposalPdf).toHaveBeenCalledWith(
+      expect.objectContaining({ slug: "viaskai-pretext-launch" }),
+      "Dallas Peters",
+      "16 October 2026"
+    );
     expect(accept).not.toHaveBeenCalled();
     root?.unmount();
     host?.remove();
@@ -184,16 +201,48 @@ describe("Download PDF", () => {
       },
     });
     button(await signed.ui, "Download PDF").click();
-    expect(print).toHaveBeenCalledTimes(2);
+    await flush();
+    expect(downloadProposalPdf).toHaveBeenCalledTimes(2);
   });
 
-  it("prints the sheet as the page: chrome hidden, clauses kept whole", () => {
+  it("shows the renderer's failure instead of silently doing nothing", async () => {
+    downloadProposalPdf.mockRejectedValue(new Error("Font failed to load"));
+    const { ui } = mount();
+    const el = await ui;
+    button(el, "Download PDF").click();
+    await flush();
+    await flush();
+    expect(el.textContent).toContain("Font failed to load");
+    expect(button(el, "Download PDF").disabled).toBe(false);
+  });
+
+  it("does not render twice while one is in progress", async () => {
+    let release: () => void = () => undefined;
+    downloadProposalPdf.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          release = resolve;
+        })
+    );
+    const { ui } = mount();
+    const el = await ui;
+    button(el, "Download PDF").click();
+    await flush();
+    expect(button(el, "Preparing PDF").disabled).toBe(true);
+    button(el, "Preparing PDF").click();
+    await flush();
+    expect(downloadProposalPdf).toHaveBeenCalledTimes(1);
+    release();
+    await flush();
+  });
+
+  it("still prints cleanly from the browser: chrome hidden, clauses kept whole", () => {
     const rules: CSSStyleRule[] = [];
-    let page: CSSPageRule | null = null;
+    const pages: CSSPageRule[] = [];
     for (const sheet of document.styleSheets) {
       for (const rule of sheet.cssRules) {
         if (rule instanceof CSSPageRule) {
-          page = rule;
+          pages.push(rule);
         }
         if (rule instanceof CSSMediaRule && rule.media.mediaText === "print") {
           for (const inner of rule.cssRules) {
@@ -229,8 +278,8 @@ describe("Download PDF", () => {
     );
     expect(unbroken?.style.getPropertyValue("break-inside")).toBe("avoid");
 
-    expect(page, "an @page rule for the margins").not.toBeNull();
-    expect(page?.style.margin).toContain("mm");
+    expect(pages.length, "an @page rule for the margins").toBeGreaterThan(0);
+    expect(pages[0]?.style.margin).toContain("mm");
   });
 });
 

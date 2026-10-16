@@ -81,7 +81,7 @@ export default defineConfig({
           // construction, and the arithmetic in them — colour distance deciding what
           // counts as off-brand — is exactly the kind that fails quietly and in the
           // direction nobody checks.
-          exclude: ["**/node_modules/**", "**/*.node.test.ts"],
+          exclude: ["**/node_modules/**", "**/*.node.test.{ts,tsx}"],
           include: [
             "api/**/*.test.ts",
             "config/**/*.test.ts",
@@ -103,7 +103,7 @@ export default defineConfig({
         extends: true,
         test: {
           environment: "node",
-          include: ["api/**/*.node.test.ts"],
+          include: ["api/**/*.node.test.ts", "src/**/*.node.test.tsx"],
           name: "node",
         },
       },

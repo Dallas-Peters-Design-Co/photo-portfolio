@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { type ProposalRecord, proposalsApi } from "../services/proposalService";
+import { downloadProposalPdf } from "./proposalPdf/download";
 
 /**
  * The signature block. The client's side is a form until it has been
@@ -28,6 +29,8 @@ export function ProposalAcceptance({
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copySent, setCopySent] = useState<boolean | null>(null);
+  const [isRendering, setIsRendering] = useState(false);
+  const [pdfError, setPdfError] = useState<string | null>(null);
   const signedFor = proposal.brand?.name || proposal.clientName || "the Client";
   const { acceptance } = proposal;
   const chosen = acceptance
@@ -56,16 +59,37 @@ export function ProposalAcceptance({
     }
   };
 
+  // The PDF is rendered in the browser from the same record as the page, so
+  // it reads the same, signed or not. The renderer loads on first press.
+  const downloadPdf = async () => {
+    if (isRendering) {
+      return;
+    }
+    setIsRendering(true);
+    setPdfError(null);
+    try {
+      await downloadProposalPdf(proposal, ownerName, issued);
+    } catch (err) {
+      setPdfError(
+        err instanceof Error ? err.message : "Could not make the PDF"
+      );
+    } finally {
+      setIsRendering(false);
+    }
+  };
+
   const pdfButton = (
-    // The print stylesheet turns the sheet into the page, so the browser's own
-    // Save as PDF is the export: no renderer, no second copy of the layout.
-    <button
-      className="proposal-page__pdf"
-      onClick={() => window.print()}
-      type="button"
-    >
-      Download PDF
-    </button>
+    <>
+      <button
+        className="proposal-page__pdf"
+        disabled={isRendering}
+        onClick={() => void downloadPdf()}
+        type="button"
+      >
+        {isRendering ? "Preparing PDF…" : "Download PDF"}
+      </button>
+      {pdfError ? <p className="proposal-page__error">{pdfError}</p> : null}
+    </>
   );
 
   if (acceptance) {
