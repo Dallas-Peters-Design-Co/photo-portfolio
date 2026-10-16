@@ -1,25 +1,11 @@
-import type { FontId } from "../../config/theme";
+import { type FontId, findFont, isStaticFont } from "../../config/theme";
 
 /**
  * Dynamic imports rather than top-level ones: Vite splits each font's CSS into
  * its own chunk, so a visitor downloads only the family the site actually uses
- * instead of all seven.
+ * instead of all of them.
  */
-const FONT_LOADERS: Record<FontId, () => Promise<unknown>> = {
-  // A static family rather than a variable one: @fontsource ships each
-  // weight as its own stylesheet, so the range config/theme.ts declares is
-  // loaded here cut by cut.
-  "barlow-semi-condensed": () =>
-    Promise.all([
-      import("@fontsource/barlow-semi-condensed/300.css"),
-      import("@fontsource/barlow-semi-condensed/400.css"),
-      import("@fontsource/barlow-semi-condensed/400-italic.css"),
-      import("@fontsource/barlow-semi-condensed/500.css"),
-      import("@fontsource/barlow-semi-condensed/600.css"),
-      import("@fontsource/barlow-semi-condensed/700.css"),
-      import("@fontsource/barlow-semi-condensed/800.css"),
-      import("@fontsource/barlow-semi-condensed/900.css"),
-    ]),
+const VARIABLE_LOADERS: Partial<Record<FontId, () => Promise<unknown>>> = {
   "cormorant-garamond": () =>
     import("@fontsource-variable/cormorant-garamond/index.css"),
   figtree: () => import("@fontsource-variable/figtree/index.css"),
@@ -35,16 +21,54 @@ const FONT_LOADERS: Record<FontId, () => Promise<unknown>> = {
   "space-grotesk": () => import("@fontsource-variable/space-grotesk/index.css"),
 };
 
+/**
+ * Every weight stylesheet of every static @fontsource package installed,
+ * keyed by path and loaded lazily. A static family's entry in
+ * config/theme.ts says which weights it has; this is how they are fetched
+ * without a hand-written import per cut.
+ */
+const STATIC_STYLESHEETS = import.meta.glob<unknown>(
+  "/node_modules/@fontsource/*/[0-9][0-9][0-9].css"
+);
+const STATIC_ITALICS = import.meta.glob<unknown>(
+  "/node_modules/@fontsource/*/[0-9][0-9][0-9]-italic.css"
+);
+
+const loadStatic = (id: FontId): Promise<unknown> => {
+  const font = findFont(id);
+  const cuts = font?.cuts ?? [];
+  const loads: Promise<unknown>[] = [];
+  for (const weight of cuts) {
+    loads.push(
+      STATIC_STYLESHEETS[`/node_modules/@fontsource/${id}/${weight}.css`]?.() ??
+        Promise.resolve()
+    );
+    if (font?.italic) {
+      loads.push(
+        STATIC_ITALICS[
+          `/node_modules/@fontsource/${id}/${weight}-italic.css`
+        ]?.() ?? Promise.resolve()
+      );
+    }
+  }
+  return Promise.all(loads);
+};
+
 const loaded = new Set<FontId>();
 
-/** Loads a font's stylesheet once per session. Failures are non-fatal. */
+/** Loads a font's stylesheets once per session. Failures are non-fatal. */
 export const loadFont = async (id: FontId): Promise<void> => {
   if (loaded.has(id)) {
     return;
   }
   loaded.add(id);
   try {
-    await FONT_LOADERS[id]?.();
+    const font = findFont(id);
+    if (font && isStaticFont(font)) {
+      await loadStatic(id);
+    } else {
+      await VARIABLE_LOADERS[id]?.();
+    }
   } catch {
     // The stack in config/theme.ts ends in a system fallback, so a font that
     // fails to load degrades to system UI rather than breaking the page.

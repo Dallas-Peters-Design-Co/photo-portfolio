@@ -2,8 +2,14 @@ import { createRequire } from "node:module";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { PDFParse } from "pdf-parse";
 import { beforeAll, describe, expect, it } from "vitest";
+import { STATIC_FONTS } from "../../../config/staticFonts";
 import type { ProposalRecord } from "../../services/proposalService";
-import { pdfFontFiles, pdfFontFor, registerProposalFonts } from "./fonts";
+import {
+  nearestCut,
+  pdfFontFiles,
+  pdfFontFor,
+  registerProposalFonts,
+} from "./fonts";
 import { formatPdfDate, ProposalPdf } from "./ProposalPdf";
 
 /**
@@ -168,20 +174,38 @@ beforeAll(() => {
 });
 
 describe("pdf fonts", () => {
-  it("uses the theme's sans when a static package exists, Inter otherwise", () => {
+  it("uses any static family and the variable ones with a static twin, Inter otherwise", () => {
     expect(pdfFontFor("barlow-semi-condensed")).toBe("barlow-semi-condensed");
+    expect(pdfFontFor("oswald")).toBe("oswald");
+    expect(pdfFontFor("dm-serif-display")).toBe("dm-serif-display");
     expect(pdfFontFor("figtree")).toBe("figtree");
     expect(pdfFontFor("geist")).toBe("inter");
     expect(pdfFontFor("space-grotesk")).toBe("inter");
   });
 
+  it("picks the nearest cut a family ships and borrows regular for a missing italic", () => {
+    expect(nearestCut([200, 300, 400, 500, 600, 700], 800)).toBe(700);
+    expect(nearestCut([400], 600)).toBe(400);
+    const bebas = pdfFontFiles("bebas-neue");
+    expect(bebas.extrabold).toBe(
+      "bebas-neue/files/bebas-neue-latin-400-normal.woff"
+    );
+    expect(bebas.italic).toBe(
+      "bebas-neue/files/bebas-neue-latin-400-normal.woff"
+    );
+    const oswald = pdfFontFiles("oswald");
+    expect(oswald.extrabold).toBe("oswald/files/oswald-latin-700-normal.woff");
+    expect(oswald.semibold).toBe("oswald/files/oswald-latin-600-normal.woff");
+  });
+
   it("names four files that exist for every family it offers", () => {
-    for (const id of [
-      "barlow-semi-condensed",
-      "figtree",
+    const ids = [
       "inter",
+      "figtree",
       "mulish",
-    ] as const) {
+      ...STATIC_FONTS.map((f) => f.id),
+    ] as const;
+    for (const id of ids) {
       for (const file of Object.values(pdfFontFiles(id))) {
         expect(() => font(file), file).not.toThrow();
       }

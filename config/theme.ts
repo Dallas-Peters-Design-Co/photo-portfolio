@@ -7,8 +7,9 @@
  */
 /** biome-ignore-all lint/suspicious/noUnnecessaryConditions: reasons */
 
+import { STATIC_FONTS } from "./staticFonts.js";
+
 export type FontId =
-  | "barlow-semi-condensed"
   | "geist"
   | "inter"
   | "space-grotesk"
@@ -18,11 +19,54 @@ export type FontId =
   | "manrope"
   | "playfair-display"
   | "fraunces"
-  | "cormorant-garamond";
+  | "cormorant-garamond"
+  | "oswald"
+  | "bebas-neue"
+  | "anton"
+  | "archivo-black"
+  | "archivo-narrow"
+  | "big-shoulders-display"
+  | "barlow-condensed"
+  | "saira-condensed"
+  | "saira-extra-condensed"
+  | "teko"
+  | "antonio"
+  | "league-gothic"
+  | "fjalla-one"
+  | "roboto-condensed"
+  | "sofia-sans-condensed"
+  | "rajdhani"
+  | "syne"
+  | "unbounded"
+  | "bricolage-grotesque"
+  | "chivo"
+  | "archivo"
+  | "outfit"
+  | "red-hat-display"
+  | "epilogue"
+  | "dm-serif-display"
+  | "instrument-serif"
+  | "bodoni-moda"
+  | "young-serif"
+  | "barlow-semi-condensed";
 
 export interface FontChoice {
-  category: "sans" | "serif";
+  /**
+   * Where the family belongs in the settings: body sans, body serif, or
+   * display — faces made for titles (condensed, poster, display serifs) that
+   * would be a poor body text and are only offered for the display slot.
+   */
+  category: "sans" | "serif" | "display";
+  /**
+   * The weights a static family ships, lowest first; absent for a variable
+   * family, which covers its whole `weight` range. A static family is loaded
+   * cut by cut and set with `font-weight`, so anything that offers a weight
+   * has to offer one of these.
+   */
+  cuts?: number[];
   id: FontId;
+  /** Whether the family ships an italic. */
+  italic: boolean;
   /** Shown in the settings dropdown. */
   label: string;
   /** The value written into --font-sans / --font-serif. */
@@ -50,20 +94,15 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "sans",
     id: "figtree",
+    italic: true,
     label: "Figtree",
     stack: '"Figtree", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 900, min: 300 },
   },
   {
     category: "sans",
-    id: "barlow-semi-condensed",
-    label: "Barlow Semi Condensed",
-    stack: '"Barlow Semi Condensed", ui-sans-serif, system-ui, sans-serif',
-    weight: { max: 900, min: 300 },
-  },
-  {
-    category: "sans",
     id: "plus-jakarta-sans",
+    italic: true,
     label: "Plus Jakarta Sans",
     stack: '"Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 800, min: 200 },
@@ -71,6 +110,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "sans",
     id: "mulish",
+    italic: true,
     label: "Mulish",
     stack: '"Mulish Variable", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 1000, min: 200 },
@@ -78,6 +118,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "sans",
     id: "geist",
+    italic: false,
     label: "Geist",
     stack: '"Geist Variable", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 900, min: 100 },
@@ -85,6 +126,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "sans",
     id: "inter",
+    italic: true,
     label: "Inter",
     stack: '"Inter Variable", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 900, min: 100 },
@@ -92,6 +134,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "sans",
     id: "space-grotesk",
+    italic: false,
     label: "Space Grotesk",
     stack: '"Space Grotesk Variable", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 700, min: 300 },
@@ -99,6 +142,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "sans",
     id: "manrope",
+    italic: false,
     label: "Manrope",
     stack: '"Manrope Variable", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 800, min: 200 },
@@ -106,6 +150,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "serif",
     id: "playfair-display",
+    italic: true,
     label: "Playfair Display",
     stack: '"Playfair Display Variable", Georgia, serif',
     weight: { max: 900, min: 400 },
@@ -113,6 +158,7 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "serif",
     id: "fraunces",
+    italic: true,
     label: "Fraunces",
     stack: '"Fraunces Variable", Georgia, serif',
     weight: { max: 900, min: 100 },
@@ -120,16 +166,26 @@ export const FONT_CHOICES: FontChoice[] = [
   {
     category: "serif",
     id: "cormorant-garamond",
+    italic: true,
     label: "Cormorant Garamond",
     stack: '"Cormorant Garamond Variable", Georgia, serif',
     weight: { max: 700, min: 300 },
   },
 ];
 
+FONT_CHOICES.push(...STATIC_FONTS);
+
 export const SANS_FONTS = FONT_CHOICES.filter((f) => f.category === "sans");
 export const SERIF_FONTS = FONT_CHOICES.filter((f) => f.category === "serif");
-/** Titles may be set in any family. */
-export const DISPLAY_FONTS = FONT_CHOICES;
+/** Titles may be set in any family, display faces first. */
+export const DISPLAY_FONTS = [
+  ...FONT_CHOICES.filter((f) => f.category === "display"),
+  ...SANS_FONTS,
+  ...SERIF_FONTS,
+];
+/** The static families, by the @fontsource package name (which is the id). */
+export const isStaticFont = (font: FontChoice): boolean =>
+  Array.isArray(font.cuts);
 
 export const findFont = (id: string | undefined): FontChoice | undefined =>
   FONT_CHOICES.find((f) => f.id === id);

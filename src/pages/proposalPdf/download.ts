@@ -3,72 +3,23 @@ import type { ProposalRecord } from "../../services/proposalService";
 import { siteConfig } from "../../site";
 
 /**
- * The woff files Vite can serve, one import per cut per family. Static
- * strings because Vite resolves `?url` imports at build time; a template
- * literal would leave the file out of the bundle.
+ * Every latin woff of every static @fontsource package installed, as a URL
+ * Vite serves, loaded lazily by path. pdfFontFiles names the four the
+ * document needs; this is how they reach the renderer in the browser.
  */
-const FONT_URLS: Record<
-  string,
-  Record<
-    "extrabold" | "italic" | "regular" | "semibold",
-    () => Promise<{ default: string }>
-  >
-> = {
-  "barlow-semi-condensed": {
-    extrabold: () =>
-      import(
-        "@fontsource/barlow-semi-condensed/files/barlow-semi-condensed-latin-800-normal.woff?url"
-      ),
-    italic: () =>
-      import(
-        "@fontsource/barlow-semi-condensed/files/barlow-semi-condensed-latin-400-italic.woff?url"
-      ),
-    regular: () =>
-      import(
-        "@fontsource/barlow-semi-condensed/files/barlow-semi-condensed-latin-400-normal.woff?url"
-      ),
-    semibold: () =>
-      import(
-        "@fontsource/barlow-semi-condensed/files/barlow-semi-condensed-latin-600-normal.woff?url"
-      ),
-  },
-  figtree: {
-    extrabold: () =>
-      import("@fontsource/figtree/files/figtree-latin-800-normal.woff?url"),
-    italic: () =>
-      import("@fontsource/figtree/files/figtree-latin-400-italic.woff?url"),
-    regular: () =>
-      import("@fontsource/figtree/files/figtree-latin-400-normal.woff?url"),
-    semibold: () =>
-      import("@fontsource/figtree/files/figtree-latin-600-normal.woff?url"),
-  },
-  inter: {
-    extrabold: () =>
-      import("@fontsource/inter/files/inter-latin-800-normal.woff?url"),
-    italic: () =>
-      import("@fontsource/inter/files/inter-latin-400-italic.woff?url"),
-    regular: () =>
-      import("@fontsource/inter/files/inter-latin-400-normal.woff?url"),
-    semibold: () =>
-      import("@fontsource/inter/files/inter-latin-600-normal.woff?url"),
-  },
-  mulish: {
-    extrabold: () =>
-      import("@fontsource/mulish/files/mulish-latin-800-normal.woff?url"),
-    italic: () =>
-      import("@fontsource/mulish/files/mulish-latin-400-italic.woff?url"),
-    regular: () =>
-      import("@fontsource/mulish/files/mulish-latin-400-normal.woff?url"),
-    semibold: () =>
-      import("@fontsource/mulish/files/mulish-latin-600-normal.woff?url"),
-  },
+const FONT_FILES = import.meta.glob<string>(
+  "/node_modules/@fontsource/*/files/*-latin-*.woff",
+  { import: "default", query: "?url" }
+);
+
+const fontUrl = (file: string): Promise<string> => {
+  const load = FONT_FILES[`/node_modules/@fontsource/${file}`];
+  if (!load) {
+    throw new Error(`Font file not bundled: ${file}`);
+  }
+  return load();
 };
 
-/**
- * "Download PDF": renders the proposal with react-pdf in the browser and
- * saves it as a file. Everything heavy (the renderer, the fonts, the
- * document) loads on first press, so the page itself does not carry it.
- */
 export const proposalPdfFilename = (proposal: ProposalRecord): string =>
   `proposal-${proposal.slug}.pdf`;
 
@@ -82,7 +33,7 @@ export const downloadProposalPdf = async (
   const [
     { pdf },
     { ProposalPdf, formatPdfDate },
-    { pdfFontFor, registerProposalFonts },
+    { pdfFontFiles, pdfFontFor, registerProposalFonts },
   ] = await Promise.all([
     import("@react-pdf/renderer"),
     import("./ProposalPdf"),
@@ -90,22 +41,14 @@ export const downloadProposalPdf = async (
   ]);
   const load = async (id: FontId) => {
     const family = pdfFontFor(id);
-    const urls = FONT_URLS[family] ?? FONT_URLS.inter;
+    const files = pdfFontFiles(family);
     const [regular, italic, semibold, extrabold] = await Promise.all([
-      urls.regular(),
-      urls.italic(),
-      urls.semibold(),
-      urls.extrabold(),
+      fontUrl(files.regular),
+      fontUrl(files.italic),
+      fontUrl(files.semibold),
+      fontUrl(files.extrabold),
     ]);
-    return {
-      id: family,
-      src: {
-        extrabold: extrabold.default,
-        italic: italic.default,
-        regular: regular.default,
-        semibold: semibold.default,
-      },
-    };
+    return { id: family, src: { extrabold, italic, regular, semibold } };
   };
   const [sans, display] = await Promise.all([
     load(fonts.sans),

@@ -1,5 +1,5 @@
 import { Font } from "@react-pdf/renderer";
-import type { FontId } from "../../../config/theme";
+import { type FontId, findFont } from "../../../config/theme";
 
 /**
  * The PDF is set in the site theme's sans, like the sheet on the web.
@@ -25,29 +25,57 @@ export const PROPOSAL_DISPLAY_FONT = "ProposalDisplay";
 
 export const FALLBACK_PDF_FONT: FontId = "inter";
 
-/** Static @fontsource packages, with the family's file prefix. */
-export const PDF_FONT_FILES: Partial<Record<FontId, string>> = {
-  "barlow-semi-condensed": "barlow-semi-condensed",
-  figtree: "figtree",
-  inter: "inter",
-  mulish: "mulish",
+/**
+ * Variable families that also have a static @fontsource package installed,
+ * with that package's cuts. Static families carry their own cuts on their
+ * theme entry; everything else falls back to Inter in the PDF.
+ */
+const STATIC_TWINS: Partial<
+  Record<FontId, { cuts: number[]; italic: boolean }>
+> = {
+  figtree: { cuts: [300, 400, 500, 600, 700, 800, 900], italic: true },
+  inter: { cuts: [100, 200, 300, 400, 500, 600, 700, 800, 900], italic: true },
+  mulish: { cuts: [200, 300, 400, 500, 600, 700, 800, 900], italic: true },
+};
+
+const staticCuts = (id: FontId): { cuts: number[]; italic: boolean } | null => {
+  const font = findFont(id);
+  if (font?.cuts) {
+    return { cuts: font.cuts, italic: font.italic };
+  }
+  return STATIC_TWINS[id] ?? null;
 };
 
 /** The theme font the PDF will use, or the fallback when it has no files. */
 export const pdfFontFor = (id: FontId): FontId =>
-  PDF_FONT_FILES[id] ? id : FALLBACK_PDF_FONT;
+  staticCuts(id) ? id : FALLBACK_PDF_FONT;
 
-/** The four files, as "<package>/files/<name>.woff" paths inside @fontsource. */
+/** The closest weight the family ships to the one asked for. */
+export const nearestCut = (cuts: number[], wanted: number): number =>
+  cuts.reduce(
+    (best, c) => (Math.abs(c - wanted) < Math.abs(best - wanted) ? c : best),
+    cuts[0] ?? wanted
+  );
+
+/**
+ * The four files, as "<package>/files/<name>.woff" paths inside @fontsource.
+ * A family short of a weight gets its nearest; one without an italic gets
+ * the regular, so a doc with an italic word never fails to render.
+ */
 export const pdfFontFiles = (
   id: FontId
 ): Record<keyof ProposalFontSources, string> => {
   const chosen = pdfFontFor(id);
-  const prefix = PDF_FONT_FILES[chosen] ?? FALLBACK_PDF_FONT;
+  const { cuts, italic } = staticCuts(chosen) ??
+    STATIC_TWINS.inter ?? { cuts: [400], italic: false };
+  const file = (weight: number, style: "normal" | "italic") =>
+    `${chosen}/files/${chosen}-latin-${weight}-${style}.woff`;
+  const regular = nearestCut(cuts, 400);
   return {
-    extrabold: `${prefix}/files/${prefix}-latin-800-normal.woff`,
-    italic: `${prefix}/files/${prefix}-latin-400-italic.woff`,
-    regular: `${prefix}/files/${prefix}-latin-400-normal.woff`,
-    semibold: `${prefix}/files/${prefix}-latin-600-normal.woff`,
+    extrabold: file(nearestCut(cuts, 800), "normal"),
+    italic: italic ? file(regular, "italic") : file(regular, "normal"),
+    regular: file(regular, "normal"),
+    semibold: file(nearestCut(cuts, 600), "normal"),
   };
 };
 
