@@ -13,6 +13,7 @@ import {
   MAX_PROPOSAL_TITLE,
   newItemId,
   type RichText,
+  trimEditorDoc,
 } from "./proposal.js";
 
 export type { RichText } from "./proposal.js";
@@ -85,7 +86,7 @@ const str = (v: unknown, max: number): string =>
 
 const cleanRich = (v: unknown, max: number): RichText => {
   if (isEditorDoc(v)) {
-    return JSON.stringify(v).length <= max ? (v as EditorDoc) : "";
+    return JSON.stringify(v).length <= max ? trimEditorDoc(v as EditorDoc) : "";
   }
   return str(v, max);
 };

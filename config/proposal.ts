@@ -198,10 +198,38 @@ const cleanText = (value: unknown, max: number): string =>
     ? value.replace(/\r\n?/g, "\n").trim().slice(0, max)
     : "";
 
+/**
+ * An editor doc without the blank paragraphs the editor leaves at either
+ * end: the cursor's resting place after the last line, or a stray return
+ * before the first, which otherwise render as an empty `<p>` with its full
+ * margin on the page and in the PDF. Blank lines between paragraphs stay;
+ * those are spacing someone meant.
+ */
+export const trimEditorDoc = (doc: EditorDoc): EditorDoc => {
+  const isBlank = (node: unknown): boolean => {
+    const n = node as { type?: unknown; content?: unknown[] };
+    return (
+      n.type === "paragraph" &&
+      !(Array.isArray(n.content) && n.content.length > 0)
+    );
+  };
+  let start = 0;
+  let end = doc.content.length;
+  while (start < end && isBlank(doc.content[start])) {
+    start += 1;
+  }
+  while (end > start && isBlank(doc.content[end - 1])) {
+    end -= 1;
+  }
+  return start === 0 && end === doc.content.length
+    ? doc
+    : { ...doc, content: doc.content.slice(start, end) };
+};
+
 const cleanRich = (value: unknown, max: number): RichText => {
   if (isEditorDoc(value)) {
     return JSON.stringify(value).length <= MAX_DOC_BYTES
-      ? value
+      ? trimEditorDoc(value)
       : { content: [], type: "doc" };
   }
   return cleanText(value, max);
