@@ -174,7 +174,11 @@ function ReviewSheet({
         </dl>
       </div>
 
-      {isRichTextEmpty(doc.intro) ? null : <Prose text={doc.intro} />}
+      {isRichTextEmpty(doc.intro) ? null : (
+        <div className="review-page__intro">
+          <Prose text={doc.intro} />
+        </div>
+      )}
 
       {isRichTextEmpty(doc.summary) ? null : (
         <section className="review-page__section">

@@ -193,7 +193,11 @@ function ProposalSheet({
         </dl>
       </div>
 
-      {isRichTextEmpty(doc.intro) ? null : <Prose text={doc.intro} />}
+      {isRichTextEmpty(doc.intro) ? null : (
+        <div className="proposal-page__intro">
+          <Prose text={doc.intro} />
+        </div>
+      )}
 
       {scopeN ? (
         <Clause n={scopeN} title="Scope of work">

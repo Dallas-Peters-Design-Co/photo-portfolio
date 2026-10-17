@@ -101,6 +101,19 @@
   max-width: 68ch;
 }
 
+/*
+ * The opening paragraph(s), under the parties and before the first clause.
+ * A lede: a step up from the body, so the letter reads before the contract.
+ * The renderer's own paragraph class is what carries the text, so the
+ * styling hooks onto it from here.
+ */
+.proposal-page__intro .page-content__paragraph,
+.proposal-page__intro .proposal-page__prose {
+  max-width: 60ch;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
 .proposal-page__kicker {
   letter-spacing: var(--tracking-micro-wide);
 }

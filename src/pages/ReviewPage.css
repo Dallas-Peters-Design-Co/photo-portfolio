@@ -69,6 +69,14 @@
   max-width: 68ch;
 }
 
+/* The opening paragraph(s): a lede, a step up from the body. */
+.review-page__intro .page-content__paragraph,
+.review-page__intro .review-page__prose {
+  max-width: 60ch;
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
 .review-page__kicker {
   letter-spacing: var(--tracking-micro-wide);
 }
