@@ -109,6 +109,7 @@
   /* Six sections do not fit a phone. Scrolling them beats wrapping the bar to
      two rows and moving everything below it. */
   overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .admin-page__sections.row {
