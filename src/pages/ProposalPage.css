@@ -22,7 +22,7 @@
   --sheet-tint: oklch(15% 1.11 210.99 / 0.59);
   --border-title: solid 4px var(--sheet-ink);
   --border-signature: 1px solid contrast-color(var(--sheet-tint));
-  --suggested: color-mix(in lab, var(--sheet-tint), #ffffff 80%);
+  --suggested: color-mix(in oklch, var(--sheet-tint), #ffffff 96%);
   /*
    * Vertical rhythm. Clauses do not sit in a gap; each pads itself by one
    * --rhythm top and bottom, so two rhythms separate a clause's last line
