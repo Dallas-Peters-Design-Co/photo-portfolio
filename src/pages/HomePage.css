@@ -310,7 +310,7 @@
 
 .home-page__filters {
   position: fixed;
-  bottom: calc(var(--spacing) * 12);
+  bottom: var(--spacing);
   left: 50%;
   z-index: 50;
   translate: -50%;
