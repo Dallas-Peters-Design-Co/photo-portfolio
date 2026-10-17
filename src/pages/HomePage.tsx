@@ -37,6 +37,7 @@ import { startViewTransition } from "../lib/viewTransition";
 import { type PageSummary, pagesApi } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import type { ViewMode } from "../types";
+import { type FilterOption, HomeFilters } from "./HomeFilters";
 
 const CATEGORY_SEPARATORS = /[-_]/;
 
@@ -79,6 +80,19 @@ export const HomePage = () => {
     keys.sort((a, b) => a.localeCompare(b));
     return keys;
   }, [photos]);
+
+  const filterOptions = useMemo<FilterOption[]>(
+    () => [
+      { key: "all", label: "All" },
+      ...categoriesInUse.map((category) => ({
+        key: category,
+        label:
+          photos.find((p) => p.category === category)?.categoryLabel ??
+          formatCategoryLabel(category),
+      })),
+    ],
+    [categoriesInUse, photos]
+  );
 
   useEffect(() => {
     if (viewMode !== "all" && !categoriesInUse.includes(viewMode)) {
@@ -334,45 +348,11 @@ export const HomePage = () => {
         </div>
       </footer>
 
-      <nav
-        aria-label="Filter portfolio by category"
-        className="home-page__filters"
-      >
-        <div className="row hairline home-page__filter-bar row--wrap">
-          <button
-            aria-pressed={viewMode === "all"}
-            className={
-              viewMode === "all"
-                ? "label home-page__filter home-page__filter--current"
-                : "label home-page__filter"
-            }
-            onClick={() => handleFilterClick("all")}
-            type="button"
-          >
-            All
-          </button>
-          {categoriesInUse.map((category) => {
-            const label =
-              photos.find((p) => p.category === category)?.categoryLabel ??
-              formatCategoryLabel(category);
-            return (
-              <button
-                aria-pressed={viewMode === category}
-                className={
-                  viewMode === category
-                    ? "label home-page__filter home-page__filter--current"
-                    : "label home-page__filter"
-                }
-                key={category}
-                onClick={() => handleFilterClick(category)}
-                type="button"
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </nav>
+      <HomeFilters
+        current={viewMode}
+        onSelect={handleFilterClick}
+        options={filterOptions}
+      />
 
       <AnimatePresence>
         {lightboxIndex !== null && filteredPhotos.length > 0 ? (
@@ -393,7 +373,7 @@ export const HomePage = () => {
         <Suspense fallback={null}>
           <DPDLogoShader
             className="home-page__shader"
-            colorA="oklch(2.8% 0.13 160.46)"
+            colorA="oklch(19.62% 0 285.59)"
             colorB={settings.theme.accent}
           />
         </Suspense>

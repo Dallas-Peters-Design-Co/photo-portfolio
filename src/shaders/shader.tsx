@@ -8,7 +8,7 @@ export default function ShaderEffect() {
         colorA="#57e447"
         colorB="#8a54f9"
         pattern="bayer8"
-        pixelSize={7}
+        pixelSize={12}
         threshold={0.41}
       >
         <Plasma

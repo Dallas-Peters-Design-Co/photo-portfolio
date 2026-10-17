@@ -346,6 +346,72 @@
   color: var(--foreground);
 }
 
+/*
+ * Phone: the pill holds only the current filter. The rest open above it, in a
+ * panel of the same glass, because the pill sits at the foot of the screen.
+ */
+/* The whole pill is the button: the bar's padding moves onto the toggle so
+   the tap target is the full pill, not the word inside it. */
+.home-page__filter-toggle {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 8);
+  margin: calc(var(--spacing) * -3) calc(var(--spacing) * -8);
+}
+
+.home-page__filter-chevron {
+  transition: rotate 200ms ease-out;
+}
+
+.home-page__filters[data-open] .home-page__filter-chevron {
+  rotate: 180deg;
+}
+
+.home-page__filter-list {
+  position: absolute;
+  bottom: calc(100% + var(--spacing) * 2);
+  left: 50%;
+  display: flex;
+  visibility: hidden;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  align-items: center;
+  min-width: 100%;
+  padding: calc(var(--spacing) * 5) calc(var(--spacing) * 8);
+  background-color: var(--filter-paper);
+  border: 1px solid oklch(0 0 0 / 8%);
+  border-radius: calc(var(--radius) + 4px);
+  box-shadow: var(--shadow-2xl);
+  opacity: 0;
+  backdrop-filter: blur(24px);
+  translate: -50% 8px;
+  transition:
+    opacity 150ms ease-out,
+    translate 150ms ease-out,
+    visibility 0s linear 150ms;
+}
+
+.home-page__filters[data-open] .home-page__filter-list {
+  visibility: visible;
+  opacity: 1;
+  translate: -50% 0;
+  transition:
+    opacity 150ms ease-out,
+    translate 150ms ease-out;
+}
+
+.home-page__filter-list .home-page__filter {
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-page__filter-list,
+  .home-page__filter-chevron {
+    transition: none;
+  }
+}
+
 .home-page__shader {
   position: absolute;
   right: 0;
@@ -353,6 +419,32 @@
   left: 0;
   z-index: 1;
   opacity: 0.7;
+}
+
+/*
+ * Phone: the filter floats over photographs of every tone, so it is paper
+ * with dark ink rather than the desktop's clear glass with light text.
+ * Fixed values, not theme tokens: it must read the same whatever the site's
+ * palette, the way a label stuck on a print would.
+ */
+@media (width < 768px) {
+  .home-page__filters {
+    --filter-paper: oklch(1 0 0 / 92%);
+    --filter-ink: oklch(0.2 0 0);
+  }
+
+  .home-page__filter-bar.row {
+    background-color: var(--filter-paper);
+    border-color: oklch(0 0 0 / 8%);
+  }
+
+  .home-page__filters .home-page__filter.label {
+    color: color-mix(in oklch, var(--filter-ink) 70%, transparent);
+  }
+
+  .home-page__filters .home-page__filter.home-page__filter--current {
+    color: var(--filter-ink);
+  }
 }
 
 /* `md` — `--breakpoint-md` in index.css, written out because a media query
@@ -392,6 +484,30 @@
 
   .home-page__footer-inner {
     flex-direction: row;
+  }
+
+  /* Wide: every filter in the pill, no toggle. */
+  .home-page__filter-toggle {
+    display: none;
+  }
+
+  .home-page__filter-list,
+  .home-page__filters[data-open] .home-page__filter-list {
+    position: static;
+    visibility: visible;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: calc(var(--spacing) * 6);
+    justify-content: center;
+    min-width: 0;
+    padding: 0;
+    background: none;
+    border: 0;
+    box-shadow: none;
+    opacity: 1;
+    backdrop-filter: none;
+    translate: none;
+    transition: none;
   }
 }
 

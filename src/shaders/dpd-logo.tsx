@@ -4,7 +4,6 @@ import {
   Glass,
   Shader,
   SineWave,
-  SolidColor,
   Swirl,
 } from "shaders/react";
 
@@ -21,9 +20,7 @@ export default function DPDLogoShader({
 }: DPDLogoShaderProps) {
   return (
     <Shader className={className}>
-      <SolidColor color="oklch(8.4% 0.1 180.91)" visible={true} />
-
-      <Dither colorA={colorA} colorB={colorB} pattern="bayer8" threshold={0.41}>
+      <Dither colorA={colorA} colorB={colorB} pattern="bayer4" threshold={0.41}>
         <SineWave
           angle={24}
           frequency={0.5}
