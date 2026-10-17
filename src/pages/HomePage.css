@@ -133,10 +133,15 @@
   display: flex;
   gap: calc(var(--spacing) * 2);
   align-items: flex-start;
+  font-size: clamp(2rem, 1.2rem + 6vw, 6.5rem);
+  font-weight: 900;
+  line-height: 0.85;
   color: color-mix(in oklch, var(--foreground) 90%, transparent);
   text-align: left;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-tighter);
   cursor: pointer;
-  transition: color 1000ms ease-out;
+  transition: color 400ms ease-out;
 }
 
 .home-page__hero-title:hover {
@@ -147,19 +152,10 @@
   color: var(--foreground);
 }
 
-.home-page__hero-title-text {
-  font-size: 11vw;
-  font-weight: 900;
-  line-height: 0.85;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-tighter);
-}
-
 .home-page__hero-index {
-  margin-block-start: calc(var(--spacing) * 3);
-  font-size: 10px;
+  font-size: 50%;
   font-weight: 700;
-  opacity: 0.4;
+  opacity: 0.8;
 }
 
 .home-page__hero-media {
@@ -313,7 +309,7 @@
 
 .home-page__filters {
   position: fixed;
-  bottom: var(--spacing);
+  bottom: 60px;
   left: 50%;
   z-index: 50;
   translate: -50%;
@@ -325,7 +321,7 @@
   max-width: calc(100vw - 2rem);
   padding-block: calc(var(--spacing) * 3);
   padding-inline: calc(var(--spacing) * 8);
-  background-color: color-mix(in oklch, var(--foreground) 5%, transparent);
+  background-color: color-mix(in oklch, var(--background) 90%, transparent);
   border-style: solid;
   /* Longhands, not `border: 1px solid`: the shorthand would reset the colour to
      `currentcolor` and take the hairline off `.hairline`. */
@@ -339,7 +335,7 @@
    already had, so this bar has never responded to the pointer. Left alone —
    giving it a hover state would be a change, not a conversion. */
 .home-page__filter.label {
-  font-size: 10px;
+  font-size: 13px;
   color: color-mix(in oklch, var(--foreground) 90%, transparent);
   letter-spacing: 0.3em;
   transition: color 150ms ease-out;
@@ -432,8 +428,8 @@
  */
 @media (width < 768px) {
   .home-page__filters {
-    --filter-paper: oklch(1 0 0 / 92%);
-    --filter-ink: oklch(0.2 0 0);
+    --filter-ink: oklch(1 0 0 / 92%);
+    --filter-paper: oklch(0.2 0 0);
   }
 
   .home-page__filter-bar.row {
@@ -455,21 +451,11 @@
 @media (width >= 768px) {
   .home-page__masthead,
   .home-page__hero-copy {
-    padding-inline: calc(var(--spacing) * 24);
+    padding-inline: calc(var(--spacing) * 8);
   }
 
   .home-page__hero-list.stack {
     gap: calc(var(--spacing) * 2);
-  }
-
-  .home-page__hero-title-text {
-    font-size: 8vw;
-  }
-
-  .home-page__hero-index {
-    margin-block-start: calc(var(--spacing) * 6);
-    font-size: var(--text-sm);
-    line-height: var(--text-sm--line-height);
   }
 
   .home-page__grid-section,
@@ -499,7 +485,6 @@
     position: static;
     visibility: visible;
     flex-direction: row;
-    flex-wrap: wrap;
     gap: calc(var(--spacing) * 6);
     justify-content: center;
     min-width: 0;

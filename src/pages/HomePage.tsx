@@ -213,7 +213,6 @@ export const HomePage = () => {
                 <span className="home-page__hero-title-text">
                   {photo.title}
                 </span>
-                <sup className="home-page__hero-index">({i + 1})</sup>
               </button>
             ))}
           </div>
