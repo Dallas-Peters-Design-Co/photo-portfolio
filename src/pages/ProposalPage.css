@@ -651,9 +651,16 @@
  * margins; clauses avoid breaking across a page where they can.
  */
 @media print {
+  /*
+   * The PDF is the sheet, edge to edge: no page margin, the sheet's own
+   * padding and rhythm as on screen, and white behind it so nothing of the
+   * dark site shows where the last page runs short.
+   */
+  html,
+  body,
   .proposal-page {
     color: var(--sheet-ink);
-    background: #fff;
+    background: var(--sheet);
   }
 
   .proposal-page__masthead,
@@ -668,19 +675,13 @@
     padding: 0;
   }
 
-  .proposal-page {
-    --rhythm: calc(var(--spacing) * 7);
-    --padding-inline: 0px;
-  }
-
   .proposal-page__sheet {
     padding: 0;
     border-radius: 0;
   }
 
   .proposal-page__clause,
-  .proposal-page__option,
-  .proposal-page__party {
+  .proposal-page__option {
     break-inside: avoid;
   }
 
@@ -690,5 +691,6 @@
 }
 
 @page {
-  margin: 18mm 16mm;
+  size: letter;
+  margin: 0;
 }
