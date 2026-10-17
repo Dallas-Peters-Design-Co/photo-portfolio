@@ -17,7 +17,7 @@
  */
 
 .page-content__paragraph {
-  margin-block-end: calc(var(--spacing) * 5);
+  margin-block-end: calc(var(--spacing) * 2);
   font-size: var(--text-prose);
   line-height: var(--leading-prose);
   color: color-mix(in oklch, var(--foreground) 90%, transparent);

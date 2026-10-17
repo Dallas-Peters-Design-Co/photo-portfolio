@@ -152,6 +152,7 @@ export function ProposalAcceptance({
             aria-label="Your name"
             autoComplete="name"
             className="proposal-page__sig-input"
+            name="signerName"
             onChange={(e) => setName(e.target.value)}
             placeholder="Type your full name to sign"
             required
@@ -161,6 +162,7 @@ export function ProposalAcceptance({
             aria-label="Your title"
             autoComplete="organization-title"
             className="proposal-page__sig-input proposal-page__sig-input--quiet"
+            name="signerTitle"
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title (optional)"
             value={title}

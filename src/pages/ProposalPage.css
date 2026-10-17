@@ -15,11 +15,42 @@
  */
 
 .proposal-page {
-  --sheet: oklch(0.995 0 0);
+  --sheet: oklch(100% 0 265.12);
   --sheet-ink: oklch(0.17 0 0);
   --sheet-ink-soft: oklch(0.5 0 0);
-  --sheet-rule: oklch(0.9 0 0);
-  --sheet-tint: oklch(0.965 0 0);
+  --sheet-rule: contrast-color(var(--sheet));
+  --sheet-tint: oklch(80% 0.18 215.5 / 0.38);
+  --border-title: solid 4px var(--sheet-ink);
+  --border-signature: 1px solid contrast-color(var(--sheet-tint));
+  --suggested: color-mix(in lab, var(--sheet-tint), #ffffff 80%);
+  /*
+   * Vertical rhythm. Clauses do not sit in a gap; each pads itself by one
+   * --rhythm top and bottom, so two rhythms separate a clause's last line
+   * from the next title, one rhythm sits between a title and its body's
+   * first line, and the dark last clause can run full-bleed with the same
+   * inner spacing.
+   */
+  --rhythm: clamp(calc(var(--spacing) * 5), 2.5vw, calc(var(--spacing) * 7));
+  --padding-inline: calc(var(--spacing) * 10);
+  --padding: var(--rhythm) var(--padding-inline);
+  --text-gap: calc(var(--spacing) * 3);
+  --padding-last: calc(var(--rhythm) * 1.5) var(--padding-inline);
+
+  /* macOS renders text heavier than drawn; the sheet is dark-on-light prose. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * contrast-color() is new (Safari 18, recent Chrome) and absent in Firefox,
+ * where an invalid custom property leaves the rule with no border at all.
+ * The resolved values for this sheet, by hand, for those browsers.
+ */
+@supports not (color: contrast-color(white)) {
+  .proposal-page {
+    --sheet-rule: oklch(0.17 0 0);
+    --border-signature: 1px solid #fff;
+  }
 }
 
 /*
@@ -37,6 +68,12 @@
   align-items: center;
   justify-content: space-between;
   padding-block-start: calc(var(--spacing) * 10);
+}
+
+.proposal-page__wordmark:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 2px;
 }
 
 .proposal-page__wordmark {
@@ -73,13 +110,26 @@
 /* The sheet */
 
 .proposal-page__sheet {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 9);
-  padding: clamp(calc(var(--spacing) * 7), 6vw, calc(var(--spacing) * 13));
+  overflow: clip;
+
   color: var(--sheet-ink);
   background: var(--sheet);
   border-radius: calc(var(--spacing) * 2);
+}
+.proposal-page__content {
+  position: relative;
+  z-index: 2;
+}
+
+.proposal__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--overlay);
 }
 
 .proposal-page__sheet .label {
@@ -93,25 +143,13 @@
  */
 .proposal-page__sheet {
   --foreground: var(--sheet-ink);
-  border-top: 12px solid oklch(45.99% 0.28 265.12);
+  border-top: 12px solid var(--sheet-tint);
 }
 
 .proposal-page__sheet .page-content__paragraph,
 .proposal-page__sheet .page-content__list {
   max-width: 68ch;
-}
-
-/*
- * The opening paragraph(s), under the parties and before the first clause.
- * A lede: a step up from the body, so the letter reads before the contract.
- * The renderer's own paragraph class is what carries the text, so the
- * styling hooks onto it from here.
- */
-.proposal-page__intro .page-content__paragraph,
-.proposal-page__intro .proposal-page__prose {
-  max-width: 60ch;
-  font-size: 1.125rem;
-  line-height: 1.6;
+  text-wrap: pretty;
 }
 
 .proposal-page__kicker {
@@ -119,11 +157,15 @@
 }
 
 .proposal-page__title {
+  padding-block: calc(var(--spacing) * 4);
   font-family: var(--font-display, var(--font-sans));
-  font-size: var(--text-3xl);
+  font-size: var(--text-4xl);
   font-variation-settings: "wght" 800;
-  line-height: 1.1;
+  font-weight: 700;
+  line-height: 1;
   letter-spacing: -0.05em;
+  text-wrap: balance;
+  border-block-start: var(--border-title);
 }
 
 /*
@@ -138,6 +180,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: calc(var(--spacing) * 4);
+  margin-block-end: calc(var(--spacing) * 3);
 }
 
 @media (min-width: 40rem) {
@@ -171,29 +214,106 @@
 .proposal-page__clause {
   display: flex;
   flex-direction: column;
+  gap: var(--rhythm);
+  padding: var(--padding);
+}
+
+/*
+ * One gap between the things in a clause body: paragraph to paragraph, list
+ * item to list item, paragraph to list, option to option. The body is a
+ * flex stack, so the CMS blocks' own margins are dropped and the stack gap
+ * is the only spacing; the clause padding alone then sets the distance to
+ * the next title.
+ */
+.proposal-page__clause > .stack {
+  gap: var(--text-gap);
+}
+
+.proposal-page__clause .page-content__paragraph,
+.proposal-page__clause .page-content__list,
+.proposal-page__intro .page-content__paragraph,
+.proposal-page__intro .page-content__list {
+  margin-block-end: 0;
+}
+
+.proposal-page__clause .page-content__list > * + * {
+  margin-block-start: var(--text-gap);
+}
+
+/*
+ * Options and add-on rows pad themselves; at the top and bottom of a clause
+ * that padding is pulled back so their text sits on the same line a
+ * paragraph would.
+ */
+.proposal-page__clause > .stack > .proposal-page__option:first-child {
+  margin-block-start: calc(var(--spacing) * -4);
+}
+
+.proposal-page__clause > .stack > .proposal-page__option:last-child {
+  margin-block-end: calc(var(--spacing) * -4);
+}
+
+.proposal-page__addon:first-child {
+  padding-block-start: 0;
+}
+
+.proposal-page__addon:last-child {
+  padding-block-end: 0;
+}
+
+.proposal-page__header {
+  display: flex;
+  flex-direction: column;
   gap: calc(var(--spacing) * 3);
-  padding-block-end: calc(var(--spacing) * 8);
-  border-block-end: 1px solid var(--sheet-rule);
+  padding: var(--padding);
+  padding-block-start: calc(var(--rhythm) * 2);
 }
 
 .proposal-page__clause--last {
-  padding-block-end: 0;
+  padding: var(--padding-last);
+  color: contrast-color(var(--sheet-tint));
+  background-color: var(--sheet-tint);
   border-block-end: 0;
+
+  .label {
+    color: contrast-color(var(--sheet-tint));
+  }
 }
 
 .proposal-page__clause-title {
+  position: relative;
   font-family: var(--font-display, var(--font-sans));
-  font-size: 2.2rem;
-  font-variation-settings: "wght" 800;
-  font-weight: 500;
-  line-height: 1.2;
+  font-size: 2rem;
+  font-variation-settings: "wght" 700;
+  font-weight: 700;
+  line-height: 1.1;
   letter-spacing: -0.04em;
+  text-wrap: balance;
 }
 
 .proposal-page__prose {
   max-width: 68ch;
   font-size: var(--text-prose);
   line-height: var(--leading-prose);
+  text-wrap: pretty;
+}
+
+/* The opening paragraphs, a lede: a step up from the body. */
+.proposal-page__intro {
+  padding: var(--padding);
+  padding-block-start: 0;
+}
+
+.proposal-page__intro .page-content__paragraph,
+.proposal-page__intro .proposal-page__prose {
+  max-width: 60ch;
+  font-size: 1.825rem;
+  line-height: 1.4;
+}
+
+.proposal-page__intro .page-content__paragraph + .page-content__paragraph,
+.proposal-page__intro .proposal-page__prose + .proposal-page__prose {
+  margin-block-start: calc(var(--text-gap) * 2);
 }
 
 .proposal-page__run {
@@ -203,11 +323,12 @@
 .proposal-page__list {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 2);
+  gap: var(--text-gap);
   max-width: 68ch;
   padding-inline-start: calc(var(--spacing) * 5);
   font-size: var(--text-prose);
   line-height: 1.6;
+  text-wrap: pretty;
   list-style: disc;
 }
 
@@ -220,18 +341,20 @@
 .proposal-page__option {
   display: grid;
   grid-template-columns: calc(var(--spacing) * 9) 1fr auto;
-  gap: calc(var(--spacing) * 3);
-  padding: calc(var(--spacing) * 3);
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4);
   border-radius: calc(var(--spacing) * 1);
 }
 
 .proposal-page__option--suggested {
-  background: var(--sheet-tint);
+  color: contrast-color(var(--suggested));
+  background: var(--suggested);
 }
 
 .proposal-page__option-index {
   font-size: var(--text-prose);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   line-height: var(--leading-prose);
 }
 
@@ -241,8 +364,9 @@
 }
 
 .proposal-page__option-fee {
-  font-size: var(--text-prose);
+  font-size: var(--text-xl);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
   line-height: var(--leading-prose);
   text-align: end;
   white-space: nowrap;
@@ -253,6 +377,12 @@
   font-size: var(--text-xs-ui);
   font-weight: 400;
   color: var(--sheet-ink-soft);
+}
+
+/* On the tinted card the soft grey would fail; the facts take the card's text colour. */
+.proposal-page__option--suggested .proposal-page__option-facts,
+.proposal-page__option--suggested .proposal-page__option-fee-note {
+  color: inherit;
 }
 
 @media (max-width: 40rem) {
@@ -289,6 +419,7 @@
 
 .proposal-page__addon dd {
   flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
   color: var(--sheet-ink-soft);
 }
 
@@ -297,10 +428,11 @@
 .proposal-page__steps {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 2);
+  gap: var(--text-gap);
   padding-inline-start: calc(var(--spacing) * 5);
   font-size: var(--text-prose);
   line-height: 1.6;
+  text-wrap: pretty;
   list-style: decimal;
 }
 
@@ -327,7 +459,7 @@
 .proposal-page__sig-line {
   height: calc(var(--spacing) * 9);
   margin-block-end: calc(var(--spacing) * 2);
-  border-block-end: 1px solid var(--sheet-ink);
+  border-block-end: 1px solid var(--sheet-tint);
 }
 
 .proposal-page__signed {
@@ -337,7 +469,7 @@
   font-family: var(--font-sans);
   font-size: var(--text-xl-ui);
   line-height: 1.2;
-  border-block-end: 1px solid var(--sheet-ink);
+  border-block-end: 1px solid contrast-color(var(--sheet-tint));
 }
 
 /*
@@ -350,10 +482,10 @@
   padding: 0;
   font-family: var(--font-sans);
   font-size: var(--text-xl-ui);
-  color: var(--sheet-ink);
+  color: contrast-color(var(--sheet-tint));
   background: transparent;
   border: 0;
-  border-block-end: 1px solid var(--sheet-ink);
+  border-block-end: var(--border-signature);
   border-radius: 0;
 }
 
@@ -361,18 +493,20 @@
   min-height: calc(var(--spacing) * 7);
   font-family: var(--font-sans);
   font-size: var(--text-sm-ui);
-  border-block-end-color: var(--sheet-rule);
 }
 
 .proposal-page__sig-input::placeholder {
   font-family: var(--font-sans);
   font-size: var(--text-sm-ui);
-  color: var(--sheet-ink-soft);
+  color: contrast-color(var(--sheet-tint));
 }
 
-.proposal-page__sig-input:focus {
+.proposal-page__sig-input:focus-visible {
   outline: none;
-  border-block-end-color: var(--sheet-ink);
+  /* The line is the control: on focus it thickens in the text colour,
+     which reads on the dark clause where an ink-coloured line would vanish. */
+  border-block-end-color: currentColor;
+  box-shadow: 0 1px 0 currentColor;
 }
 
 .proposal-page__choice {
@@ -395,8 +529,22 @@
   align-items: center;
 }
 
+.proposal-page__choice-item {
+  cursor: pointer;
+}
+
 .proposal-page__choice-item input {
-  accent-color: var(--sheet-ink);
+  width: calc(var(--spacing) * 4);
+  height: calc(var(--spacing) * 4);
+  margin: 0;
+  /* currentColor: white on the dark acceptance clause, ink on the sheet. */
+  accent-color: currentColor;
+  cursor: pointer;
+}
+
+.proposal-page__choice-item input:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .proposal-page__accepted {
@@ -411,12 +559,12 @@
 
 .proposal-page__accept:disabled {
   cursor: default;
-  opacity: 0.4;
+  opacity: 0.8;
 }
 
 .proposal-page__sig-note {
   display: block;
-  color: var(--sheet-ink-soft);
+  color: contrast-color(var(--sheet-tint));
 }
 
 .proposal-page__actions {
@@ -435,11 +583,19 @@
   font: inherit;
   font-size: var(--text-sm-ui);
   font-weight: 500;
-  color: var(--sheet-ink);
+  color: contrast-color(var(--sheet-tint));
   cursor: pointer;
   background: transparent;
-  border: 1px solid var(--sheet-rule);
+  border: var(--border-signature);
   border-radius: 999px;
+  transition-timing-function: ease-out;
+  transition-duration: 150ms;
+  transition-property: opacity, scale;
+}
+
+.proposal-page__pdf:hover {
+  opacity: 0.85;
+  scale: 1.02;
 }
 
 .proposal-page__accept {
@@ -454,14 +610,28 @@
   font-weight: 500;
   color: var(--sheet);
   cursor: pointer;
-  background: var(--sheet-ink);
+  background: contrast-color(var(--sheet-tint));
   border: 0;
   border-radius: 999px;
-  transition: opacity 150ms ease-out;
+  transition-timing-function: ease-out;
+  transition-duration: 150ms;
+  transition-property: opacity, scale;
 }
 
 .proposal-page__accept:hover {
   opacity: 0.85;
+  scale: 1.02;
+}
+
+.proposal-page__accept:active:not(:disabled),
+.proposal-page__pdf:active:not(:disabled) {
+  scale: 0.96;
+}
+
+.proposal-page__accept:focus-visible,
+.proposal-page__pdf:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
 }
 
 .proposal-page__footer {
@@ -492,8 +662,12 @@
     padding: 0;
   }
 
+  .proposal-page {
+    --rhythm: calc(var(--spacing) * 7);
+    --padding-inline: 0px;
+  }
+
   .proposal-page__sheet {
-    gap: calc(var(--spacing) * 7);
     padding: 0;
     border-radius: 0;
   }
