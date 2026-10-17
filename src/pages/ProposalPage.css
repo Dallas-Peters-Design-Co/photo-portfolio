@@ -34,7 +34,7 @@
   --padding-inline: calc(var(--spacing) * 10);
   --padding: var(--rhythm) var(--padding-inline);
   --text-gap: var(--spacing);
-  --padding-last: calc(var(--rhythm) * 1.5) var(--padding-inline);
+  --padding-last: calc(var(--rhythm) * 4.5) var(--padding-inline);
 
   /* macOS renders text heavier than drawn; the sheet is dark-on-light prose. */
   -webkit-font-smoothing: antialiased;
@@ -246,11 +246,11 @@
  * paragraph would.
  */
 .proposal-page__clause > .stack > .proposal-page__option:first-child {
-  margin-block-start: calc(var(--spacing) * -4);
+  margin-block-start: calc(var(--spacing) * -2);
 }
 
 .proposal-page__clause > .stack > .proposal-page__option:last-child {
-  margin-block-end: calc(var(--spacing) * -4);
+  margin-block-end: calc(var(--spacing) * -2);
 }
 
 .proposal-page__addon:first-child {
@@ -348,7 +348,7 @@
   display: grid;
   grid-template-columns: calc(var(--spacing) * 9) 1fr auto;
   gap: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
   border-radius: calc(var(--spacing) * 1);
 }
 
@@ -675,9 +675,54 @@
     padding: 0;
   }
 
+  /*
+   * The sheet's top rule, on every page: a fixed box repeats at the top of
+   * each printed page, so it replaces the border that only the first page
+   * would get. Clause padding clears it.
+   */
   .proposal-page__sheet {
     padding: 0;
+    overflow: visible;
+    border-top: 0;
     border-radius: 0;
+  }
+
+  /*
+   * Print at the desktop rhythm (a Letter page is narrower than the clamp's
+   * midpoint). Each clause carries the band and a heading's line of air at its
+   * top and the rest of the gap at its bottom, so the space between clauses is
+   * unchanged and a clause that starts a page sits well clear of the band.
+   */
+  .proposal-page {
+    --band: 12px;
+    --rhythm: calc(var(--spacing) * 7);
+    /* At least a heading's line of air under the band on every page. */
+    --page-head: 2.5rem;
+  }
+
+  .proposal-page__clause {
+    padding-block: calc(var(--band) + var(--page-head))
+      calc(var(--rhythm) * 2 - var(--band) - var(--page-head));
+  }
+
+  .proposal-page__sheet::before {
+    position: fixed;
+    inset: 0 0 auto;
+    z-index: 3;
+    height: var(--band);
+    content: "";
+    background: var(--sheet-tint);
+  }
+
+  /*
+   * The signing block runs to the foot of the last page. The shadow starts at
+   * the clause's own top edge and reaches down past the page; it is paint, not
+   * layout, so it adds no page of its own.
+   */
+  .proposal-page__clause--last {
+    padding-block: calc(var(--band) + var(--page-head))
+      calc(var(--rhythm) * 1.5);
+    box-shadow: 0 11in 0 11in var(--sheet-tint);
   }
 
   .proposal-page__clause,
