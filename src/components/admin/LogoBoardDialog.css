@@ -1,0 +1,113 @@
+/*
+ * The brief for a new logo board.
+ *
+ * Wider than the stock admin dialog, which is sized for one question: this
+ * holds a short form and a row of directions to tick.
+ */
+.logo-board-dialog {
+  max-width: 34rem;
+}
+
+.logo-board-dialog__form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+}
+
+.logo-board-dialog__field {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.logo-board-dialog__textarea {
+  resize: vertical;
+}
+
+.logo-board-dialog__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 3);
+}
+
+.logo-board-dialog__field .admin-field:disabled {
+  opacity: 0.5;
+}
+
+/* Directions as toggles: which ones the board starts with. */
+.logo-board-dialog__styles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.logo-board-dialog__styles legend {
+  margin-block-end: calc(var(--spacing) * 1.5);
+}
+
+.logo-board-dialog__style {
+  display: inline-flex;
+  align-items: center;
+  padding-block: calc(var(--spacing) * 1.5);
+  padding-inline: calc(var(--spacing) * 3);
+  font-size: var(--text-micro-md);
+  color: color-mix(in oklch, #fff 70%, transparent);
+  cursor: pointer;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, #fff 15%, transparent);
+  border-radius: var(--radius-pill);
+  transition:
+    color var(--default-transition-duration) var(--ease-in-out),
+    background-color var(--default-transition-duration) var(--ease-in-out),
+    border-color var(--default-transition-duration) var(--ease-in-out);
+}
+
+.logo-board-dialog__style:hover {
+  color: #fff;
+  border-color: color-mix(in oklch, #fff 35%, transparent);
+}
+
+.logo-board-dialog__style--on {
+  color: #000;
+  background: #fff;
+  border-color: #fff;
+}
+
+.logo-board-dialog__style--on:hover {
+  color: #000;
+}
+
+.logo-board-dialog__style:has(:focus-visible) {
+  outline: 2px solid color-mix(in oklch, #fff 60%, transparent);
+  outline-offset: 2px;
+}
+
+/* Visually hidden; the pill is the control. */
+.logo-board-dialog__check {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.logo-board-dialog__count {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+}
+
+.logo-board-dialog__range {
+  flex: 1;
+  accent-color: #fff;
+}
+
+@media (width < 30rem) {
+  .logo-board-dialog__pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

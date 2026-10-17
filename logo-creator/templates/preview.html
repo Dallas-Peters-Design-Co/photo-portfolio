@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f6f6f4; --fg: #1a1a1a; --muted: #777; --tile: #fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #111; --fg: #eee; --muted: #888; --tile: #1c1c1c; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 24px; font: 14px/1.4 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between; margin-bottom: 20px; }
+  h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  .note { color: var(--muted); }
+  .modes { display: flex; gap: 4px; }
+  .modes button { padding: 6px 10px; font: inherit; color: inherit; background: transparent; border: 1px solid color-mix(in srgb, var(--fg) 20%, transparent); border-radius: 6px; cursor: pointer; }
+  .modes button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .tile { margin: 0; padding: 12px; background: var(--tile); border-radius: 10px; }
+  .tile img { display: block; width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 6px; }
+  body[data-bg="dark"] .tile img { background: #111; }
+  body[data-bg="light"] .tile img { background: #fff; }
+  body[data-bg="check"] .tile img { background: repeating-conic-gradient(#ccc 0 25%, #fff 0 50%) 0 0 / 16px 16px; }
+  figcaption { margin-top: 8px; font-variant-numeric: tabular-nums; color: var(--muted); }
+</style>
+</head>
+<body data-bg="light">
+<header>
+  <div>
+    <h1>{{TITLE}}</h1>
+    <span class="note">{{COUNT}} files · tell Claude the numbers you like</span>
+  </div>
+  <div class="modes" role="group" aria-label="Background">
+    <button type="button" data-bg="light" aria-pressed="true">Light</button>
+    <button type="button" data-bg="dark" aria-pressed="false">Dark</button>
+    <button type="button" data-bg="check" aria-pressed="false">Transparent</button>
+  </div>
+</header>
+<main class="grid">
+{{TILES}}
+</main>
+<script>
+  for (const button of document.querySelectorAll(".modes button")) {
+    button.addEventListener("click", () => {
+      document.body.dataset.bg = button.dataset.bg;
+      for (const other of document.querySelectorAll(".modes button")) {
+        other.setAttribute("aria-pressed", String(other === button));
+      }
+    });
+  }
+</script>
+</body>
+</html>

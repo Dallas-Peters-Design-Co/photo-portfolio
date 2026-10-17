@@ -363,7 +363,7 @@ export function MenuRows({
   onArrange: (itemId: string) => void;
   onBringToFront: (itemId: string) => void;
   /** Opens the collection panel on the pictures the selection can hand over. */
-  onCollect: (urls: string[]) => void;
+  onCollect: (urls: string[], into: "collection" | "board") => void;
   onCopy: (frame: BoardItem) => void;
   /** Closes the menu, for a row whose work outlives it. */
   onDismiss: () => void;
@@ -468,7 +468,7 @@ export function MenuRows({
         <CollectionRow
           className={rowClass}
           count={pictures.length}
-          onOpen={() => onCollect(pictures)}
+          onOpen={(into) => onCollect(pictures, into)}
         />
       ) : null}
 

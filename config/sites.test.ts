@@ -14,6 +14,7 @@ import { applySiteOverrides, resolveSite, SITES } from "./sites";
 
 const AT_DOMAIN = /@([^>\s]+)/;
 const ADDISON = /addisonsphotos/i;
+const ADDISON_NAME = /addison/i;
 
 const domainOf = (from: string): string => from.match(AT_DOMAIN)?.[1] ?? "";
 
@@ -29,6 +30,14 @@ describe("site email identity", () => {
     expect(site.emailFrom).not.toMatch(ADDISON);
     expect(site.defaultAdminEmail).toBe("dallaspeters@gmail.com");
     expect(site.ownerName).toBe("Dallas");
+  });
+
+  it("dallas-images does not open with Addison's wordmark", () => {
+    // The hero shows this compiled default until site_settings loads, so a
+    // borrowed value flashes the wrong name on every page load.
+    const site = SITES["dallas-images"];
+    expect(site.heroTitle).not.toMatch(ADDISON_NAME);
+    expect(site.shortName).toBe(site.shortName.trim());
   });
 
   it("SITE_EMAIL_FROM overrides the compiled default, blank does not", () => {

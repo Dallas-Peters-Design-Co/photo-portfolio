@@ -62,3 +62,6 @@ db/0*.sql
 
 # ShipStudio metadata
 .shipstudio/
+
+# logo-creator skill output
+.skill-archive/

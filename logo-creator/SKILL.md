@@ -1,27 +1,28 @@
 ---
 name: logo-creator
-description: Create logos using AI image generation. Discuss style/ratio, generate variations, iterate with user feedback, crop, remove background, and export as SVG. Use when user wants to create a logo, icon, favicon, brand mark, mascot, emblem, or design a logo.
+description: Create logos using AI image generation on fal. Discuss style/ratio, generate variations, iterate with user feedback, crop, remove background, and export as SVG. Use when user wants to create a logo, icon, favicon, brand mark, mascot, emblem, or design a logo.
 ---
 
 # Logo Creator Skill
 
-Create professional logos through AI image generation with an iterative design process.
+Create logos through AI image generation with an iterative design process. Every model call goes through fal.ai with one key.
 
 ## Prerequisites
 
-**Required API Keys (set in environment):**
-- `GEMINI_API_KEY` - Get from [Google AI Studio](https://aistudio.google.com/apikey)
-- `REMOVE_BG_API_KEY` - Get from [remove.bg](https://www.remove.bg/api)
-- `RECRAFT_API_KEY` - Get from [recraft.ai](https://www.recraft.ai/)
+**One API key:** `FAL_API_KEY` (or `FAL_KEY`). The scripts read it from the environment, or from the nearest `.env.development.local` / `.env.local` / `.env` walking up from the current directory, so running from inside the dallaspeters.com repo needs no setup.
 
-**Required Skills:**
-- `nanobanana` - AI image generation (Gemini 3 Pro Image)
+**Models used (all on fal):**
+| Step | Model |
+|------|-------|
+| Generate | `fal-ai/nano-banana-pro` (Gemini 3 Pro Image) |
+| Remove background | `fal-ai/birefnet/v2` |
+| Vectorize to SVG | `fal-ai/recraft/vectorize` |
 
+**Python:** the fal scripts use the standard library only. `crop_logo.py` needs Pillow and numpy (`pip install Pillow numpy`).
 
+`<skill_dir>` below is this skill's folder (in the dallaspeters.com repo: `logo-creator/`).
 
 ## File Output Location
-
-All generated files should be saved to the `.skill-archive` directory:
 
 ```
 .skill-archive/logo-creator/<yyyy-mm-dd-summaryname>/
@@ -30,148 +31,101 @@ All generated files should be saved to the `.skill-archive` directory:
 **Example:**
 ```
 .skill-archive/logo-creator/2026-01-18-opc-logo/
-  logo-01.png
-  logo-02.png
-  ...
+  logo-01.png … logo-20.png
+  logo-09-v01.png …
   logo-09-cropped.png
   logo-09-nobg.png
   logo-09.svg
   preview.html
 ```
 
-**Guidelines:**
-- Use current date in format `yyyy-mm-dd`
-- Add short summary name (project/brand name, kebab-case)
-- Create directory before generating first logo
-- Keep all variations and iterations in same folder
-- Final approved logo should be copied to user's desired location
+- Current date as `yyyy-mm-dd`, then a short kebab-case name for the project.
+- Keep every variation and iteration in the same folder.
+- `.skill-archive/` is gitignored. Copy the approved final files to wherever the user wants them.
 
 ## Workflow
 
 ### Step 1: Discovery & Requirements
 
-Before generating, gather requirements from user:
-
-**Ask about:**
+Before generating, ask about:
 1. **Project/Brand name** - What is the logo for?
-2. **Style preference** - See [references/styles.md](./references/styles.md) for options:
-   - Pixel art / 8-bit retro
-   - Minimalist / flat design
-   - 3D / isometric
-   - Hand-drawn / sketch
-   - Mascot / character
-   - Monogram / lettermark
-   - Abstract / geometric
+2. **Style** - See [references/styles.md](./references/styles.md):
+   pixel art, minimalist/flat, 3D/isometric, hand-drawn, mascot, monogram/lettermark, abstract/geometric
+3. **Aspect ratio** - Default `1:1`. Others: `16:9` (headers), `4:3`, `2:3`, etc.
+4. **Colors** - Monochrome, specific brand colors, or let the model decide
+5. **References** - Existing logos or styles to point at
 
-3. **Aspect ratio** - Default is 1:1 (square), options:
-   - `1:1` - Square (favicons, app icons)
-   - `16:9` - Wide (headers, banners)
-   - `4:3` - Standard
-   - `2:3` - Portrait
+**Wait for user confirmation before generating.**
 
-4. **Color preferences**:
-   - Monochrome (black & white)
-   - Specific brand colors
-   - Let AI decide
-
-5. **Reference images** - Any existing logos or styles to reference?
-
-**Wait for user confirmation before proceeding!**
-
-### Step 2: Generate Logo Variations
-
-Generate 20 logo variations (default) using the `nanobanana` skill:
+### Step 2: Generate Variations
 
 ```bash
-# Generate single logo
-python3 <nanobanana_skill_dir>/scripts/generate.py "{style} logo for {brand}, {description}, {colors}" \
-  --ratio 1:1 -o .skill-archive/logo-creator/<date-name>/logo-01.png
-
-# Batch generate 20 logos
-python3 <nanobanana_skill_dir>/scripts/batch_generate.py "{style} logo for {brand}, {description}, {colors}" \
-  -n 20 --ratio 1:1 -d .skill-archive/logo-creator/<date-name> -p logo
+python3 <skill_dir>/scripts/generate.py "{style} logo for {brand}, {description}, {colors}" \
+  -n 20 --ratio 1:1 -d .skill-archive/logo-creator/<date-name> -p logo-
 ```
 
-**Guidelines:**
-- Use batch_generate.py for multiple variations (includes auto-delay)
-- Save to `.skill-archive/logo-creator/<yyyy-mm-dd-summaryname>/` directory
-- Use sequential naming: `logo-01.png`, `logo-02.png`, etc.
+- Runs in batches of 4, three at a time. 20 logos takes about a minute.
+- Never overwrites: numbering skips past files that already exist.
+- `--resolution 2K` for finals that need more detail (default `1K` is fine for exploring).
 
-**Prompt Tips:**
-- Include style keywords: "pixel art", "minimalist", "8-bit", "flat design"
-- Specify colors: "black on white", "monochrome", "blue gradient"
-- Add context: "tech startup", "food brand", "gaming company"
-- Request format: "icon", "emblem", "mascot", "lettermark"
+**Prompt tips:** style keywords ("pixel art", "flat design"), colors ("black on white"), context ("tech startup"), format ("icon", "emblem", "lettermark"). Ask for a plain white background; it makes background removal cleaner.
 
-### Step 3: Create HTML Preview
+### Step 3: Preview
 
-Copy the preview template and open in browser:
+`generate.py` writes `preview.html` in the output folder automatically, listing every PNG and SVG there, with light / dark / transparent backgrounds. Open it:
 
 ```bash
-cp <skill_dir>/templates/preview.html .skill-archive/logo-creator/<yyyy-mm-dd-summaryname>/preview.html
+open .skill-archive/logo-creator/<date-name>/preview.html
 ```
 
-Then open in default browser:
+To rebuild it by hand after adding files: `python3 <skill_dir>/scripts/preview.py <dir>`.
+
+### Step 4: Iterate
+
+Ask which numbers they like, what they like about them, and what to change. Then generate more of the favorites:
 
 ```bash
-open .skill-archive/logo-creator/<yyyy-mm-dd-summaryname>/preview.html
+python3 <skill_dir>/scripts/generate.py "{refined prompt}" \
+  -n 10 -d .skill-archive/logo-creator/<date-name> -p logo-05-v
 ```
 
-**IMPORTANT:** Update the HTML to include the correct number of logos generated.
+That produces `logo-05-v01.png`, `logo-05-v02.png`, … and refreshes the preview. Repeat until they pick a final.
 
-### Step 4: Iterate with User
+### Step 5: Finalize
 
-Ask user which logos they prefer:
-- "Which logos do you like? (e.g., #5, #12, #18)"
-- "What do you like about them?"
-- "Any changes you'd want?"
-
-Based on feedback:
-1. Generate 10-20 more variations of favorite styles
-2. Use naming: `logo-{original}-v{n}.png` (e.g., `logo-05-v1.png`)
-3. Update HTML preview
-4. Repeat until user selects final logo
-
-### Step 5: Finalize Logo
-
-Once user approves a logo, process it:
-
-**5a. Crop whitespace (make 1:1 with no margins):**
 ```bash
-python3 <skill_dir>/scripts/crop_logo.py {input.png} {output-cropped.png}
+# 5a. Trim whitespace to a tight square
+python3 <skill_dir>/scripts/crop_logo.py logo-09.png logo-09-cropped.png
+
+# 5b. Remove background (BiRefNet Heavy, 2048px)
+python3 <skill_dir>/scripts/remove_bg.py logo-09-cropped.png logo-09-nobg.png
+
+# 5c. Vectorize (Recraft; input must be under 5 MB, sides 256–4096px)
+python3 <skill_dir>/scripts/vectorize.py logo-09-cropped.png logo-09.svg
 ```
 
-**5b. Remove background:**
-```bash
-python3 <skill_dir>/scripts/remove_bg.py {input.png} {output-nobg.png}
-```
+Rebuild the preview afterwards to check the transparent PNG and SVG on dark and checkerboard backgrounds.
 
-**5c. Convert to SVG:**
-```bash
-python3 <skill_dir>/scripts/vectorize.py {input.png} {output.svg}
-```
-
-### Step 6: Deliver Final Assets
-
-Present final deliverables:
+### Step 6: Deliver
 
 ```
 ## Final Logo Assets
 
-| File | Description | Size |
-|------|-------------|------|
-| logo.png | Original | 1024x1024 |
-| logo-cropped.png | No margins, 1:1 | ~800x800 |
-| logo-nobg.png | Transparent background | ~800x800 |
-| logo.svg | Vector (scalable) | ~20KB |
+| File | Description |
+|------|-------------|
+| logo-09.png | Original |
+| logo-09-cropped.png | No margins, 1:1 |
+| logo-09-nobg.png | Transparent background |
+| logo-09.svg | Vector (scalable) |
 
-All files saved to: `.skill-archive/logo-creator/<yyyy-mm-dd-summaryname>/`
-Copy final logo to user's desired location.
+Saved to: .skill-archive/logo-creator/<date-name>/
 ```
+
+Copy the finals to wherever the user wants them.
 
 ## Quick Reference
 
-### Common Prompt Patterns
+### Prompt Patterns
 
 **Pixel Art:**
 ```
@@ -193,16 +147,11 @@ Cute {animal/character} mascot logo, friendly expression, {style} style, {colors
 Letter "{letter}" logo, modern typography, {style} design, {colors}, clean professional look
 ```
 
-### Supported Aspect Ratios
+### Aspect Ratios
 
-- `1:1` - Square (default for logos)
-- `2:3`, `3:2` - Portrait/Landscape
-- `3:4`, `4:3` - Standard
-- `4:5`, `5:4` - Photo
-- `9:16`, `16:9` - Wide
-- `21:9` - Ultra-wide
+`1:1` (default), `21:9`, `16:9`, `3:2`, `4:3`, `5:4`, `4:5`, `3:4`, `2:3`, `9:16`, `auto`
 
 ## References
 
-- [references/styles.md](./references/styles.md) - Logo style guide with prompt examples
-- [examples/opc-logo-creation.md](./examples/opc-logo-creation.md) - Full example conversation
+- [references/styles.md](./references/styles.md) - Style guide with prompt examples
+- [examples/opc-logo-creation.md](./examples/opc-logo-creation.md) - Example conversation (from the original opc-skills version; its images aren't included)

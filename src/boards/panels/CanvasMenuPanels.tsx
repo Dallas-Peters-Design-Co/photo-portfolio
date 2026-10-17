@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
+import ArrowRight02Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight02Icon";
 import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
 import { useEffect, useRef } from "react";
 import type { BoardItem } from "../../types";
@@ -111,6 +112,14 @@ export const hasTools = (item: BoardItem): boolean =>
  * kept as material for a page. Two rows rather than one with a choice, since the
  * two answers are not versions of each other.
  */
+/** Where a selection's pictures can be sent from the menu. */
+export type CollectTarget = "collection" | "board";
+
+/**
+ * Keeping the selection's pictures somewhere else: a collection, or another
+ * board. Two rows, one component, because they are the same gesture and are
+ * offered under the same condition.
+ */
 export function CollectionRow({
   className,
   count,
@@ -118,13 +127,28 @@ export function CollectionRow({
 }: {
   className: string;
   count: number;
-  onOpen: () => void;
+  onOpen: (into: CollectTarget) => void;
 }) {
+  const what = count === 1 ? "it" : String(count);
   return (
-    <button className={className} onClick={onOpen} type="button">
-      <HugeiconsIcon aria-hidden icon={Album02Icon} size={14} />
-      <span>Save {count === 1 ? "it" : String(count)} to a collection</span>
-    </button>
+    <>
+      <button
+        className={className}
+        onClick={() => onOpen("collection")}
+        type="button"
+      >
+        <HugeiconsIcon aria-hidden icon={Album02Icon} size={14} />
+        <span>Save {what} to a collection</span>
+      </button>
+      <button
+        className={className}
+        onClick={() => onOpen("board")}
+        type="button"
+      >
+        <HugeiconsIcon aria-hidden icon={ArrowRight02Icon} size={14} />
+        <span>Send {what} to a board</span>
+      </button>
+    </>
   );
 }
 

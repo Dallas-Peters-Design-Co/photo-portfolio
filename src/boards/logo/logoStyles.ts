@@ -1,0 +1,67 @@
+/**
+ * The directions a logo board can start with, one Generate node each.
+ *
+ * Each prompt says only what the direction is. What the logo is *for* comes
+ * from the brief wired into every node, and the two are joined on the run.
+ * Adapted from the logo-creator skill's style guide (logo-creator/references).
+ */
+export const LOGO_STYLES = [
+  {
+    id: "minimal",
+    label: "Minimal mark",
+    prompt:
+      "minimalist flat logo mark, simple geometric shapes, clean lines, generous negative space, two colours at most",
+  },
+  {
+    id: "lettermark",
+    label: "Lettermark",
+    prompt:
+      "lettermark logo built from the brand's initials, custom modern letterforms, strong silhouette",
+  },
+  {
+    id: "wordmark",
+    label: "Wordmark",
+    prompt:
+      "wordmark logo, the brand name set in distinctive custom typography, careful kerning, no icon",
+  },
+  {
+    id: "abstract",
+    label: "Abstract",
+    prompt:
+      "abstract geometric logo symbol, bold balanced composition, memorable at small sizes",
+  },
+  {
+    id: "emblem",
+    label: "Emblem",
+    prompt:
+      "emblem or badge logo, contained shape, the name integrated into the badge, vintage-inspired but clean",
+  },
+  {
+    id: "mascot",
+    label: "Mascot",
+    prompt:
+      "friendly mascot character logo, simple vector illustration style, expressive but uncluttered",
+  },
+  {
+    id: "hand-drawn",
+    label: "Hand-drawn",
+    prompt:
+      "hand-drawn logo, confident brush or ink linework, organic and warm, still simple enough to trace",
+  },
+  {
+    id: "pixel",
+    label: "Pixel art",
+    prompt:
+      "pixel art logo, 8-bit retro style, crisp square pixels on a strict grid, limited palette",
+  },
+] as const;
+
+export type LogoStyleId = (typeof LOGO_STYLES)[number]["id"];
+
+/** What a new logo board starts with ticked. */
+export const DEFAULT_LOGO_STYLES: LogoStyleId[] = [
+  "minimal",
+  "lettermark",
+  "wordmark",
+  "abstract",
+];

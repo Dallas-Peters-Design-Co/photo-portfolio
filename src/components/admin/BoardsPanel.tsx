@@ -3,6 +3,7 @@ import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import PencilEdit02Icon from "@hugeicons-pro/core-stroke-standard/PencilEdit02Icon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +14,7 @@ import type { Board } from "../../types";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { useConfirm } from "./ConfirmProvider";
+import { LogoBoardDialog } from "./LogoBoardDialog";
 import "../../styles/primitives.css";
 import "../../styles/adminChrome.css";
 import "./BoardsPanel.css";
@@ -82,6 +84,7 @@ export function BoardsPanel() {
   const navigate = useNavigate();
   const [boards, setBoards] = useState<Board[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [logoOpen, setLogoOpen] = useState(false);
   /*
    * Which board is being opened.
    *
@@ -200,10 +203,29 @@ export function BoardsPanel() {
           <HugeiconsIcon aria-hidden icon={FrameIcon} size={16} />
           Moodboards
         </CardTitle>
-        <Button onClick={() => void create()} type="button" variant="outline">
-          <HugeiconsIcon aria-hidden icon={Add01Icon} size={14} />
-          New board
-        </Button>
+        <div className="row row--tight">
+          <Button
+            onClick={() => setLogoOpen(true)}
+            type="button"
+            variant="ghost"
+          >
+            <HugeiconsIcon aria-hidden icon={SparklesIcon} size={14} />
+            New logo board
+          </Button>
+          <Button onClick={() => void create()} type="button" variant="outline">
+            <HugeiconsIcon aria-hidden icon={Add01Icon} size={14} />
+            New board
+          </Button>
+        </div>
+        <LogoBoardDialog
+          onClose={() => setLogoOpen(false)}
+          onCreated={(board) => {
+            setLogoOpen(false);
+            setBoards((prev) => [board, ...prev]);
+            navigate(`/admin/boards/${board.id}`);
+          }}
+          open={logoOpen}
+        />
       </CardHeader>
 
       <CardContent>

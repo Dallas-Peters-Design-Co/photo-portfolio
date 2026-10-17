@@ -133,7 +133,7 @@
   display: flex;
   gap: calc(var(--spacing) * 2);
   align-items: flex-start;
-  font-size: clamp(2rem, 1.2rem + 6vw, 6.5rem);
+  font-size: clamp(2rem, 1.2rem + 6vw, 4.5rem);
   font-weight: 900;
   line-height: 0.85;
   color: color-mix(in oklch, var(--foreground) 90%, transparent);

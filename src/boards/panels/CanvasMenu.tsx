@@ -3,10 +3,11 @@ import type { BoardItem, BoardWire } from "../../types";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
 import { frameBoardTitle, frameSummary } from "../io/copyToBoard";
 import type { Tool } from "../tools/types";
-import { NamePanel, ToolsPanel } from "./CanvasMenuPanels";
+import { type CollectTarget, NamePanel, ToolsPanel } from "./CanvasMenuPanels";
 import { CollectionPanel } from "./CollectionPanel";
 import { MenuRows } from "./MenuRows";
 import { RecipeNamePanel } from "./RecipeNamePanel";
+import { SendToBoardPanel } from "./SendToBoardPanel";
 import "../boardChrome.css";
 import "./CanvasMenu.css";
 
@@ -101,9 +102,13 @@ export function CanvasMenu({
    * cheaper than an effect and impossible to forget. The frame rides along so
    * the panel has one without asking the menu again.
    */
-  /** Null until "Save to a collection" is chosen; then what is being saved. */
+  /**
+   * Null until "Save to a collection" or "Send to a board" is chosen; then
+   * what is going, and where.
+   */
   const [collecting, setCollecting] = useState<{
     for: CanvasMenuTarget;
+    into: CollectTarget;
     urls: string[];
   } | null>(null);
 
@@ -185,6 +190,9 @@ export function CanvasMenu({
         />
       );
     }
+    if (collectingNow?.into === "board") {
+      return <SendToBoardPanel onClose={onDismiss} urls={collectingNow.urls} />;
+    }
     if (collectingNow) {
       return (
         <CollectionPanel
@@ -216,7 +224,7 @@ export function CanvasMenu({
       menu={menu}
       onArrange={onArrange}
       onBringToFront={onBringToFront}
-      onCollect={(urls) => setCollecting({ for: menu, urls })}
+      onCollect={(urls, into) => setCollecting({ for: menu, into, urls })}
       onCopy={(frameToCopy) =>
         setNaming({
           for: menu,
