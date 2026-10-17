@@ -1,14 +1,12 @@
 import type { IconSvgElement } from "@hugeicons/react";
-import {
-  ColorsIcon,
-  CropIcon,
-  Download01Icon,
-  EyeIcon,
-  Image01Icon,
-  PaintBoardIcon,
-  RotateRight01Icon,
-  Sun01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ColorsIcon from "@hugeicons-pro/core-stroke-standard/ColorsIcon";
+import CropIcon from "@hugeicons-pro/core-stroke-standard/CropIcon";
+import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
+import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
+import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
+import RotateRight01Icon from "@hugeicons-pro/core-stroke-standard/RotateRight01Icon";
+import Sun01Icon from "@hugeicons-pro/core-stroke-standard/Sun01Icon";
 import type { AdjustmentGroupId } from "../adjustments";
 
 /** Panels in the left rail. Adjustment groups share their id with the group. */

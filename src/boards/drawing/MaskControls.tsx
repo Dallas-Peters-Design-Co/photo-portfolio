@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  ExchangeIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import ExchangeIcon from "@hugeicons-pro/core-stroke-standard/Exchange01Icon";
 import type { BoardItem } from "../../types";
 import { type MaskConfig, maskOf } from "./mask";
 import "./MaskControls.css";

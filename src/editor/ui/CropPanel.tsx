@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { RotateRight01Icon } from "@hugeicons-pro/core-stroke-standard";
+import RotateRight01Icon from "@hugeicons-pro/core-stroke-standard/RotateRight01Icon";
 import type { CanvasTransform } from "../engine/export";
 
 interface CropPanelProps {

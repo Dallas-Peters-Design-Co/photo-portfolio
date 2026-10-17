@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, GlobeIcon } from "@hugeicons-pro/core-stroke-standard";
+import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import GlobeIcon from "@hugeicons-pro/core-stroke-standard/GlobeIcon";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {

@@ -1,24 +1,22 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Book02Icon,
-  BookOpen01Icon,
-  FileStackIcon,
-  FrameIcon,
-  GroupLayersIcon,
-  Image01Icon,
-  LinkSquare01Icon,
-  MagicWand01Icon,
-  NotebookIcon,
-  PaintBoardIcon,
-  PaintBucketIcon,
-  PenTool01Icon,
-  PrinterIcon,
-  RepeatIcon,
-  SearchVisualIcon,
-  SparklesIcon,
-  TextIcon,
-  VideoReplayIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Book02Icon from "@hugeicons-pro/core-stroke-standard/Book02Icon";
+import BookOpen01Icon from "@hugeicons-pro/core-stroke-standard/BookOpen01Icon";
+import FileStackIcon from "@hugeicons-pro/core-stroke-standard/FileStackIcon";
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import GroupLayersIcon from "@hugeicons-pro/core-stroke-standard/GroupLayersIcon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
+import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import NotebookIcon from "@hugeicons-pro/core-stroke-standard/NotebookIcon";
+import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
+import PaintBucketIcon from "@hugeicons-pro/core-stroke-standard/PaintBucketIcon";
+import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
+import PrinterIcon from "@hugeicons-pro/core-stroke-standard/PrinterIcon";
+import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
+import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
+import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
+import VideoReplayIcon from "@hugeicons-pro/core-stroke-standard/VideoReplayIcon";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeTypeId } from "../../../config/nodeTypes.js";
 import { ALL_SHADERS } from "../shaders/shaderConfig";

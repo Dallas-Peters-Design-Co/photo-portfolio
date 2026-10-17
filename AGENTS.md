@@ -70,6 +70,9 @@ pnpm test     # vitest in real Chromium — canvas code needs a real canvas,
 pnpm lint     # tsc --noEmit + the 500-line ceiling
 pnpm api:docs # regenerate openapi.json, openapi.yaml and bruno/
 pnpm dlx ultracite check
+pnpm lint:ui  # @shadcn/lint via Oxlint: design-system rules for the Tailwind
+              # code (admin, components, editor, cms). src/boards and
+              # src/pages are BEM and excluded. Warnings for now.
 ```
 
 ## Giving local development its own database

@@ -13,7 +13,9 @@
  *   - build assets  cache first, they are content-hashed
  */
 
-const VERSION = "v1";
+// v2: drops the v1 image cache, which could hold multi-megabyte originals the
+// image optimizer passed through untouched.
+const VERSION = "v2";
 const SHELL_CACHE = `shell-${VERSION}`;
 const IMAGE_CACHE = `images-${VERSION}`;
 const ASSET_CACHE = `assets-${VERSION}`;
@@ -44,8 +46,20 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-/** Evicts oldest entries once a cache passes its limit. */
+/**
+ * Evicts oldest entries once a cache passes its limit.
+ *
+ * Listing a cache's keys is not free, and a gallery page asks for dozens of
+ * images at once, so this runs at most once every few seconds rather than once
+ * per image.
+ */
+let lastTrim = 0;
 const trim = async (cacheName, max) => {
+  const now = Date.now();
+  if (now - lastTrim < 5000) {
+    return;
+  }
+  lastTrim = now;
   const cache = await caches.open(cacheName);
   const keys = await cache.keys();
   if (keys.length <= max) {
@@ -105,10 +119,21 @@ self.addEventListener("fetch", (event) => {
         }
         try {
           const fresh = await fetch(request);
-          if (fresh.ok) {
-            const cache = await caches.open(IMAGE_CACHE);
-            await cache.put(request, fresh.clone());
-            void trim(IMAGE_CACHE, MAX_IMAGES);
+          // Hand the image to the page as it streams in, and store the copy
+          // afterwards. Awaiting the cache write first held every image back
+          // until it had fully downloaded and been written to disk, so nothing
+          // could paint progressively and parallel images queued on the cache.
+          // Nothing over 8 MB is kept: the cache lives on the visitor's phone.
+          const size = Number(fresh.headers.get("content-length") ?? 0);
+          if (fresh.ok && size < 8_000_000) {
+            const copy = fresh.clone();
+            event.waitUntil(
+              (async () => {
+                const cache = await caches.open(IMAGE_CACHE);
+                await cache.put(request, copy);
+                await trim(IMAGE_CACHE, MAX_IMAGES);
+              })().catch(() => undefined)
+            );
           }
           return fresh;
         } catch {
@@ -128,8 +153,14 @@ self.addEventListener("fetch", (event) => {
         }
         const fresh = await fetch(request);
         if (fresh.ok) {
-          const cache = await caches.open(ASSET_CACHE);
-          await cache.put(request, fresh.clone());
+          // Same as images: answer first, store in the background.
+          const copy = fresh.clone();
+          event.waitUntil(
+            caches
+              .open(ASSET_CACHE)
+              .then((cache) => cache.put(request, copy))
+              .catch(() => undefined)
+          );
         }
         return fresh;
       })()

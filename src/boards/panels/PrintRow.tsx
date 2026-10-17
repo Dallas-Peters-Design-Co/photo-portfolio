@@ -1,5 +1,5 @@
-import { PrinterIcon } from "@hugeicons-pro/core-stroke-standard";
 import { HugeiconsIcon } from "@hugeicons/react";
+import PrinterIcon from "@hugeicons-pro/core-stroke-standard/PrinterIcon";
 import { toast } from "sonner";
 import type { BoardItem } from "../../types";
 import { specFrom } from "../canvas/renderWrapNode";

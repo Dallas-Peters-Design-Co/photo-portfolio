@@ -1,13 +1,11 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Add01Icon,
-  MinusSignIcon,
-  Settings01Icon,
-  TextAlignCenterIcon,
-  TextAlignLeftIcon,
-  TextAlignRightIcon,
-  TextItalicIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import MinusSignIcon from "@hugeicons-pro/core-stroke-standard/MinusSignIcon";
+import Settings01Icon from "@hugeicons-pro/core-stroke-standard/Settings01Icon";
+import TextAlignCenterIcon from "@hugeicons-pro/core-stroke-standard/TextAlignCenterIcon";
+import TextAlignLeftIcon from "@hugeicons-pro/core-stroke-standard/TextAlignLeftIcon";
+import TextAlignRightIcon from "@hugeicons-pro/core-stroke-standard/TextAlignRightIcon";
+import TextItalicIcon from "@hugeicons-pro/core-stroke-standard/TextItalicIcon";
 import { type RefObject, useState } from "react";
 import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../config/canvas.js";
 import {

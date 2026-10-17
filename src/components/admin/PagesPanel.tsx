@@ -1,12 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  Edit02Icon,
-  EyeIcon,
-  FileEmpty02Icon,
-  FloppyDiskIcon,
-  ViewOffIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import Edit02Icon from "@hugeicons-pro/core-stroke-standard/Edit02Icon";
+import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
+import FileEmpty02Icon from "@hugeicons-pro/core-stroke-standard/FileEmpty02Icon";
+import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
+import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
 import { Plus, X } from "lucide-react";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";

@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Album02Icon } from "@hugeicons-pro/core-stroke-standard";
+import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCollections } from "../../hooks/useCollections";

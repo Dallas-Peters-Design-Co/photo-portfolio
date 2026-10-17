@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  GridTableIcon,
-  Layers01Icon,
-  TagsIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import GridTableIcon from "@hugeicons-pro/core-stroke-standard/GridTableIcon";
+import Layers01Icon from "@hugeicons-pro/core-stroke-standard/Layers01Icon";
+import TagsIcon from "@hugeicons-pro/core-stroke-standard/TagsIcon";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { type AdminDataResult, useAdminData } from "../hooks/useAdminData";

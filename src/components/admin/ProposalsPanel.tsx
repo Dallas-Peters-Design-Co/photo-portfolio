@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  Edit02Icon,
-  Invoice03Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import Edit02Icon from "@hugeicons-pro/core-stroke-standard/Edit02Icon";
+import Invoice03Icon from "@hugeicons-pro/core-stroke-standard/Invoice03Icon";
 import { Plus, X } from "lucide-react";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";

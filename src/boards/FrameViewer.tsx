@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  Cancel01Icon,
-  Link01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ArrowLeft01Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Link01Icon from "@hugeicons-pro/core-stroke-standard/Link01Icon";
 import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import { useCallback, useEffect } from "react";
 import { toast } from "sonner";

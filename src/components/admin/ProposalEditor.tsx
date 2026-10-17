@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  EyeIcon,
-  FloppyDiskIcon,
-  Invoice03Icon,
-  ViewOffIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
+import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
+import Invoice03Icon from "@hugeicons-pro/core-stroke-standard/Invoice03Icon";
+import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
 import { Plus, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";

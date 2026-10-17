@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Cancel01Icon,
-  Download01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import type { BoardItemVariation } from "../../types";
 import { downloadImage } from "../io/downloadImage";
 import "./ResultImages.css";

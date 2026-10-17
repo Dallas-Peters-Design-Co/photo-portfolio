@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  PencilEdit02Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import PencilEdit02Icon from "@hugeicons-pro/core-stroke-standard/PencilEdit02Icon";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";

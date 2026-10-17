@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
+import { cachePublicRead } from "../_lib/edgeCache.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import {
   isEditorDoc,
@@ -18,7 +19,12 @@ const EMPTY_DOC = { content: [], type: "doc" };
 type Sql = ReturnType<typeof getSql>;
 type User = ReturnType<typeof getBearerUser>;
 
-async function handleGet(sql: Sql, user: User, res: VercelResponse) {
+async function handleGet(
+  sql: Sql,
+  user: User,
+  req: VercelRequest,
+  res: VercelResponse
+) {
   // Signed-in admins see drafts so they can manage them; the public sees
   // only what has been published.
   if (user) {
@@ -38,10 +44,7 @@ async function handleGet(sql: Sql, user: User, res: VercelResponse) {
   `) as PageRow[];
   // Public callers get summaries only — the nav does not need every body.
   // Short window on purpose: publishing should show up almost at once.
-  res.setHeader(
-    "Cache-Control",
-    "public, max-age=15, stale-while-revalidate=30"
-  );
+  cachePublicRead(req, res, { browser: 15, fresh: 15, stale: 86_400 });
   return res.status(200).json(rows.map(rowToSummary));
 }
 
@@ -115,7 +118,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const user = getBearerUser(req.headers.authorization);
 
     if (req.method === "GET") {
-      return await handleGet(sql, user, res);
+      return await handleGet(sql, user, req, res);
     }
 
     if (req.method === "POST") {

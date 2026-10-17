@@ -1,17 +1,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  FrameIcon,
-  Image01Icon,
-  LinkSquare01Icon,
-  MagicWand01Icon,
-  NotebookIcon,
-  PaintBoardIcon,
-  PaintBucketIcon,
-  RepeatIcon,
-  SearchVisualIcon,
-  SparklesIcon,
-  TextIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
+import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import NotebookIcon from "@hugeicons-pro/core-stroke-standard/NotebookIcon";
+import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
+import PaintBucketIcon from "@hugeicons-pro/core-stroke-standard/PaintBucketIcon";
+import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
+import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
+import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
 import { motion } from "motion/react";
 import type { NodeTypeId } from "../../../../config/nodeTypes.js";
 import { Button } from "../../ui/button";

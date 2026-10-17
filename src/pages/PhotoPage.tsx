@@ -1,9 +1,7 @@
 import "./PhotoPage.css";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ArrowLeft01Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Toaster } from "sonner";

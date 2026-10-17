@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert02Icon,
-  Cancel01Icon,
-  Tick02Icon,
-  Upload01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Alert02Icon from "@hugeicons-pro/core-stroke-standard/Alert02Icon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Tick02Icon from "@hugeicons-pro/core-stroke-standard/Tick02Icon";
+import Upload01Icon from "@hugeicons-pro/core-stroke-standard/Upload01Icon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { pickDriveImages } from "../../boards/io/googleDrive";

@@ -19,10 +19,11 @@
   --sheet-ink: oklch(0.17 0 0);
   --sheet-ink-soft: oklch(0.5 0 0);
   --sheet-rule: contrast-color(var(--sheet));
-  --sheet-tint: oklch(15% 1.11 210.99 / 0.59);
+  --sheet-tint: var(--color-accent);
   --border-title: solid 4px var(--sheet-ink);
   --border-signature: 1px solid contrast-color(var(--sheet-tint));
-  --suggested: color-mix(in oklch, var(--sheet-tint), #ffffff 96%);
+  --suggested: color-mix(in oklch, var(--sheet-tint), #ffffff 76%);
+  --sheet-intro: color-mix(in oklab, var(--sheet-tint) 80%, var(--sheet-ink));
   /*
    * Vertical rhythm. Clauses do not sit in a gap; each pads itself by one
    * --rhythm top and bottom, so two rhythms separate a clause's last line
@@ -87,11 +88,10 @@
   display: inline-flex;
   gap: calc(var(--spacing) * 3);
   align-items: center;
-  font-size: var(--text-sm-ui);
+  font-size: var(--text-lg);
   font-weight: 600;
   color: var(--foreground);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro-caps);
+  letter-spacing: var(--tracking-normal);
   transition: opacity 150ms ease-out;
 }
 
@@ -100,8 +100,8 @@
 }
 
 .proposal-page__logo {
-  width: calc(var(--spacing) * 12);
-  height: calc(var(--spacing) * 12);
+  width: calc(var(--spacing) * 16);
+  height: calc(var(--spacing) * 16);
 }
 
 .proposal-page__main {
@@ -308,15 +308,11 @@
 
 /* The opening paragraphs, a lede: a step up from the body. */
 .proposal-page__intro {
+  max-width: 68ch;
   padding: var(--padding);
   padding-block-start: 0;
   font-weight: 700;
-  color: var(--sheet-tint);
-}
-
-.proposal-page__intro .page-content__paragraph {
-  font-weight: 700;
-  color: var(--sheet-tint);
+  color: var(--sheet-intro);
 }
 
 .proposal-page__intro .page-content__paragraph,

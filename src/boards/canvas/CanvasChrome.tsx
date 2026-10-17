@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Layers01Icon } from "@hugeicons-pro/core-stroke-standard";
+import Layers01Icon from "@hugeicons-pro/core-stroke-standard/Layers01Icon";
 import { useState } from "react";
 import type { BoardItem } from "../../types";
 import type { CanvasViewport } from "../hooks/useCanvasViewport";

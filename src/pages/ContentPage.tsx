@@ -1,11 +1,12 @@
 import "./ContentPage.css";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons-pro/core-stroke-standard";
+import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Toaster } from "sonner";
 import { PageContent } from "../cms/PageContent";
-import { resolveIcon, SiteNav } from "../cms/SiteNav";
+import { SiteNav } from "../cms/SiteNav";
+import { iconFrom, useIconMap } from "../cms/useIconMap";
 import {
   type PageRecord,
   type PageSummary,
@@ -58,7 +59,8 @@ export function ContentPage() {
     };
   }, [slug]);
 
-  const Icon = resolveIcon(page?.icon);
+  const icons = useIconMap(Boolean(page?.icon));
+  const Icon = iconFrom(icons, page?.icon);
 
   return (
     <div className="page content-page">

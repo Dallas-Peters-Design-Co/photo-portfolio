@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowDown01Icon,
-  ArrowRight01Icon,
-  ArrowUp01Icon,
-  Delete02Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
+import ArrowUp01Icon from "@hugeicons-pro/core-stroke-standard/ArrowUp01Icon";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import { useState } from "react";
 import { Control } from "./Control";
 import {

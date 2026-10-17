@@ -21,22 +21,12 @@ const VARIABLE_LOADERS: Partial<Record<FontId, () => Promise<unknown>>> = {
   "space-grotesk": () => import("@fontsource-variable/space-grotesk/index.css"),
 };
 
-/**
- * Every weight stylesheet of every static @fontsource package installed,
- * keyed by path and loaded lazily. A static family's entry in
- * config/theme.ts says which weights it has; this is how they are fetched
- * without a hand-written import per cut.
- */
-const STATIC_STYLESHEETS = import.meta.glob<unknown>(
-  "/node_modules/@fontsource/*/[0-9][0-9][0-9].css"
-);
-const STATIC_ITALICS = import.meta.glob<unknown>(
-  "/node_modules/@fontsource/*/[0-9][0-9][0-9]-italic.css"
-);
-
-const loadStatic = (id: FontId): Promise<unknown> => {
+const loadStatic = async (id: FontId): Promise<unknown> => {
   const font = findFont(id);
   const cuts = font?.cuts ?? [];
+  const { STATIC_ITALICS, STATIC_STYLESHEETS } = await import(
+    "./staticFontSheets"
+  );
   const loads: Promise<unknown>[] = [];
   for (const weight of cuts) {
     loads.push(

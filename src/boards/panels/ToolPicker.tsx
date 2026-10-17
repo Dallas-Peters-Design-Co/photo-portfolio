@@ -1,17 +1,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  AiImageIcon,
-  ColorsIcon,
-  CropIcon,
-  Edit02Icon,
-  FlipHorizontalIcon,
-  MagicWand01Icon,
-  Note01Icon,
-  PaintBrush01Icon,
-  RotateLeft01Icon,
-  RotateRight01Icon,
-  Search01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import AiImageIcon from "@hugeicons-pro/core-stroke-standard/AiImageIcon";
+import ColorsIcon from "@hugeicons-pro/core-stroke-standard/ColorsIcon";
+import CropIcon from "@hugeicons-pro/core-stroke-standard/CropIcon";
+import Edit02Icon from "@hugeicons-pro/core-stroke-standard/Edit02Icon";
+import FlipHorizontalIcon from "@hugeicons-pro/core-stroke-standard/FlipHorizontalIcon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import Note01Icon from "@hugeicons-pro/core-stroke-standard/Note01Icon";
+import PaintBrush01Icon from "@hugeicons-pro/core-stroke-standard/PaintBrush01Icon";
+import RotateLeft01Icon from "@hugeicons-pro/core-stroke-standard/RotateLeft01Icon";
+import RotateRight01Icon from "@hugeicons-pro/core-stroke-standard/RotateRight01Icon";
+import Search01Icon from "@hugeicons-pro/core-stroke-standard/Search01Icon";
 import { useId, useMemo, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";

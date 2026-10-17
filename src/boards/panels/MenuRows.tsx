@@ -1,27 +1,25 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Album02Icon,
-  ArrowDown01Icon,
-  ArrowUp01Icon,
-  CopyIcon,
-  Download01Icon,
-  FrameIcon,
-  GridIcon,
-  Image01Icon,
-  MagicWand01Icon,
-  PenTool01Icon,
-  RepeatIcon,
-  SparklesIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons-pro/core-stroke-standard/ArrowUp01Icon";
+import CopyIcon from "@hugeicons-pro/core-stroke-standard/CopyIcon";
+import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import GridIcon from "@hugeicons-pro/core-stroke-standard/GridIcon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
+import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { isSvgUrl } from "../io/affinity";
 import { frameSummary } from "../io/copyToBoard";
 import { downloadImage } from "../io/downloadImage";
-import { PrintRow } from "./PrintRow";
 import { outputImageOf, outputImagesOf } from "../itemOutput";
 import type { CanvasMenuTarget } from "./CanvasMenu";
 import { CollectionRow, hasTools, ToolsRow } from "./CanvasMenuPanels";
+import { PrintRow } from "./PrintRow";
 import "../boardChrome.css";
 import { useVectorEditorName } from "../hooks/useVectorEditorName";
 

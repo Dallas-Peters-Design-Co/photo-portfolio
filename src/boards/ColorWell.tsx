@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ColorPickerIcon } from "@hugeicons-pro/core-stroke-standard";
+import ColorPickerIcon from "@hugeicons-pro/core-stroke-standard/ColorPickerIcon";
 import { useEffect, useState } from "react";
 import { type ColorResult, SketchPicker } from "react-color";
 import { createPortal } from "react-dom";

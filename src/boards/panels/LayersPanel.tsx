@@ -1,15 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Cancel01Icon,
-  DragDropIcon,
-  FrameIcon,
-  Image01Icon,
-  Layers01Icon,
-  MagicWand01Icon,
-  PenTool01Icon,
-  SparklesIcon,
-  TextIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import DragDropIcon from "@hugeicons-pro/core-stroke-standard/DragDropIcon";
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
+import Layers01Icon from "@hugeicons-pro/core-stroke-standard/Layers01Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
+import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
 import { useRef, useState } from "react";
 import { nodeTypeFor } from "../../../config/nodeTypes.js";
 import type { BoardItem } from "../../types";

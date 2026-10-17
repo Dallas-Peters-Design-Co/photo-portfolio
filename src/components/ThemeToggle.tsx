@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ComputerIcon,
-  Moon02Icon,
-  Sun02Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ComputerIcon from "@hugeicons-pro/core-stroke-standard/ComputerIcon";
+import Moon02Icon from "@hugeicons-pro/core-stroke-standard/Moon02Icon";
+import Sun02Icon from "@hugeicons-pro/core-stroke-standard/Sun02Icon";
 import { useEffect, useState } from "react";
 import {
   applyTheme,

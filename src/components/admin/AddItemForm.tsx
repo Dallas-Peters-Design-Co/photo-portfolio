@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Upload02Icon } from "@hugeicons-pro/core-stroke-standard";
+import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import Upload02Icon from "@hugeicons-pro/core-stroke-standard/Upload02Icon";
 import type { AdminDataResult } from "../../hooks/useAdminData";
 import type { NewPhotoResult } from "../../hooks/useNewPhoto";
 import { Button } from "../ui/button";

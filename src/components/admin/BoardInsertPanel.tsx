@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Cancel01Icon,
-  MagicWand01Icon,
-  Search01Icon,
-  SparklesIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import Search01Icon from "@hugeicons-pro/core-stroke-standard/Search01Icon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";

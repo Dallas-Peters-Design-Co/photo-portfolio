@@ -1,11 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Copy01Icon,
-  Facebook01Icon,
-  NewTwitterIcon,
-  PinterestIcon,
-  Share01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Copy01Icon from "@hugeicons-pro/core-stroke-standard/Copy01Icon";
+import Facebook01Icon from "@hugeicons-pro/core-stroke-standard/Facebook01Icon";
+import NewTwitterIcon from "@hugeicons-pro/core-stroke-standard/NewTwitterIcon";
+import PinterestIcon from "@hugeicons-pro/core-stroke-standard/PinterestIcon";
+import Share01Icon from "@hugeicons-pro/core-stroke-standard/Share01Icon";
 import { useState } from "react";
 import { toast } from "sonner";
 import posthog from "../lib/posthog";

@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  PaintBoardIcon,
-  PlusSignIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";

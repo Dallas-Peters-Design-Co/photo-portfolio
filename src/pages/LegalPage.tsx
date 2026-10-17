@@ -1,6 +1,6 @@
 import "./LegalPage.css";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ArrowRight01Icon } from "@hugeicons-pro/core-stroke-standard";
+import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Toaster } from "sonner";

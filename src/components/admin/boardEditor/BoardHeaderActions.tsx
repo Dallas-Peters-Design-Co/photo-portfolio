@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Cancel01Icon,
-  PlayIcon,
-  StopIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
+import StopIcon from "@hugeicons-pro/core-stroke-standard/StopIcon";
 import { toast } from "sonner";
 import ThemeToggle from "../../ThemeToggle";
 import { Button } from "../../ui/button";

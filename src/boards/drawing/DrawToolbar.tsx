@@ -1,12 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  BucketIcon,
-  CircleIcon,
-  CursorMagicSelection02Icon,
-  PaintBrush02Icon,
-  PenTool01Icon,
-  SquareIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import BucketIcon from "@hugeicons-pro/core-stroke-standard/BucketIcon";
+import CircleIcon from "@hugeicons-pro/core-stroke-standard/CircleIcon";
+import CursorMagicSelection02Icon from "@hugeicons-pro/core-stroke-standard/CursorMagicSelection02Icon";
+import PaintBrush02Icon from "@hugeicons-pro/core-stroke-standard/PaintBrush02Icon";
+import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
+import SquareIcon from "@hugeicons-pro/core-stroke-standard/SquareIcon";
 import { ColorWell } from "../ColorWell";
 import {
   DEFAULT_STROKE_WIDTH,

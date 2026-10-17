@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Cancel01Icon } from "@hugeicons-pro/core-stroke-standard";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
 import type { BoardItem } from "../../types";
 import { excludedFrom } from "../itemOutput";
 import "./BatchList.css";

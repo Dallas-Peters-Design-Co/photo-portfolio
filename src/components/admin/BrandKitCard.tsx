@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  PlusSignIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import type { BrandKit } from "../../services/brandKitService";
 import { Button } from "../ui/button";
 import { PalettePreview } from "./BrandKitPreviews";

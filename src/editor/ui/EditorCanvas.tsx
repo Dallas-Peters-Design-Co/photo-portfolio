@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { EyeIcon } from "@hugeicons-pro/core-stroke-standard";
+import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
 import { useEffect, useRef, useState } from "react";
 import type { CanvasTransform, RenderedRect } from "../engine/export";
 import { renderTransform } from "../engine/export";

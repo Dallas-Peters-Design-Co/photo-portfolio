@@ -1,6 +1,6 @@
 import "./HomePage.css";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { InstagramIcon } from "@hugeicons-pro/core-stroke-standard";
+import InstagramIcon from "@hugeicons-pro/core-stroke-standard/InstagramIcon";
 import { AnimatePresence, motion } from "motion/react";
 import {
   lazy,

@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { PauseIcon, PlayIcon } from "@hugeicons-pro/core-stroke-standard";
+import PauseIcon from "@hugeicons-pro/core-stroke-standard/PauseIcon";
+import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
 import type { BoardItem } from "../types";
 import { setAutoplay, useAutoplay } from "./autoplayPref";
 import { isVideoUrl } from "./io/isVideo";

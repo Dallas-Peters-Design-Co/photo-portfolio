@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SlidersHorizontalIcon } from "@hugeicons-pro/core-stroke-standard";
+import SlidersHorizontalIcon from "@hugeicons-pro/core-stroke-standard/SlidersHorizontalIcon";
 import { nodeTypeFor, type SettingDef } from "../../../config/nodeTypes.js";
 import { providerFor } from "../../../config/providers.js";
 import type { AiModel, BoardItem, BoardWire } from "../../types";

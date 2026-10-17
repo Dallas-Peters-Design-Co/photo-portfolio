@@ -7,6 +7,7 @@ import {
 import { findFont, isHexColor, normalizeTheme } from "../config/theme.js";
 import { getBearerUser } from "./_lib/auth.js";
 import { handleCors } from "./_lib/cors.js";
+import { cachePublicRead } from "./_lib/edgeCache.js";
 import { parsePublicHttpUrl, sanitizeText } from "./_lib/httpUrl.js";
 import { getDb, schema } from "./_lib/orm.js";
 import { parseJsonBody } from "./_lib/parseBody.js";
@@ -59,7 +60,11 @@ const themeError = (themeInput: Record<string, unknown>): string | null => {
   return null;
 };
 
-const handleGet = async (site: SiteConfig, res: VercelResponse) => {
+const handleGet = async (
+  site: SiteConfig,
+  req: VercelRequest,
+  res: VercelResponse
+) => {
   try {
     const settings = resolveSiteSettings(
       site,
@@ -67,10 +72,7 @@ const handleGet = async (site: SiteConfig, res: VercelResponse) => {
     );
     // Short cache: the gallery fetches this on every load, but an admin
     // saving a change should see it almost immediately.
-    res.setHeader(
-      "Cache-Control",
-      "public, max-age=30, stale-while-revalidate=300"
-    );
+    cachePublicRead(req, res, { browser: 30, fresh: 30, stale: 86_400 });
     return res.status(200).json(settings);
   } catch (e) {
     console.error(e);
@@ -192,7 +194,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // ── Public read ───────────────────────────────────────────────────────────
   if (req.method === "GET") {
-    return await handleGet(site, res);
+    return await handleGet(site, req, res);
   }
 
   // ── Admin write ───────────────────────────────────────────────────────────

@@ -1,16 +1,14 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  FileStackIcon,
-  FrameIcon,
-  GroupLayersIcon,
-  LinkSquare01Icon,
-  MagicWand01Icon,
-  PaintBoardIcon,
-  RepeatIcon,
-  SearchVisualIcon,
-  SparklesIcon,
-  TextIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import FileStackIcon from "@hugeicons-pro/core-stroke-standard/FileStackIcon";
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import GroupLayersIcon from "@hugeicons-pro/core-stroke-standard/GroupLayersIcon";
+import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
+import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
+import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
+import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
 import { inputPortsFor } from "../../../config/graph.js";
 import {
   NODE_TYPES,

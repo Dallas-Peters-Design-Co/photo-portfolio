@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { GridViewIcon, Tick02Icon } from "@hugeicons-pro/core-stroke-standard";
+import GridViewIcon from "@hugeicons-pro/core-stroke-standard/GridViewIcon";
+import Tick02Icon from "@hugeicons-pro/core-stroke-standard/Tick02Icon";
 import "./boardEditorChrome.css";
 
 /**

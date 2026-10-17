@@ -1,15 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Delete02Icon,
-  EyeIcon,
-  EyeOffIcon,
-  FileEditIcon,
-  PencilEdit01Icon,
-  RotateLeft01Icon,
-  RotateRight01Icon,
-  StarIcon,
-  StarOffIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
+import EyeOffIcon from "@hugeicons-pro/core-stroke-standard/EyeOffIcon";
+import FileEditIcon from "@hugeicons-pro/core-stroke-standard/FileEditIcon";
+import PencilEdit01Icon from "@hugeicons-pro/core-stroke-standard/PencilEdit01Icon";
+import RotateLeft01Icon from "@hugeicons-pro/core-stroke-standard/RotateLeft01Icon";
+import RotateRight01Icon from "@hugeicons-pro/core-stroke-standard/RotateRight01Icon";
+import StarIcon from "@hugeicons-pro/core-stroke-standard/StarIcon";
+import StarOffIcon from "@hugeicons-pro/core-stroke-standard/StarOffIcon";
 import type { PhotoSelectionResult } from "../../hooks/usePhotoSelection";
 import type { Photo } from "../../types";
 import { OptimizedImage } from "../OptimizedImage";

@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  TextAlignCenterIcon,
-  TextAlignLeftIcon,
-  TextAlignRightIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import TextAlignCenterIcon from "@hugeicons-pro/core-stroke-standard/TextAlignCenterIcon";
+import TextAlignLeftIcon from "@hugeicons-pro/core-stroke-standard/TextAlignLeftIcon";
+import TextAlignRightIcon from "@hugeicons-pro/core-stroke-standard/TextAlignRightIcon";
 import type { Editor } from "@tiptap/react";
 import type { ImageAlign } from "./imageAttributes";
 import { IMAGE_WIDTHS } from "./imageAttributes";

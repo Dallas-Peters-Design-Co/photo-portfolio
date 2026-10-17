@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Download01Icon } from "@hugeicons-pro/core-stroke-standard";
+import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {

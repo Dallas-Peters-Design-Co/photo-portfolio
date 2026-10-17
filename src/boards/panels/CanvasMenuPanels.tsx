@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Album02Icon,
-  MagicWand01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
+import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
 import { useEffect, useRef } from "react";
 import type { BoardItem } from "../../types";
 import { frameBoardTitle } from "../io/copyToBoard";

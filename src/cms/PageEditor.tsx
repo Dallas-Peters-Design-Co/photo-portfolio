@@ -1,21 +1,19 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Album02Icon,
-  Image01Icon,
-  LeftToRightListBulletIcon,
-  LeftToRightListNumberIcon,
-  Link01Icon,
-  QuoteDownIcon,
-  RedoIcon,
-  TextAlignCenterIcon,
-  TextAlignLeftIcon,
-  TextAlignRightIcon,
-  TextBoldIcon,
-  TextIcon,
-  TextItalicIcon,
-  TextStrikethroughIcon,
-  UndoIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
+import LeftToRightListBulletIcon from "@hugeicons-pro/core-stroke-standard/LeftToRightListBulletIcon";
+import LeftToRightListNumberIcon from "@hugeicons-pro/core-stroke-standard/LeftToRightListNumberIcon";
+import Link01Icon from "@hugeicons-pro/core-stroke-standard/Link01Icon";
+import QuoteDownIcon from "@hugeicons-pro/core-stroke-standard/QuoteDownIcon";
+import RedoIcon from "@hugeicons-pro/core-stroke-standard/RedoIcon";
+import TextAlignCenterIcon from "@hugeicons-pro/core-stroke-standard/TextAlignCenterIcon";
+import TextAlignLeftIcon from "@hugeicons-pro/core-stroke-standard/TextAlignLeftIcon";
+import TextAlignRightIcon from "@hugeicons-pro/core-stroke-standard/TextAlignRightIcon";
+import TextBoldIcon from "@hugeicons-pro/core-stroke-standard/TextBoldIcon";
+import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
+import TextItalicIcon from "@hugeicons-pro/core-stroke-standard/TextItalicIcon";
+import TextStrikethroughIcon from "@hugeicons-pro/core-stroke-standard/TextStrikethroughIcon";
+import UndoIcon from "@hugeicons-pro/core-stroke-standard/UndoIcon";
 import Link from "@tiptap/extension-link";
 import TextAlign from "@tiptap/extension-text-align";
 import type { Editor } from "@tiptap/react";

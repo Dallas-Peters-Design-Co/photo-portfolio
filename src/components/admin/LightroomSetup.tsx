@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  CheckmarkCircle02Icon,
-  Copy01Icon,
-  LinkSquare01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import CheckmarkCircle02Icon from "@hugeicons-pro/core-stroke-standard/CheckmarkCircle02Icon";
+import Copy01Icon from "@hugeicons-pro/core-stroke-standard/Copy01Icon";
+import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
 import { useState } from "react";
 import { toast } from "sonner";
 import {

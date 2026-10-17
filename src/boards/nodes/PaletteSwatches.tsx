@@ -1,6 +1,7 @@
 import "./PaletteSwatches.css";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Add01Icon, Cancel01Icon } from "@hugeicons-pro/core-stroke-standard";
+import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
 import { HEX_COLOUR } from "../../../config/nodes/palette.js";
 import { ColorWell } from "../ColorWell";
 

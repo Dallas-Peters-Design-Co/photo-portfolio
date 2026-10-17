@@ -96,6 +96,9 @@ const flush = (): Promise<void> =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
   });
 
+/** An @page margin of zero, however the browser serializes it. */
+const ZERO_MARGIN = /^0(px)?$/;
+
 const render = async (ui: ReactElement): Promise<HTMLDivElement> => {
   host = document.createElement("div");
   document.body.append(host);
@@ -265,13 +268,16 @@ describe("Download PDF", () => {
     expect(hidden).not.toContain(".proposal-page__signatures");
     expect(hidden).not.toContain(".proposal-page__clause");
 
-    const unbroken = rules.find((r) =>
-      r.selectorText.includes(".proposal-page__clause")
+    const unbroken = rules.find(
+      (r) =>
+        r.selectorText.includes(".proposal-page__clause") &&
+        r.style.getPropertyValue("break-inside") === "avoid"
     );
-    expect(unbroken?.style.getPropertyValue("break-inside")).toBe("avoid");
+    expect(unbroken, "clauses are kept whole across pages").toBeDefined();
 
-    expect(pages.length, "an @page rule for the margins").toBeGreaterThan(0);
-    expect(pages[0]?.style.margin).toContain("mm");
+    // Edge to edge: the sheet's own padding is the margin, so the page has none.
+    expect(pages.length, "an @page rule").toBeGreaterThan(0);
+    expect(pages[0]?.style.margin).toMatch(ZERO_MARGIN);
   });
 });
 

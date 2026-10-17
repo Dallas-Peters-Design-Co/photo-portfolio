@@ -86,3 +86,11 @@
 .site-nav__link:hover .site-nav__rule {
   width: 100%;
 }
+
+/* Holds an icon's place while the icon map loads, so the row does not shift. */
+.site-nav__icon-slot {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}

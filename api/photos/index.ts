@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
+import { cachePublicRead } from "../_lib/edgeCache.js";
 import { parsePublicHttpUrl, sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { PHOTO_COLUMNS, type PhotoRow, rowToDto } from "../_lib/photos.js";
@@ -88,6 +89,7 @@ const handleGet = async (req: VercelRequest, sql: Sql, res: VercelResponse) => {
     WHERE ${isAdmin} OR p.is_published
     ORDER BY p.sort_order ASC, p.created_at ASC
   `) as PhotoRow[];
+  cachePublicRead(req, res, { fresh: 30, stale: 86_400 });
   return res.status(200).json(rows.map(rowToDto));
 };
 

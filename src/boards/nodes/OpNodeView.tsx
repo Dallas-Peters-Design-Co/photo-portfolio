@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert02Icon,
-  PlayIcon,
-  RefreshIcon,
-  StopIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Alert02Icon from "@hugeicons-pro/core-stroke-standard/Alert02Icon";
+import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
+import RefreshIcon from "@hugeicons-pro/core-stroke-standard/RefreshIcon";
+import StopIcon from "@hugeicons-pro/core-stroke-standard/StopIcon";
 import { nodeTypeFor } from "../../../config/nodeTypes.js";
 import type { BoardItem, BoardItemVariation } from "../../types";
 import { HalftonePreview } from "../canvas/HalftonePreview";

@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Alert02Icon,
-  CheckmarkCircle02Icon,
-  LinkSquare01Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Alert02Icon from "@hugeicons-pro/core-stroke-standard/Alert02Icon";
+import CheckmarkCircle02Icon from "@hugeicons-pro/core-stroke-standard/CheckmarkCircle02Icon";
+import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
 import type { LightroomStatus } from "../../services/lightroomService";
 import { Button } from "../ui/button";
 import "./LightroomPanel.css";

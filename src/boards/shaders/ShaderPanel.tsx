@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Download01Icon,
-  FileExportIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
+import FileExportIcon from "@hugeicons-pro/core-stroke-standard/FileExportIcon";
 import { useState } from "react";
 import { nodeTypeFor } from "../../../config/nodeTypes.js";
 import type { BoardItem } from "../../types";

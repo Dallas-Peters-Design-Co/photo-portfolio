@@ -1,10 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Add01Icon,
-  Delete02Icon,
-  FrameIcon,
-  PencilEdit02Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import PencilEdit02Icon from "@hugeicons-pro/core-stroke-standard/PencilEdit02Icon";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useNavigate } from "react-router-dom";

@@ -1,11 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowDown01Icon,
-  UnavailableIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import UnavailableIcon from "@hugeicons-pro/core-stroke-standard/UnavailableIcon";
 import { useEffect, useRef, useState } from "react";
 import { ICON_GROUPS } from "./icons";
-import { resolveIcon } from "./SiteNav";
+import { resolveIcon } from "./resolveIcon";
 
 /** Where a capital or a digit starts a new word. */
 const WORD_BREAK = /(?<=[a-z])(?=[A-Z0-9])/g;

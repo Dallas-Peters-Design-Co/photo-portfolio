@@ -2,6 +2,7 @@ import type { IconStyle } from "../../config/iconStyles";
 import type { ResolvedSiteSettings } from "../../config/siteSettings";
 import { isUploadType, UPLOAD_REFUSAL } from "../../config/uploads.js";
 import type { AffinityWriteback } from "../boards/io/affinity";
+import { downscaleForWeb } from "../lib/downscaleForWeb";
 import type {
   AiModel,
   AiModelInput,
@@ -81,6 +82,10 @@ export const apiBase = (): string => {
 };
 
 const photosPath = (): string => `${apiBase()}/api/photos`;
+
+/** Signed-in reads get their own URL so the edge cache never serves them; see api/_lib/edgeCache.ts. */
+const readUrl = (url: string): string =>
+  getAuthToken() ? `${url}${url.includes("?") ? "&" : "?"}scope=admin` : url;
 const categoriesPath = (): string => `${apiBase()}/api/categories`;
 const uploadPath = (): string => `${apiBase()}/api/upload`;
 const dailyChallengePath = (): string => `${apiBase()}/api/daily-challenge`;
@@ -353,7 +358,7 @@ export const portfolioService = {
   },
 
   getCategories: async (): Promise<Category[]> => {
-    const res = await fetch(categoriesPath());
+    const res = await fetch(readUrl(categoriesPath()));
     if (!res.ok) {
       const detail = import.meta.env.DEV ? ` (${res.status})` : "";
       throw new Error(`Failed to load categories${detail}`);
@@ -392,7 +397,7 @@ export const portfolioService = {
       // `WHERE ${isAdmin} OR p.is_published`, so without the header an admin
       // was served the visitor's list: a photograph hidden from the site
       // disappeared from the library too, and could never be shown again.
-      res = await fetch(photosPath(), { headers: jsonHeaders() });
+      res = await fetch(readUrl(photosPath()), { headers: jsonHeaders() });
     } catch (cause) {
       if (import.meta.env.DEV) {
         const url = photosPath();
@@ -605,14 +610,16 @@ export const portfolioService = {
     }
 
     const { upload } = await import("@vercel/blob/client");
+    // Originals too large for the image optimizer are shrunk first.
+    const img = await downscaleForWeb(file).catch(() => file);
 
     try {
-      const blob = await upload(`${prefix}/${file.name || "image"}`, file, {
+      const blob = await upload(`${prefix}/${img.name || "image"}`, img, {
         access: "public",
         // The upload helper posts straight to the handler, so the session token
         // rides along here instead of in an Authorization header.
         clientPayload: token,
-        contentType: file.type,
+        contentType: img.type,
         handleUploadUrl: uploadPath(),
         onUploadProgress: onProgress
           ? ({ percentage }) => onProgress(Math.round(percentage))
@@ -634,7 +641,7 @@ export const portfolioService = {
 export const settingsApi = {
   /** Public read of the live site content and theme. */
   get: async (): Promise<ResolvedSiteSettings> => {
-    const res = await fetch(`${apiBase()}/api/site-settings`);
+    const res = await fetch(readUrl(`${apiBase()}/api/site-settings`));
     if (!res.ok) {
       throw new Error(`Could not load site settings (${res.status})`);
     }
@@ -896,7 +903,7 @@ export const pagesApi = {
   },
   /** Published summaries for the public nav; every page when signed in. */
   list: async (): Promise<PageSummary[]> => {
-    const res = await fetch(pagesPath(), { headers: jsonHeaders() });
+    const res = await fetch(readUrl(pagesPath()), { headers: jsonHeaders() });
     if (!res.ok) {
       throw new Error(await readPageError(res, "Could not load pages"));
     }

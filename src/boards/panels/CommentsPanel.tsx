@@ -1,8 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Cancel01Icon,
-  Message02Icon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Message02Icon from "@hugeicons-pro/core-stroke-standard/Message02Icon";
 import { nodeTypeFor } from "../../../config/nodeTypes.js";
 import type { BoardComment } from "../../services/comments";
 import type { BoardItem } from "../../types";

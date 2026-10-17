@@ -1,12 +1,10 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowLeft01Icon,
-  ArrowRight01Icon,
-  Cancel01Icon,
-  FullScreenIcon,
-  PauseIcon,
-  PlayIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import ArrowLeft01Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import FullScreenIcon from "@hugeicons-pro/core-stroke-standard/FullScreenIcon";
+import PauseIcon from "@hugeicons-pro/core-stroke-standard/PauseIcon";
+import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Slide } from "./slides";

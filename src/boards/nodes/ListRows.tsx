@@ -1,9 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Add01Icon,
-  Delete02Icon,
-  RefreshIcon,
-} from "@hugeicons-pro/core-stroke-standard";
+import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import RefreshIcon from "@hugeicons-pro/core-stroke-standard/RefreshIcon";
 import { useEffect } from "react";
 import {
   addItem,

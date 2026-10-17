@@ -1,21 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { NavLink } from "react-router-dom";
 import type { PageSummary } from "../services/portfolioService";
-import { ICON_COMPONENTS, type IconComponent } from "./iconMap";
+import { iconFrom, useIconMap } from "./useIconMap";
 import "./SiteNav.css";
-
-/**
- * Resolves an icon's drawing data by name, since the icon is stored as free
- * text in the database and may not match anything in the pack.
- */
-export const resolveIcon = (
-  name: string | null | undefined
-): IconComponent | null => {
-  if (!name) {
-    return null;
-  }
-  return ICON_COMPONENTS[name] ?? null;
-};
 
 interface SiteNavProps {
   pages: PageSummary[];
@@ -29,6 +16,10 @@ interface SiteNavProps {
  * one looks exactly as it did before the CMS existed.
  */
 export function SiteNav({ pages }: SiteNavProps) {
+  // The icons arrive in their own chunk; until then each link holds a slot of
+  // the icon's size so the row does not shift when they land.
+  const icons = useIconMap(pages.some((page) => page.icon));
+
   if (pages.length === 0) {
     return null;
   }
@@ -36,7 +27,7 @@ export function SiteNav({ pages }: SiteNavProps) {
   return (
     <nav aria-label="Pages" className="site-nav">
       {pages.map((page) => {
-        const Icon = resolveIcon(page.icon);
+        const Icon = iconFrom(icons, page.icon);
         return (
           <NavLink
             // The border stays on the box at all times and only changes
@@ -48,7 +39,10 @@ export function SiteNav({ pages }: SiteNavProps) {
             key={page.id}
             to={`/${page.slug}`}
           >
-            {Icon && <HugeiconsIcon icon={Icon} size={20} />}
+            {Icon ? <HugeiconsIcon icon={Icon} size={20} /> : null}
+            {!Icon && page.icon && !icons ? (
+              <span aria-hidden className="site-nav__icon-slot" />
+            ) : null}
             <span className="site-nav__label">
               {page.title}
               <span className="site-nav__rule" />

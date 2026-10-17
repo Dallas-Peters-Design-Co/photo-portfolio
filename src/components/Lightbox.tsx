@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { ExternalLinkIcon } from "@hugeicons-pro/core-stroke-standard";
+import ExternalLinkIcon from "@hugeicons-pro/core-stroke-standard/ExternalLinkIcon";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
@@ -32,7 +32,7 @@ export function Lightbox({
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm"
+      className="fixed inset-0 z-800 flex items-center justify-center bg-black/95 backdrop-blur-sm"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       // Only a click on the backdrop itself closes; clicks that land on the

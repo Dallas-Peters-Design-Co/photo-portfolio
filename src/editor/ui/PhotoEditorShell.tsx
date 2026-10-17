@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { RefreshIcon } from "@hugeicons-pro/core-stroke-standard";
+import RefreshIcon from "@hugeicons-pro/core-stroke-standard/RefreshIcon";
 import { useEffect, useMemo, useState } from "react";
 import { isNeutral } from "../adjustments";
 import {

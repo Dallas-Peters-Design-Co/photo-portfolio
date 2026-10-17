@@ -7,6 +7,7 @@ import {
   slugifyLabel,
 } from "../_lib/categories.js";
 import { handleCors } from "../_lib/cors.js";
+import { cachePublicRead } from "../_lib/edgeCache.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 
@@ -130,6 +131,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (req.method === "GET") {
       const rows = await listCategories(db);
+      cachePublicRead(req, res, { fresh: 60, stale: 86_400 });
       return res.status(200).json(rows.map(categoryRowToDto));
     }
 

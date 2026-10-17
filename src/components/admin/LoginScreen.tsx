@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Login02Icon, Shield01Icon } from "@hugeicons-pro/core-stroke-standard";
+import Login02Icon from "@hugeicons-pro/core-stroke-standard/Login02Icon";
+import Shield01Icon from "@hugeicons-pro/core-stroke-standard/Shield01Icon";
 import type { AdminLoginResult } from "../../hooks/useAdminLogin";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";

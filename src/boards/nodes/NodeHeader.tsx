@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { SparklesIcon, TextIcon } from "@hugeicons-pro/core-stroke-standard";
+import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
+import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
 import type { AiModel } from "../../types";
 import { useModels } from "../ModelsContext";
 import { ProviderLogo } from "./ProviderLogo";
