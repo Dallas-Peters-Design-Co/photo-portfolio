@@ -11,9 +11,14 @@
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 2) calc(var(--spacing) * 5);
   align-items: center;
-  margin-block-start: calc(var(--spacing) * 3);
+  justify-content: flex-end;
 }
-
+@container (max-width: 480px) {
+  /* Adjust 530px to match the width where your grid wraps to a single column */
+  .site-nav {
+    justify-content: flex-start;
+  }
+}
 /*
  * One page.
  *

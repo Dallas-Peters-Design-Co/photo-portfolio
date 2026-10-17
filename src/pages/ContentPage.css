@@ -14,11 +14,15 @@
  */
 
 .content-page__masthead {
-  padding-block-start: calc(var(--spacing) * 12);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  padding: calc(var(--spacing) * 3);
+  container-type: inline-size;
+  background-color: color-mix(in srgb, var(--background), transparent 20%);
 }
 
 .content-page__wordmark {
-  font-size: var(--text-3xl);
+  font-size: clamp(1rem, 1.544rem + 4.082vw, 1.5rem);
   font-weight: 700;
   color: var(--accent);
   text-transform: uppercase;
