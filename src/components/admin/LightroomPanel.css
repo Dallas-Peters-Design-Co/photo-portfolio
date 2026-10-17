@@ -5,8 +5,18 @@
  * the colours are the admin tokens throughout.
  */
 
+/*
+ * Full width, pinned to the top-left.
+ *
+ * The admin's main area centres its panels, which shrink-wraps them to their
+ * content, so this panel used to change width every time a different album (and
+ * so a different number of tiles) was opened. Stretching it to the row fixes the
+ * width; the album list then stays at the left edge and the grid takes the rest.
+ */
 .lightroom {
-  max-width: calc(var(--spacing) * 260);
+  align-self: start;
+  justify-self: stretch;
+  width: 100%;
 }
 
 /*
@@ -47,12 +57,15 @@
   );
 }
 
-/* The album list beside the album's contents. Collapses on a narrow screen —
-   this is an admin tool, but it is used on a laptop as often as a desktop. */
+/* The album list beside the album's contents. The list is a fixed width so it
+   never moves; the grid gets all the remaining space. Collapses on a narrow
+   screen — this is an admin tool, but it is used on a laptop as often as a
+   desktop. */
 .lightroom__browser {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-  gap: calc(var(--spacing) * 4);
+  grid-template-columns: calc(var(--spacing) * 60) minmax(0, 1fr);
+  gap: calc(var(--spacing) * 6);
+  align-items: start;
 }
 
 @media (width < 60rem) {
@@ -65,6 +78,16 @@
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 0.5);
+}
+
+/* Stays in view while a long album scrolls past. Below the fixed admin bar. */
+@media (width >= 60rem) {
+  .lightroom__albums {
+    position: sticky;
+    top: calc(var(--spacing) * 36);
+    max-height: calc(100dvh - var(--spacing) * 40);
+    overflow-y: auto;
+  }
 }
 
 .lightroom__album {
