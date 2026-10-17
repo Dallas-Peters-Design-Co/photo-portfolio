@@ -13,7 +13,7 @@ import { type ReviewRecord, reviewsApi } from "../services/reviewService";
 import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate } from "./ProposalAcceptance";
-import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./proposalPdf/logo";
+import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 
 /**
  * A site review as the client reads it: the opening, the headline

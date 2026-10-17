@@ -1,7 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { type ProposalRecord, proposalsApi } from "../services/proposalService";
-import { useSiteSettings } from "../theme/SiteSettingsProvider";
-import { downloadProposalPdf } from "./proposalPdf/download";
+import { downloadProposalPdf } from "./proposalPdf";
 
 /**
  * The signature block. The client's side is a form until it has been
@@ -30,7 +29,6 @@ export function ProposalAcceptance({
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copySent, setCopySent] = useState<boolean | null>(null);
-  const { settings } = useSiteSettings();
   const [isRendering, setIsRendering] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const signedFor = proposal.brand?.name || proposal.clientName || "the Client";
@@ -61,8 +59,8 @@ export function ProposalAcceptance({
     }
   };
 
-  // The PDF is rendered in the browser from the same record as the page, so
-  // it reads the same, signed or not. The renderer loads on first press.
+  // The PDF is the page itself, printed by a browser on the server, so it
+  // follows the stylesheet exactly, signed or not. It takes a few seconds.
   const downloadPdf = async () => {
     if (isRendering) {
       return;
@@ -70,10 +68,7 @@ export function ProposalAcceptance({
     setIsRendering(true);
     setPdfError(null);
     try {
-      await downloadProposalPdf(proposal, ownerName, issued, {
-        display: settings.theme.displayFont,
-        sans: settings.theme.sansFont,
-      });
+      await downloadProposalPdf(proposal);
     } catch (err) {
       setPdfError(
         err instanceof Error ? err.message : "Could not make the PDF"

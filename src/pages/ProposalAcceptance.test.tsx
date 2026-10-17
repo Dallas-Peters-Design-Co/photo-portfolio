@@ -32,14 +32,8 @@ vi.mock("../services/proposalService", () => ({
 }));
 
 const downloadProposalPdf =
-  vi.fn<
-    (
-      proposal: ProposalRecord,
-      ownerName: string,
-      issued: string
-    ) => Promise<void>
-  >();
-vi.mock("./proposalPdf/download", () => ({ downloadProposalPdf }));
+  vi.fn<(proposal: ProposalRecord) => Promise<void>>();
+vi.mock("./proposalPdf", () => ({ downloadProposalPdf }));
 
 const { ProposalAcceptance, formatDate } = await import("./ProposalAcceptance");
 
@@ -184,10 +178,7 @@ describe("Download PDF", () => {
     await flush();
     expect(downloadProposalPdf).toHaveBeenCalledTimes(1);
     expect(downloadProposalPdf).toHaveBeenCalledWith(
-      expect.objectContaining({ slug: "viaskai-pretext-launch" }),
-      "Dallas Peters",
-      "16 October 2026",
-      { display: "inter", sans: "inter" }
+      expect.objectContaining({ slug: "viaskai-pretext-launch" })
     );
     expect(accept).not.toHaveBeenCalled();
     root?.unmount();

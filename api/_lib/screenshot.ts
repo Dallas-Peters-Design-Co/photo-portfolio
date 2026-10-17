@@ -134,3 +134,51 @@ export const captureScreenshot = async ({
     await browser.close();
   }
 };
+
+export interface PdfInput {
+  /** Set in the headless page's localStorage before load: the admin token, so a draft resolves. */
+  localStorage?: Record<string, string>;
+  url: string;
+  /** A selector that means the page has rendered its content. */
+  waitFor: string;
+}
+
+/**
+ * A page as a PDF, the way the browser's own Save as PDF would do it: print
+ * media, the page's @page and @media print rules, backgrounds kept. The
+ * document is whatever the page shows, so a stylesheet change on the web is
+ * a stylesheet change in the PDF with nothing to keep in step.
+ */
+export const renderPagePdf = async ({
+  url,
+  waitFor,
+  localStorage: storage,
+}: PdfInput): Promise<Buffer> => {
+  const browser = await launch();
+  try {
+    const page = await browser.newPage({
+      deviceScaleFactor: 2,
+      viewport: { height: 1100, width: 1200 },
+    });
+    if (storage) {
+      await page.addInitScript((entries) => {
+        for (const [key, value] of Object.entries(entries)) {
+          window.localStorage.setItem(key, value);
+        }
+      }, storage);
+    }
+    await page.goto(url, { timeout: NAV_TIMEOUT_MS, waitUntil: "networkidle" });
+    await page.waitForSelector(waitFor, { timeout: NAV_TIMEOUT_MS });
+    await page.evaluate(() => document.fonts.ready);
+    await page.emulateMedia({ media: "print" });
+    await page.waitForTimeout(300);
+    const pdf = await page.pdf({
+      format: "Letter",
+      preferCSSPageSize: true,
+      printBackground: true,
+    });
+    return Buffer.from(pdf);
+  } finally {
+    await browser.close();
+  }
+};

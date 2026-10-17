@@ -13,7 +13,7 @@ import { type ProposalRecord, proposalsApi } from "../services/proposalService";
 import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate, ProposalAcceptance } from "./ProposalAcceptance";
-import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./proposalPdf/logo";
+import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 
 /**
  * The proposal as the client reads it: a numbered agreement on a sheet.
@@ -33,7 +33,7 @@ export function ProposalPage() {
   const { settings } = useSiteSettings();
   const [proposal, setProposal] = useState<ProposalRecord | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "missing">(
-    "loading"
+    "loading",
   );
 
   useEffect(() => {
@@ -155,115 +155,96 @@ function ProposalSheet({
 
   return (
     <article className="proposal-page__sheet">
-      <header className="stack stack--tight">
-        <p className="label proposal-page__kicker">
-          Design proposal · {issued}
-          {validity}
-        </p>
-        <h1 className="proposal-page__title">{proposal.title}</h1>
-        {proposal.status === "draft" && (
-          <p className="label proposal-page__draft">
-            Draft — only visible to signed-in admins
+      <div className="proposal-page__content">
+        <header className="stack stack--tight proposal-page__header">
+          <p className="label proposal-page__kicker">
+            Design proposal · {issued}
+            {validity}
           </p>
+          <h1 className="proposal-page__title">{proposal.title}</h1>
+          {proposal.status === "draft" && (
+            <p className="label proposal-page__draft">
+              Draft — only visible to signed-in admins
+            </p>
+          )}
+        </header>
+
+        {isRichTextEmpty(doc.intro) ? null : (
+          <div className="proposal-page__intro">
+            <Prose text={doc.intro} />
+          </div>
         )}
-      </header>
 
-      <div className="proposal-page__parties">
-        <dl className="proposal-page__party">
-          <dt className="label">Client</dt>
-          <dd>{proposal.clientName || "—"}</dd>
-          {proposal.brand ? (
-            <>
-              <dt className="label">Company</dt>
-              <dd>{proposal.brand.name}</dd>
-            </>
-          ) : null}
-          <dt className="label">Referred to as</dt>
-          <dd>Client</dd>
-        </dl>
-        <dl className="proposal-page__party">
-          <dt className="label">Designer</dt>
-          <dd>{ownerName}</dd>
-          <dt className="label">Practice</dt>
-          <dd>
-            {siteConfig.tagline}, {siteConfig.domain}
-          </dd>
-          <dt className="label">Referred to as</dt>
-          <dd>Designer</dd>
-        </dl>
+        {scopeN ? (
+          <Clause n={scopeN} title="Scope of work">
+            <Prose text={doc.summary} />
+          </Clause>
+        ) : null}
+
+        {doc.sections.map((section, i) => (
+          <Clause
+            key={section.id}
+            n={sectionNs[i] ?? 0}
+            title={section.heading}
+          >
+            <Prose text={section.body} />
+          </Clause>
+        ))}
+
+        {optionsN ? (
+          <Clause n={optionsN} title="Options and fees">
+            {doc.packages.map((pkg, i) => (
+              <Option index={`${optionsN}.${i + 1}`} key={pkg.id} pkg={pkg} />
+            ))}
+          </Clause>
+        ) : null}
+
+        {addOnsN ? (
+          <Clause n={addOnsN} title="Add-ons">
+            <dl className="proposal-page__addons">
+              {doc.addOns.map((addOn) => (
+                <div className="proposal-page__addon" key={addOn.id}>
+                  <dt>{addOn.name}</dt>
+                  <dd>{addOn.price}</dd>
+                </div>
+              ))}
+            </dl>
+          </Clause>
+        ) : null}
+
+        {processN ? (
+          <Clause n={processN} title="What happens next">
+            <ol className="proposal-page__steps">
+              {doc.process.map((step) => (
+                <li className="proposal-page__step" key={step.id}>
+                  <span className="proposal-page__run">{step.title}.</span>{" "}
+                  {step.body}
+                </li>
+              ))}
+            </ol>
+          </Clause>
+        ) : null}
+
+        {termsN ? (
+          <Clause n={termsN} title="Terms">
+            <ul className="proposal-page__list">
+              {doc.terms.map((term) => (
+                <li key={term}>{term}</li>
+              ))}
+            </ul>
+          </Clause>
+        ) : null}
+
+        <Clause last n={acceptanceN} title="Acceptance">
+          {isRichTextEmpty(doc.closing) ? null : <Prose text={doc.closing} />}
+          <ProposalAcceptance
+            issued={issued}
+            onAccepted={onAccepted}
+            ownerName={ownerName}
+            proposal={proposal}
+          />
+        </Clause>
       </div>
-
-      {isRichTextEmpty(doc.intro) ? null : (
-        <div className="proposal-page__intro">
-          <Prose text={doc.intro} />
-        </div>
-      )}
-
-      {scopeN ? (
-        <Clause n={scopeN} title="Scope of work">
-          <Prose text={doc.summary} />
-        </Clause>
-      ) : null}
-
-      {doc.sections.map((section, i) => (
-        <Clause key={section.id} n={sectionNs[i] ?? 0} title={section.heading}>
-          <Prose text={section.body} />
-        </Clause>
-      ))}
-
-      {optionsN ? (
-        <Clause n={optionsN} title="Options and fees">
-          {doc.packages.map((pkg, i) => (
-            <Option index={`${optionsN}.${i + 1}`} key={pkg.id} pkg={pkg} />
-          ))}
-        </Clause>
-      ) : null}
-
-      {addOnsN ? (
-        <Clause n={addOnsN} title="Add-ons">
-          <dl className="proposal-page__addons">
-            {doc.addOns.map((addOn) => (
-              <div className="proposal-page__addon" key={addOn.id}>
-                <dt>{addOn.name}</dt>
-                <dd>{addOn.price}</dd>
-              </div>
-            ))}
-          </dl>
-        </Clause>
-      ) : null}
-
-      {processN ? (
-        <Clause n={processN} title="What happens next">
-          <ol className="proposal-page__steps">
-            {doc.process.map((step) => (
-              <li className="proposal-page__step" key={step.id}>
-                <span className="proposal-page__run">{step.title}.</span>{" "}
-                {step.body}
-              </li>
-            ))}
-          </ol>
-        </Clause>
-      ) : null}
-
-      {termsN ? (
-        <Clause n={termsN} title="Terms">
-          <ul className="proposal-page__list">
-            {doc.terms.map((term) => (
-              <li key={term}>{term}</li>
-            ))}
-          </ul>
-        </Clause>
-      ) : null}
-
-      <Clause last n={acceptanceN} title="Acceptance">
-        {isRichTextEmpty(doc.closing) ? null : <Prose text={doc.closing} />}
-        <ProposalAcceptance
-          issued={issued}
-          onAccepted={onAccepted}
-          ownerName={ownerName}
-          proposal={proposal}
-        />
-      </Clause>
     </article>
   );
 }
