@@ -271,6 +271,7 @@
 
 .proposal-page__clause--last {
   padding: var(--padding-last);
+  margin-block-start: calc(var(--spacing) * 8);
   color: contrast-color(var(--sheet-tint));
   background-color: var(--sheet-tint);
   border-block-end: 0;
