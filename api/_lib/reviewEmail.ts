@@ -39,6 +39,13 @@ export const reviewLinkEmail = ({
     : `Here's my review of the site: ${review.doc.screens.length} screens with ${notes} numbered notes on what works, what gets in the way, and what I'd change.`;
   const how =
     "Each screenshot has numbered pins; the notes under it match the numbers. Reply to this email with any questions.";
+  // The first captured screen, so the client sees the work before clicking
+  // through. Plain screenshot: pins and markup live on the page, where they
+  // can sit beside their notes.
+  const lead = review.doc.screens.find((s) => s.image);
+  const preview = lead?.image
+    ? `<p style="margin:0 0 20px"><a href="${escapeHtml(url)}"><img alt="${escapeHtml(lead.title || review.title)}" src="${escapeHtml(lead.image.url)}" style="display:block;width:100%;max-width:560px;height:auto;border:1px solid #e5e5e5;border-radius:6px" width="560"></a></p>`
+    : "";
   const paragraphs = body
     .split(PARAGRAPH_BREAK)
     .map((p) => p.trim())
@@ -47,6 +54,7 @@ export const reviewLinkEmail = ({
     brand,
     content: `<p ${P}>${escapeHtml(greeting)}</p>
 ${paragraphs.map((p) => `<p ${P}>${escapeHtml(p).replace(LINE_BREAK, "<br>")}</p>`).join("")}
+${preview}
 <p ${P}>${escapeHtml(how)}</p>
 ${button(url, "Open the review")}
 <p ${SOFT}><a href="${escapeHtml(url)}" style="color:inherit">${escapeHtml(url)}</a></p>

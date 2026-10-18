@@ -10,9 +10,8 @@
   --sheet-ink-soft: oklch(0.5 0 0);
   --sheet-rule: oklch(0.9 0 0);
   --sheet-tint: oklch(0.965 0 0);
-  --pin-issue: oklch(0.6 0.22 25);
-  --pin-suggestion: oklch(0.62 0.17 245);
-  --pin-praise: oklch(0.65 0.17 155);
+  /* Pins and markup are the site accent — see reviewAccentStyle. */
+  --pin-tint: color-mix(in oklch, var(--review-accent) 30%, #fff);
 }
 
 .review-page__masthead,
@@ -56,7 +55,7 @@
   padding: clamp(calc(var(--spacing) * 7), 6vw, calc(var(--spacing) * 13));
   color: var(--sheet-ink);
   background: var(--sheet);
-  border-top: 12px solid oklch(45.99% 0.28 265.12);
+  border-top: 12px solid var(--review-accent);
   border-radius: calc(var(--spacing) * 2);
 }
 
@@ -67,6 +66,12 @@
 .review-page__sheet .page-content__paragraph,
 .review-page__sheet .page-content__list {
   max-width: 68ch;
+}
+
+.review-page__prose {
+  max-width: 68ch;
+  font-size: var(--text-prose);
+  line-height: var(--leading-prose);
 }
 
 /* The opening paragraph(s): a lede, a step up from the body. */
@@ -91,12 +96,6 @@
 
 .review-page__draft {
   color: oklch(0.65 0.15 70);
-}
-
-.review-page__prose {
-  max-width: 68ch;
-  font-size: var(--text-prose);
-  line-height: var(--leading-prose);
 }
 
 .review-page__list {
@@ -224,20 +223,11 @@
   height: calc(var(--spacing) * 7);
   font-size: var(--text-xs-ui);
   font-weight: 600;
-  color: #fff;
-  background: var(--pin-issue);
-  border: 2px solid #fff;
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--review-accent);
   border-radius: 999px;
   box-shadow: 0 1px 4px oklch(0 0 0 / 35%);
   transform: translate(-50%, -50%);
-}
-
-.review-page__pin--suggestion {
-  background: var(--pin-suggestion);
-}
-
-.review-page__pin--praise {
-  background: var(--pin-praise);
 }
 
 .review-page__notes {
@@ -263,17 +253,42 @@
   height: calc(var(--spacing) * 7);
   font-size: var(--text-xs-ui);
   font-weight: 600;
-  color: #fff;
-  background: var(--pin-issue);
+  font-variant-numeric: tabular-nums;
+  border: 2px solid var(--review-accent);
   border-radius: 999px;
 }
 
-.review-page__note-n--suggestion {
-  background: var(--pin-suggestion);
+/*
+ * One accent, four treatments — on the picture, in the list and in the
+ * legend alike. Kinds differ by fill and ring rather than by hue, so the
+ * review stays in the site's colour and still reads printed in greyscale.
+ */
+.review-page__pin--issue,
+.review-page__note-n--issue,
+.review-page__legend-item--issue::before {
+  color: var(--review-on-accent);
+  background: var(--review-accent);
 }
 
-.review-page__note-n--praise {
-  background: var(--pin-praise);
+.review-page__pin--recommendation,
+.review-page__note-n--recommendation,
+.review-page__legend-item--recommendation::before {
+  color: #fff;
+  background: #111;
+}
+
+.review-page__pin--suggestion,
+.review-page__note-n--suggestion,
+.review-page__legend-item--suggestion::before {
+  color: #111;
+  background: #fff;
+}
+
+.review-page__pin--praise,
+.review-page__note-n--praise,
+.review-page__legend-item--praise::before {
+  color: #111;
+  background: var(--pin-tint);
 }
 
 .review-page__note-title {
@@ -304,23 +319,16 @@
   letter-spacing: var(--tracking-micro);
 }
 
-.review-page__legend span::before {
+.review-page__legend-item::before {
+  box-sizing: border-box;
   display: inline-block;
-  width: calc(var(--spacing) * 2.5);
-  height: calc(var(--spacing) * 2.5);
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
   margin-inline-end: calc(var(--spacing) * 2);
   vertical-align: middle;
   content: "";
-  background: var(--pin-issue);
+  border: 2px solid var(--review-accent);
   border-radius: 999px;
-}
-
-.review-page__legend span:nth-child(2)::before {
-  background: var(--pin-suggestion);
-}
-
-.review-page__legend span:nth-child(3)::before {
-  background: var(--pin-praise);
 }
 
 .review-page__notice-title {

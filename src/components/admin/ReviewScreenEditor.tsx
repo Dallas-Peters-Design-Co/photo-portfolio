@@ -1,9 +1,16 @@
 import { Camera, Trash2, Upload } from "lucide-react";
-import { type ChangeEvent, type MouseEvent, useRef, useState } from "react";
+import {
+  type ChangeEvent,
+  type MouseEvent,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
 import type {
-  PinKind,
+  ReviewMark,
   ReviewPin,
   ReviewScreen,
   RichText,
@@ -11,10 +18,12 @@ import type {
 import { PageEditor } from "../../cms/PageEditor";
 import { portfolioService } from "../../services/portfolioService";
 import { reviewsApi } from "../../services/reviewService";
+import { ReviewMarks, reviewPinClass } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
 import { ReviewPinList } from "./ReviewPinList";
 
 /**
@@ -45,8 +54,13 @@ export function ReviewScreenEditor({
   const [isUploading, setIsUploading] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
   const imageRef = useRef<HTMLDivElement>(null);
-  const dragging = useRef<string | null>(null);
+  // A holder object, so the id can change without a re-render.
+  const dragging = useRef<{ id: string | null }>({ id: null });
   const fileInput = useRef<HTMLInputElement>(null);
+  const [tool, setTool] = useState<ReviewTool>("pin");
+  const [draft, setDraft] = useState<ReviewMark | null>(null);
+  const [selectedMark, setSelectedMark] = useState<string | null>(null);
+  const { marks } = screen;
 
   let captureLabel = screen.image ? "Recapture" : "Capture";
   if (isCapturing) {
@@ -100,7 +114,9 @@ export function ReviewScreenEditor({
   };
 
   /** Where on the image, as fractions, a pointer event landed. */
-  const at = (e: MouseEvent): { x: number; y: number } | null => {
+  const at = (
+    e: MouseEvent | PointerEvent
+  ): { x: number; y: number } | null => {
     const box = imageRef.current?.getBoundingClientRect();
     if (!box || box.width === 0) {
       return null;
@@ -112,7 +128,8 @@ export function ReviewScreenEditor({
   };
 
   const addPin = (e: MouseEvent) => {
-    if (dragging.current) {
+    setSelectedMark(null);
+    if (dragging.current.id !== null || tool !== "pin") {
       return;
     }
     const pos = at(e);
@@ -131,14 +148,14 @@ export function ReviewScreenEditor({
   };
 
   const movePin = (e: MouseEvent) => {
-    if (!dragging.current) {
+    const { id } = dragging.current;
+    if (id === null) {
       return;
     }
     const pos = at(e);
     if (!pos) {
       return;
     }
-    const id = dragging.current;
     patch({
       pins: screen.pins.map((p) => (p.id === id ? { ...p, ...pos } : p)),
     });
@@ -155,6 +172,87 @@ export function ReviewScreenEditor({
       setSelected(null);
     }
   };
+
+  // Markup: press to start a mark, drag to shape it, release to keep it.
+  const startMark = (e: PointerEvent<HTMLDivElement>) => {
+    if (tool === "pin" || e.button !== 0) {
+      return;
+    }
+    const pos = at(e);
+    if (!pos) {
+      return;
+    }
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setSelectedMark(null);
+    setDraft({
+      id: newItemId(),
+      kind: tool,
+      points: [
+        [pos.x, pos.y],
+        [pos.x, pos.y],
+      ],
+    });
+  };
+
+  const shapeMark = (e: PointerEvent<HTMLDivElement>) => {
+    const pos = at(e);
+    if (!(draft && pos)) {
+      return;
+    }
+    const point: [number, number] = [pos.x, pos.y];
+    if (draft.kind === "pen") {
+      const last = draft.points.at(-1) ?? point;
+      // Skip sub-pixel jitter so a stroke stays a manageable size.
+      if (Math.hypot(point[0] - last[0], point[1] - last[1]) > 0.002) {
+        setDraft({ ...draft, points: [...draft.points, point] });
+      }
+      return;
+    }
+    setDraft({ ...draft, points: [draft.points[0] ?? point, point] });
+  };
+
+  const finishMark = () => {
+    if (!draft) {
+      return;
+    }
+    const [a, b] = [draft.points[0], draft.points.at(-1)];
+    const span = a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0;
+    // A click without a drag is not a mark.
+    if (span > 0.01 && draft.points.length >= 2) {
+      patch({ marks: [...marks, draft] });
+    }
+    setDraft(null);
+  };
+
+  const deleteMark = () => {
+    if (selectedMark) {
+      patch({ marks: marks.filter((m) => m.id !== selectedMark) });
+      setSelectedMark(null);
+    }
+  };
+
+  // Delete/Backspace removes the selected mark, unless typing in a field.
+  useEffect(() => {
+    if (!selectedMark) {
+      return;
+    }
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const typing =
+        target?.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
+      if (!typing && (e.key === "Delete" || e.key === "Backspace")) {
+        e.preventDefault();
+        onChange({
+          ...screen,
+          marks: screen.marks.filter((m) => m.id !== selectedMark),
+        });
+        setSelectedMark(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onChange, screen, selectedMark]);
 
   return (
     <div className="space-y-4 rounded-md border border-white/10 p-4">
@@ -255,9 +353,15 @@ export function ReviewScreenEditor({
       {screen.image ? (
         <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div>
-            <p className="mb-2 text-[11px] text-white/60 uppercase tracking-[0.16em]">
-              Click the picture to add a note · drag a pin to move it
-            </p>
+            <ReviewMarkupToolbar
+              canDelete={selectedMark !== null}
+              onDelete={deleteMark}
+              onTool={(next) => {
+                setTool(next);
+                setSelectedMark(null);
+              }}
+              tool={tool}
+            />
             {/*
               The picture is a canvas: a click places a pin where it lands,
               which has no keyboard equivalent. The pins themselves are
@@ -267,18 +371,21 @@ export function ReviewScreenEditor({
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: pointer canvas */}
             {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer canvas */}
             <div
-              className="relative cursor-crosshair select-none overflow-hidden rounded-md border border-white/10"
+              className="relative cursor-crosshair touch-none select-none overflow-hidden rounded-md border border-white/10"
               onClick={addPin}
               onMouseLeave={() => {
-                dragging.current = null;
+                dragging.current.id = null;
               }}
               onMouseMove={movePin}
               onMouseUp={() => {
                 // Let the click that ends a drag pass without adding a pin.
                 setTimeout(() => {
-                  dragging.current = null;
+                  dragging.current.id = null;
                 }, 0);
               }}
+              onPointerDown={startMark}
+              onPointerMove={shapeMark}
+              onPointerUp={finishMark}
               ref={imageRef}
             >
               <img
@@ -289,10 +396,18 @@ export function ReviewScreenEditor({
                 src={screen.image.url}
                 width={screen.image.width}
               />
+              <ReviewMarks
+                draft={draft}
+                height={screen.image.height}
+                marks={marks}
+                onSelect={tool === "pin" ? setSelectedMark : undefined}
+                selected={selectedMark}
+                width={screen.image.width}
+              />
               {screen.pins.map((pin, i) => (
                 <button
                   aria-label={`Note ${firstNumber + i}`}
-                  className={`absolute flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-white font-semibold text-[12px] text-white shadow-md ${pinColor(pin.kind)} ${selected === pin.id ? "ring-2 ring-white" : ""}`}
+                  className={`${reviewPinClass(pin.kind)} ${selected === pin.id ? "ring-2 ring-white" : ""}`}
                   key={pin.id}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -300,7 +415,7 @@ export function ReviewScreenEditor({
                   }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                    dragging.current = pin.id;
+                    dragging.current.id = pin.id;
                   }}
                   style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
                   type="button"
@@ -337,13 +452,6 @@ export function ReviewScreenEditor({
     </div>
   );
 }
-
-export const pinColor = (kind: PinKind): string =>
-  ({
-    issue: "bg-red-500",
-    praise: "bg-emerald-500",
-    suggestion: "bg-sky-500",
-  })[kind];
 
 const PARAGRAPH_BREAK = /\n\s*\n/;
 

@@ -21,9 +21,39 @@ export const MAX_REVIEW_TITLE = MAX_PROPOSAL_TITLE;
 
 export type ReviewStatus = "draft" | "published";
 
-/** What a note is: the colour of its pin and how the list reads. */
-export type PinKind = "issue" | "suggestion" | "praise";
-export const PIN_KINDS: PinKind[] = ["issue", "suggestion", "praise"];
+/** What a note is: how its pin is drawn and how the list reads. */
+export type PinKind = "issue" | "recommendation" | "suggestion" | "praise";
+export const PIN_KINDS: PinKind[] = [
+  "issue",
+  "recommendation",
+  "suggestion",
+  "praise",
+];
+
+/** How each kind is named wherever a note is listed. */
+export const PIN_LABELS: Record<PinKind, string> = {
+  issue: "Issue",
+  praise: "Works well",
+  recommendation: "Recommendation",
+  suggestion: "Suggestion",
+};
+
+/**
+ * Markup drawn over a screenshot: a box around something, a tinted
+ * highlight, an arrow from one place to another, or a freehand stroke.
+ *
+ * Points are fractions of the image like pins, so markup stays on what it
+ * marks at any size. Boxes, highlights and arrows hold two points (start
+ * and end); a pen stroke holds as many as were drawn, thinned on save.
+ */
+export type MarkKind = "box" | "highlight" | "arrow" | "pen";
+export const MARK_KINDS: MarkKind[] = ["box", "highlight", "arrow", "pen"];
+
+export interface ReviewMark {
+  id: string;
+  kind: MarkKind;
+  points: [number, number][];
+}
 
 export interface ReviewPin {
   body: string;
@@ -46,6 +76,8 @@ export interface ReviewScreen {
   id: string;
   /** Captured or uploaded; null while the screen has no picture yet. */
   image: ReviewImage | null;
+  /** Boxes, highlights, arrows and pen strokes over the picture. */
+  marks: ReviewMark[];
   /** A paragraph under the title, before the numbered notes. */
   note: RichText;
   pins: ReviewPin[];
@@ -76,6 +108,8 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
 export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
 const MAX_SCREENS = 40;
 const MAX_PINS = 60;
+const MAX_MARKS = 80;
+const MAX_PEN_POINTS = 400;
 const MAX_TITLE = 160;
 const MAX_BODY = 4000;
 const MAX_URL = 2048;
@@ -125,12 +159,45 @@ const cleanPin = (v: unknown): ReviewPin => {
   };
 };
 
+const cleanPoint = (v: unknown): [number, number] | null =>
+  Array.isArray(v) && v.length >= 2 ? [fraction(v[0]), fraction(v[1])] : null;
+
+/** A mark from the request or the database, or null when it is unusable. */
+export const cleanMark = (v: unknown): ReviewMark | null => {
+  const raw = (v ?? {}) as Partial<ReviewMark>;
+  if (!MARK_KINDS.includes(raw.kind as MarkKind)) {
+    return null;
+  }
+  const kind = raw.kind as MarkKind;
+  const points = (Array.isArray(raw.points) ? raw.points : [])
+    .map(cleanPoint)
+    .filter((p): p is [number, number] => p !== null);
+  // A long stroke keeps its shape at every other point; past the cap it is
+  // sampled evenly rather than cut off.
+  const kept =
+    kind === "pen"
+      ? points.filter(
+          (_, i) =>
+            points.length <= MAX_PEN_POINTS ||
+            i % Math.ceil(points.length / MAX_PEN_POINTS) === 0
+        )
+      : points.slice(0, 2);
+  if (kept.length < 2) {
+    return null;
+  }
+  return { id: str(raw.id, 64) || newItemId(), kind, points: kept };
+};
+
 const cleanScreen = (v: unknown): ReviewScreen => {
   const raw = (v ?? {}) as Partial<ReviewScreen>;
   const sourceUrl = str(raw.sourceUrl, MAX_URL).trim();
   return {
     id: str(raw.id, 64) || newItemId(),
     image: cleanImage(raw.image),
+    marks: (Array.isArray(raw.marks) ? raw.marks : [])
+      .slice(0, MAX_MARKS)
+      .map(cleanMark)
+      .filter((m): m is ReviewMark => m !== null),
     note: cleanRich(raw.note, MAX_DOC_BYTES / 4),
     pins: (Array.isArray(raw.pins) ? raw.pins : [])
       .slice(0, MAX_PINS)

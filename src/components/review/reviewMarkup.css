@@ -1,0 +1,92 @@
+/*
+ * Review markup and pins, shared by the admin editor and the client page.
+ *
+ * Every colour comes from --review-accent (the site's accent, set on the
+ * review's root by reviewAccentStyle) and --review-on-accent, the ink that
+ * reads on it. Note kinds are told apart by fill and ring, not by hue, so the
+ * whole review stays in one colour and still reads in greyscale.
+ */
+
+.review-markup {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.review-markup--editable .review-markup__mark {
+  pointer-events: visiblePainted;
+  cursor: pointer;
+}
+
+.review-markup__box,
+.review-markup__arrow,
+.review-markup__pen {
+  fill: none;
+  stroke: var(--review-accent);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.review-markup__highlight {
+  mix-blend-mode: multiply;
+  fill: color-mix(in oklch, var(--review-accent) 30%, transparent);
+  stroke: none;
+}
+
+/* A hit area for the box outline, which is otherwise hard to click. */
+.review-markup--editable .review-markup__box {
+  pointer-events: visibleStroke;
+}
+
+.review-markup__head {
+  fill: var(--review-accent);
+}
+
+.review-markup__mark--selected {
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 1px #000);
+}
+
+/* Pins: one accent, four treatments. */
+.review-pin {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  border: 2px solid var(--review-accent);
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+  transform: translate(-50%, -50%);
+}
+
+/* Something wrong: the loudest — solid accent. */
+.review-pin--issue {
+  color: var(--review-on-accent);
+  background: var(--review-accent);
+}
+
+/* What to do about it: dark, ringed in the accent. */
+.review-pin--recommendation {
+  color: #fff;
+  background: #111;
+}
+
+/* Worth considering: white, ringed. */
+.review-pin--suggestion {
+  color: #111;
+  background: #fff;
+}
+
+/* Keep doing this: a quiet tint. */
+.review-pin--praise {
+  color: #111;
+  background: color-mix(in oklch, var(--review-accent) 30%, #fff);
+}

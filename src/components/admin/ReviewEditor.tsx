@@ -15,6 +15,8 @@ import type {
 import { PageEditor } from "../../cms/PageEditor";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
+import { useSiteSettings } from "../../theme/SiteSettingsProvider";
+import { reviewAccentStyle } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
@@ -59,6 +61,8 @@ export function ReviewEditor({
   onSaved: (saved: ReviewRecord) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<ReviewRecord>(review);
+  // Markup and pins are drawn in the site accent, as the client will see them.
+  const { settings } = useSiteSettings();
   const [isSaving, setIsSaving] = useState(false);
   const { kits } = useBrandKits();
 
@@ -105,7 +109,10 @@ export function ReviewEditor({
   const isPublished = draft.status === "published";
 
   return (
-    <Card className="w-full max-w-7xl border-white/10 bg-white/2">
+    <Card
+      className="w-full max-w-7xl border-white/10 bg-white/2"
+      style={reviewAccentStyle(settings.theme.accent)}
+    >
       <CardHeader className="flex flex-row items-center justify-between gap-4">
         <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
           <HugeiconsIcon aria-hidden icon={SearchVisualIcon} size={16} />
@@ -226,6 +233,7 @@ export function ReviewEditor({
                     {
                       id: newItemId(),
                       image: null,
+                      marks: [],
                       note: "",
                       pins: [],
                       sourceUrl: "",

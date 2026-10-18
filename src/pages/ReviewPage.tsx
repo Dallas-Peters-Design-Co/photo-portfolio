@@ -7,8 +7,16 @@ import {
   type TextBlock,
   textToBlocks,
 } from "../../config/proposal.js";
-import type { ReviewScreen } from "../../config/review.js";
+import {
+  PIN_KINDS,
+  PIN_LABELS,
+  type ReviewScreen,
+} from "../../config/review.js";
 import { PageContent } from "../cms/PageContent";
+import {
+  ReviewMarks,
+  reviewAccentStyle,
+} from "../components/review/ReviewMarkup";
 import { type ReviewRecord, reviewsApi } from "../services/reviewService";
 import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
@@ -57,7 +65,10 @@ export function ReviewPage() {
   }, [review, settings.ownerName]);
 
   return (
-    <div className="page review-page">
+    <div
+      className="page review-page"
+      style={reviewAccentStyle(settings.theme.accent)}
+    >
       <header className="page__body review-page__masthead">
         <Link className="review-page__wordmark" to="/">
           <svg
@@ -166,9 +177,14 @@ function ReviewSheet({
           <dt className="label">Notes</dt>
           <dd>
             <span className="review-page__legend">
-              <span>Issue</span>
-              <span>Suggestion</span>
-              <span>Works well</span>
+              {PIN_KINDS.map((kind) => (
+                <span
+                  className={`review-page__legend-item review-page__legend-item--${kind}`}
+                  key={kind}
+                >
+                  {PIN_LABELS[kind]}
+                </span>
+              ))}
             </span>
           </dd>
         </dl>
@@ -186,6 +202,8 @@ function ReviewSheet({
           <Prose text={doc.summary} />
         </section>
       )}
+
+      <Recommendations firstNumbers={firstNumbers} screens={screens} />
 
       {screens.map((screen, i) => (
         <Screen
@@ -245,6 +263,11 @@ function Screen({
             src={image.url}
             width={image.width}
           />
+          <ReviewMarks
+            height={image.height}
+            marks={screen.marks}
+            width={image.width}
+          />
           {screen.pins.map((pin, i) => (
             <span
               className={`review-page__pin review-page__pin--${pin.kind}`}
@@ -283,7 +306,7 @@ function Screen({
 }
 
 const kindLabel = (kind: ReviewScreen["pins"][number]["kind"]): string =>
-  ({ issue: "Issue", praise: "Works well", suggestion: "Suggestion" })[kind];
+  PIN_LABELS[kind];
 
 const hostOf = (url: string): string => {
   try {
@@ -323,3 +346,51 @@ const blockKey = (block: TextBlock, index: number): string =>
   block.kind === "list"
     ? `list-${index}-${block.items[0] ?? ""}`
     : `p-${index}-${block.text.slice(0, 24)}`;
+
+/**
+ * Every recommendation across the review, in one list near the top.
+ *
+ * The notes stay with their screens; this is the "what to do" a client can
+ * act on without reading every screen first. Numbers match the pins.
+ */
+function Recommendations({
+  firstNumbers,
+  screens,
+}: {
+  firstNumbers: number[];
+  screens: ReviewScreen[];
+}) {
+  const items = screens.flatMap((screen, s) =>
+    screen.pins
+      .map((pin, i) => ({ n: (firstNumbers[s] ?? 1) + i, pin, screen }))
+      .filter(({ pin }) => pin.kind === "recommendation")
+  );
+  if (items.length === 0) {
+    return null;
+  }
+  return (
+    <section className="review-page__section">
+      <h2 className="review-page__section-title">Recommendations</h2>
+      <ol className="review-page__notes">
+        {items.map(({ n, pin, screen }) => (
+          <li className="review-page__note" key={pin.id}>
+            <span className="review-page__note-n review-page__note-n--recommendation">
+              {n}
+            </span>
+            <div>
+              <p className="review-page__note-title">
+                {pin.title || "Recommendation"}
+                <span className="review-page__note-kind">
+                  {screen.title || "Screen"}
+                </span>
+              </p>
+              {pin.body ? (
+                <p className="review-page__note-body">{pin.body}</p>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}

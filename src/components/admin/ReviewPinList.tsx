@@ -1,5 +1,9 @@
 import { Trash2 } from "lucide-react";
-import { PIN_KINDS, type ReviewPin } from "../../../config/review.js";
+import {
+  PIN_KINDS,
+  PIN_LABELS,
+  type ReviewPin,
+} from "../../../config/review.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -72,7 +76,7 @@ export function ReviewPinList({
             >
               {PIN_KINDS.map((k) => (
                 <option key={k} value={k}>
-                  {k}
+                  {PIN_LABELS[k]}
                 </option>
               ))}
             </select>
