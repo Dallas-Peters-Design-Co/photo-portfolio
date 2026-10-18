@@ -356,6 +356,13 @@
   border-radius: calc(var(--spacing) * 1);
 }
 
+@media (width < 800px) {
+  .proposal-page__option {
+    grid-template-columns: 1fr;
+    place-content: start;
+  }
+}
+
 .proposal-page__option--suggested {
   color: contrast-color(var(--suggested));
   background: var(--suggested);
