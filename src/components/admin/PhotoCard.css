@@ -11,6 +11,7 @@
   position: relative;
   aspect-ratio: 3 / 4;
   padding: calc(var(--spacing) * 0.5);
+  container-type: inline-size;
   border-radius: var(--radius-lg);
   transition: opacity var(--default-transition-duration) var(--ease-in-out);
 }
@@ -112,18 +113,61 @@
   height: calc(var(--spacing) * 5);
 }
 
-/* The card's own controls, stacked down its right edge. */
+/*
+ * The card's own controls, stacked down its right edge.
+ *
+ * Above the caption: on a small card the stack runs down into it, and with
+ * the two on one layer the caption (later in the markup) took the clicks
+ * meant for the bottom buttons — Delete first.
+ */
 .photo-card__actions {
   position: absolute;
   top: var(--spacing);
   right: calc(var(--spacing) * 0.5);
-  z-index: var(--z-canvas-item);
+  z-index: calc(var(--z-canvas-item) + 1);
   display: flex;
   flex-direction: column;
+  flex-wrap: wrap-reverse;
   gap: calc(var(--spacing) * 0.5);
+  align-content: flex-start;
+  /*
+   * Seven 44px targets are taller than a phone-width card (two columns,
+   * ~180px wide, 240px tall). Rather than run off the bottom, where the frame
+   * clips them, the stack wraps into a second column to its left.
+   */
+  max-height: calc(100% - var(--spacing) - 2px);
 }
 
-/* Over the scrim, with room above it for the gradient to fade through. */
+/*
+ * A phone-width card (two columns, ~180px wide) is too short for seven 44px
+ * targets. Smaller buttons keep them in one column clear of the checkbox; the
+ * wrap above is only the fallback for something narrower still.
+ */
+@container (max-width: 15rem) {
+  .photo-card__actions {
+    gap: 1px;
+  }
+
+  /* Fixed px: --spacing scales with the site's root size, and seven of these
+     must fit a card of a known height. */
+  .photo-card__actions > button {
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
+    min-height: 26px;
+  }
+
+  .photo-card__caption {
+    padding-inline-end: 32px;
+  }
+}
+
+/*
+ * Over the scrim, with room above it for the gradient to fade through.
+ *
+ * Text only, so it lets clicks through to whatever is under it, and it stops
+ * short of the button column so the two never overprint.
+ */
 .photo-card__caption {
   position: absolute;
   right: 0;
@@ -132,6 +176,8 @@
   z-index: var(--z-canvas-item);
   padding: calc(var(--spacing) * 2);
   padding-block-start: calc(var(--spacing) * 6);
+  padding-inline-end: calc(var(--spacing) * 11);
+  pointer-events: none;
 }
 
 /* Two lines at most, then clipped: a title is a label here, not the content. */

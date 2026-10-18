@@ -14,6 +14,7 @@ import type {
 } from "../../../config/review.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { useBrandKits } from "../../hooks/useBrandKits";
+import { downloadReviewPdf } from "../../pages/pagePdf";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useSiteSettings } from "../../theme/SiteSettingsProvider";
 import { reviewAccentStyle } from "../review/ReviewMarkup";
@@ -64,12 +65,15 @@ export function ReviewEditor({
   // Markup and pins are drawn in the site accent, as the client will see them.
   const { settings } = useSiteSettings();
   const [isSaving, setIsSaving] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
   const { kits } = useBrandKits();
 
   const setDoc = (patch: Partial<ReviewDoc>) =>
     setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } }));
 
-  const save = async (overrides: Partial<ReviewRecord> = {}) => {
+  const save = async (
+    overrides: Partial<ReviewRecord> = {}
+  ): Promise<ReviewRecord | null> => {
     setIsSaving(true);
     try {
       const next = { ...draft, ...overrides };
@@ -87,10 +91,30 @@ export function ReviewEditor({
       toast.success(
         saved.status === "published" ? "Published" : "Saved as draft"
       );
+      return saved;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not save review");
+      return null;
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // The server prints the saved page, so save first: the PDF is then exactly
+  // what is on screen here, draft or published.
+  const printPdf = async () => {
+    setIsPrinting(true);
+    try {
+      const saved = await save();
+      if (saved) {
+        await downloadReviewPdf(saved.slug);
+      }
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not make the PDF"
+      );
+    } finally {
+      setIsPrinting(false);
     }
   };
 
@@ -321,6 +345,14 @@ export function ReviewEditor({
           >
             Preview
           </a>
+          <button
+            className="text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
+            disabled={isPrinting || isSaving}
+            onClick={() => void printPdf()}
+            type="button"
+          >
+            {isPrinting ? "Preparing PDF…" : "PDF"}
+          </button>
         </div>
       </CardContent>
     </Card>

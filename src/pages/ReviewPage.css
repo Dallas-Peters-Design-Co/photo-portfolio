@@ -21,9 +21,67 @@
 
 .review-page__masthead {
   display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 4);
   align-items: center;
   justify-content: space-between;
   padding-block-start: calc(var(--spacing) * 10);
+}
+
+.review-page__masthead-end {
+  display: flex;
+  gap: calc(var(--spacing) * 5);
+  align-items: center;
+}
+
+.review-page__pdf-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 1);
+  align-items: flex-end;
+}
+
+/* Quiet until hovered: the review is the subject, not the button. */
+.review-page__pdf {
+  display: inline-flex;
+  align-items: center;
+  min-height: calc(var(--spacing) * 9);
+  padding-inline: calc(var(--spacing) * 5);
+  font: inherit;
+  font-size: var(--text-xs-ui);
+  font-weight: 500;
+  color: var(--foreground);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--review-accent);
+  border-radius: 999px;
+  transition-timing-function: ease-out;
+  transition-duration: 150ms;
+  transition-property: color, background-color;
+}
+
+.review-page__pdf:hover:not(:disabled) {
+  color: var(--review-on-accent);
+  background: var(--review-accent);
+}
+
+.review-page__pdf:focus-visible {
+  outline: 2px solid var(--review-accent);
+  outline-offset: 2px;
+}
+
+.review-page__pdf:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.review-page__pdf-error {
+  max-width: 18rem;
+  font-size: var(--text-xs-ui);
+  color: var(--review-accent);
+  text-align: end;
 }
 
 .review-page__wordmark {
@@ -364,7 +422,64 @@
     border-radius: 0;
   }
 
-  .review-page__section {
+  /* The site's own background (dark on some sites) must not show below the sheet. */
+  html:has(.review-page),
+  body:has(.review-page) {
+    background: #fff;
+  }
+
+  /*
+   * Sections flow across pages; a whole screen is usually taller than a page,
+   * and keeping it in one piece only leaves a blank page in front of it. The
+   * pieces that must not split, or be stranded from what follows, say so.
+   */
+  .review-page__section-title,
+  .review-page__source {
+    break-after: avoid;
+  }
+
+  /* Each screen opens a page, so its heading is never left behind its picture. */
+  .review-page__section--screen {
+    break-before: page;
+  }
+
+  .review-page__note,
+  .review-page__party {
     break-inside: avoid;
   }
+
+  /*
+   * A screenshot is shrunk until it fits a page (about 8.5in tall after the
+   * heading), but never below half the width: a very long full-page capture
+   * would turn to a sliver, and is better split across pages at a readable
+   * size.
+   */
+  .review-page__figure {
+    max-width: max(50%, min(100%, calc(8.5in * var(--shot-ratio, 1))));
+    margin-inline: auto;
+    break-inside: avoid;
+  }
+
+  /* A phone capture sits beside its notes, as on a wide screen. */
+  .review-page__screen--mobile {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+  }
+
+  .review-page__screen--mobile .review-page__figure {
+    max-width: none;
+  }
+}
+
+/*
+ * A named page, so these margins apply to the review only and never leak
+ * into the proposal's edge-to-edge sheet in the same session.
+ */
+.review-page {
+  page: review;
+}
+
+@page review {
+  size: letter;
+  margin: 0.5in;
 }

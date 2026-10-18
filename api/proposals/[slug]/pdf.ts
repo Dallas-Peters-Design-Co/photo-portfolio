@@ -2,9 +2,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../../_lib/auth.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
+import { ADMIN_TOKEN_KEY, allowedPageOrigin } from "../../_lib/pageOrigin.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
 import { renderPagePdf } from "../../_lib/screenshot.js";
-import { getSite } from "../../_lib/site.js";
 
 /**
  * The proposal as a PDF: the public page itself, printed by a real browser.
@@ -15,31 +15,11 @@ import { getSite } from "../../_lib/site.js";
  * only by an admin, whose token is handed to the headless browser so the
  * page resolves there too.
  *
- * The browser needs the page's address. The request says which origin it
- * came from, and that origin is accepted only when it is one the site
- * serves, so this cannot be pointed at anything else.
+ * The browser needs the page's address; see allowedPageOrigin for which
+ * origins it may be.
  */
 
 export const config = { maxDuration: 60 };
-
-const ADMIN_TOKEN_KEY = "cyan_admin_token";
-const LOCAL_ORIGIN = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
-const TRAILING_SLASH = /\/$/;
-
-const allowedOrigin = (raw: unknown): string | null => {
-  if (typeof raw !== "string") {
-    return null;
-  }
-  const origin = raw.replace(TRAILING_SLASH, "");
-  const site = getSite();
-  if (site.origins.includes(origin)) {
-    return origin;
-  }
-  if (!process.env.VERCEL && LOCAL_ORIGIN.test(origin)) {
-    return origin;
-  }
-  return null;
-};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
@@ -56,7 +36,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Missing proposal address" });
   }
   const body = parseJsonBody(req.body);
-  const origin = allowedOrigin(body.origin);
+  const origin = allowedPageOrigin(body.origin);
   if (!origin) {
     return res.status(400).json({ error: "Unknown page origin" });
   }

@@ -1,5 +1,5 @@
 import "./ReviewPage.css";
-import { useEffect, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   isRichTextEmpty,
@@ -21,6 +21,7 @@ import { type ReviewRecord, reviewsApi } from "../services/reviewService";
 import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate } from "./ProposalAcceptance";
+import { ReviewPdfButton } from "./ReviewPdfButton";
 import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 
 /**
@@ -86,7 +87,12 @@ export function ReviewPage() {
           </svg>
           {settings.ownerName}
         </Link>
-        <span className="label label--quiet">Site review</span>
+        <span className="review-page__masthead-end">
+          <span className="label label--quiet">Site review</span>
+          {state === "ready" && review ? (
+            <ReviewPdfButton slug={review.slug} />
+          ) : null}
+        </span>
       </header>
 
       <main className="page__body review-page__main">
@@ -237,8 +243,8 @@ function Screen({
     return null;
   }
   const cls = last
-    ? "review-page__section review-page__section--last"
-    : "review-page__section";
+    ? "review-page__section review-page__section--screen review-page__section--last"
+    : "review-page__section review-page__section--screen";
   const figureCls =
     screen.viewport === "mobile"
       ? "review-page__screen review-page__screen--mobile"
@@ -255,7 +261,14 @@ function Screen({
       ) : null}
       {isRichTextEmpty(screen.note) ? null : <Prose text={screen.note} />}
       <div className={figureCls}>
-        <figure className="review-page__figure">
+        <figure
+          className="review-page__figure"
+          style={
+            {
+              "--shot-ratio": image.width / Math.max(1, image.height),
+            } as CSSProperties
+          }
+        >
           <img
             alt={screen.title}
             className="review-page__image"
