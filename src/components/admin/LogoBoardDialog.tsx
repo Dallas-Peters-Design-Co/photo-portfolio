@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import { LogoColorPicker } from "./LogoColorPicker";
 import "./LogoBoardDialog.css";
 
 /**
@@ -50,7 +51,7 @@ export function LogoBoardDialog({
   const { kits } = useBrandKits();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [colors, setColors] = useState("");
+  const [colors, setColors] = useState<string[]>([]);
   const [brandKitId, setBrandKitId] = useState("");
   const [styles, setStyles] = useState<LogoStyleId[]>(DEFAULT_LOGO_STYLES);
   const [iterations, setIterations] = useState(5);
@@ -163,38 +164,31 @@ export function LogoBoardDialog({
             />
           </label>
 
-          <div className="logo-board-dialog__pair">
-            <label className="logo-board-dialog__field" htmlFor="logo-kit">
-              <span className="admin-label admin-label--quiet">Brand kit</span>
-              <select
-                className="admin-field"
-                id="logo-kit"
-                name="brandKitId"
-                onChange={(e) => setBrandKitId(e.target.value)}
-                value={brandKitId}
-              >
-                <option value="">None</option>
-                {kits.map((kit) => (
-                  <option key={kit.id} value={kit.id}>
-                    {kit.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="logo-board-dialog__field" htmlFor="logo-colors">
-              <span className="admin-label admin-label--quiet">Colours</span>
-              <input
-                className="admin-field"
-                disabled={Boolean(brandKitId)}
-                id="logo-colors"
-                name="colors"
-                onChange={(e) => setColors(e.target.value)}
-                placeholder={
-                  brandKitId ? "From the kit" : "Deep green and cream"
-                }
-                value={brandKitId ? "" : colors}
-              />
-            </label>
+          <label className="logo-board-dialog__field" htmlFor="logo-kit">
+            <span className="admin-label admin-label--quiet">Brand kit</span>
+            <select
+              className="admin-field"
+              id="logo-kit"
+              name="brandKitId"
+              onChange={(e) => setBrandKitId(e.target.value)}
+              value={brandKitId}
+            >
+              <option value="">None — pick colours below</option>
+              {kits.map((kit) => (
+                <option key={kit.id} value={kit.id}>
+                  {kit.name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="logo-board-dialog__field">
+            <span className="admin-label admin-label--quiet">Colours</span>
+            <LogoColorPicker
+              colors={colors}
+              kit={kits.find((kit) => kit.id === brandKitId) ?? null}
+              onChange={setColors}
+            />
           </div>
 
           <fieldset className="logo-board-dialog__styles">

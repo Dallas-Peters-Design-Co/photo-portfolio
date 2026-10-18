@@ -31,8 +31,12 @@ import { LOGO_STYLES, type LogoStyleId } from "./logoStyles";
 export interface LogoBrief {
   /** A brand kit to wire in, for its colours and voice. Optional. */
   brandKitId: string | null;
-  /** Colours in words — "deep green and cream". Ignored when a kit is wired. */
-  colors: string;
+  /**
+   * Hex colours picked for the mark, sent through a Palette node so a model
+   * that takes a real palette gets one. Ignored when a kit is wired — the kit
+   * already says its colours exactly.
+   */
+  colors: string[];
   /** What the business does, who it is for, anything that should show. */
   description: string;
   /** Variations per direction. */
@@ -66,15 +70,19 @@ const PRODUCTION_LINE =
   "a single logo, centred, on a plain white background, no mockup, no extra text beyond the name, crisp edges, suitable for vector tracing";
 
 export const briefPrompt = (brief: LogoBrief): string =>
-  [
-    `Logo for "${brief.name.trim()}"`,
-    brief.description.trim(),
-    // A wired kit says the colours exactly; words here would compete with it.
-    brief.brandKitId ? "" : brief.colors.trim(),
-    PRODUCTION_LINE,
-  ]
+  [`Logo for "${brief.name.trim()}"`, brief.description.trim(), PRODUCTION_LINE]
     .filter(Boolean)
     .join(", ");
+
+const HEX = /^#[0-9a-f]{6}$/i;
+
+/** The picked colours worth sending: valid, distinct, and only without a kit. */
+export const paletteOf = (brief: LogoBrief): string[] =>
+  brief.brandKitId
+    ? []
+    : [...new Set(brief.colors.map((c) => c.toLowerCase()))].filter((c) =>
+        HEX.test(c)
+      );
 
 const clampIterations = (value: number): number =>
   Math.min(Math.max(Math.trunc(value) || 1, 1), MAX_BATCH_COUNT);
@@ -177,6 +185,26 @@ export const buildLogoBoard = (
       }
     : null;
 
+  const colors = paletteOf(brief);
+  const above = brandNode ?? briefNode;
+  const paletteNode: BoardItem | null =
+    colors.length > 0
+      ? {
+          ...BLANK,
+          config: { colors: colors.join(", "), strictness: "only" },
+          height: DEFAULT_NODE_HEIGHT - 160,
+          id: newItemId(),
+          kind: "op",
+          nodeType: "palette",
+          runState: "idle",
+          width: BRIEF_WIDTH,
+          x: 0,
+          y: above.y + above.height + GAP,
+          z: nextZ(),
+        }
+      : null;
+  const lowest = paletteNode ?? above;
+
   const left = BRIEF_WIDTH + GAP * 2;
   const columnX = (index: number) => left + index * (DEFAULT_NODE_WIDTH + GAP);
   const styleOf = (styleId: LogoStyleId) =>
@@ -244,13 +272,14 @@ export const buildLogoBoard = (
     kind: "note",
     width: HOW_TO_WIDTH,
     x: 0,
-    y: (brandNode ?? briefNode).y + (brandNode ?? briefNode).height + GAP,
+    y: lowest.y + lowest.height + GAP,
     z: nextZ(),
   };
 
   const wires: BoardWire[] = directions.flatMap((node) => [
     wire(briefNode, node, "prompt"),
     ...(brandNode ? [wire(brandNode, node, "prompt")] : []),
+    ...(paletteNode ? [wire(paletteNode, node, "prompt")] : []),
   ]);
 
   const items = [
@@ -258,6 +287,7 @@ export const buildLogoBoard = (
     heading,
     briefNode,
     ...(brandNode ? [brandNode] : []),
+    ...(paletteNode ? [paletteNode] : []),
     howTo,
     ...captions,
     ...directions,

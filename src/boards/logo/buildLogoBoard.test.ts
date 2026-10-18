@@ -6,6 +6,7 @@ import {
   LOGO_MODEL,
   type LogoBrief,
   logoBoardTitle,
+  paletteOf,
 } from "./buildLogoBoard";
 
 const UUID =
@@ -13,7 +14,7 @@ const UUID =
 
 const brief = (over: Partial<LogoBrief> = {}): LogoBrief => ({
   brandKitId: null,
-  colors: "deep green and cream",
+  colors: ["#1F4D2B", "#f5efe0"],
   description: "a short-term rental outside Amarillo",
   iterations: 5,
   name: "Back Acres",
@@ -65,12 +66,27 @@ describe("buildLogoBoard", () => {
     expect(wires.filter((w) => w.sourceItemId === brand?.id)).toHaveLength(3);
   });
 
-  it("leaves colours in words out of the brief when a kit supplies them", () => {
-    expect(briefPrompt(brief())).toContain("deep green and cream");
-    expect(briefPrompt(brief({ brandKitId: "kit-1" }))).not.toContain(
-      "deep green"
-    );
+  it("sends picked colours through a Palette node wired into every direction", () => {
+    const { items, wires } = buildLogoBoard(brief());
+    const palette = items.find((item) => item.nodeType === "palette");
+    expect(palette?.config?.colors).toBe("#1f4d2b, #f5efe0");
+    expect(palette?.config?.strictness).toBe("only");
+    expect(wires.filter((w) => w.sourceItemId === palette?.id)).toHaveLength(3);
     expect(briefPrompt(brief())).toContain('"Back Acres"');
+    expect(briefPrompt(brief())).not.toContain("#1f4d2b");
+  });
+
+  it("skips the Palette node with no valid colours, or when a kit supplies them", () => {
+    const none = buildLogoBoard(brief({ colors: ["", "green"] }));
+    expect(none.items.some((item) => item.nodeType === "palette")).toBe(false);
+    const kit = buildLogoBoard(brief({ brandKitId: "kit-1" }));
+    expect(kit.items.some((item) => item.nodeType === "palette")).toBe(false);
+  });
+
+  it("drops duplicate colours", () => {
+    expect(paletteOf(brief({ colors: ["#AABBCC", "#aabbcc"] }))).toEqual([
+      "#aabbcc",
+    ]);
   });
 
   it("only uses node types and config keys the save will keep", () => {

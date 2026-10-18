@@ -24,16 +24,6 @@
   resize: vertical;
 }
 
-.logo-board-dialog__pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: calc(var(--spacing) * 3);
-}
-
-.logo-board-dialog__field .admin-field:disabled {
-  opacity: 0.5;
-}
-
 /* Directions as toggles: which ones the board starts with. */
 .logo-board-dialog__styles {
   display: flex;
@@ -106,8 +96,101 @@
   accent-color: #fff;
 }
 
-@media (width < 30rem) {
-  .logo-board-dialog__pair {
-    grid-template-columns: minmax(0, 1fr);
-  }
+/* The colour row: swatches with their hex under them, then an add button. */
+.logo-colors {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+}
+
+.logo-colors__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.logo-colors__item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  align-items: center;
+}
+
+.logo-colors__swatch {
+  display: grid;
+  place-items: center;
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+  padding: 0;
+  color: color-mix(in oklch, #fff 60%, transparent);
+  cursor: pointer;
+  background: transparent;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, #fff 20%, transparent);
+  border-radius: var(--radius-control);
+}
+
+/* The native control's own inner box, flattened so the colour fills it. */
+.logo-colors__swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.logo-colors__swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-control) - 1px);
+}
+
+.logo-colors__swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-control) - 1px);
+}
+
+.logo-colors__swatch--fixed {
+  cursor: default;
+}
+
+.logo-colors__add {
+  border-style: dashed;
+}
+
+.logo-colors__add:hover {
+  color: #fff;
+  border-color: color-mix(in oklch, #fff 45%, transparent);
+}
+
+.logo-colors__hex {
+  font-size: var(--text-micro-xs);
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklch, #fff 60%, transparent);
+  text-transform: uppercase;
+}
+
+.logo-colors__hex--quiet {
+  color: color-mix(in oklch, #fff 35%, transparent);
+  text-transform: none;
+}
+
+/* Small and in the corner, so it never sits on the colour being judged. */
+.logo-colors__remove {
+  position: absolute;
+  top: calc(var(--spacing) * -1.5);
+  right: calc(var(--spacing) * -1.5);
+  display: grid;
+  place-items: center;
+  width: calc(var(--spacing) * 5);
+  height: calc(var(--spacing) * 5);
+  color: #fff;
+  cursor: pointer;
+  background: #000;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, #fff 30%, transparent);
+  border-radius: var(--radius-pill);
+}
+
+.logo-colors__remove:hover {
+  border-color: #fff;
 }
