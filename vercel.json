@@ -129,6 +129,10 @@
       {
         "protocol": "https",
         "hostname": "fastly.picsum.photos"
+      },
+      {
+        "protocol": "https",
+        "hostname": "i.pinimg.com"
       }
     ],
     "dangerouslyAllowSVG": false

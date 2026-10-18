@@ -37,6 +37,37 @@ const isLocalOrigin = (): boolean =>
   typeof window !== "undefined" &&
   LOCAL_HOSTNAME.test(window.location.hostname);
 
+/**
+ * Hosts the optimizer will fetch from — `images.remotePatterns` in vercel.json,
+ * mirrored here and kept honest by a test.
+ *
+ * Checked before rewriting, because the optimizer answers 400 for any other
+ * host: a picture placed from somewhere new (Pinterest, until it was added)
+ * rendered as a broken image on the deployed site while working locally, where
+ * nothing is optimized. An unlisted host now loads directly instead.
+ */
+export const OPTIMIZER_HOSTS = [
+  "*.public.blob.vercel-storage.com",
+  "images.unsplash.com",
+  "picsum.photos",
+  "fastly.picsum.photos",
+  "i.pinimg.com",
+] as const;
+
+const allowedHost = (src: string): boolean => {
+  let host: string;
+  try {
+    host = new URL(src).hostname;
+  } catch {
+    return false;
+  }
+  return OPTIMIZER_HOSTS.some((pattern) =>
+    pattern.startsWith("*.")
+      ? host.endsWith(pattern.slice(1))
+      : host === pattern
+  );
+};
+
 const isOptimizable = (src: string): boolean => {
   if (import.meta.env.DEV || isLocalOrigin()) {
     return false;
@@ -51,7 +82,7 @@ const isOptimizable = (src: string): boolean => {
   if (SVG_PATH.test(src)) {
     return false;
   }
-  return true;
+  return allowedHost(src);
 };
 
 const optimizedUrl = (src: string, width: number, quality: number): string =>
