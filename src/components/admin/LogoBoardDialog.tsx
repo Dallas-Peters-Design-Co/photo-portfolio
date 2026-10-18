@@ -7,8 +7,11 @@ import {
   logoBoardTitle,
 } from "../../boards/logo/buildLogoBoard";
 import {
+  DEFAULT_LOGO_MODEL,
   DEFAULT_LOGO_STYLES,
+  LOGO_MODELS,
   LOGO_STYLES,
+  type LogoModelId,
   type LogoStyleId,
 } from "../../boards/logo/logoStyles";
 import { useBrandKits } from "../../hooks/useBrandKits";
@@ -55,6 +58,7 @@ export function LogoBoardDialog({
   const [brandKitId, setBrandKitId] = useState("");
   const [styles, setStyles] = useState<LogoStyleId[]>(DEFAULT_LOGO_STYLES);
   const [iterations, setIterations] = useState(5);
+  const [model, setModel] = useState<LogoModelId>(DEFAULT_LOGO_MODEL);
   const [busy, setBusy] = useState(false);
 
   const toggle = (id: LogoStyleId) =>
@@ -79,6 +83,7 @@ export function LogoBoardDialog({
       colors,
       description,
       iterations,
+      model,
       name,
       styles,
     };
@@ -90,6 +95,7 @@ export function LogoBoardDialog({
       posthog.capture("logo_board_created", {
         directions: styles.length,
         iterations,
+        model,
         with_brand_kit: Boolean(brief.brandKitId),
       });
       onCreated(board);
@@ -120,9 +126,9 @@ export function LogoBoardDialog({
             New logo board
           </DialogTitle>
           <DialogDescription className="admin-dialog__body">
-            One Generate node per direction, all reading the same brief. Run
-            them, drag favorites into Picks, then remove the background and
-            vectorize.
+            Your brief runs through an Iterate node, one line per direction,
+            into a single Generate. One Run makes every direction; drag the
+            keepers into Picks.
           </DialogDescription>
         </DialogHeader>
 
@@ -190,6 +196,33 @@ export function LogoBoardDialog({
               onChange={setColors}
             />
           </div>
+
+          <fieldset className="logo-board-dialog__styles">
+            <legend className="admin-label admin-label--quiet">Model</legend>
+            {LOGO_MODELS.map((option) => (
+              <label
+                className={`logo-board-dialog__style ${
+                  model === option.id ? "logo-board-dialog__style--on" : ""
+                }`}
+                htmlFor={`logo-model-${option.id}`}
+                key={option.id}
+              >
+                <input
+                  checked={model === option.id}
+                  className="logo-board-dialog__check"
+                  id={`logo-model-${option.id}`}
+                  name="model"
+                  onChange={() => setModel(option.id)}
+                  type="radio"
+                  value={option.id}
+                />
+                {option.label}
+              </label>
+            ))}
+            <p className="admin-note logo-board-dialog__hint">
+              {LOGO_MODELS.find((option) => option.id === model)?.hint}
+            </p>
+          </fieldset>
 
           <fieldset className="logo-board-dialog__styles">
             <legend className="admin-label admin-label--quiet">

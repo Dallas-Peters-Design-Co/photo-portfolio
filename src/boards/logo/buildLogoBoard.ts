@@ -5,26 +5,35 @@ import {
   DEFAULT_NOTE_HEIGHT,
   DEFAULT_TEXT_HEIGHT,
 } from "../../../config/canvas.js";
+import { DEFAULT_PLACEHOLDER } from "../../../config/nodes/iterate.js";
 import { MAX_BATCH_COUNT } from "../../../config/nodes/limits.js";
 import { OUTPUT_PORT_KEY } from "../../../config/ports.js";
 import type { BoardItem, BoardWire } from "../../types";
 import { newItemId } from "../io/newItemId";
-import { LOGO_STYLES, type LogoStyleId } from "./logoStyles";
+import {
+  DEFAULT_LOGO_MODEL,
+  LOGO_MODELS,
+  LOGO_STYLES,
+  type LogoModelId,
+  type LogoStyleId,
+} from "./logoStyles";
 
 /**
  * A board laid out for designing a logo.
  *
  * Boards already do everything a logo round needs — run a model, show the
  * variations, drag the good ones out, cut the background, trace to vector —
- * so this is not a new tool. It is a starting arrangement: one brief that
- * every direction reads, one Generate node per direction, and an empty frame
- * to collect the picks. After that it is an ordinary board.
+ * so this is not a new tool. It is a starting arrangement, wired:
  *
- * The brief is a Prompt node wired into every Generate rather than text typed
- * on each, so changing the brand's description is one edit, not four. Each
- * Generate keeps its *direction* typed on itself: the run joins the typed text
- * with what is wired in (see jobsFor), so a node says "lettermark" and the
- * brief says what the lettermark is for.
+ *   Brief ───template──▶ Iterate ───prompt──▶ Generate
+ *   Palette ──suffix───▶   (directions,          ▲
+ *                           one per line)   Brand ┘ (prompt)
+ *
+ * The brief is the template, with `{}` where a direction goes. Iterate writes
+ * one prompt per direction and Generate runs each of them `iterations` times,
+ * so the whole round is one Run. Adding a direction is adding a line to the
+ * Iterate node; changing the brief is one edit. After that it is an ordinary
+ * board.
  */
 
 /** What somebody fills in before the board is made. */
@@ -41,24 +50,34 @@ export interface LogoBrief {
   description: string;
   /** Variations per direction. */
   iterations: number;
+  /** Which model the Generate node starts on. See LOGO_MODELS. */
+  model: LogoModelId;
   /** The name the mark is for. */
   name: string;
-  /** One Generate node each, in this order. */
+  /** One line on the Iterate node each, in this order. */
   styles: LogoStyleId[];
 }
 
-/** Pinned rather than left on "auto", so a node says which model it uses. */
-export const LOGO_MODEL = "fal-ai/nano-banana-pro";
+/** Whether a model draws vectors itself, so there is nothing to trace. */
+export const drawsVector = (model: string): boolean =>
+  LOGO_MODELS.some((m) => m.id === model && m.vector);
+
+/** A known logo model, or the default — never a free-typed id. */
+const modelOf = (brief: LogoBrief): LogoModelId =>
+  LOGO_MODELS.find((m) => m.id === brief.model)?.id ?? DEFAULT_LOGO_MODEL;
 
 /** fal's name for a 1:1 picture. A logo is judged square first. */
 const SQUARE = "square_hd";
 
 const GAP = 80;
-const BRIEF_WIDTH = 560;
+const SOURCE_WIDTH = 520;
+const SOURCE_HEIGHT = DEFAULT_NODE_HEIGHT - 140;
+const ITERATE_HEIGHT = DEFAULT_NODE_HEIGHT + 60;
+/** Bigger than a stock node: it holds every variation of every direction. */
+const GENERATE_WIDTH = DEFAULT_NODE_WIDTH + 160;
+const GENERATE_HEIGHT = DEFAULT_NODE_HEIGHT + 200;
 const HEADING_HEIGHT = DEFAULT_TEXT_HEIGHT;
-const PICKS_HEIGHT = DEFAULT_FRAME_HEIGHT;
-const HOW_TO_WIDTH = 520;
-const LABEL_HEIGHT = 64;
+const TOP = HEADING_HEIGHT + 40;
 
 /**
  * Said once, in the brief, so every direction gets it.
@@ -69,10 +88,24 @@ const LABEL_HEIGHT = 64;
 const PRODUCTION_LINE =
   "a single logo, centred, on a plain white background, no mockup, no extra text beyond the name, crisp edges, suitable for vector tracing";
 
+/** The template Iterate fills in: the brief, with a slot for the direction. */
 export const briefPrompt = (brief: LogoBrief): string =>
-  [`Logo for "${brief.name.trim()}"`, brief.description.trim(), PRODUCTION_LINE]
+  [
+    `Logo for "${brief.name.trim()}"`,
+    brief.description.trim(),
+    `style: ${DEFAULT_PLACEHOLDER}`,
+    PRODUCTION_LINE,
+  ]
     .filter(Boolean)
     .join(", ");
+
+/** One direction per line — Iterate's own "split by lines" format. */
+export const directionLines = (styles: readonly LogoStyleId[]): string =>
+  styles
+    .map(
+      (id) => (LOGO_STYLES.find((s) => s.id === id) ?? LOGO_STYLES[0]).prompt
+    )
+    .join("\n");
 
 const HEX = /^#[0-9a-f]{6}$/i;
 
@@ -114,28 +147,58 @@ const wire = (
   targetPort,
 });
 
-/** The steps after generating, on the board where they happen. */
-export const HOW_TO = [
-  "1. Press Run on each direction.",
-  "2. Drag the ones you like into Picks. Edit a direction's prompt and run again to push it further.",
-  "3. Right-click a pick: Remove background, then Vectorize.",
-  "4. Select picks and right-click → Send to board to share them.",
-].join("\n");
+/**
+ * The steps after generating, on the board where they happen. A vector model
+ * already hands back SVG, so the cleanup step is only offered when it applies.
+ */
+export const howTo = (model: string): string =>
+  [
+    "1. Press Run on Generate. Every direction runs at once.",
+    "2. Add, remove or reword lines on Iterate to change the directions.",
+    "3. Drag the ones you like into Picks.",
+    drawsVector(model)
+      ? "4. They're already SVG. Swap the model on Generate to compare others."
+      : "4. Right-click a pick: Remove background, then Vectorize.",
+    "5. Select picks and right-click → Send to a board to share them.",
+  ].join("\n");
 
 export const logoBoardTitle = (brief: LogoBrief): string =>
   `${brief.name.trim() || "Untitled"} — logo`;
 
+interface Box {
+  height: number;
+  width: number;
+  x: number;
+  y: number;
+}
+
+/** One op node, idle, with fresh identity. */
+const opNode = (
+  nodeType: string,
+  config: Record<string, unknown>,
+  box: Box,
+  z: number
+): BoardItem => ({
+  ...BLANK,
+  ...box,
+  config,
+  id: newItemId(),
+  kind: "op",
+  nodeType,
+  runState: "idle",
+  z,
+});
+
 /**
  * The items and wires, with fresh ids, laid out left to right:
  *
- *   [ name / brief / brand ]  [ direction ] [ direction ] …
- *                             [ picks ──────────────────── ]
+ *   [ name / brief / palette / brand / how-to ]  [ iterate ]  [ generate ]
+ *                                                [ picks ─────────────── ]
  */
 export const buildLogoBoard = (
   brief: LogoBrief
 ): { items: BoardItem[]; wires: BoardWire[] } => {
   const styles = brief.styles.length > 0 ? brief.styles : ["minimal" as const];
-  const iterations = clampIterations(brief.iterations);
   let z = 0;
   const nextZ = () => {
     z += 1;
@@ -149,148 +212,110 @@ export const buildLogoBoard = (
     height: HEADING_HEIGHT,
     id: newItemId(),
     kind: "text",
-    width: BRIEF_WIDTH,
+    width: SOURCE_WIDTH,
     x: 0,
     y: 0,
     z: nextZ(),
   };
 
-  const briefNode: BoardItem = {
-    ...BLANK,
-    config: { text: briefPrompt(brief) },
-    height: DEFAULT_NODE_HEIGHT - 120,
-    id: newItemId(),
-    kind: "op",
-    nodeType: "prompt",
-    runState: "idle",
-    width: BRIEF_WIDTH,
-    x: 0,
-    y: HEADING_HEIGHT + GAP / 2,
-    z: nextZ(),
+  // The left column stacks downward; each source sits under the one before.
+  let columnY = TOP;
+  const stacked = (height: number): Box => {
+    const box = { height, width: SOURCE_WIDTH, x: 0, y: columnY };
+    columnY += height + GAP;
+    return box;
   };
 
-  const brandNode: BoardItem | null = brief.brandKitId
-    ? {
-        ...BLANK,
-        config: { brandKitId: brief.brandKitId },
-        height: DEFAULT_NODE_HEIGHT - 120,
-        id: newItemId(),
-        kind: "op",
-        nodeType: "brand",
-        runState: "idle",
-        width: BRIEF_WIDTH,
-        x: 0,
-        y: briefNode.y + briefNode.height + GAP,
-        z: nextZ(),
-      }
-    : null;
+  const briefNode = opNode(
+    "prompt",
+    { text: briefPrompt(brief) },
+    stacked(SOURCE_HEIGHT),
+    nextZ()
+  );
 
   const colors = paletteOf(brief);
-  const above = brandNode ?? briefNode;
-  const paletteNode: BoardItem | null =
+  const paletteNode =
     colors.length > 0
-      ? {
-          ...BLANK,
-          config: { colors: colors.join(", "), strictness: "only" },
-          height: DEFAULT_NODE_HEIGHT - 160,
-          id: newItemId(),
-          kind: "op",
-          nodeType: "palette",
-          runState: "idle",
-          width: BRIEF_WIDTH,
-          x: 0,
-          y: above.y + above.height + GAP,
-          z: nextZ(),
-        }
+      ? opNode(
+          "palette",
+          { colors: colors.join(", "), strictness: "only" },
+          stacked(SOURCE_HEIGHT - 60),
+          nextZ()
+        )
       : null;
-  const lowest = paletteNode ?? above;
 
-  const left = BRIEF_WIDTH + GAP * 2;
-  const columnX = (index: number) => left + index * (DEFAULT_NODE_WIDTH + GAP);
-  const styleOf = (styleId: LogoStyleId) =>
-    LOGO_STYLES.find((s) => s.id === styleId) ?? LOGO_STYLES[0];
+  const brandNode = brief.brandKitId
+    ? opNode(
+        "brand",
+        { brandKitId: brief.brandKitId },
+        stacked(SOURCE_HEIGHT),
+        nextZ()
+      )
+    : null;
 
-  // A node's header names its type, not its purpose, so each direction gets a
-  // caption above it — otherwise four identical "Generate" cards.
-  const captions: BoardItem[] = styles.map((styleId, index) => ({
+  const howToNote: BoardItem = {
     ...BLANK,
-    body: styleOf(styleId).label,
-    fontSize: 28,
-    height: LABEL_HEIGHT,
+    ...stacked(DEFAULT_NOTE_HEIGHT + 100),
+    body: howTo(modelOf(brief)),
     id: newItemId(),
-    kind: "text",
-    width: DEFAULT_NODE_WIDTH,
-    x: columnX(index),
-    y: 0,
+    kind: "note",
     z: nextZ(),
-  }));
+  };
 
-  const directions: BoardItem[] = styles.map((styleId, index) => {
-    const style = styleOf(styleId);
-    return {
-      ...BLANK,
-      config: {
-        count: iterations,
-        model: LOGO_MODEL,
-        outputFormat: "png",
-        prompt: style.prompt,
-        size: SQUARE,
-      },
-      height: DEFAULT_NODE_HEIGHT,
-      id: newItemId(),
-      kind: "op",
-      nodeType: "generate",
-      runState: "idle",
-      width: DEFAULT_NODE_WIDTH,
-      x: columnX(index),
-      y: LABEL_HEIGHT,
-      z: nextZ(),
-    };
-  });
+  const iterateX = SOURCE_WIDTH + GAP * 2;
+  const iterateNode = opNode(
+    "iterate",
+    {
+      placeholder: DEFAULT_PLACEHOLDER,
+      split: "lines",
+      values: directionLines(styles),
+    },
+    { height: ITERATE_HEIGHT, width: DEFAULT_NODE_WIDTH, x: iterateX, y: TOP },
+    nextZ()
+  );
 
-  const rowWidth =
-    directions.length * DEFAULT_NODE_WIDTH + (directions.length - 1) * GAP;
+  const generateX = iterateX + DEFAULT_NODE_WIDTH + GAP * 2;
+  const generateNode = opNode(
+    "generate",
+    {
+      count: clampIterations(brief.iterations),
+      model: modelOf(brief),
+      outputFormat: "png",
+      size: SQUARE,
+    },
+    { height: GENERATE_HEIGHT, width: GENERATE_WIDTH, x: generateX, y: TOP },
+    nextZ()
+  );
 
   const picks: BoardItem = {
     ...BLANK,
     body: "Picks",
-    height: PICKS_HEIGHT,
+    height: DEFAULT_FRAME_HEIGHT,
     id: newItemId(),
     kind: "frame",
-    width: Math.max(rowWidth, DEFAULT_NODE_WIDTH * 2),
-    x: left,
-    y: LABEL_HEIGHT + DEFAULT_NODE_HEIGHT + GAP * 2,
+    width: generateX + GENERATE_WIDTH - iterateX,
+    x: iterateX,
+    y: TOP + GENERATE_HEIGHT + GAP * 2,
     // Under everything, so pictures dropped in sit on top of it.
     z: 0,
   };
 
-  const howTo: BoardItem = {
-    ...BLANK,
-    body: HOW_TO,
-    height: DEFAULT_NOTE_HEIGHT + 80,
-    id: newItemId(),
-    kind: "note",
-    width: HOW_TO_WIDTH,
-    x: 0,
-    y: lowest.y + lowest.height + GAP,
-    z: nextZ(),
-  };
-
-  const wires: BoardWire[] = directions.flatMap((node) => [
-    wire(briefNode, node, "prompt"),
-    ...(brandNode ? [wire(brandNode, node, "prompt")] : []),
-    ...(paletteNode ? [wire(paletteNode, node, "prompt")] : []),
-  ]);
+  const wires: BoardWire[] = [
+    wire(briefNode, iterateNode, "template"),
+    ...(paletteNode ? [wire(paletteNode, iterateNode, "suffix")] : []),
+    wire(iterateNode, generateNode, "prompt"),
+    ...(brandNode ? [wire(brandNode, generateNode, "prompt")] : []),
+  ];
 
   const items = [
     picks,
     heading,
     briefNode,
-    ...(brandNode ? [brandNode] : []),
     ...(paletteNode ? [paletteNode] : []),
-    howTo,
-    ...captions,
-    ...directions,
+    ...(brandNode ? [brandNode] : []),
+    howToNote,
+    iterateNode,
+    generateNode,
   ];
   return { items, wires };
 };

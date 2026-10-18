@@ -1,6 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { MAX_WIRES } from "../../config/canvas.js";
-import { checkWire, type GraphItem, hasCycle } from "../../config/graph.js";
+import {
+  checkWire,
+  type GraphItem,
+  hasCycle,
+  withWire,
+} from "../../config/graph.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { rowToBoardDto } from "../_lib/boardDto.js";
 import {
@@ -285,13 +290,13 @@ function resolveWires(
     (wire) => checkWire(graphItems, [], wire).ok
   );
 
-  // An input holds one value. Later wins, matching what the canvas does when a
-  // new wire is dropped on an occupied port.
-  const byTarget = new Map<string, IncomingWire>();
-  for (const wire of wellFormed) {
-    byTarget.set(`${wire.targetItemId}:${wire.targetPort}`, wire);
-  }
-  const wires = [...byTarget.values()];
+  // The canvas's own rule, via withWire: a single-value input keeps the latest
+  // wire, a many-value input keeps them all. Collapsing every port to one wire
+  // silently dropped a Brand, Palette or second reference on every save.
+  const wires = wellFormed.reduce<IncomingWire[]>(
+    (kept, wire) => withWire(graphItems, kept, wire),
+    []
+  );
 
   if (hasCycle(graphItems, wires)) {
     return { error: "Those connections form a loop, which cannot run." };

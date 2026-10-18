@@ -85,6 +85,12 @@
   clip-path: inset(50%);
 }
 
+/* Under the model pills: why you'd pick the one that's on. */
+.logo-board-dialog__hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .logo-board-dialog__count {
   display: flex;
   gap: calc(var(--spacing) * 3);

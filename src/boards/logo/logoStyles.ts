@@ -1,5 +1,5 @@
 /**
- * The directions a logo board can start with, one Generate node each.
+ * The directions a logo board can start with, one line on its Iterate node each.
  *
  * Each prompt says only what the direction is. What the logo is *for* comes
  * from the brief wired into every node, and the two are joined on the run.
@@ -65,3 +65,47 @@ export const DEFAULT_LOGO_STYLES: LogoStyleId[] = [
   "wordmark",
   "abstract",
 ];
+
+/**
+ * Models worth making a logo with, best first. All of them are rows in the
+ * `models` table already; this only says which to offer and why.
+ *
+ * Nano Banana is last on purpose: a general image model, good at pictures,
+ * poor at marks — muddy shapes and invented lettering.
+ */
+export const LOGO_MODELS = [
+  {
+    hint: "Draws real SVG, so there is nothing to trace. Clean, flat marks.",
+    id: "fal-ai/recraft/v4/pro/text-to-vector",
+    label: "Recraft v4 Pro · Vector",
+    vector: true,
+  },
+  {
+    hint: "Best with type: wordmarks and lettermarks. Uses your exact colours.",
+    id: "fal-ai/ideogram/v3",
+    label: "Ideogram v3",
+    vector: false,
+  },
+  {
+    hint: "Faster, cheaper vector drafts for a first round.",
+    id: "fal-ai/recraft/v4.1/text-to-vector",
+    label: "Recraft v4.1 · Vector",
+    vector: true,
+  },
+  {
+    hint: "Quick typographic drafts.",
+    id: "ideogram/v4/instant",
+    label: "Ideogram v4 Instant",
+    vector: false,
+  },
+  {
+    hint: "General image model. Weak at marks and lettering.",
+    id: "fal-ai/nano-banana-pro",
+    label: "Nano Banana Pro",
+    vector: false,
+  },
+] as const;
+
+export type LogoModelId = (typeof LOGO_MODELS)[number]["id"];
+
+export const DEFAULT_LOGO_MODEL: LogoModelId = LOGO_MODELS[0].id;
