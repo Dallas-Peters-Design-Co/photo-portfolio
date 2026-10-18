@@ -133,3 +133,9 @@
     transform: translateX(350%);
   }
 }
+
+/* A run still going on a board you have left. emerald-400, matching the
+   connected state elsewhere in the admin: colour here means state. */
+.boards-panel__running {
+  color: oklch(84.5% 0.143 164.978);
+}

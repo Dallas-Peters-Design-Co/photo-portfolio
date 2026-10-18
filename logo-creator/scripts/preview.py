@@ -20,7 +20,7 @@ def build_preview(out_dir):
     out_dir = Path(out_dir)
     files = sorted(
         p for p in out_dir.iterdir()
-        if p.suffix.lower() in {".png", ".svg"} and p.name != "preview.html"
+        if p.suffix.lower() in {".png", ".svg"} and p.name != "contact-sheet.png"
     )
     tiles = "\n".join(
         f'<figure class="tile"><img src="{html.escape(p.name)}" alt="" loading="lazy">'

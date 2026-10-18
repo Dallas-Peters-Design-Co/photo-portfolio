@@ -95,6 +95,9 @@ export const briefPrompt = (brief: LogoBrief): string =>
     brief.description.trim(),
     `style: ${DEFAULT_PLACEHOLDER}`,
     PRODUCTION_LINE,
+    // The description is context, not copy: without this, type-capable models
+    // letter it under the mark as a misspelled tagline.
+    `the only words in the logo are "${brief.name.trim()}", no tagline, no slogan, no subtitle`,
   ]
     .filter(Boolean)
     .join(", ");

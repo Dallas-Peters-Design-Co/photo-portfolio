@@ -1,157 +1,115 @@
 ---
 name: logo-creator
-description: Create logos using AI image generation on fal. Discuss style/ratio, generate variations, iterate with user feedback, crop, remove background, and export as SVG. Use when user wants to create a logo, icon, favicon, brand mark, mascot, emblem, or design a logo.
+description: Create logos, brand marks, wordmarks, lettermarks, icons, favicons, emblems or mascots with AI. Use whenever the user wants a logo or mark designed, explored, iterated, or turned into clean SVG — including "make a logo for…", "explore some marks", "rebrand", "app icon", or "favicon".
 ---
 
-# Logo Creator Skill
+# Logo Creator
 
-Create logos through AI image generation with an iterative design process. Every model call goes through fal.ai with one key.
+Design logos the way a designer runs a first round: a tight brief, several distinct directions, a hard cull, then iteration on the few worth keeping. All model calls go through fal with one key.
+
+## Two ways to run this
+
+**1. In the app (preferred when the user is in dallaspeters.com admin):** Boards → **New logo board**. It builds the same pipeline on a board: Brief → Iterate (one direction per line) → Generate, plus Palette/Brand nodes and a Picks frame. Point the user there when they want to judge and rearrange visually; the board is the UI.
+
+**2. From the shell (this skill's scripts):** when there is no app session, or the user wants files on disk. Everything below is this path.
 
 ## Prerequisites
 
-**One API key:** `FAL_API_KEY` (or `FAL_KEY`). The scripts read it from the environment, or from the nearest `.env.development.local` / `.env.local` / `.env` walking up from the current directory, so running from inside the dallaspeters.com repo needs no setup.
+- `FAL_API_KEY` (or `FAL_KEY`). Read from the environment, or from the nearest `.env.development.local` / `.env.local` / `.env` walking up from the current directory, so inside the dallaspeters.com repo it just works.
+- Python 3 standard library for fal calls. Pillow for `crop_logo.py` and `contact_sheet.py`. To view SVG results: `pip install cairosvg`, or `rsvg-convert`, or macOS Quick Look (built in).
+- `<skill_dir>` below is this skill's folder (`logo-creator/` in the repo).
 
-**Models used (all on fal):**
-| Step | Model |
-|------|-------|
-| Generate | `fal-ai/nano-banana-pro` (Gemini 3 Pro Image) |
-| Remove background | `fal-ai/birefnet/v2` |
-| Vectorize to SVG | `fal-ai/recraft/vectorize` |
+## Models — pick deliberately
 
-**Python:** the fal scripts use the standard library only. `crop_logo.py` needs Pillow and numpy (`pip install Pillow numpy`).
+| `--model` | Model | Use for |
+|---|---|---|
+| `recraft` (default) | Recraft v4 Pro · Vector | Marks and symbols. Returns real SVG, so no tracing. |
+| `ideogram` | Ideogram v3 | Anything with lettering: wordmarks, lettermarks, emblems with the name. Honours exact colours. |
+| `recraft-fast` | Recraft v4.1 · Vector | Cheap first-round vector drafts. |
+| `nano` | Nano Banana Pro | Last resort. Weak at marks; invents letters. |
 
-`<skill_dir>` below is this skill's folder (in the dallaspeters.com repo: `logo-creator/`).
+Rule of thumb: run `recraft` for symbol directions and `ideogram` for type directions in the same round, rather than forcing one model to do both.
 
-## File Output Location
+## Output location
 
 ```
-.skill-archive/logo-creator/<yyyy-mm-dd-summaryname>/
+.skill-archive/logo-creator/<yyyy-mm-dd>-<name>/
 ```
-
-**Example:**
-```
-.skill-archive/logo-creator/2026-01-18-opc-logo/
-  logo-01.png … logo-20.png
-  logo-09-v01.png …
-  logo-09-cropped.png
-  logo-09-nobg.png
-  logo-09.svg
-  preview.html
-```
-
-- Current date as `yyyy-mm-dd`, then a short kebab-case name for the project.
-- Keep every variation and iteration in the same folder.
-- `.skill-archive/` is gitignored. Copy the approved final files to wherever the user wants them.
+Gitignored. Copy approved finals wherever the user wants them.
 
 ## Workflow
 
-### Step 1: Discovery & Requirements
+### 1. Brief (one round of questions, then go)
 
-Before generating, ask about:
-1. **Project/Brand name** - What is the logo for?
-2. **Style** - See [references/styles.md](./references/styles.md):
-   pixel art, minimalist/flat, 3D/isometric, hand-drawn, mascot, monogram/lettermark, abstract/geometric
-3. **Aspect ratio** - Default `1:1`. Others: `16:9` (headers), `4:3`, `2:3`, etc.
-4. **Colors** - Monochrome, specific brand colors, or let the model decide
-5. **References** - Existing logos or styles to point at
+Ask only what changes the output, in one message:
+- Name, exactly as it should be spelled.
+- What it's for and who it's for, in a sentence.
+- Colours: hex values, a brand kit, or "you pick".
+- Anything to avoid or include (existing marks, competitors, symbols).
 
-**Wait for user confirmation before generating.**
+Infer the rest. Don't ask about aspect ratio (logos are judged square first) or style (that's what directions are for). If the user already gave enough, skip the questions.
 
-### Step 2: Generate Variations
+Write the brief as one line: `Logo for "<Name>", <what it is / who it's for>, <tone>`.
 
-```bash
-python3 <skill_dir>/scripts/generate.py "{style} logo for {brand}, {description}, {colors}" \
-  -n 20 --ratio 1:1 -d .skill-archive/logo-creator/<date-name> -p logo-
-```
+### 2. Generate: several directions in one go
 
-- Runs in batches of 4, three at a time. 20 logos takes about a minute.
-- Never overwrites: numbering skips past files that already exist.
-- `--resolution 2K` for finals that need more detail (default `1K` is fine for exploring).
-
-**Prompt tips:** style keywords ("pixel art", "flat design"), colors ("black on white"), context ("tech startup"), format ("icon", "emblem", "lettermark"). Ask for a plain white background; it makes background removal cleaner.
-
-### Step 3: Preview
-
-`generate.py` writes `preview.html` in the output folder automatically, listing every PNG and SVG there, with light / dark / transparent backgrounds. Open it:
+Directions come from the app's own list (`src/boards/logo/logoStyles.ts`), so the skill and the logo board stay in step: `minimal`, `lettermark`, `wordmark`, `abstract`, `emblem`, `mascot`, `hand-drawn`, `pixel`.
 
 ```bash
-open .skill-archive/logo-creator/<date-name>/preview.html
+D=.skill-archive/logo-creator/<date>-<name>
+python3 <skill_dir>/scripts/generate.py "<brief>" -d $D --model recraft \
+  --directions minimal,abstract -n 4 --colors "#1f4d2b,#f5efe0"
+python3 <skill_dir>/scripts/generate.py "<brief>" -d $D --model ideogram \
+  --directions lettermark,wordmark -n 4 --colors "#1f4d2b,#f5efe0"
 ```
 
-To rebuild it by hand after adding files: `python3 <skill_dir>/scripts/preview.py <dir>`.
+Files land as `<direction>-NN.svg|png`; nothing is overwritten. Each run rebuilds `preview.html` (for the user) and `contact-sheet.png` (for you).
 
-### Step 4: Iterate
+### 3. Review before showing anything (required)
 
-Ask which numbers they like, what they like about them, and what to change. Then generate more of the favorites:
+Read `contact-sheet.png` yourself. Cut anything that:
+- misspells or mangles the name, or adds letters/words that weren't asked for;
+- is a picture or illustration rather than a mark (scenery, mockups, photos);
+- won't survive at 32px (fine detail, thin strokes, more than ~3 colours);
+- duplicates another candidate closely;
+- uses gradients, shadows or 3D when the brief said flat.
+
+Then show the user **only the survivors** — ideally 4–8 — by filename, each with one line on why it's worth keeping, and open `preview.html` for them (`open $D/preview.html`). Say how many you cut and why in one sentence. Never dump the whole batch unreviewed.
+
+### 4. Iterate on the favourites
+
+Ask which ones and what to push ("bolder", "drop the tree", "tighter kerning"). Fold that into the brief or pick the one direction that worked, and run again with a tag:
 
 ```bash
-python3 <skill_dir>/scripts/generate.py "{refined prompt}" \
-  -n 10 -d .skill-archive/logo-creator/<date-name> -p logo-05-v
+python3 <skill_dir>/scripts/generate.py "<refined brief>" -d $D --model ideogram \
+  --directions lettermark -n 6 --tag v2
 ```
 
-That produces `logo-05-v01.png`, `logo-05-v02.png`, … and refreshes the preview. Repeat until they pick a final.
+Review again (step 3) before showing. Two or three rounds is normal.
 
-### Step 5: Finalize
+### 5. Finalize
 
-```bash
-# 5a. Trim whitespace to a tight square
-python3 <skill_dir>/scripts/crop_logo.py logo-09.png logo-09-cropped.png
+- **Vector models (`recraft*`):** already SVG. Open it and check it has no white background rectangle if the user wants transparency; delete that `<rect>`/`<path>` if present.
+- **Raster models (`ideogram`, `nano`):**
+  ```bash
+  python3 <skill_dir>/scripts/crop_logo.py lettermark-v2-03.png lettermark-v2-03-cropped.png
+  python3 <skill_dir>/scripts/remove_bg.py lettermark-v2-03-cropped.png lettermark-v2-03-nobg.png
+  python3 <skill_dir>/scripts/vectorize.py lettermark-v2-03-cropped.png lettermark-v2-03.svg
+  ```
+- Rebuild the sheet (`python3 <skill_dir>/scripts/contact_sheet.py $D`), check the SVG at small size, and confirm the name is spelled right before calling it done.
 
-# 5b. Remove background (BiRefNet Heavy, 2048px)
-python3 <skill_dir>/scripts/remove_bg.py logo-09-cropped.png logo-09-nobg.png
+### 6. Deliver
 
-# 5c. Vectorize (Recraft; input must be under 5 MB, sides 256–4096px)
-python3 <skill_dir>/scripts/vectorize.py logo-09-cropped.png logo-09.svg
-```
+List the final files (SVG, transparent PNG, cropped PNG), where they are, and copy them where the user asked. If they're working in the app, offer to drop the finals on a board or into a brand kit's logos.
 
-Rebuild the preview afterwards to check the transparent PNG and SVG on dark and checkerboard backgrounds.
+## Prompting notes
 
-### Step 6: Deliver
-
-```
-## Final Logo Assets
-
-| File | Description |
-|------|-------------|
-| logo-09.png | Original |
-| logo-09-cropped.png | No margins, 1:1 |
-| logo-09-nobg.png | Transparent background |
-| logo-09.svg | Vector (scalable) |
-
-Saved to: .skill-archive/logo-creator/<date-name>/
-```
-
-Copy the finals to wherever the user wants them.
-
-## Quick Reference
-
-### Prompt Patterns
-
-**Pixel Art:**
-```
-Pixel art {subject} logo, 8-bit retro style, black pixels on white background, {size}x{size} grid, minimalist icon
-```
-
-**Minimalist:**
-```
-Minimalist {subject} logo, flat design, clean lines, {color} on white, simple geometric shapes
-```
-
-**Mascot:**
-```
-Cute {animal/character} mascot logo, friendly expression, {style} style, {colors}, suitable for brand icon
-```
-
-**Lettermark:**
-```
-Letter "{letter}" logo, modern typography, {style} design, {colors}, clean professional look
-```
-
-### Aspect Ratios
-
-`1:1` (default), `21:9`, `16:9`, `3:2`, `4:3`, `5:4`, `4:5`, `3:4`, `2:3`, `9:16`, `auto`
+- Say what it *is*, not adjectives: "a fox head built from three triangles" beats "clever modern fox logo".
+- Name the exact text and nothing else; extra words invite extra lettering.
+- One idea per mark. If the brief has two symbols, make them separate directions.
+- For lettering, prefer Ideogram and keep the name short in the prompt, in quotes.
 
 ## References
 
-- [references/styles.md](./references/styles.md) - Style guide with prompt examples
-- [examples/opc-logo-creation.md](./examples/opc-logo-creation.md) - Example conversation (from the original opc-skills version; its images aren't included)
+- [references/styles.md](./references/styles.md) — longer style notes and prompt patterns.
+- [examples/opc-logo-creation.md](./examples/opc-logo-creation.md) — example conversation from the original opc-skills version (images not included).

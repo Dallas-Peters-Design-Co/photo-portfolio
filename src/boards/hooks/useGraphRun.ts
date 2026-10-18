@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   descendantsOf,
@@ -14,6 +14,8 @@ import {
   type RunNodeResponse,
 } from "../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../types";
+import { BOARD_RUN, runStore } from "../run/runStore";
+import { useBoardIsRunning } from "../run/useRunStore";
 
 interface UseGraphRunArgs {
   /** Flushes unsaved work first — the server runs the *stored* graph. */
@@ -270,19 +272,37 @@ export function useGraphRun({
   runVideo,
   wires,
 }: UseGraphRunArgs) {
-  const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const abort = useRef<AbortController | null>(null);
-  // Guards re-entry: without it a run whose preparation takes a moment (masks
-  // and composites are rendered in beforeRun) leaves the button showing "Run"
-  // and repeated clicks queue duplicate generations — each a paid request.
-  const runningRef = useRef<boolean>(false);
+  // From the app-wide store, not this editor: a run started here keeps going,
+  // and keeps reporting, after the board is closed. See runStore.
+  const isRunning = useBoardIsRunning(boardId);
 
-  /** Aborts the request in flight and stops the executor starting another. */
-  const cancel = useCallback(() => {
-    abort.current?.abort();
-    abort.current = null;
-  }, []);
+  // Patches go through the store, which hands them to whichever editor has
+  // this board open — this one now, a later one if it is closed and reopened.
+  const onPatchRef = useRef(onPatch);
+  onPatchRef.current = onPatch;
+  useEffect(
+    () =>
+      runStore.attach(boardId, (itemId, patch) =>
+        onPatchRef.current(itemId, patch)
+      ),
+    [boardId]
+  );
+  // Once the board has loaded, catch up on whatever ran while it was closed.
+  const loaded = items.length > 0;
+  useEffect(() => {
+    if (loaded) {
+      runStore.replay(boardId);
+    }
+  }, [boardId, loaded]);
+  const emit = useCallback(
+    (itemId: string, patch: Partial<BoardItem>) =>
+      runStore.patch(boardId, itemId, patch),
+    [boardId]
+  );
+
+  /** Stops everything running on this board. */
+  const cancel = useCallback(() => runStore.cancel(boardId), [boardId]);
 
   /**
    * Runs one node to completion, variation by variation.
@@ -293,22 +313,19 @@ export function useGraphRun({
    * the count comes from the server rather than being recomputed here from
    * settings the server may have clamped.
    *
-   * A failed variation does not stop the rest. These are independent paid
-   * generations, and an upstream model that stumbles on one job should not cost
-   * the other fifteen — a run of a frame full of images is exactly the case
-   * where one stubborn picture used to sink the whole batch. The failures are
-   * counted and reported when the run settles; the node is only marked failed
-   * when every job failed.
+   * A failed variation does not stop the rest — these are independent paid
+   * generations. The failures are counted and reported when the run settles;
+   * the node is only marked failed when every job failed.
    */
   const runOne = useCallback(
     async (itemId: string, force: boolean, signal?: AbortSignal) => {
-      onPatch(itemId, { runError: null, runState: "running" });
+      emit(itemId, { runError: null, runState: "running" });
 
       const { failed, outcome } = await runBatch(
         boardId,
         itemId,
         force,
-        onPatch,
+        emit,
         signal
       );
       reportBatchFailures(failed);
@@ -318,75 +335,60 @@ export function useGraphRun({
         throw new Error(failed[0] ?? "This node could not run");
       }
 
-      onPatch(itemId, {
+      emit(itemId, {
         result: outcome.result,
         runError: outcome.runError,
         runState: outcome.runState,
       });
       return outcome;
     },
-    [boardId, onPatch]
+    [boardId, emit]
   );
 
-  /** A single node, run on its own from the node's own control. */
+  /**
+   * A single node, run on its own from the node's own control.
+   *
+   * Claimed per node, so a second click on the same node is ignored (each
+   * would be a fresh paid generation) while other nodes, and other boards, can
+   * run alongside it.
+   */
   const runNode = useCallback(
     async (itemId: string, force: boolean) => {
-      if (runningRef.current === true) {
+      const controller = runStore.start(boardId, itemId);
+      if (!controller) {
         return;
       }
-      runningRef.current = true;
-      // Running before the preparation below: a node run renders masks and
-      // composites in beforeRun, which can take a moment — the button has to
-      // read as busy immediately, or a click looks like nothing happened and
-      // gets repeated (each repeat being a fresh paid generation).
-      setIsRunning(true);
-      // The node itself has to say so too, and this is the line that was
-      // missing. `setIsRunning` only moves the board's own control; the node's
-      // header reads from `runState`, which nothing touched until `runOne`
-      // below — so for the whole of `beforeRun` the node a person is watching
-      // sat on READY. Measured at five seconds for a board with a single
-      // Halftone node to render and upload, and it grows with every one added.
-      // Five seconds of a node insisting it is ready, immediately after being
-      // told to run, is indistinguishable from a click that did not land.
-      onPatch(itemId, { runError: null, runState: "running" });
-      const controller = new AbortController();
-      abort.current = controller;
+      // Marked running before the preparation below: beforeRun renders masks
+      // and composites and can take seconds, and a node sitting on READY after
+      // being told to run reads as a click that did not land.
+      emit(itemId, { runError: null, runState: "running" });
       try {
         await beforeRun();
         await runOne(itemId, force, controller.signal);
       } catch (e) {
-        // An abort is a choice, not a failure. Marking the node failed would
-        // leave a red error on something the person deliberately stopped.
+        // An abort is a choice, not a failure.
         if (controller.signal.aborted) {
-          onPatch(itemId, { runError: null, runState: "idle" });
+          emit(itemId, { runError: null, runState: "idle" });
         } else {
           const message =
             e instanceof Error ? e.message : "Could not run this node";
-          onPatch(itemId, { runError: message, runState: "failed" });
+          emit(itemId, { runError: message, runState: "failed" });
         }
       } finally {
-        runningRef.current = false;
-        setIsRunning(false);
-        if (abort.current === controller) {
-          abort.current = null;
-        }
+        runStore.finish(boardId, itemId, controller);
       }
     },
-    [beforeRun, onPatch, runOne]
+    [beforeRun, boardId, emit, runOne]
   );
 
   /**
    * Every node on the board, in dependency order.
    *
-   * Sequential rather than parallel across independent branches. Two nodes at
-   * once would halve the wall clock and double the peak spend, and these are
-   * rate-limited third-party services being driven by one person watching the
-   * screen — the wall clock is not the scarce thing.
+   * Sequential rather than parallel across independent branches: two nodes at
+   * once would double the peak spend against rate-limited services. Exclusive
+   * on its board — it is about to walk every node — but not across boards.
    */
   const runBoard = useCallback(async () => {
-    if (runningRef.current === true) {
-      return;
-    }
     setError(null);
     const graphItems = toGraphItems(items);
     const graphWires = toGraphWires(wires);
@@ -397,19 +399,15 @@ export function useGraphRun({
       return;
     }
 
-    // Busy before the preparation, so a board whose run takes a moment to
-    // start does not invite repeated clicks.
-    runningRef.current = true;
-    setIsRunning(true);
-    const controller = new AbortController();
-    abort.current = controller;
+    const controller = runStore.start(boardId, BOARD_RUN);
+    if (!controller) {
+      return;
+    }
 
     try {
       await beforeRun();
     } catch {
-      runningRef.current = false;
-      setIsRunning(false);
-      abort.current = null;
+      runStore.finish(boardId, BOARD_RUN, controller);
       return;
     }
 
@@ -429,20 +427,13 @@ export function useGraphRun({
           doomed,
           graphWires,
           id,
-          // A source node — Prompt, Join, Iterate, Palette — holds a value
-          // rather than producing one, and the run endpoint rightly refuses to
-          // run one. Asking anyway was worse than pointless: the refusal came
-          // back as a failure, which marked a perfectly good Prompt node red
-          // *and* doomed everything it fed, so the one Generate node the board
-          // existed for was skipped without a request ever being sent. The
-          // board says which items can run, so ask it rather than paying a
-          // round trip to be told no. Frames and photographs have no node type
-          // at all, which is the same answer.
+          // Source nodes — Prompt, Join, Iterate, Palette — hold a value rather
+          // than producing one, and asking the endpoint to run one only earns a
+          // refusal that dooms everything downstream. Ask the board instead.
           isRunnable: isRunnableNodeType(byId.get(id)?.nodeType),
-          onPatch,
-          // A Video node takes its own road. Without this the board run sent
-          // it to the image endpoint, which fails after the request has been
-          // made — the one failure this whole split exists to avoid.
+          onPatch: emit,
+          // A Video node takes its own road; the image endpoint would bill for
+          // the refusal.
           runOne: (nodeId) =>
             byId.get(nodeId)?.nodeType === "video" && runVideo
               ? runVideo(nodeId)
@@ -453,11 +444,9 @@ export function useGraphRun({
         }
       }
     } finally {
-      runningRef.current = false;
-      setIsRunning(false);
-      abort.current = null;
+      runStore.finish(boardId, BOARD_RUN, controller);
     }
-  }, [beforeRun, items, onPatch, runOne, runVideo, wires]);
+  }, [beforeRun, boardId, emit, items, runOne, runVideo, wires]);
 
   // ?run=1 in the URL runs the board once, as soon as it has something to
   // run. Here rather than in BoardEditor because this hook already owns

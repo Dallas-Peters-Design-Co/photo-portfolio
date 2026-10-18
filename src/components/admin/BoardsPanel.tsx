@@ -8,6 +8,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useTransition } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { useRunningBoards } from "../../boards/run/useRunStore";
 import posthog from "../../lib/posthog";
 import { boardsApi } from "../../services/portfolioService";
 import type { Board } from "../../types";
@@ -85,6 +86,7 @@ export function BoardsPanel() {
   const [boards, setBoards] = useState<Board[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [logoOpen, setLogoOpen] = useState(false);
+  const running = useRunningBoards();
   /*
    * Which board is being opened.
    *
@@ -308,6 +310,14 @@ export function BoardsPanel() {
                         {isOpening && openingId === board.id
                           ? "Opening…"
                           : `${board.itemCount ?? 0} ${board.itemCount === 1 ? "item" : "items"}`}
+                        {/* A run started on a board keeps going after you
+                            leave it; this is where you can still see that. */}
+                        {running.has(board.id) ? (
+                          <span className="boards-panel__running">
+                            {" "}
+                            · Running…
+                          </span>
+                        ) : null}
                       </p>
                     </div>
                   </motion.button>

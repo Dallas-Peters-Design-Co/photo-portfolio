@@ -85,6 +85,7 @@ describe("buildLogoBoard", () => {
     expect(iterate?.config?.split).toBe("lines");
     expect(briefPrompt(brief())).toContain("{}");
     expect(briefPrompt(brief())).toContain('"Back Acres"');
+    expect(briefPrompt(brief())).toContain("no tagline");
   });
 
   it("sets Generate to the chosen model, square, with the variation count", () => {
