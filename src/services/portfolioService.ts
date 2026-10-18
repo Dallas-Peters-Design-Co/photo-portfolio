@@ -569,6 +569,13 @@ export const portfolioService = {
         ...(data.isFeatured === undefined
           ? {}
           : { isFeatured: data.isFeatured }),
+        // The browser frame. Both were typed on the interface above but never
+        // put in the body, so the toggle and address were collected by the
+        // editor and silently dropped here.
+        ...(data.showChrome === undefined
+          ? {}
+          : { showChrome: data.showChrome }),
+        ...(data.chromeUrl === undefined ? {} : { chromeUrl: data.chromeUrl }),
       }),
       headers: jsonHeaders(),
       method: "PATCH",
