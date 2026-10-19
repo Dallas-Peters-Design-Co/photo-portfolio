@@ -4,7 +4,7 @@ import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
 import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
 import { Plus, X } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
 import type {
@@ -25,25 +25,35 @@ import { Label } from "../ui/label";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
+import { toEditorDoc } from "./reviewEditing";
 
-const PARAGRAPH_BREAK = /\n\s*\n/;
+/** How long typing pauses before the draft saves itself. */
+const AUTOSAVE_MS = 1200;
 
-const toEditorDoc = (value: RichText): unknown => {
-  if (typeof value !== "string") {
-    return value;
-  }
-  return {
-    content: value
-      .split(PARAGRAPH_BREAK)
-      .map((t) => t.trim())
-      .map((text) =>
-        text
-          ? { content: [{ text, type: "text" }], type: "paragraph" }
-          : { type: "paragraph" }
-      ),
-    type: "doc",
-  };
+type SaveState = "saved" | "saving" | "unsaved" | "failed";
+
+const SAVE_LABELS: Record<SaveState, string> = {
+  failed: "Couldn't save — try Save",
+  saved: "All changes saved",
+  saving: "Saving…",
+  unsaved: "Unsaved changes",
 };
+
+/**
+ * What autosave writes: everything but the address and the status. Renaming
+ * the address moves the page, and publishing is a decision, so both wait for
+ * the Save and Publish buttons.
+ */
+const autosaveFields = (r: ReviewRecord) => ({
+  brandKitId: r.brandKitId,
+  clientEmail: r.clientEmail,
+  clientName: r.clientName,
+  doc: r.doc,
+  title: r.title,
+});
+
+const fingerprint = (r: ReviewRecord): string =>
+  JSON.stringify(autosaveFields(r));
 
 const fieldsetTitleClass =
   "text-[11px] uppercase tracking-[0.2em] text-white/70";
@@ -67,9 +77,57 @@ export function ReviewEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const { kits } = useBrandKits();
+  const [saveState, setSaveState] = useState<SaveState>("saved");
+  // What the server last confirmed, and the draft as it is right now, for
+  // the timers and the unmount flush, which outlive the render they start in.
+  const savedPrint = useRef(fingerprint(review));
+  const latest = useRef(draft);
+  latest.current = draft;
 
   const setDoc = (patch: Partial<ReviewDoc>) =>
     setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } }));
+
+  /*
+   * The draft saves itself a moment after each change, so a capture, a pin
+   * or a mark is never only in this tab — and Preview, which opens the saved
+   * review, shows what is on screen here.
+   */
+  const autosave = useCallback(async () => {
+    const { current } = latest;
+    const print = fingerprint(current);
+    if (print === savedPrint.current) {
+      return;
+    }
+    setSaveState("saving");
+    try {
+      await reviewsApi.update(review.slug, autosaveFields(current));
+      savedPrint.current = print;
+      setSaveState(fingerprint(latest.current) === print ? "saved" : "unsaved");
+    } catch {
+      setSaveState("failed");
+    }
+  }, [review.slug]);
+
+  useEffect(() => {
+    if (fingerprint(draft) === savedPrint.current) {
+      return;
+    }
+    setSaveState("unsaved");
+    const timer = window.setTimeout(() => void autosave(), AUTOSAVE_MS);
+    return () => window.clearTimeout(timer);
+  }, [autosave, draft]);
+
+  // Closing the editor mid-pause still keeps the last change.
+  useEffect(
+    () => () => {
+      if (fingerprint(latest.current) !== savedPrint.current) {
+        reviewsApi
+          .update(review.slug, autosaveFields(latest.current))
+          .catch(() => undefined);
+      }
+    },
+    [review.slug]
+  );
 
   const save = async (
     overrides: Partial<ReviewRecord> = {}
@@ -87,6 +145,8 @@ export function ReviewEditor({
         title: next.title,
       });
       setDraft(saved);
+      savedPrint.current = fingerprint(saved);
+      setSaveState("saved");
       await onSaved(saved);
       toast.success(
         saved.status === "published" ? "Published" : "Saved as draft"
@@ -118,8 +178,29 @@ export function ReviewEditor({
     }
   };
 
-  const updateScreen = (id: string, next: ReviewScreen) =>
-    setDoc({ screens: draft.doc.screens.map((s) => (s.id === id ? next : s)) });
+  // Applied to the screen as it is when the change lands, not as it was when
+  // the change began: a capture returns long after it was asked for.
+  const updateScreen = (
+    id: string,
+    update: (prev: ReviewScreen) => ReviewScreen
+  ) =>
+    setDraft((d) => ({
+      ...d,
+      doc: {
+        ...d.doc,
+        screens: d.doc.screens.map((s) => (s.id === id ? update(s) : s)),
+      },
+    }));
+
+  // Preview opens the saved review, so anything not yet saved goes first.
+  const openPreview = async () => {
+    const pending =
+      fingerprint(draft) !== savedPrint.current || draft.slug !== review.slug;
+    const saved = pending ? await save() : draft;
+    if (saved) {
+      window.open(`/review/${saved.slug}`, "_blank", "noopener");
+    }
+  };
 
   // The number the first pin on each screen carries, so numbering runs on
   // across screens the way the page shows it.
@@ -277,7 +358,7 @@ export function ReviewEditor({
             <ReviewScreenEditor
               firstNumber={firstNumbers[i] ?? 1}
               key={screen.id}
-              onChange={(next) => updateScreen(screen.id, next)}
+              onChange={(update) => updateScreen(screen.id, update)}
               onRemove={() =>
                 setDoc({
                   screens: draft.doc.screens.filter((s) => s.id !== screen.id),
@@ -337,14 +418,22 @@ export function ReviewEditor({
           >
             {draft.status}
           </span>
-          <a
-            className="ml-auto text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"
-            href={`/review/${draft.slug}`}
-            rel="noreferrer"
-            target="_blank"
+          <span
+            aria-live="polite"
+            className={`text-[11px] ${
+              saveState === "failed" ? "text-red-300" : "text-white/55"
+            }`}
+          >
+            {SAVE_LABELS[saveState]}
+          </span>
+          <button
+            className="ml-auto text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
+            disabled={isSaving}
+            onClick={() => void openPreview()}
+            type="button"
           >
             Preview
-          </a>
+          </button>
           <button
             className="text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
             disabled={isPrinting || isSaving}

@@ -115,7 +115,10 @@ export function ReviewMarks({
   draft?: ReviewMark | null;
   height: number;
   marks: ReviewMark[];
-  /** When given, marks can be clicked to select them (the editor). */
+  /**
+   * When given, marks can be clicked (the editor's eraser). Each gets a wide
+   * invisible hit area, so a thin pen line is as easy to hit as a box.
+   */
   onSelect?: (id: string) => void;
   selected?: string | null;
   width: number;
@@ -132,6 +135,7 @@ export function ReviewMarks({
       aria-hidden
       className={`review-markup ${onSelect ? "review-markup--editable" : ""}`}
       preserveAspectRatio="none"
+      style={{ "--review-hit": `${stroke * 8}px` } as CSSProperties}
       viewBox={`0 0 ${width} ${height}`}
     >
       <defs>
@@ -161,6 +165,16 @@ export function ReviewMarks({
           }
           onKeyDown={undefined}
         >
+          {onSelect ? (
+            <g className="review-markup__hit">
+              <Shape
+                height={height}
+                mark={mark}
+                stroke={stroke}
+                width={width}
+              />
+            </g>
+          ) : null}
           <Shape height={height} mark={mark} stroke={stroke} width={width} />
         </g>
       ))}

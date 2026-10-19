@@ -17,8 +17,24 @@
 }
 
 .review-markup--editable .review-markup__mark {
-  pointer-events: visiblePainted;
   cursor: pointer;
+}
+
+/*
+ * The eraser's target: a copy of the mark, drawn invisibly and much wider,
+ * that takes the click. A box or highlight is hit anywhere inside it.
+ */
+.review-markup__hit * {
+  pointer-events: all;
+  mix-blend-mode: normal;
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: var(--review-hit);
+  marker-end: none;
+}
+
+.review-markup--editable .review-markup__mark:hover > :last-child {
+  opacity: 0.45;
 }
 
 .review-markup__box,
@@ -34,11 +50,6 @@
   mix-blend-mode: multiply;
   fill: color-mix(in oklch, var(--review-accent) 30%, transparent);
   stroke: none;
-}
-
-/* A hit area for the box outline, which is otherwise hard to click. */
-.review-markup--editable .review-markup__box {
-  pointer-events: visibleStroke;
 }
 
 .review-markup__head {

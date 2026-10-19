@@ -25,15 +25,31 @@ import { Label } from "../ui/label";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
 import { ReviewPinList } from "./ReviewPinList";
+import {
+  imageSize,
+  isActiveScreen,
+  isTyping,
+  toEditorDoc,
+  touchScreen,
+  useMarkupHistory,
+} from "./reviewEditing";
+
+/** A change to a screen, applied to whatever the screen is by then. */
+export type ScreenUpdate = (
+  update: (prev: ReviewScreen) => ReviewScreen
+) => void;
 
 /**
- * One screen of a review: its picture, and the pins on it.
+ * One screen of a review: its picture, and the pins and markup on it.
  *
  * The picture comes from a URL (a real browser screenshots it) or a file.
  * Clicking the picture drops a pin where the click landed, stored as a
  * fraction of the image so it stays put at any size; dragging a pin moves
  * it. The notes themselves are edited in the list beside the picture, in
  * the same order their numbers appear on it.
+ *
+ * Changes go up as functions of the screen rather than finished screens: a
+ * capture takes half a minute, and pins added meanwhile must survive it.
  */
 export function ReviewScreenEditor({
   screen,
@@ -46,7 +62,7 @@ export function ReviewScreenEditor({
   slug: string;
   /** The number the first pin on this screen carries, across the review. */
   firstNumber: number;
-  onChange: (next: ReviewScreen) => void;
+  onChange: ScreenUpdate;
   onRemove: () => void;
 }) {
   const [url, setUrl] = useState(screen.sourceUrl);
@@ -59,8 +75,7 @@ export function ReviewScreenEditor({
   const fileInput = useRef<HTMLInputElement>(null);
   const [tool, setTool] = useState<ReviewTool>("pin");
   const [draft, setDraft] = useState<ReviewMark | null>(null);
-  const [selectedMark, setSelectedMark] = useState<string | null>(null);
-  const { marks } = screen;
+  const { marks, pins } = screen;
 
   let captureLabel = screen.image ? "Recapture" : "Capture";
   if (isCapturing) {
@@ -68,7 +83,42 @@ export function ReviewScreenEditor({
   }
 
   const patch = (next: Partial<ReviewScreen>) =>
-    onChange({ ...screen, ...next });
+    onChange((prev) => ({ ...prev, ...next }));
+
+  // Undo restores what is on the picture and where; a note keeps the words
+  // typed since, because text edits are not steps in this history.
+  const history = useMarkupHistory({ marks, pins }, (markup) =>
+    patch({
+      marks: markup.marks,
+      pins: markup.pins.map((p) => {
+        const now = pins.find((c) => c.id === p.id);
+        return now ? { ...now, x: p.x, y: p.y } : p;
+      }),
+    })
+  );
+
+  // ⌘Z / ⇧⌘Z (Ctrl on Windows) undo the screen last worked on, unless the
+  // cursor is in a text field, which keeps its own undo.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (
+        !(e.metaKey || e.ctrlKey) ||
+        e.key.toLowerCase() !== "z" ||
+        isTyping(e.target) ||
+        !isActiveScreen(screen.id)
+      ) {
+        return;
+      }
+      e.preventDefault();
+      if (e.shiftKey) {
+        history.redo();
+      } else {
+        history.undo();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [history, screen.id]);
 
   const capture = async () => {
     const target = url.trim();
@@ -128,7 +178,6 @@ export function ReviewScreenEditor({
   };
 
   const addPin = (e: MouseEvent) => {
-    setSelectedMark(null);
     if (dragging.current.id !== null || tool !== "pin") {
       return;
     }
@@ -143,7 +192,8 @@ export function ReviewScreenEditor({
       kind: "issue",
       title: "",
     };
-    patch({ pins: [...screen.pins, pin] });
+    history.record();
+    patch({ pins: [...pins, pin] });
     setSelected(pin.id);
   };
 
@@ -156,26 +206,34 @@ export function ReviewScreenEditor({
     if (!pos) {
       return;
     }
-    patch({
-      pins: screen.pins.map((p) => (p.id === id ? { ...p, ...pos } : p)),
-    });
+    patch({ pins: pins.map((p) => (p.id === id ? { ...p, ...pos } : p)) });
   };
 
   const updatePin = (id: string, next: Partial<ReviewPin>) =>
-    patch({
-      pins: screen.pins.map((p) => (p.id === id ? { ...p, ...next } : p)),
-    });
+    patch({ pins: pins.map((p) => (p.id === id ? { ...p, ...next } : p)) });
 
   const removePin = (id: string) => {
-    patch({ pins: screen.pins.filter((p) => p.id !== id) });
+    history.record();
+    patch({ pins: pins.filter((p) => p.id !== id) });
     if (selected === id) {
       setSelected(null);
     }
   };
 
+  const eraseMark = (id: string) => {
+    history.record();
+    patch({ marks: marks.filter((m) => m.id !== id) });
+  };
+
+  const clearMarks = () => {
+    history.record();
+    patch({ marks: [] });
+  };
+
   // Markup: press to start a mark, drag to shape it, release to keep it.
   const startMark = (e: PointerEvent<HTMLDivElement>) => {
-    if (tool === "pin" || e.button !== 0) {
+    touchScreen(screen.id);
+    if (tool === "pin" || tool === "erase" || e.button !== 0) {
       return;
     }
     const pos = at(e);
@@ -183,7 +241,6 @@ export function ReviewScreenEditor({
       return;
     }
     e.currentTarget.setPointerCapture(e.pointerId);
-    setSelectedMark(null);
     setDraft({
       id: newItemId(),
       kind: tool,
@@ -219,40 +276,11 @@ export function ReviewScreenEditor({
     const span = a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0;
     // A click without a drag is not a mark.
     if (span > 0.01 && draft.points.length >= 2) {
+      history.record();
       patch({ marks: [...marks, draft] });
     }
     setDraft(null);
   };
-
-  const deleteMark = () => {
-    if (selectedMark) {
-      patch({ marks: marks.filter((m) => m.id !== selectedMark) });
-      setSelectedMark(null);
-    }
-  };
-
-  // Delete/Backspace removes the selected mark, unless typing in a field.
-  useEffect(() => {
-    if (!selectedMark) {
-      return;
-    }
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const typing =
-        target?.isContentEditable ||
-        ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
-      if (!typing && (e.key === "Delete" || e.key === "Backspace")) {
-        e.preventDefault();
-        onChange({
-          ...screen,
-          marks: screen.marks.filter((m) => m.id !== selectedMark),
-        });
-        setSelectedMark(null);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onChange, screen, selectedMark]);
 
   return (
     <div className="space-y-4 rounded-md border border-white/10 p-4">
@@ -354,12 +382,13 @@ export function ReviewScreenEditor({
         <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
           <div>
             <ReviewMarkupToolbar
-              canDelete={selectedMark !== null}
-              onDelete={deleteMark}
-              onTool={(next) => {
-                setTool(next);
-                setSelectedMark(null);
-              }}
+              canClear={marks.length > 0}
+              canRedo={history.canRedo}
+              canUndo={history.canUndo}
+              onClear={clearMarks}
+              onRedo={history.redo}
+              onTool={setTool}
+              onUndo={history.undo}
               tool={tool}
             />
             {/*
@@ -371,7 +400,10 @@ export function ReviewScreenEditor({
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: pointer canvas */}
             {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer canvas */}
             <div
-              className="relative cursor-crosshair touch-none select-none overflow-hidden rounded-md border border-white/10"
+              className={`relative touch-none select-none overflow-hidden rounded-md border border-white/10 ${
+                tool === "erase" ? "cursor-cell" : "cursor-crosshair"
+              }`}
+              data-review-canvas=""
               onClick={addPin}
               onMouseLeave={() => {
                 dragging.current.id = null;
@@ -400,22 +432,28 @@ export function ReviewScreenEditor({
                 draft={draft}
                 height={screen.image.height}
                 marks={marks}
-                onSelect={tool === "pin" ? setSelectedMark : undefined}
-                selected={selectedMark}
+                onSelect={tool === "erase" ? eraseMark : undefined}
                 width={screen.image.width}
               />
-              {screen.pins.map((pin, i) => (
+              {pins.map((pin, i) => (
                 <button
                   aria-label={`Note ${firstNumber + i}`}
                   className={`${reviewPinClass(pin.kind)} ${selected === pin.id ? "ring-2 ring-white" : ""}`}
                   key={pin.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelected(pin.id);
+                    if (tool === "erase") {
+                      removePin(pin.id);
+                    } else {
+                      setSelected(pin.id);
+                    }
                   }}
                   onMouseDown={(e) => {
                     e.stopPropagation();
-                    dragging.current.id = pin.id;
+                    if (tool !== "erase") {
+                      history.record();
+                      dragging.current.id = pin.id;
+                    }
                   }}
                   style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
                   type="button"
@@ -430,7 +468,7 @@ export function ReviewScreenEditor({
             onRemove={removePin}
             onSelect={setSelected}
             onUpdate={updatePin}
-            pins={screen.pins}
+            pins={pins}
             selected={selected}
           />
         </div>
@@ -452,38 +490,3 @@ export function ReviewScreenEditor({
     </div>
   );
 }
-
-const PARAGRAPH_BREAK = /\n\s*\n/;
-
-const toEditorDoc = (value: RichText): unknown => {
-  if (typeof value !== "string") {
-    return value;
-  }
-  return {
-    content: value
-      .split(PARAGRAPH_BREAK)
-      .map((t) => t.trim())
-      .map((text) =>
-        text
-          ? { content: [{ text, type: "text" }], type: "paragraph" }
-          : { type: "paragraph" }
-      ),
-    type: "doc",
-  };
-};
-
-/** The pixel size of an image file, read in the browser before upload. */
-const imageSize = (file: File): Promise<{ height: number; width: number }> =>
-  new Promise((resolve, reject) => {
-    const src = URL.createObjectURL(file);
-    const img = new Image();
-    img.onload = () => {
-      URL.revokeObjectURL(src);
-      resolve({ height: img.naturalHeight, width: img.naturalWidth });
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(src);
-      reject(new Error("That file is not an image"));
-    };
-    img.src = src;
-  });
