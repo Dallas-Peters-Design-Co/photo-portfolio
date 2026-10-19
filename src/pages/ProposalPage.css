@@ -427,17 +427,17 @@
   margin: 0;
   font-family: var(--font-display, var(--font-sans));
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 800;
   font-variant-numeric: tabular-nums lining-nums;
   line-height: 1.15;
-  letter-spacing: -0.015em;
+  letter-spacing: var(--tracking-tighter);
   white-space: nowrap;
 }
 
 .proposal-page__option-fee-note {
   margin-block-start: 0.3rem;
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
+  font-size: 0.9125rem;
   font-weight: 400;
   line-height: 1.35;
   color: var(--sheet-ink-soft);
