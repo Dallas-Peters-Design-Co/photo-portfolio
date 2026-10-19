@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { type ProposalRecord, proposalsApi } from "../services/proposalService";
+import { siteConfig } from "../site";
 import { downloadProposalPdf } from "./proposalPdf";
 
 /**
@@ -106,11 +107,7 @@ export function ProposalAcceptance({
               {chosen ? ` · ${chosen.name}` : ""}
             </span>
           </div>
-          <div>
-            <p className="proposal-page__signed">{ownerName}</p>
-            <span className="label">Signed by the Designer</span>
-            <span className="proposal-page__sig-note">{issued}</span>
-          </div>
+          <DesignerSignature issued={issued} ownerName={ownerName} />
         </div>
         <div className="proposal-page__actions">
           <span className="label proposal-page__accepted">
@@ -169,11 +166,7 @@ export function ProposalAcceptance({
           />
           <span className="label">Signed for {signedFor}</span>
         </div>
-        <div>
-          <p className="proposal-page__signed">{ownerName}</p>
-          <span className="label">Signed by the Designer</span>
-          <span className="proposal-page__sig-note">{issued}</span>
-        </div>
+        <DesignerSignature issued={issued} ownerName={ownerName} />
       </div>
       {error ? <p className="proposal-page__error">{error}</p> : null}
       <div className="proposal-page__actions">
@@ -200,3 +193,43 @@ export const formatDate = (iso: string): string => {
         year: "numeric",
       });
 };
+
+/**
+ * The designer's side of the signatures: the handwritten signature when the
+ * site has one, otherwise the name typed on the line.
+ *
+ * The file is drawn as an image, dark as exported, and inverted to white when
+ * the block's ink is white (--sheet-signature-filter, from the accent). A CSS
+ * mask would take any colour, but Chrome's PDF output draws a faint box
+ * around a masked element.
+ */
+function DesignerSignature({
+  issued,
+  ownerName,
+}: {
+  issued: string;
+  ownerName: string;
+}) {
+  const { signature } = siteConfig;
+  return (
+    <div>
+      {signature ? (
+        <p className="proposal-page__signed proposal-page__signed--hand">
+          <img
+            alt={`Signed by ${ownerName}`}
+            className="proposal-page__signature"
+            height={131}
+            src={signature}
+            width={415}
+          />
+        </p>
+      ) : (
+        <p className="proposal-page__signed">{ownerName}</p>
+      )}
+      <span className="label">
+        {signature ? `${ownerName} · the Designer` : "Signed by the Designer"}
+      </span>
+      <span className="proposal-page__sig-note">{issued}</span>
+    </div>
+  );
+}

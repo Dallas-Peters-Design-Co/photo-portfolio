@@ -54,6 +54,12 @@ export interface SiteConfig {
   shortName: string;
   /** Default for the animated dither backdrop; an admin can override it. */
   showShader: boolean;
+  /**
+   * The owner's handwritten signature, an SVG under public/, drawn on the
+   * designer's line of a proposal. Optional: without one the name is typed.
+   * The file's fill is ignored; it is drawn in the ink of the block it sits on.
+   */
+  signature?: string;
   /** Line under the footer wordmark. */
   tagline: string;
   /** PWA + browser chrome color. */
@@ -112,6 +118,7 @@ export const SITES: Record<SiteKey, SiteConfig> = {
     ownerName: "Dallas",
     shortName: "Dallas Peters",
     showShader: true,
+    signature: "/sites/dallas-images/dp-signature.svg",
     tagline: "Product Designer",
     themeColor: "#000000",
   },
@@ -202,6 +209,7 @@ export const applySiteOverrides = (
     ownerName: text("SITE_OWNER_NAME") ?? base.ownerName,
     shortName: text("SITE_SHORT_NAME") ?? base.shortName,
     showShader: flag("SITE_SHOW_SHADER", base.showShader),
+    signature: base.signature,
     tagline: text("SITE_TAGLINE") ?? base.tagline,
     themeColor: text("SITE_THEME_COLOR") ?? base.themeColor,
   };

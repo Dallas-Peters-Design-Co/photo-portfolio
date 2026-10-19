@@ -612,6 +612,26 @@
   border-block-end: 1px solid var(--sheet-band-rule);
 }
 
+/*
+ * A handwritten signature sits on the line rather than above it, the way ink
+ * does, so it overhangs the rule slightly.
+ */
+.proposal-page__signed--hand {
+  display: flex;
+  align-items: flex-end;
+  min-height: 4.5rem;
+  padding-block-end: 0;
+}
+
+.proposal-page__signature {
+  display: block;
+  width: auto;
+  height: 4.75rem;
+  aspect-ratio: 415 / 131;
+  margin-block-end: -0.6rem;
+  filter: var(--sheet-signature-filter, none);
+}
+
 .proposal-page__sig-note {
   display: block;
   color: var(--sheet-band-soft);

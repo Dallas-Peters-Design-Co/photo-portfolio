@@ -28,6 +28,9 @@ describe("proposal accent", () => {
     const dark = proposalAccentStyle("#1d4ed8") as Record<string, string>;
     expect(bright["--sheet-on-accent"]).toBe("#1b1a17");
     expect(dark["--sheet-on-accent"]).toBe("#ffffff");
+    // The signature follows the ink: as drawn on a bright accent, white on a dark one.
+    expect(bright["--sheet-signature-filter"]).toBe("none");
+    expect(dark["--sheet-signature-filter"]).toBe("invert(1)");
   });
 
   it("falls back when the setting is not a colour", () => {

@@ -57,9 +57,12 @@ export const accentInk = (accent: string): string => {
 
 export const proposalAccentStyle = (accent: string): CSSProperties => {
   const colour = isHexColor(accent) ? accent : FALLBACK;
+  const ink = onAccent(colour);
   return {
     "--sheet-accent": colour,
     "--sheet-accent-ink": accentInk(colour),
-    "--sheet-on-accent": onAccent(colour),
+    "--sheet-on-accent": ink,
+    // A dark signature file, turned white where the block's ink is white.
+    "--sheet-signature-filter": ink === "#ffffff" ? "invert(1)" : "none",
   } as CSSProperties;
 };
