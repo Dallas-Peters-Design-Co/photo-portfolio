@@ -1,78 +1,78 @@
 /*
- * A proposal, read as a numbered agreement on a sheet.
+ * A proposal, read as a document on a sheet of paper.
  *
- * The site is dark; the proposal is a document, so it sits on a light sheet the
- * way an invoice or a contract does inside the apps that send them. The sheet
- * is the one place on the site with its own surface colours, so they are
- * declared once here as sheet tokens rather than scattered as raw values; the
- * shell around it (masthead, footer) stays on the site's own tokens.
+ * The site is dark; the proposal sits on a light sheet the way a letter or a
+ * contract does. Everything on the sheet is ink on paper except the accent,
+ * which is spent in four places only: the rule across the top, the section
+ * numbers, the recommended option's marker, and the Accept button. A palette
+ * in which everything is coloured says nothing.
  *
- * Type: the title and clause headings take the site's display font
- * (`--font-display`, the sans when none is set), body copy the sans at the
- * prose step the CMS pages read at. Nothing
- * below the micro ladder, and nothing from the heading scale used for
- * paragraphs.
+ * Type comes from the site settings: the title, headings, lede and fees take
+ * the display font, everything else the sans. The scale is set here rather
+ * than borrowed from the CMS, because a proposal is read top to bottom like a
+ * letter and needs a clear step between title, heading and text.
+ *
+ * Layout: a narrow rail on the left carries the section numbers; the text runs
+ * in one column at a reading measure, and everything — prose, options,
+ * add-ons, terms — keeps to that column, so the right edge never jumps.
+ *
+ * Colours that depend on the accent (--sheet-accent, --sheet-accent-ink,
+ * --sheet-on-accent) are set on the root by proposalAccentStyle, which works
+ * out the readable versions by arithmetic.
  */
 
 .proposal-page {
-  --sheet: oklch(100% 0 265.12);
-  --sheet-ink: oklch(0.17 0 0);
-  --sheet-ink-soft: oklch(0.5 0 0);
-  --sheet-rule: contrast-color(var(--sheet));
-  --sheet-tint: var(--color-accent);
-  --border-title: solid 4px var(--sheet-ink);
-  --border-signature: 1px solid contrast-color(var(--sheet-tint));
-  --suggested: color-mix(in oklch, var(--sheet-tint), #ffffff 76%);
-  --sheet-intro: color-mix(
-    in oklch increasing hue,
-    var(--sheet-tint) 100%,
-    black 30%
-  );
+  --sheet: #fbfaf7;
+  --sheet-ink: #1b1a17;
+  --sheet-ink-soft: #66635b;
+  --sheet-rule: #e2dfd6;
   /*
-   * Vertical rhythm. Clauses do not sit in a gap; each pads itself by one
-   * --rhythm top and bottom, so two rhythms separate a clause's last line
-   * from the next title, one rhythm sits between a title and its body's
-   * first line, and the dark last clause can run full-bleed with the same
-   * inner spacing.
+   * The signing block's colours: a solid block of the accent, with whichever
+   * ink reads on it (--sheet-on-accent, black or white) for text and lines.
    */
-  --rhythm: clamp(calc(var(--spacing) * 2), 2.5vw, calc(var(--spacing) * 3));
-  --padding-inline: calc(var(--spacing) * 10);
-  --padding: var(--rhythm) var(--padding-inline);
-  --text-gap: var(--spacing);
-  --padding-last: calc(var(--rhythm) * 4.5) var(--padding-inline);
+  --sheet-band-ink: var(--sheet-on-accent);
+  --sheet-band-soft: color-mix(
+    in srgb,
+    var(--sheet-on-accent) 72%,
+    transparent
+  );
+  --sheet-band-rule: color-mix(
+    in srgb,
+    var(--sheet-on-accent) 45%,
+    transparent
+  );
 
-  /* macOS renders text heavier than drawn; the sheet is dark-on-light prose. */
+  --rail: 6rem;
+  --measure: 40rem;
+  --gutter: 2.5rem;
+  --sheet-pad: clamp(1.25rem, 5vw, 4.5rem);
+  --clause-pad: 2.75rem;
+
+  --type-title: clamp(2.25rem, 1.55rem + 2.6vw, 3.5rem);
+  --type-lede: clamp(1.25rem, 1.1rem + 0.55vw, 1.9rem);
+  --type-heading: clamp(1.5rem, 1.3rem + 0.6vw, 2.175rem);
+  --type-body: 1rem;
+  --type-small: 0.875rem;
+  --type-label: 0.875rem;
+  --leading-body: 1.65;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*
- * contrast-color() is new (Safari 18, recent Chrome) and absent in Firefox,
- * where an invalid custom property leaves the rule with no border at all.
- * The resolved values for this sheet, by hand, for those browsers.
- */
-@supports not (color: contrast-color(white)) {
+@media (width < 48rem) {
   .proposal-page {
-    --sheet-rule: oklch(0.17 0 0);
-    --border-signature: 1px solid #fff;
+    --clause-pad: 2rem;
+    --gutter: 0;
   }
 }
 
-@media (width <= 500px) {
-  .proposal-page {
-    --padding-inline: calc(var(--spacing) * 4);
-    --rhythm: clamp(calc(var(--spacing) * 1), 2.5vw, calc(var(--spacing) * 1));
-  }
-}
+/* The shell around the sheet, on the site's own tokens */
 
-/*
- * 75rem (1200px), wider than the 42rem reading measure the CMS pages use: the
- * sheet carries a two-column parties block and fees in a margin, which the
- * narrow column had stacking.
- */
+/* The sheet is as wide as its rail and reading column, and no wider. */
 .proposal-page__masthead,
 .proposal-page__main {
-  max-width: 65rem;
+  max-width: 68rem;
 }
 
 .proposal-page__masthead {
@@ -80,12 +80,6 @@
   align-items: center;
   justify-content: space-between;
   padding-block-start: calc(var(--spacing) * 10);
-}
-
-.proposal-page__wordmark:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 4px;
-  border-radius: 2px;
 }
 
 .proposal-page__wordmark {
@@ -103,6 +97,12 @@
   opacity: 0.8;
 }
 
+.proposal-page__wordmark:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
 .proposal-page__logo {
   width: calc(var(--spacing) * 16);
   height: calc(var(--spacing) * 16);
@@ -118,319 +118,477 @@
   font-weight: 400;
 }
 
+.proposal-page__footer {
+  padding-block: calc(var(--spacing) * 6);
+  text-align: center;
+}
+
 /* The sheet */
 
 .proposal-page__sheet {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 9);
-  overflow: clip;
+  /* The CMS renderer colours itself from --foreground; on paper that is ink. */
+  --foreground: var(--sheet-ink);
 
+  position: relative;
+  overflow: clip;
+  font-family: var(--font-sans);
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
   color: var(--sheet-ink);
   background: var(--sheet);
-}
-.proposal-page__content {
-  position: relative;
-  z-index: 2;
+  border-top: 6px solid var(--sheet-accent);
+  border-radius: 2px;
 }
 
-.proposal__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: var(--overlay);
+.proposal-page__content {
+  position: relative;
 }
 
 .proposal-page__sheet .label {
+  font-size: var(--type-label);
+  line-height: 1.4;
   color: var(--sheet-ink-soft);
+  letter-spacing: 0.12em;
 }
 
-/*
- * The CMS renderer (PageContent) colours itself from --foreground, which is the
- * site's white. Inside the sheet, foreground is the ink, and its paragraphs
- * keep the same measure as the proposal's own.
- */
-.proposal-page__sheet {
-  --foreground: var(--sheet-ink);
-  border-top: 12px solid var(--sheet-tint);
-}
+/* Prose, from the editor or older plain-text proposals */
 
-.proposal-page__sheet .page-content__paragraph,
-.proposal-page__sheet .page-content__list {
-  max-width: 68ch;
+.proposal-page__prose,
+.proposal-page__sheet .page-content__paragraph {
+  max-width: none;
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
   text-wrap: pretty;
 }
 
-.proposal-page__kicker {
-  letter-spacing: var(--tracking-micro-wide);
+.proposal-page__sheet strong,
+.proposal-page__run {
+  font-weight: 600;
+}
+
+/* Lists: a dash in soft ink, hung in the margin so the text keeps its edge */
+
+.proposal-page__list,
+.proposal-page__includes,
+.proposal-page__sheet .page-content__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  max-width: none;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.proposal-page__list > li,
+.proposal-page__includes > li,
+.proposal-page__sheet .page-content__list > li {
+  position: relative;
+  padding-inline-start: 1.25rem;
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.proposal-page__list > li::before,
+.proposal-page__includes > li::before,
+.proposal-page__sheet .page-content__list > li::before {
+  position: absolute;
+  inset-inline-start: 0;
+  color: var(--sheet-ink-soft);
+  content: "–";
+}
+
+.proposal-page__sheet .page-content__list > li p {
+  margin: 0;
+}
+
+/* One gap between the CMS's blocks in a clause, whatever they are. */
+.proposal-page__clause-body .page-content__paragraph + .page-content__paragraph,
+.proposal-page__clause-body .page-content__paragraph + .page-content__list,
+.proposal-page__clause-body .page-content__list + .page-content__paragraph {
+  margin-block-start: 0.75em;
+}
+
+/* Header: kicker, title, the four facts that place the document */
+
+.proposal-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 4.5rem var(--sheet-pad) 0;
+}
+
+.proposal-page__sheet .proposal-page__kicker {
+  color: var(--sheet-accent-ink);
 }
 
 .proposal-page__title {
-  padding-block-start: calc(var(--spacing) * 4);
+  max-width: 22ch;
   font-family: var(--font-display, var(--font-sans));
-  font-size: clamp(1.5rem, 1.544rem + 4.082vw, 3.15rem);
-  font-variation-settings: "wght" 800;
+  font-size: var(--type-title);
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.05em;
+  line-height: 1.04;
+  letter-spacing: -0.025em;
   text-wrap: balance;
-  /*border-block-start: var(--border-title);*/
 }
 
 /*
  * Amber on purpose and not a token: it must read as a warning on the sheet
  * and the shell alike, and only a signed-in admin ever sees it.
  */
-.proposal-page__draft {
-  color: oklch(0.65 0.15 70);
+.proposal-page__sheet .proposal-page__draft {
+  color: oklch(0.6 0.15 70);
 }
 
-.proposal-page__grid .proposal-page__clause .stack {
-  columns: 2 auto;
-  gap: 2rem;
-  display: block;
-}
-/* Clauses */
-
-.proposal-page__clause {
-  display: flex;
-  flex-direction: column;
-  gap: var(--rhythm);
-  padding: var(--padding);
+.proposal-page__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1rem var(--gutter);
+  padding-block: 1.25rem;
+  margin: 1rem 0 0;
+  border-block: 1px solid var(--sheet-rule);
 }
 
-.proposal-page__clause .page-content__paragraph,
-.proposal-page__clause .page-content__list,
-.proposal-page__intro .page-content__paragraph,
-.proposal-page__intro .page-content__list {
-  margin-block-end: 0;
-}
-
-.proposal-page__clause .page-content__list > * + * {
-  margin-block-start: var(--text-gap);
-}
-
-/*
- * Options and add-on rows pad themselves; at the top and bottom of a clause
- * that padding is pulled back so their text sits on the same line a
- * paragraph would.
- */
-.proposal-page__clause > .stack > .proposal-page__option:first-child {
-  margin-block-start: calc(var(--spacing) * -2);
-}
-
-.proposal-page__clause > .stack > .proposal-page__option:last-child {
-  margin-block-end: calc(var(--spacing) * -2);
-}
-
-.proposal-page__addon:first-child {
-  padding-block-start: 0;
-}
-
-.proposal-page__addon:last-child {
-  padding-block-end: 0;
-}
-
-.proposal-page__header {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 3);
-  padding: var(--padding);
-  padding-block-start: calc(var(--rhythm) * 5);
-}
-
-.proposal-page__clause--last {
-  padding: var(--padding-last);
-  margin-block-start: calc(var(--spacing) * 8);
-  color: contrast-color(var(--sheet-tint));
-  background-color: var(--sheet-tint);
-  border-block-end: 0;
-
-  .label {
-    color: contrast-color(var(--sheet-tint));
-  }
-}
-
-.proposal-page__clause-title {
-  position: relative;
-  padding-inline-start: var(--spacing);
-  margin-inline-start: calc(var(--spacing) * -2);
-  font-family: var(--font-display, var(--font-sans));
-  font-size: 1.8rem;
-  font-variation-settings: "wght" 700;
-  font-weight: 700;
-  line-height: 1.1;
-  letter-spacing: -0.04em;
-  text-wrap: balance;
-  border-inline-start: 8px solid var(--sheet-tint);
-}
-
-.proposal-page__prose {
-  max-width: 68ch;
-  font-size: var(--text-prose);
-  line-height: var(--leading-prose);
-  text-wrap: pretty;
-}
-
-/* The opening paragraphs, a lede: a step up from the body. */
-.proposal-page__intro {
-  padding: var(--padding);
-
-  & .page-content__paragraph {
-    font-weight: 700;
-    color: var(--sheet-intro);
-  }
-}
-
-.proposal-page__intro .page-content__paragraph,
-.proposal-page__intro .proposal-page__prose {
-  font-size: 1.225rem;
+.proposal-page__meta dd {
+  margin: 0.25rem 0 0;
+  font-size: var(--type-small);
   line-height: 1.4;
 }
 
-.proposal-page__intro .page-content__paragraph + .page-content__paragraph,
-.proposal-page__intro .proposal-page__prose + .proposal-page__prose {
-  margin-block-start: calc(var(--text-gap) * 2);
+/* The opening line: a lede in the display face, in ink, not shouting. */
+.proposal-page__intro {
+  max-width: calc(var(--rail) + var(--gutter) + var(--measure));
+  padding: 2.5rem var(--sheet-pad) 0.5rem;
 }
 
-.proposal-page__run {
-  font-weight: 600;
+.proposal-page__sheet .proposal-page__intro .page-content__paragraph,
+.proposal-page__sheet .proposal-page__intro .proposal-page__prose {
+  max-width: none;
+  margin: 0;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: var(--type-lede);
+  font-weight: 400;
+  line-height: 1.38;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
 }
 
-.proposal-page__list {
+.proposal-page__sheet .proposal-page__intro .page-content__paragraph {
+  font-weight: 700;
+}
+
+.proposal-page__sheet
+  .proposal-page__intro
+  .page-content__paragraph
+  + .page-content__paragraph,
+.proposal-page__sheet
+  .proposal-page__intro
+  .proposal-page__prose
+  + .proposal-page__prose {
+  margin-block-start: 0.75em;
+}
+
+/* Clauses: number in the rail, heading and body in the column */
+
+/* Inset by the sheet's padding, so the rules between clauses stop where the
+   header's do instead of running to the sheet's edge. */
+.proposal-page__clause {
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, var(--measure));
+  column-gap: var(--gutter);
+  padding-block: var(--clause-pad);
+  margin-inline: var(--sheet-pad);
+}
+
+.proposal-page__clause
+  + .proposal-page__clause:not(.proposal-page__clause--last) {
+  border-block-start: 1px solid var(--sheet-rule);
+}
+
+.proposal-page__clause-head {
+  display: contents;
+}
+
+/* The number at the heading's size, on its baseline, in the accent. */
+.proposal-page__clause-n {
+  grid-column: 1;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: var(--type-heading);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1.25;
+  color: var(--sheet-accent-ink);
+  letter-spacing: -0.01em;
+}
+
+.proposal-page__clause-title {
+  grid-column: 2;
+  margin: 0 0 1rem;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: var(--type-heading);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.proposal-page__clause-body {
   display: flex;
   flex-direction: column;
-  gap: var(--text-gap);
-  max-width: 68ch;
-  padding-inline-start: calc(var(--spacing) * 5);
-  font-size: var(--text-prose);
-  line-height: 1.6;
-  text-wrap: pretty;
-  list-style: disc;
+  grid-column: 2;
+  gap: 0.75em;
+  min-width: 0;
 }
 
-.proposal-page__list--small {
-  font-size: var(--text-sm-ui);
-}
+@media (width < 48rem) {
+  .proposal-page__clause {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-/* Options: 2.1, 2.2, 2.3 with the fee in the margin */
+  .proposal-page__clause-head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+  }
 
-.proposal-page__option {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 4);
-  border-radius: calc(var(--spacing) * 1);
-}
+  .proposal-page__clause-n,
+  .proposal-page__clause-title,
+  .proposal-page__clause-body {
+    grid-column: 1;
+  }
 
-@media (width < 800px) {
-  .proposal-page__option {
-    grid-template-columns: 1fr;
-    place-content: start;
+  .proposal-page__clause-n {
+    padding: 0;
   }
 }
 
+/* Options */
+
+.proposal-page__options {
+  display: flex;
+  flex-direction: column;
+  margin-block-start: 0.25rem;
+}
+
+.proposal-page__option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding-block: 1.75rem;
+  border-block-start: 1px solid var(--sheet-rule);
+}
+
+/* The last option needs no rule of its own: the next clause's rule follows. */
+.proposal-page__option:last-child {
+  padding-block-end: 0;
+}
+
+/* The recommended one: a heavier rule in the accent, and a word. */
 .proposal-page__option--suggested {
-  color: contrast-color(var(--suggested));
-  background: var(--suggested);
+  border-block-start: 3px solid var(--sheet-accent);
 }
 
-.proposal-page__option-index {
-  font-size: var(--text-prose);
+.proposal-page__option--suggested + .proposal-page__option {
+  border-block-start-color: var(--sheet-rule);
+}
+
+.proposal-page__option-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.proposal-page__option-name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  align-items: baseline;
+  margin: 0;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.proposal-page__sheet .proposal-page__option-tag {
+  font-family: var(--font-sans);
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  line-height: var(--leading-prose);
-}
-
-.proposal-page__option-facts {
-  font-size: var(--text-sm-ui);
-  color: var(--sheet-ink-soft);
+  color: var(--sheet-accent-ink);
 }
 
 .proposal-page__option-fee {
-  font-size: var(--text-xl);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  line-height: var(--leading-prose);
-  text-align: end;
-  letter-spacing: var(--tracking-tighter);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin: 0;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.5rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums lining-nums;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
   white-space: nowrap;
 }
 
 .proposal-page__option-fee-note {
-  display: block;
-  font-size: var(--text-xs-ui);
+  margin-block-start: 0.3rem;
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
   font-weight: 400;
+  line-height: 1.35;
   color: var(--sheet-ink-soft);
-  letter-spacing: var(--tracking-normal);
+  text-align: end;
+  letter-spacing: 0;
+  white-space: normal;
 }
 
-/* On the tinted card the soft grey would fail; the facts take the card's text colour. */
-.proposal-page__option--suggested .proposal-page__option-facts,
-.proposal-page__option--suggested .proposal-page__option-fee-note {
-  color: inherit;
+.proposal-page__option-for {
+  margin: 0;
+  color: var(--sheet-ink);
 }
 
-@media (max-width: 40rem) {
-  .proposal-page__option {
-    grid-template-columns: calc(var(--spacing) * 9) 1fr;
+.proposal-page__option-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.75rem 1.5rem;
+  margin: 0.25rem 0 0.35rem;
+}
+
+.proposal-page__option-facts dd {
+  margin: 0.2rem 0 0;
+  font-size: var(--type-small);
+  line-height: 1.4;
+}
+
+.proposal-page__includes {
+  font-size: var(--type-small);
+  line-height: 1.55;
+}
+
+@media (width < 30rem) {
+  /* Terms as label-and-value rows: three columns do not fit a phone. */
+  .proposal-page__option-facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.4rem;
+  }
+
+  .proposal-page__option-facts > div {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: baseline;
+  }
+
+  .proposal-page__option-facts dd {
+    margin: 0;
   }
 
   .proposal-page__option-fee {
-    grid-column: 2;
+    align-items: flex-start;
+  }
+
+  .proposal-page__option-fee-note {
     text-align: start;
   }
 }
 
-/* Add-ons */
+/* Add-ons: a short price list */
 
 .proposal-page__addons {
   display: flex;
   flex-direction: column;
+  margin: 0;
 }
 
 .proposal-page__addon {
   display: flex;
-  gap: calc(var(--spacing) * 4);
+  gap: 1.5rem;
+  align-items: baseline;
   justify-content: space-between;
-  padding-block: calc(var(--spacing) * 3);
-  font-size: var(--text-prose);
-  line-height: 1.45;
+  padding-block: 0.9rem;
   border-block-end: 1px solid var(--sheet-rule);
 }
 
+.proposal-page__addon:first-child {
+  border-block-start: 1px solid var(--sheet-rule);
+}
+
 .proposal-page__addon:last-child {
+  padding-block-end: 0;
   border-block-end: 0;
+}
+
+.proposal-page__addon dt {
+  text-wrap: pretty;
 }
 
 .proposal-page__addon dd {
   flex-shrink: 0;
+  margin: 0;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--sheet-ink-soft);
 }
 
-/* Steps as a numbered list with run-in titles */
+/* Steps: numbered in the accent, with run-in titles */
 
 .proposal-page__steps {
   display: flex;
   flex-direction: column;
-  gap: var(--text-gap);
-  padding-inline-start: calc(var(--spacing) * 5);
-  font-size: var(--text-prose);
-  line-height: 1.6;
-  text-wrap: pretty;
-  list-style: decimal;
+  gap: 0.75em;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  counter-reset: step;
 }
 
-/* Acceptance */
+.proposal-page__step {
+  position: relative;
+  padding-inline-start: 2.25rem;
+  text-wrap: pretty;
+  counter-increment: step;
+}
+
+.proposal-page__step::before {
+  position: absolute;
+  inset-inline-start: 0;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.25rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  color: var(--sheet-accent-ink);
+  content: counter(step);
+}
+
+/*
+ * Acceptance: the last clause, as one solid block of the accent running to
+ * the sheet's edges, so the signing block reads as the end of the document.
+ * Full-bleed, so it drops the inset the other clauses use and pads itself.
+ */
+
+.proposal-page__clause--last {
+  padding: 3.5rem var(--sheet-pad) 4rem;
+  margin-block-start: 1.5rem;
+  margin-inline: 0;
+  color: var(--sheet-band-ink);
+  background: var(--sheet-accent);
+
+  & .label,
+  & .proposal-page__clause-n {
+    color: var(--sheet-band-soft);
+  }
+}
 
 .proposal-page__signatures {
   display: grid;
   grid-template-columns: 1fr;
-  gap: calc(var(--spacing) * 8);
-  padding-block-start: calc(var(--spacing) * 6);
-  font-size: var(--text-sm-ui);
+  gap: 2.5rem;
+  padding-block-start: 1.75rem;
+  font-size: var(--type-small);
 }
 
 @media (min-width: 40rem) {
@@ -441,207 +599,176 @@
 
 .proposal-page__signatures .label {
   display: block;
-}
-
-.proposal-page__sig-line {
-  height: calc(var(--spacing) * 9);
-  margin-block-end: calc(var(--spacing) * 2);
-  border-block-end: 1px solid var(--sheet-tint);
+  margin-block-start: 0.5rem;
 }
 
 .proposal-page__signed {
-  min-height: calc(var(--spacing) * 9);
-  padding-block-end: calc(var(--spacing) * 1);
-  margin-block-end: calc(var(--spacing) * 2);
-  font-family: var(--font-sans);
-  font-size: var(--text-xl-ui);
+  min-height: 2.5rem;
+  padding-block-end: 0.35rem;
+  margin: 0 0 0.25rem;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.5rem;
   line-height: 1.2;
-  border-block-end: 1px solid contrast-color(var(--sheet-tint));
+  border-block-end: 1px solid var(--sheet-band-rule);
 }
 
-/*
- * The signature line is the input: same rule under it as the signed state, so
- * the page does not change shape when the name lands.
- */
+.proposal-page__sig-note {
+  display: block;
+  color: var(--sheet-band-soft);
+}
+
+/* The signature line is the input: the same rule as the signed state. */
 .proposal-page__sig-input {
   width: 100%;
-  min-height: calc(var(--spacing) * 9);
+  min-height: 2.5rem;
   padding: 0;
-  font-family: var(--font-sans);
-  font-size: var(--text-xl-ui);
-  color: contrast-color(var(--sheet-tint));
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.5rem;
+  color: var(--sheet-band-ink);
   background: transparent;
   border: 0;
-  border-block-end: var(--border-signature);
+  border-block-end: 1px solid var(--sheet-band-rule);
   border-radius: 0;
 }
 
 .proposal-page__sig-input--quiet {
-  min-height: calc(var(--spacing) * 7);
+  min-height: 2rem;
   font-family: var(--font-sans);
-  font-size: var(--text-sm-ui);
+  font-size: var(--type-small);
 }
 
 .proposal-page__sig-input::placeholder {
   font-family: var(--font-sans);
-  font-size: var(--text-sm-ui);
-  color: contrast-color(var(--sheet-tint));
+  font-size: var(--type-small);
+  color: var(--sheet-band-soft);
 }
 
 .proposal-page__sig-input:focus-visible {
   outline: none;
-  /* The line is the control: on focus it thickens in the text colour,
-     which reads on the dark clause where an ink-coloured line would vanish. */
-  border-block-end-color: currentColor;
-  box-shadow: 0 1px 0 currentColor;
+  border-block-end-color: var(--sheet-band-ink);
+  box-shadow: 0 1px 0 var(--sheet-band-ink);
 }
 
 .proposal-page__choice {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
+  gap: 0.75rem 2rem;
   padding: 0;
-  margin: 0;
-  font-size: var(--text-sm-ui);
+  margin: 0.75rem 0 0;
+  font-size: var(--type-small);
   border: 0;
 }
 
 .proposal-page__choice legend {
-  margin-block-end: calc(var(--spacing) * 2);
+  margin-block-end: 0.75rem;
 }
 
 .proposal-page__choice-item {
   display: inline-flex;
-  gap: calc(var(--spacing) * 2);
+  gap: 0.6rem;
   align-items: center;
-}
-
-.proposal-page__choice-item {
   cursor: pointer;
 }
 
 .proposal-page__choice-item input {
-  width: calc(var(--spacing) * 4);
-  height: calc(var(--spacing) * 4);
+  width: 1.1rem;
+  height: 1.1rem;
   margin: 0;
-  /* currentColor: white on the dark acceptance clause, ink on the sheet. */
-  accent-color: currentColor;
+  accent-color: var(--sheet-on-accent);
   cursor: pointer;
 }
 
 .proposal-page__choice-item input:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--sheet-band-ink);
   outline-offset: 2px;
 }
 
 .proposal-page__accepted {
   align-self: center;
-  color: var(--sheet-tint);
 }
 
 .proposal-page__error {
-  font-size: var(--text-sm-ui);
-  color: oklch(0.55 0.2 25);
-}
-
-.proposal-page__accept:disabled {
-  cursor: default;
-  opacity: 0.8;
-}
-
-.proposal-page__sig-note {
-  display: block;
-  color: contrast-color(var(--sheet-tint));
+  font-size: var(--type-small);
+  font-weight: 600;
+  color: var(--sheet-band-ink);
 }
 
 .proposal-page__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(var(--spacing) * 3);
-  margin-block-start: calc(var(--spacing) * 6);
+  gap: 0.75rem;
+  align-items: center;
+  margin-block-start: 2rem;
 }
 
+.proposal-page__accept,
 .proposal-page__pdf {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: calc(var(--spacing) * 10);
-  padding-inline: calc(var(--spacing) * 6);
+  min-height: 2.75rem;
+  padding-inline: 1.5rem;
   font: inherit;
-  font-size: var(--text-sm-ui);
-  font-weight: 500;
-  color: contrast-color(var(--sheet-tint));
+  font-size: var(--type-small);
+  font-weight: 600;
   cursor: pointer;
-  background: transparent;
-  border: var(--border-signature);
   border-radius: 999px;
   transition-timing-function: ease-out;
   transition-duration: 150ms;
-  transition-property: opacity, scale;
+  transition-property: opacity, background-color, border-color, scale;
 }
 
-.proposal-page__pdf:hover {
-  opacity: 0.85;
-  scale: 1.02;
-}
-
+/* On the accent block the button is the block's own ink, filled. */
 .proposal-page__accept {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  min-height: calc(var(--spacing) * 10);
-  padding-inline: calc(var(--spacing) * 6);
-  font: inherit;
-  font-size: var(--text-sm-ui);
-  font-weight: 500;
-  color: var(--sheet-tint);
-  cursor: pointer;
-  background: contrast-color(var(--sheet-tint));
+  color: var(--sheet-accent);
+  background: var(--sheet-on-accent);
   border: 0;
-  border-radius: 999px;
-  transition-timing-function: ease-out;
-  transition-duration: 150ms;
-  transition-property: opacity, scale;
 }
 
-.proposal-page__accept:hover {
-  opacity: 0.85;
-  scale: 1.02;
+.proposal-page__accept:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.proposal-page__accept:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.proposal-page__pdf {
+  color: var(--sheet-band-ink);
+  background: transparent;
+  border: 1px solid var(--sheet-band-rule);
+}
+
+.proposal-page__pdf:hover:not(:disabled) {
+  border-color: var(--sheet-band-ink);
 }
 
 .proposal-page__accept:active:not(:disabled),
 .proposal-page__pdf:active:not(:disabled) {
-  scale: 0.96;
+  scale: 0.97;
 }
 
 .proposal-page__accept:focus-visible,
 .proposal-page__pdf:focus-visible {
-  outline: 2px solid currentColor;
+  outline: 2px solid var(--sheet-band-ink);
   outline-offset: 3px;
 }
 
-.proposal-page__footer {
-  padding-block: calc(var(--spacing) * 6);
-  text-align: center;
-}
-
 /*
- * Print: the sheet becomes the page. The dark shell, the masthead and the
- * buttons go; the sheet loses its rounded corners and padding to the page
- * margins; clauses avoid breaking across a page where they can.
+ * Print: the sheet becomes the page, edge to edge. The shell and the buttons
+ * go. Every page keeps a top and bottom margin of paper (see the sheet's
+ * box-decoration-break below), so text that runs on from the previous page
+ * never starts at the paper's edge. The accent rule is drawn once, across the
+ * top of the first page; the accent block at the end runs to the page edges.
  */
 @media print {
-  /*
-   * The PDF is the sheet, edge to edge: no page margin, the sheet's own
-   * padding and rhythm as on screen, and white behind it so nothing of the
-   * dark site shows where the last page runs short.
-   */
+  /* Literal: html and body sit outside .proposal-page, where the tokens live. */
   html,
   body,
   .proposal-page {
-    color: var(--sheet-ink);
-    background: var(--sheet);
+    color: #1b1a17;
+    background: #fbfaf7;
   }
 
   .proposal-page__masthead,
@@ -651,71 +778,110 @@
     display: none;
   }
 
+  .proposal-page {
+    --band: 6px;
+    --page-head: 1.25rem;
+    --type-title: 2.75rem;
+    --type-lede: 1.3rem;
+  }
+
   .proposal-page__main {
     max-width: none;
     padding: 0;
   }
 
   /*
-   * The sheet's top rule, on every page: a fixed box repeats at the top of
-   * each printed page, so it replaces the border that only the first page
-   * would get. Clause padding clears it.
+   * The sheet repeats its top and bottom padding on every page it spans
+   * (box-decoration-break: clone), so text that runs on from the previous
+   * page starts clear of the edge, and the page itself needs no margin —
+   * which would print white around the paper and the accent block.
    */
   .proposal-page__sheet {
-    padding: 0;
+    padding-block: 0.6in;
     overflow: visible;
     border-top: 0;
     border-radius: 0;
+    box-decoration-break: clone;
   }
 
-  /*
-   * Print at the desktop rhythm (a Letter page is narrower than the clamp's
-   * midpoint). Each clause carries the band and a heading's line of air at its
-   * top and the rest of the gap at its bottom, so the space between clauses is
-   * unchanged and a clause that starts a page sits well clear of the band.
-   */
-  .proposal-page {
-    --band: 12px;
-    --rhythm: calc(var(--spacing) * 7);
-    /* At least a heading's line of air under the band on every page. */
-    --page-head: 2.5rem;
-  }
-
-  .proposal-page__clause {
-    padding-block: calc(var(--band) + var(--page-head))
-      calc(var(--rhythm) * 2 - var(--band) - var(--page-head));
-  }
-
+  /* The accent rule across the top of the first page. */
   .proposal-page__sheet::before {
-    position: fixed;
+    position: absolute;
     inset: 0 0 auto;
-    z-index: 3;
     height: var(--band);
     content: "";
-    background: var(--sheet-tint);
+    background: var(--sheet-accent);
+  }
+
+  .proposal-page__header {
+    padding-block-start: 0;
   }
 
   /*
-   * The signing block runs to the foot of the last page. The shadow starts at
-   * the clause's own top edge and reaches down past the page; it is paint, not
-   * layout, so it adds no page of its own.
+   * Stacked rather than a grid in print: Chrome moves a grid row to the next
+   * page whole, and cannot keep a heading that is a grid item with the text
+   * after it, so headings were stranded at the foot of a page. The number
+   * sits beside the heading instead of in the rail, with the body indented to
+   * the same line.
    */
-  .proposal-page__clause--last {
-    padding-block: calc(var(--band) + var(--page-head))
-      calc(var(--rhythm) * 1.5);
-    box-shadow: 0 11in 0 11in var(--sheet-tint);
+  .proposal-page__clause {
+    display: block;
+    padding-block: var(--page-head) 1.25rem;
   }
 
-  .proposal-page__clause,
-  .proposal-page__option {
+  .proposal-page__clause-head {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    break-after: avoid;
     break-inside: avoid;
   }
 
+  .proposal-page__clause-n {
+    flex: 0 0 var(--rail);
+    padding: 0;
+  }
+
+  .proposal-page__clause-body {
+    display: block;
+    padding-inline-start: calc(var(--rail) + 1rem);
+  }
+
+  .proposal-page__clause-body > * + * {
+    margin-block-start: 0.75em;
+  }
+
+  /*
+   * Short, and only useful in one piece. The block runs on to the foot of the
+   * last page: the shadow is paint, not layout, so it adds no page.
+   */
+  .proposal-page__clause--last {
+    padding-block: 2.5rem 1.5rem;
+    box-shadow: 0 11in 0 11in var(--sheet-accent);
+    break-inside: avoid;
+  }
+
+  /*
+   * Sections flow across pages: holding a whole one together left pages half
+   * empty in front of every long section. What must not split is kept whole
+   * instead, and a heading never ends a page.
+   */
+  .proposal-page__clause-title,
+  .proposal-page__option,
+  .proposal-page__addon,
+  .proposal-page__step,
   .proposal-page__signatures {
-    break-before: auto;
+    break-inside: avoid;
+  }
+
+  .proposal-page__sheet p,
+  .proposal-page__sheet li {
+    widows: 3;
+    orphans: 3;
   }
 }
 
+/* Edge to edge: the sheet's own padding, repeated per page, is the margin. */
 @page {
   size: letter;
   margin: 0;

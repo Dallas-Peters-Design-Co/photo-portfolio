@@ -231,7 +231,7 @@ describe("Download PDF", () => {
     await flush();
   });
 
-  it("still prints cleanly from the browser: chrome hidden, clauses kept whole", () => {
+  it("still prints cleanly from the browser: chrome hidden, headings and options kept whole", () => {
     const rules: CSSStyleRule[] = [];
     const pages: CSSPageRule[] = [];
     for (const sheet of document.styleSheets) {
@@ -268,16 +268,32 @@ describe("Download PDF", () => {
     expect(hidden).not.toContain(".proposal-page__signatures");
     expect(hidden).not.toContain(".proposal-page__clause");
 
-    const unbroken = rules.find(
-      (r) =>
-        r.selectorText.includes(".proposal-page__clause") &&
-        r.style.getPropertyValue("break-inside") === "avoid"
-    );
-    expect(unbroken, "clauses are kept whole across pages").toBeDefined();
+    // Sections flow across pages; what must not split is kept whole: the
+    // headings, each option, and the signatures.
+    const unbroken = rules
+      .filter((r) => r.style.getPropertyValue("break-inside") === "avoid")
+      .flatMap((r) => r.selectorText.split(",").map((s) => s.trim()));
+    for (const whole of [
+      ".proposal-page__clause-title",
+      ".proposal-page__option",
+      ".proposal-page__signatures",
+    ]) {
+      expect(unbroken, `${whole} kept whole across pages`).toContain(whole);
+    }
 
-    // Edge to edge: the sheet's own padding is the margin, so the page has none.
+    // Edge to edge: the sheet's own padding is the margin, so the page has
+    // none, and that padding repeats on every page the sheet spans, so text
+    // that runs on from the previous page never starts at the paper's edge.
     expect(pages.length, "an @page rule").toBeGreaterThan(0);
     expect(pages[0]?.style.margin).toMatch(ZERO_MARGIN);
+    const sheet = rules.find((r) =>
+      r.selectorText
+        .split(",")
+        .some((s) => s.trim() === ".proposal-page__sheet")
+        ? r.style.getPropertyValue("box-decoration-break") === "clone"
+        : false
+    );
+    expect(sheet, "the sheet's padding repeats on every page").toBeDefined();
   });
 });
 

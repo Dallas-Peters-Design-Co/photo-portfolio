@@ -562,20 +562,13 @@ export const portfolioService = {
         order: data.order,
         title: data.title,
         ...(data.url ? { url: data.url } : {}),
-        ...(data.exif === undefined ? {} : { exif: data.exif }),
-        ...(data.isPublished === undefined
-          ? {}
-          : { isPublished: data.isPublished }),
-        ...(data.isFeatured === undefined
-          ? {}
-          : { isFeatured: data.isFeatured }),
-        // The browser frame. Both were typed on the interface above but never
-        // put in the body, so the toggle and address were collected by the
-        // editor and silently dropped here.
-        ...(data.showChrome === undefined
-          ? {}
-          : { showChrome: data.showChrome }),
-        ...(data.chromeUrl === undefined ? {} : { chromeUrl: data.chromeUrl }),
+        // Left undefined, these are dropped by JSON.stringify, so an omitted
+        // field is absent from the body and the API leaves the column alone.
+        chromeUrl: data.chromeUrl,
+        exif: data.exif,
+        isFeatured: data.isFeatured,
+        isPublished: data.isPublished,
+        showChrome: data.showChrome,
       }),
       headers: jsonHeaders(),
       method: "PATCH",

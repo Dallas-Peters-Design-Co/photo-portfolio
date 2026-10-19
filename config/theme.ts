@@ -48,7 +48,21 @@ export type FontId =
   | "instrument-serif"
   | "bodoni-moda"
   | "young-serif"
-  | "barlow-semi-condensed";
+  | "barlow-semi-condensed"
+  | "instrument-sans"
+  | "hanken-grotesk"
+  | "schibsted-grotesk"
+  | "public-sans"
+  | "ibm-plex-sans"
+  | "dm-sans"
+  | "inter-tight"
+  | "onest"
+  | "libre-franklin"
+  | "newsreader"
+  | "source-serif-4"
+  | "literata"
+  | "eb-garamond"
+  | "crimson-pro";
 
 export interface FontChoice {
   /**
@@ -170,6 +184,122 @@ export const FONT_CHOICES: FontChoice[] = [
     label: "Cormorant Garamond",
     stack: '"Cormorant Garamond Variable", Georgia, serif',
     weight: { max: 700, min: 300 },
+  },
+  /*
+   * Text faces chosen for long reading as much as headings: proposals,
+   * reviews and CMS pages set whole documents in them.
+   */
+  {
+    category: "sans",
+    id: "instrument-sans",
+    italic: true,
+    label: "Instrument Sans",
+    stack: '"Instrument Sans Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 700, min: 400 },
+  },
+  {
+    category: "sans",
+    id: "hanken-grotesk",
+    italic: true,
+    label: "Hanken Grotesk",
+    stack: '"Hanken Grotesk Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 100 },
+  },
+  {
+    category: "sans",
+    id: "schibsted-grotesk",
+    italic: true,
+    label: "Schibsted Grotesk",
+    stack: '"Schibsted Grotesk Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 400 },
+  },
+  {
+    category: "sans",
+    id: "public-sans",
+    italic: true,
+    label: "Public Sans",
+    stack: '"Public Sans Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 100 },
+  },
+  {
+    category: "sans",
+    id: "ibm-plex-sans",
+    italic: true,
+    label: "IBM Plex Sans",
+    stack: '"IBM Plex Sans Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 700, min: 100 },
+  },
+  {
+    category: "sans",
+    id: "dm-sans",
+    italic: true,
+    label: "DM Sans",
+    stack: '"DM Sans Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 1000, min: 100 },
+  },
+  {
+    category: "sans",
+    id: "inter-tight",
+    italic: true,
+    label: "Inter Tight",
+    stack: '"Inter Tight Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 100 },
+  },
+  {
+    category: "sans",
+    id: "onest",
+    italic: false,
+    label: "Onest",
+    stack: '"Onest Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 100 },
+  },
+  {
+    category: "sans",
+    id: "libre-franklin",
+    italic: true,
+    label: "Libre Franklin",
+    stack: '"Libre Franklin Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 900, min: 100 },
+  },
+  {
+    category: "serif",
+    id: "newsreader",
+    italic: true,
+    label: "Newsreader",
+    stack: '"Newsreader Variable", Georgia, serif',
+    weight: { max: 800, min: 200 },
+  },
+  {
+    category: "serif",
+    id: "source-serif-4",
+    italic: true,
+    label: "Source Serif 4",
+    stack: '"Source Serif 4 Variable", Georgia, serif',
+    weight: { max: 900, min: 200 },
+  },
+  {
+    category: "serif",
+    id: "literata",
+    italic: true,
+    label: "Literata",
+    stack: '"Literata Variable", Georgia, serif',
+    weight: { max: 900, min: 200 },
+  },
+  {
+    category: "serif",
+    id: "eb-garamond",
+    italic: true,
+    label: "EB Garamond",
+    stack: '"EB Garamond Variable", Georgia, serif',
+    weight: { max: 800, min: 400 },
+  },
+  {
+    category: "serif",
+    id: "crimson-pro",
+    italic: true,
+    label: "Crimson Pro",
+    stack: '"Crimson Pro Variable", Georgia, serif',
+    weight: { max: 900, min: 200 },
   },
 ];
 

@@ -12,6 +12,7 @@ import { PageContent } from "../cms/PageContent";
 import { type ProposalRecord, proposalsApi } from "../services/proposalService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate, ProposalAcceptance } from "./ProposalAcceptance";
+import { proposalAccentStyle } from "./proposalAccent";
 import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 
 /**
@@ -63,7 +64,10 @@ export function ProposalPage() {
   }, [proposal, settings.ownerName]);
 
   return (
-    <div className="page proposal-page">
+    <div
+      className="page proposal-page"
+      style={proposalAccentStyle(settings.theme.accent)}
+    >
       <header className="page__body proposal-page__masthead">
         <Link className="proposal-page__wordmark" to="/">
           {/*
@@ -132,9 +136,6 @@ function ProposalSheet({
 }) {
   const { doc } = proposal;
   const issued = formatDate(proposal.updatedAt);
-  const validity = doc.validUntil
-    ? ` · Valid until ${formatDate(doc.validUntil)}`
-    : "";
 
   // Clauses are numbered in the order they render, so a proposal with no
   // add-ons or no process steps still counts 1, 2, 3 without a gap. The
@@ -155,17 +156,36 @@ function ProposalSheet({
   return (
     <article className="proposal-page__sheet">
       <div className="proposal-page__content">
-        <header className="stack stack--tight proposal-page__header">
-          <p className="label proposal-page__kicker">
-            Design proposal · {issued}
-            {validity}
-          </p>
+        <header className="proposal-page__header">
+          <p className="label proposal-page__kicker">Design proposal</p>
           <h1 className="proposal-page__title">{proposal.title}</h1>
           {proposal.status === "draft" && (
             <p className="label proposal-page__draft">
               Draft — only visible to signed-in admins
             </p>
           )}
+          <dl className="proposal-page__meta">
+            {proposal.clientName ? (
+              <div>
+                <dt className="label">Prepared for</dt>
+                <dd>{proposal.clientName}</dd>
+              </div>
+            ) : null}
+            <div>
+              <dt className="label">Prepared by</dt>
+              <dd>{ownerName}</dd>
+            </div>
+            <div>
+              <dt className="label">Issued</dt>
+              <dd>{issued}</dd>
+            </div>
+            {doc.validUntil ? (
+              <div>
+                <dt className="label">Valid until</dt>
+                <dd>{formatDate(doc.validUntil)}</dd>
+              </div>
+            ) : null}
+          </dl>
         </header>
 
         {isRichTextEmpty(doc.intro) ? null : (
@@ -174,29 +194,29 @@ function ProposalSheet({
           </div>
         )}
 
-        <div className="proposal-page__grid">
-          {scopeN ? (
-            <Clause n={scopeN} title="Scope of work">
-              <Prose text={doc.summary} />
-            </Clause>
-          ) : null}
+        {scopeN ? (
+          <Clause n={scopeN} title="Scope of work">
+            <Prose text={doc.summary} />
+          </Clause>
+        ) : null}
 
-          {doc.sections.map((section, i) => (
-            <Clause
-              key={section.id}
-              n={sectionNs[i] ?? 0}
-              title={section.heading}
-            >
-              <Prose text={section.body} />
-            </Clause>
-          ))}
-        </div>
+        {doc.sections.map((section, i) => (
+          <Clause
+            key={section.id}
+            n={sectionNs[i] ?? 0}
+            title={section.heading}
+          >
+            <Prose text={section.body} />
+          </Clause>
+        ))}
 
         {optionsN ? (
           <Clause n={optionsN} title="Options and fees">
-            {doc.packages.map((pkg, i) => (
-              <Option index={`${optionsN}.${i + 1}`} key={pkg.id} pkg={pkg} />
-            ))}
+            <div className="proposal-page__options">
+              {doc.packages.map((pkg) => (
+                <Option key={pkg.id} pkg={pkg} />
+              ))}
+            </div>
           </Clause>
         ) : null}
 
@@ -213,30 +233,28 @@ function ProposalSheet({
           </Clause>
         ) : null}
 
-        <div className="proposal-page__grid">
-          {processN ? (
-            <Clause n={processN} title="What happens next">
-              <ol className="proposal-page__steps">
-                {doc.process.map((step) => (
-                  <li className="proposal-page__step" key={step.id}>
-                    <span className="proposal-page__run">{step.title}.</span>{" "}
-                    {step.body}
-                  </li>
-                ))}
-              </ol>
-            </Clause>
-          ) : null}
+        {processN ? (
+          <Clause n={processN} title="What happens next">
+            <ol className="proposal-page__steps">
+              {doc.process.map((step) => (
+                <li className="proposal-page__step" key={step.id}>
+                  <span className="proposal-page__run">{step.title}.</span>{" "}
+                  {step.body}
+                </li>
+              ))}
+            </ol>
+          </Clause>
+        ) : null}
 
-          {termsN ? (
-            <Clause n={termsN} title="Terms">
-              <ul className="proposal-page__list">
-                {doc.terms.map((term) => (
-                  <li key={term}>{term}</li>
-                ))}
-              </ul>
-            </Clause>
-          ) : null}
-        </div>
+        {termsN ? (
+          <Clause n={termsN} title="Terms">
+            <ul className="proposal-page__list">
+              {doc.terms.map((term) => (
+                <li key={term}>{term}</li>
+              ))}
+            </ul>
+          </Clause>
+        ) : null}
 
         <Clause last n={acceptanceN} title="Acceptance">
           {isRichTextEmpty(doc.closing) ? null : <Prose text={doc.closing} />}
@@ -268,49 +286,69 @@ function Clause({
     : "proposal-page__clause";
   return (
     <section className={cls}>
-      <h2 className="proposal-page__clause-title">
-        {n}. {title}
-      </h2>
-      <div className="stack stack--snug">{children}</div>
+      <div className="proposal-page__clause-head">
+        <span aria-hidden className="proposal-page__clause-n">
+          {String(n).padStart(2, "0")}
+        </span>
+        <h2 className="proposal-page__clause-title">{title}</h2>
+      </div>
+      <div className="proposal-page__clause-body">{children}</div>
     </section>
   );
 }
 
-function Option({ index, pkg }: { index: string; pkg: ProposalPackage }) {
+/**
+ * One option: name and fee on one line, who it is for, the terms as a small
+ * three-up, then what is in it. The recommended one is marked by a rule in the
+ * accent and a word, not a tinted card.
+ */
+function Option({ pkg }: { pkg: ProposalPackage }) {
   const cls = pkg.recommended
     ? "proposal-page__option proposal-page__option--suggested"
     : "proposal-page__option";
-  const facts = [pkg.timeline, pkg.revisions, pkg.payment].filter(Boolean);
+  const facts = [
+    { label: "Timeline", value: pkg.timeline },
+    { label: "Revisions", value: pkg.revisions },
+    { label: "Payment", value: pkg.payment },
+  ].filter((f) => f.value);
   return (
     <div className={cls}>
-      <span className="proposal-page__option-index">{index}</span>
-      <div className="stack stack--tight">
-        <p className="proposal-page__prose">
-          <span className="proposal-page__run">
-            {pkg.name}
-            {pkg.recommended ? " (suggested)" : ""}.
-          </span>{" "}
-          {pkg.bestFor}
+      <div className="proposal-page__option-head">
+        <h3 className="proposal-page__option-name">
+          {pkg.name}
+          {pkg.recommended ? (
+            <span className="label proposal-page__option-tag">Recommended</span>
+          ) : null}
+        </h3>
+        <p className="proposal-page__option-fee">
+          {pkg.price}
+          {pkg.priceNote ? (
+            <span className="proposal-page__option-fee-note">
+              {pkg.priceNote}
+            </span>
+          ) : null}
         </p>
-        {facts.length > 0 ? (
-          <p className="proposal-page__option-facts">{facts.join(" · ")}</p>
-        ) : null}
-        {pkg.includes.length > 0 ? (
-          <ul className="proposal-page__list proposal-page__list--small">
-            {pkg.includes.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-        ) : null}
       </div>
-      <span className="proposal-page__option-fee">
-        {pkg.price}
-        {pkg.priceNote ? (
-          <span className="proposal-page__option-fee-note">
-            {pkg.priceNote}
-          </span>
-        ) : null}
-      </span>
+      {pkg.bestFor ? (
+        <p className="proposal-page__option-for">{pkg.bestFor}</p>
+      ) : null}
+      {facts.length > 0 ? (
+        <dl className="proposal-page__option-facts">
+          {facts.map((f) => (
+            <div key={f.label}>
+              <dt className="label">{f.label}</dt>
+              <dd>{f.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {pkg.includes.length > 0 ? (
+        <ul className="proposal-page__includes">
+          {pkg.includes.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }
