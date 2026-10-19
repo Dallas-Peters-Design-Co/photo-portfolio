@@ -23,6 +23,8 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { ProposalActivity } from "./ProposalActivity";
+import { ProposalInvoices } from "./ProposalInvoices";
 import { ProposalPackagesEditor } from "./ProposalPackagesEditor";
 import { ProposalSendPanel } from "./ProposalSendPanel";
 import {
@@ -75,6 +77,8 @@ export function ProposalEditor({
 }) {
   const [draft, setDraft] = useState<ProposalRecord>(proposal);
   const [isSaving, setIsSaving] = useState(false);
+  // Bumped after a send or an invoice action, so the timeline re-reads.
+  const [activityKey, setActivityKey] = useState(0);
   const { kits } = useBrandKits();
 
   const setDoc = (patch: Partial<ProposalDoc>) =>
@@ -422,11 +426,17 @@ export function ProposalEditor({
           busy={isSaving}
           onChange={(next) => {
             setDraft((d) => ({ ...d, sent: next.sent }));
+            setActivityKey((k) => k + 1);
             void onSaved(next);
           }}
           onReset={() => void resetAcceptance()}
           proposal={draft}
         />
+        <ProposalInvoices
+          onActivity={() => setActivityKey((k) => k + 1)}
+          proposal={draft}
+        />
+        <ProposalActivity proposalId={draft.id} refreshKey={activityKey} />
 
         <div className="flex flex-wrap items-center gap-3">
           <Button

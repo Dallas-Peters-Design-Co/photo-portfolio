@@ -167,3 +167,49 @@ self.addEventListener("fetch", (event) => {
     );
   }
 });
+
+/**
+ * Notifications for the owner: a proposal opened or signed, an invoice paid.
+ * The server sends { title, body, url, tag } (api/_lib/push.ts); a click
+ * focuses an open admin tab on that page, or opens one.
+ */
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const title = data.title || "New activity";
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      badge: data.icon,
+      body: data.body || "",
+      data: { url: data.url || "/admin" },
+      icon: data.icon,
+      tag: data.tag,
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(
+    event.notification.data?.url || "/admin",
+    self.location.origin
+  ).href;
+  event.waitUntil(
+    (async () => {
+      const windows = await self.clients.matchAll({
+        includeUncontrolled: true,
+        type: "window",
+      });
+      const admin = windows.find((w) => w.url.includes("/admin"));
+      if (admin) {
+        await admin.focus();
+        return admin.navigate(target);
+      }
+      return self.clients.openWindow(target);
+    })()
+  );
+});

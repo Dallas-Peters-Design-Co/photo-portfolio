@@ -13,6 +13,12 @@ export interface SendEmailInput {
   /** Where a reply lands when From is a no-reply address. */
   replyTo?: string;
   subject: string;
+  /**
+   * Labels Resend echoes back on its webhooks (delivered, opened, bounced),
+   * which is how those events find the proposal they belong to. Names and
+   * values: ASCII letters, digits, underscores and dashes only.
+   */
+  tags?: { name: string; value: string }[];
   text: string;
   to: string;
 }
@@ -30,6 +36,7 @@ export const sendEmail = async ({
   html,
   text,
   replyTo,
+  tags,
 }: SendEmailInput): Promise<void> => {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) {
@@ -42,6 +49,7 @@ export const sendEmail = async ({
       html,
       ...(replyTo ? { reply_to: replyTo } : {}),
       subject,
+      ...(tags && tags.length > 0 ? { tags } : {}),
       text,
       to: [to],
     }),

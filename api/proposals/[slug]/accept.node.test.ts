@@ -392,3 +392,39 @@ describe("POST /api/proposals/:slug/accept", () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 });
+
+describe("signing drafts the first invoice", () => {
+  it("drafts the chosen option's first instalment for the client, without sending it", async () => {
+    stored = structuredClone(ROW);
+    const doc = stored.doc as { packages: { id: string; payment: string }[] };
+    const launch = doc.packages.find((p) => p.id === "pkg-launch");
+    if (launch) {
+      launch.payment = "50% to start, 50% at delivery";
+    }
+    const reply = await call({ name: "Vin Patel", option: "pkg-launch" });
+    expect(reply.status).toBe(200);
+    const insert = queries.find((q) => q.text.includes("INSERT INTO invoices"));
+    expect(insert, "an invoice draft").toBeDefined();
+    expect(insert?.values).toEqual(
+      expect.arrayContaining([
+        "p1",
+        "Pretext launch: Launch Package, 50% deposit",
+        475_000,
+        "vin@viask.ai",
+        "Vin Patel",
+      ])
+    );
+    const signed = queries.find((q) => q.text.includes("INSERT INTO activity"));
+    expect(signed?.values).toEqual(
+      expect.arrayContaining(["proposal.accepted"])
+    );
+  });
+
+  it("drafts nothing when no option was chosen", async () => {
+    stored = structuredClone(ROW);
+    await call({ name: "Vin Patel" });
+    expect(queries.some((q) => q.text.includes("INSERT INTO invoices"))).toBe(
+      false
+    );
+  });
+});

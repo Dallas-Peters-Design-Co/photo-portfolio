@@ -1,5 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { sanitizeProposalDoc } from "../../../config/proposal.js";
+import {
+  type ProposalPackage,
+  sanitizeProposalDoc,
+} from "../../../config/proposal.js";
 import { getBearerUser } from "../../_lib/auth.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
@@ -9,6 +12,12 @@ import {
   sendEmail,
 } from "../../_lib/email.js";
 import { sanitizeText } from "../../_lib/httpUrl.js";
+import {
+  firstInvoiceFor,
+  formatMoney,
+  insertDraft,
+} from "../../_lib/invoices.js";
+import { notify } from "../../_lib/notify.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
 import {
   acceptanceNoticeEmail,
@@ -37,6 +46,53 @@ import { emailBrand, getSite } from "../../_lib/site.js";
  */
 
 const MAX_FIELD = 120;
+
+/**
+ * The signing, on the timeline and in the bell, with the first invoice
+ * drafted from the chosen option's payment terms. The draft stays local for
+ * the owner to check and send; nothing goes to Stripe or the client from
+ * here. The owner's email for this was already sent above, so the notice
+ * emails only if that one failed.
+ */
+const recordAcceptance = async (
+  sql: ReturnType<typeof getSql>,
+  proposal: ProposalRow,
+  input: {
+    chosen: ProposalPackage | null;
+    name: string;
+    ownerEmailed: boolean;
+    title: string;
+  }
+): Promise<void> => {
+  const { chosen } = input;
+  const plan = chosen ? firstInvoiceFor(proposal.title, chosen) : null;
+  let drafted = "";
+  if (plan) {
+    try {
+      const invoice = await insertDraft(sql, {
+        amountCents: plan.amountCents,
+        customerEmail: proposal.client_email ?? "",
+        customerName: input.name,
+        description: plan.description,
+        proposalId: proposal.id,
+      });
+      drafted = ` A ${formatMoney(invoice.amountCents)} invoice is drafted and ready to send.`;
+    } catch (e) {
+      console.error("[accept] could not draft the invoice", e);
+    }
+  }
+  const who = input.title ? `${input.name}, ${input.title}` : input.name;
+  await notify(sql, {
+    body: `${chosen ? `${chosen.name} (${chosen.price}).` : "No option chosen."}${drafted}`,
+    email: !input.ownerEmailed,
+    kind: "proposal.accepted",
+    meta: { option: chosen?.id ?? null },
+    subjectId: proposal.id,
+    subjectType: "proposal",
+    title: `${who} signed "${proposal.title}"`,
+    url: `/admin/proposals/${proposal.slug}`,
+  });
+};
 
 const readFields = (body: Record<string, unknown>) => ({
   name:
@@ -165,6 +221,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       url: `https://${site.domain}/proposal/${slug}`,
     };
     const emailed = await sendEmails(emailInput, row.client_email ?? null);
+    await recordAcceptance(sql, row, {
+      chosen,
+      name,
+      ownerEmailed: emailed.owner,
+      title,
+    });
 
     return res.status(200).json({ ...(fresh ? rowToDto(fresh) : {}), emailed });
   } catch (e) {

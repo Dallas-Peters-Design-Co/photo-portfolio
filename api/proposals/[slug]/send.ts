@@ -4,6 +4,7 @@ import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
 import { EmailNotConfiguredError, sendEmail } from "../../_lib/email.js";
 import { sanitizeText } from "../../_lib/httpUrl.js";
+import { notify } from "../../_lib/notify.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
 import { proposalLinkEmail } from "../../_lib/proposalEmail.js";
 import {
@@ -82,7 +83,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       url,
     });
     try {
-      await sendEmail({ ...mail, replyTo: site.defaultAdminEmail, to });
+      await sendEmail({
+        ...mail,
+        replyTo: site.defaultAdminEmail,
+        // Resend's delivered/opened/bounced webhooks carry these back.
+        tags: [
+          { name: "subject", value: "proposal" },
+          { name: "proposal", value: row.id },
+        ],
+        to,
+      });
     } catch (e) {
       if (e instanceof EmailNotConfiguredError) {
         return res
@@ -97,6 +107,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       UPDATE proposals SET sent_at = now(), sent_to = ${to}
       WHERE id = ${row.id}
     `;
+    await notify(sql, {
+      kind: "proposal.sent",
+      meta: { to },
+      subjectId: row.id,
+      subjectType: "proposal",
+      title: `Sent "${row.title}" to ${to}`,
+      url: `/admin/proposals/${slug}`,
+    });
     const fresh = (await sql`
       SELECT ${sql.unsafe(PROPOSAL_SELECT)}
       WHERE p.id = ${row.id}

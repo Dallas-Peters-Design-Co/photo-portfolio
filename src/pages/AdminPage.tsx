@@ -11,6 +11,7 @@ import { CollectionsPanel } from "../components/admin/CollectionsPanel";
 import { ConfirmProvider } from "../components/admin/ConfirmProvider";
 import { LightroomPanel } from "../components/admin/LightroomPanel";
 import { ModelsPanel } from "../components/admin/ModelsPanel";
+import { NotificationBell } from "../components/admin/NotificationBell";
 import { PagesPanel } from "../components/admin/PagesPanel";
 import { ProposalsPanel } from "../components/admin/ProposalsPanel";
 import { ReviewsPanel } from "../components/admin/ReviewsPanel";
@@ -126,6 +127,7 @@ export function AdminPage() {
             <Link className="quiet-link admin-page__back" to="/">
               Back to site
             </Link>
+            {isAuthenticated ? <NotificationBell /> : null}
             {isAuthenticated ? (
               <Button onClick={handleLogout} type="button" variant="ghost">
                 <LogOut aria-hidden size={16} />

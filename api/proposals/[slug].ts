@@ -9,6 +9,7 @@ import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
+import { recordView } from "../_lib/proposalActivity.js";
 import {
   cleanEmail,
   isProposalStatus,
@@ -61,10 +62,12 @@ async function handleGet(
   }
   res.setHeader("X-Robots-Tag", "noindex, nofollow");
   if (row.status === "published") {
-    res.setHeader(
-      "Cache-Control",
-      "public, max-age=15, stale-while-revalidate=30"
-    );
+    // Private, not public: a shared cache would answer repeat visits without
+    // reaching this function, and the visit is what the owner is told about.
+    res.setHeader("Cache-Control", "private, max-age=15");
+    if (!user) {
+      await recordView(sql, row);
+    }
   }
   return res.status(200).json(rowToDto(row));
 }

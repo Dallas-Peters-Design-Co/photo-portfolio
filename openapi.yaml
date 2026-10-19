@@ -1,78 +1,13 @@
 components:
   schemas:
     AuthenticatedUser:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        token:
-          type: string
-          description: Bearer token, valid seven days.
-      required:
-        - email
-        - id
-        - token
-      additionalProperties: false
+      $ref: "#/components/schemas/AuthenticatedUser"
     Category:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        label:
-          type: string
-        photoCount:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        slug:
-          type: string
-        sortOrder:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-      required:
-        - id
-        - label
-        - slug
-        - sortOrder
-      additionalProperties: false
+      $ref: "#/components/schemas/Category"
     CategoryCreate:
-      type: object
-      properties:
-        label:
-          type: string
-          minLength: 1
-          maxLength: 120
-        sortOrder:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-      required:
-        - label
-        - sortOrder
-      additionalProperties: false
+      $ref: "#/components/schemas/CategoryCreate"
     Credentials:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
-        password:
-          type: string
-          minLength: 8
-      required:
-        - email
-        - password
-      additionalProperties: false
+      $ref: "#/components/schemas/Credentials"
     ErrorResponse:
       type: object
       properties:
@@ -83,1615 +18,99 @@ components:
       additionalProperties: false
       description: Every failing endpoint answers with this shape.
     Page:
-      type: object
-      properties:
-        content:
-          description: TipTap document.
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        icon:
-          anyOf:
-            - type: string
-            - type: "null"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        order:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        slug:
-          type: string
-        status:
-          type: string
-          enum:
-            - draft
-            - published
-        title:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-      required:
-        - content
-        - createdAt
-        - icon
-        - id
-        - order
-        - slug
-        - status
-        - title
-        - updatedAt
-      additionalProperties: false
+      $ref: "#/components/schemas/Page"
     PageCreate:
-      type: object
-      properties:
-        icon:
-          anyOf:
-            - type: string
-            - type: "null"
-        slug:
-          type: string
-          minLength: 1
-          maxLength: 60
-        status:
-          type: string
-          enum:
-            - draft
-            - published
-        title:
-          type: string
-          minLength: 1
-      required:
-        - slug
-        - title
-      additionalProperties: false
+      $ref: "#/components/schemas/PageCreate"
     PageSummary:
-      type: object
-      properties:
-        icon:
-          anyOf:
-            - type: string
-            - type: "null"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        order:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        slug:
-          type: string
-        title:
-          type: string
-      required:
-        - icon
-        - id
-        - order
-        - slug
-        - title
-      additionalProperties: false
+      $ref: "#/components/schemas/PageSummary"
     Photo:
-      type: object
-      properties:
-        alt:
-          type: string
-          description: Falls back to the title, so never empty.
-        category:
-          type: string
-          description: URL-safe slug.
-        categoryId:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        categoryLabel:
-          type: string
-        chromeUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Address drawn in the browser chrome. Display only.
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        exif:
-          anyOf:
-            - type: object
-              properties:
-                aperture:
-                  type: number
-                  exclusiveMinimum: 0
-                exposureTime:
-                  description: Seconds
-                  type: number
-                  exclusiveMinimum: 0
-                focalLength:
-                  description: Millimetres
-                  type: number
-                  exclusiveMinimum: 0
-                iso:
-                  type: integer
-                  exclusiveMinimum: 0
-                  maximum: 9007199254740991
-                lens:
-                  type: string
-                  maxLength: 120
-                make:
-                  type: string
-                  maxLength: 120
-                model:
-                  type: string
-                  maxLength: 120
-                takenAt:
-                  type: string
-                  format: date-time
-                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-              additionalProperties: false
-            - type: "null"
-        height:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        isFeatured:
-          type: boolean
-          description: Included in the homepage hero.
-        isPublished:
-          type: boolean
-          description: False hides it from the public site.
-        lqip:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Inline blurred placeholder.
-        order:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        originalUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Pre-edit image, for undo.
-        showChrome:
-          type: boolean
-          description: Frame this image as a browser window.
-        title:
-          type: string
-        url:
-          type: string
-          format: uri
-        width:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-      required:
-        - alt
-        - category
-        - categoryId
-        - categoryLabel
-        - chromeUrl
-        - createdAt
-        - exif
-        - height
-        - id
-        - isFeatured
-        - isPublished
-        - lqip
-        - order
-        - originalUrl
-        - showChrome
-        - title
-        - url
-        - width
-      additionalProperties: false
+      $ref: "#/components/schemas/Photo"
     PhotoCreate:
-      type: object
-      properties:
-        alt:
-          type: string
-          maxLength: 300
-        categoryId:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        exif:
-          anyOf:
-            - type: object
-              properties:
-                aperture:
-                  type: number
-                  exclusiveMinimum: 0
-                exposureTime:
-                  description: Seconds
-                  type: number
-                  exclusiveMinimum: 0
-                focalLength:
-                  description: Millimetres
-                  type: number
-                  exclusiveMinimum: 0
-                iso:
-                  type: integer
-                  exclusiveMinimum: 0
-                  maximum: 9007199254740991
-                lens:
-                  type: string
-                  maxLength: 120
-                make:
-                  type: string
-                  maxLength: 120
-                model:
-                  type: string
-                  maxLength: 120
-                takenAt:
-                  type: string
-                  format: date-time
-                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-              additionalProperties: false
-            - type: "null"
-        height:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        lqip:
-          type: string
-        title:
-          type: string
-          minLength: 1
-          maxLength: 200
-        url:
-          type: string
-          format: uri
-        width:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-      required:
-        - categoryId
-        - title
-        - url
-      additionalProperties: false
+      $ref: "#/components/schemas/PhotoCreate"
     PhotoIdList:
-      type: object
-      properties:
-        photoIds:
-          minItems: 1
-          type: array
-          items:
-            type: string
-            format: uuid
-            pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-      required:
-        - photoIds
-      additionalProperties: false
+      $ref: "#/components/schemas/PhotoIdList"
     PhotoUpdate:
-      type: object
-      properties:
-        categoryId:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        chromeUrl:
-          description: Omit to leave alone; empty string clears it.
-          type: string
-          maxLength: 300
-        exif:
-          anyOf:
-            - type: object
-              properties:
-                aperture:
-                  type: number
-                  exclusiveMinimum: 0
-                exposureTime:
-                  description: Seconds
-                  type: number
-                  exclusiveMinimum: 0
-                focalLength:
-                  description: Millimetres
-                  type: number
-                  exclusiveMinimum: 0
-                iso:
-                  type: integer
-                  exclusiveMinimum: 0
-                  maximum: 9007199254740991
-                lens:
-                  type: string
-                  maxLength: 120
-                make:
-                  type: string
-                  maxLength: 120
-                model:
-                  type: string
-                  maxLength: 120
-                takenAt:
-                  type: string
-                  format: date-time
-                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-              additionalProperties: false
-            - type: "null"
-        isFeatured:
-          type: boolean
-        isPublished:
-          type: boolean
-        order:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        showChrome:
-          type: boolean
-        title:
-          type: string
-          minLength: 1
-          maxLength: 200
-        url:
-          type: string
-          format: uri
-      required:
-        - categoryId
-        - order
-        - title
-      additionalProperties: false
+      $ref: "#/components/schemas/PhotoUpdate"
     SiteSettings:
-      type: object
-      properties:
-        heroTitle:
-          type: string
-        instagramHandle:
-          type: string
-        instagramUrl:
-          type: string
-        name:
-          type: string
-        ownerName:
-          type: string
-        shortName:
-          type: string
-        showShader:
-          type: boolean
-        siteKey:
-          type: string
-        tagline:
-          type: string
-        theme:
-          type: object
-          properties:
-            accent:
-              type: string
-              pattern: ^#[0-9a-fA-F]{6}$
-            background:
-              type: string
-              pattern: ^#[0-9a-fA-F]{6}$
-            foreground:
-              type: string
-              pattern: ^#[0-9a-fA-F]{6}$
-            sansFont:
-              type: string
-            serifFont:
-              type: string
-          required:
-            - accent
-            - background
-            - foreground
-            - sansFont
-            - serifFont
-          additionalProperties: false
-      required:
-        - heroTitle
-        - instagramHandle
-        - instagramUrl
-        - name
-        - ownerName
-        - shortName
-        - showShader
-        - siteKey
-        - tagline
-        - theme
-      additionalProperties: false
+      $ref: "#/components/schemas/SiteSettings"
     SiteSettingsUpdate:
-      type: object
-      properties:
-        heroTitle:
-          type: string
-        instagramHandle:
-          type: string
-        instagramUrl:
-          type: string
-        name:
-          type: string
-        ownerName:
-          type: string
-        shortName:
-          type: string
-        showShader:
-          type: boolean
-        tagline:
-          type: string
-        theme:
-          type: object
-          properties:
-            accent:
-              type: string
-              pattern: ^#[0-9a-fA-F]{6}$
-            background:
-              type: string
-              pattern: ^#[0-9a-fA-F]{6}$
-            foreground:
-              type: string
-              pattern: ^#[0-9a-fA-F]{6}$
-            sansFont:
-              type: string
-            serifFont:
-              type: string
-          required:
-            - accent
-            - background
-            - foreground
-            - sansFont
-            - serifFont
-          additionalProperties: false
-      additionalProperties: false
+      $ref: "#/components/schemas/SiteSettingsUpdate"
     AiModel:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        enabled:
-          type: boolean
-        id:
-          type: string
-          description: A fal.ai model id, or a namespaced "lora/..." one.
-        imageParam:
-          type: string
-          enum:
-            - image_url
-            - image_urls
-        input:
-          type: string
-          description: "What the model takes: prompt, image, or both."
-        label:
-          type: string
-          description: Shown on the node; model ids do not read.
-        lora:
-          anyOf:
-            - type: object
-              properties:
-                endpoint:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-                imageEndpoint:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-                path:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-                  description: URL to the safetensors weights.
-                scale:
-                  anyOf:
-                    - type: number
-                    - type: "null"
-                trigger:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-              required:
-                - endpoint
-                - imageEndpoint
-                - path
-                - scale
-                - trigger
-              additionalProperties: false
-            - type: "null"
-        sortOrder:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        vector:
-          type: boolean
-      required:
-        - createdAt
-        - enabled
-        - id
-        - imageParam
-        - input
-        - label
-        - lora
-        - sortOrder
-      additionalProperties: false
+      $ref: "#/components/schemas/AiModel"
     AiModelInput:
-      type: object
-      properties:
-        enabled:
-          type: boolean
-        id:
-          type: string
-          description: A fal.ai model id, or a namespaced "lora/..." one.
-        imageParam:
-          type: string
-          enum:
-            - image_url
-            - image_urls
-        input:
-          type: string
-          description: "What the model takes: prompt, image, or both."
-        label:
-          type: string
-          description: Shown on the node; model ids do not read.
-        lora:
-          anyOf:
-            - type: object
-              properties:
-                endpoint:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-                imageEndpoint:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-                path:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-                  description: URL to the safetensors weights.
-                scale:
-                  anyOf:
-                    - type: number
-                    - type: "null"
-                trigger:
-                  anyOf:
-                    - type: string
-                    - type: "null"
-              required:
-                - endpoint
-                - imageEndpoint
-                - path
-                - scale
-                - trigger
-              additionalProperties: false
-            - type: "null"
-        sortOrder:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        vector:
-          type: boolean
-      required:
-        - id
-        - label
-      additionalProperties: false
+      $ref: "#/components/schemas/AiModelInput"
     Board:
-      type: object
-      properties:
-        coverUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        isPublic:
-          type: boolean
-        slug:
-          anyOf:
-            - type: string
-            - type: "null"
-        title:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        items:
-          type: array
-          items: {}
-          description: The graph's nodes. See config/nodeTypes.ts.
-        sources:
-          description: Admin detail only — never sent to a published board's reader.
-          type: array
-          items: {}
-        wires:
-          type: array
-          items: {}
-          description: Connections between items.
-      required:
-        - coverUrl
-        - createdAt
-        - id
-        - isPublic
-        - slug
-        - title
-        - updatedAt
-        - items
-        - wires
-      additionalProperties: false
+      $ref: "#/components/schemas/Board"
     BoardComment:
-      type: object
-      properties:
-        authorName:
-          anyOf:
-            - type: string
-            - type: "null"
-        body:
-          type: string
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        itemId:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Anchored to one item, or loose.
-        resolved:
-          type: boolean
-      required:
-        - authorName
-        - body
-        - createdAt
-        - id
-        - itemId
-        - resolved
-      additionalProperties: false
+      $ref: "#/components/schemas/BoardComment"
     BoardCreate:
-      type: object
-      properties:
-        isPublic:
-          type: boolean
-        title:
-          type: string
-          minLength: 1
-          maxLength: 200
-      required:
-        - title
-      additionalProperties: false
+      $ref: "#/components/schemas/BoardCreate"
     BoardSummary:
-      type: object
-      properties:
-        coverUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        isPublic:
-          type: boolean
-        itemCount:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-          description: List responses only.
-        slug:
-          anyOf:
-            - type: string
-            - type: "null"
-        title:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-      required:
-        - coverUrl
-        - createdAt
-        - id
-        - isPublic
-        - itemCount
-        - slug
-        - title
-        - updatedAt
-      additionalProperties: false
+      $ref: "#/components/schemas/BoardSummary"
     BoardUpdate:
-      type: object
-      properties:
-        isPublic:
-          type: boolean
-        items:
-          type: array
-          items: {}
-        slug:
-          anyOf:
-            - type: string
-            - type: "null"
-        title:
-          type: string
-          minLength: 1
-          maxLength: 200
-        wires:
-          type: array
-          items: {}
-      additionalProperties: false
-    BrandKitDoc:
-      type: object
-      properties:
-        logos:
-          type: array
-          items:
-            type: object
-            properties:
-              clearSpace:
-                type: number
-              label:
-                type: string
-              minWidth:
-                type: number
-              rules:
-                type: string
-              url:
-                type: string
-                description: Ours — adopted into blob storage on save.
-            required:
-              - clearSpace
-              - label
-              - minWidth
-              - rules
-              - url
-            additionalProperties: false
-        offBrand:
-          type: array
-          items:
-            type: string
-          description: Counter-examples, and the more precise half of a kit.
-        onBrand:
-          type: array
-          items:
-            type: string
-        palette:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-              role:
-                type: string
-              value:
-                type: string
-            required:
-              - name
-              - role
-              - value
-            additionalProperties: false
-        typefaces:
-          type: array
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-              role:
-                type: string
-              weights:
-                type: array
-                items:
-                  type: integer
-                  minimum: -9007199254740991
-                  maximum: 9007199254740991
-            required:
-              - name
-              - role
-              - weights
-            additionalProperties: false
-        voice:
-          type: string
-          description: Substance — it travels into the prompt.
-      required:
-        - logos
-        - offBrand
-        - onBrand
-        - palette
-        - typefaces
-        - voice
-      additionalProperties: false
+      $ref: "#/components/schemas/BoardUpdate"
     BrandKit:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        currentVersion:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-        doc:
-          $ref: "#/components/schemas/BrandKitDoc"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        name:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-      required:
-        - createdAt
-        - currentVersion
-        - doc
-        - id
-        - name
-        - updatedAt
-      additionalProperties: false
+      $ref: "#/components/schemas/BrandKit"
+    BrandKitDoc:
+      $ref: "#/components/schemas/BrandKitDoc"
     BrandKitInput:
-      type: object
-      properties:
-        doc:
-          $ref: "#/components/schemas/BrandKitDoc"
-        name:
-          type: string
-      required:
-        - doc
-        - name
-      additionalProperties: false
+      $ref: "#/components/schemas/BrandKitInput"
     CheckFinding:
-      type: object
-      properties:
-        detail:
-          type: string
-        expected:
-          type: string
-        found:
-          type: string
-        kind:
-          type: string
-          description: A FindingKind — see config/brandCheck.ts.
-        severity:
-          type: string
-          enum:
-            - pass
-            - warn
-            - fail
-        source:
-          type: string
-          enum:
-            - measured
-            - judged
-          description: Arithmetic, or a model's opinion. An override differs by which.
-      required:
-        - detail
-        - kind
-        - severity
-        - source
-      additionalProperties: false
+      $ref: "#/components/schemas/CheckFinding"
     CheckVerdict:
-      type: object
-      properties:
-        acknowledgedAt:
-          anyOf:
-            - type: string
-              format: date-time
-              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-            - type: "null"
-        assetUrl:
-          type: string
-        boardId:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        findings:
-          type: array
-          items:
-            $ref: "#/components/schemas/CheckFinding"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        itemId:
-          anyOf:
-            - type: string
-            - type: "null"
-        kitName:
-          anyOf:
-            - type: string
-            - type: "null"
-        kitVersion:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        overrideReason:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Recorded beside the findings, never in place of them.
-        passed:
-          type: boolean
-      required:
-        - acknowledgedAt
-        - assetUrl
-        - boardId
-        - createdAt
-        - findings
-        - id
-        - itemId
-        - kitName
-        - kitVersion
-        - overrideReason
-        - passed
-      additionalProperties: false
+      $ref: "#/components/schemas/CheckVerdict"
     DailyChallengeInfo:
-      type: object
-      properties:
-        altText:
-          anyOf:
-            - type: string
-            - type: "null"
-        challengeDate:
-          type: string
-          description: YYYY-MM-DD, UTC.
-        imageThumbUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-        imageUrl:
-          type: string
-        photographerName:
-          anyOf:
-            - type: string
-            - type: "null"
-        photographerUsername:
-          anyOf:
-            - type: string
-            - type: "null"
-        unsplashHtmlLink:
-          anyOf:
-            - type: string
-            - type: "null"
-        unsplashPhotoId:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - altText
-        - challengeDate
-        - imageThumbUrl
-        - imageUrl
-        - photographerName
-        - photographerUsername
-        - unsplashHtmlLink
-        - unsplashPhotoId
-      additionalProperties: false
+      $ref: "#/components/schemas/DailyChallengeInfo"
     DailyChallengeJournal:
-      type: object
-      properties:
-        body:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-      required:
-        - body
-        - updatedAt
-      additionalProperties: false
+      $ref: "#/components/schemas/DailyChallengeJournal"
     DailyChallengeResponse:
-      type: object
-      properties:
-        challenge:
-          $ref: "#/components/schemas/DailyChallengeInfo"
-        journal:
-          anyOf:
-            - $ref: "#/components/schemas/DailyChallengeJournal"
-            - type: "null"
-      required:
-        - challenge
-        - journal
-      additionalProperties: false
+      $ref: "#/components/schemas/DailyChallengeResponse"
     DeclaredInput:
-      type: object
-      properties:
-        key:
-          type: string
-        label:
-          type: string
-        nodeKey:
-          type: string
-          description: Which node in the template this feeds.
-        port:
-          type: string
-        required:
-          type: boolean
-        type:
-          type: string
-          description: A PortType — see config/nodeTypes.ts.
-      required:
-        - key
-        - label
-        - nodeKey
-        - port
-        - required
-        - type
-      additionalProperties: false
+      $ref: "#/components/schemas/DeclaredInput"
     Element:
-      type: object
-      properties:
-        coverUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: The key image, and what a wired element hands over.
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        description:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Substance, not a note — it travels into the prompt.
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        imageUrls:
-          type: array
-          items:
-            type: string
-        name:
-          type: string
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-      required:
-        - coverUrl
-        - createdAt
-        - description
-        - id
-        - imageUrls
-        - name
-        - updatedAt
-      additionalProperties: false
+      $ref: "#/components/schemas/Element"
     ElementInput:
-      type: object
-      properties:
-        coverUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: The key image, and what a wired element hands over.
-        description:
-          anyOf:
-            - type: string
-            - type: "null"
-          description: Substance, not a note — it travels into the prompt.
-        imageUrls:
-          type: array
-          items:
-            type: string
-        name:
-          type: string
-      required:
-        - imageUrls
-        - name
-      additionalProperties: false
+      $ref: "#/components/schemas/ElementInput"
     JournalInput:
-      type: object
-      properties:
-        body:
-          type: string
-          maxLength: 20000
-      required:
-        - body
-      additionalProperties: false
+      $ref: "#/components/schemas/JournalInput"
     Provenance:
-      type: object
-      properties:
-        at:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        brandKitVersionId:
-          anyOf:
-            - type: string
-              format: uuid
-              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-            - type: "null"
-        inputs:
-          type: array
-          items:
-            type: string
-        model:
-          anyOf:
-            - type: string
-            - type: "null"
-        prompt:
-          anyOf:
-            - type: string
-            - type: "null"
-        recipeVersionId:
-          anyOf:
-            - type: string
-              format: uuid
-              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-            - type: "null"
-        settings:
-          type: object
-          propertyNames:
-            type: string
-          additionalProperties: {}
-      required:
-        - at
-        - inputs
-        - model
-        - prompt
-        - settings
-      additionalProperties: false
+      $ref: "#/components/schemas/Provenance"
     Recipe:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        currentVersion:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-        declaredInputs:
-          type: array
-          items:
-            $ref: "#/components/schemas/DeclaredInput"
-        description:
-          anyOf:
-            - type: string
-            - type: "null"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        name:
-          type: string
-        nodeCount:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        unverified:
-          type: boolean
-        updatedAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-      required:
-        - createdAt
-        - currentVersion
-        - declaredInputs
-        - description
-        - id
-        - name
-        - nodeCount
-        - unverified
-        - updatedAt
-      additionalProperties: false
+      $ref: "#/components/schemas/Recipe"
     RecipeInput:
-      type: object
-      properties:
-        boardId:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-          description: The board the selection is read from.
-        declaredInputs:
-          type: array
-          items:
-            $ref: "#/components/schemas/DeclaredInput"
-        description:
-          anyOf:
-            - type: string
-            - type: "null"
-        itemIds:
-          type: array
-          items:
-            type: string
-          description: Ids only — the server reads the graph, never the client.
-        name:
-          type: string
-      required:
-        - boardId
-        - itemIds
-        - name
-      additionalProperties: false
+      $ref: "#/components/schemas/RecipeInput"
     RecipePlacement:
-      type: object
-      properties:
-        boardId:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        x:
-          type: number
-        y:
-          type: number
-      required:
-        - boardId
-        - x
-        - y
-      additionalProperties: false
+      $ref: "#/components/schemas/RecipePlacement"
     RecipeUse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        latestVersion:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-          description: Null when the recipe has been deleted.
-        pinnedVersion:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-          description: What this board was built against.
-        recipeId:
-          anyOf:
-            - type: string
-              format: uuid
-              pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-            - type: "null"
-        recipeName:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - id
-        - latestVersion
-        - pinnedVersion
-        - recipeId
-        - recipeName
-      additionalProperties: false
+      $ref: "#/components/schemas/RecipeUse"
     RecipeVersion:
-      type: object
-      properties:
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        declaredInputs:
-          type: array
-          items:
-            $ref: "#/components/schemas/DeclaredInput"
-        id:
-          type: string
-          format: uuid
-          pattern: ^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$
-        nodeCount:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-        unverified:
-          type: boolean
-          description: Saved from a selection that had never run successfully.
-        version:
-          type: integer
-          minimum: -9007199254740991
-          maximum: 9007199254740991
-      required:
-        - createdAt
-        - declaredInputs
-        - id
-        - nodeCount
-        - unverified
-        - version
-      additionalProperties: false
+      $ref: "#/components/schemas/RecipeVersion"
     RunNodeResult:
-      type: object
-      properties:
-        error:
-          anyOf:
-            - type: string
-            - type: "null"
-        outputs:
-          type: array
-          items: {}
-          description: Whatever the node produced.
-        state:
-          type: string
-          description: See RunState in config/nodeTypes.ts.
-      required:
-        - outputs
-        - state
-      additionalProperties: false
+      $ref: "#/components/schemas/RunNodeResult"
     CanvaStatus:
-      type: object
-      properties:
-        connected:
-          type: boolean
-        expiresAt:
-          anyOf:
-            - type: string
-              format: date-time
-              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-            - type: "null"
-      required:
-        - connected
-      additionalProperties: false
+      $ref: "#/components/schemas/CanvaStatus"
     FalLibraryItem:
-      type: object
-      properties:
-        contentType:
-          anyOf:
-            - type: string
-            - type: "null"
-        createdAt:
-          type: string
-          format: date-time
-          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
-        endpoint:
-          type: string
-        id:
-          type: string
-        previewUrl:
-          type: string
-          description: The fal URL, or an inlined data URI for vector output.
-        prompt:
-          anyOf:
-            - type: string
-            - type: "null"
-        url:
-          type: string
-      required:
-        - contentType
-        - createdAt
-        - endpoint
-        - id
-        - previewUrl
-        - prompt
-        - url
-      additionalProperties: false
+      $ref: "#/components/schemas/FalLibraryItem"
     FalLibraryPage:
-      type: object
-      properties:
-        hasMore:
-          type: boolean
-        items:
-          type: array
-          items:
-            $ref: "#/components/schemas/FalLibraryItem"
-      required:
-        - hasMore
-        - items
-      additionalProperties: false
+      $ref: "#/components/schemas/FalLibraryPage"
     FramerImage:
-      type: object
-      properties:
-        altText:
-          anyOf:
-            - type: string
-            - type: "null"
-        imageUrl:
-          type: string
-        thumbUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - altText
-        - imageUrl
-        - thumbUrl
-      additionalProperties: false
+      $ref: "#/components/schemas/FramerImage"
     GeneratedImage:
-      type: object
-      properties:
-        description:
-          anyOf:
-            - type: string
-            - type: "null"
-        height:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-        url:
-          type: string
-          description: Already copied to our blob host; fal's URLs expire.
-        width:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-      required:
-        - description
-        - height
-        - url
-        - width
-      additionalProperties: false
+      $ref: "#/components/schemas/GeneratedImage"
     GenerateInput:
-      type: object
-      properties:
-        modelId:
-          type: string
-        prompt:
-          type: string
-          minLength: 1
-        sourceImageUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - prompt
-      additionalProperties: false
+      $ref: "#/components/schemas/GenerateInput"
     PickerConfig:
-      type: object
-      properties:
-        appId:
-          anyOf:
-            - type: string
-            - type: "null"
-        clientId:
-          type: string
-        developerKey:
-          anyOf:
-            - type: string
-            - type: "null"
-        scope:
-          type: string
-      required:
-        - appId
-        - clientId
-        - developerKey
-        - scope
-      additionalProperties: false
+      $ref: "#/components/schemas/PickerConfig"
     PinResult:
-      type: object
-      properties:
-        altText:
-          anyOf:
-            - type: string
-            - type: "null"
-        creditName:
-          anyOf:
-            - type: string
-            - type: "null"
-        creditUrl:
-          type: string
-          description: The pin itself, so a board links back.
-        imageUrl:
-          type: string
-        thumbUrl:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - altText
-        - creditName
-        - creditUrl
-        - imageUrl
-        - thumbUrl
-      additionalProperties: false
+      $ref: "#/components/schemas/PinResult"
     PinterestBoardResult:
-      type: object
-      properties:
-        pins:
-          type: array
-          items:
-            $ref: "#/components/schemas/PinResult"
-        title:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - pins
-        - title
-      additionalProperties: false
+      $ref: "#/components/schemas/PinterestBoardResult"
     ProvisionResult:
-      type: object
-      properties:
-        databaseId:
-          anyOf:
-            - type: string
-            - type: "null"
-        projectId:
-          type: string
-        projectName:
-          type: string
-        url:
-          anyOf:
-            - type: string
-            - type: "null"
-      required:
-        - projectId
-        - projectName
-      additionalProperties: false
+      $ref: "#/components/schemas/ProvisionResult"
     UnsplashResult:
-      type: object
-      properties:
-        altText:
-          anyOf:
-            - type: string
-            - type: "null"
-        creditName:
-          type: string
-          description: Required wherever the photograph shows.
-        creditUrl:
-          type: string
-        downloadLocation:
-          anyOf:
-            - type: string
-            - type: "null"
-        id:
-          type: string
-        imageUrl:
-          type: string
-        thumbUrl:
-          type: string
-      required:
-        - altText
-        - creditName
-        - creditUrl
-        - downloadLocation
-        - id
-        - imageUrl
-        - thumbUrl
-      additionalProperties: false
+      $ref: "#/components/schemas/UnsplashResult"
     UploadResult:
-      type: object
-      properties:
-        height:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-        url:
-          type: string
-          format: uri
-          description: Blob URL the image is now served from.
-        width:
-          anyOf:
-            - type: integer
-              minimum: -9007199254740991
-              maximum: 9007199254740991
-            - type: "null"
-      required:
-        - url
-      additionalProperties: false
+      $ref: "#/components/schemas/UploadResult"
   securitySchemes:
     bearerAuth:
       bearerFormat: JWT
@@ -1873,7 +292,7 @@ paths:
                 email:
                   type: string
                   format: email
-                  pattern: ^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                  pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
               required:
                 - email
               additionalProperties: false
@@ -2674,6 +1093,36 @@ paths:
       tags:
         - boards
       x-undocumented: true
+  /api/boards/{id}/run/prepare:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_boards__id__run_prepare
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/boards/{id}/run/prepare
+      tags:
+        - boards
+      x-undocumented: true
   /api/boards/{id}/run/refusals.test:
     get:
       description: Not yet described in schemas/routes.ts — path and method were read from the handler.
@@ -2932,7 +1381,7 @@ paths:
                   createdAt:
                     type: string
                     format: date-time
-                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d(?:\.\d+)?)?(?:Z))$
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
                   id:
                     type: string
                     format: uuid
@@ -3558,6 +2007,30 @@ paths:
       summary: Create a category.
       tags:
         - categories
+  /api/claude-status:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_claude-status
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/claude-status
+      tags:
+        - claude-status
+      x-undocumented: true
   /api/collections/{id}:
     get:
       description: Not yet described in schemas/routes.ts — path and method were read from the handler.
@@ -3939,15 +2412,15 @@ paths:
               type: object
               properties:
                 coverUrl:
-                  anyOf:
-                    - type: string
-                    - type: "null"
                   description: The key image, and what a wired element hands over.
+                  type:
+                    - string
+                    - "null"
                 description:
-                  anyOf:
-                    - type: string
-                    - type: "null"
                   description: Substance, not a note — it travels into the prompt.
+                  type:
+                    - string
+                    - "null"
                 imageUrls:
                   type: array
                   items:
@@ -4186,9 +2659,9 @@ paths:
                     items:
                       $ref: "#/components/schemas/FramerImage"
                   title:
-                    anyOf:
-                      - type: string
-                      - type: "null"
+                    type:
+                      - string
+                      - "null"
                 required:
                   - images
                   - title
@@ -4249,6 +2722,94 @@ paths:
       summary: What the Google Drive picker needs to open.
       tags:
         - google
+  /api/invoices/{id}:
+    patch:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: patch_api_invoices__id_
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: PATCH /api/invoices/{id}
+      tags:
+        - invoices
+      x-undocumented: true
+    delete:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: delete_api_invoices__id_
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: DELETE /api/invoices/{id}
+      tags:
+        - invoices
+      x-undocumented: true
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_invoices__id_
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/invoices/{id}
+      tags:
+        - invoices
+      x-undocumented: true
   /api/lightroom/albums:
     get:
       description: Not yet described in schemas/routes.ts — path and method were read from the handler.
@@ -4570,26 +3131,26 @@ paths:
                     - type: object
                       properties:
                         endpoint:
-                          anyOf:
-                            - type: string
-                            - type: "null"
+                          type:
+                            - string
+                            - "null"
                         imageEndpoint:
-                          anyOf:
-                            - type: string
-                            - type: "null"
+                          type:
+                            - string
+                            - "null"
                         path:
-                          anyOf:
-                            - type: string
-                            - type: "null"
                           description: URL to the safetensors weights.
+                          type:
+                            - string
+                            - "null"
                         scale:
-                          anyOf:
-                            - type: number
-                            - type: "null"
+                          type:
+                            - number
+                            - "null"
                         trigger:
-                          anyOf:
-                            - type: string
-                            - type: "null"
+                          type:
+                            - string
+                            - "null"
                       required:
                         - endpoint
                         - imageEndpoint
@@ -4735,6 +3296,171 @@ paths:
       summary: Add a model.
       tags:
         - models
+  /api/models/train:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_models_train
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/models/train
+      tags:
+        - models
+      x-undocumented: true
+  /api/models/training:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_models_training
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/models/training
+      tags:
+        - models
+      x-undocumented: true
+  /api/notifications:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_notifications
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/notifications
+      tags:
+        - notifications
+      x-undocumented: true
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_notifications
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/notifications
+      tags:
+        - notifications
+      x-undocumented: true
+  /api/notifications/push:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_notifications_push
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/notifications/push
+      tags:
+        - notifications
+      x-undocumented: true
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_notifications_push
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/notifications/push
+      tags:
+        - notifications
+      x-undocumented: true
+    delete:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: delete_api_notifications_push
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: DELETE /api/notifications/push
+      tags:
+        - notifications
+      x-undocumented: true
   /api/pages/{slug}:
     get:
       operationId: get_api_pages__slug_
@@ -4783,9 +3509,9 @@ paths:
               type: object
               properties:
                 icon:
-                  anyOf:
-                    - type: string
-                    - type: "null"
+                  type:
+                    - string
+                    - "null"
                 slug:
                   type: string
                   minLength: 1
@@ -5377,6 +4103,380 @@ paths:
       summary: Read one pin.
       tags:
         - pinterest
+  /api/proposals/{slug}:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_proposals__slug_
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/proposals/{slug}
+      tags:
+        - proposals
+      x-undocumented: true
+    patch:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: patch_api_proposals__slug_
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: PATCH /api/proposals/{slug}
+      tags:
+        - proposals
+      x-undocumented: true
+    delete:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: delete_api_proposals__slug_
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: DELETE /api/proposals/{slug}
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/accept.node.test:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_proposals__slug__accept.node.test
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/proposals/{slug}/accept.node.test
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/accept:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_proposals__slug__accept
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/proposals/{slug}/accept
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/invoices:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_proposals__slug__invoices
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/proposals/{slug}/invoices
+      tags:
+        - proposals
+      x-undocumented: true
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_proposals__slug__invoices
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/proposals/{slug}/invoices
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/pdf.node.test:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_proposals__slug__pdf.node.test
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/proposals/{slug}/pdf.node.test
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/pdf:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_proposals__slug__pdf
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/proposals/{slug}/pdf
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/send.node.test:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_proposals__slug__send.node.test
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/proposals/{slug}/send.node.test
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals/{slug}/send:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_proposals__slug__send
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/proposals/{slug}/send
+      tags:
+        - proposals
+      x-undocumented: true
+  /api/proposals:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_proposals
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/proposals
+      tags:
+        - proposals
+      x-undocumented: true
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_proposals
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/proposals
+      tags:
+        - proposals
+      x-undocumented: true
   /api/recipes/{id}:
     get:
       description: Not yet described in schemas/routes.ts — path and method were read from the handler.
@@ -5541,6 +4641,255 @@ paths:
       summary: POST /api/recipes
       tags:
         - recipes
+      x-undocumented: true
+  /api/reviews/{slug}:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_reviews__slug_
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/reviews/{slug}
+      tags:
+        - reviews
+      x-undocumented: true
+    delete:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: delete_api_reviews__slug_
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: DELETE /api/reviews/{slug}
+      tags:
+        - reviews
+      x-undocumented: true
+    patch:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: patch_api_reviews__slug_
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: PATCH /api/reviews/{slug}
+      tags:
+        - reviews
+      x-undocumented: true
+  /api/reviews/{slug}/pdf.node.test:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_reviews__slug__pdf.node.test
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/reviews/{slug}/pdf.node.test
+      tags:
+        - reviews
+      x-undocumented: true
+  /api/reviews/{slug}/pdf:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_reviews__slug__pdf
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/reviews/{slug}/pdf
+      tags:
+        - reviews
+      x-undocumented: true
+  /api/reviews/{slug}/send:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_reviews__slug__send
+      parameters:
+        - in: path
+          name: slug
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/reviews/{slug}/send
+      tags:
+        - reviews
+      x-undocumented: true
+  /api/reviews/capture:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_reviews_capture
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/reviews/capture
+      tags:
+        - reviews
+      x-undocumented: true
+  /api/reviews:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_reviews
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/reviews
+      tags:
+        - reviews
+      x-undocumented: true
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_reviews
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/reviews
+      tags:
+        - reviews
       x-undocumented: true
   /api/robots:
     get:
@@ -5911,6 +5260,78 @@ paths:
       summary: Upload an image to blob storage.
       tags:
         - upload
+  /api/webhooks/resend:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_webhooks_resend
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/webhooks/resend
+      tags:
+        - webhooks
+      x-undocumented: true
+  /api/webhooks/stripe:
+    post:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: post_api_webhooks_stripe
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: POST /api/webhooks/stripe
+      tags:
+        - webhooks
+      x-undocumented: true
+  /api/webhooks/webhooks.node.test:
+    get:
+      description: Not yet described in schemas/routes.ts — path and method were read from the handler.
+      operationId: get_api_webhooks_webhooks.node.test
+      responses:
+        "200":
+          description: Success
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        5XX:
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security: []
+      summary: GET /api/webhooks/webhooks.node.test
+      tags:
+        - webhooks
+      x-undocumented: true
 servers:
   - description: Local
     url: http://localhost:3006
