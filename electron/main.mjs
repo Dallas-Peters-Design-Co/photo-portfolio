@@ -27,7 +27,14 @@ import { spawn } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { app, BrowserWindow, ipcMain, Menu, shell } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  Notification,
+  shell,
+} from "electron";
 import { forgetGoogleToken, requestGoogleToken } from "./googleAuth.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -192,6 +199,62 @@ const registerGoogleAuth = () => {
   ipcMain.handle("google:forget", () => forgetGoogleToken());
 };
 
+/** Clicked notifications are held until garbage collection would drop them. */
+const shown = new Set();
+
+const text = (value, max) =>
+  typeof value === "string" ? value.slice(0, max) : "";
+
+/**
+ * Native notifications and the dock badge, for the admin's bell.
+ *
+ * Web Push never arrives inside Electron — there is no push service behind
+ * it — so the page polls for activity as it always has and hands anything new
+ * to the OS here. A click brings the window forward and tells the page which
+ * admin route to open; only same-site paths are passed back.
+ */
+const registerNotifications = () => {
+  ipcMain.handle("notify:show", (event, notice) => {
+    if (!isInsideSite(event.senderFrame?.url ?? "")) {
+      throw new Error("Notifications are only available to the site.");
+    }
+    if (!Notification.isSupported()) {
+      return;
+    }
+    const title = text(notice?.title, 200);
+    if (!title) {
+      return;
+    }
+    const url = text(notice?.url, 500);
+    const note = new Notification({ body: text(notice?.body, 500), title });
+    shown.add(note);
+    note.on("click", () => {
+      shown.delete(note);
+      const win = BrowserWindow.fromWebContents(event.sender);
+      if (!win) {
+        return;
+      }
+      if (win.isMinimized()) {
+        win.restore();
+      }
+      win.show();
+      win.focus();
+      if (url.startsWith("/") && !url.startsWith("//")) {
+        event.sender.send("notify:open", url);
+      }
+    });
+    note.on("close", () => shown.delete(note));
+    note.show();
+  });
+  ipcMain.handle("notify:badge", (event, count) => {
+    if (!isInsideSite(event.senderFrame?.url ?? "")) {
+      return;
+    }
+    const n = Number.isInteger(count) && count > 0 ? Math.min(count, 999) : 0;
+    app.setBadgeCount(n);
+  });
+};
+
 const createWindow = () => {
   const win = new BrowserWindow({
     backgroundColor: "#000000",
@@ -290,6 +353,7 @@ app.whenReady().then(() => {
     app.dock?.setIcon(path.join(here, "icon.png"));
   }
   registerGoogleAuth();
+  registerNotifications();
   bridge = startBridge();
   createWindow();
   app.on("activate", () => {

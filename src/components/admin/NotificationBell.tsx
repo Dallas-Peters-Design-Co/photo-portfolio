@@ -7,6 +7,7 @@ import {
   type PushState,
   pushState,
 } from "../../lib/browserPush";
+import { announce, desktopNotifier, freshItems } from "../../lib/desktopNotify";
 import {
   type ActivityItem,
   notificationsApi,
@@ -36,6 +37,13 @@ const PUSH_LABELS: Record<PushState, string> = {
   unsupported: "This browser can't do notifications",
 };
 
+const footLabel = (desktop: boolean, push: PushState | null): string => {
+  if (desktop) {
+    return "Desktop notifications are on while the app is open";
+  }
+  return push ? PUSH_LABELS[push] : "Checking…";
+};
+
 export function NotificationBell() {
   const navigate = useNavigate();
   const [items, setItems] = useState<ActivityItem[]>([]);
@@ -44,12 +52,20 @@ export function NotificationBell() {
   const [push, setPush] = useState<PushState | null>(null);
   const [pushBusy, setPushBusy] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  // Ids the last poll returned, for spotting what's new in the desktop app.
+  const seen = useRef<Set<string> | null>(null);
+  const desktop = desktopNotifier();
 
   const refresh = useCallback(async () => {
     try {
       const next = await notificationsApi.latest();
       setItems(next.items);
       setUnread(next.unread);
+      const notifier = desktopNotifier();
+      if (notifier) {
+        announce(notifier, freshItems(next.items, seen.current));
+        seen.current = new Set(next.items.map((item) => item.id));
+      }
     } catch {
       // A missed poll is retried in a minute; nothing to show for it.
     }
@@ -65,6 +81,19 @@ export function NotificationBell() {
       window.removeEventListener("focus", onFocus);
     };
   }, [refresh]);
+
+  // The dock badge follows the count, including reads made here.
+  useEffect(() => {
+    desktopNotifier()
+      ?.setBadgeCount(unread)
+      .catch(() => undefined);
+  }, [unread]);
+
+  // A clicked desktop notification opens what it was about.
+  useEffect(
+    () => desktopNotifier()?.onNotificationClick((url) => navigate(url)),
+    [navigate]
+  );
 
   useEffect(() => {
     if (!open) {
@@ -193,9 +222,9 @@ export function NotificationBell() {
 
           <div className="notification-bell__foot">
             <span className="notification-bell__push-label">
-              {push ? PUSH_LABELS[push] : "Checking…"}
+              {footLabel(Boolean(desktop), push)}
             </span>
-            {push === "off" || push === "on" ? (
+            {!desktop && (push === "off" || push === "on") ? (
               <button
                 className="notification-bell__link"
                 disabled={pushBusy}
