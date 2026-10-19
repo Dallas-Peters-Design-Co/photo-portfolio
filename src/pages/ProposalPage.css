@@ -23,7 +23,11 @@
   --border-title: solid 4px var(--sheet-ink);
   --border-signature: 1px solid contrast-color(var(--sheet-tint));
   --suggested: color-mix(in oklch, var(--sheet-tint), #ffffff 76%);
-  --sheet-intro: color-mix(in oklab, var(--sheet-tint) 80%, var(--sheet-ink));
+  --sheet-intro: color-mix(
+    in oklch increasing hue,
+    var(--sheet-tint) 100%,
+    black 30%
+  );
   /*
    * Vertical rhythm. Clauses do not sit in a gap; each pads itself by one
    * --rhythm top and bottom, so two rhythms separate a clause's last line
@@ -125,7 +129,6 @@
 
   color: var(--sheet-ink);
   background: var(--sheet);
-  border-radius: calc(var(--spacing) * 2);
 }
 .proposal-page__content {
   position: relative;
@@ -166,13 +169,13 @@
 .proposal-page__title {
   padding-block-start: calc(var(--spacing) * 4);
   font-family: var(--font-display, var(--font-sans));
-  font-size: clamp(1.5rem, 1.544rem + 4.082vw, 3.25rem);
+  font-size: clamp(1.5rem, 1.544rem + 4.082vw, 3.15rem);
   font-variation-settings: "wght" 800;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.05em;
   text-wrap: balance;
-  border-block-start: var(--border-title);
+  /*border-block-start: var(--border-title);*/
 }
 
 /*
@@ -183,39 +186,11 @@
   color: oklch(0.65 0.15 70);
 }
 
-.proposal-page__parties {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: calc(var(--spacing) * 4);
-  margin-block-end: calc(var(--spacing) * 3);
+.proposal-page__grid .proposal-page__clause .stack {
+  columns: 2 auto;
+  gap: 2rem;
+  display: block;
 }
-
-@media (min-width: 40rem) {
-  .proposal-page__parties {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.proposal-page__party {
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
-  font-size: var(--text-sm-ui);
-  line-height: 1.5;
-  border: 1px solid var(--sheet-rule);
-  border-radius: calc(var(--spacing) * 1);
-}
-
-.proposal-page__party dt {
-  margin-block-start: calc(var(--spacing) * 3);
-}
-
-.proposal-page__party dt:first-child {
-  margin-block-start: 0;
-}
-
-.proposal-page__party dd {
-  margin-block-start: calc(var(--spacing) * 1);
-}
-
 /* Clauses */
 
 .proposal-page__clause {
@@ -223,17 +198,6 @@
   flex-direction: column;
   gap: var(--rhythm);
   padding: var(--padding);
-}
-
-/*
- * One gap between the things in a clause body: paragraph to paragraph, list
- * item to list item, paragraph to list, option to option. The body is a
- * flex stack, so the CMS blocks' own margins are dropped and the stack gap
- * is the only spacing; the clause padding alone then sets the distance to
- * the next title.
- */
-.proposal-page__clause > .stack {
-  gap: var(--text-gap);
 }
 
 .proposal-page__clause .page-content__paragraph,
@@ -290,13 +254,16 @@
 
 .proposal-page__clause-title {
   position: relative;
+  padding-inline-start: var(--spacing);
+  margin-inline-start: calc(var(--spacing) * -2);
   font-family: var(--font-display, var(--font-sans));
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-variation-settings: "wght" 700;
   font-weight: 700;
   line-height: 1.1;
   letter-spacing: -0.04em;
   text-wrap: balance;
+  border-inline-start: 8px solid var(--sheet-tint);
 }
 
 .proposal-page__prose {
@@ -308,11 +275,12 @@
 
 /* The opening paragraphs, a lede: a step up from the body. */
 .proposal-page__intro {
-  max-width: 68ch;
   padding: var(--padding);
-  padding-block-start: 0;
-  font-weight: 700;
-  color: var(--sheet-intro);
+
+  & .page-content__paragraph {
+    font-weight: 700;
+    color: var(--sheet-intro);
+  }
 }
 
 .proposal-page__intro .page-content__paragraph,
@@ -382,10 +350,11 @@
 
 .proposal-page__option-fee {
   font-size: var(--text-xl);
-  font-weight: 600;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
   line-height: var(--leading-prose);
   text-align: end;
+  letter-spacing: var(--tracking-tighter);
   white-space: nowrap;
 }
 
@@ -394,6 +363,7 @@
   font-size: var(--text-xs-ui);
   font-weight: 400;
   color: var(--sheet-ink-soft);
+  letter-spacing: var(--tracking-normal);
 }
 
 /* On the tinted card the soft grey would fail; the facts take the card's text colour. */

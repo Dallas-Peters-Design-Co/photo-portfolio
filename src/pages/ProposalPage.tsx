@@ -10,7 +10,6 @@ import {
 } from "../../config/proposal.js";
 import { PageContent } from "../cms/PageContent";
 import { type ProposalRecord, proposalsApi } from "../services/proposalService";
-import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate, ProposalAcceptance } from "./ProposalAcceptance";
 import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
@@ -33,7 +32,7 @@ export function ProposalPage() {
   const { settings } = useSiteSettings();
   const [proposal, setProposal] = useState<ProposalRecord | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "missing">(
-    "loading",
+    "loading"
   );
 
   useEffect(() => {
@@ -175,21 +174,23 @@ function ProposalSheet({
           </div>
         )}
 
-        {scopeN ? (
-          <Clause n={scopeN} title="Scope of work">
-            <Prose text={doc.summary} />
-          </Clause>
-        ) : null}
+        <div className="proposal-page__grid">
+          {scopeN ? (
+            <Clause n={scopeN} title="Scope of work">
+              <Prose text={doc.summary} />
+            </Clause>
+          ) : null}
 
-        {doc.sections.map((section, i) => (
-          <Clause
-            key={section.id}
-            n={sectionNs[i] ?? 0}
-            title={section.heading}
-          >
-            <Prose text={section.body} />
-          </Clause>
-        ))}
+          {doc.sections.map((section, i) => (
+            <Clause
+              key={section.id}
+              n={sectionNs[i] ?? 0}
+              title={section.heading}
+            >
+              <Prose text={section.body} />
+            </Clause>
+          ))}
+        </div>
 
         {optionsN ? (
           <Clause n={optionsN} title="Options and fees">
@@ -212,28 +213,30 @@ function ProposalSheet({
           </Clause>
         ) : null}
 
-        {processN ? (
-          <Clause n={processN} title="What happens next">
-            <ol className="proposal-page__steps">
-              {doc.process.map((step) => (
-                <li className="proposal-page__step" key={step.id}>
-                  <span className="proposal-page__run">{step.title}.</span>{" "}
-                  {step.body}
-                </li>
-              ))}
-            </ol>
-          </Clause>
-        ) : null}
+        <div className="proposal-page__grid">
+          {processN ? (
+            <Clause n={processN} title="What happens next">
+              <ol className="proposal-page__steps">
+                {doc.process.map((step) => (
+                  <li className="proposal-page__step" key={step.id}>
+                    <span className="proposal-page__run">{step.title}.</span>{" "}
+                    {step.body}
+                  </li>
+                ))}
+              </ol>
+            </Clause>
+          ) : null}
 
-        {termsN ? (
-          <Clause n={termsN} title="Terms">
-            <ul className="proposal-page__list">
-              {doc.terms.map((term) => (
-                <li key={term}>{term}</li>
-              ))}
-            </ul>
-          </Clause>
-        ) : null}
+          {termsN ? (
+            <Clause n={termsN} title="Terms">
+              <ul className="proposal-page__list">
+                {doc.terms.map((term) => (
+                  <li key={term}>{term}</li>
+                ))}
+              </ul>
+            </Clause>
+          ) : null}
+        </div>
 
         <Clause last n={acceptanceN} title="Acceptance">
           {isRichTextEmpty(doc.closing) ? null : <Prose text={doc.closing} />}
