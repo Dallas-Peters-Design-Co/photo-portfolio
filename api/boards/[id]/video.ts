@@ -1,5 +1,4 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { durationValueFor } from "../../../config/nodes/videoDuration.js";
 import { getBearerUser } from "../../_lib/auth.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
@@ -9,10 +8,15 @@ import {
   submitToQueue,
   videoUrlOf,
 } from "../../_lib/falQueue.js";
-import { parsePublicHttpUrl } from "../../_lib/httpUrl.js";
 import { loadModelRows } from "../../_lib/modelStore.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
 import { persistGenerated } from "../../_lib/persistGenerated.js";
+import {
+  readVideoMedia,
+  type VideoRequest,
+  videoBodyFor,
+  videoRefusal,
+} from "../../_lib/videoBody.js";
 
 /**
  * Animating a still, in three requests instead of one.
@@ -55,42 +59,6 @@ const failed = (res: VercelResponse, e: unknown, fallback: string) => {
 };
 
 /**
- * The body a video endpoint expects.
- *
- * The picture's field name comes from the model row, not from an assumption.
- * It was an assumption at first — "every video endpoint takes image_url" —
- * and it was wrong: Kling v3 calls it `start_image_url` while Kling v2.5 calls
- * it `image_url`, so one family disagrees with itself across a version bump.
- * That is precisely what `image_param` is for, and skipping it produced a 422
- * naming a field nobody had heard of.
- */
-const bodyFor = (
-  model: string,
-  imageParam: string,
-  imageUrl: string,
-  prompt: string,
-  duration: string
-): Record<string, unknown> => {
-  // The length in the endpoint's own vocabulary and its own type, or nothing
-  // at all when it declares no duration. The node used to send its own "5" or
-  // "10" to everything: Veo refused it as a value ("Input should be '4s', '6s'
-  // or '8s'") and Wan refuses it as a string. Both after billing. See
-  // config/nodes/videoDuration.ts.
-  const seconds = duration ? durationValueFor(model, duration) : null;
-  return {
-    [imageParam || "image_url"]: imageUrl,
-    // Only when there is one. Background removal and upscaling take a clip and
-    // nothing else, and an empty `prompt` sent to a schema that declares no
-    // such field is a 422 — after the call has been made, like every other way
-    // of getting a video request wrong.
-    ...(prompt ? { prompt } : {}),
-    // Whatever type the endpoint declared: a string where it lists "5" or
-    // "4s", a number where it declares an integer.
-    ...(seconds === null ? {} : { duration: seconds }),
-  };
-};
-
-/**
  * Submits the job and hands back where to watch it.
  *
  * The model is checked against the table first. A Generate node's model reaching
@@ -100,23 +68,9 @@ const bodyFor = (
 const submit = async (
   res: VercelResponse,
   key: string,
-  body: {
-    duration?: unknown;
-    imageUrl?: unknown;
-    model?: unknown;
-    prompt?: unknown;
-  }
+  body: VideoRequest & { model?: unknown }
 ) => {
-  const imageUrl =
-    typeof body.imageUrl === "string"
-      ? parsePublicHttpUrl(body.imageUrl)
-      : null;
-  if (!imageUrl) {
-    return res
-      .status(400)
-      .json({ error: "A video node needs a picture or a clip wired into it." });
-  }
-
+  const media = readVideoMedia(body);
   const model = typeof body.model === "string" ? body.model : "";
   const rows = await loadModelRows();
   // "auto" is what every other model setting on the board defaults to, and the
@@ -144,6 +98,13 @@ const submit = async (
 
   const prompt = typeof body.prompt === "string" ? body.prompt.trim() : "";
   const duration = typeof body.duration === "string" ? body.duration : "";
+  // Before the submission, because after it the money is spent: what the
+  // endpoint requires is read from its own schema, so a start frame is asked
+  // for only by the models that take one and text-to-video asks for none.
+  const refusal = videoRefusal(known, media, prompt);
+  if (refusal) {
+    return res.status(400).json({ error: refusal });
+  }
 
   try {
     // `known.id`, not the requested string: "auto" resolved to a row above, and
@@ -152,7 +113,12 @@ const submit = async (
     const receipt = await submitToQueue(
       key,
       known.id,
-      bodyFor(known.id, known.image_param, imageUrl, prompt, duration)
+      videoBodyFor(
+        { id: known.id, imageParam: known.image_param },
+        media,
+        prompt,
+        duration
+      )
     );
     return res.status(200).json(receipt);
   } catch (e) {

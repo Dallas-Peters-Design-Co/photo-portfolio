@@ -33,6 +33,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "config" / "nodes" / "falParams.generated.ts"
 API = "https://fal.ai/api/openapi/queue/openapi.json?endpoint_id="
 UA = {"User-Agent": "Mozilla/5.0"}
+# Shared with fetch-fal-video-models.py, so a second run does not re-ask fal.
+CACHE = pathlib.Path("/tmp/falschema")
 
 # The parameters the panel can set, and nothing else — this table exists to
 # answer "may I send this field", not to mirror fal's whole schema.
@@ -58,15 +60,22 @@ IMPLIED = {
 
 
 def fetch(url: str) -> dict:
+    endpoint = urllib.parse.unquote(url.split("endpoint_id=", 1)[-1])
+    cached = CACHE / (endpoint.replace("/", "__") + ".json")
+    if cached.exists():
+        return json.loads(cached.read_text())
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=30) as r:
-        return json.loads(r.read())
+        data = json.loads(r.read())
+    CACHE.mkdir(exist_ok=True)
+    cached.write_text(json.dumps(data))
+    return data
 
 
 def seeded_ids() -> set[str]:
     """Every endpoint the seed patches name, minus the LoRA style pseudo-ids."""
     ids: set[str] = set()
-    for name in ("017_models.sql", "027_video_models.sql"):
+    for name in ("017_models.sql", "027_video_models.sql", "044_all_video_models.sql"):
         path = ROOT / "db" / "patches" / name
         if not path.exists():
             continue
@@ -155,6 +164,14 @@ def duration_of(properties: dict) -> "dict | None":
     return entry
 
 
+def one_per_line(table: dict) -> str:
+    """An endpoint per line: four hundred of them pretty-printed is 4,000 lines."""
+    rows = ",\n".join(
+        f"  {json.dumps(key)}: {json.dumps(value, sort_keys=True)}"
+        for key, value in sorted(table.items()))
+    return "{\n" + rows + "\n}"
+
+
 def main() -> int:
     endpoints = sorted(seeded_ids() | IMPLIED)
     table: dict[str, dict[str, list[str]]] = {}
@@ -184,8 +201,8 @@ def main() -> int:
         print("No schemas read — fal's OpenAPI route has changed.", file=sys.stderr)
         return 1
 
-    body = json.dumps(table, indent=2, sort_keys=True)
-    seconds_body = json.dumps(durations, indent=2, sort_keys=True)
+    body = one_per_line(table)
+    seconds_body = one_per_line(durations)
     OUT.write_text(f'''/**
  * What each fal endpoint will accept, read from fal's own OpenAPI schemas.
  *

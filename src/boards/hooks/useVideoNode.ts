@@ -1,8 +1,9 @@
 import { useCallback, useRef } from "react";
 import { toast } from "sonner";
-import type { BoardItem } from "../../types";
+import { missingVideoInputs } from "../../../config/nodes/falVideoInputs.js";
+import type { BoardItem, BoardWire } from "../../types";
+import { videoInputsOf } from "../io/videoInputs";
 import { runVideo } from "../io/videoRun";
-import { outputImageOf } from "../itemOutput";
 
 /**
  * Running a Video node, which the graph runner cannot do.
@@ -54,7 +55,7 @@ const settingsOf = (item: BoardItem) => {
 export const useVideoRunner = (
   boardId: string | null,
   items: BoardItem[],
-  wires: { sourceItemId: string; targetItemId: string; targetPort: string }[],
+  wires: BoardWire[],
   onChange: (items: BoardItem[]) => void
 ): RunVideo => {
   // The board as it is *now*, not as it was when the run started.
@@ -76,22 +77,29 @@ export const useVideoRunner = (
         toast.error("Save the board before generating a video");
         return;
       }
-      // The picture comes off the wire rather than the node: a Video node holds
-      // no image of its own, and the whole point is to animate something that
-      // is already on the board.
-      const wire = wires.find(
-        (w) => w.targetItemId === item.id && w.targetPort === "image"
-      );
-      const source = wire
-        ? latest.current.find((c) => c.id === wire.sourceItemId)
-        : undefined;
-      const imageUrl = source ? outputImageOf(source, latest.current) : null;
-      if (!imageUrl) {
-        toast.error("Wire a picture into the Video node first");
+      // Everything comes off the wires rather than the node: start and end
+      // frames, any number of references, a source clip and wired prompt
+      // lines. Which of those the chosen endpoint needs is its own business —
+      // a text-to-video model needs none of the pictures, a reference model
+      // needs the list — so it is checked against the endpoint's schema here,
+      // before anything is spent, and refused with what is actually missing.
+      const wired = videoInputsOf(item, { items: latest.current, wires });
+      const settings = settingsOf(item);
+      const prompt = [settings.prompt, ...wired.prompts]
+        .filter((part) => part.trim())
+        .join(". ");
+      const missing = missingVideoInputs(settings.model, {
+        end: Boolean(wired.end),
+        image: Boolean(wired.image),
+        prompt: Boolean(prompt),
+        references: wired.references.length,
+        video: Boolean(wired.video),
+      });
+      if (missing.length > 0) {
+        toast.error(`This model needs ${missing.join(" and ")}`);
         return;
       }
-
-      const { duration, model, prompt } = settingsOf(item);
+      const { duration, model } = settings;
 
       // Written onto the item, not into a hook-local flag: the node reads its
       // own `runState`, and that is the only thing on screen that can say a
@@ -108,7 +116,17 @@ export const useVideoRunner = (
         const result = await runVideo(
           boardId,
           item.id,
-          { duration, imageUrl, model, prompt },
+          {
+            duration,
+            inputs: {
+              end: wired.end ?? undefined,
+              image: wired.image ?? undefined,
+              references: wired.references,
+              video: wired.video ?? undefined,
+            },
+            model,
+            prompt,
+          },
           {
             // Queue position while it waits, so a long generation reads as
             // queued rather than stuck.

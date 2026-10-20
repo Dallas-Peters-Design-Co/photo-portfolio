@@ -1,3 +1,4 @@
+import { videoInputsNote } from "../../../config/nodes/falVideoInputs.js";
 import { useModels } from "../ModelsContext";
 import {
   loraTriggerNote,
@@ -33,6 +34,7 @@ export function NodeNotes({
   const trigger = loraTriggerNote(models, config);
   const shape = promptOnlyNote(models, config, imageCount);
   const blend = multiImageNote(models, config, imageCount);
+  const takes = videoInputsNote(config.model);
   /*
    * Only when it is more than one.
    *
@@ -58,6 +60,7 @@ export function NodeNotes({
           {shape}
         </p>
       ) : null}
+      {takes ? <p className="op-node-view__notice">{takes}</p> : null}
       {blend ? (
         <p className="op-node-view__notice op-node-view__notice--wired">
           {blend}

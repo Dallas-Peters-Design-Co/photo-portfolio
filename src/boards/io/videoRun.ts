@@ -18,6 +18,22 @@ export interface VideoReceipt {
   statusUrl: string;
 }
 
+/** What a Video node's ports carry. See src/boards/io/videoInputs.ts. */
+export interface VideoSubmitInputs {
+  end?: string;
+  image?: string;
+  references?: string[];
+  video?: string;
+}
+
+/** One submission: the node's settings and whatever is wired into it. */
+export interface VideoSubmit {
+  duration: string;
+  inputs: VideoSubmitInputs;
+  model: string;
+  prompt: string;
+}
+
 export interface VideoProgress {
   queuePosition: number | null;
   status: "IN_QUEUE" | "IN_PROGRESS" | "COMPLETED";
@@ -68,16 +84,13 @@ const post = async <T>(
 
 export const submitVideo = (
   boardId: string,
-  args: {
-    duration: string;
-    imageUrl: string;
-    model: string;
-    prompt: string;
-  }
+  args: VideoSubmit
 ): Promise<VideoReceipt> =>
   post<VideoReceipt>(
     boardId,
-    { action: "submit", ...args },
+    // `imageUrl` as well as the start frame inside `inputs`, so a server one
+    // deploy behind this bundle still receives the picture it expects.
+    { action: "submit", imageUrl: args.inputs.image, ...args },
     "Could not start the video"
   );
 
@@ -158,7 +171,7 @@ const pollUntilDone = async (
 export const runVideo = async (
   boardId: string,
   itemId: string,
-  args: { duration: string; imageUrl: string; model: string; prompt: string },
+  args: VideoSubmit,
   options: RunOptions = {}
 ): Promise<Record<string, unknown>> => {
   const receipt = await submitVideo(boardId, args);

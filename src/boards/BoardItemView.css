@@ -72,6 +72,25 @@
   border-color: oklch(84.5% 0.143 164.978);
 }
 
+/*
+ * An input's name, outside the node's left edge.
+ *
+ * Outside rather than inside so it never sits over what the node holds — the
+ * picture is the subject. The size is set inline in screen pixels divided by
+ * the zoom, like the handle itself, so it reads the same at every scale.
+ */
+.board-item__port-label {
+  position: absolute;
+  right: 100%;
+  padding-inline-end: 0.4em;
+  font-weight: 500;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
 .board-item__figure {
   width: 100%;
   height: 100%;

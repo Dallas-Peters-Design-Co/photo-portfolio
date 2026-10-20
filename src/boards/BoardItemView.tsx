@@ -1,15 +1,15 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import { type RefObject, useEffect, useRef } from "react";
-import { PORT_HIT_PX, PORT_RADIUS_PX } from "../../config/canvas.js";
-import { inputPortsFor, outputPortsFor } from "../../config/graph.js";
 import type { BoardItem } from "../types";
 import { BoardTextTools } from "./BoardTextTools";
 import { BoardToolBar } from "./BoardToolBar";
 import type { ResizeHandle } from "./geometry/alignmentGuides";
-import { inputPoints, outputPoints } from "./geometry/portGeometry";
+import { inputPoints } from "./geometry/portGeometry";
+import { fitsContent, useAutoHeight } from "./hooks/useAutoHeight";
 import { itemBoxClassName } from "./itemBodies";
 import { ItemContent } from "./nodes/ItemContent";
+import { PortHandles } from "./PortHandles";
 import { ResizeHandles } from "./ResizeHandles";
 import type { BoardTools } from "./tools/useBoardTools";
 import "./BoardItemView.css";
@@ -134,110 +134,6 @@ interface BoardItemViewProps {
   wiredItems?: readonly string[];
   /** The words arriving on this item's prompt input, if any. */
   wiredPrompt?: string | null;
-}
-
-interface PortHandlesProps {
-  handlers: PortHandlers;
-  item: BoardItem;
-  scale: number;
-}
-
-/**
- * The little circles a wire is dragged between.
- *
- * Sized in screen pixels and divided by the zoom, like every other piece of
- * canvas chrome: a handle that scaled would be untappable on a board fitted to
- * the window and absurd at 300%.
- *
- * The hit target is far larger than the visible dot — the button is the target,
- * the dot is drawn inside it — so a wire can be landed on an input without
- * pixel-perfect aim, which was the friction that made connecting images to
- * nodes a matter of luck.
- *
- * Positions come from portGeometry, the same module the wires themselves use,
- * so a curve always terminates exactly on its handle.
- */
-function PortHandles({ handlers, item, scale }: PortHandlesProps) {
-  const hit = PORT_HIT_PX / scale;
-  const dot = (PORT_RADIUS_PX * 2) / scale;
-  const inputs = inputPoints(item);
-  const outputs = outputPoints(item);
-
-  const style = (point: { x: number; y: number }) => ({
-    height: hit,
-    left: point.x - item.x,
-    marginLeft: -hit / 2,
-    marginTop: -hit / 2,
-    top: point.y - item.y,
-    width: hit,
-  });
-
-  return (
-    <>
-      {outputPortsFor(item).map((port) => {
-        const point = outputs.get(port.key);
-        return point ? (
-          <button
-            aria-label={`Drag a connection from ${port.label}`}
-            className="board-item__port"
-            data-port={port.key}
-            key={`out-${port.key}`}
-            onPointerDown={(e) => {
-              // The surface would read this as "pick the item up and drag it".
-              e.stopPropagation();
-              handlers.onPortDown(item.id, port.key, {
-                x: e.clientX,
-                y: e.clientY,
-              });
-            }}
-            style={style(point)}
-            type="button"
-          >
-            <span
-              aria-hidden
-              className="board-item__port-dot"
-              style={{ height: dot, width: dot }}
-            />
-          </button>
-        ) : null;
-      })}
-
-      {inputPortsFor(item).map((port) => {
-        const point = inputs.get(port.key);
-        if (!point) {
-          return null;
-        }
-        // Only lights up for a wire that could actually land here, so a refusal
-        // is visible during the drag rather than at the drop.
-        const isOpen =
-          handlers.isDragging && handlers.canDropOn(item.id, port.key);
-        const idle = handlers.isDragging
-          ? "board-item__port-target--closed"
-          : "";
-        return (
-          <button
-            aria-label={`Connect to ${port.label}`}
-            className="board-item__port"
-            data-port={port.key}
-            key={`in-${port.key}`}
-            onPointerDown={(e) => e.stopPropagation()}
-            onPointerEnter={() => handlers.onPortEnter(item.id, port.key)}
-            onPointerLeave={() => handlers.onPortLeave(item.id, port.key)}
-            style={style(point)}
-            type="button"
-          >
-            <span
-              aria-hidden
-              className={`board-item__port-target ${
-                isOpen ? "board-item__port-target--open" : idle
-              }`}
-              style={{ height: dot, width: dot }}
-            />
-          </button>
-        );
-      })}
-    </>
-  );
 }
 
 /**
@@ -434,7 +330,7 @@ export function BoardItemView({
   // Handed to the text panel, which reads this box's position off the DOM to
   // decide whether it fits above the item. The canvas viewport lives in a ref
   // so that panning does not re-render, so there is nothing else to ask.
-  const boxRef = useRef<HTMLDivElement>(null);
+  const boxRef = useAutoHeight(item, readOnly, onPatch);
 
   const fieldRef = useEditingCaret(isEditing);
 
@@ -471,7 +367,7 @@ export function BoardItemView({
       onPointerMove={handleDragHover}
       ref={boxRef}
       style={{
-        height: item.height,
+        height: fitsContent(item, readOnly) ? "auto" : item.height,
         left: item.x,
         top: item.y,
         width: item.width,

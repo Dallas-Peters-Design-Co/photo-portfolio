@@ -17,6 +17,7 @@ import type { SettingDef } from "../../../config/nodeTypes.js";
  */
 const NO_KIT = "__none__";
 
+import { useState } from "react";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { ColorWell } from "../ColorWell";
 import { useModels } from "../ModelsContext";
@@ -288,6 +289,34 @@ export const allowedModels = <T extends { output?: string }>(
   );
 
 /**
+ * Past this many choices a list is searched, not scrolled.
+ *
+ * The video picker reached four hundred when every fal endpoint was added, and
+ * a menu that long is one nobody finds anything in.
+ */
+const FILTER_FROM = 24;
+
+const WHITESPACE = /\s+/;
+
+/** The rows whose label or id holds every word typed, plus the current one. */
+export const filterModels = <T extends { id: string; label: string }>(
+  options: readonly T[],
+  query: string,
+  current: string | undefined
+): T[] => {
+  const words = query.toLowerCase().split(WHITESPACE).filter(Boolean);
+  if (words.length === 0) {
+    return [...options];
+  }
+  // The chosen model stays listed whatever is typed: Base UI shows nothing in
+  // the trigger for a value with no item, and the node would look unset.
+  return options.filter((model) => {
+    const text = `${model.label} ${model.id}`.toLowerCase();
+    return model.id === current || words.every((word) => text.includes(word));
+  });
+};
+
+/**
  * The model setting: a select whose choices are the `models` table rather than
  * a static option list.
  *
@@ -307,13 +336,26 @@ export function ModelSetting({
   // While the list is loading — or on a visitor's read-only board, where the
   // fetch is refused — the node still has to say what it is set to, even if
   // that means the raw id for a label.
-  const options =
+  const [query, setQuery] = useState("");
+  const all =
     allowed.length > 0
       ? allowed
       : [{ id: value || setting.default, label: value || setting.default }];
+  const options = filterModels(all, query, value);
   return (
     <div className="setting-field">
       <p className="setting-field__caption">{setting.label}</p>
+      {all.length > FILTER_FROM ? (
+        <input
+          aria-label={`Filter ${all.length} models`}
+          className="setting-field__filter"
+          onChange={(e) => setQuery(e.target.value)}
+          onPointerDown={(e) => e.stopPropagation()}
+          placeholder={`Filter ${all.length} models — kling, veo, text…`}
+          type="search"
+          value={query}
+        />
+      ) : null}
       {/*
         Says the list did not arrive, rather than looking like a board with one
         model on it.

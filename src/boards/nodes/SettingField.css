@@ -147,3 +147,22 @@
   background: none;
   border: 0;
 }
+
+/*
+ * Narrows a long model list before the menu opens. Above the trigger, so the
+ * words and the menu they shorten are read in that order.
+ */
+.setting-field__filter {
+  width: 100%;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  font-size: var(--text-xs);
+  color: var(--color-board-ink);
+  background: transparent;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 20%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.setting-field__filter::placeholder {
+  color: color-mix(in oklch, var(--color-board-ink) 40%, transparent);
+}

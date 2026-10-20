@@ -50,16 +50,42 @@ export const VIDEO: NodeType = {
   id: "video",
   inputs: [
     {
-      // One at a time, unlike Generate's image port. A video is expensive and
-      // slow enough that fanning four references into four clips is a bill
-      // nobody meant to run up — wire a Batch node in if that is really wanted.
+      // The start frame. One, because a clip has one first frame — a second
+      // wire is someone changing their mind and replaces the first.
+      //
+      // Not required here any more: text-to-video endpoints take no picture at
+      // all, and whether this one is needed depends on the model chosen. That
+      // is checked at run time against what the endpoint declares — see
+      // missingVideoInputs — and refused before anything is spent.
       arity: "one",
       key: "image",
-      label: "Image",
-      // Required: this is image-to-video, and a video node with nothing to
-      // animate has no subject at all. Refused before anything is spent.
-      required: true,
+      label: "Start frame",
+      required: false,
       type: "image",
+    },
+    {
+      arity: "one",
+      key: "end",
+      label: "End frame",
+      required: false,
+      type: "image",
+    },
+    {
+      // Many, which is what lets a Frame, a Batch or a handful of photos feed
+      // one clip: the endpoints that take several pictures treat them as the
+      // subject's references, not as separate jobs.
+      arity: "many",
+      key: "references",
+      label: "References",
+      required: false,
+      type: "image",
+    },
+    {
+      arity: "one",
+      key: "video",
+      label: "Source clip",
+      required: false,
+      type: "video",
     },
     {
       arity: "many",
