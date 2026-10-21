@@ -1,23 +1,14 @@
 import { describePalette } from "../../../../config/colourWords.js";
 import { containedBy, type GraphWire } from "../../../../config/graph.js";
-import { BUNDLE_IMAGES, BUNDLE_TEXT } from "../../../../config/nodes/bundle.js";
+import { BUNDLE_TEXT } from "../../../../config/nodes/bundle.js";
 import { DEFAULT_PLACEHOLDER } from "../../../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../../../config/nodes/palette.js";
 import { renderedUrlOf } from "../../../../config/nodes/rendered.js";
 import { isRunnableNodeType } from "../../../../config/nodeTypes.js";
 import type { BoardItemRow } from "../../../_lib/boards.js";
+import { bundleOutputsOf } from "./bundle.js";
 import { columnsOf, expandTemplate, LINES, splitValues } from "./expand.js";
-import { asObject, toBox } from "./rows.js";
-
-/** One row per line, blanks dropped. Mirrors parseItems in src/boards. */
-const LIST_LINES = /\r?\n/;
-const listRowsOf = (stored: unknown): string[] =>
-  typeof stored === "string"
-    ? stored
-        .split(LIST_LINES)
-        .map((line) => line.trim())
-        .filter(Boolean)
-    : [];
+import { asObject, listRowsOf, MAX_JOIN_DEPTH, toBox } from "./rows.js";
 
 /**
  * What every item on a board hands to whatever it feeds.
@@ -33,9 +24,6 @@ const listRowsOf = (stored: unknown): string[] =>
  * reading, and it must stay cheap enough to do on every run to decide whether a
  * run is needed at all.
  */
-
-/** A chain of Combine nodes longer than this is a mistake, not a design. */
-export const MAX_JOIN_DEPTH = 8;
 
 /**
  * Every prompt an Iterate node describes.
@@ -333,39 +321,6 @@ const resultOutputOf = (row: BoardItemRow): string | null => {
 };
 
 /**
- * What one of a Bundle's ports carries: everything wired into the matching
- * input, in wire order, and on the Text port the typed lines after them.
- *
- * Keyed by port: the one node with several outputs. A wire naming no port
- * gets the pictures.
- */
-const bundleOutputsOf = (
-  row: BoardItemRow,
-  rows: BoardItemRow[],
-  wires: GraphWire[],
-  depth: number,
-  port: string = BUNDLE_IMAGES
-): string[] => {
-  if (depth > MAX_JOIN_DEPTH) {
-    return [];
-  }
-  const wired = wires
-    .filter((wire) => wire.targetItemId === row.id && wire.targetPort === port)
-    .flatMap((wire) => {
-      const source = rows.find(
-        (candidate) => candidate.id === wire.sourceItemId
-      );
-      return source
-        ? outputsOf(source, rows, wires, depth + 1, wire.sourcePort)
-        : [];
-    });
-  if (port !== BUNDLE_TEXT) {
-    return wired;
-  }
-  return [...wired, ...listRowsOf(asObject(row.config).text)];
-};
-
-/**
  * What an item hands to whatever it feeds.
  *
  * A photograph resolves through its join rather than a stored copy, so
@@ -383,7 +338,7 @@ export const singleOutputOf = (
   // A Bundle's text arrives joined, as a Combine node's does; its pictures and
   // clips arrive one at a time through outputsOf, which keeps them apart.
   if (row.node_type === "bundle") {
-    const sent = bundleOutputsOf(row, rows, wires, depth, port);
+    const sent = bundleOutputsOf(row, rows, wires, depth, port, outputsOf);
     return port === BUNDLE_TEXT ? sent.join("\n") || null : (sent[0] ?? null);
   }
   if (row.node_type === "join") {
@@ -462,7 +417,7 @@ export const outputsOf = (
   port?: string
 ): string[] => {
   if (row.node_type === "bundle") {
-    return bundleOutputsOf(row, rows, wires, depth, port);
+    return bundleOutputsOf(row, rows, wires, depth, port, outputsOf);
   }
   // A Batch node is a window onto its inputs: everything wired into it, in
   // wire order, passed straight through. Plural like a frame, and for the same

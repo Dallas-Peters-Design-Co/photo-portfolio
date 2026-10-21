@@ -1,5 +1,10 @@
-import { BUNDLE } from "../../../config/nodes/bundle.js";
+import {
+  BUNDLE,
+  bundleHeldImages,
+  MAX_BUNDLE_HELD,
+} from "../../../config/nodes/bundle.js";
 import type { BoardItem } from "../../types";
+import { BundleDropZone, HeldThumb } from "./BundleImages";
 import { NodeHeader } from "./NodeHeader";
 import { SettingField } from "./SettingField";
 import "./BundleNode.css";
@@ -33,7 +38,13 @@ export function BundleNode({
   const config = item.config ?? {};
   const lines = text ? text.split("\n").filter((line) => line.trim()) : [];
   const [typed] = BUNDLE.settings;
+  const held = bundleHeldImages(config);
+  // `images` is the whole Images stack — wired pictures first, then held ones —
+  // so the wired part is whatever comes before the held tail.
+  const wired = images.slice(0, Math.max(0, images.length - held.length));
   const empty = images.length + lines.length + clips.length === 0;
+  const setHeld = (next: string[]) =>
+    onConfigChange({ ...config, images: next });
 
   return (
     <div className="op-node-view">
@@ -53,34 +64,64 @@ export function BundleNode({
           />
         ) : null}
 
+        <BundleDropZone held={held} onHeldChange={setHeld} readOnly={readOnly}>
+          {({ add, uploading }) => (
+            <section className="bundle-node__group">
+              <h3 className="bundle-node__label">
+                Images{" "}
+                <span className="bundle-node__count">{images.length}</span>
+              </h3>
+              {images.length > 0 ? (
+                <div className="bundle-node__sheet">
+                  {wired.map((url, index) => (
+                    <img
+                      alt=""
+                      className="bundle-node__thumb"
+                      decoding="async"
+                      height={56}
+                      // biome-ignore lint/suspicious/noArrayIndexKey: the same picture may arrive twice; its place is its identity
+                      key={`${url}-${index}`}
+                      loading="lazy"
+                      src={url}
+                      width={56}
+                    />
+                  ))}
+                  {held.map((url, index) => (
+                    <HeldThumb
+                      index={index}
+                      // biome-ignore lint/suspicious/noArrayIndexKey: the same picture may be uploaded twice; its place is its identity
+                      key={`held-${url}-${index}`}
+                      onRemove={() =>
+                        setHeld(held.filter((_, i) => i !== index))
+                      }
+                      readOnly={readOnly}
+                      url={url}
+                    />
+                  ))}
+                </div>
+              ) : null}
+              {readOnly ? null : (
+                <button
+                  className="bundle-node__add"
+                  disabled={held.length >= MAX_BUNDLE_HELD}
+                  onClick={add}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  type="button"
+                >
+                  {uploading > 0
+                    ? `Uploading ${uploading}…`
+                    : "Add images — or drop them here"}
+                </button>
+              )}
+            </section>
+          )}
+        </BundleDropZone>
+
         {empty ? (
           <p className="bundle-node__empty">
-            Wire in pictures, text and clips. Each kind goes out of its own port
-            on the right.
+            Wire in pictures, text and clips, or add pictures above. Each kind
+            goes out of its own port on the right.
           </p>
-        ) : null}
-
-        {images.length > 0 ? (
-          <section className="bundle-node__group">
-            <h3 className="bundle-node__label">
-              Images <span className="bundle-node__count">{images.length}</span>
-            </h3>
-            <div className="bundle-node__sheet">
-              {images.map((url, index) => (
-                <img
-                  alt=""
-                  className="bundle-node__thumb"
-                  decoding="async"
-                  height={56}
-                  // biome-ignore lint/suspicious/noArrayIndexKey: the same picture may arrive twice; its place is its identity
-                  key={`${url}-${index}`}
-                  loading="lazy"
-                  src={url}
-                  width={56}
-                />
-              ))}
-            </div>
-          </section>
         ) : null}
 
         {lines.length > 0 ? (

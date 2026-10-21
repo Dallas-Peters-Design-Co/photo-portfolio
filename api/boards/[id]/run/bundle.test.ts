@@ -43,10 +43,14 @@ const wire = (
 });
 
 const A = "https://example.com/a.jpg";
+const HELD = "https://example.com/uploaded.jpg";
 const rows = [
   row("a", { image_url: A, kind: "reference" }),
   row("note", { body: "storm light", kind: "note" }),
-  row("bundle", { config: { text: "wide" }, node_type: "bundle" }),
+  row("bundle", {
+    config: { images: [HELD, 7], text: "wide" },
+    node_type: "bundle",
+  }),
 ];
 const wires = [
   wire("a", "out", "bundle", "images"),
@@ -55,8 +59,8 @@ const wires = [
 const bundle = rows[2] as BoardItemRow;
 
 describe("outputsOf on a Bundle", () => {
-  it("sends pictures out of the Images port", () => {
-    expect(outputsOf(bundle, rows, wires, 0, "images")).toEqual([A]);
+  it("sends wired then uploaded pictures out of the Images port", () => {
+    expect(outputsOf(bundle, rows, wires, 0, "images")).toEqual([A, HELD]);
   });
 
   it("sends wired then typed lines out of the Text port", () => {
@@ -67,7 +71,7 @@ describe("outputsOf on a Bundle", () => {
   });
 
   it("gives pictures to a caller that names no port", () => {
-    expect(outputsOf(bundle, rows, wires)).toEqual([A]);
+    expect(outputsOf(bundle, rows, wires)).toEqual([A, HELD]);
   });
 
   it("joins its text for a Combine node", () => {

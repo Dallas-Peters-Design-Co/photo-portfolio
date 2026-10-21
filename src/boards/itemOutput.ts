@@ -1,4 +1,5 @@
 import { containedBy } from "../../config/graph.js";
+import { bundleHeldImages } from "../../config/nodes/bundle.js";
 import { DEFAULT_PLACEHOLDER } from "../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../config/nodes/palette.js";
 import { renderedUrlOf } from "../../config/nodes/rendered.js";
@@ -373,10 +374,14 @@ export const outputImagesOf = (
       .sort((a, b) => a.z - b.z)
       .flatMap((inside) => outputImagesOf(inside, graph, depth + 1));
   }
+  // Wired pictures first, then the ones uploaded onto the node itself.
   if (item.nodeType === "bundle") {
-    return bundleWired(item, "images", graph).flatMap((source) =>
-      outputImagesOf(source, graph, depth + 1)
-    );
+    return [
+      ...bundleWired(item, "images", graph).flatMap((source) =>
+        outputImagesOf(source, graph, depth + 1)
+      ),
+      ...bundleHeldImages(item.config),
+    ];
   }
   if (item.nodeType === "batch") {
     const all = graph.wires

@@ -38,6 +38,7 @@ const wire = (
 const A = "https://example.com/a.jpg";
 const B = "https://example.com/b.jpg";
 const CLIP = "https://example.com/c.mp4";
+const HELD = "https://example.com/uploaded.jpg";
 
 const items = [
   item("a", { imageUrl: A, kind: "photo", nodeType: null }),
@@ -48,7 +49,7 @@ const items = [
     result: { url: CLIP } as BoardItem["result"],
   }),
   item("bundle", {
-    config: { text: "golden hour\n\nwide" },
+    config: { images: [HELD], text: "golden hour\n\nwide" },
     nodeType: "bundle",
   }),
   item("video", { nodeType: "video" }),
@@ -68,8 +69,8 @@ const graph = { items, wires };
 const bundle = items.find((i) => i.id === "bundle") ?? null;
 
 describe("a Bundle", () => {
-  it("hands every picture out of its Images port", () => {
-    expect(outputImagesOf(bundle, graph)).toEqual([A, B]);
+  it("hands wired pictures, then uploaded ones, out of its Images port", () => {
+    expect(outputImagesOf(bundle, graph)).toEqual([A, B, HELD]);
   });
 
   it("hands wired lines then typed ones out of its Text port", () => {
@@ -89,7 +90,7 @@ describe("a Bundle", () => {
       end: null,
       image: null,
       prompts: ["a slow push in", "golden hour", "wide"],
-      references: [A, B],
+      references: [A, B, HELD],
       video: CLIP,
     });
   });

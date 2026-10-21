@@ -45,3 +45,16 @@ export const toGraphWires = (rows: BoardWireRow[]): GraphWire[] =>
     targetItemId: row.target_item_id,
     targetPort: row.target_port,
   }));
+
+/** A chain of Combine nodes longer than this is a mistake, not a design. */
+export const MAX_JOIN_DEPTH = 8;
+
+/** One row per line, blanks dropped. Mirrors parseItems in src/boards. */
+const LIST_LINES = /\r?\n/;
+export const listRowsOf = (stored: unknown): string[] =>
+  typeof stored === "string"
+    ? stored
+        .split(LIST_LINES)
+        .map((line) => line.trim())
+        .filter(Boolean)
+    : [];
