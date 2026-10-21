@@ -89,11 +89,20 @@
   left: 0;
   z-index: var(--z-canvas-chrome);
   display: grid;
+  /* Rows sized to the buttons and packed from the top, so a tall screen shows
+     them all at their natural size rather than stretched apart. */
+  grid-auto-rows: max-content;
   gap: calc(var(--spacing) * 2);
   place-items: stretch;
+  align-content: start;
   justify-content: stretch;
   height: 100vh;
+  /* Sixteen buttons do not fit a laptop screen. The rail scrolls rather than
+     dropping the last ones off the bottom of a short screen. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
   color: var(--color-board-ink);
+  scrollbar-width: thin;
   background: var(--color-board-surface);
   border-radius: var(--radius-control);
 }
