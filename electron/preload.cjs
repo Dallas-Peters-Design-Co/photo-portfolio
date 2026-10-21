@@ -33,3 +33,32 @@ contextBridge.exposeInMainWorld("photosDesktop", {
   /** The unread count on the dock icon; 0 clears it. */
   setBadgeCount: (count) => ipcRenderer.invoke("notify:badge", count),
 });
+
+/**
+ * A double-click along the top edge, reported as a title-bar double-click.
+ *
+ * The window has no title bar (`hiddenInset`), so the top of the page is where
+ * one would be. A drag strip there would make it a title bar, but a drag strip
+ * swallows every click under it — the board's rail and panels sit at the very
+ * top — so this listens instead: a double-click in the top band, on nothing
+ * that is itself clickable, is passed to the main process, which zooms or
+ * minimises as System Settings says. Nothing is drawn.
+ */
+const TITLE_BAND_PX = 28;
+const INTERACTIVE =
+  'a, button, input, textarea, select, label, summary, [role="button"], [role="menuitem"], [role="tab"], [contenteditable=""], [contenteditable="true"]';
+
+window.addEventListener(
+  "dblclick",
+  (event) => {
+    if (event.clientY > TITLE_BAND_PX || event.button !== 0) {
+      return;
+    }
+    const { target } = event;
+    if (target instanceof Element && target.closest(INTERACTIVE)) {
+      return;
+    }
+    ipcRenderer.send("window:title-double-click");
+  },
+  true
+);

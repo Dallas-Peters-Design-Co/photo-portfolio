@@ -34,6 +34,7 @@ import {
   Menu,
   Notification,
   shell,
+  systemPreferences,
 } from "electron";
 import { forgetGoogleToken, requestGoogleToken } from "./googleAuth.mjs";
 
@@ -74,11 +75,13 @@ const originArg = process.argv
  * discarded and the scheme put back once, so the only thing that can be wrong
  * is the host itself, which is the only thing that was ever meant to vary.
  */
+/** Every scheme-ish prefix, however many times it was doubled. */
+const LEADING_SCHEMES = /^(?:https?:?\/*)+/i;
+/** A path, query or fragment after the host. */
+const AFTER_HOST = /[/?#].*$/;
+
 const normaliseOrigin = (raw) => {
-  const host = raw
-    .trim()
-    .replace(/^(?:https?:?\/*)+/i, "")
-    .replace(/[/?#].*$/, "");
+  const host = raw.trim().replace(LEADING_SCHEMES, "").replace(AFTER_HOST, "");
   return host ? `https://${host}` : "";
 };
 
@@ -255,6 +258,41 @@ const registerNotifications = () => {
   });
 };
 
+/**
+ * A double-click on the top edge, doing what a title bar's would.
+ *
+ * The window has no title bar — `hiddenInset` keeps the traffic lights and
+ * gives the page the full height — so nothing up there answered a
+ * double-click, and the only way to fill the screen was the green button.
+ * The page reports the double-click (see preload.cjs); this does whatever
+ * System Settings says a title-bar double-click should: zoom, minimise, or
+ * nothing.
+ */
+const registerTitleBar = () => {
+  ipcMain.on("window:title-double-click", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) {
+      return;
+    }
+    const action =
+      process.platform === "darwin"
+        ? systemPreferences.getUserDefault("AppleActionOnDoubleClick", "string")
+        : "Maximize";
+    if (action === "None") {
+      return;
+    }
+    if (action === "Minimize") {
+      win.minimize();
+      return;
+    }
+    if (win.isMaximized()) {
+      win.unmaximize();
+    } else {
+      win.maximize();
+    }
+  });
+};
+
 const createWindow = () => {
   const win = new BrowserWindow({
     backgroundColor: "#000000",
@@ -354,6 +392,7 @@ app.whenReady().then(() => {
   }
   registerGoogleAuth();
   registerNotifications();
+  registerTitleBar();
   bridge = startBridge();
   createWindow();
   app.on("activate", () => {
