@@ -4,12 +4,14 @@ import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
 import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
 import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
 import NotebookIcon from "@hugeicons-pro/core-stroke-standard/NotebookIcon";
+import PackageIcon from "@hugeicons-pro/core-stroke-standard/PackageIcon";
 import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import PaintBucketIcon from "@hugeicons-pro/core-stroke-standard/PaintBucketIcon";
 import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
 import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import TextIcon from "@hugeicons-pro/core-stroke-standard/TextIcon";
+import VideoReplayIcon from "@hugeicons-pro/core-stroke-standard/VideoReplayIcon";
 import { motion } from "motion/react";
 import type { NodeTypeId } from "../../../../config/nodeTypes.js";
 import { Button } from "../../ui/button";
@@ -79,6 +81,15 @@ export function BoardToolPanel({
         Generate
       </Button>
       <Button
+        onClick={() => onAddNode("video")}
+        stacked
+        type="button"
+        variant="noborder"
+      >
+        <HugeiconsIcon aria-hidden icon={VideoReplayIcon} size={14} />
+        Video
+      </Button>
+      <Button
         onClick={() => onAddNode("describe")}
         stacked
         type="button"
@@ -95,6 +106,17 @@ export function BoardToolPanel({
       >
         <HugeiconsIcon aria-hidden icon={LinkSquare01Icon} size={14} />
         Combine
+      </Button>
+      {/* Beside Combine: both gather what is wired in, and a Bundle is the
+          one that keeps pictures, words and clips apart on their own ports. */}
+      <Button
+        onClick={() => onAddNode("bundle")}
+        stacked
+        type="button"
+        variant="noborder"
+      >
+        <HugeiconsIcon aria-hidden icon={PackageIcon} size={14} />
+        Bundle
       </Button>
       <Button
         onClick={() => onAddNode("iterate")}

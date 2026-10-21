@@ -4,6 +4,7 @@ import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import GroupLayersIcon from "@hugeicons-pro/core-stroke-standard/GroupLayersIcon";
 import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
 import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
+import PackageIcon from "@hugeicons-pro/core-stroke-standard/PackageIcon";
 import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
@@ -29,6 +30,7 @@ export interface PortTarget {
 
 const ICONS: Record<string, typeof SparklesIcon> = {
   batch: FileStackIcon,
+  bundle: PackageIcon,
   composite: GroupLayersIcon,
   describe: SearchVisualIcon,
   frame: FrameIcon,
