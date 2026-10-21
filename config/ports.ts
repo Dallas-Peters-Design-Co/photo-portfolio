@@ -10,5 +10,5 @@
  * A leaf module with no imports of its own cannot take part in a cycle.
  */
 
-/** Every node has exactly one output, and this is its key. */
+/** The key of a node's one output — every node but a Bundle, which has three. */
 export const OUTPUT_PORT_KEY = "out";

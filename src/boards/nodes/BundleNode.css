@@ -1,0 +1,61 @@
+/*
+ * What a Bundle is carrying, kind by kind.
+ *
+ * Listed in the order its output ports sit down the right-hand edge, so the
+ * group and the port it leaves from read across from each other.
+ */
+
+.bundle-node__group {
+  display: grid;
+  gap: var(--spacing);
+}
+
+.bundle-node__label {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: baseline;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.bundle-node__count {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-board-ink);
+}
+
+.bundle-node__sheet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing);
+}
+
+.bundle-node__thumb {
+  width: calc(var(--spacing) * 14);
+  height: calc(var(--spacing) * 14);
+  object-fit: cover;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.bundle-node__lines {
+  display: grid;
+  gap: calc(var(--spacing) * 0.5);
+  padding-inline-start: calc(var(--spacing) * 5);
+  margin: 0;
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.5;
+  color: color-mix(in oklch, var(--color-board-ink) 85%, transparent);
+  user-select: text;
+  list-style: decimal;
+}
+
+.bundle-node__empty {
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+}

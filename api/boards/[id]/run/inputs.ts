@@ -76,7 +76,9 @@ export const resolveInputs = (
       // A wire from a node that has not run yet resolves to nothing. Those are
       // dropped rather than treated as jobs, so a half-built graph runs the
       // part that is ready instead of failing whole.
-      perWire.push(source ? outputsOf(source, rows, graphWires) : []);
+      perWire.push(
+        source ? outputsOf(source, rows, graphWires, 0, wire.sourcePort) : []
+      );
     }
     // A single-value input keeps only the last wire, matching what the canvas
     // does when a new wire is dropped on an occupied port.

@@ -1,4 +1,5 @@
 import type { BoardItem, BoardWire } from "../../types";
+import { bundleWired } from "../bundleWires";
 import { currentImageUrl, outputImagesOf, outputListOf } from "../itemOutput";
 
 /**
@@ -23,6 +24,9 @@ export interface VideoInputs {
   video: string | null;
 }
 
+/** Mirrors itemOutput's limit: a chain this deep is a mistake, not a design. */
+const MAX_BUNDLE_DEPTH = 8;
+
 interface Graph {
   items: BoardItem[];
   wires: BoardWire[];
@@ -43,11 +47,11 @@ const singleImage = (
     .flatMap((source) => outputImagesOf(source, graph))
     .at(-1) ?? null;
 
-/** A clip is whatever a video node last made; nothing else carries one. */
-const singleClip = (item: BoardItem, graph: Graph): string | null => {
-  const source = sourcesOf(item, "video", graph).at(-1);
-  return source?.nodeType === "video" ? currentImageUrl(source) : null;
-};
+/** The last clip wired in: a Video node's latest, or the end of a Bundle's. */
+const singleClip = (item: BoardItem, graph: Graph): string | null =>
+  sourcesOf(item, "video", graph)
+    .flatMap((source) => outputClipsOf(source, graph))
+    .at(-1) ?? null;
 
 export const videoInputsOf = (item: BoardItem, graph: Graph): VideoInputs => {
   const references = sourcesOf(item, "references", graph).flatMap((source) =>
@@ -64,4 +68,22 @@ export const videoInputsOf = (item: BoardItem, graph: Graph): VideoInputs => {
     references: [...new Set(references)],
     video: singleClip(item, graph),
   };
+};
+
+/** Every clip an item hands on: a Video node's latest, or a Bundle's stack. */
+export const outputClipsOf = (
+  item: BoardItem | null,
+  graph: Graph,
+  depth = 0
+): string[] => {
+  if (!item || depth > MAX_BUNDLE_DEPTH) {
+    return [];
+  }
+  if (item.nodeType === "bundle") {
+    return bundleWired(item, "video", graph).flatMap((source) =>
+      outputClipsOf(source, graph, depth + 1)
+    );
+  }
+  const clip = item.nodeType === "video" ? currentImageUrl(item) : null;
+  return clip ? [clip] : [];
 };

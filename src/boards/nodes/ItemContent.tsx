@@ -9,6 +9,7 @@ import { useTextFont } from "../hooks/useTextFont";
 import { ItemMedia } from "../ItemMedia";
 import { ElementBody, FrameBody, ShaderItem } from "../itemBodies";
 import { BatchList } from "./BatchList";
+import { BundleNode } from "./BundleNode";
 import { OpNodeView } from "./OpNodeView";
 
 /**
@@ -202,6 +203,18 @@ export function ItemContent({
         item={item}
         onConfigChange={onConfigChange}
         readOnly={readOnly}
+      />
+    );
+  }
+  if (item.nodeType === "bundle") {
+    return (
+      <BundleNode
+        clips={wiredItems ?? []}
+        images={previewImages ?? []}
+        item={item}
+        onConfigChange={onConfigChange ?? (() => undefined)}
+        readOnly={readOnly}
+        text={outputText}
       />
     );
   }

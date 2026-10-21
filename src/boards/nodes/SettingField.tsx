@@ -298,6 +298,23 @@ const FILTER_FROM = 24;
 
 const WHITESPACE = /\s+/;
 
+/**
+ * "auto" as a choice of its own, on a picker that has no row for it.
+ *
+ * The image list carries an "auto" row; the video list does not, because that
+ * row makes pictures. But "auto" is the Video node's default, and the server
+ * resolves it to the first enabled video model — so it is a real choice, and
+ * without an item for it the box drew nothing and it could never be picked
+ * back once something else was.
+ */
+const withAuto = (
+  options: readonly { id: string; label: string }[],
+  fallback: string
+): { id: string; label: string }[] =>
+  fallback === "auto" && !options.some((model) => model.id === "auto")
+    ? [{ id: "auto", label: "Auto" }, ...options]
+    : [...options];
+
 /** The rows whose label or id holds every word typed, plus the current one. */
 export const filterModels = <T extends { id: string; label: string }>(
   options: readonly T[],
@@ -337,11 +354,15 @@ export function ModelSetting({
   // fetch is refused — the node still has to say what it is set to, even if
   // that means the raw id for a label.
   const [query, setQuery] = useState("");
-  const all =
-    allowed.length > 0
-      ? allowed
-      : [{ id: value || setting.default, label: value || setting.default }];
-  const options = filterModels(all, query, value);
+  // The default when nothing is stored. A node whose model was never set used
+  // to hand the Select `undefined`, which Base UI draws as an empty box — while
+  // the header above it said "Auto".
+  const chosen = value || setting.default;
+  const all = withAuto(
+    allowed.length > 0 ? allowed : [{ id: chosen, label: chosen }],
+    setting.default
+  );
+  const options = filterModels(all, query, chosen);
   return (
     <div className="setting-field">
       <p className="setting-field__caption">{setting.label}</p>
@@ -384,7 +405,7 @@ export function ModelSetting({
             onChange(newValue);
           }
         }}
-        value={value}
+        value={chosen}
       >
         <SelectTrigger className="setting-field__trigger" data-size="lg">
           {/* The model's label, not its id. Base UI shows the raw value unless

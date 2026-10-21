@@ -1,4 +1,5 @@
 import type { BoardItem, BoardWire } from "../../types";
+import { outputClipsOf } from "../io/videoInputs";
 import {
   iteratedTextOf,
   outputImagesOf,
@@ -37,13 +38,19 @@ export const previewImagesFor = (
   item: BoardItem,
   graph: Graph
 ): string[] | undefined =>
-  item.nodeType === "batch" ? outputImagesOf(item, graph) : undefined;
+  item.nodeType === "batch" || item.nodeType === "bundle"
+    ? outputImagesOf(item, graph)
+    : undefined;
 
 export const previewTextFor = (
   item: BoardItem,
   graph: Graph
 ): string | null => {
-  if (item.nodeType === "join" || item.nodeType === "palette") {
+  if (
+    item.nodeType === "join" ||
+    item.nodeType === "palette" ||
+    item.nodeType === "bundle"
+  ) {
     return outputTextOf(item, graph);
   }
   if (item.nodeType !== "iterate") {
@@ -101,6 +108,10 @@ export const wiredItemsFor = (
   item: BoardItem,
   graph: Graph
 ): string[] | undefined => {
+  // A Bundle's clips ride here: it has no rows, and its body lists them.
+  if (item.nodeType === "bundle") {
+    return outputClipsOf(item, graph);
+  }
   if (item.nodeType !== "list") {
     return;
   }

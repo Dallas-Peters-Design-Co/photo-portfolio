@@ -3,6 +3,7 @@ import { DEFAULT_PLACEHOLDER } from "../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../config/nodes/palette.js";
 import { renderedUrlOf } from "../../config/nodes/rendered.js";
 import type { BoardItem, BoardItemVariation, BoardWire } from "../types";
+import { bundleWired } from "./bundleWires";
 import { parseItems } from "./listItems";
 
 /**
@@ -153,6 +154,9 @@ export const outputListOf = (
   if (item.nodeType === "iterate") {
     return iteratedTextOf(item, graph, depth);
   }
+  if (item.nodeType === "bundle") {
+    return bundleTextOf(item, graph, depth);
+  }
   if (item.nodeType === "list") {
     return parseItems(item.config?.items);
   }
@@ -263,6 +267,24 @@ export const paletteTextOf = (
   return `using ${strict} these colors: ${colors.join(", ")}`;
 };
 
+/** A Combine node's words: whatever feeds its Text port, joined. */
+const joinedTextOf = (
+  item: BoardItem,
+  graph: { items: BoardItem[]; wires: BoardWire[] },
+  depth: number
+): string | null => {
+  const parts = graph.wires
+    .filter((w) => w.targetItemId === item.id && w.targetPort === "text")
+    .map((w) => graph.items.find((i) => i.id === w.sourceItemId))
+    .map((source) => (source ? outputTextOf(source, graph, depth + 1) : null))
+    .filter((part): part is string => Boolean(part?.trim()));
+  if (parts.length === 0) {
+    return null;
+  }
+  const separator = item.config?.separator;
+  return parts.join(typeof separator === "string" ? separator : ", ");
+};
+
 export const outputTextOf = (
   item: BoardItem | null,
   /** Needed only to resolve a Combine node, whose value is its inputs. */
@@ -276,19 +298,13 @@ export const outputTextOf = (
   // is the authority on what actually runs, and this exists so the canvas can
   // *show* the same answer without asking it.
   if (item.nodeType === "join" && graph && depth <= MAX_JOIN_DEPTH) {
-    const parts = graph.wires
-      .filter((w) => w.targetItemId === item.id && w.targetPort === "text")
-      .map((w) => graph.items.find((i) => i.id === w.sourceItemId))
-      .map((source) => (source ? outputTextOf(source, graph, depth + 1) : null))
-      .filter((part): part is string => Boolean(part?.trim()));
-    if (parts.length === 0) {
-      return null;
-    }
-    const separator = item.config?.separator;
-    return parts.join(typeof separator === "string" ? separator : ", ");
+    return joinedTextOf(item, graph, depth);
   }
   if (item.nodeType === "palette") {
     return paletteTextOf(item.config ?? {});
+  }
+  if (item.nodeType === "bundle") {
+    return graph ? bundleTextOf(item, graph, depth).join("\n") || null : null;
   }
   if (item.kind === "note" || item.kind === "text") {
     return item.body?.trim() || null;
@@ -356,6 +372,11 @@ export const outputImagesOf = (
     return containedBy(item, graph.items)
       .sort((a, b) => a.z - b.z)
       .flatMap((inside) => outputImagesOf(inside, graph, depth + 1));
+  }
+  if (item.nodeType === "bundle") {
+    return bundleWired(item, "images", graph).flatMap((source) =>
+      outputImagesOf(source, graph, depth + 1)
+    );
   }
   if (item.nodeType === "batch") {
     const all = graph.wires
@@ -441,4 +462,21 @@ export const outputImageOf = (
   }
   const chosen = images[selectedIndex(item.config ?? {})] ?? images[0];
   return chosen?.url ?? null;
+};
+
+const bundleTextOf = (
+  item: BoardItem,
+  graph: { items: BoardItem[]; wires: BoardWire[] },
+  depth: number
+): string[] => {
+  if (depth > MAX_JOIN_DEPTH) {
+    return [];
+  }
+  const typed = typeof item.config?.text === "string" ? item.config.text : "";
+  return [
+    ...bundleWired(item, "text", graph).flatMap((source) =>
+      outputListOf(source, graph, depth + 1)
+    ),
+    ...typed.split(LINES).map((line) => line.trim()),
+  ].filter(Boolean);
 };

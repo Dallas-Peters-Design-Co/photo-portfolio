@@ -1,9 +1,10 @@
 import { describePalette } from "../../../../config/colourWords.js";
 import { containedBy, type GraphWire } from "../../../../config/graph.js";
+import { BUNDLE_IMAGES, BUNDLE_TEXT } from "../../../../config/nodes/bundle.js";
 import { DEFAULT_PLACEHOLDER } from "../../../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../../../config/nodes/palette.js";
-import { isRunnableNodeType } from "../../../../config/nodeTypes.js";
 import { renderedUrlOf } from "../../../../config/nodes/rendered.js";
+import { isRunnableNodeType } from "../../../../config/nodeTypes.js";
 import type { BoardItemRow } from "../../../_lib/boards.js";
 import { columnsOf, expandTemplate, LINES, splitValues } from "./expand.js";
 import { asObject, toBox } from "./rows.js";
@@ -66,11 +67,13 @@ const iteratedOutputsOf = (
       .filter(
         (wire) => wire.targetItemId === row.id && wire.targetPort === port
       )
-      .map((wire) =>
-        rows.find((candidate) => candidate.id === wire.sourceItemId)
-      )
-      .map((source) => {
-        const sent = source ? outputsOf(source, rows, wires, depth + 1) : [];
+      .map((wire) => {
+        const source = rows.find(
+          (candidate) => candidate.id === wire.sourceItemId
+        );
+        const sent = source
+          ? outputsOf(source, rows, wires, depth + 1, wire.sourcePort)
+          : [];
         return single ? (sent[0] ?? "") : sent.join("\n");
       })
       .filter((text) => text.trim());
@@ -232,7 +235,9 @@ const batchOutputsOf = (
       const source = rows.find(
         (candidate) => candidate.id === wire.sourceItemId
       );
-      return source ? outputsOf(source, rows, wires, depth + 1) : [];
+      return source
+        ? outputsOf(source, rows, wires, depth + 1, wire.sourcePort)
+        : [];
     });
   // Struck off by address rather than by position: a batch resolves fresh
   // every run, so an index would come to mean a different picture as soon as
@@ -272,10 +277,14 @@ const joinedOutputOf = (
     .filter(
       (wire) => wire.targetItemId === row.id && wire.targetPort === "text"
     )
-    .map((wire) => rows.find((candidate) => candidate.id === wire.sourceItemId))
-    .map((source) =>
-      source ? singleOutputOf(source, rows, wires, depth + 1) : null
-    )
+    .map((wire) => {
+      const source = rows.find(
+        (candidate) => candidate.id === wire.sourceItemId
+      );
+      return source
+        ? singleOutputOf(source, rows, wires, depth + 1, wire.sourcePort)
+        : null;
+    })
     .filter((part): part is string => Boolean(part?.trim()));
   if (parts.length === 0) {
     return null;
@@ -324,6 +333,39 @@ const resultOutputOf = (row: BoardItemRow): string | null => {
 };
 
 /**
+ * What one of a Bundle's ports carries: everything wired into the matching
+ * input, in wire order, and on the Text port the typed lines after them.
+ *
+ * Keyed by port: the one node with several outputs. A wire naming no port
+ * gets the pictures.
+ */
+const bundleOutputsOf = (
+  row: BoardItemRow,
+  rows: BoardItemRow[],
+  wires: GraphWire[],
+  depth: number,
+  port: string = BUNDLE_IMAGES
+): string[] => {
+  if (depth > MAX_JOIN_DEPTH) {
+    return [];
+  }
+  const wired = wires
+    .filter((wire) => wire.targetItemId === row.id && wire.targetPort === port)
+    .flatMap((wire) => {
+      const source = rows.find(
+        (candidate) => candidate.id === wire.sourceItemId
+      );
+      return source
+        ? outputsOf(source, rows, wires, depth + 1, wire.sourcePort)
+        : [];
+    });
+  if (port !== BUNDLE_TEXT) {
+    return wired;
+  }
+  return [...wired, ...listRowsOf(asObject(row.config).text)];
+};
+
+/**
  * What an item hands to whatever it feeds.
  *
  * A photograph resolves through its join rather than a stored copy, so
@@ -334,8 +376,16 @@ export const singleOutputOf = (
   row: BoardItemRow,
   rows: BoardItemRow[],
   wires: GraphWire[],
-  depth = 0
+  depth = 0,
+  /** Which output the wire left from; only a Bundle has more than one. */
+  port?: string
 ): string | null => {
+  // A Bundle's text arrives joined, as a Combine node's does; its pictures and
+  // clips arrive one at a time through outputsOf, which keeps them apart.
+  if (row.node_type === "bundle") {
+    const sent = bundleOutputsOf(row, rows, wires, depth, port);
+    return port === BUNDLE_TEXT ? sent.join("\n") || null : (sent[0] ?? null);
+  }
   if (row.node_type === "join") {
     return joinedOutputOf(row, rows, wires, depth);
   }
@@ -407,8 +457,13 @@ export const outputsOf = (
   row: BoardItemRow,
   rows: BoardItemRow[],
   wires: GraphWire[],
-  depth = 0
+  depth = 0,
+  /** Which output the wire left from; only a Bundle has more than one. */
+  port?: string
 ): string[] => {
+  if (row.node_type === "bundle") {
+    return bundleOutputsOf(row, rows, wires, depth, port);
+  }
   // A Batch node is a window onto its inputs: everything wired into it, in
   // wire order, passed straight through. Plural like a frame, and for the same
   // reason — one wire out of it is many runs.

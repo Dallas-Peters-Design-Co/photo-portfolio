@@ -33,6 +33,8 @@ export function PortHandles({ handlers, item, scale }: PortHandlesProps) {
   const dot = (PORT_RADIUS_PX * 2) / scale;
   const inputs = inputPoints(item);
   const labelled = inputPortsFor(item).length > 1;
+  // A Bundle's three outputs are three different things; one output is not.
+  const outputsLabelled = outputPortsFor(item).length > 1;
   const outputs = outputPoints(item);
 
   const style = (point: { x: number; y: number }) => ({
@@ -70,6 +72,15 @@ export function PortHandles({ handlers, item, scale }: PortHandlesProps) {
               className="board-item__port-dot"
               style={{ height: dot, width: dot }}
             />
+            {outputsLabelled ? (
+              <span
+                aria-hidden
+                className="board-item__port-label board-item__port-label--out"
+                style={{ fontSize: PORT_LABEL_PX / scale }}
+              >
+                {port.label}
+              </span>
+            ) : null}
           </button>
         ) : null;
       })}

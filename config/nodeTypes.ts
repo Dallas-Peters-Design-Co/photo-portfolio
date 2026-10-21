@@ -29,6 +29,7 @@
 
 import { BATCH } from "./nodes/batch.js";
 import { BRAND } from "./nodes/brand.js";
+import { BUNDLE } from "./nodes/bundle.js";
 import { COMPOSITE } from "./nodes/composite.js";
 import { COVER } from "./nodes/cover.js";
 import { DESCRIBE } from "./nodes/describe.js";
@@ -191,6 +192,7 @@ export type NodeCapability =
 export type NodeTypeId =
   | "batch"
   | "brand"
+  | "bundle"
   | "composite"
   | "cover"
   | "describe"
@@ -221,6 +223,7 @@ export interface NodeType {
 export const NODE_TYPES: Record<NodeTypeId, NodeType> = {
   batch: BATCH,
   brand: BRAND,
+  bundle: BUNDLE,
   composite: COMPOSITE,
   cover: COVER,
   describe: DESCRIBE,

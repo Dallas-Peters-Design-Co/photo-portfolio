@@ -8,6 +8,7 @@ import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
 import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
 import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
 import NotebookIcon from "@hugeicons-pro/core-stroke-standard/NotebookIcon";
+import PackageIcon from "@hugeicons-pro/core-stroke-standard/PackageIcon";
 import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import PaintBucketIcon from "@hugeicons-pro/core-stroke-standard/PaintBucketIcon";
 import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
@@ -138,6 +139,13 @@ const BASE_ENTRIES: Entry[] = [
     hint: "batch list queue images many each one at a time frame",
     icon: FileStackIcon,
     label: "Batch",
+    section: "Nodes",
+  },
+  {
+    action: { kind: "node", nodeType: "bundle" },
+    hint: "bundle multi format mixed images text clips stack outputs references",
+    icon: PackageIcon,
+    label: "Bundle",
     section: "Nodes",
   },
   {
