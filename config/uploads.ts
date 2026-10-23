@@ -10,7 +10,7 @@
  *
  * In config/ because it is the one place both halves already import from.
  */
-export const UPLOAD_TYPES = [
+export const IMAGE_UPLOAD_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -35,8 +35,38 @@ export const UPLOAD_TYPES = [
   "image/x-photoshop",
 ] as const;
 
+/**
+ * Source clips, for a Video node to rework and a Bundle to carry.
+ *
+ * Kept apart from the pictures because twenty callers upload a picture and
+ * expect one back — a portfolio photo, a brand logo, a mask — and none of them
+ * can do anything with an mp4. Only the board's clip path asks for these.
+ *
+ * QuickTime is what a Mac names a screen recording or a phone clip; M4V is the
+ * same file under the name iTunes gave it.
+ */
+export const VIDEO_UPLOAD_TYPES = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-m4v",
+] as const;
+
+/** Everything the signing handler will accept, of either kind. */
+export const UPLOAD_TYPES = [
+  ...IMAGE_UPLOAD_TYPES,
+  ...VIDEO_UPLOAD_TYPES,
+] as const;
+
 /** What to say when a file is turned away. Named formats, not MIME types. */
 export const UPLOAD_REFUSAL = "Choose an image, an SVG or a Photoshop file";
 
+export const CLIP_REFUSAL = "Choose an MP4, MOV or WebM clip";
+
+/** Whether a file is a picture this app can take. */
 export const isUploadType = (type: string): boolean =>
-  (UPLOAD_TYPES as readonly string[]).includes(type);
+  (IMAGE_UPLOAD_TYPES as readonly string[]).includes(type);
+
+/** Whether a file is a clip this app can take. */
+export const isVideoUploadType = (type: string): boolean =>
+  (VIDEO_UPLOAD_TYPES as readonly string[]).includes(type);

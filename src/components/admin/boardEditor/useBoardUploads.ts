@@ -5,10 +5,13 @@ import {
   DEFAULT_IMAGE_WIDTH,
 } from "../../../../config/canvas.js";
 import { isSvgFile, svgToPng } from "../../../boards/drawing/svgToRaster";
+import { isVideoFile } from "../../../boards/io/isVideo";
 import { newItemId } from "../../../boards/io/newItemId";
 import { isPsdFile, psdToPng } from "../../../boards/io/psdPreview";
+import { clipSize, uploadClip } from "../../../boards/io/uploadClip";
 import { portfolioService } from "../../../services/portfolioService";
 import type { BoardItem } from "../../../types";
+import { clipItem } from "./clipItem";
 import { BLANK_ITEM, DROP_FAN } from "./placement";
 
 /**
@@ -166,6 +169,69 @@ export const useBoardUploads = (deps: BoardUploadDeps) => {
     }
   };
 
+  /**
+   * Clips from the desktop, each becoming a Clip node that can be wired into a
+   * Video node's source or a Bundle.
+   *
+   * Together, like pictures: the bytes go straight to blob storage. The toast
+   * counts percent because a clip is large enough for the wait to be felt,
+   * and "Uploading…" for a minute reads as stuck.
+   */
+  const placeClips = async (files: File[], point: { x: number; y: number }) => {
+    if (files.length === 0) {
+      return;
+    }
+    const toastId = toast.loading(
+      files.length === 1
+        ? "Uploading clip…"
+        : `Uploading ${files.length} clips…`
+    );
+    const progress = files.map(() => 0);
+    const report = (index: number, percent: number) => {
+      progress[index] = percent;
+      const total = progress.reduce((sum, p) => sum + p, 0) / files.length;
+      toast.loading(`Uploading clip… ${Math.round(total)}%`, { id: toastId });
+    };
+    const results = await Promise.allSettled(
+      files.map(async (file, index) => {
+        const [size, { url }] = await Promise.all([
+          clipSize(file),
+          uploadClip(file, (percent) => report(index, percent)),
+        ]);
+        return { name: file.name, size, url };
+      })
+    );
+    const added: BoardItem[] = [];
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        const reason: unknown = result.reason;
+        toast.error(
+          reason instanceof Error
+            ? reason.message
+            : `Could not upload ${files[index]?.name ?? "clip"}`
+        );
+        return;
+      }
+      added.push(
+        clipItem({
+          ...result.value,
+          point: {
+            x: point.x + index * DROP_FAN,
+            y: point.y + index * DROP_FAN,
+          },
+          z: items.length + index + 1,
+        })
+      );
+    });
+    toast.dismiss(toastId);
+    if (added.length > 0) {
+      change([...items, ...added]);
+      toast.success(
+        added.length === 1 ? "Clip added" : `${added.length} clips added`
+      );
+    }
+  };
+
   /** An SVG waiting for the user to say whether to keep it vector. */
   const [pendingSvg, setPendingSvg] = useState<{
     files: File[];
@@ -175,16 +241,20 @@ export const useBoardUploads = (deps: BoardUploadDeps) => {
   const dropFiles = async (files: File[], point: { x: number; y: number }) => {
     // An SVG gets a say — vector or raster is the dragger's call, not ours.
     // A PSD gets no say: nothing can draw one, so it is flattened or it is
-    // nothing. Everything else goes straight in.
+    // nothing. A clip becomes a Clip node. Everything else goes straight in.
     const svgs = files.filter(isSvgFile);
     const psds = files.filter(isPsdFile);
-    const rest = files.filter((file) => !(isSvgFile(file) || isPsdFile(file)));
+    const clips = files.filter(isVideoFile);
+    const rest = files.filter(
+      (file) => !(isSvgFile(file) || isPsdFile(file) || isVideoFile(file))
+    );
     if (svgs.length > 0) {
       setPendingSvg({ files: svgs, point });
     }
     await Promise.all([
       placeUploaded(rest, point),
       psds.length > 0 ? placePsds(psds, point) : Promise.resolve(),
+      placeClips(clips, point),
     ]);
   };
 
@@ -201,5 +271,12 @@ export const useBoardUploads = (deps: BoardUploadDeps) => {
     await placeUploaded(prepared, point);
   };
 
-  return { dropFiles, importSvg, pendingSvg, placeUploaded, setPendingSvg };
+  return {
+    dropFiles,
+    importSvg,
+    pendingSvg,
+    placeClips,
+    placeUploaded,
+    setPendingSvg,
+  };
 };

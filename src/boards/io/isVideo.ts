@@ -1,4 +1,6 @@
+import { isVideoUploadType } from "../../../config/uploads.js";
 import type { BoardItemVariation } from "../../types";
+import { isImageDrop } from "../drawing/svgToRaster";
 
 /**
  * Telling a clip from a picture.
@@ -46,3 +48,11 @@ export const isVideoUrl = (url: string | null | undefined): boolean => {
 export const isVideo = (variation: BoardItemVariation): boolean =>
   (variation as { kind?: unknown }).kind === "video" ||
   isVideoUrl(variation.url);
+
+/** A clip dropped or pasted from the desktop, by the type the server accepts. */
+export const isVideoFile = (file: File): boolean =>
+  isVideoUploadType(file.type);
+
+/** Anything the board takes from the desktop: a picture or a clip. */
+export const isBoardDrop = (file: File): boolean =>
+  isImageDrop(file) || isVideoFile(file);

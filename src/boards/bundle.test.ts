@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BoardItem, BoardWire } from "../types";
-import { videoInputsOf } from "./io/videoInputs";
+import { outputClipsOf, videoInputsOf } from "./io/videoInputs";
 import { outputImagesOf, outputListOf } from "./itemOutput";
 
 /**
@@ -93,5 +93,47 @@ describe("a Bundle", () => {
       references: [A, B, HELD],
       video: CLIP,
     });
+  });
+});
+
+describe("clips of your own", () => {
+  const MINE = "https://example.com/boards/clips/mine.mp4";
+  const DROPPED = "https://example.com/boards/clips/dropped.mov";
+  const own = [
+    item("source", { config: { clipUrl: MINE }, nodeType: "clip" }),
+    item("bundle", { config: { clips: [DROPPED, 7] }, nodeType: "bundle" }),
+    item("direct", { nodeType: "video" }),
+    item("via", { nodeType: "video" }),
+  ];
+  const ownGraph = {
+    items: own,
+    wires: [
+      wire("source", "out", "direct", "video"),
+      wire("source", "out", "bundle", "video"),
+      wire("bundle", "video", "via", "video"),
+    ],
+  };
+  const find = (id: string) => {
+    const found = own.find((i) => i.id === id);
+    if (!found) {
+      throw new Error(`fixture is missing ${id}`);
+    }
+    return found;
+  };
+
+  it("feeds a Clip node's file into a Video node's source clip", () => {
+    expect(videoInputsOf(find("direct"), ownGraph).video).toBe(MINE);
+  });
+
+  it("sends a Bundle's wired clips, then its uploaded ones", () => {
+    expect(outputClipsOf(find("bundle"), ownGraph)).toEqual([MINE, DROPPED]);
+    // A port that holds one clip keeps the last.
+    expect(videoInputsOf(find("via"), ownGraph).video).toBe(DROPPED);
+  });
+
+  it("sends nothing from a Clip that has no file yet", () => {
+    expect(
+      outputClipsOf(item("empty", { nodeType: "clip" }), ownGraph)
+    ).toEqual([]);
   });
 });

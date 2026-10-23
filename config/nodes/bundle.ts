@@ -70,6 +70,16 @@ export const BUNDLE: NodeType = {
 /** Enough for a contact sheet; past it a Frame is the better holder. */
 export const MAX_BUNDLE_HELD = 48;
 
+/** A list of addresses off a Bundle's config, read defensively and capped. */
+const heldList = (config: unknown, key: "clips" | "images"): string[] => {
+  const raw = (config as Record<string, unknown> | null)?.[key];
+  return Array.isArray(raw)
+    ? raw
+        .filter((url): url is string => typeof url === "string" && url !== "")
+        .slice(0, MAX_BUNDLE_HELD)
+    : [];
+};
+
 /**
  * The pictures uploaded straight onto a Bundle, as opposed to wired into it.
  *
@@ -78,11 +88,9 @@ export const MAX_BUNDLE_HELD = 48;
  * stack rather than displacing what was uploaded. Read defensively: anything
  * that is not a string is dropped, and the list is capped.
  */
-export const bundleHeldImages = (config: unknown): string[] => {
-  const raw = (config as { images?: unknown } | null)?.images;
-  return Array.isArray(raw)
-    ? raw
-        .filter((url): url is string => typeof url === "string" && url !== "")
-        .slice(0, MAX_BUNDLE_HELD)
-    : [];
-};
+export const bundleHeldImages = (config: unknown): string[] =>
+  heldList(config, "images");
+
+/** The clips uploaded onto a Bundle. The same rules, out of the Clips port. */
+export const bundleHeldClips = (config: unknown): string[] =>
+  heldList(config, "clips");

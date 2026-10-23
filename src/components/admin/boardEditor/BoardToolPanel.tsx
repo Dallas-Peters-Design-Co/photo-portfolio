@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import Film01Icon from "@hugeicons-pro/core-stroke-standard/Film01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
 import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
@@ -88,6 +89,17 @@ export function BoardToolPanel({
       >
         <HugeiconsIcon aria-hidden icon={VideoReplayIcon} size={14} />
         Video
+      </Button>
+      {/* Beside Video, which it feeds: a clip of your own to rework or extend.
+          It arrives empty and takes its file on the node. */}
+      <Button
+        onClick={() => onAddNode("clip")}
+        stacked
+        type="button"
+        variant="noborder"
+      >
+        <HugeiconsIcon aria-hidden icon={Film01Icon} size={14} />
+        Clip
       </Button>
       <Button
         onClick={() => onAddNode("describe")}

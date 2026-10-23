@@ -74,6 +74,25 @@ describe("outputsOf on a Bundle", () => {
     expect(outputsOf(bundle, rows, wires)).toEqual([A, HELD]);
   });
 
+  it("sends wired then uploaded clips out of the Clips port", () => {
+    const CLIP = "https://example.com/c.mp4";
+    const DROPPED = "https://example.com/dropped.mov";
+    const withClips = [
+      row("source", { config: { clipUrl: CLIP }, node_type: "clip" }),
+      row("held", { config: { clips: [DROPPED] }, node_type: "bundle" }),
+    ];
+    const held = withClips[1] as BoardItemRow;
+    expect(
+      outputsOf(
+        held,
+        withClips,
+        [wire("source", "out", "held", "video")],
+        0,
+        "video"
+      )
+    ).toEqual([CLIP, DROPPED]);
+  });
+
   it("joins its text for a Combine node", () => {
     expect(singleOutputOf(bundle, rows, wires, 0, "text")).toBe(
       "storm light\nwide"

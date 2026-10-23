@@ -1,6 +1,7 @@
 import { describePalette } from "../../../../config/colourWords.js";
 import { containedBy, type GraphWire } from "../../../../config/graph.js";
 import { BUNDLE_TEXT } from "../../../../config/nodes/bundle.js";
+import { clipUrlOf } from "../../../../config/nodes/clip.js";
 import { DEFAULT_PLACEHOLDER } from "../../../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../../../config/nodes/palette.js";
 import { renderedUrlOf } from "../../../../config/nodes/rendered.js";
@@ -438,6 +439,11 @@ export const outputsOf = (
   }
   if (row.node_type === "palette") {
     return paletteOutputsOf(asObject(row.config));
+  }
+  // A Clip hands on its file. Mirrors outputClipsOf on the canvas.
+  if (row.node_type === "clip") {
+    const clip = clipUrlOf(row.config);
+    return clip ? [clip] : [];
   }
   if (row.kind !== "frame") {
     const single = singleOutputOf(row, rows, wires);

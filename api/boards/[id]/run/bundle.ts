@@ -1,7 +1,9 @@
 import type { GraphWire } from "../../../../config/graph.js";
 import {
+  BUNDLE_CLIPS,
   BUNDLE_IMAGES,
   BUNDLE_TEXT,
+  bundleHeldClips,
   bundleHeldImages,
 } from "../../../../config/nodes/bundle.js";
 import type { BoardItemRow } from "../../../_lib/boards.js";
@@ -50,6 +52,9 @@ export const bundleOutputsOf = (
     });
   if (key === BUNDLE_IMAGES) {
     return [...wired, ...bundleHeldImages(row.config)];
+  }
+  if (key === BUNDLE_CLIPS) {
+    return [...wired, ...bundleHeldClips(row.config)];
   }
   return key === BUNDLE_TEXT
     ? [...wired, ...listRowsOf(asObject(row.config).text)]

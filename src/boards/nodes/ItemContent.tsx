@@ -10,6 +10,7 @@ import { ItemMedia } from "../ItemMedia";
 import { ElementBody, FrameBody, ShaderItem } from "../itemBodies";
 import { BatchList } from "./BatchList";
 import { BundleNode } from "./BundleNode";
+import { ClipNode } from "./ClipNode";
 import { OpNodeView } from "./OpNodeView";
 
 /**
@@ -183,6 +184,15 @@ export function ItemContent({
   }
   if (item.nodeType === "element") {
     return <ElementBody item={item} />;
+  }
+  if (item.nodeType === "clip") {
+    return (
+      <ClipNode
+        item={item}
+        onConfigChange={onConfigChange ?? (() => undefined)}
+        readOnly={readOnly}
+      />
+    );
   }
   if (item.kind === "frame") {
     return <FrameBody {...{ chromeScale, item, onEditBody, readOnly }} />;

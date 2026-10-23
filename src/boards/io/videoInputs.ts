@@ -1,3 +1,5 @@
+import { bundleHeldClips } from "../../../config/nodes/bundle.js";
+import { clipUrlOf } from "../../../config/nodes/clip.js";
 import type { BoardItem, BoardWire } from "../../types";
 import { bundleWired } from "../bundleWires";
 import { currentImageUrl, outputImagesOf, outputListOf } from "../itemOutput";
@@ -70,7 +72,10 @@ export const videoInputsOf = (item: BoardItem, graph: Graph): VideoInputs => {
   };
 };
 
-/** Every clip an item hands on: a Video node's latest, or a Bundle's stack. */
+/**
+ * Every clip an item hands on: a Video node's latest, a Clip node's file, or a
+ * Bundle's stack — wired clips first, then the ones uploaded onto it.
+ */
 export const outputClipsOf = (
   item: BoardItem | null,
   graph: Graph,
@@ -80,9 +85,16 @@ export const outputClipsOf = (
     return [];
   }
   if (item.nodeType === "bundle") {
-    return bundleWired(item, "video", graph).flatMap((source) =>
-      outputClipsOf(source, graph, depth + 1)
-    );
+    return [
+      ...bundleWired(item, "video", graph).flatMap((source) =>
+        outputClipsOf(source, graph, depth + 1)
+      ),
+      ...bundleHeldClips(item.config),
+    ];
+  }
+  if (item.nodeType === "clip") {
+    const held = clipUrlOf(item.config);
+    return held ? [held] : [];
   }
   const clip = item.nodeType === "video" ? currentImageUrl(item) : null;
   return clip ? [clip] : [];

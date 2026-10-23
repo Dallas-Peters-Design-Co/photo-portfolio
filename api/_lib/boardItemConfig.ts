@@ -1,4 +1,8 @@
 import { MAX_MODEL_ID } from "../../config/models.js";
+import {
+  bundleHeldClips,
+  bundleHeldImages,
+} from "../../config/nodes/bundle.js";
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
 import { UUID_RE } from "./boardItemParse.js";
 import { clamp, num, text } from "./values.js";
@@ -110,6 +114,9 @@ export const settingStored = (
  * composite or mask, the element library's id, and the copies kept on the node.
  * They survive a save for the same reason `selectedVersion` does. */
 export const OWNED_TEXT_KEYS = [
+  // A Clip node's file. Without it here the save stripped the address and the
+  // node came back empty on the next load.
+  { key: "clipUrl", max: 2000 },
   { key: "compositeUrl", max: 2000 },
   // The three finishing nodes — Cover, Print wrap, Mockup — write theirs the
   // same way. Without these here a save stripped `coverUrl` and every run
@@ -192,6 +199,19 @@ export const parseNodeConfig = (
     const value = source[key];
     if (typeof value === "string") {
       config[key] = value.slice(0, max);
+    }
+  }
+  // What was uploaded straight onto a Bundle, pictures and clips. Nothing kept
+  // these, so a dropped picture lasted until the board saved and was gone on
+  // the next load; capped at the count the node itself allows.
+  if (nodeType === "bundle") {
+    const images = bundleHeldImages(source);
+    const clips = bundleHeldClips(source);
+    if (images.length > 0) {
+      config.images = images;
+    }
+    if (clips.length > 0) {
+      config.clips = clips;
     }
   }
   const excluded = ownedList(source.excluded);

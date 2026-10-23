@@ -28,7 +28,6 @@ import {
 } from "./drawing/drawing";
 import type { MaskStroke } from "./drawing/mask";
 import { StrokePreview } from "./drawing/StrokePreview";
-import { isImageDrop } from "./drawing/svgToRaster";
 import {
   type Guides,
   NO_GUIDES,
@@ -62,6 +61,7 @@ import { useCanvasViewport } from "./hooks/useCanvasViewport";
 import { useDeleteKey } from "./hooks/useDeleteKey";
 import { usePanModifier } from "./hooks/usePanModifier";
 import { useWireGesture } from "./hooks/useWireGesture";
+import { isBoardDrop } from "./io/isVideo";
 import { BOARD_IMAGE_TYPE } from "./itemOutput";
 import { CanvasMenu, type CanvasMenuTarget } from "./panels/CanvasMenu";
 import { PortMenu, type PortTarget } from "./panels/PortMenu";
@@ -159,7 +159,7 @@ interface BoardCanvasProps {
   /** Picks the drawing tool, so a mask tool can arm the brush it needs. */
   onDrawTool?: (tool: DrawTool) => void;
   /**
-   * Image files dragged onto the board, with the canvas point they landed on.
+   * Pictures and clips dragged onto the board, and where they landed.
    *
    * The canvas is the only place that can turn a screen coordinate into a board
    * one, so it reports where; the editor uploads and mints the items.
@@ -554,7 +554,7 @@ export function BoardCanvas({
         return;
       }
       const files = [...(e.clipboardData?.files ?? [])].filter((file) =>
-        isImageDrop(file)
+        isBoardDrop(file)
       );
       if (files.length > 0 && onDropFiles) {
         e.preventDefault();
@@ -1016,7 +1016,7 @@ export function BoardCanvas({
                 }
 
                 const files = [...e.dataTransfer.files].filter((file) =>
-                  isImageDrop(file)
+                  isBoardDrop(file)
                 );
                 if (files.length === 0 || !onDropFiles) {
                   return;

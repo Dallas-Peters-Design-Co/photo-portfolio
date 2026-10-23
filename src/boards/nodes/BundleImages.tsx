@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { MAX_BUNDLE_HELD } from "../../../config/nodes/bundle.js";
 import { portfolioService } from "../../services/portfolioService.js";
 import { isImageDrop } from "../drawing/svgToRaster";
+import { isVideoFile, isVideoUrl } from "../io/isVideo";
+import { uploadClip } from "../io/uploadClip";
 import { BOARD_IMAGE_TYPE } from "../itemOutput";
 
 /**
@@ -18,6 +20,10 @@ import { BOARD_IMAGE_TYPE } from "../itemOutput";
  *
  * The drop is caught here and stopped. Left to bubble, the board would also
  * place the same files on the canvas where they landed.
+ *
+ * One zone per kind — pictures, and clips for the Clips port. Each takes only
+ * its own kind, so a clip dropped on the pictures is refused rather than sent
+ * to a model as a reference image it cannot read.
  */
 
 const UPLOAD_PREFIX = "boards/uploads";
@@ -26,17 +32,37 @@ const isOurDrag = (e: DragEvent): boolean =>
   e.dataTransfer.types.includes("Files") ||
   e.dataTransfer.types.includes(BOARD_IMAGE_TYPE);
 
+/** What each zone takes, and how it sends one to storage. */
+const KINDS = {
+  clip: {
+    accept: "video/*",
+    file: isVideoFile,
+    send: (file: File) => uploadClip(file),
+    url: isVideoUrl,
+  },
+  image: {
+    accept: "image/*",
+    file: isImageDrop,
+    send: (file: File) =>
+      portfolioService.uploadImageFile(file, undefined, UPLOAD_PREFIX),
+    url: (url: string) => !isVideoUrl(url),
+  },
+} as const;
+
 export function BundleDropZone({
   children,
   held,
+  kind = "image",
   onHeldChange,
   readOnly,
 }: {
   children: (controls: { add: () => void; uploading: number }) => ReactNode;
   held: string[];
-  onHeldChange: (images: string[]) => void;
+  kind?: keyof typeof KINDS;
+  onHeldChange: (urls: string[]) => void;
   readOnly: boolean;
 }) {
+  const rules = KINDS[kind];
   const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(0);
   const [over, setOver] = useState(false);
@@ -53,17 +79,13 @@ export function BundleDropZone({
   };
 
   const upload = async (files: File[]) => {
-    const images = files.filter((file) => isImageDrop(file));
-    if (images.length === 0) {
+    const wanted = files.filter((file) => rules.file(file));
+    if (wanted.length === 0) {
       return;
     }
-    setUploading((n) => n + images.length);
-    const results = await Promise.allSettled(
-      images.map((file) =>
-        portfolioService.uploadImageFile(file, undefined, UPLOAD_PREFIX)
-      )
-    );
-    setUploading((n) => n - images.length);
+    setUploading((n) => n + wanted.length);
+    const results = await Promise.allSettled(wanted.map(rules.send));
+    setUploading((n) => n - wanted.length);
     keep(
       results
         .filter((r) => r.status === "fulfilled")
@@ -106,7 +128,7 @@ export function BundleDropZone({
         if (pulled) {
           try {
             const { url } = JSON.parse(pulled) as { url?: unknown };
-            if (typeof url === "string" && url) {
+            if (typeof url === "string" && url && rules.url(url)) {
               keep([url]);
             }
           } catch {
@@ -118,7 +140,7 @@ export function BundleDropZone({
       }}
     >
       <input
-        accept="image/*"
+        accept={rules.accept}
         className="bundle-node__file"
         multiple
         onChange={(e) => {
@@ -135,13 +157,15 @@ export function BundleDropZone({
   );
 }
 
-/** One uploaded picture, with the control that takes it back off. */
+/** One uploaded picture or clip, with the control that takes it back off. */
 export function HeldThumb({
+  clip = false,
   index,
   onRemove,
   readOnly,
   url,
 }: {
+  clip?: boolean;
   index: number;
   onRemove: () => void;
   readOnly: boolean;
@@ -149,18 +173,28 @@ export function HeldThumb({
 }) {
   return (
     <div className="bundle-node__held">
-      <img
-        alt=""
-        className="bundle-node__thumb"
-        decoding="async"
-        height={56}
-        loading="lazy"
-        src={url}
-        width={56}
-      />
+      {clip ? (
+        <video
+          className="bundle-node__thumb"
+          muted
+          playsInline
+          preload="metadata"
+          src={`${url}#t=0.1`}
+        />
+      ) : (
+        <img
+          alt=""
+          className="bundle-node__thumb"
+          decoding="async"
+          height={56}
+          loading="lazy"
+          src={url}
+          width={56}
+        />
+      )}
       {readOnly ? null : (
         <button
-          aria-label={`Remove uploaded image ${index + 1}`}
+          aria-label={`Remove uploaded ${clip ? "clip" : "image"} ${index + 1}`}
           className="bundle-node__remove"
           onClick={onRemove}
           onPointerDown={(e) => e.stopPropagation()}

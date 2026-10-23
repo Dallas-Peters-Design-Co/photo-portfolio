@@ -1,5 +1,6 @@
 import {
   BUNDLE,
+  bundleHeldClips,
   bundleHeldImages,
   MAX_BUNDLE_HELD,
 } from "../../../config/nodes/bundle.js";
@@ -42,9 +43,16 @@ export function BundleNode({
   // `images` is the whole Images stack — wired pictures first, then held ones —
   // so the wired part is whatever comes before the held tail.
   const wired = images.slice(0, Math.max(0, images.length - held.length));
+  const heldClips = bundleHeldClips(config);
+  const wiredClips = clips.slice(
+    0,
+    Math.max(0, clips.length - heldClips.length)
+  );
   const empty = images.length + lines.length + clips.length === 0;
   const setHeld = (next: string[]) =>
     onConfigChange({ ...config, images: next });
+  const setHeldClips = (next: string[]) =>
+    onConfigChange({ ...config, clips: next });
 
   return (
     <div className="op-node-view">
@@ -119,8 +127,8 @@ export function BundleNode({
 
         {empty ? (
           <p className="bundle-node__empty">
-            Wire in pictures, text and clips, or add pictures above. Each kind
-            goes out of its own port on the right.
+            Wire in pictures, text and clips, or add pictures and clips here.
+            Each kind goes out of its own port on the right.
           </p>
         ) : null}
 
@@ -138,26 +146,61 @@ export function BundleNode({
           </section>
         ) : null}
 
-        {clips.length > 0 ? (
-          <section className="bundle-node__group">
-            <h3 className="bundle-node__label">
-              Clips <span className="bundle-node__count">{clips.length}</span>
-            </h3>
-            <div className="bundle-node__sheet">
-              {clips.map((url, index) => (
-                <video
-                  className="bundle-node__thumb"
-                  // biome-ignore lint/suspicious/noArrayIndexKey: the same clip may arrive twice; its place is its identity
-                  key={`${url}-${index}`}
-                  muted
-                  playsInline
-                  preload="metadata"
-                  src={url}
-                />
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <BundleDropZone
+          held={heldClips}
+          kind="clip"
+          onHeldChange={setHeldClips}
+          readOnly={readOnly}
+        >
+          {({ add, uploading }) => (
+            <section className="bundle-node__group">
+              <h3 className="bundle-node__label">
+                Clips <span className="bundle-node__count">{clips.length}</span>
+              </h3>
+              {clips.length > 0 ? (
+                <div className="bundle-node__sheet">
+                  {wiredClips.map((url, index) => (
+                    <video
+                      className="bundle-node__thumb"
+                      // biome-ignore lint/suspicious/noArrayIndexKey: the same clip may arrive twice; its place is its identity
+                      key={`${url}-${index}`}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      src={`${url}#t=0.1`}
+                    />
+                  ))}
+                  {heldClips.map((url, index) => (
+                    <HeldThumb
+                      clip
+                      index={index}
+                      // biome-ignore lint/suspicious/noArrayIndexKey: the same clip may be uploaded twice; its place is its identity
+                      key={`held-${url}-${index}`}
+                      onRemove={() =>
+                        setHeldClips(heldClips.filter((_, i) => i !== index))
+                      }
+                      readOnly={readOnly}
+                      url={url}
+                    />
+                  ))}
+                </div>
+              ) : null}
+              {readOnly ? null : (
+                <button
+                  className="bundle-node__add"
+                  disabled={heldClips.length >= MAX_BUNDLE_HELD}
+                  onClick={add}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  type="button"
+                >
+                  {uploading > 0
+                    ? `Uploading ${uploading}…`
+                    : "Add clips — or drop them here"}
+                </button>
+              )}
+            </section>
+          )}
+        </BundleDropZone>
       </div>
     </div>
   );

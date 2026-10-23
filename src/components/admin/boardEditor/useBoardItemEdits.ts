@@ -16,10 +16,12 @@ import {
 } from "../../../boards/drawing/mask";
 import { copyOfFrame } from "../../../boards/io/copyToBoard";
 import { buildDataset, startTraining } from "../../../boards/io/dataset";
+import { isVideoUrl } from "../../../boards/io/isVideo";
 import { newItemId } from "../../../boards/io/newItemId";
 import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../../types";
 import { useConfirm } from "../ConfirmProvider";
+import { clipItem } from "./clipItem";
 import { BLANK_ITEM } from "./placement";
 
 /**
@@ -216,6 +218,21 @@ export const useBoardItemEdits = (deps: BoardItemEditDeps) => {
     image: { url: string },
     point: { x: number; y: number }
   ) => {
+    // A clip pulled off a Video node lands as a Clip, so it can be wired on as
+    // a clip. As a pinned reference its only port would say "image".
+    if (isVideoUrl(image.url)) {
+      change([
+        ...items,
+        clipItem({
+          name: null,
+          point,
+          size: null,
+          url: image.url,
+          z: items.length + 1,
+        }),
+      ]);
+      return;
+    }
     change([
       ...items,
       {
