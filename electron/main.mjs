@@ -293,6 +293,36 @@ const registerTitleBar = () => {
   });
 };
 
+/**
+ * A strip along the top edge that moves the window, as a title bar would.
+ *
+ * `hiddenInset` removes the title bar, and nothing on the page was marked as
+ * draggable, so the window could not be moved at all. A fixed band is drawn
+ * over the top of every page and marked as a drag region; anything clickable
+ * inside it is marked no-drag, so the board's rail and buttons up there still
+ * take clicks. A double-click on the band zooms the window natively.
+ *
+ * Injected here rather than shipped in the site's CSS: the property means
+ * nothing in a browser, and the band would only steal clicks there.
+ */
+const TITLE_BAND_CSS = `
+  html::after {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 28px;
+    z-index: 2147483647;
+    /* The drag region is read from layout, not hit-testing, so the band can
+       let clicks through to the no-drag controls beneath it. */
+    pointer-events: none;
+    -webkit-app-region: drag;
+  }
+  a, button, input, textarea, select, label, summary,
+  [role="button"], [role="menuitem"], [role="tab"], [contenteditable] {
+    -webkit-app-region: no-drag;
+  }
+`;
+
 const createWindow = () => {
   const win = new BrowserWindow({
     backgroundColor: "#000000",
@@ -313,6 +343,7 @@ const createWindow = () => {
   // Show once painted so there is no white flash before the site arrives.
   win.once("ready-to-show", () => win.show());
   win.webContents.on("did-finish-load", () => {
+    win.webContents.insertCSS(TITLE_BAND_CSS);
     console.log(`[electron] loaded ${win.webContents.getURL()}`);
   });
   win.webContents.on("did-fail-load", (_e, code, desc, url) => {
