@@ -11,6 +11,7 @@ import {
 } from "./hooks/useVectorEditorName";
 import { downloadImage } from "./io/downloadImage";
 import { isVideoUrl } from "./io/isVideo";
+import { saveTargetOf } from "./io/saveTarget";
 import { ToolPicker } from "./panels/ToolPicker";
 import { ToolPrompt } from "./panels/ToolPrompt";
 import { useAnchoredPanel } from "./panels/useAnchoredPanel";
@@ -145,7 +146,7 @@ export function BoardToolBar({
    * has been rotated, retouched or generated into saves the version on screen
    * rather than the one it arrived as.
    */
-  const shown = imageOf(item);
+  const shown = saveTargetOf(item, imageOf(item));
   // A clip has a URL and so passes `hasImage`, but the photo editor draws its
   // source into a canvas — handed an mp4 it would open on nothing.
   const canEditByHand =
@@ -290,10 +291,10 @@ export function BoardToolBar({
         {shown ? (
           <Button
             onClick={() => {
-              void downloadImage(shown, item.body ?? "image");
+              void downloadImage(shown.url, shown.label);
             }}
             size="xs"
-            title="Save this picture"
+            title={`Save this ${shown.noun}`}
             variant="ghost"
           >
             Save

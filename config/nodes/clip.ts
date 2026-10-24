@@ -28,3 +28,12 @@ export const clipUrlOf = (config: unknown): string | null => {
   const raw = (config as { clipUrl?: unknown } | null)?.clipUrl;
   return typeof raw === "string" && raw !== "" ? raw : null;
 };
+
+const FILE_EXTENSION = /\.[^.]+$/;
+
+/** What a saved copy is called: the uploaded file's name, without its type. */
+export const clipLabelOf = (config: unknown): string => {
+  const raw = (config as { name?: unknown } | null)?.name;
+  const name = typeof raw === "string" ? raw.replace(FILE_EXTENSION, "") : "";
+  return name.trim() || "clip";
+};

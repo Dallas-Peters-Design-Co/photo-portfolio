@@ -16,6 +16,7 @@ import { useFrameActions } from "../FrameOpenContext";
 import { isSvgUrl } from "../io/affinity";
 import { frameSummary } from "../io/copyToBoard";
 import { downloadImage } from "../io/downloadImage";
+import { saveTargetOf } from "../io/saveTarget";
 import { outputImageOf, outputImagesOf } from "../itemOutput";
 import type { CanvasMenuTarget } from "./CanvasMenu";
 import { CollectionRow, hasTools, ToolsRow } from "./CanvasMenuPanels";
@@ -108,11 +109,11 @@ function ProofRow({ onProof }: { onProof: () => void }) {
  * are most of what sits on a board, and the only way to get one back out was
  * to find it in blob storage.
  */
-function SaveRow({ onSave }: { onSave: () => void }) {
+function SaveRow({ noun, onSave }: { noun: string; onSave: () => void }) {
   return (
     <button className={rowClass} onClick={onSave} type="button">
       <HugeiconsIcon aria-hidden icon={Download01Icon} size={14} />
-      <span>Save this picture</span>
+      <span>Save this {noun}</span>
     </button>
   );
 }
@@ -193,9 +194,10 @@ function SingleItemRows({
   // Any picture can go to the editor, not only a vector one. A raster is
   // wrapped on the way — see rasterAsSvg — so the round trip is unchanged and
   // the button stops hiding on almost everything a board makes.
-  const pickedImage = onlyPicked
-    ? Boolean(outputImageOf(onlyPicked, items))
-    : false;
+  const picture = onlyPicked ? outputImageOf(onlyPicked, items) : null;
+  const pickedImage = Boolean(picture);
+  // A node's batch already has its own row, so only a lone picture or a clip.
+  const save = saveTargetOf(onlyPicked, madeCount === 0 ? picture : null);
 
   // A placed picture — photo or reference — is a raster waiting to be traced.
   // The Recraft vectorizer needs a source, so a node with no image would have
@@ -217,14 +219,10 @@ function SingleItemRows({
         <EditorRow onOpen={() => onOpenInAffinity(onlyPicked.id)} />
       ) : null}
 
-      {onlyPicked && pickedImage && madeCount === 0 ? (
+      {save ? (
         <SaveRow
-          onSave={() =>
-            void downloadImage(
-              outputImageOf(onlyPicked, items) ?? "",
-              onlyPicked.body ?? "image"
-            )
-          }
+          noun={save.noun}
+          onSave={() => void downloadImage(save.url, save.label)}
         />
       ) : null}
 
