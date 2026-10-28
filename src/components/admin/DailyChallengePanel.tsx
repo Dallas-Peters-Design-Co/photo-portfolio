@@ -162,7 +162,7 @@ const HistoryEntryHeader = ({
         src={thumb}
       />
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 text-[10px] text-white/90 uppercase tracking-widest">
+        <p className="flex items-center gap-1.5 text-sm text-white/90 uppercase tracking-widest">
           {isToday ? (
             <span className="inline-block size-1.5 shrink-0 rounded-full bg-amber-300/80" />
           ) : null}
@@ -216,11 +216,11 @@ const JournalForm = ({
 
   return (
     <form
-      className="flex flex-col gap-2"
+      className="flex min-w-0 flex-1 flex-col gap-2"
       onSubmit={(e) => void journal.handleSave(e)}
     >
       <Label
-        className="text-[10px] text-white/90 uppercase tracking-widest"
+        className="text-sm text-white/90 uppercase tracking-widest"
         htmlFor={`journal-${entry.challenge.challengeDate}`}
       >
         Your thoughts
@@ -239,7 +239,7 @@ const JournalForm = ({
         value={journal.text}
       />
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[9px] text-white/80">
+        <p className="text-sm text-white/80">
           {journal.text.length.toLocaleString()} / 20,000
           <JournalSavedAt journal={entry.journal} />
         </p>
@@ -309,7 +309,7 @@ const HistoryEntryCredits = ({
     return null;
   }
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-white/90">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/90">
       <PhotographerCredit challenge={challenge} />
       {challenge.unsplashHtmlLink ? (
         <a
@@ -334,10 +334,10 @@ const HistoryEntryDetails = ({
   journal: JournalEntryState;
 }) => (
   <div className="space-y-3 border-white/8 border-t bg-black/20 p-3">
-    <div className="grid items-start gap-4 sm:grid-cols-[160px_1fr]">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
       <a
         aria-label="Open photo on Unsplash"
-        className="block overflow-hidden rounded border border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+        className="block overflow-hidden rounded border border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:w-40 sm:shrink-0"
         href={entry.challenge.unsplashHtmlLink ?? "#"}
         rel="noreferrer noopener"
         target="_blank"
@@ -478,7 +478,7 @@ const TodayPhoto = ({ challenge }: { challenge: DailyChallengeInfo }) => (
         src={challenge.imageUrl}
       />
     </a>
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-white/90">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/90">
       <span>
         Photo by{" "}
         {challenge.photographerUsername ? (
@@ -520,7 +520,7 @@ const TodayJournalForm = ({
   <form className="flex flex-col gap-3" onSubmit={onSubmit}>
     <div className="space-y-2">
       <Label
-        className="text-[10px] text-white/90 uppercase tracking-widest"
+        className="text-sm text-white/90 uppercase tracking-widest"
         htmlFor="challenge-journal"
       >
         Your thoughts
@@ -537,7 +537,7 @@ const TodayJournalForm = ({
         rows={8}
         value={today.thoughts}
       />
-      <p className="text-[9px] text-white/90">
+      <p className="text-sm text-white/90">
         {today.thoughts.length.toLocaleString()} / 20,000
         {today.journal?.updatedAt ? (
           <span className="ml-2 text-white/80">
@@ -569,7 +569,7 @@ const TodayView = ({
 }) => (
   <>
     {today.loading ? (
-      <p className="text-center text-[10px] text-white/90 uppercase tracking-widest">
+      <p className="text-center text-sm text-white/90 uppercase tracking-widest">
         Loading…
       </p>
     ) : null}
@@ -584,7 +584,7 @@ const TodayView = ({
         </div>
 
         {notifs.perm === "denied" ? (
-          <p className="text-[10px] text-amber-200/70">
+          <p className="text-amber-200/70 text-sm">
             Notifications are blocked for this site. Enable them in browser
             settings if you want alerts.
           </p>
@@ -608,7 +608,7 @@ const HistoryView = ({
   if (history.loading) {
     return (
       <div className="space-y-2">
-        <p className="text-center text-[10px] text-white/90 uppercase tracking-widest">
+        <p className="text-center text-sm text-white/90 uppercase tracking-widest">
           Loading…
         </p>
       </div>
@@ -627,7 +627,7 @@ const HistoryView = ({
 
   return (
     <div className="space-y-2">
-      <p className="pb-1 text-[10px] text-white/90 uppercase tracking-widest">
+      <p className="pb-1 text-sm text-white/90 uppercase tracking-widest">
         {history.entries.length}{" "}
         {history.entries.length === 1 ? "entry" : "entries"} — click a row to
         view or edit
@@ -700,11 +700,11 @@ export const DailyChallengePanel = () => {
     <Card className="border-white/10 bg-white/5">
       <CardHeader className="flex flex-col gap-3 border-white/5 border-b sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.3em]">
+          <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
             <Sparkles aria-hidden className="size-4 text-amber-200/80" />
             Daily challenge
           </CardTitle>
-          <p className="text-[10px] text-white/90 uppercase tracking-widest">
+          <p className="text-sm text-white/90 uppercase tracking-widest">
             Inspiration from Unsplash (UTC day). Your notes are private.
           </p>
         </div>
