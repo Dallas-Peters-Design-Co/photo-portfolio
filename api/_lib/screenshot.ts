@@ -30,7 +30,10 @@ export interface CaptureResult {
 
 const MAX_HEIGHT = 6000;
 const SETTLE_MS = 1200;
-const NAV_TIMEOUT_MS = 25_000;
+const NAV_TIMEOUT_MS = 20_000;
+/** How long the page's images and scripts get to finish loading. */
+const LOAD_GRACE_MS = 10_000;
+const IDLE_GRACE_MS = 3000;
 
 const launch = async (): Promise<Browser> => {
   const { chromium } = await import("playwright-core");
@@ -66,7 +69,22 @@ export const captureScreenshot = async ({
       deviceScaleFactor: 2,
       viewport: { height: Math.round(width * 0.66), width },
     });
-    await page.goto(url, { timeout: NAV_TIMEOUT_MS, waitUntil: "networkidle" });
+    // The HTML first, then a bounded wait for everything else; past either
+    // bound the shot is taken as the page stands. Waiting for networkidle
+    // outright failed whole captures: analytics, chat widgets and background
+    // video keep a page busy forever, and from Vercel's network some sites
+    // never fire "load" inside 25s at all — so a site that had drawn its page
+    // still timed out and the reviewer got nothing.
+    await page.goto(url, {
+      timeout: NAV_TIMEOUT_MS,
+      waitUntil: "domcontentloaded",
+    });
+    await page
+      .waitForLoadState("load", { timeout: LOAD_GRACE_MS })
+      .catch(() => undefined);
+    await page
+      .waitForLoadState("networkidle", { timeout: IDLE_GRACE_MS })
+      .catch(() => undefined);
     // Reveal-on-scroll sections and lazy images: animations are cut so a
     // reveal completes the moment it fires, then the page is walked once so
     // every observer fires. The walk ends at the bottom on purpose; coming
@@ -78,14 +96,16 @@ export const captureScreenshot = async ({
           "*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; transition-delay: 0s !important; scroll-behavior: auto !important; }",
       })
       .catch(() => undefined);
+    // Only as far as the shot reaches: an endless feed would otherwise keep
+    // growing ahead of the walk until the function ran out of time.
     await page.evaluate(
-      (step) =>
+      ({ step, limit }) =>
         new Promise<void>((done) => {
           let y = 0;
           const tick = () => {
             window.scrollTo(0, y);
             y += step;
-            if (y < document.documentElement.scrollHeight) {
+            if (y < Math.min(document.documentElement.scrollHeight, limit)) {
               setTimeout(tick, 80);
             } else {
               done();
@@ -93,7 +113,7 @@ export const captureScreenshot = async ({
           };
           tick();
         }),
-      400
+      { limit: MAX_HEIGHT, step: 400 }
     );
     // A fixed header is wherever the viewport is when the shot is taken,
     // which after the walk is the bottom of the page. Each fixed element is
