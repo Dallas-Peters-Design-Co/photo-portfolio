@@ -85,17 +85,17 @@ export function EditorCanvas({
   return (
     <main className="relative flex min-w-0 flex-1 flex-col">
       <header className="flex h-12 shrink-0 items-center justify-between border-white/[0.07] border-b px-6">
-        <span className="truncate text-[10px] text-white/90 uppercase tracking-[0.22em]">
+        <span className="truncate text-sm text-white/90 uppercase tracking-[0.22em]">
           {title}
         </span>
         <div className="flex items-center gap-5">
           {dimensions.width > 0 ? (
-            <span className="font-mono text-[10px] text-white/80 tabular-nums">
+            <span className="font-mono text-sm text-white/80 tabular-nums">
               {dimensions.width} × {dimensions.height}
             </span>
           ) : null}
           <button
-            className={`flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] transition-colors disabled:opacity-80 ${
+            className={`flex items-center gap-1.5 text-sm uppercase transition-colors disabled:opacity-80 ${
               showOriginal ? "text-white" : "text-white/90 hover:text-white/90"
             }`}
             disabled={!canCompare}
@@ -116,7 +116,7 @@ export function EditorCanvas({
         ref={areaRef}
       >
         {loadError ? (
-          <p className="max-w-xs text-center text-[11px] text-white/90 uppercase leading-relaxed tracking-[0.12em]">
+          <p className="max-w-xs text-center text-sm text-white/90 uppercase leading-relaxed tracking-[0.12em]">
             {loadError}
           </p>
         ) : (
@@ -144,7 +144,7 @@ export function EditorCanvas({
               </>
             ) : null}
             {isReady ? null : (
-              <span className="absolute text-[10px] text-white/80 uppercase tracking-[0.3em]">
+              <span className="absolute text-sm text-white/80 uppercase tracking-[0.3em]">
                 Loading
               </span>
             )}

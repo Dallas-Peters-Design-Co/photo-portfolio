@@ -23,7 +23,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
-const labelClass = "text-[10px] uppercase tracking-widest text-white/90";
+const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
@@ -148,7 +148,7 @@ export function SiteSettingsPanel() {
   return (
     <Card className="border-white/10 bg-white/2">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
           <Palette aria-hidden size={16} />
           Site settings
         </CardTitle>
@@ -171,7 +171,7 @@ export function SiteSettingsPanel() {
                   value={draft[field.key]}
                 />
                 {field.hint ? (
-                  <p className="text-[10px] text-white/80">{field.hint}</p>
+                  <p className="text-sm text-white/80">{field.hint}</p>
                 ) : null}
               </div>
             ))}
@@ -243,7 +243,7 @@ export function SiteSettingsPanel() {
             {/* Nothing here can leave the site unstyled, but it can leave it
                 unreadable — so say so before it ships. */}
             {bodyContrast < AA_NORMAL || accentContrast < 3 ? (
-              <p className="flex items-start gap-2 text-[11px] text-amber-300/80 leading-relaxed">
+              <p className="flex items-start gap-2 text-amber-300/80 text-sm leading-relaxed">
                 <TriangleAlert
                   aria-hidden
                   className="mt-px shrink-0"
@@ -330,7 +330,7 @@ export function SiteSettingsPanel() {
                 <Label className={labelClass} htmlFor="setting-showShader">
                   Animated shader
                 </Label>
-                <p className="text-[10px] text-white/80">
+                <p className="text-sm text-white/80">
                   Dithered gradient behind the gallery, tinted with the accent
                   color
                 </p>
@@ -345,7 +345,7 @@ export function SiteSettingsPanel() {
               color: draft.theme.foreground,
             }}
           >
-            <p className="text-[10px] uppercase tracking-[0.3em] opacity-40">
+            <p className="text-sm uppercase tracking-[0.3em] opacity-40">
               Preview
             </p>
             <p

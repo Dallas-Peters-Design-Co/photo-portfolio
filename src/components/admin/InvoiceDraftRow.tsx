@@ -160,13 +160,11 @@ export function InvoiceDraftRow({
           <Trash2 size={14} /> Delete draft
         </Button>
         {reason ? (
-          <span className="text-[10px] text-amber-400/70 uppercase tracking-[0.16em]">
+          <span className="text-amber-400/70 text-sm uppercase tracking-[0.16em]">
             {reason}
           </span>
         ) : null}
-        {saving ? (
-          <span className="text-[11px] text-white/45">Saving…</span>
-        ) : null}
+        {saving ? <span className="text-sm text-white/45">Saving…</span> : null}
       </div>
     </li>
   );

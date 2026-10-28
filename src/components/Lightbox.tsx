@@ -124,7 +124,7 @@ export function Lightbox({
               modifier-clicking a grid tile, which nobody would discover. */}
           <div className="mt-4 flex flex-wrap items-center justify-center gap-6">
             <Link
-              className="inline-flex items-center gap-1.5 text-[10px] text-white/45 uppercase tracking-[0.2em] transition-colors hover:text-white"
+              className="inline-flex items-center gap-1.5 text-sm text-white/45 uppercase transition-colors hover:text-white"
               rel="noreferrer"
               target="_blank"
               to={`/photo/${currentPhoto.id}`}

@@ -51,7 +51,7 @@ export function LooksPanel({
               title={`${f.name} — ${f.description}`}
               type="button"
             >
-              <span className="font-mono text-[11px] tracking-wider">
+              <span className="font-mono text-sm tracking-wider">
                 {f.letter}
               </span>
               {/* Marks the family holding the selected look when its panel is
@@ -69,7 +69,7 @@ export function LooksPanel({
       </div>
 
       <div>
-        <p className="pb-2 text-[10px] text-white/90 uppercase tracking-[0.18em]">
+        <p className="pb-2 text-sm text-white/90 uppercase">
           {family.name}
           <span className="ml-2 text-white/90 normal-case tracking-normal">
             {family.description}
@@ -93,7 +93,7 @@ export function LooksPanel({
                 type="button"
               >
                 <span
-                  className="font-mono text-[11px] tracking-wider"
+                  className="font-mono text-sm tracking-wider"
                   style={{
                     color: isActive ? `${family.contrastColor}` : "#FFFFFF",
                   }}

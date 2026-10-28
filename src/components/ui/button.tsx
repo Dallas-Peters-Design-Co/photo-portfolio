@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
  *    wide tracking) and a 44px minimum touch target. That styling was already
  *    on nearly every button in the app; keeping it out of the component only
  *    meant every author had to remember it, and they disagreed — `tracking-
- *    widest` and `tracking-[0.18em]` were both in use for the same intent.
+ *    widest` and `` were both in use for the same intent.
  *
  * Icon sizes deliberately skip the label treatment: there is no label to treat.
  *
@@ -77,7 +77,7 @@ const buttonVariants = cva(
         true: "w-full flex-grow-1 justify-start",
       },
       size: {
-        default: "min-h-11 px-4 text-[10px] uppercase tracking-widest",
+        default: "min-h-11 px-4 text-sm uppercase tracking-widest",
         icon: "size-10 min-h-11 min-w-11",
         "icon-lg": "size-11 min-h-11 min-w-11",
         // Below the 40px dense-desktop minimum on their own, so the target is
@@ -89,10 +89,10 @@ const buttonVariants = cva(
         "icon-xs":
           "relative size-6 after:absolute after:-inset-2 after:content-[''] [&_svg:not([class*='size-'])]:size-3",
         // The tall, wide call to action — "Save settings", "Add photos".
-        lg: "min-h-12 gap-2 px-8 text-[10px] uppercase tracking-widest",
-        sm: "min-h-11 gap-1.5 px-3 text-[10px] uppercase tracking-widest",
+        lg: "min-h-12 gap-2 px-8 text-sm uppercase tracking-widest",
+        sm: "min-h-11 gap-1.5 px-3 text-sm uppercase tracking-widest",
         // Dense toolbars, where a 44px target would not fit. Use sparingly.
-        xs: "min-h-9 gap-1.5 px-2 text-[10px] uppercase tracking-widest",
+        xs: "min-h-9 gap-1.5 px-2 text-sm uppercase tracking-widest",
       },
       stacked: {
         false: "",

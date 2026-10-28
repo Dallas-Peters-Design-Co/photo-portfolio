@@ -104,7 +104,7 @@ export function ReviewMarkupToolbar({
           <Redo2 size={15} />
         </button>
       </div>
-      <span className="ml-2 text-[11px] text-white/60 uppercase tracking-[0.16em]">
+      <span className="ml-2 text-sm text-white/60 uppercase tracking-[0.16em]">
         {active?.hint}
       </span>
       {canClear ? (

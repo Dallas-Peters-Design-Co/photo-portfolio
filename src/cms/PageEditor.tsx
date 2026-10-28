@@ -160,7 +160,7 @@ export function PageEditor({ value, onChange }: PageEditorProps) {
 
   if (!(editor && toolbar)) {
     return (
-      <div className="min-h-95 border border-white/10 bg-black/40 p-5 text-[11px] text-white/80 uppercase tracking-[0.2em]">
+      <div className="min-h-95 border border-white/10 bg-black/40 p-5 text-sm text-white/80 uppercase">
         Loading editor…
       </div>
     );

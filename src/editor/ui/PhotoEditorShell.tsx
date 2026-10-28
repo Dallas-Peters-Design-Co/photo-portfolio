@@ -129,7 +129,7 @@ export function PhotoEditorShell({
 
       <aside className="flex w-69 shrink-0 flex-col border-white/[0.07] border-r">
         <header className="flex h-12 shrink-0 items-center border-white/[0.07] border-b px-5">
-          <h2 className="text-[10px] text-white/90 uppercase tracking-[0.28em]">
+          <h2 className="text-sm text-white/90 uppercase tracking-[0.28em]">
             {TOOLS.find((t) => t.id === tool)?.label}
           </h2>
         </header>
@@ -174,7 +174,7 @@ export function PhotoEditorShell({
 
         <footer className="flex h-14 shrink-0 items-center gap-2 border-white/[0.07] border-t px-5">
           <button
-            className="flex items-center gap-1.5 text-[10px] text-white/90 uppercase tracking-[0.18em] transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-60"
+            className="flex items-center gap-1.5 text-sm text-white/90 uppercase transition-colors hover:text-white disabled:pointer-events-none disabled:opacity-60"
             disabled={!dirty}
             onClick={handleReset}
             type="button"
@@ -184,7 +184,7 @@ export function PhotoEditorShell({
           </button>
           <div className="flex-1" />
           <button
-            className="h-8 bg-white px-4 text-[10px] text-black uppercase tracking-[0.18em] transition-colors hover:bg-white/85 disabled:pointer-events-none disabled:bg-white/15 disabled:text-white/90"
+            className="h-8 bg-white px-4 text-black text-sm uppercase transition-colors hover:bg-white/85 disabled:pointer-events-none disabled:bg-white/15 disabled:text-white/90"
             disabled={!isReady || isSaving || !dirty}
             onClick={() => void save()}
             type="button"

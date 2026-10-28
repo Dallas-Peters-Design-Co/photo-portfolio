@@ -179,7 +179,7 @@ function CollectionCard({
             <span className="truncate text-sm text-white">
               {collection.name}
             </span>
-            <span className="ml-2 text-[10px] text-white/40 tabular-nums">
+            <span className="ml-2 text-sm text-white/40 tabular-nums">
               {collection.itemCount ?? 0}
             </span>
           </button>
@@ -247,7 +247,7 @@ export function CollectionsPanel() {
   return (
     <div className="space-y-4">
       <header className="space-y-1">
-        <h2 className="text-[10px] text-white/90 uppercase tracking-widest">
+        <h2 className="text-sm text-white/90 uppercase tracking-widest">
           Collections
         </h2>
         <p className="text-white/40 text-xs leading-relaxed">

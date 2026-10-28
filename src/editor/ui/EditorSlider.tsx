@@ -116,14 +116,14 @@ export function EditorSlider({
     <div className="group/slider select-none py-2.5">
       <div className="flex items-baseline justify-between pb-2">
         <span
-          className={`text-[10px] uppercase tracking-[0.18em] transition-colors duration-200 ${
+          className={`text-sm uppercase transition-colors duration-200 ${
             isActive ? "text-white/90" : "text-white/90"
           }`}
         >
           {label}
         </span>
         <span
-          className={`font-mono text-[10px] tabular-nums transition-opacity duration-200 ${
+          className={`font-mono text-sm tabular-nums transition-opacity duration-200 ${
             isDragging || isActive ? "text-white/90 opacity-100" : "opacity-0"
           }`}
         >

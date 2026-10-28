@@ -299,7 +299,7 @@ export function BatchUploader({
         </Button>
         {items.length > 0 ? (
           <button
-            className="text-[10px] text-white/90 uppercase tracking-[0.18em] transition-colors hover:text-white disabled:opacity-30"
+            className="text-sm text-white/90 uppercase transition-colors hover:text-white disabled:opacity-30"
             disabled={isRunning}
             onClick={() => {
               for (const item of items) {
@@ -351,10 +351,8 @@ export function BatchUploader({
             icon={Upload01Icon}
             size={20}
           />
-          <p className="text-[11px] text-white/90 uppercase tracking-[0.18em]">
-            Drop photos here
-          </p>
-          <p className="text-[10px] text-white/80">
+          <p className="text-sm text-white/90 uppercase">Drop photos here</p>
+          <p className="text-sm text-white/80">
             or click to browse — JPEG, PNG, WebP, AVIF, GIF
           </p>
         </button>
@@ -446,7 +444,7 @@ export function BatchUploader({
                   </div>
 
                   {item.error ? (
-                    <div className="absolute right-2 bottom-6 left-2 z-10 truncate whitespace-nowrap rounded bg-black/80 px-1.5 py-0.5 text-[9px] text-red-300/90">
+                    <div className="absolute right-2 bottom-6 left-2 z-10 truncate whitespace-nowrap rounded bg-black/80 px-1.5 py-0.5 text-red-300/90 text-sm">
                       {item.error}
                     </div>
                   ) : null}
@@ -464,7 +462,7 @@ export function BatchUploader({
                 {isRunning ? "Uploading…" : `Upload ${pendingCount}`}
               </Button>
               {doneCount > 0 ? (
-                <span className="text-[10px] text-white/90 uppercase tracking-[0.16em]">
+                <span className="text-sm text-white/90 uppercase tracking-[0.16em]">
                   {doneCount} of {items.length} done
                 </span>
               ) : null}

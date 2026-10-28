@@ -47,7 +47,7 @@ const CREDENTIAL_FIELDS: { hint: string; key: string; label: string }[] = [
 /** Every site is this same repository with a different SITE. */
 const DEFAULT_REPO = "dallasbpeters/photo-portfolio";
 
-const labelClass = "text-[10px] uppercase tracking-widest text-white/90";
+const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
@@ -243,7 +243,7 @@ export function SitesPanel() {
   return (
     <Card className="border-white/10 bg-white/2">
       <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
           <HugeiconsIcon aria-hidden icon={GlobeIcon} size={16} />
           Sites
         </CardTitle>
@@ -281,7 +281,7 @@ export function SitesPanel() {
                 <p className="truncate text-[13px] text-white/90">
                   {project.name}
                 </p>
-                <p className="text-[10px] text-white/40 uppercase tracking-[0.2em]">
+                <p className="text-sm text-white/40 uppercase">
                   {project.framework ?? "no framework"}
                 </p>
                 {/* A ready site keeps the panel reachable. Hiding it once
@@ -289,16 +289,16 @@ export function SitesPanel() {
                     changed afterwards — the Google client id being the one
                     that actually needed changing. */}
                 {project.missing.length === 0 ? (
-                  <p className="mt-2 text-[10px] text-emerald-300/70 uppercase tracking-[0.18em]">
+                  <p className="mt-2 text-emerald-300/70 text-sm uppercase">
                     Ready
                   </p>
                 ) : (
-                  <p className="mt-2 text-[10px] text-white/40">
+                  <p className="mt-2 text-sm text-white/40">
                     Missing: {project.missing.join(", ")}
                   </p>
                 )}
                 <button
-                  className="mt-1 block text-[10px] text-white/50 uppercase tracking-[0.18em] hover:text-white"
+                  className="mt-1 block text-sm text-white/50 uppercase hover:text-white"
                   onClick={() =>
                     setSetupFor((current) =>
                       current === project.id ? null : project.id
@@ -334,13 +334,11 @@ export function SitesPanel() {
                           type="password"
                           value={credentials[field.key] ?? ""}
                         />
-                        <p className="text-[10px] text-white/40">
-                          {field.hint}
-                        </p>
+                        <p className="text-sm text-white/40">{field.hint}</p>
                       </div>
                     ))}
 
-                    <p className="text-[10px] text-white/40 leading-relaxed">
+                    <p className="text-sm text-white/40 leading-relaxed">
                       Leave blank to inherit this site's values.
                     </p>
                     <Button
@@ -376,7 +374,7 @@ export function SitesPanel() {
                     value={form[field.key]}
                   />
                   {field.hint ? (
-                    <p className="text-[10px] text-white/60">{field.hint}</p>
+                    <p className="text-sm text-white/60">{field.hint}</p>
                   ) : null}
                 </div>
               ))}
@@ -391,18 +389,12 @@ export function SitesPanel() {
         {setupResult ? (
           <div className="space-y-2 rounded border border-white/10 bg-black/40 p-3">
             {setupResult.done.map((step) => (
-              <p
-                className="text-[11px] text-white/70 leading-relaxed"
-                key={step}
-              >
+              <p className="text-sm text-white/70 leading-relaxed" key={step}>
                 ✓ {step}
               </p>
             ))}
             {setupResult.remaining.map((step) => (
-              <p
-                className="text-[11px] text-white/50 leading-relaxed"
-                key={step}
-              >
+              <p className="text-sm text-white/50 leading-relaxed" key={step}>
                 • {step}
               </p>
             ))}
@@ -417,7 +409,7 @@ export function SitesPanel() {
             <ul className="space-y-1">
               {result.remaining.map((step) => (
                 <li
-                  className="text-[11px] text-white/60 leading-relaxed"
+                  className="text-sm text-white/60 leading-relaxed"
                   key={step}
                 >
                   • {step}

@@ -148,9 +148,7 @@ export function ProposalInvoices({
   return (
     <section className="space-y-4 rounded-md border border-white/10 p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-[11px] text-white/70 uppercase tracking-[0.2em]">
-          Invoices
-        </h3>
+        <h3 className="text-sm text-white/70 uppercase">Invoices</h3>
         {billed > 0 ? (
           <span className="text-sm text-white/55 tabular-nums">
             {formatMoney(billed)} billed
@@ -208,7 +206,7 @@ export function ProposalInvoices({
                 {formatMoney(invoice.amountCents, invoice.currency)}
               </span>
               <span
-                className={`text-[10px] uppercase tracking-[0.16em] ${STATUS[invoice.status].cls}`}
+                className={`text-sm uppercase tracking-[0.16em] ${STATUS[invoice.status].cls}`}
               >
                 {STATUS[invoice.status].label}
               </span>
@@ -237,7 +235,7 @@ export function ProposalInvoices({
         )}
       </ul>
       {invoices?.some((i) => i.status === "draft") ? (
-        <p className="flex items-center gap-1.5 text-[11px] text-white/45">
+        <p className="flex items-center gap-1.5 text-sm text-white/45">
           <Send size={11} /> Stripe emails the client a link to pay by card or
           bank transfer.
         </p>

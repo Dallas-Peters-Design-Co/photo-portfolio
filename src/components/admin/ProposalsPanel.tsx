@@ -18,7 +18,7 @@ import { Input } from "../ui/input";
 import { useConfirm } from "./ConfirmProvider";
 import { ProposalEditor } from "./ProposalEditor";
 
-const labelClass = "text-[10px] uppercase tracking-widest text-white/90";
+const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
@@ -39,7 +39,7 @@ const listStatus = (proposal: ProposalSummary): string => {
 
 /** The status, coloured by how far along it is: draft, published, sent, accepted. */
 const statusClass = (proposal: ProposalSummary): string => {
-  const base = "shrink-0 text-[11px] uppercase tracking-[0.16em]";
+  const base = "shrink-0 text-sm uppercase tracking-[0.16em]";
   if (proposal.acceptance) {
     return `${base} text-emerald-400`;
   }
@@ -193,7 +193,7 @@ export function ProposalsPanel() {
   return (
     <div className="grid w-full max-w-7xl grid-cols-1 gap-4 border-white/10">
       <div className="flex flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
           <HugeiconsIcon icon={Invoice03Icon} size={16} />
           Proposals
         </div>
@@ -228,7 +228,7 @@ export function ProposalsPanel() {
                   value={newTitle}
                 />
                 {newTitle.trim() ? (
-                  <p className="font-mono text-[10px] text-white/80">
+                  <p className="font-mono text-sm text-white/80">
                     /proposal/{slugify(newTitle)}
                   </p>
                 ) : null}
@@ -260,7 +260,7 @@ export function ProposalsPanel() {
       ) : null}
 
       {proposals.length === 0 ? (
-        <p className="text-[11px] text-white/80 uppercase tracking-[0.15em]">
+        <p className="text-sm text-white/80 uppercase tracking-[0.15em]">
           No proposals yet. New ones start with the standard sections filled in;
           add the packages and send the link.
         </p>
@@ -293,7 +293,7 @@ export function ProposalsPanel() {
               </span>
               <div className="flex items-center gap-1">
                 <a
-                  className="rounded-md px-3 py-2 text-[11px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:bg-white/5 hover:text-white"
+                  className="rounded-md px-3 py-2 text-sm text-white/90 uppercase tracking-[0.16em] transition-colors hover:bg-white/5 hover:text-white"
                   href={`/proposal/${proposal.slug}`}
                   rel="noreferrer"
                   target="_blank"

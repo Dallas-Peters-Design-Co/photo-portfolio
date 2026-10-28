@@ -47,9 +47,7 @@ function TemplatePicker({
 }: TemplatePickerProps) {
   return (
     <>
-      <p className="mt-4 mb-2 text-[9px] text-board-ink/35 uppercase tracking-[0.18em]">
-        Design
-      </p>
+      <p className="mt-4 mb-2 text-board-ink/35 text-sm uppercase">Design</p>
       <div className="grid max-h-52 grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 overflow-y-auto">
         {templates.map((template) => (
           <button
@@ -73,7 +71,7 @@ function TemplatePicker({
                 width={112}
               />
             ) : null}
-            <span className="absolute inset-x-0 bottom-0 bg-board-surface/70 px-1 py-0.5 text-[9px] text-board-ink/90 backdrop-blur-sm">
+            <span className="absolute inset-x-0 bottom-0 bg-board-surface/70 px-1 py-0.5 text-board-ink/90 text-sm backdrop-blur-sm">
               {template.title}
             </span>
           </button>
@@ -82,7 +80,7 @@ function TemplatePicker({
 
       {fields.length > 1 ? (
         <label className="mt-4 block">
-          <span className="mb-1 block text-[9px] text-board-ink/35 uppercase tracking-[0.18em]">
+          <span className="mb-1 block text-board-ink/35 text-sm uppercase">
             Image field
           </span>
           <select
@@ -306,10 +304,8 @@ export function SendToCanvaModal({
 
       <div className="relative flex max-h-full w-[min(92vw,42rem)] flex-col overflow-hidden rounded-xl border border-board-ink/15 bg-board-panel shadow-2xl">
         <header className="shrink-0 border-board-ink/10 border-b px-4 py-3">
-          <h2 className="text-[11px] text-board-ink uppercase tracking-[0.18em]">
-            Send to Canva
-          </h2>
-          <p className="mt-1 text-[11px] text-board-ink/45 leading-relaxed">
+          <h2 className="text-board-ink text-sm uppercase">Send to Canva</h2>
+          <p className="mt-1 text-board-ink/45 text-sm leading-relaxed">
             The image is uploaded and autofilled into a design you can edit.
           </p>
         </header>
@@ -326,7 +322,7 @@ export function SendToCanvaModal({
             <div className="min-w-0">
               <p className="truncate text-[13px] text-board-ink">{name}</p>
               {stage.kind === "connecting" ? (
-                <p className="mt-1 text-[11px] text-board-ink/50 leading-relaxed">
+                <p className="mt-1 text-board-ink/50 text-sm leading-relaxed">
                   {templates.length === 0
                     ? "Loading your Canva account…"
                     : "Loading your brand templates…"}

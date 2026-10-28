@@ -22,12 +22,12 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="mb-2 text-[9px] text-white/60 uppercase tracking-[0.22em]">
+        <p className="mb-2 text-sm text-white/60 uppercase tracking-[0.22em]">
           Rotate
         </p>
         <div className="flex items-center gap-2">
           <button
-            className="flex h-8 flex-1 items-center justify-center gap-1.5 border border-white/15 text-[10px] text-white/90 uppercase tracking-[0.14em] transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 border border-white/15 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
             disabled={isDisabled}
             onClick={() => onChange(rotateBy(transform, -90))}
             type="button"
@@ -40,7 +40,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
             Left
           </button>
           <button
-            className="flex h-8 flex-1 items-center justify-center gap-1.5 border border-white/15 text-[10px] text-white/90 uppercase tracking-[0.14em] transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 border border-white/15 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
             disabled={isDisabled}
             onClick={() => onChange(rotateBy(transform, 90))}
             type="button"
@@ -53,10 +53,10 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
 
       <div>
         <div className="mb-2 flex items-baseline justify-between">
-          <p className="text-[9px] text-white/60 uppercase tracking-[0.22em]">
+          <p className="text-sm text-white/60 uppercase tracking-[0.22em]">
             Free rotate
           </p>
-          <span className="font-mono text-[10px] text-white/80 tabular-nums">
+          <span className="font-mono text-sm text-white/80 tabular-nums">
             {rotation}°
           </span>
         </div>
@@ -77,7 +77,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
       <div className="flex items-center gap-2">
         {transform.crop ? (
           <button
-            className="h-8 border border-white/15 px-3 text-[10px] text-white/90 uppercase tracking-[0.14em] transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+            className="h-8 border border-white/15 px-3 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
             disabled={isDisabled}
             onClick={() =>
               onChange({ crop: null, rotation: transform.rotation })
@@ -88,7 +88,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
           </button>
         ) : null}
         <button
-          className="h-8 border border-white/15 px-3 text-[10px] text-white/90 uppercase tracking-[0.14em] transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+          className="h-8 border border-white/15 px-3 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
           disabled={isDisabled}
           onClick={() => onChange({ crop: transform.crop, rotation: 0 })}
           type="button"
@@ -97,7 +97,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
         </button>
       </div>
 
-      <p className="text-[10px] text-white/50 leading-relaxed">
+      <p className="text-sm text-white/50 leading-relaxed">
         Drag the white dial to straighten or turn the photo. Drag the corners of
         the box to size the crop, the box itself to move it, or the photo to
         start a new crop.

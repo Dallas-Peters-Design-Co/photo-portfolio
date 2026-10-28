@@ -61,12 +61,8 @@ export function ReviewSendPanel({
   return (
     <section className="space-y-4 rounded-md border border-white/10 p-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-[11px] text-white/70 uppercase tracking-[0.2em]">
-          Send to client
-        </h3>
-        <code className="truncate font-mono text-[11px] text-white/60">
-          {url}
-        </code>
+        <h3 className="text-sm text-white/70 uppercase">Send to client</h3>
+        <code className="truncate font-mono text-sm text-white/60">{url}</code>
         <Button onClick={() => void copy()} type="button" variant="ghost">
           <Copy size={14} /> Copy link
         </Button>
@@ -95,7 +91,7 @@ export function ReviewSendPanel({
           {label}
         </Button>
         {canSend ? null : (
-          <span className="text-[10px] text-amber-400/70 uppercase tracking-[0.16em]">
+          <span className="text-amber-400/70 text-sm uppercase tracking-[0.16em]">
             {reason}
           </span>
         )}

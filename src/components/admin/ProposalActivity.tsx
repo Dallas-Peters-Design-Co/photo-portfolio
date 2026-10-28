@@ -58,9 +58,7 @@ export function ProposalActivity({
 
   return (
     <section className="space-y-3 rounded-md border border-white/10 p-4">
-      <h3 className="text-[11px] text-white/70 uppercase tracking-[0.2em]">
-        Activity
-      </h3>
+      <h3 className="text-sm text-white/70 uppercase">Activity</h3>
       {error ? <p className="text-red-300 text-sm">{error}</p> : null}
       {items && items.length === 0 ? (
         <p className="text-sm text-white/55">
@@ -83,7 +81,7 @@ export function ProposalActivity({
                 ) : null}
               </span>
               <time
-                className="shrink-0 text-[11px] text-white/45 tabular-nums"
+                className="shrink-0 text-sm text-white/45 tabular-nums"
                 dateTime={item.createdAt}
                 title={new Date(item.createdAt).toLocaleString()}
               >

@@ -182,14 +182,17 @@ Write code that is **accessible, performant, type-safe, and maintainable**. Focu
 ### Framework-Specific Guidance
 
 **Next.js:**
+
 - Use Next.js `<Image>` component for images
 - Use `next/head` or App Router metadata API for head elements
 - Use Server Components for async data fetching instead of async Client Components
 
 **React 19+:**
+
 - Use ref as a prop instead of `React.forwardRef`
 
 **Solid/Svelte/Vue/Qwik:**
+
 - Use `class` and `for` attributes (not `className` or `htmlFor`)
 
 ---
@@ -215,7 +218,6 @@ Biome's linter will catch most issues automatically. Focus your attention on:
 ---
 
 Most formatting and common issues are automatically fixed by Biome. Run `pnpm dlx ultracite fix` before committing to ensure compliance.
-
 
 ---
 
@@ -254,7 +256,7 @@ numbers engraved into it. Objects that are unmistakably built for a job, that
 were not styled to be liked, and that are still in use forty years later
 because nothing about them was fashionable enough to date.
 
-The tool should feel like it was *made*, not *designed*. It should be possible
+The tool should feel like it was _made_, not _designed_. It should be possible
 to look at it for eight hours without getting sick of it — which is a different
 and much harder goal than looking impressive in a screenshot.
 
@@ -291,7 +293,7 @@ on the public sites; they do not come here.
 - **Display — Archivo.** Node titles, panel headers, section labels. A
   grotesque with machined bones and a real weight range; correct in small caps
   with wide tracking, which is what the canvas already does
-  (`uppercase tracking-[0.18em]`).
+  (`uppercase `).
 - **UI and body — Public Sans.** A civic face, drawn for government forms:
   quiet to the point of being invisible, and genuinely excellent at 10–12px,
   which is the size almost everything here is set at.
@@ -313,7 +315,7 @@ Keep the OKLCH tokens. Two changes:
   `#041045`, a deep navy, around 265°. Carry a chroma of 0.006–0.012 through
   the greys. It is below the threshold of being noticed and above the threshold
   of being felt.
-- **Spend accent at 10%, not 40%.** Colour means *state* — running, failed,
+- **Spend accent at 10%, not 40%.** Colour means _state_ — running, failed,
   selected, wired — and nothing else. It works because it is rare. A palette in
   which everything is coloured says nothing.
 

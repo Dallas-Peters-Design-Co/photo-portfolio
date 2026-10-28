@@ -29,7 +29,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useConfirm } from "./ConfirmProvider";
 
-const labelClass = "text-[10px] uppercase tracking-widest text-white/90";
+const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
@@ -172,7 +172,7 @@ export function PagesPanel() {
   return (
     <div className="grid w-full max-w-7xl grid-cols-1 gap-4 border-white/10">
       <div className="flex flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <div className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
           <HugeiconsIcon icon={FileEmpty02Icon} size={16} />
           Pages
         </div>
@@ -203,7 +203,7 @@ export function PagesPanel() {
                 value={newTitle}
               />
               {newTitle.trim() ? (
-                <p className="font-mono text-[10px] text-white/80">
+                <p className="font-mono text-sm text-white/80">
                   /{slugify(newTitle)}
                 </p>
               ) : null}
@@ -222,7 +222,7 @@ export function PagesPanel() {
       ) : null}
 
       {pages.length === 0 ? (
-        <p className="text-[11px] text-white/80 uppercase tracking-[0.15em]">
+        <p className="text-sm text-white/80 uppercase tracking-[0.15em]">
           No pages yet. Create one and it appears under the site title once
           published.
         </p>
@@ -238,12 +238,12 @@ export function PagesPanel() {
                     type="button"
                   >
                     <span className="text-sm text-white/85">{page.title}</span>
-                    <span className="ml-2 font-mono text-[10px] text-white/80">
+                    <span className="ml-2 font-mono text-sm text-white/80">
                       /{page.slug}
                     </span>
                   </button>
                   <a
-                    className="text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"
+                    className="text-sm text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"
                     href={`/${page.slug}`}
                     rel="noreferrer"
                     target="_blank"
@@ -315,7 +315,7 @@ function PageEditorPanel({
   return (
     <Card className="w-full max-w-7xl border-white/10 bg-white/2">
       <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
           <HugeiconsIcon aria-hidden icon={FileEmpty02Icon} size={16} />
           {draft.title}
         </CardTitle>
@@ -396,7 +396,7 @@ function PageEditorPanel({
           </Button>
 
           <span
-            className={`text-[10px] uppercase tracking-[0.16em] ${
+            className={`text-sm uppercase tracking-[0.16em] ${
               draft.status === "published"
                 ? "text-emerald-400/70"
                 : "text-amber-400/70"

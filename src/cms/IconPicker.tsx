@@ -87,14 +87,12 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
           {Selected ? (
             <>
               <HugeiconsIcon icon={Selected} size={16} />
-              <span className="text-[11px] text-white/90 uppercase tracking-[0.14em]">
+              <span className="text-sm text-white/90 uppercase">
                 {labelFor(value ?? "")}
               </span>
             </>
           ) : (
-            <span className="text-[11px] text-white/90 uppercase tracking-[0.14em]">
-              No icon
-            </span>
+            <span className="text-sm text-white/90 uppercase">No icon</span>
           )}
         </span>
         <HugeiconsIcon
@@ -123,7 +121,7 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
 
           <button
             aria-selected={value === null}
-            className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-[11px] uppercase tracking-[0.14em] transition-colors hover:bg-white/6 ${
+            className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm uppercase transition-colors hover:bg-white/6 ${
               value === null ? "text-white" : "text-white/90"
             }`}
             onClick={() => {
@@ -138,14 +136,14 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
           </button>
 
           {matches.length === 0 ? (
-            <p className="px-3 py-3 text-[11px] text-white/50">
+            <p className="px-3 py-3 text-sm text-white/50">
               Nothing matches “{query.trim()}”.
             </p>
           ) : null}
 
           {matches.map((group) => (
             <div className="border-white/6 border-t" key={group.label}>
-              <p className="px-3 pt-3 pb-1.5 text-[9px] text-white/80 uppercase tracking-[0.22em]">
+              <p className="px-3 pt-3 pb-1.5 text-sm text-white/80 uppercase tracking-[0.22em]">
                 {group.label}
               </p>
               <div className="grid grid-cols-6 gap-px p-1">

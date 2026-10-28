@@ -42,7 +42,7 @@ import { inputLabel } from "./modelSummary";
  * fail on save with a message about a rule nothing on screen mentioned.
  */
 
-const labelClass = "text-[10px] uppercase tracking-widest text-white/90";
+const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 const hintClass = "text-xs text-white/50";

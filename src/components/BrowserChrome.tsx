@@ -33,7 +33,7 @@ export function BrowserChrome({ children, url }: BrowserChromeProps) {
 
         {url ? (
           <div className="min-w-0 flex-1 rounded-md bg-[#2a2a2d] px-3 py-1.5">
-            <p className="truncate text-center font-sans text-[11px] text-white/55 lowercase tracking-normal">
+            <p className="truncate text-center font-sans text-sm text-white/55 lowercase tracking-normal">
               {url}
             </p>
           </div>

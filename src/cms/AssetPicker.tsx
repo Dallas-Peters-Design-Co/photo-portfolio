@@ -78,7 +78,7 @@ function Tile({
           width={200}
         />
       )}
-      <span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1.5 py-1 text-[10px] text-white/80 opacity-0 group-hover:opacity-100">
+      <span className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-1.5 py-1 text-sm text-white/80 opacity-0 group-hover:opacity-100">
         {title}
       </span>
     </button>

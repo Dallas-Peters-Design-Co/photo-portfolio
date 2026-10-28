@@ -106,7 +106,7 @@ export function ShareButtons({
       {canNativeShare ? (
         <button
           aria-label="Share"
-          className={`flex items-center gap-1.5 text-[10px] uppercase tracking-[0.18em] transition-colors ${tone}`}
+          className={`flex items-center gap-1.5 text-sm uppercase transition-colors ${tone}`}
           onClick={() => void nativeShare()}
           type="button"
         >

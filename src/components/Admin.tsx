@@ -73,7 +73,7 @@ const BatchActions = ({
     aria-label="Batch actions for selected photos"
     className="flex w-full flex-col gap-2 md:ml-auto md:w-auto md:flex-row md:items-center"
   >
-    <span className="shrink-0 text-[10px] text-white/90 uppercase tracking-widest">
+    <span className="shrink-0 text-sm text-white/90 uppercase tracking-widest">
       {selection.selectedIds.length} selected
     </span>
     <div className="w-full min-w-0 md:max-w-48 md:flex-1">
@@ -190,18 +190,18 @@ const CategoryStack = ({ group, groupIdx, selection }: CategoryStackProps) => {
               />
             </div>
           ))}
-          <div className="absolute right-2 bottom-2 z-20 rounded-full bg-black/70 px-2 py-0.5 font-medium text-[9px] text-white/90 uppercase tracking-widest backdrop-blur-sm">
+          <div className="absolute right-2 bottom-2 z-20 rounded-full bg-black/70 px-2 py-0.5 font-medium text-sm text-white/90 uppercase tracking-widest backdrop-blur-sm">
             {group.photos.length}
           </div>
         </button>
       </div>
       <div>
         <p
-          className={`truncate text-[10px] uppercase tracking-widest transition-colors ${allSelected ? "text-white" : "text-white/90"}`}
+          className={`truncate text-sm uppercase tracking-widest transition-colors ${allSelected ? "text-white" : "text-white/90"}`}
         >
           {group.categoryLabel}
         </p>
-        <p className="text-[9px] text-white/90">
+        <p className="text-sm text-white/90">
           {group.photos.length} {group.photos.length === 1 ? "photo" : "photos"}
           {someSelected &&
             !allSelected &&
@@ -309,7 +309,7 @@ const PhotoGrid = ({
 
   return (
     <div className="p-2 sm:p-3">
-      <p className="px-1 pb-2 text-[10px] text-white/40 uppercase tracking-[0.18em]">
+      <p className="px-1 pb-2 text-sm text-white/40 uppercase">
         Drag to reorder
       </p>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5">
@@ -418,7 +418,7 @@ const ItemsCard = ({
                 onChange={selection.toggleAll}
                 ref={selection.selectAllRef}
               />
-              <span className="text-[10px] text-white/90 uppercase tracking-widest">
+              <span className="text-sm text-white/90 uppercase tracking-widest">
                 Select all
               </span>
             </div>

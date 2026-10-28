@@ -29,13 +29,11 @@ export function ExportPanel({
   return (
     <div className="space-y-6 py-2">
       <section className="space-y-2">
-        <p className="text-[10px] text-white/90 uppercase tracking-[0.18em]">
-          Format
-        </p>
+        <p className="text-sm text-white/90 uppercase">Format</p>
         <div className="grid grid-cols-3 gap-px bg-white/[0.06]">
           {EXPORT_FORMATS.map((f) => (
             <button
-              className={`bg-black py-2 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+              className={`bg-black py-2 text-sm uppercase transition-colors ${
                 settings.format === f.value
                   ? "text-white"
                   : "text-white/90 hover:text-white/90"
@@ -62,13 +60,11 @@ export function ExportPanel({
       )}
 
       <section className="space-y-2">
-        <p className="text-[10px] text-white/90 uppercase tracking-[0.18em]">
-          Longest edge
-        </p>
+        <p className="text-sm text-white/90 uppercase">Longest edge</p>
         <div className="grid grid-cols-5 gap-px bg-white/[0.06]">
           {MAX_DIMENSIONS.map((d) => (
             <button
-              className={`bg-black py-2 font-mono text-[10px] tabular-nums transition-colors ${
+              className={`bg-black py-2 font-mono text-sm tabular-nums transition-colors ${
                 settings.maxDimension === d
                   ? "text-white"
                   : "text-white/90 hover:text-white/90"
@@ -83,7 +79,7 @@ export function ExportPanel({
         </div>
       </section>
 
-      <dl className="space-y-1.5 border-white/[0.06] border-t pt-4 text-[10px] uppercase tracking-[0.14em]">
+      <dl className="space-y-1.5 border-white/[0.06] border-t pt-4 text-sm uppercase">
         <div className="flex justify-between">
           <dt className="text-white/90">Output</dt>
           <dd className="font-mono text-white/55 tabular-nums">
@@ -101,7 +97,7 @@ export function ExportPanel({
       </dl>
 
       {tooLarge ? (
-        <p className="text-[10px] text-amber-400/70 leading-relaxed tracking-[0.05em]">
+        <p className="text-amber-400/70 text-sm leading-relaxed tracking-[0.05em]">
           Over the {formatBytes(MAX_UPLOAD_BYTES)} upload limit. Lower the
           quality or the longest edge.
         </p>
