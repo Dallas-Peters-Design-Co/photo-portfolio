@@ -155,6 +155,59 @@ export const replaceScreenImage = (
   });
 };
 
+/** `pins` in the order `ids` gives; any pin `ids` leaves out keeps its place at the end. */
+export const orderPins = (pins: ReviewPin[], ids: string[]): ReviewPin[] => {
+  const byId = new Map(pins.map((pin) => [pin.id, pin]));
+  const ordered = ids.flatMap((id) => byId.get(id) ?? []);
+  return [...ordered, ...pins.filter((pin) => !ids.includes(pin.id))];
+};
+
+/** Notes this close together vertically read as one line, left to right. */
+const SAME_LINE_PX = 48;
+
+/**
+ * Pin ids in reading order: down the page, and left to right along a line.
+ *
+ * Two pins on one heading are rarely at exactly the same height, so a line
+ * is everything within SAME_LINE_PX of where it starts, measured on the page
+ * rather than as a fraction, so the tolerance is the same on a short screen
+ * and a 6000px one.
+ */
+export const readingOrder = (
+  pins: ReviewPin[],
+  image: ReviewImage | null
+): string[] => {
+  const pagePx = image ? (image.height / Math.max(1, image.width)) * 1440 : 1;
+  const sorted = [...pins].sort((a, b) => a.y - b.y);
+  const lines: ReviewPin[][] = [];
+  for (const pin of sorted) {
+    const line = lines.at(-1);
+    const start = line?.[0];
+    if (line && start && (pin.y - start.y) * pagePx <= SAME_LINE_PX) {
+      line.push(pin);
+    } else {
+      lines.push([pin]);
+    }
+  }
+  return lines.flatMap((line) =>
+    [...line].sort((a, b) => a.x - b.x).map((pin) => pin.id)
+  );
+};
+
+/** The capture button's words: what it will do, or that it is doing it. */
+export const captureLabelFor = (
+  isCapturing: boolean,
+  hasImage: boolean
+): string => {
+  if (isCapturing) {
+    return "Capturing… (20–40s)";
+  }
+  return hasImage ? "Recapture" : "Capture";
+};
+
+export const RECAPTURE_HINT =
+  "Take a new screenshot; pins and markup stay where they are on the page";
+
 const HISTORY_LIMIT = 50;
 
 /**

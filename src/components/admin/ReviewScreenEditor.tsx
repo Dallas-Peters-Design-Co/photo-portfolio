@@ -26,9 +26,12 @@ import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
 import { ReviewPinList } from "./ReviewPinList";
 import {
+  captureLabelFor,
   imageSize,
   isActiveScreen,
   isTyping,
+  orderPins,
+  RECAPTURE_HINT,
   replaceScreenImage,
   toEditorDoc,
   touchScreen,
@@ -39,9 +42,6 @@ import {
 export type ScreenUpdate = (
   update: (prev: ReviewScreen) => ReviewScreen
 ) => void;
-
-const RECAPTURE_HINT =
-  "Take a new screenshot; pins and markup stay where they are on the page";
 
 /**
  * One screen of a review: its picture, and the pins and markup on it.
@@ -84,10 +84,7 @@ export function ReviewScreenEditor({
   const live = useRef(screen);
   live.current = screen;
 
-  let captureLabel = screen.image ? "Recapture" : "Capture";
-  if (isCapturing) {
-    captureLabel = "Capturing… (20–40s)";
-  }
+  const captureLabel = captureLabelFor(isCapturing, Boolean(screen.image));
 
   const patch = (next: Partial<ReviewScreen>) =>
     onChange((prev) => ({ ...prev, ...next }));
@@ -226,15 +223,16 @@ export function ReviewScreenEditor({
     }
   };
 
-  const eraseMark = (id: string) => {
+  /** A change that is one undo step. */
+  const step = (next: Partial<ReviewScreen>) => {
     history.record();
-    patch({ marks: marks.filter((m) => m.id !== id) });
+    patch(next);
   };
 
-  const clearMarks = () => {
-    history.record();
-    patch({ marks: [] });
-  };
+  const eraseMark = (id: string) =>
+    step({ marks: marks.filter((m) => m.id !== id) });
+
+  const clearMarks = () => step({ marks: [] });
 
   // Markup: press to start a mark, drag to shape it, release to keep it.
   const startMark = (e: PointerEvent<HTMLDivElement>) => {
@@ -472,7 +470,9 @@ export function ReviewScreenEditor({
           </div>
           <ReviewPinList
             firstNumber={firstNumber}
+            image={screen.image}
             onRemove={removePin}
+            onReorder={(ids) => step({ pins: orderPins(pins, ids) })}
             onSelect={setSelected}
             onUpdate={updatePin}
             pins={pins}
