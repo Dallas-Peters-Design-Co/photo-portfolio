@@ -373,7 +373,7 @@
   --color-b: oklch(62.67% 0.1766 32.76);
   --color-c: oklch(81.46% 0.1738 111.52);
   --color-d: oklch(41.57% 0.0581 190.24);
-  --color-e: oklch(55.0% 0.2946 299.41);
+  --color-e: oklch(55% 0.2946 299.41);
   --color-f: oklch(63.34% 0.1429 114.51);
   --color-g: oklch(60.05% 0.1025 194.77);
   --color-m: oklch(48.53% 0.1786 257.86);
@@ -404,9 +404,9 @@
   --animate-stack-in: stack-in 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
 
   /* Typography scale — perfect fourth (1.333). */
-  --text-xs: 0.528rem;
-  --text-sm: 0.703rem;
-  --text-base: 0.738rem;
+  --text-xs: 0.828rem;
+  --text-sm: 0.903rem;
+  --text-base: 1rem;
   --text-lg: 1.15rem;
   --text-xl: 1.566rem;
   --text-2xl: 2.121rem;
@@ -481,7 +481,7 @@
   /* The widest the app goes, for a single word standing alone — `.label--stamped`. */
   --tracking-stamped: 0.3em;
   /* Between --tracking-micro-caps and --tracking-stamped. The CMS headings use
-     it; it had been written out as `tracking-[0.2em]` at twenty-one sites. */
+     it; it had been written out as `` at twenty-one sites. */
   --tracking-micro-widest: 0.2em;
   /* A page heading, wider still than the label steps. */
   --tracking-heading: 0.24em;
