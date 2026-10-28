@@ -3,7 +3,7 @@ import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
 import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
 import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
-import { Plus, X } from "lucide-react";
+import { Plus, ScanSearch, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
@@ -27,6 +27,7 @@ import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
 import { toEditorDoc } from "./reviewEditing";
+import { type AuditPhase, useReviewAudit } from "./useReviewAudit";
 
 /** How long typing pauses before the draft saves itself. */
 const AUTOSAVE_MS = 1200;
@@ -53,11 +54,17 @@ const autosaveFields = (r: ReviewRecord) => ({
   title: r.title,
 });
 
+const AUDIT_LABELS: Record<AuditPhase, string> = {
+  auditing: "Auditing… (1–3 min)",
+  capturing: "Capturing screens…",
+  idle: "Run UX audit",
+};
+
 const fingerprint = (r: ReviewRecord): string =>
   JSON.stringify(autosaveFields(r));
 
 const fieldsetTitleClass =
-  "text-[11px] uppercase tracking-[0.2em] text-white/70";
+  "text-micro-sm uppercase tracking-micro-widest text-white/70";
 
 /**
  * The review editor: who it is for, the opening, then the screens in the
@@ -84,6 +91,7 @@ export function ReviewEditor({
   const savedPrint = useRef(fingerprint(review));
   const latest = useRef(draft);
   latest.current = draft;
+  const { auditKey, phase, runAudit } = useReviewAudit({ latest, setDraft });
 
   const setDoc = (patch: Partial<ReviewDoc>) =>
     setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } }));
@@ -220,7 +228,7 @@ export function ReviewEditor({
       style={reviewAccentStyle(settings.theme.accent)}
     >
       <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
           <HugeiconsIcon aria-hidden icon={SearchVisualIcon} size={16} />
           {draft.title}
         </CardTitle>
@@ -304,7 +312,7 @@ export function ReviewEditor({
               onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
               value={draft.slug}
             />
-            <p className="font-mono text-[10px] text-white/60">
+            <p className="font-mono text-micro-xs text-white/60">
               /review/{draft.slug}
             </p>
           </div>
@@ -322,6 +330,7 @@ export function ReviewEditor({
           <div className="space-y-2">
             <Label className={proposalLabelClass}>Headline findings</Label>
             <PageEditor
+              key={auditKey}
               onChange={(summary) => setDoc({ summary: summary as RichText })}
               value={toEditorDoc(draft.doc.summary)}
             />
@@ -341,29 +350,41 @@ export function ReviewEditor({
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className={fieldsetTitleClass}>Screens</h3>
-            <Button
-              onClick={() =>
-                setDoc({
-                  screens: [
-                    ...draft.doc.screens,
-                    {
-                      id: newItemId(),
-                      image: null,
-                      marks: [],
-                      note: "",
-                      pins: [],
-                      sourceUrl: "",
-                      title: "",
-                      viewport: "desktop",
-                    },
-                  ],
-                })
-              }
-              type="button"
-              variant="ghost"
-            >
-              <Plus size={14} /> Add screen
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                disabled={phase !== "idle"}
+                onClick={() => void runAudit()}
+                title="Audit the screens with pictures, or capture a page first, and add findings, sections and pins"
+                type="button"
+                variant="outline"
+              >
+                <ScanSearch size={14} />
+                {AUDIT_LABELS[phase]}
+              </Button>
+              <Button
+                onClick={() =>
+                  setDoc({
+                    screens: [
+                      ...draft.doc.screens,
+                      {
+                        id: newItemId(),
+                        image: null,
+                        marks: [],
+                        note: "",
+                        pins: [],
+                        sourceUrl: "",
+                        title: "",
+                        viewport: "desktop",
+                      },
+                    ],
+                  })
+                }
+                type="button"
+                variant="ghost"
+              >
+                <Plus size={14} /> Add screen
+              </Button>
+            </div>
           </div>
           {draft.doc.screens.map((screen, i) => (
             <ReviewScreenEditor
@@ -423,7 +444,7 @@ export function ReviewEditor({
             {isPublished ? "Unpublish" : "Publish"}
           </Button>
           <span
-            className={`text-[10px] uppercase tracking-[0.16em] ${
+            className={`text-micro-xs uppercase tracking-micro-wide ${
               isPublished ? "text-emerald-400/70" : "text-amber-400/70"
             }`}
           >
@@ -431,14 +452,14 @@ export function ReviewEditor({
           </span>
           <span
             aria-live="polite"
-            className={`text-[11px] ${
+            className={`text-micro-sm ${
               saveState === "failed" ? "text-red-300" : "text-white/55"
             }`}
           >
             {SAVE_LABELS[saveState]}
           </span>
           <button
-            className="ml-auto text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
+            className="ml-auto text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
             disabled={isSaving}
             onClick={() => void openPreview()}
             type="button"
@@ -446,7 +467,7 @@ export function ReviewEditor({
             Preview
           </button>
           <button
-            className="text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
+            className="text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
             disabled={isPrinting || isSaving}
             onClick={() => void printPdf()}
             type="button"

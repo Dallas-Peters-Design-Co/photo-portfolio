@@ -8,7 +8,7 @@ import { proposalInputClass } from "./proposalStyles";
 import { toEditorDoc } from "./reviewEditing";
 
 const fieldsetTitleClass =
-  "text-[11px] uppercase tracking-[0.2em] text-white/70";
+  "text-micro-sm uppercase tracking-micro-widest text-white/70";
 
 /**
  * The titled passages between the headline findings and the screens.

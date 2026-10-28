@@ -1,8 +1,10 @@
 import type {
   ReviewDoc,
   ReviewImage,
+  ReviewScreen,
   ReviewStatus,
 } from "../../config/review.js";
+import type { UxAudit } from "../../config/reviewAudit.js";
 import { apiBase, jsonHeaders, readPageError } from "./portfolioService";
 import type { ProposalBrand, ProposalSent } from "./proposalService";
 
@@ -48,6 +50,20 @@ const json = async <T>(res: Response, fallback: string): Promise<T> => {
 };
 
 export const reviewsApi = {
+  /** Runs a UX audit across the review's captured screens through Claude. */
+  audit: async (input: {
+    screens: ReviewScreen[];
+    title?: string;
+  }): Promise<{ audit: UxAudit }> =>
+    json(
+      await fetch(`${reviewsPath()}/audit`, {
+        body: JSON.stringify(input),
+        headers: jsonHeaders(),
+        method: "POST",
+      }),
+      "Could not run the UX audit"
+    ),
+
   /** Screenshots a URL for a screen. Admin only; slow (a real browser). */
   capture: async (input: {
     slug: string;
