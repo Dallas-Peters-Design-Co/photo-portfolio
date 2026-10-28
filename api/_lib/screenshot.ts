@@ -115,22 +115,35 @@ export const captureScreenshot = async ({
         }),
       { limit: MAX_HEIGHT, step: 400 }
     );
-    // A fixed header is wherever the viewport is when the shot is taken,
-    // which after the walk is the bottom of the page. Each fixed element is
-    // pinned at its viewport offset from the top of the document instead,
-    // which is where a reader at the top of the page sees it.
+    // A fixed or sticky header is wherever the viewport is when the shot is
+    // taken, which after the walk is the bottom of the page. Each fixed
+    // element is pinned at its viewport offset from the top of the document
+    // instead, which is where a reader at the top of the page sees it. A
+    // sticky one goes back into the flow, which is where it sits before any
+    // scrolling. Sticky is most headers; handling only fixed left them at
+    // the foot of every capture. Set as important so a site's own
+    // `position: sticky !important` cannot win.
     await page.evaluate(() => {
+      const pin = (node: HTMLElement, values: Record<string, string>) => {
+        for (const [name, value] of Object.entries(values)) {
+          node.style.setProperty(name, value, "important");
+        }
+      };
       for (const el of Array.from(document.body.querySelectorAll("*"))) {
-        const style = getComputedStyle(el);
-        if (style.position === "fixed") {
+        const { position } = getComputedStyle(el);
+        const node = el as HTMLElement;
+        if (position === "fixed") {
           const rect = el.getBoundingClientRect();
-          const node = el as HTMLElement;
-          node.style.position = "absolute";
-          node.style.top = `${rect.top}px`;
-          node.style.left = `${rect.left}px`;
-          node.style.right = "auto";
-          node.style.bottom = "auto";
-          node.style.width = `${rect.width}px`;
+          pin(node, {
+            bottom: "auto",
+            left: `${rect.left}px`,
+            position: "absolute",
+            right: "auto",
+            top: `${rect.top}px`,
+            width: `${rect.width}px`,
+          });
+        } else if (position === "sticky") {
+          pin(node, { bottom: "auto", position: "relative", top: "auto" });
         }
       }
     });
