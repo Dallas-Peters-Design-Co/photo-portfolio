@@ -222,7 +222,7 @@ export function BoardInsertPanel({
         {tab === "yours" ? (
           <>
             {photos.length === 0 ? (
-              <p className="text-[12px] text-board-ink/50">
+              <p className="text-board-ink/50 text-micro-md">
                 No photographs yet.
               </p>
             ) : null}
@@ -351,10 +351,10 @@ function AiTab({
             width={48}
           />
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] text-board-ink/70 uppercase tracking-widest">
+            <p className="text-board-ink/70 text-micro-xs uppercase tracking-widest">
               Based on
             </p>
-            <p className="truncate text-[10px] text-board-ink/40">
+            <p className="truncate text-board-ink/40 text-micro-xs">
               {source.creditName}
             </p>
           </div>
@@ -370,7 +370,7 @@ function AiTab({
       ) : null}
 
       <textarea
-        className="min-h-28 w-full resize-y rounded border border-board-ink/10 bg-board-surface/40 p-2 text-[13px] text-board-ink leading-relaxed outline-none focus:border-board-ink/40"
+        className="min-h-28 w-full resize-y rounded border border-board-ink/10 bg-board-surface/40 p-2 text-board-ink text-micro-lg leading-relaxed outline-none focus:border-board-ink/40"
         onChange={(e) => onPromptChange(e.target.value)}
         value={prompt}
       />
@@ -423,7 +423,7 @@ function AiTab({
         </div>
       ) : null}
 
-      <p className="text-[12px] text-board-ink/30 leading-relaxed">
+      <p className="text-board-ink/30 text-micro-md leading-relaxed">
         Generated images are stored with the board, so they stay after the
         model's temporary link expires.
       </p>
@@ -491,7 +491,7 @@ function UnsplashTab({
       </form>
 
       {isSearching ? (
-        <p className="text-[11px] text-board-ink/50 uppercase tracking-widest">
+        <p className="text-board-ink/50 text-micro-sm uppercase tracking-widest">
           Searching…
         </p>
       ) : null}
@@ -515,11 +515,11 @@ function UnsplashTab({
             </button>
             {/* Credit is shown here as well as on the board, so it is
                       visible before the photograph is chosen. */}
-            <p className="truncate pt-1 text-[9px] text-board-ink/40">
+            <p className="truncate pt-1 text-board-ink/40 text-micro-2xs">
               {result.creditName}
             </p>
             <button
-              className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-1 bg-board-surface/80 py-1 text-[9px] text-board-ink uppercase tracking-widest opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
+              className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-1 bg-board-surface/80 py-1 text-board-ink text-micro-2xs uppercase tracking-widest opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
               onClick={() => onMakeVersions(result)}
               type="button"
             >
@@ -569,7 +569,7 @@ function DriveTab({ onAdd }: { onAdd: (files: File[]) => void }) {
       >
         {isPicking ? "Waiting for Google…" : "Choose from Drive"}
       </Button>
-      <p className="text-[10px] text-board-ink/35 leading-relaxed">
+      <p className="text-board-ink/35 text-micro-xs leading-relaxed">
         Only the files you pick are shared with this site. They are copied here,
         so a board keeps working if the original moves.
       </p>
@@ -632,7 +632,7 @@ function FramerTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
       </div>
 
       {notice ? (
-        <p className="text-[10px] text-amber-300/70 leading-relaxed">
+        <p className="text-amber-300/70 text-micro-xs leading-relaxed">
           {notice}
         </p>
       ) : null}
@@ -640,11 +640,11 @@ function FramerTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
       {images.length > 0 ? (
         <>
           <div className="flex items-center justify-between">
-            <p className="text-[9px] text-board-ink/30 uppercase tracking-[0.18em]">
+            <p className="text-board-ink/30 text-micro-2xs uppercase tracking-micro-caps">
               {images.length} found
             </p>
             <button
-              className="text-[9px] text-board-ink/50 uppercase tracking-[0.14em] hover:text-board-ink"
+              className="text-board-ink/50 text-micro-2xs uppercase tracking-micro hover:text-board-ink"
               onClick={() => {
                 for (const image of images) {
                   onAdd({
@@ -761,8 +761,8 @@ function FalLibraryTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
   if (error) {
     return (
       <div className="space-y-2">
-        <p className="text-[11px] text-amber-300/80">{error}</p>
-        <p className="text-[10px] text-board-ink/35 leading-relaxed">
+        <p className="text-amber-300/80 text-micro-sm">{error}</p>
+        <p className="text-board-ink/35 text-micro-xs leading-relaxed">
           fal's history endpoint is undocumented and still marked alpha, so it
           may simply have moved. Everything else on this panel is unaffected.
         </p>
@@ -776,7 +776,7 @@ function FalLibraryTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
   return (
     <div className="space-y-2">
       {items.length === 0 && !isLoading ? (
-        <p className="text-[11px] text-board-ink/40">
+        <p className="text-board-ink/40 text-micro-sm">
           Nothing generated on this fal account in the last 90 days.
         </p>
       ) : null}
@@ -801,7 +801,7 @@ function FalLibraryTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
               src={item.previewUrl}
               width={160}
             />
-            <span className="absolute inset-x-0 bottom-0 truncate bg-board-surface/70 px-1 py-0.5 text-[8px] text-board-ink/60">
+            <span className="absolute inset-x-0 bottom-0 truncate bg-board-surface/70 px-1 py-0.5 text-board-ink/60 text-micro-3xs">
               {adopting === item.id ? "Saving…" : shortEndpoint(item.endpoint)}
             </span>
           </button>
@@ -809,7 +809,7 @@ function FalLibraryTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
       </div>
 
       {isLoading ? (
-        <p className="text-[10px] text-board-ink/40 uppercase tracking-[0.18em]">
+        <p className="text-board-ink/40 text-micro-xs uppercase tracking-micro-caps">
           Loading…
         </p>
       ) : null}
@@ -845,7 +845,7 @@ function ShaderTab({ onAdd }: { onAdd: (name: string) => void }) {
       <div className="flex flex-wrap gap-1">
         {SHADER_CATEGORIES.map((name) => (
           <button
-            className={`min-h-7 rounded px-2 text-[10px] tracking-[0.08em] transition-colors ${
+            className={`min-h-7 rounded px-2 text-micro-xs tracking-micro-tight transition-colors ${
               category === name
                 ? "bg-board-ink/10 text-board-ink"
                 : "text-board-ink/40 hover:text-board-ink/80"
@@ -868,19 +868,19 @@ function ShaderTab({ onAdd }: { onAdd: (name: string) => void }) {
             type="button"
           >
             <span className="flex items-center justify-between gap-2">
-              <span className="truncate text-[12px] text-board-ink/85">
+              <span className="truncate text-board-ink/85 text-micro-md">
                 {shader.name}
               </span>
               {/* Half the library transforms whatever sits inside it rather
                   than drawing alone, and that changes how it is used. */}
               {shader.requiresChild ? (
-                <span className="shrink-0 text-[9px] text-sky-300/60 uppercase tracking-widest">
+                <span className="shrink-0 text-micro-2xs text-sky-300/60 uppercase tracking-widest">
                   wraps
                 </span>
               ) : null}
             </span>
             {shader.description ? (
-              <span className="mt-0.5 block truncate text-[10px] text-board-ink/35">
+              <span className="mt-0.5 block truncate text-board-ink/35 text-micro-xs">
                 {shader.description}
               </span>
             ) : null}
@@ -999,7 +999,7 @@ function PinterestTab({
         <div className="flex flex-wrap gap-1">
           {sources.map((source) => (
             <span
-              className="flex items-center gap-1 rounded-full border border-board-ink/15 py-1 pr-1 pl-2 text-[10px] text-board-ink/60"
+              className="flex items-center gap-1 rounded-full border border-board-ink/15 py-1 pr-1 pl-2 text-board-ink/60 text-micro-xs"
               key={source.id}
             >
               <button
@@ -1023,7 +1023,7 @@ function PinterestTab({
       ) : null}
 
       {isResolving ? (
-        <p className="text-[11px] text-board-ink/50 uppercase tracking-widest">
+        <p className="text-board-ink/50 text-micro-sm uppercase tracking-widest">
           Reading…
         </p>
       ) : null}
@@ -1031,12 +1031,12 @@ function PinterestTab({
       {pins.length > 0 ? (
         <>
           <div className="flex items-center justify-between gap-2">
-            <p className="min-w-0 truncate text-[10px] text-board-ink/50 uppercase tracking-[0.18em]">
+            <p className="min-w-0 truncate text-board-ink/50 text-micro-xs uppercase tracking-micro-caps">
               {boardTitle ?? "Pinterest"} · {pins.length}
             </p>
             {pins.length > 1 ? (
               <button
-                className="shrink-0 text-[10px] text-board-ink/70 uppercase tracking-[0.14em] hover:text-board-ink"
+                className="shrink-0 text-board-ink/70 text-micro-xs uppercase tracking-micro hover:text-board-ink"
                 onClick={() => onAdd(pins)}
                 type="button"
               >
@@ -1070,7 +1070,7 @@ function PinterestTab({
       {/* Said plainly rather than buried: Pinterest grants no licence of its
           own, and most pins are someone else's photograph. A link back to the
           pin travels with the item, but that is provenance, not permission. */}
-      <p className="text-[10px] text-board-ink/30 leading-relaxed">
+      <p className="text-board-ink/30 text-micro-xs leading-relaxed">
         A board link pulls the pins its public feed lists — recent ones, not the
         whole board. Pins are hot-linked and keep a link back. Most are someone
         else's work: fine as private reference, worth checking before you
@@ -1130,7 +1130,7 @@ function IconTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
         <div className="flex flex-wrap gap-1">
           {ICON_STYLES.map((option) => (
             <button
-              className={`min-h-8 px-2 text-[10px] uppercase tracking-[0.14em] transition-colors ${
+              className={`min-h-8 px-2 text-micro-xs uppercase tracking-micro transition-colors ${
                 style === option
                   ? "bg-board-ink/10 text-board-ink"
                   : "text-board-ink/40 hover:text-board-ink/80"
@@ -1184,14 +1184,14 @@ function IconTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
       ) : null}
 
       {icon && !icon.isVector ? (
-        <p className="text-[10px] text-amber-300/70 leading-relaxed">
+        <p className="text-amber-300/70 text-micro-xs leading-relaxed">
           Magnific's vectoriser was unavailable, so this came back as a PNG
           rather than an SVG. It still works on the board; it will not stay
           sharp all the way in.
         </p>
       ) : null}
 
-      <p className="text-[10px] text-board-ink/30 leading-relaxed">
+      <p className="text-board-ink/30 text-micro-xs leading-relaxed">
         Icons are drawn as SVG so they stay sharp at any zoom, falling back to
         PNG when the vectoriser is down. Simple shapes vectorise best.
       </p>
