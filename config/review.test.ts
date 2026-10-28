@@ -112,3 +112,22 @@ describe("recommendation notes", () => {
     expect(doc.screens[0]?.pins[0]?.kind).toBe("recommendation");
   });
 });
+
+describe("review sections", () => {
+  it("defaults to none, so reviews from before sections still load", () => {
+    expect(sanitizeReviewDoc({}).sections).toEqual([]);
+  });
+
+  it("keeps each section's title and body, and fills a missing id", () => {
+    const doc = sanitizeReviewDoc({
+      sections: [{ body: "Clear pricing.", title: "Strengths" }, "junk"],
+    });
+    expect(doc.sections).toHaveLength(2);
+    expect(doc.sections[0]).toMatchObject({
+      body: "Clear pricing.",
+      title: "Strengths",
+    });
+    expect(doc.sections[0]?.id).toBeTruthy();
+    expect(doc.sections[1]).toMatchObject({ body: "", title: "" });
+  });
+});

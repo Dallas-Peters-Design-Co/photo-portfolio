@@ -88,10 +88,23 @@ export interface ReviewScreen {
   viewport: "desktop" | "mobile";
 }
 
+/**
+ * A titled passage of its own, read after the headline findings: strengths,
+ * principles, recommendations — whatever the opening and closing do not hold.
+ * An audit writes several; each is edited, renamed or removed like the rest.
+ */
+export interface ReviewSection {
+  body: RichText;
+  id: string;
+  title: string;
+}
+
 export interface ReviewDoc {
   closing: RichText;
   intro: RichText;
   screens: ReviewScreen[];
+  /** Titled passages between the headline findings and the screens. */
+  sections: ReviewSection[];
   /** The headline findings, above the screens. */
   summary: RichText;
 }
@@ -102,11 +115,13 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
   intro:
     "I went through the site the way a first-time visitor would and noted what helps, what gets in the way, and what I'd change. Each screen below has numbered notes; the numbers match the pins on the screenshot.",
   screens: [],
+  sections: [],
   summary: "",
 };
 
 export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
 const MAX_SCREENS = 40;
+const MAX_SECTIONS = 12;
 const MAX_PINS = 60;
 const MAX_MARKS = 80;
 const MAX_PEN_POINTS = 400;
@@ -208,6 +223,15 @@ const cleanScreen = (v: unknown): ReviewScreen => {
   };
 };
 
+const cleanSection = (v: unknown): ReviewSection => {
+  const raw = (v ?? {}) as Partial<ReviewSection>;
+  return {
+    body: cleanRich(raw.body, MAX_DOC_BYTES / 8),
+    id: str(raw.id, 64) || newItemId(),
+    title: str(raw.title, MAX_TITLE),
+  };
+};
+
 /** A document from the request or the database, bounded and typed. */
 export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
   const raw = (value ?? {}) as Partial<ReviewDoc>;
@@ -217,6 +241,10 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
     screens: (Array.isArray(raw.screens) ? raw.screens : [])
       .slice(0, MAX_SCREENS)
       .map(cleanScreen),
+    // Reviews written before sections existed have none, which is right.
+    sections: (Array.isArray(raw.sections) ? raw.sections : [])
+      .slice(0, MAX_SECTIONS)
+      .map(cleanSection),
     summary: cleanRich(raw.summary, MAX_DOC_BYTES / 4),
   };
 };

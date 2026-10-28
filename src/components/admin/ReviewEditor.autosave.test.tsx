@@ -34,7 +34,7 @@ const REVIEW: ReviewRecord = {
   clientEmail: null,
   clientName: "",
   createdAt: "2026-10-18T00:00:00Z",
-  doc: { closing: "", intro: "", screens: [], summary: "" },
+  doc: { closing: "", intro: "", screens: [], sections: [], summary: "" },
   id: "r1",
   sent: null,
   slug: "back-acres",

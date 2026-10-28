@@ -209,6 +209,17 @@ function ReviewSheet({
         </section>
       )}
 
+      {doc.sections
+        .filter((section) => !isRichTextEmpty(section.body))
+        .map((section) => (
+          <section className="review-page__section" key={section.id}>
+            {section.title ? (
+              <h2 className="review-page__section-title">{section.title}</h2>
+            ) : null}
+            <Prose text={section.body} />
+          </section>
+        ))}
+
       <Recommendations firstNumbers={firstNumbers} screens={screens} />
 
       {screens.map((screen, i) => (

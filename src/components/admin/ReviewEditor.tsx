@@ -24,6 +24,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
+import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
 import { toEditorDoc } from "./reviewEditing";
 
@@ -326,6 +327,16 @@ export function ReviewEditor({
             />
           </div>
         </section>
+
+        <ReviewSectionsEditor
+          onChange={(update) =>
+            setDraft((d) => ({
+              ...d,
+              doc: { ...d.doc, sections: update(d.doc.sections) },
+            }))
+          }
+          sections={draft.doc.sections}
+        />
 
         <section className="space-y-4">
           <div className="flex items-center justify-between">
