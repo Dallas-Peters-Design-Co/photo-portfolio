@@ -88,8 +88,8 @@ export const WRAP: NodeType = {
       kind: "select",
       label: "Trim",
       optionLabels: {
-        "5.25x8": "5.25 × 8",
         "5.5x8.5": "5.5 × 8.5",
+        "5.25x8": "5.25 × 8",
         "5x8": "5 × 8",
         "6x9": "6 × 9",
       },

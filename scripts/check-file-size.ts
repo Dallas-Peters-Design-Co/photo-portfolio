@@ -26,7 +26,12 @@ const BASELINE_PATH = path.join(ROOT, "file-size-baseline.json");
 const SCANNED = ["src", "api", "config", "scripts"];
 const EXTENSIONS = new Set([".ts", ".tsx"]);
 /** Generated, vendored, or otherwise not ours to split. */
-const SKIP_DIRECTORIES = new Set(["node_modules", "dist", ".codegraph"]);
+const SKIP_DIRECTORIES = new Set([
+  "node_modules",
+  "dist",
+  ".codegraph",
+  "vendor",
+]);
 
 const sourceFiles = (dir: string): string[] => {
   const out: string[] = [];
