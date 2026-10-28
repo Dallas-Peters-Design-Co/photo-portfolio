@@ -390,7 +390,7 @@ export const useBoardRun = (deps: BoardRunDeps) => {
        finishers.ts. */
     const covered = await finishItems(
       composed,
-      (items) => ({ items, wires: pending.current.wires }),
+      (finished) => ({ items: finished, wires: pending.current.wires }),
       async (blob, file, folder) =>
         (
           await portfolioService.uploadImageFile(

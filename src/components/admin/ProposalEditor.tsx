@@ -56,7 +56,7 @@ const toEditorDoc = (value: RichText): unknown => {
 };
 
 const fieldsetTitleClass =
-  "text-[11px] uppercase tracking-[0.2em] text-white/70";
+  "text-micro-sm uppercase tracking-micro-widest text-white/70";
 
 /**
  * The proposal editor: the fields that name it, then each part of the document
@@ -148,7 +148,7 @@ export function ProposalEditor({
   return (
     <Card className="w-full max-w-7xl border-white/10 bg-white/2">
       <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
+        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
           <HugeiconsIcon aria-hidden icon={Invoice03Icon} size={16} />
           {draft.title}
         </CardTitle>
@@ -233,7 +233,7 @@ export function ProposalEditor({
               onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
               value={draft.slug}
             />
-            <p className="font-mono text-[10px] text-white/60">
+            <p className="font-mono text-micro-xs text-white/60">
               /proposal/{draft.slug}
             </p>
           </div>
@@ -351,19 +351,19 @@ export function ProposalEditor({
           </div>
           {draft.doc.process.map((step, index) => (
             <div
-              className="grid gap-3 rounded-md border border-white/10 p-4 sm:grid-cols-[1fr_2fr_auto]"
+              className="flex flex-col gap-3 rounded-md border border-white/10 p-4 sm:flex-row sm:items-start"
               key={step.id}
             >
               <Input
                 aria-label={`Step ${index + 1} title`}
-                className={proposalInputClass}
+                className={`${proposalInputClass} sm:flex-1`}
                 onChange={(e) => updateStep(step.id, { title: e.target.value })}
                 placeholder={`Step ${index + 1}`}
                 value={step.title}
               />
               <textarea
                 aria-label={`Step ${index + 1} detail`}
-                className={`${proposalTextareaClass} min-h-11`}
+                className={`${proposalTextareaClass} min-h-11 sm:flex-2`}
                 onChange={(e) => updateStep(step.id, { body: e.target.value })}
                 value={step.body}
               />
@@ -397,8 +397,8 @@ export function ProposalEditor({
               value={draft.doc.terms.join("\n")}
             />
           </div>
-          <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
-            <div className="space-y-2">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2 sm:col-span-2">
               <Label className={proposalLabelClass} htmlFor="proposal-closing">
                 Closing line
               </Label>
@@ -464,14 +464,14 @@ export function ProposalEditor({
             {isPublished ? "Unpublish" : "Publish"}
           </Button>
           <span
-            className={`text-[10px] uppercase tracking-[0.16em] ${
+            className={`text-micro-xs uppercase tracking-micro-wide ${
               isPublished ? "text-emerald-400/70" : "text-amber-400/70"
             }`}
           >
             {draft.status}
           </span>
           <a
-            className="ml-auto text-[10px] text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"
+            className="ml-auto text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white"
             href={`/proposal/${draft.slug}`}
             rel="noreferrer"
             target="_blank"

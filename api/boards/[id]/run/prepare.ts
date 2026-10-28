@@ -56,6 +56,28 @@ const blendsPictures = (args: {
   requestedModel: string | null;
 }): boolean => wantsBlend(args.config) && falAcceptsImageList(args);
 
+/** Names what feeds an unfilled port, so the refusal points past the wire. */
+const missingPortError = (
+  itemId: string,
+  missingPort: string,
+  rows: BoardItemRow[],
+  wireRows: BoardWireRow[]
+): string => {
+  const feeding = wireRows.filter(
+    (wire) => wire.target_item_id === itemId && wire.target_port === missingPort
+  );
+  const sources = feeding
+    .map((wire) => rows.find((row) => row.id === wire.source_item_id))
+    .map((row) =>
+      row
+        ? `${row.node_type ?? row.kind} ${row.id.slice(0, 8)} → ${outputsOf(row, rows, toGraphWires(wireRows)).length} picture(s)`
+        : "a missing item"
+    );
+  return sources.length === 0
+    ? `This node needs its ${missingPort} input before it can run — nothing is wired into it.`
+    : `This node needs its ${missingPort} input before it can run — wired from ${sources.join(", ")}.`;
+};
+
 export const prepare = async (
   rows: BoardItemRow[],
   wireRows: BoardWireRow[],
@@ -103,22 +125,8 @@ export const prepare = async (
     // Say what is on the other end of the wire, if anything: "needs its art
     // input" with a wire plainly attached sent people checking the wire, when
     // the thing to check was whatever the wire came from.
-    const feeding = wireRows.filter(
-      (wire) =>
-        wire.target_item_id === item.id && wire.target_port === missingPort
-    );
-    const sources = feeding
-      .map((wire) => rows.find((row) => row.id === wire.source_item_id))
-      .map((row) =>
-        row
-          ? `${row.node_type ?? row.kind} ${row.id.slice(0, 8)} → ${outputsOf(row, rows, toGraphWires(wireRows)).length} picture(s)`
-          : "a missing item"
-      );
     return refuse(422, {
-      error:
-        sources.length === 0
-          ? `This node needs its ${missingPort} input before it can run — nothing is wired into it.`
-          : `This node needs its ${missingPort} input before it can run — wired from ${sources.join(", ")}.`,
+      error: missingPortError(item.id, missingPort, rows, wireRows),
       missingPort,
     });
   }

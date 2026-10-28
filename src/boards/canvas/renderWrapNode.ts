@@ -28,6 +28,11 @@ import {
  * node can wrap around a book.
  */
 
+const NEWLINE = /\n/;
+const WHITESPACE = /\s+/;
+const BLANK_LINE = /\n\s*\n/;
+const ENDS_SENTENCE = /[.!?]$/;
+
 export type WrapSettings = Record<string, unknown>;
 
 export interface WrapSources {
@@ -80,8 +85,8 @@ const wrapLines = (
   width: number
 ): string[] => {
   const lines: string[] = [];
-  for (const paragraph of text.split(/\n/)) {
-    const words = paragraph.split(/\s+/).filter(Boolean);
+  for (const paragraph of text.split(NEWLINE)) {
+    const words = paragraph.split(WHITESPACE).filter(Boolean);
     if (words.length === 0) {
       lines.push("");
       continue;
@@ -118,21 +123,21 @@ const drawBackCopy = (
   const pt = (points: number) => (points / 72) * 300;
   // Leave the barcode zone alone: copy stops above it.
   const bottom = spec.barcode.y - px(SAFE_IN / 2);
-  const width = safe.width;
-  let y = safe.y;
+  const { width } = safe;
+  let { y } = safe;
 
   ctx.save();
   ctx.fillStyle = ink;
   ctx.textBaseline = "alphabetic";
 
   const paragraphs = copy
-    .split(/\n\s*\n/)
+    .split(BLANK_LINE)
     .map((p) => p.trim())
     .filter(Boolean);
 
   paragraphs.forEach((paragraph, index) => {
     const hook =
-      index === 0 && paragraph.length < 120 && !/[.!?]$/.test(paragraph);
+      index === 0 && paragraph.length < 120 && !ENDS_SENTENCE.test(paragraph);
     const size = hook ? pt(20) : pt(11.5);
     const leading = size * (hook ? 1.2 : 1.45);
     ctx.font = `${size}px ${hook ? TITLE_FACE : AUTHOR_FACE}`;

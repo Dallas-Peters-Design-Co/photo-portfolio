@@ -242,7 +242,7 @@ const paletteUniform = (palette: readonly string[]): Float32Array => {
   const out = new Float32Array(MAX_PALETTE * 3);
   const used = palette.slice(0, MAX_PALETTE);
   const last = used.at(-1) ?? "#000000";
-  for (let i = 0; i < MAX_PALETTE; i++) {
+  for (let i = 0; i < MAX_PALETTE; i += 1) {
     const [r, g, b] = colorVector(used[i] ?? last, [0, 0, 0]);
     out[i * 3] = r;
     out[i * 3 + 1] = g;
@@ -317,12 +317,13 @@ const number = (value: unknown, fallback: number): number => {
 };
 
 const HEX = /^#(?:[\da-f]{3}|[\da-f]{6})$/i;
+const PALETTE_SEPARATOR = /[\s,]+/;
 
 /** Hexes out of a comma, space or newline separated list. Bad ones are dropped. */
 export const paletteFrom = (value: unknown): string[] =>
   typeof value === "string"
     ? value
-        .split(/[\s,]+/)
+        .split(PALETTE_SEPARATOR)
         .map((part) => part.trim())
         .filter((part) => HEX.test(part))
         .slice(0, MAX_PALETTE)

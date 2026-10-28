@@ -18,6 +18,8 @@
 export const COVER_WIDTH = 1800;
 export const COVER_HEIGHT = 2700;
 
+const LINE_BREAK = /\r?\n/;
+
 /** Width of `text` set at 1px in `face`. Scaled linearly by the caller. */
 export type Measure = (text: string, face: string) => number;
 
@@ -290,7 +292,7 @@ export const wordsFromText = (value: string | null): Partial<CoverWords> => {
       // useful than refusing a note that merely starts with a brace.
     }
   }
-  const [title, subtitle, author] = raw.split(/\r?\n/).map((l) => l.trim());
+  const [title, subtitle, author] = raw.split(LINE_BREAK).map((l) => l.trim());
   return {
     ...(author ? { author } : {}),
     ...(subtitle ? { subtitle } : {}),

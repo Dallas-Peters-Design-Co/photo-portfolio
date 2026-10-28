@@ -129,8 +129,8 @@ export const isOneInk = (
     }
     for (let channel = 0; channel < 3; channel += 1) {
       const value = data[at + channel] ?? 0;
-      low[channel] = Math.min(low[channel] ?? 255, value);
-      high[channel] = Math.max(high[channel] ?? 0, value);
+      low[channel] = Math.min(low[channel], value);
+      high[channel] = Math.max(high[channel], value);
     }
   }
   return [0, 1, 2].every(

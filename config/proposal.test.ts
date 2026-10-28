@@ -53,7 +53,9 @@ describe("trimEditorDoc", () => {
     expect((saved.intro as EditorDoc).content).toEqual([p("Hi")]);
     expect((saved.closing as EditorDoc).content).toEqual([p("Bye")]);
     const [section] = saved.sections;
-    expect((section?.body as EditorDoc).content).toEqual([p("Body")]);
+    expect((section?.body as EditorDoc | undefined)?.content).toEqual([
+      p("Body"),
+    ]);
     expect(isRichTextEmpty(saved.summary)).toBe(true);
   });
 });

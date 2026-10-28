@@ -32,8 +32,9 @@ export type CoverSettings = Record<string, unknown>;
 /** Seed for the grain, from the artwork's address, so a re-render matches. */
 const seedFrom = (url: string): number => {
   let hash = 0;
-  for (let i = 0; i < url.length; i++) {
-    hash = (hash * 31 + url.charCodeAt(i)) | 0;
+  for (let i = 0; i < url.length; i += 1) {
+    // Math.imul wraps to 32 bits; the outer `* 1` wraps the sum the same way.
+    hash = Math.imul(Math.imul(hash, 31) + url.charCodeAt(i), 1);
   }
   return Math.abs(hash % 1000);
 };
@@ -42,9 +43,10 @@ const seedFrom = (url: string): number => {
 export const readText = (value: unknown): string =>
   typeof value === "string" ? value : "";
 
+const HEX_COLOR = /^#(?:[\da-f]{3}|[\da-f]{6})$/i;
+
 export const readColor = (value: unknown, fallback: string): string =>
-  typeof value === "string" &&
-  /^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value.trim())
+  typeof value === "string" && HEX_COLOR.test(value.trim())
     ? value.trim()
     : fallback;
 
@@ -95,12 +97,12 @@ const drawRun = (
     glyphs.reduce((sum, g) => sum + ctx.measureText(g).width, 0) +
     tracking * Math.max(0, glyphs.length - 1);
 
-  let x =
-    run.align === "center"
-      ? (run.x + run.width / 2) * scale - width / 2
-      : run.align === "right"
-        ? (run.x + run.width) * scale - width
-        : run.x * scale;
+  let x = run.x * scale;
+  if (run.align === "center") {
+    x = (run.x + run.width / 2) * scale - width / 2;
+  } else if (run.align === "right") {
+    x = (run.x + run.width) * scale - width;
+  }
 
   for (const glyph of glyphs) {
     ctx.fillText(glyph, x, run.baseline * scale);

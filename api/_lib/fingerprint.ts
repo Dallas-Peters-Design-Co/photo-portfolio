@@ -24,8 +24,16 @@
  * in — a node would re-run for no reason after an unrelated edit.
  */
 const canonical = (value: unknown): string => {
+  if (
+    value === undefined ||
+    typeof value === "function" ||
+    typeof value === "symbol"
+  ) {
+    // JSON.stringify returns undefined for these, despite its typing.
+    return "null";
+  }
   if (value === null || typeof value !== "object") {
-    return JSON.stringify(value) ?? "null";
+    return JSON.stringify(value);
   }
   if (Array.isArray(value)) {
     return `[${value.map(canonical).join(",")}]`;

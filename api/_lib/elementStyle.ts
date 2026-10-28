@@ -198,6 +198,16 @@ export interface JobShape {
  * a look to work in, not a picture to rework.
  */
 /**
+ * The port each finisher reads its pictures from: a cover finishes the art, a
+ * mockup the cover, and a trace whatever image it is given.
+ */
+const FINISHER_PORTS: Partial<Record<NodeCapability, string>> = {
+  "board.cover": "art",
+  "board.mockup": "cover",
+  "board.trace": "image",
+};
+
+/**
  * The prompt text a node holds itself.
  *
  * A Prompt node keeps it under `text`, Generate and Icon under `prompt` — both
@@ -224,23 +234,15 @@ export const jobsFor = ({
   // wiring describes a single run no matter how many references feed it.
   // Fanning out here would bill one description per image and then throw all
   // but the last away.
-  if (
-    capability === "board.cover" ||
-    capability === "board.trace" ||
-    capability === "board.mockup"
-  ) {
+  const finisherPort = FINISHER_PORTS[capability];
+  if (finisherPort) {
     // One cover — or one trace, or one mockup — per picture wired in: four
     // variations of the field are four covers to compare, six finished
     // covers are six mockups. The browser rendered them in this order
     // (finishers.ts) and stores them under coverUrls, traceUrls or
     // mockupUrls; the run asks for the nth. Nothing wired is one job, which
     // the missing-input check has already refused.
-    const art =
-      (capability === "board.cover"
-        ? values.art
-        : capability === "board.mockup"
-          ? values.cover
-          : values.image) ?? [];
+    const art = values[finisherPort] ?? [];
     return (art.length > 0 ? art : [null]).map((image) => ({
       blendWith: [],
       image,

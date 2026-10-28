@@ -212,11 +212,11 @@ export const spineWithBleed = (spec: WrapSpec): RectPx => ({
  * out blank-spined for want of a number.
  */
 export const pagesFrom = (value: unknown, fallback = 300): number => {
-  const n =
-    typeof value === "number"
-      ? value
-      : typeof value === "string"
-        ? Number.parseInt(value.replace(/[^\d]/g, ""), 10)
-        : Number.NaN;
+  let n = Number.NaN;
+  if (typeof value === "number") {
+    n = value;
+  } else if (typeof value === "string") {
+    n = Number.parseInt(value.replace(/[^\d]/g, ""), 10);
+  }
   return Number.isFinite(n) && n > 0 ? n : fallback;
 };

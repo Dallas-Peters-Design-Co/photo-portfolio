@@ -90,8 +90,10 @@ const pixelsOf = (image: HTMLImageElement, longest: number): ImageData => {
  * space — and the original's width and height go on the root, so the file
  * opens at the right dimensions and scales its content to fit.
  */
+const SVG_OPEN_TAG = /^<svg /;
+
 const atOriginalSize = (svg: string, width: number, height: number): string =>
-  svg.replace(/^<svg /, `<svg width="${width}" height="${height}" `);
+  svg.replace(SVG_OPEN_TAG, `<svg width="${width}" height="${height}" `);
 
 export const renderTrace = async (
   config: TraceSettings,

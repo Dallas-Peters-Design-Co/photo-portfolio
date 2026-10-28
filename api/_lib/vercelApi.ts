@@ -210,7 +210,7 @@ export interface StoreSummary {
 
 /** Every store on the account, used to reuse one rather than fail on its name. */
 export const listStores = async (): Promise<StoreSummary[]> => {
-  const data = await request<{ stores: StoreSummary[] }>(
+  const data = await request<{ stores?: StoreSummary[] }>(
     "/v1/storage/stores?limit=100"
   );
   return data.stores ?? [];

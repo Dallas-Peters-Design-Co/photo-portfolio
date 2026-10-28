@@ -13,6 +13,9 @@
     // generator emits, so the CI drift check could never pass.
     "includes": [
       "!logo-creator",
+      "!.rm-vault",
+      "!.agents",
+      "!skills",
       "!openapi.json",
       "!openapi.yaml",
       "!bruno",

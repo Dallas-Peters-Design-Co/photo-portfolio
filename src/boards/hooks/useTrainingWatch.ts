@@ -67,12 +67,10 @@ const describe = (pending: readonly TrainingPending[]): string => {
   if (pending.length === 1) {
     const [one] = pending;
     const minutes = minutesSince(one.startedAt);
-    const age =
-      minutes === null
-        ? ""
-        : minutes < 1
-          ? " · just started"
-          : ` · ${minutes} min`;
+    if (minutes === null) {
+      return `Training “${one.label}”`;
+    }
+    const age = minutes < 1 ? " · just started" : ` · ${minutes} min`;
     return `Training “${one.label}”${age}`;
   }
   return `Training ${pending.length} styles`;

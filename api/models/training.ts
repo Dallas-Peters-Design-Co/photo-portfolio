@@ -50,6 +50,9 @@ const startedTooLongAgo = (startedAt: Date | string | null): boolean => {
   return Number.isFinite(started) && Date.now() - started > ABANDON_AFTER_MS;
 };
 
+const toIsoOrNull = (value: Date | string | null): string | null =>
+  value instanceof Date ? value.toISOString() : (value ?? null);
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
     return;
@@ -123,10 +126,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       pending.push({
         id: row.id,
         label: row.label,
-        startedAt:
-          row.startedAt instanceof Date
-            ? row.startedAt.toISOString()
-            : (row.startedAt ?? null),
+        startedAt: toIsoOrNull(row.startedAt),
       });
       continue;
     }
