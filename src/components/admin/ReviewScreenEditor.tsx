@@ -29,6 +29,7 @@ import {
   imageSize,
   isActiveScreen,
   isTyping,
+  replaceScreenImage,
   toEditorDoc,
   touchScreen,
   useMarkupHistory,
@@ -38,6 +39,9 @@ import {
 export type ScreenUpdate = (
   update: (prev: ReviewScreen) => ReviewScreen
 ) => void;
+
+const RECAPTURE_HINT =
+  "Take a new screenshot; pins and markup stay where they are on the page";
 
 /**
  * One screen of a review: its picture, and the pins and markup on it.
@@ -76,6 +80,9 @@ export function ReviewScreenEditor({
   const [tool, setTool] = useState<ReviewTool>("pin");
   const [draft, setDraft] = useState<ReviewMark | null>(null);
   const { marks, pins } = screen;
+  // The screen now, for a capture that lands long after this render.
+  const live = useRef(screen);
+  live.current = screen;
 
   let captureLabel = screen.image ? "Recapture" : "Capture";
   if (isCapturing) {
@@ -132,8 +139,7 @@ export function ReviewScreenEditor({
         url: target,
         viewport: screen.viewport,
       });
-      patch({ image, sourceUrl: target });
-      toast.success("Captured");
+      replaceScreenImage(live.current, image, onChange, { sourceUrl: target });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not capture");
     } finally {
@@ -155,7 +161,7 @@ export function ReviewScreenEditor({
         undefined,
         `reviews/${slug}`
       );
-      patch({ image: { ...size, url: stored } });
+      replaceScreenImage(live.current, { ...size, url: stored }, onChange);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -354,6 +360,7 @@ export function ReviewScreenEditor({
         <Button
           disabled={isCapturing || !url.trim()}
           onClick={() => void capture()}
+          title={screen.image ? RECAPTURE_HINT : undefined}
           type="button"
           variant="outline"
         >
