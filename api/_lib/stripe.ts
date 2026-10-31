@@ -135,11 +135,15 @@ export interface SendInvoiceInput {
   dueDays: number;
   /** This site's invoice id; Stripe's webhooks carry it back as metadata. */
   invoiceId: string;
+  /** One Stripe line per entry; without them, one line of the whole amount. */
+  lines?: { amountCents: number; description: string }[];
+  /** Shown on the invoice under the lines. Defaults to the description. */
+  memo?: string;
   proposalId: string | null;
 }
 
 /**
- * Creates the invoice in Stripe, with one line, finalises it and has Stripe
+ * Creates the invoice in Stripe with its lines, finalises it and has Stripe
  * email it. Idempotency keys on our invoice id mean a retried send cannot
  * create a second invoice in Stripe.
  */
@@ -163,24 +167,36 @@ export const createAndSendInvoice = async (
       currency: input.currency,
       customer,
       days_until_due: input.dueDays,
-      description: input.description,
+      description: input.memo || input.description,
       metadata,
       pending_invoice_items_behavior: "exclude",
     },
     `invoice:${input.invoiceId}`
   );
-  await request(
-    "POST",
-    "/invoiceitems",
-    {
-      amount: input.amountCents,
-      currency: input.currency,
-      customer,
-      description: input.description,
-      invoice: invoice.id,
-    },
-    `invoiceitem:${input.invoiceId}`
-  );
+  const lines =
+    input.lines && input.lines.length > 0
+      ? input.lines
+      : [{ amountCents: input.amountCents, description: input.description }];
+  // In order, one at a time: Stripe shows lines in the order they were added.
+  for (const [i, line] of lines.entries()) {
+    // biome-ignore lint/performance/noAwaitInLoops: Stripe lists invoice items in the order they were created, so they go one at a time
+    await request(
+      "POST",
+      "/invoiceitems",
+      {
+        amount: line.amountCents,
+        currency: input.currency,
+        customer,
+        description: line.description,
+        invoice: invoice.id,
+      },
+      // The first line keeps the original key, so an invoice whose send was
+      // interrupted before this change resumes rather than duplicating.
+      i === 0
+        ? `invoiceitem:${input.invoiceId}`
+        : `invoiceitem:${input.invoiceId}:${i}`
+    );
+  }
   await request<StripeInvoice>(
     "POST",
     `/invoices/${invoice.id}/finalize`,

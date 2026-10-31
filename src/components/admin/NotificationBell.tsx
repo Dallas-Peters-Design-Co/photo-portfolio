@@ -30,7 +30,8 @@ import "./NotificationBell.css";
 const POLL_MS = 60_000;
 
 const PUSH_LABELS: Record<PushState, string> = {
-  denied: "Blocked in this browser's settings",
+  denied:
+    "Blocked for this site. Allow notifications in the browser's site settings, reload, then turn them on here",
   off: "Turn on browser notifications",
   on: "Browser notifications are on",
   unconfigured: "Browser notifications need the VAPID keys in Vercel",

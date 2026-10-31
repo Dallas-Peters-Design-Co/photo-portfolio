@@ -9,6 +9,7 @@ import { BrandKitsPanel } from "../components/admin/BrandKitsPanel";
 import { ChangePasswordForm } from "../components/admin/ChangePasswordForm";
 import { CollectionsPanel } from "../components/admin/CollectionsPanel";
 import { ConfirmProvider } from "../components/admin/ConfirmProvider";
+import { InvoicesPanel } from "../components/admin/InvoicesPanel";
 import { LightroomPanel } from "../components/admin/LightroomPanel";
 import { ModelsPanel } from "../components/admin/ModelsPanel";
 import { NotificationBell } from "../components/admin/NotificationBell";
@@ -45,6 +46,7 @@ const SECTIONS = [
   { end: false, label: "Pages", to: "/admin/pages" },
   { end: false, label: "Proposals", to: "/admin/proposals" },
   { end: false, label: "Reviews", to: "/admin/reviews" },
+  { end: false, label: "Invoices", to: "/admin/invoices" },
   { end: false, label: "Models", to: "/admin/models" },
   { end: false, label: "Settings", to: "/admin/settings" },
 ];
@@ -173,6 +175,7 @@ export function AdminPage() {
               <Route element={<ProposalsPanel />} path="proposals/:slug" />
               <Route element={<ReviewsPanel />} path="reviews" />
               <Route element={<ReviewsPanel />} path="reviews/:slug" />
+              <Route element={<InvoicesPanel />} path="invoices" />
               <Route
                 element={
                   <div className="admin-page__settings">

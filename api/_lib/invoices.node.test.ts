@@ -85,3 +85,25 @@ describe("formatMoney", () => {
     expect(formatMoney(125_050)).toBe("$1,250.50");
   });
 });
+
+describe("invoice lines", () => {
+  it("keeps good lines, drops bad ones, and totals them", async () => {
+    const { cleanLines, linesOf, totalOf } = await import("./invoices.js");
+    const lines = cleanLines([
+      { amountCents: 150_000, description: "  Launch, 50% deposit " },
+      { amountCents: 0, description: "Free" },
+      { amountCents: 50_000, description: "" },
+      { amountCents: 12.4, description: "Rounded" },
+      "nonsense",
+    ]);
+    expect(lines).toEqual([
+      { amountCents: 150_000, description: "Launch, 50% deposit" },
+      { amountCents: 12, description: "Rounded" },
+    ]);
+    expect(totalOf(lines)).toBe(150_012);
+    // An older invoice with no lines reads as its one line.
+    expect(
+      linesOf({ amount_cents: 80_000, description: "Audit", lines: null })
+    ).toEqual([{ amountCents: 80_000, description: "Audit" }]);
+  });
+});

@@ -43,6 +43,9 @@ const LegalPage = lazy(() =>
 const ReviewPage = lazy(() =>
   import("./pages/ReviewPage").then((m) => ({ default: m.ReviewPage }))
 );
+const ContractPage = lazy(() =>
+  import("./pages/ContractPage").then((m) => ({ default: m.ContractPage }))
+);
 const ProposalPage = lazy(() =>
   import("./pages/ProposalPage").then((m) => ({ default: m.ProposalPage }))
 );
@@ -84,6 +87,7 @@ export default function App() {
                 CMS page or the admin. */}
             <Route element={<ProposalPage />} path="/proposal/:slug" />
             <Route element={<ReviewPage />} path="/review/:slug" />
+            <Route element={<ContractPage />} path="/contract/:id" />
             <Route element={<LegalPage kind="privacy" />} path="/privacy" />
             <Route element={<LegalPage kind="terms" />} path="/terms" />
             {/* Last: a CMS slug must never shadow a built-in route. The API also

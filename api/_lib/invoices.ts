@@ -18,6 +18,12 @@ export type InvoiceStatus =
   | "void"
   | "uncollectible";
 
+/** One line on an invoice. amount_cents on the invoice is their total. */
+export interface InvoiceLine {
+  amountCents: number;
+  description: string;
+}
+
 export interface InvoiceRow {
   amount_cents: number;
   created_at: string | Date;
@@ -28,6 +34,8 @@ export interface InvoiceRow {
   due_days: number;
   hosted_url: string | null;
   id: string;
+  lines?: unknown;
+  memo?: string | null;
   number: string | null;
   paid_at: string | Date | null;
   pdf_url: string | null;
@@ -47,6 +55,8 @@ export interface InvoiceDto {
   dueDays: number;
   hostedUrl: string | null;
   id: string;
+  lines: InvoiceLine[];
+  memo: string;
   number: string | null;
   paidAt: string | null;
   pdfUrl: string | null;
@@ -57,7 +67,48 @@ export interface InvoiceDto {
 
 export const INVOICE_COLUMNS = `id, proposal_id, description, amount_cents,
   currency, due_days, status, customer_email, customer_name, stripe_invoice_id,
-  number, hosted_url, pdf_url, created_at, sent_at, paid_at`;
+  number, hosted_url, pdf_url, created_at, sent_at, paid_at, lines, memo`;
+
+export const MAX_LINES = 30;
+const MAX_LINE_TEXT = 300;
+
+/**
+ * Line items from anywhere (a request body, a template, the database):
+ * descriptions trimmed and capped, amounts whole positive cents. Lines that
+ * fail either are dropped rather than failing the whole invoice.
+ */
+export const cleanLines = (value: unknown): InvoiceLine[] =>
+  (Array.isArray(value) ? value : [])
+    .map((raw) => {
+      const line = (raw ?? {}) as Partial<InvoiceLine>;
+      const description =
+        typeof line.description === "string"
+          ? line.description.replace(/\0/g, "").trim().slice(0, MAX_LINE_TEXT)
+          : "";
+      const cents = Math.round(Number(line.amountCents));
+      return { amountCents: cents, description };
+    })
+    .filter(
+      (l) =>
+        l.description &&
+        Number.isInteger(l.amountCents) &&
+        l.amountCents > 0 &&
+        l.amountCents <= 100_000_000
+    )
+    .slice(0, MAX_LINES);
+
+export const totalOf = (lines: InvoiceLine[]): number =>
+  lines.reduce((sum, l) => sum + l.amountCents, 0);
+
+/** An invoice's lines: its own, or its one description and amount. */
+export const linesOf = (
+  row: Pick<InvoiceRow, "lines" | "description" | "amount_cents">
+): InvoiceLine[] => {
+  const lines = cleanLines(row.lines);
+  return lines.length > 0
+    ? lines
+    : [{ amountCents: row.amount_cents, description: row.description }];
+};
 
 const iso = (value: string | Date | null): string | null =>
   value ? new Date(value).toISOString() : null;
@@ -72,6 +123,8 @@ export const rowToInvoice = (row: InvoiceRow): InvoiceDto => ({
   dueDays: row.due_days,
   hostedUrl: row.hosted_url,
   id: row.id,
+  lines: linesOf(row),
+  memo: row.memo ?? "",
   number: row.number,
   paidAt: iso(row.paid_at),
   pdfUrl: row.pdf_url,
@@ -145,6 +198,9 @@ export interface NewInvoice {
   customerName: string;
   description: string;
   dueDays?: number;
+  /** Several lines; when given, amountCents and description summarise them. */
+  lines?: InvoiceLine[];
+  memo?: string;
   proposalId: string | null;
 }
 
@@ -158,11 +214,14 @@ export const insertDraft = async (
 ): Promise<InvoiceDto> => {
   const rows = (await sql`
     INSERT INTO invoices
-      (proposal_id, description, amount_cents, due_days, customer_email, customer_name)
+      (proposal_id, description, amount_cents, due_days, customer_email,
+       customer_name, lines, memo)
     VALUES (
       ${input.proposalId}, ${input.description}, ${input.amountCents},
       ${input.dueDays ?? DEFAULT_DUE_DAYS}, ${input.customerEmail},
-      ${input.customerName}
+      ${input.customerName},
+      ${input.lines && input.lines.length > 0 ? JSON.stringify(input.lines) : null}::jsonb,
+      ${input.memo ?? ""}
     )
     RETURNING ${sql.unsafe(INVOICE_COLUMNS)}
   `) as InvoiceRow[];

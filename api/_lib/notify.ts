@@ -32,7 +32,10 @@ export type ActivityKind =
   | "invoice.sent"
   | "invoice.paid"
   | "invoice.failed"
-  | "invoice.voided";
+  | "invoice.voided"
+  | "contract.sent"
+  | "contract.signed"
+  | "contract.countersigned";
 
 export interface Notice {
   body?: string;
@@ -45,7 +48,7 @@ export interface Notice {
   kind: ActivityKind;
   meta?: Record<string, unknown>;
   subjectId?: string | null;
-  subjectType: "proposal" | "invoice";
+  subjectType: "proposal" | "invoice" | "contract";
   title: string;
   /** An admin path, e.g. /admin/proposals/some-slug. */
   url?: string;
@@ -57,10 +60,12 @@ export const EMAILED: ReadonlySet<ActivityKind> = new Set([
   "proposal.bounced",
   "invoice.paid",
   "invoice.failed",
+  "contract.signed",
 ]);
 
 /** The subject line and kicker for each kind's email. */
 const KICKERS: Partial<Record<ActivityKind, string>> = {
+  "contract.signed": "Signed",
   "invoice.failed": "Payment failed",
   "invoice.paid": "Paid",
   "proposal.bounced": "Email bounced",

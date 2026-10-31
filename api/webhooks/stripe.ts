@@ -134,7 +134,7 @@ const apply = async (
     subjectId: local.proposal_id,
     subjectType: "proposal",
     title: `${label} ${handled.verb}${on}`,
-    url: local.slug ? `/admin/proposals/${local.slug}` : "/admin/proposals",
+    url: local.slug ? `/admin/proposals/${local.slug}` : "/admin/invoices",
   });
 };
 

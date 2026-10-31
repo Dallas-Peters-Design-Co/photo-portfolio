@@ -100,6 +100,33 @@ describe("createAndSendInvoice", () => {
     expect(invoice.get("metadata[invoice_id]")).toBe("inv-local-1");
   });
 
+  it("adds one Stripe line per invoice line, in order, each with its own key, and the memo", async () => {
+    await createAndSendInvoice({
+      ...input,
+      amountCents: 175_000,
+      lines: [
+        { amountCents: 150_000, description: "Launch, 50% deposit" },
+        { amountCents: 25_000, description: "LinkedIn banner and favicon" },
+      ],
+      memo: "Thanks, Vin.",
+    });
+    const items = calls.filter((c) => c.url.endsWith("/invoiceitems"));
+    expect(items.map((c) => new URLSearchParams(c.body).get("amount"))).toEqual(
+      ["150000", "25000"]
+    );
+    expect(
+      items.map((c) => new URLSearchParams(c.body).get("description"))
+    ).toEqual(["Launch, 50% deposit", "LinkedIn banner and favicon"]);
+    expect(items.map((c) => c.headers["Idempotency-Key"])).toEqual([
+      "invoiceitem:inv-local-1",
+      "invoiceitem:inv-local-1:1",
+    ]);
+    const invoice = new URLSearchParams(
+      calls.find((c) => c.url.endsWith("/invoices"))?.body
+    );
+    expect(invoice.get("description")).toBe("Thanks, Vin.");
+  });
+
   it("puts an idempotency key on every write, tied to this site's invoice", async () => {
     await createAndSendInvoice(input);
     const keys = calls

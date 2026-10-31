@@ -203,7 +203,7 @@ export const formatDate = (iso: string): string => {
  * mask would take any colour, but Chrome's PDF output draws a faint box
  * around a masked element.
  */
-function DesignerSignature({
+export function DesignerSignature({
   issued,
   ownerName,
 }: {

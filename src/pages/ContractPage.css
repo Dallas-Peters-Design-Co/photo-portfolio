@@ -1,0 +1,40 @@
+/*
+ * The agreement page. It is the proposal's sheet (ProposalPage.css) with a
+ * few additions for signing; everything else is shared so the two documents
+ * read as one set of papers.
+ */
+
+.contract-page__sub {
+  margin-block: 1.25rem 0.5rem;
+}
+
+/* A signature line that has not been signed yet. */
+.contract-page__pending {
+  font-style: italic;
+  color: var(--sheet-ink-soft);
+}
+
+.contract-page__agree {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  max-width: 38rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--sheet-ink);
+  cursor: pointer;
+}
+
+.contract-page__agree input {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.15rem;
+  accent-color: var(--sheet-accent-ink);
+}
+
+@media print {
+  .contract-page__agree {
+    display: none;
+  }
+}

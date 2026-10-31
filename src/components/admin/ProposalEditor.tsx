@@ -24,6 +24,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { ProposalActivity } from "./ProposalActivity";
+import { ProposalContract } from "./ProposalContract";
 import { ProposalInvoices } from "./ProposalInvoices";
 import { ProposalPackagesEditor } from "./ProposalPackagesEditor";
 import { ProposalSendPanel } from "./ProposalSendPanel";
@@ -430,6 +431,10 @@ export function ProposalEditor({
             void onSaved(next);
           }}
           onReset={() => void resetAcceptance()}
+          proposal={draft}
+        />
+        <ProposalContract
+          onActivity={() => setActivityKey((k) => k + 1)}
           proposal={draft}
         />
         <ProposalInvoices

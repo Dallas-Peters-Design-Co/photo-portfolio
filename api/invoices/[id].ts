@@ -4,11 +4,15 @@ import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import {
+  cleanLines,
   formatMoney,
   INVOICE_COLUMNS,
+  type InvoiceLine,
   type InvoiceRow,
+  linesOf,
   MAX_INVOICE_CENTS,
   rowToInvoice,
+  totalOf,
 } from "../_lib/invoices.js";
 import { notify } from "../_lib/notify.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
@@ -55,6 +59,33 @@ const proposalOf = async (
   return rows[0] ?? null;
 };
 
+/** Sent text, cleaned and capped; undefined when the field wasn't sent. */
+const textOr = (v: unknown, max: number): string | undefined =>
+  typeof v === "string" ? sanitizeText(v).slice(0, max) : undefined;
+
+/** Lines set the total; otherwise a sent amount; otherwise the current one. */
+const amountOf = (
+  lines: InvoiceLine[] | null,
+  sent: unknown,
+  current: number
+): number => {
+  if (lines && lines.length > 0) {
+    return totalOf(lines);
+  }
+  return sent === undefined ? current : Math.round(Number(sent));
+};
+
+/** Unsent lines keep what's stored; an empty list clears them. */
+const storedLinesOf = (
+  lines: InvoiceLine[] | null,
+  current: unknown
+): unknown => {
+  if (lines === null) {
+    return current;
+  }
+  return lines.length > 0 ? lines : null;
+};
+
 const editDraft = async (
   sql: Sql,
   req: VercelRequest,
@@ -67,18 +98,24 @@ const editDraft = async (
     });
   }
   const body = parseJsonBody(req.body);
-  const amount =
-    body.amountCents === undefined
-      ? current.amount_cents
-      : Math.round(Number(body.amountCents));
+  // Lines, when sent, replace the single amount: the total is theirs.
+  const lines = body.lines === undefined ? null : cleanLines(body.lines);
+  if (
+    lines !== null &&
+    lines.length === 0 &&
+    Array.isArray(body.lines) &&
+    body.lines.length > 0
+  ) {
+    return res
+      .status(400)
+      .json({ error: "Each line needs a description and an amount." });
+  }
+  const amount = amountOf(lines, body.amountCents, current.amount_cents);
   if (!(amount > 0 && amount <= MAX_INVOICE_CENTS)) {
     return res.status(400).json({ error: "Enter an amount above zero." });
   }
   const description =
-    typeof body.description === "string"
-      ? sanitizeText(body.description).slice(0, MAX_DESCRIPTION) ||
-        current.description
-      : current.description;
+    textOr(body.description, MAX_DESCRIPTION) || current.description;
   const dueDays = Number.isInteger(body.dueDays)
     ? Math.min(365, Math.max(0, body.dueDays as number))
     : current.due_days;
@@ -86,15 +123,16 @@ const editDraft = async (
     body.customerEmail === undefined
       ? current.customer_email
       : (cleanEmail(body.customerEmail) ?? "");
-  const name =
-    typeof body.customerName === "string"
-      ? sanitizeText(body.customerName).slice(0, 120)
-      : current.customer_name;
+  const name = textOr(body.customerName, 120) ?? current.customer_name;
+  const memo = textOr(body.memo, 1000) ?? current.memo ?? "";
+  const storedLines = storedLinesOf(lines, current.lines ?? null);
   const rows = (await sql`
     UPDATE invoices SET
       amount_cents = ${amount}, description = ${description},
       due_days = ${dueDays}, customer_email = ${email},
-      customer_name = ${name}, updated_at = now()
+      customer_name = ${name}, memo = ${memo},
+      lines = ${storedLines === null ? null : JSON.stringify(storedLines)}::jsonb,
+      updated_at = now()
     WHERE id = ${current.id} AND status = 'draft'
     RETURNING ${sql.unsafe(INVOICE_COLUMNS)}
   `) as InvoiceRow[];
@@ -121,6 +159,8 @@ const send = async (sql: Sql, res: VercelResponse, current: InvoiceRow) => {
     description: current.description,
     dueDays: current.due_days,
     invoiceId: current.id,
+    lines: linesOf(current),
+    memo: current.memo ?? "",
     proposalId: current.proposal_id,
   });
   const rows = (await sql`
@@ -143,7 +183,7 @@ const send = async (sql: Sql, res: VercelResponse, current: InvoiceRow) => {
     subjectId: current.proposal_id,
     subjectType: "proposal",
     title: proposal ? `Invoice sent for "${proposal.title}"` : "Invoice sent",
-    url: proposal ? `/admin/proposals/${proposal.slug}` : "/admin/proposals",
+    url: proposal ? `/admin/proposals/${proposal.slug}` : "/admin/invoices",
   });
   return res.status(200).json(row ? rowToInvoice(row) : rowToInvoice(current));
 };

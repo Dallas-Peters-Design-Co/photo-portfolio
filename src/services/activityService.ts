@@ -25,6 +25,12 @@ export type InvoiceStatus =
   | "void"
   | "uncollectible";
 
+/** One line on an invoice; the invoice's amountCents is their total. */
+export interface InvoiceLine {
+  amountCents: number;
+  description: string;
+}
+
 export interface Invoice {
   amountCents: number;
   createdAt: string;
@@ -35,6 +41,8 @@ export interface Invoice {
   dueDays: number;
   hostedUrl: string | null;
   id: string;
+  lines: InvoiceLine[];
+  memo: string;
   number: string | null;
   paidAt: string | null;
   pdfUrl: string | null;
@@ -49,6 +57,26 @@ export interface InvoiceInput {
   customerName?: string;
   description?: string;
   dueDays?: number;
+  lines?: InvoiceLine[];
+  memo?: string;
+}
+
+/** A saved starting point for an invoice. */
+export interface InvoiceTemplate {
+  dueDays: number;
+  id: string;
+  lines: InvoiceLine[];
+  memo: string;
+  name: string;
+}
+
+export interface NewInvoiceInput {
+  customerEmail: string;
+  customerName: string;
+  dueDays: number;
+  lines: InvoiceLine[];
+  memo: string;
+  proposalId?: string | null;
 }
 
 const call = async <T>(
@@ -110,9 +138,27 @@ const forProposal = (slug: string) =>
 const one = (id: string) => `/api/invoices/${encodeURIComponent(id)}`;
 
 export const invoicesApi = {
+  /** Every invoice, newest first, with the templates and Stripe's state. */
+  all: () =>
+    call<{
+      invoices: Invoice[];
+      stripe: boolean;
+      templates: InvoiceTemplate[];
+    }>("/api/invoices", "Could not load invoices"),
   create: (slug: string, input: InvoiceInput) =>
     call<Invoice>(forProposal(slug), "Could not draft the invoice", {
       body: JSON.stringify(input),
+      method: "POST",
+    }),
+  /** A draft not tied to a proposal (or tied by id). */
+  createStandalone: (input: NewInvoiceInput) =>
+    call<Invoice>("/api/invoices", "Could not draft the invoice", {
+      body: JSON.stringify({ action: "create", ...input }),
+      method: "POST",
+    }),
+  deleteTemplate: (id: string) =>
+    call<void>("/api/invoices", "Could not delete the template", {
+      body: JSON.stringify({ action: "deleteTemplate", id }),
       method: "POST",
     }),
   list: (slug: string) =>
@@ -122,6 +168,11 @@ export const invoicesApi = {
     ),
   remove: (id: string) =>
     call<void>(one(id), "Could not delete the draft", { method: "DELETE" }),
+  saveTemplate: (template: Omit<InvoiceTemplate, "id"> & { id?: string }) =>
+    call<InvoiceTemplate>("/api/invoices", "Could not save the template", {
+      body: JSON.stringify({ action: "saveTemplate", ...template }),
+      method: "POST",
+    }),
   send: (id: string) =>
     call<Invoice>(one(id), "Could not send the invoice", {
       body: JSON.stringify({ action: "send" }),
