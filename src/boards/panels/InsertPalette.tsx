@@ -22,7 +22,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeTypeId } from "../../../config/nodeTypes.js";
 import { ALL_SHADERS } from "../shaders/shaderConfig";
 import { openStudio } from "../studio/studioEvents";
-import { IMAGE_TOOLS } from "../studio/tools";
+import { STUDIO_TOOLS } from "../studio/tools";
 import "../boardChrome.css";
 import "./InsertPalette.css";
 
@@ -253,7 +253,7 @@ export function InsertPalette({
       section: "Recipes",
     }));
 
-    const studio: Entry[] = IMAGE_TOOLS.map((tool) => ({
+    const studio: Entry[] = STUDIO_TOOLS.map((tool) => ({
       action: { kind: "studio" as const, toolId: tool.id },
       hint: `studio generate ${tool.blurb}`,
       icon: PaintBoardIcon,

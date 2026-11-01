@@ -15,6 +15,37 @@ export const IMAGE_TOOLS: ImageTool[] = [
 ];
 
 /** Neutral colours for when no brand is chosen. */
+export interface StudioToolInfo {
+  blurb: string;
+  group: "Colour" | "Images";
+  id: string;
+  name: string;
+}
+
+/** Every tool, for the Studio's list and the insert palette. */
+export const STUDIO_TOOLS: StudioToolInfo[] = [
+  ...IMAGE_TOOLS.map(({ blurb, id, name }) => ({
+    blurb,
+    group: "Images" as const,
+    id,
+    name,
+  })),
+  {
+    blurb:
+      "Coolors-style palettes: Space for a new one, lock colours, harmonies, from a photo, save to the brand.",
+    group: "Colour",
+    id: "palette",
+    name: "Palette Generator",
+  },
+  {
+    blurb:
+      "Tints and shades, 50 to 950, of every brand colour, as CSS, Tailwind or JSON.",
+    group: "Colour",
+    id: "ramps",
+    name: "Color Ramps",
+  },
+];
+
 export const DEFAULT_PALETTE = [
   "#1e3dff",
   "#ff6b4a",
