@@ -238,6 +238,7 @@ export function CreativeEditor({
         <div className="creative__actions">
           <ExportMenu
             frame={frame}
+            items={items}
             layers={layers}
             name={name}
             textElementFor={(id) => textEls.current.get(id) ?? null}

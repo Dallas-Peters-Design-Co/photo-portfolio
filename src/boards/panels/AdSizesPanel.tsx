@@ -62,7 +62,7 @@ export function AdSizesPanel({
 
   return (
     <div className="panel-section ad-sizes">
-      <span className="panel-label">Ad sizes</span>
+      <span className="panel-label">Sizes</span>
       <div className="ad-sizes__list">
         {groups.map((group) => (
           <fieldset className="ad-sizes__group" key={group}>

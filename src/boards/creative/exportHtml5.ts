@@ -144,22 +144,48 @@ export interface AdPage {
   fontCss: string;
   fontLinks: string[];
   height: number;
+  /** An ad (fixed size, clickTag) or a web page (fits the window). */
+  mode: "ad" | "page";
   title: string;
   width: number;
 }
+
+const json = (value: string) =>
+  JSON.stringify(value).replaceAll("<", "\\u003c");
+
+/** The ad's head-specific lines: its size and the ad server's clickTag. */
+const adHead = (page: AdPage) =>
+  page.mode === "ad"
+    ? `<meta name="ad.size" content="width=${page.width},height=${page.height}">
+<script>var clickTag = ${json(page.clickUrl)};</script>`
+    : `<meta name="viewport" content="width=device-width,initial-scale=1">`;
+
+const clickLayer = (page: AdPage) => {
+  if (page.mode === "ad") {
+    return `<a id="click" href="javascript:window.open(window.clickTag)" aria-label="${escapeHtml(page.title)}"></a>`;
+  }
+  return page.clickUrl
+    ? `<a id="click" href="${escapeHtml(page.clickUrl)}" aria-label="${escapeHtml(page.title)}"></a>`
+    : "";
+};
+
+/** A page scales the design down to narrow windows, never up. */
+const fitScript = (page: AdPage) =>
+  page.mode === "page"
+    ? `<script>(function(){var a=document.getElementById("ad");function fit(){var s=Math.min(1,document.documentElement.clientWidth/${page.width});a.style.transform="scale("+s+")";document.body.style.height=${page.height}*s+"px"}addEventListener("resize",fit);fit()})();</script>`
+    : "";
 
 export const adHtml = (page: AdPage): string => `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="ad.size" content="width=${page.width},height=${page.height}">
+${adHead(page)}
 <title>${escapeHtml(page.title)}</title>
 ${page.fontLinks.map((href) => `<link rel="stylesheet" href="${escapeHtml(href)}">`).join("\n")}
-<script>var clickTag = ${JSON.stringify(page.clickUrl).replaceAll("<", "\\u003c")};</script>
 <style>
 ${page.fontCss}
-html,body{margin:0;padding:0}
-#ad{position:relative;width:${page.width}px;height:${page.height}px;overflow:hidden;background:#fff;-webkit-font-smoothing:antialiased}
+html,body{margin:0;padding:0${page.mode === "page" ? ";overflow-x:hidden" : ""}}
+#ad{position:relative;width:${page.width}px;height:${page.height}px;overflow:hidden;background:#fff;-webkit-font-smoothing:antialiased${page.mode === "page" ? ";margin:0 auto;transform-origin:0 0" : ""}}
 #ad *{box-sizing:border-box;margin:0}
 #click{position:absolute;inset:0;z-index:1;display:block}
 </style>
@@ -167,8 +193,9 @@ html,body{margin:0;padding:0}
 <body>
 <div id="ad">
 ${page.body.join("\n")}
-<a id="click" href="javascript:window.open(window.clickTag)" aria-label="${escapeHtml(page.title)}"></a>
+${clickLayer(page)}
 </div>
+${fitScript(page)}
 </body>
 </html>
 `;
@@ -366,7 +393,8 @@ export const exportHtml5 = async (
   layers: BoardItem[],
   pxWidth: number,
   textElementFor: (id: string) => HTMLElement | null,
-  clickUrl: string
+  clickUrl: string,
+  mode: AdPage["mode"] = "ad"
 ): Promise<Html5Export> => {
   const scale = pxWidth / frame.width;
   const files: ZipFile[] = [];
@@ -402,6 +430,7 @@ export const exportHtml5 = async (
     fontCss,
     fontLinks: fontLinksFor(layers),
     height: Math.round(frame.height * scale),
+    mode,
     title: frame.body?.trim() || "Ad",
     width: Math.round(frame.width * scale),
   });

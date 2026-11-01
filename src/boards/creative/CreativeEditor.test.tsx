@@ -172,4 +172,88 @@ describe("CreativeEditor", () => {
     expect(html).toContain("Your headline here");
     expect(html.match(/<div style="height:/g)?.length).toBe(2);
   });
+
+  const captureDownload = () => {
+    const got: { blob: Blob | null; name: string } = { blob: null, name: "" };
+    const create = vi.spyOn(URL, "createObjectURL").mockImplementation((b) => {
+      got.blob = b as Blob;
+      return "blob:test";
+    });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(function (this: HTMLAnchorElement) {
+        got.name = this.download;
+      });
+    return {
+      done: () => {
+        create.mockRestore();
+        click.mockRestore();
+      },
+      got,
+    };
+  };
+
+  const exportVia = async (action: string) => {
+    const capture = captureDownload();
+    act(() => button("Export").click());
+    await act(async () => {
+      button(action).click();
+      await vi.waitFor(() => expect(capture.got.blob).not.toBeNull(), {
+        timeout: 5000,
+      });
+    });
+    capture.done();
+    return capture.got as { blob: Blob; name: string };
+  };
+
+  it("exports every slide on the board as one PDF from a deck frame", async () => {
+    const slide = {
+      ...frame,
+      body: "Deck · Slide · 16:9 · 1920×1080",
+      height: 270,
+      width: 480,
+    };
+    render([slide, { ...slide, id: "f2", x: 600 }]);
+    act(() => button("Headline").click());
+    const { blob, name } = await exportVia("Export PDF");
+    const text = new TextDecoder("latin1").decode(await blob.arrayBuffer());
+    expect(name.endsWith(".pdf")).toBe(true);
+    expect(text.startsWith("%PDF-1.4")).toBe(true);
+    expect(text).toContain("/Count 2");
+    expect(text).toContain("/Width 1920 /Height 1080");
+  });
+
+  it("exports an email frame as a zip of mail HTML and its picture", async () => {
+    render([
+      {
+        ...frame,
+        body: "Email · Full email · 600×1200",
+        height: 600,
+        width: 300,
+      },
+    ]);
+    act(() => button("Headline").click());
+    const { blob } = await exportVia("Export zip");
+    const text = new TextDecoder("latin1").decode(await blob.arrayBuffer());
+    expect(text).toContain("images/email.png");
+    expect(text).toContain('alt="Your headline here"');
+    expect(text).toContain('role="presentation"');
+  });
+
+  it("exports a landing hero as a page that fits the window, with no clickTag", async () => {
+    render([
+      {
+        ...frame,
+        body: "Landing · Hero · desktop · 1440×900",
+        height: 450,
+        width: 720,
+      },
+    ]);
+    act(() => button("Headline").click());
+    const { blob } = await exportVia("Export zip");
+    const text = new TextDecoder().decode(await blob.arrayBuffer());
+    expect(text).toContain('name="viewport"');
+    expect(text).not.toContain("clickTag");
+    expect(text).toContain("/1440");
+  });
 });

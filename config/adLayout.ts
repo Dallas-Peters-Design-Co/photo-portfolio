@@ -60,6 +60,30 @@ export const AD_SIZES: AdSize[] = [
   { group: "Pinterest", h: 1500, id: "pin", label: "Pin", w: 1000 },
   { group: "YouTube", h: 720, id: "yt-thumb", label: "Thumbnail", w: 1280 },
   {
+    group: "Landing",
+    h: 900,
+    id: "landing-desktop",
+    label: "Hero · desktop",
+    w: 1440,
+  },
+  {
+    group: "Landing",
+    h: 844,
+    id: "landing-mobile",
+    label: "Hero · mobile",
+    w: 390,
+  },
+  { group: "Deck", h: 1080, id: "deck-wide", label: "Slide · 16:9", w: 1920 },
+  {
+    group: "Deck",
+    h: 1080,
+    id: "deck-standard",
+    label: "Slide · 4:3",
+    w: 1440,
+  },
+  { group: "Email", h: 300, id: "email-banner", label: "Banner", w: 600 },
+  { group: "Email", h: 1200, id: "email-full", label: "Full email", w: 600 },
+  {
     group: "Print",
     h: 3300,
     id: "flyer-letter",
@@ -96,6 +120,10 @@ export const sizeTitle = (size: AdSize): string =>
   `${size.group} · ${size.label} · ${size.w}×${size.h}`;
 
 const SIZE_IN_TITLE = /(\d{2,5})\s*[×x]\s*(\d{2,5})\s*$/;
+
+/** What a sized frame is for: the group at the front of its title. */
+export const groupFromTitle = (title: string | null | undefined): string =>
+  AD_SIZES.find((s) => (title ?? "").startsWith(`${s.group} · `))?.group ?? "";
 
 /** The pixel size a frame was given, read back from its title. */
 export const sizeFromTitle = (

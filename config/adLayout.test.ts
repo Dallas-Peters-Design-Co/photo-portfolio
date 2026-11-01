@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   AD_SIZES,
   frameBoxFor,
+  groupFromTitle,
   inferPin,
   type LayoutItem,
   relayout,
@@ -106,5 +107,16 @@ describe("sizes", () => {
       height: 315,
       width: 600,
     });
+  });
+});
+
+describe("groupFromTitle", () => {
+  it("reads what a sized frame is for from its title", () => {
+    const slide = AD_SIZES.find((s) => s.id === "deck-wide");
+    const email = AD_SIZES.find((s) => s.id === "email-full");
+    expect(slide && groupFromTitle(sizeTitle(slide))).toBe("Deck");
+    expect(email && groupFromTitle(sizeTitle(email))).toBe("Email");
+    expect(groupFromTitle("Moodboard")).toBe("");
+    expect(groupFromTitle(null)).toBe("");
   });
 });
