@@ -11,6 +11,7 @@ import { isDrawingConfig } from "../drawing/drawing";
 import { useTextFont } from "../hooks/useTextFont";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { type Handle, SelectionBox } from "./SelectionBox";
 import { type Guides, snapEdge, snapMove } from "./snap";
 import "../itemBodies.css";
 
@@ -22,13 +23,19 @@ import "../itemBodies.css";
  * here is pixel-for-pixel the layer on the board.
  */
 
-const HANDLES = ["nw", "n", "ne", "e", "se", "s", "sw", "w"] as const;
-type Handle = (typeof HANDLES)[number];
 const SNAP_PX = 6;
 const MIN = 8;
 
 type Drag =
-  | { kind: "move"; id: string; origin: Box; startX: number; startY: number }
+  | {
+      id: string;
+      kind: "move";
+      origin: Box;
+      /** Pressed inside the selection: a click without a drag selects what's on top. */
+      passThrough: boolean;
+      startX: number;
+      startY: number;
+    }
   | {
       handle: Handle;
       id: string;
@@ -288,7 +295,8 @@ export function Artboard({
   const begin = (
     e: ReactPointerEvent,
     item: BoardItem,
-    handle: Handle | null
+    handle: Handle | null,
+    passThrough = false
   ) => {
     if (e.button !== 0 || editingId === item.id) {
       return;
@@ -306,7 +314,7 @@ export function Artboard({
     setDrag(
       handle
         ? { ...common, handle, kind: "resize", originFont: item.fontSize }
-        : { ...common, kind: "move" }
+        : { ...common, kind: "move", passThrough }
     );
   };
 
@@ -348,8 +356,31 @@ export function Artboard({
     setGuides(step.guides);
   };
 
-  const end = () => {
-    if (drag && live) {
+  /** The layer drawn on top at a point, other than the selected one. */
+  const layerUnder = (x: number, y: number): string | null => {
+    for (const el of document.elementsFromPoint(x, y)) {
+      const id = (el as HTMLElement)
+        .closest?.("[data-layer-id]")
+        ?.getAttribute("data-layer-id");
+      if (id && id !== selectedId) {
+        return id;
+      }
+    }
+    return null;
+  };
+
+  const end = (e: ReactPointerEvent) => {
+    const still =
+      Math.abs(e.clientX - (drag?.startX ?? e.clientX)) < 3 &&
+      Math.abs(e.clientY - (drag?.startY ?? e.clientY)) < 3;
+    if (drag?.kind === "move" && drag.passThrough && still) {
+      // A click inside the selection, not a drag: whatever is drawn on top
+      // gets it, as in a design tool.
+      const under = layerUnder(e.clientX, e.clientY);
+      if (under) {
+        onSelect(under);
+      }
+    } else if (drag && live) {
       const { box, fontSize } = live;
       onCommit(drag.id, {
         height: Math.round(box.height),
@@ -363,6 +394,10 @@ export function Artboard({
     setLive(null);
     setGuides({ x: [], y: [] });
   };
+
+  const selected = layers.find((l) => l.id === selectedId);
+  const liveSelected = selected && drag?.id === selected.id ? live?.box : null;
+  const selectedBox = selected ? (liveSelected ?? boxOf(selected)) : null;
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: the stage receives pointer presses (to deselect) and file drops, like the board surface
@@ -413,13 +448,13 @@ export function Artboard({
               isLive && live.fontSize !== null
                 ? { ...item, fontSize: live.fontSize }
                 : item;
-            const selected = selectedId === item.id;
+            const isSelected = selectedId === item.id;
             return (
               // biome-ignore lint/a11y/noStaticElementInteractions: a layer is a pointer target on a canvas; the layers list is its keyboard route
               // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
               <div
                 className={
-                  selected
+                  isSelected
                     ? "creative__layer creative__layer--selected"
                     : "creative__layer"
                 }
@@ -445,20 +480,24 @@ export function Artboard({
                   onTextChange={(body) => onTextChange(item.id, body)}
                   textRef={(el) => textRef(item.id, el)}
                 />
-                {selected && editingId !== item.id
-                  ? HANDLES.map((handle) => (
-                      <span
-                        aria-hidden
-                        className={`creative__handle creative__handle--${handle}`}
-                        key={handle}
-                        onPointerDown={(e) => begin(e, item, handle)}
-                        style={{ ["--s" as string]: scale }}
-                      />
-                    ))
-                  : null}
               </div>
             );
           })}
+          {selected && selectedBox && editingId !== selected.id ? (
+            <SelectionBox
+              box={selectedBox}
+              frame={frame}
+              onBegin={(e, handle) =>
+                begin(e, selected, handle, handle === null)
+              }
+              onDoubleClick={() => {
+                if (selected.kind === "text" || selected.kind === "note") {
+                  onEditText(selected.id);
+                }
+              }}
+              scale={scale}
+            />
+          ) : null}
           {guides.x.map((x) => (
             <span
               className="creative__guide creative__guide--v"

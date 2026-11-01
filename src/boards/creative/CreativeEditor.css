@@ -306,9 +306,56 @@
   object-fit: cover;
 }
 
+/* The selected layer's controls, above every layer (SelectionBox.tsx). The
+   inside moves it; every side resizes it; the handles resize from corners. */
+.creative__selection {
+  position: absolute;
+  z-index: 9000;
+  cursor: move;
+  outline: calc(1.5px / var(--s, 1)) solid oklch(65% 0.2 255);
+}
+
+.creative__edge {
+  --grip: calc(10px / var(--s, 1));
+  position: absolute;
+}
+
+.creative__edge--n,
+.creative__edge--s {
+  right: 0;
+  left: 0;
+  height: var(--grip);
+  cursor: ns-resize;
+}
+
+.creative__edge--n {
+  top: calc(var(--grip) / -2);
+}
+
+.creative__edge--s {
+  bottom: calc(var(--grip) / -2);
+}
+
+.creative__edge--e,
+.creative__edge--w {
+  top: 0;
+  bottom: 0;
+  width: var(--grip);
+  cursor: ew-resize;
+}
+
+.creative__edge--e {
+  right: calc(var(--grip) / -2);
+}
+
+.creative__edge--w {
+  left: calc(var(--grip) / -2);
+}
+
 .creative__handle {
   --size: calc(10px / var(--s, 1));
   position: absolute;
+  z-index: 1;
   width: var(--size);
   height: var(--size);
   background: white;

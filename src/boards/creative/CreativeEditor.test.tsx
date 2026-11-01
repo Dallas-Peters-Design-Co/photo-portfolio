@@ -256,4 +256,90 @@ describe("CreativeEditor", () => {
     expect(text).not.toContain("clickTag");
     expect(text).toContain("/1440");
   });
+
+  describe("a selected layer under another", () => {
+    const rect = (id: string, x: number, z: number): BoardItem => ({
+      ...base,
+      config: {
+        fill: "#f55c3e",
+        opacity: 1,
+        radius: 0,
+        stroke: "#00000000",
+        strokeWidth: 0,
+        tool: "rect",
+      },
+      height: 200,
+      id,
+      kind: "drawing",
+      width: 200,
+      x,
+      y: 100,
+      z,
+    });
+    const at = (el: Element, fx: number, fy: number) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.left + r.width * fx, y: r.top + r.height * fy };
+    };
+    const pointer = (
+      type: string,
+      target: Element,
+      p: { x: number; y: number }
+    ) =>
+      act(() => {
+        target.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            button: 0,
+            clientX: p.x,
+            clientY: p.y,
+            pointerId: 1,
+          })
+        );
+      });
+    const selectFromList = (name: string, index: number) => {
+      const rows = [...document.querySelectorAll(".creative__layer-row")];
+      expect(rows[index]?.textContent).toBe(name);
+      act(() => (rows[index] as HTMLButtonElement).click());
+    };
+
+    it("resizes from a side even where the layer on top covers it", () => {
+      // "low" spans 100–300; "top" sits over its right edge at 250–450.
+      render([frame, rect("low", 100, 1), rect("top", 250, 2)]);
+      selectFromList("Rectangle", 1);
+      const edge = document.querySelector(".creative__edge--e") as Element;
+      const board = document.querySelector(".creative__board") as Element;
+      const start = at(edge, 0.5, 0.5);
+      pointer("pointerdown", edge, start);
+      pointer("pointermove", board, { x: start.x + 40, y: start.y });
+      pointer("pointerup", board, { x: start.x + 40, y: start.y });
+      const low = latest.find((i) => i.id === "low");
+      expect(low?.width).toBeGreaterThan(200);
+      expect(low?.x).toBe(100);
+    });
+
+    it("drags the selected layer from inside, and a plain click picks the one on top", () => {
+      render([frame, rect("low", 100, 1), rect("top", 250, 2)]);
+      selectFromList("Rectangle", 1);
+      const box = document.querySelector(".creative__selection") as Element;
+      const board = document.querySelector(".creative__board") as Element;
+      // Inside "low", where "top" is drawn over it.
+      const inside = at(box, 0.9, 0.5);
+      pointer("pointerdown", box, inside);
+      pointer("pointerup", board, inside);
+      expect(
+        document
+          .querySelector(".creative__layer--selected")
+          ?.getAttribute("data-layer-id")
+      ).toBe("top");
+
+      selectFromList("Rectangle", 1);
+      const again = document.querySelector(".creative__selection") as Element;
+      const from = at(again, 0.9, 0.5);
+      pointer("pointerdown", again, from);
+      pointer("pointermove", board, { x: from.x - 30, y: from.y });
+      pointer("pointerup", board, { x: from.x - 30, y: from.y });
+      expect(latest.find((i) => i.id === "low")?.x).toBeLessThan(100);
+      expect(latest.find((i) => i.id === "top")?.x).toBe(250);
+    });
+  });
 });
