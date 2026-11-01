@@ -94,8 +94,8 @@
   grid-auto-rows: max-content;
   gap: calc(var(--spacing) * 2);
   place-items: stretch;
-  align-content: start;
-  justify-content: stretch;
+  align-content: center;
+  justify-content: center;
   height: 100vh;
   /* Sixteen buttons do not fit a laptop screen. The rail scrolls rather than
      dropping the last ones off the bottom of a short screen. */
