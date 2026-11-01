@@ -33,6 +33,7 @@ const kit: BrandKit = {
         url: "https://example.com/logo.svg",
       },
     ],
+    onBrand: ["https://example.com/on-brand.jpg"],
     palette: [
       { name: "Forest", role: "primary", value: "#1f4d3a" },
       { name: "Lime", role: "accent", value: "#c8e86b" },
@@ -172,5 +173,23 @@ describe("BrandDock", () => {
     await choose(el, "kit-1");
     expect(el.querySelector("output")?.textContent).toBe("#1f4d3a,#c8e86b");
     expect(localStorage.getItem("board-brand:b3")).toBe("kit-1");
+  });
+
+  it("shows the kit's own images, with or without a linked library", async () => {
+    localStorage.setItem("board-brand:b4", "kit-1");
+    const onInsert = vi.fn();
+    const el = await render(
+      <ActiveBrandProvider boardId="b4">
+        <BrandDock onClose={vi.fn()} onInsert={onInsert} />
+      </ActiveBrandProvider>
+    );
+    const tile = el.querySelector('img[src="https://example.com/on-brand.jpg"]')
+      ?.parentElement as HTMLButtonElement;
+    tile.click();
+    expect(onInsert).toHaveBeenCalledWith({
+      imageUrl: "https://example.com/on-brand.jpg",
+      thumbUrl: "https://example.com/on-brand.jpg",
+    });
+    expect(el.textContent).not.toContain("No images in this kit");
   });
 });

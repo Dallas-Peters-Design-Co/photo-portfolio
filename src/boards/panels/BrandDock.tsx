@@ -182,19 +182,49 @@ export function BrandDock({
             </section>
           ) : null}
 
-          <section>
-            <h4 className="brand-dock__label">Library</h4>
-            {doc.libraryCollectionId ? (
+          {doc.onBrand.length > 0 ? (
+            <section>
+              <h4 className="brand-dock__label">Images</h4>
+              <div className="brand-dock__grid">
+                {doc.onBrand.map((url) => (
+                  <button
+                    className="brand-dock__tile"
+                    key={url}
+                    onClick={() => onInsert({ imageUrl: url, thumbUrl: url })}
+                    title="Add to board"
+                    type="button"
+                  >
+                    <img
+                      alt=""
+                      height={96}
+                      loading="lazy"
+                      src={url}
+                      width={96}
+                    />
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {doc.libraryCollectionId ? (
+            <section>
+              <h4 className="brand-dock__label">Library</h4>
               <Library
                 collectionId={doc.libraryCollectionId}
                 onInsert={onInsert}
               />
-            ) : (
+            </section>
+          ) : null}
+
+          {doc.onBrand.length === 0 && !doc.libraryCollectionId ? (
+            <section>
+              <h4 className="brand-dock__label">Images</h4>
               <p className="brand-dock__empty">
-                No image library linked. Pick one in Brand kits.
+                No images in this kit yet. Add some in Brand kits.
               </p>
-            )}
-          </section>
+            </section>
+          ) : null}
 
           {doc.references.length > 0 ? (
             <section>
