@@ -1,5 +1,6 @@
 import { GripVertical, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { TypeScale } from "../../../config/typeScale.js";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { PaletteTool } from "./color/PaletteTool";
@@ -19,13 +20,28 @@ import "./Studio.css";
 
 const GROUPS = ["Images", "Colour", "Type"] as const;
 
+/**
+ * The frame the Studio is working for, when it's opened from the frame
+ * editor: its size comes first among the sizes, "Add to board" becomes "Add
+ * to frame", a picture can be set as the frame's background, and the type
+ * scale can be applied to the frame's text.
+ */
+export interface StudioFrame {
+  name: string;
+  onApplyType: (scale: TypeScale) => void;
+  onBackground: (file: File) => void;
+  size: { h: number; w: number } | null;
+}
+
 export function StudioPanel({
+  frame,
   initialTool,
   onAdd,
   onClose,
 }: {
+  frame?: StudioFrame;
   initialTool: string;
-  /** Places the file on the board. */
+  /** Places the file on the board (or in the frame). */
   onAdd: (file: File) => void;
   onClose: () => void;
 }) {
@@ -46,7 +62,7 @@ export function StudioPanel({
       return <PaletteTool onAdd={onAdd} />;
     }
     if (toolId === "type-scale") {
-      return <TypeScaleTool onAdd={onAdd} />;
+      return <TypeScaleTool onAdd={onAdd} onApply={frame?.onApplyType} />;
     }
     if (toolId === "ramps") {
       return (
@@ -63,6 +79,7 @@ export function StudioPanel({
     const tool = imageTool ?? IMAGE_TOOLS[0];
     return tool ? (
       <ImageToolView
+        frame={frame}
         key={tool.id}
         onAdd={onAdd}
         onValues={(values) =>
@@ -85,7 +102,10 @@ export function StudioPanel({
         <GripVertical aria-hidden className="studio__grip" size={14} />
         <strong>Studio</strong>
         <span className="studio__brand">
-          {brand?.kit ? `in ${brand.kit.name}` : "no brand chosen"}
+          {frame ? `for ${frame.name}` : ""}
+          {frame && brand?.kit ? " · " : ""}
+          {brand?.kit ? `in ${brand.kit.name}` : ""}
+          {frame || brand?.kit ? "" : "no brand chosen"}
         </span>
         <button
           aria-label="Close the Studio"

@@ -1,5 +1,14 @@
-import { ImageIcon, Redo2, Sparkles, Type, Undo2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  Command as CommandIcon,
+  ImageIcon,
+  Palette,
+  Redo2,
+  Sparkles,
+  Type,
+  Undo2,
+  X,
+} from "lucide-react";
+import { useRef, useState } from "react";
 import { sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
@@ -7,27 +16,22 @@ import { ColorWell } from "../ColorWell";
 import { isDrawingConfig } from "../drawing/drawing";
 import { requestHistory } from "../hooks/historyRequest";
 import { BrandDock } from "../panels/BrandDock";
+import { useShortcuts } from "../shortcuts/useShortcuts";
 import { Artboard } from "./Artboard";
 import { BrandPanel } from "./BrandPanel";
 import { ContextBar } from "./ContextBar";
-import {
-  duplicate,
-  layerKind,
-  layersOf,
-  newImage,
-  newShape,
-  newText,
-  patchItems,
-  type Reorder,
-  reorder,
-  type ShapeTool,
-} from "./creativeModel";
+import { layersOf, newImage, newShape } from "./creativeModel";
+import { EditorOverlays } from "./EditorOverlays";
 import { ExportMenu } from "./ExportMenu";
 import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
 import { MultiBar } from "./MultiBar";
+import { PanelEdge } from "./PanelEdge";
 import { ShapePicker } from "./ShapePicker";
 import { useLayerSelection } from "./selection";
+import { studioLayer } from "./studioLayer";
+import { useEditorCommands } from "./useEditorCommands";
+import { usePanelWidths } from "./usePanelWidths";
 import "./CreativeEditor.css";
 
 /**
@@ -44,16 +48,6 @@ export interface CreativeEditorProps {
   onClose: () => void;
   onDropFiles?: (files: File[], point: { x: number; y: number }) => void;
 }
-
-const STACK_KEYS: Record<string, { far: Reorder; near: Reorder }> = {
-  "[": { far: "back", near: "backward" },
-  "]": { far: "front", near: "forward" },
-};
-
-const isTyping = (target: EventTarget | null): boolean =>
-  target instanceof HTMLElement &&
-  (target.isContentEditable ||
-    ["INPUT", "SELECT", "TEXTAREA"].includes(target.tagName));
 
 const aspectOf = (url: string): Promise<number> =>
   new Promise((resolve) => {
@@ -87,160 +81,61 @@ export function CreativeEditor({
   onDropFiles,
 }: CreativeEditorProps) {
   const selection = useLayerSelection();
+  const panelWidths = usePanelWidths();
   const selectedId = selection.primary;
   const setSelectedId = (id: string | null) => selection.select(id);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showBrand, setShowBrand] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
+  const [overlay, setOverlay] = useState<"palette" | "shortcuts" | null>(null);
+  const [studio, setStudio] = useState<string | null>(null);
   const textEls = useRef(new Map<string, HTMLElement>());
-  const palette = useActiveBrand()?.kit?.resolvedDoc.palette ?? [];
+  const kitDoc = useActiveBrand()?.kit?.resolvedDoc ?? null;
+  const palette = kitDoc?.palette ?? [];
 
   const frame = items.find((item) => item.id === frameId);
   const layers = frame ? layersOf(frame, items) : [];
   const selected = layers.find((l) => l.id === selectedId) ?? null;
-  const chosen = layers.filter((l) => selection.ids.includes(l.id));
   const background = frame ? backgroundOf(frame, layers) : null;
 
-  const patch = (id: string, next: Partial<BoardItem>) =>
-    onChange(patchItems(items, new Map([[id, next]])));
-  const patchMany = (patches: Map<string, Partial<BoardItem>>) =>
-    onChange(patchItems(items, patches));
-
-  /** Several layers at once: delete them, or copy them all. */
-  const removeMany = (ids: string[]) => {
-    onChange(items.filter((item) => !ids.includes(item.id)));
-    selection.select(null);
-  };
-  const copyMany = (group: BoardItem[]) => {
-    const copies: BoardItem[] = [];
-    for (const layer of group) {
-      copies.push(duplicate(layer, [...items, ...copies]));
-    }
-    onChange([...items, ...copies]);
-    selection.setIds(copies.map((c) => c.id));
-  };
-
-  /** ⌘A selects every layer but the background; otherwise the one layer. */
-  const singleKey = (e: KeyboardEvent): (() => void) | null => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") {
-      return () =>
-        selection.setIds(
-          layers.filter((l) => l !== background).map((l) => l.id)
-        );
-    }
-    return selected ? keyAction(e, selected) : null;
-  };
-
-  /** What a key does to a multiple selection, or null to let it through. */
-  const groupKey = (e: KeyboardEvent): (() => void) | null => {
-    const step = e.shiftKey ? 10 : 1;
-    const delta = {
-      ArrowDown: [0, step],
-      ArrowLeft: [-step, 0],
-      ArrowRight: [step, 0],
-      ArrowUp: [0, -step],
-    }[e.key];
-    if (delta) {
-      return () =>
-        patchMany(
-          new Map(
-            chosen.map((l) => [
-              l.id,
-              { x: l.x + (delta[0] ?? 0), y: l.y + (delta[1] ?? 0) },
-            ])
-          )
-        );
-    }
-    if (e.key === "Delete" || e.key === "Backspace") {
-      return () => removeMany(chosen.map((l) => l.id));
-    }
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
-      return () => copyMany(chosen);
-    }
-    return singleKey(e);
-  };
-
-  const add = (item: BoardItem) => {
-    onChange([...items, item]);
-    setSelectedId(item.id);
-  };
-
-  const remove = (id: string) => {
-    onChange(items.filter((item) => item.id !== id));
-    setSelectedId(null);
-  };
-
-  const order = (id: string, how: Reorder) => {
-    const zs = reorder(layers, id, how);
-    onChange(
-      patchItems(items, new Map([...zs].map(([key, z]) => [key, { z }])))
-    );
-  };
-
-  const copy = (item: BoardItem) => add(duplicate(item, items));
-
-  /** What a key does to the selected layer, or null to let it through. */
-  const keyAction = (
-    e: KeyboardEvent,
-    layer: BoardItem
-  ): (() => void) | null => {
-    const mod = e.metaKey || e.ctrlKey;
-    const step = e.shiftKey ? 10 : 1;
-    const nudge: Record<string, [number, number]> = {
-      ArrowDown: [0, step],
-      ArrowLeft: [-step, 0],
-      ArrowRight: [step, 0],
-      ArrowUp: [0, -step],
-    };
-    const delta = nudge[e.key];
-    if (delta) {
-      return () =>
-        patch(layer.id, { x: layer.x + delta[0], y: layer.y + delta[1] });
-    }
-    if (e.key === "Delete" || e.key === "Backspace") {
-      return () => remove(layer.id);
-    }
-    if (mod && e.key.toLowerCase() === "d") {
-      return () => copy(layer);
-    }
-    const stack = mod ? STACK_KEYS[e.key] : undefined;
-    if (stack) {
-      return () => order(layer.id, e.shiftKey ? stack.far : stack.near);
-    }
-    if (e.key === "Enter" && layerKind(layer) === "text") {
-      return () => setEditingId(layer.id);
-    }
-    return null;
-  };
+  const cmd = useEditorCommands({
+    background,
+    brandFill: palette[0]?.value ?? "#e5e5e5",
+    frame,
+    items,
+    kitDoc,
+    layers,
+    onChange,
+    selection,
+    setEditingId,
+    ui: {
+      close: onClose,
+      openPalette: () => setOverlay("palette"),
+      openShortcuts: () => setOverlay("shortcuts"),
+      openStudio: () => setStudio("gradient"),
+      toggleGenerate: () => setShowGenerate((v) => !v),
+      toggleImages: () => setShowBrand((v) => !v),
+      togglePanel: panelWidths.toggle,
+    },
+  });
+  const { chosen, patch, patchMany } = cmd;
 
   // Keys, caught before the board's own so a Delete here never reaches the
-  // board's selection. Undo is left alone: the board's handles it.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (isTyping(e.target)) {
-        return;
-      }
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        if (selection.ids.length > 0) {
-          setSelectedId(null);
-        } else {
-          onClose();
-        }
-        return;
-      }
-      const action = chosen.length > 1 ? groupKey(e) : singleKey(e);
-      if (action) {
-        action();
-        e.preventDefault();
-        e.stopImmediatePropagation();
-      }
-    };
-    window.addEventListener("keydown", onKey, { capture: true });
-    return () =>
-      window.removeEventListener("keydown", onKey, { capture: true });
+  // board's selection. Esc lets go of the selection, then closes the editor.
+  useShortcuts(cmd.commands, {
+    onEscape: () =>
+      selection.primary || chosen.length ? setSelectedId(null) : onClose(),
+    // The palette and sheet close themselves; the Studio closes on Esc here.
+    onPausedEscape: () => (overlay ? setOverlay(null) : setStudio(null)),
+    paused: overlay !== null || studio !== null,
   });
+
+  /** A Studio picture placed in the frame: as a layer, or behind everything. */
+  const placeFromStudio = async (file: File, asBackground: boolean) => {
+    if (frame) {
+      cmd.add(await studioLayer(file, frame, items, layers, asBackground));
+    }
+  };
 
   if (!frame) {
     return null;
@@ -248,10 +143,6 @@ export function CreativeEditor({
 
   const size = sizeFromTitle(frame.body);
   const name = frame.body?.trim() || "Untitled frame";
-
-  const brandFill = palette[0]?.value ?? "#e5e5e5";
-  const shape = (tool: ShapeTool) =>
-    add(newShape(frame, items, tool, brandFill));
 
   const setBackground = (fill: string) => {
     if (background && isDrawingConfig(background.config)) {
@@ -282,9 +173,12 @@ export function CreativeEditor({
     <div
       aria-label={`Design ${name}`}
       aria-modal
-      className="creative"
+      className={panelWidths.className}
       role="dialog"
+      style={panelWidths.style}
     >
+      <PanelEdge panels={panelWidths} side="left" />
+      <PanelEdge panels={panelWidths} side="right" />
       <header className="creative__header">
         <div className="creative__title">
           <strong>{name}</strong>
@@ -315,6 +209,15 @@ export function CreativeEditor({
               <Redo2 size={15} />
             </button>
           </div>
+          <button
+            aria-label="Command palette"
+            className="creative__button creative__button--icon"
+            onClick={() => setOverlay("palette")}
+            title="Command palette (⌘K) · shortcuts (?)"
+            type="button"
+          >
+            <CommandIcon size={15} />
+          </button>
           <ExportMenu
             frame={frame}
             items={items}
@@ -338,19 +241,21 @@ export function CreativeEditor({
         <div className="creative__adds">
           <button
             className="creative__add"
-            onClick={() => add(newText(frame, items, "headline"))}
+            onClick={() => cmd.text("headline")}
+            title="Headline (T)"
             type="button"
           >
             <Type size={16} /> Headline
           </button>
           <button
             className="creative__add"
-            onClick={() => add(newText(frame, items, "body"))}
+            onClick={() => cmd.text("body")}
+            title="Body text (⇧T)"
             type="button"
           >
             <Type size={13} /> Body text
           </button>
-          <ShapePicker onPick={shape} />
+          <ShapePicker onPick={cmd.shape} />
           <button
             aria-pressed={showBrand}
             className="creative__add"
@@ -366,6 +271,15 @@ export function CreativeEditor({
             type="button"
           >
             <Sparkles size={16} /> Generate
+          </button>
+          <button
+            aria-pressed={studio !== null}
+            className="creative__add"
+            onClick={() => setStudio((v) => (v ? null : "gradient"))}
+            title="Backgrounds, patterns, shapes, colour and type (⇧S)"
+            type="button"
+          >
+            <Palette size={16} /> Studio
           </button>
         </div>
         {showGenerate ? (
@@ -398,6 +312,7 @@ export function CreativeEditor({
         <p className="creative__label">Layers</p>
         <LayersList
           layers={layers}
+          onReorder={cmd.restack}
           onSelect={selection.select}
           selectedIds={selection.ids}
         />
@@ -408,8 +323,8 @@ export function CreativeEditor({
           <MultiBar
             layers={chosen}
             onClear={() => selection.select(null)}
-            onDelete={() => removeMany(chosen.map((l) => l.id))}
-            onDuplicate={() => copyMany(chosen)}
+            onDelete={() => cmd.removeMany(chosen.map((l) => l.id))}
+            onDuplicate={() => cmd.copyMany(chosen)}
             onPatch={patchMany}
           />
         ) : null}
@@ -417,10 +332,10 @@ export function CreativeEditor({
           <ContextBar
             frame={frame}
             item={selected}
-            onDelete={() => remove(selected.id)}
-            onDuplicate={() => copy(selected)}
+            onDelete={() => cmd.removeMany([selected.id])}
+            onDuplicate={() => cmd.copyMany([selected])}
             onPatch={(next) => patch(selected.id, next)}
-            onReorder={(how) => order(selected.id, how)}
+            onReorder={(how) => cmd.order(selected.id, how)}
           />
         ) : null}
         {chosen.length === 0 ? (
@@ -460,12 +375,32 @@ export function CreativeEditor({
         onSelect={setSelectedId}
       />
 
+      <EditorOverlays
+        commands={cmd.commands}
+        onCloseOverlay={() => setOverlay(null)}
+        onCloseStudio={() => setStudio(null)}
+        overlay={overlay}
+        studio={
+          studio
+            ? {
+                frame: {
+                  name,
+                  onApplyType: cmd.applyTypeScale,
+                  onBackground: (file) => void placeFromStudio(file, true),
+                  size,
+                },
+                onAdd: (file) => void placeFromStudio(file, false),
+                tool: studio,
+              }
+            : null
+        }
+      />
       {showBrand ? (
         <BrandDock
           onClose={() => setShowBrand(false)}
           onInsert={(image) =>
             void aspectOf(image.imageUrl).then((aspect) =>
-              add(newImage(frame, items, image.imageUrl, aspect))
+              cmd.add(newImage(frame, items, image.imageUrl, aspect))
             )
           }
         />

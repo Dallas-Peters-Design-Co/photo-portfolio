@@ -1,0 +1,182 @@
+/* The command palette (⌘K) and the shortcut sheet (?), over everything. */
+
+.palette {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-board-panel, 200) + 20);
+  display: grid;
+  place-items: start center;
+  padding-top: 12vh;
+  background: rgb(0 0 0 / 0.35);
+}
+
+.palette__box {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(38rem, calc(100vw - 2rem));
+  max-height: 60vh;
+  overflow: hidden;
+  color: var(--color-board-ink, #111);
+  background: var(--color-board-panel, #fff);
+  border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.35);
+}
+
+.palette__search {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid color-mix(in oklch, currentColor 10%, transparent);
+
+  & input {
+    flex: 1;
+    font-size: 0.95rem;
+    color: inherit;
+    outline: none;
+    background: none;
+    border: 0;
+  }
+}
+
+.palette__list {
+  padding: 0.35rem;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.palette__item {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8125rem;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+
+  &[aria-current="true"] {
+    background: color-mix(in oklch, currentColor 9%, transparent);
+  }
+}
+
+.palette__group {
+  font-size: 0.6875rem;
+  color: color-mix(in oklch, currentColor 50%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.palette__label {
+  display: grid;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  & small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 0.6875rem;
+    color: color-mix(in oklch, currentColor 55%, transparent);
+  }
+}
+
+.palette__keys,
+.sheet kbd {
+  padding: 0.1rem 0.4rem;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  color: color-mix(in oklch, currentColor 75%, transparent);
+  white-space: nowrap;
+  background: color-mix(in oklch, currentColor 7%, transparent);
+  border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
+  border-radius: 5px;
+}
+
+.palette__empty {
+  padding: 1rem;
+  font-size: 0.8125rem;
+  color: color-mix(in oklch, currentColor 55%, transparent);
+}
+
+.sheet {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(60rem, calc(100vw - 2rem));
+  max-height: 76vh;
+  overflow: hidden;
+  color: var(--color-board-ink, #111);
+  background: var(--color-board-panel, #fff);
+  border-radius: 12px;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.35);
+}
+
+.sheet__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid color-mix(in oklch, currentColor 10%, transparent);
+}
+
+.sheet__close {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 6px;
+
+  &:hover {
+    background: color-mix(in oklch, currentColor 8%, transparent);
+  }
+}
+
+.sheet__groups {
+  columns: 3 16rem;
+  column-gap: 1.75rem;
+  padding: 1rem 1.1rem 1.25rem;
+  overflow-y: auto;
+}
+
+.sheet__group {
+  margin-bottom: 1.1rem;
+  break-inside: avoid;
+
+  & h3 {
+    margin: 0 0 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: color-mix(in oklch, currentColor 50%, transparent);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  & dl {
+    margin: 0;
+  }
+}
+
+.sheet__row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.22rem 0;
+  font-size: 0.78rem;
+
+  & dd {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0;
+  }
+}

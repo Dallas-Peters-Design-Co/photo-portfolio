@@ -1,4 +1,4 @@
-import { Copy, Plus, Save } from "lucide-react";
+import { Copy, Plus, Save, Type } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { familyOf } from "../../../../config/designMd.js";
@@ -19,7 +19,14 @@ import { specimenPng } from "./specimen";
  * (and so to DESIGN.md and the brand guide), copied as CSS, or put on the
  * board as a specimen.
  */
-export function TypeScaleTool({ onAdd }: { onAdd: (file: File) => void }) {
+export function TypeScaleTool({
+  onAdd,
+  onApply,
+}: {
+  onAdd: (file: File) => void;
+  /** Working for a frame: restyle its text with this scale. */
+  onApply?: (scale: TypeScale) => void;
+}) {
   const { kit, saving, update } = useKitPalette();
   const typefaces = kit?.resolvedDoc.typefaces ?? [];
   const faces = facesFor(typefaces);
@@ -72,6 +79,22 @@ export function TypeScaleTool({ onAdd }: { onAdd: (file: File) => void }) {
         Saving writes the scale into the kit's DESIGN.md and brand guide.
       </p>
       <div className="studio__actions">
+        {onApply ? (
+          <button
+            className="studio__button studio__button--primary"
+            disabled={!scale?.styles.length}
+            onClick={() => {
+              if (scale) {
+                onApply(scale);
+                toast.success("Type scale applied to the frame's text");
+              }
+            }}
+            title="Headline takes h1, body copy takes body, the button takes label"
+            type="button"
+          >
+            <Type size={14} /> Apply to frame
+          </button>
+        ) : null}
         {kit ? (
           <button
             className="studio__button studio__button--primary"

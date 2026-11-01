@@ -225,6 +225,29 @@ export const reorder = (
   return new Map(order.map((item, i) => [item.id, base + i]));
 };
 
+/**
+ * Moves layers to a place in the stack, as dragging them in the layers list
+ * does. `before` is the layer they land in front of in the list (the list runs
+ * front first), or null for the very back. Moved layers keep their own order,
+ * and the band of z the frame's layers already use stays the same.
+ */
+export const moveInStack = (
+  layers: BoardItem[],
+  moving: string[],
+  before: string | null
+): Map<string, number> => {
+  const frontFirst = [...layers].sort((a, b) => b.z - a.z);
+  const moved = frontFirst.filter((l) => moving.includes(l.id));
+  const rest = frontFirst.filter((l) => !moving.includes(l.id));
+  const at =
+    before === null ? rest.length : rest.findIndex((l) => l.id === before);
+  const order = [...rest];
+  order.splice(at < 0 ? rest.length : at, 0, ...moved);
+  const base = Math.min(...layers.map((l) => l.z));
+  const back = order.length - 1;
+  return new Map(order.map((l, i) => [l.id, base + back - i]));
+};
+
 /** Applies a batch of per-id patches to the board. */
 export const patchItems = (
   items: BoardItem[],

@@ -1,9 +1,10 @@
-import { Check, Copy, Download, Plus, Shuffle } from "lucide-react";
+import { Check, Copy, Download, ImageIcon, Plus, Shuffle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
+import type { StudioFrame } from "./StudioPanel";
 import { defaultsOf } from "./tools";
 import type { ImageTool, StudioValues } from "./types";
 
@@ -31,12 +32,15 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
   });
 
 export function ImageToolView({
+  frame,
   onAdd,
   onValues,
   palette,
   tool,
   values: stored,
 }: {
+  /** Working for a frame in the editor: its size first, and a background button. */
+  frame?: StudioFrame;
   onAdd: (file: File) => void;
   onValues: (values: StudioValues) => void;
   palette: string[];
@@ -44,8 +48,18 @@ export function ImageToolView({
   values: StudioValues | undefined;
 }) {
   const values = stored ?? defaultsOf(tool.params);
+  const sizes = frame?.size
+    ? [
+        {
+          h: frame.size.h,
+          label: `This frame ${frame.size.w}×${frame.size.h}`,
+          w: frame.size.w,
+        },
+        ...SIZES,
+      ]
+    : SIZES;
   const [sizeIndex, setSizeIndex] = useState(0);
-  const size = SIZES[sizeIndex] ?? SIZES[0];
+  const size = sizes[sizeIndex] ?? SIZES[0];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [copied, setCopied] = useState(false);
@@ -91,11 +105,18 @@ export function ImageToolView({
     }
   };
 
-  const add = async () => {
+  const where = frame ? "frame" : "board";
+  const add = async (asBackground = false) => {
     try {
       const png = await svgToPngBlob(svg, size.w, size.h);
-      onAdd(new File([png], `${fileName}.png`, { type: "image/png" }));
-      toast.success(`${tool.name} added to the board`);
+      const file = new File([png], `${fileName}.png`, { type: "image/png" });
+      if (asBackground && frame) {
+        frame.onBackground(file);
+        toast.success(`${tool.name} set as the frame's background`);
+        return;
+      }
+      onAdd(file);
+      toast.success(`${tool.name} added to the ${where}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't add it");
     }
@@ -119,7 +140,7 @@ export function ImageToolView({
           onChange={(e) => setSizeIndex(Number(e.target.value))}
           value={sizeIndex}
         >
-          {SIZES.map((s, i) => (
+          {sizes.map((s, i) => (
             <option key={s.label} value={i}>
               {s.label}
             </option>
@@ -140,8 +161,18 @@ export function ImageToolView({
           onClick={() => void add()}
           type="button"
         >
-          <Plus size={14} /> Add to board
+          <Plus size={14} /> Add to {where}
         </button>
+        {frame ? (
+          <button
+            className="studio__button"
+            onClick={() => void add(true)}
+            title="Fills the frame, behind every layer"
+            type="button"
+          >
+            <ImageIcon size={14} /> Set as background
+          </button>
+        ) : null}
         {tool.params.some((p) => p.type === "seed") ? (
           <button className="studio__button" onClick={shuffle} type="button">
             <Shuffle size={14} /> Shuffle
