@@ -99,5 +99,15 @@ export const useDraggablePanel = (storageKey: string) => {
     ? { left: position.x, top: position.y }
     : undefined;
 
-  return { dragging, handleProps: { onPointerDown }, style };
+  /** Back to where the panel's own CSS puts it. */
+  const reset = () => {
+    setPosition(null);
+    try {
+      localStorage.removeItem(storageKey);
+    } catch {
+      // Nothing remembered to forget.
+    }
+  };
+
+  return { dragging, handleProps: { onPointerDown }, reset, style };
 };

@@ -221,3 +221,44 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro-caps);
 }
+
+/* The header bar: a grip to move it, a chevron to fold it away. */
+.board-header__grip {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  padding-inline: calc(var(--spacing) * 0.5);
+  color: color-mix(in oklch, var(--color-board-ink) 40%, transparent);
+  touch-action: none;
+  cursor: grab;
+  border-radius: var(--radius-control, 6px);
+
+  &:hover {
+    color: var(--color-board-ink);
+    background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
+  }
+}
+
+.board-header--dragging,
+.board-header--dragging .board-header__grip {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.board-header__collapse {
+  display: grid;
+  place-items: center;
+  width: calc(var(--spacing) * 8);
+  height: calc(var(--spacing) * 8);
+  color: color-mix(in oklch, var(--color-board-ink) 60%, transparent);
+  border-radius: var(--radius-control, 6px);
+
+  &:hover {
+    color: var(--color-board-ink);
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+}
+
+.board-header__actions {
+  display: contents;
+}

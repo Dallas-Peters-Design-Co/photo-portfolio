@@ -88,7 +88,9 @@ export function BrandDock({
   return (
     <aside
       aria-label="Brand"
-      className={`brand-dock${drag.dragging ? "brand-dock--dragging" : ""}`}
+      className={
+        drag.dragging ? "brand-dock brand-dock--dragging" : "brand-dock"
+      }
       style={drag.style}
     >
       {/* Drag the header (anywhere but its controls) to move the panel. */}

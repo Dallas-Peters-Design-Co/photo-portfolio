@@ -37,6 +37,7 @@ import { CustomCursor } from "./CustomCursor";
 import "./BoardEditor.css";
 
 import { BoardHeaderActions } from "./boardEditor/BoardHeaderActions";
+import { BoardHeaderPanel } from "./boardEditor/BoardHeaderPanel";
 import { BoardStatusBar } from "./boardEditor/BoardStatusBar";
 import { BoardToolPanel } from "./boardEditor/BoardToolPanel";
 import { useBoardDocument } from "./boardEditor/useBoardDocument";
@@ -301,7 +302,7 @@ export function BoardEditor({
           title={board?.title ?? "Board"}
         />
 
-        <div className="board-panel board-panel--top-right">
+        <BoardHeaderPanel>
           <BoardHeaderActions
             commentCount={comments.length}
             hasNodes={items.some((item) => item.kind === "op")}
@@ -317,7 +318,7 @@ export function BoardEditor({
             publicUrl={publicUrl}
             showComments={showComments}
           />
-        </div>
+        </BoardHeaderPanel>
 
         {/* The layer every board overlay belongs in. Named so a panel escaping
             its own transform has somewhere to escape to — see ElementsTab. */}
