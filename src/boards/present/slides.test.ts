@@ -89,3 +89,30 @@ describe("slidesOf", () => {
     ]);
   });
 });
+
+describe("a board with nothing framed", () => {
+  it("plays every picture on it, once each, Clip videos included", () => {
+    const slides = slidesOf({
+      items: [
+        item({ imageUrl: "a.png", x: 0, y: 0 }),
+        item({ imageUrl: "a.png", x: 0, y: 0 }),
+        item({ imageUrl: "b.png", x: 400, y: 0 }),
+        item({
+          config: { clipUrl: "c.mp4" },
+          kind: "op",
+          nodeType: "clip",
+          x: 0,
+          y: 400,
+        }),
+      ],
+      title: "Loose",
+    });
+    expect(slides.map((s) => (s.kind === "picture" ? s.url : s.kind))).toEqual([
+      "title",
+      "a.png",
+      "b.png",
+      "c.mp4",
+    ]);
+    expect(slides.at(-1)).toMatchObject({ video: true });
+  });
+});

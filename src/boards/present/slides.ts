@@ -1,4 +1,5 @@
 import { containedBy } from "../../../config/graph";
+import { clipUrlOf } from "../../../config/nodes/clip.js";
 import type { Board, BoardItem } from "../../types";
 import { isVideoUrl } from "../io/isVideo";
 import { currentImageUrl } from "../itemOutput";
@@ -12,7 +13,9 @@ import { currentImageUrl } from "../itemOutput";
  * frame is a slide, in the same order within the frame. A frame's name
  * becomes a section card before its pictures, and the board's title opens
  * the deck. Pictures outside any frame are not shown: the board is where you
- * work, and framing something is how you say it is finished.
+ * work, and framing something is how you say it is finished. A board with
+ * nothing framed at all plays every picture on it instead, rather than a
+ * title card and nothing else.
  *
  * Pure, so the order a deck plays in can be pinned by a test rather than
  * found out on a client call.
@@ -56,6 +59,40 @@ export const framesInReadingOrder = <T extends BoardItem>(frames: T[]): T[] => {
   return rows.flatMap((row) => row.sort((a, b) => a.x - b.x));
 };
 
+/** What a slide shows for an item: its picture, or a Clip node's video. */
+const mediaOf = (item: BoardItem): string | null =>
+  currentImageUrl(item) ??
+  (item.nodeType === "clip" ? clipUrlOf(item.config) : null);
+
+/** Items in reading order, each picture once (copies pinned twice play once). */
+const picturesIn = (items: BoardItem[]): BoardItem[] => {
+  const seen = new Set<string>();
+  return framesInReadingOrder(items.filter((item) => mediaOf(item))).filter(
+    (item) => {
+      const url = mediaOf(item) as string;
+      if (seen.has(url)) {
+        return false;
+      }
+      seen.add(url);
+      return true;
+    }
+  );
+};
+
+const pictureSlides = (pictures: BoardItem[], section: string): Slide[] =>
+  pictures.map((item, at) => {
+    const url = mediaOf(item) as string;
+    return {
+      caption: captionOf(item),
+      count: pictures.length,
+      index: at + 1,
+      kind: "picture",
+      section,
+      url,
+      video: isVideoUrl(url),
+    };
+  });
+
 /** The frame's name as typed, or nothing. */
 const nameOf = (frame: BoardItem): string | null => frame.body?.trim() || null;
 
@@ -73,8 +110,8 @@ export const slidesOf = (
   );
   const slides: Slide[] = [{ kind: "title", subtitle, title: board.title }];
   for (const frame of frames) {
-    const pictures = framesInReadingOrder(
-      containedBy(frame, items).filter((item) => Boolean(currentImageUrl(item)))
+    const pictures = picturesIn(
+      containedBy(frame, items).filter((item) => item.kind !== "frame")
     );
     if (pictures.length === 0) {
       continue;
@@ -83,18 +120,15 @@ export const slidesOf = (
     if (section) {
       slides.push({ count: pictures.length, kind: "section", title: section });
     }
-    pictures.forEach((item, at) => {
-      const url = currentImageUrl(item) as string;
-      slides.push({
-        caption: captionOf(item),
-        count: pictures.length,
-        index: at + 1,
-        kind: "picture",
-        section,
-        url,
-        video: isVideoUrl(url),
-      });
-    });
+    slides.push(...pictureSlides(pictures, section));
+  }
+  if (slides.length === 1) {
+    slides.push(
+      ...pictureSlides(
+        picturesIn(items.filter((item) => item.kind !== "frame")),
+        ""
+      )
+    );
   }
   return slides;
 };
