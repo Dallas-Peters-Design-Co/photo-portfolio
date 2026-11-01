@@ -1,6 +1,8 @@
 import {
   type BrandReference,
+  MAX_PALETTE,
   MAX_REFERENCES,
+  sanitizeKitDoc,
   sanitizeReferences,
 } from "../../config/brandKit.js";
 import { designMd } from "../../config/designMd.js";
@@ -129,6 +131,53 @@ const getDesignMd: McpTool<Ctx> = {
   },
 };
 
+const setBrandPalette: McpTool<Ctx> = {
+  description:
+    'Replace a brand kit\'s colour palette, in order: each colour a six-digit hex, with an optional name and role ("primary", "text", "surface"…). Saved as a new version of the kit, so the old palette stays in its history. For a sub-brand it sets the sub-brand\'s own palette.',
+  inputSchema: {
+    properties: {
+      kit: { description: "Brand kit name or id", type: "string" },
+      palette: {
+        description: `The new palette, at most ${MAX_PALETTE} colours`,
+        items: {
+          properties: {
+            name: { type: "string" },
+            role: { type: "string" },
+            value: { description: "#rrggbb", type: "string" },
+          },
+          required: ["value"],
+          type: "object",
+        },
+        type: "array",
+      },
+    },
+    required: ["kit", "palette"],
+    type: "object",
+  },
+  name: "set_brand_palette",
+  run: async (args, { sql }) => {
+    const found = await findKit(sql, args.kit);
+    const asked = Array.isArray(args.palette) ? args.palette.length : 0;
+    // The kit's own sanitiser decides what a colour is, so this tool can't
+    // store anything the admin wouldn't.
+    const { palette } = sanitizeKitDoc({ palette: args.palette });
+    if (palette.length === 0) {
+      throw new ToolError("No usable colours: give each one as #rrggbb.");
+    }
+    const version = await writeKitVersion(sql, found.id, {
+      ...found.doc,
+      palette,
+    });
+    return {
+      dropped: asked - palette.length,
+      kit: found.name,
+      palette,
+      version: version?.version ?? null,
+    };
+  },
+  writes: true,
+};
+
 /** Same title, date and source: the same note filed twice. */
 const isDuplicate = (a: BrandReference, b: BrandReference) =>
   a.title.toLowerCase() === b.title.toLowerCase() &&
@@ -237,6 +286,7 @@ const removeBrandReference: McpTool<Ctx> = {
 
 export const BRAND_TOOLS: McpTool<Ctx>[] = [
   getDesignMd,
+  setBrandPalette,
   listBrandKits,
   getBrandKit,
   addBrandReference,

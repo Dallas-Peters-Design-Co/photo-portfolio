@@ -70,6 +70,7 @@ describe("brand tools on the connector", () => {
         "add_brand_reference",
         "remove_brand_reference",
         "get_design_md",
+        "set_brand_palette",
       ])
     );
     expect(tool("add_brand_reference").writes).toBe(true);
@@ -202,5 +203,23 @@ describe("brand tools on the connector", () => {
     expect(out.markdown).toContain("name: TSRP Solar");
     expect(out.markdown).toContain('primary: "#1f4d3a"');
     expect(tool("get_design_md").writes).toBeFalsy();
+  });
+
+  it("replaces a palette as a new version, dropping what isn't a colour", async () => {
+    const out = (await tool("set_brand_palette").run(
+      {
+        kit: "Bird Creek Roofing",
+        palette: [
+          { name: "Red", role: "primary", value: "#C63B2E" },
+          { name: "Paper", value: "#efe6d2" },
+          { name: "Nope", value: "red" },
+        ],
+      },
+      ctx
+    )) as { dropped: number; palette: { value: string }[] };
+    expect(out.dropped).toBe(1);
+    expect(out.palette.map((p) => p.value)).toEqual(["#c63b2e", "#efe6d2"]);
+    expect(writes.at(-1)?.kitId).toBe("11111111-1111-1111-1111-111111111111");
+    expect(tool("set_brand_palette").writes).toBe(true);
   });
 });
