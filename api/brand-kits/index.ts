@@ -11,6 +11,7 @@ import { isFalConfigured } from "../_lib/fal.js";
 import { adobeKitFamilies, googleCatalog } from "../_lib/fontCatalog.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { designMdOf } from "../_lib/mcpBrandTools.js";
+import { loadModelDefs } from "../_lib/modelStore.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
@@ -114,7 +115,11 @@ async function handleImage(
     return res.status(404).json({ error: "That brand kit wasn't found" });
   }
   try {
-    const image = await brandImage(kit.resolvedDoc, readImageRequest(body));
+    const image = await brandImage(
+      kit.resolvedDoc,
+      readImageRequest(body),
+      await loadModelDefs()
+    );
     return res.status(200).json(image);
   } catch (e) {
     console.error("[brand-kits] image", e);

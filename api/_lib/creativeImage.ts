@@ -1,6 +1,13 @@
 import { type BrandKitDoc, kitPromptText } from "../../config/brandKit.js";
+import {
+  type FalModelDef,
+  falModelFor,
+  falModelInput,
+  isFalModel,
+} from "../../config/falModels.js";
 import { describeWithClaude } from "./claudeVision.js";
 import { type GeneratedImage, generateImage } from "./fal.js";
+import { falAcceptsImageList } from "./falEndpoint.js";
 
 /**
  * A picture for a frame, made from everything the brand kit knows.
@@ -24,6 +31,11 @@ export interface ImageRequest {
   look: string;
   /** Send the on-brand pictures to the model as style references. */
   matchPhotos: boolean;
+  /**
+   * A model from the `models` table, or "" / "auto" for the automatic choice.
+   * Checked against the table in brandImage before anything is billed.
+   */
+  model: string;
   width: number;
 }
 
@@ -46,6 +58,7 @@ export const readImageRequest = (
   height: clampNumber(body.height),
   look: typeof body.look === "string" ? body.look.trim().slice(0, 80) : "",
   matchPhotos: body.matchPhotos !== false,
+  model: typeof body.model === "string" ? body.model.trim().slice(0, 200) : "",
   width: clampNumber(body.width),
 });
 
@@ -138,22 +151,65 @@ const writePrompt = async (
   }
 };
 
+/**
+ * Which model makes the picture, and whether it gets the on-brand photos.
+ *
+ * A model that reads only a prompt still benefits from the photos — Claude
+ * looked at them while writing it — but sending them would be ignored or
+ * refused, so they're left off. A model that needs a picture is refused when
+ * there's none to give it, before the call is billed.
+ */
+export const imagePlan = (
+  doc: BrandKitDoc,
+  req: ImageRequest,
+  models: readonly FalModelDef[]
+): { blend: string[]; model: string | null; source: string | null } => {
+  const model =
+    req.model && req.model !== "auto" && isFalModel(models, req.model)
+      ? req.model
+      : null;
+  const input = falModelInput(models, model ?? "auto");
+  const label = falModelFor(models, model)?.label ?? "That model";
+  if (input === "image" || input === "video" || input === "prompt-and-video") {
+    throw new Error(`${label} doesn't make pictures from a request`);
+  }
+  const refs =
+    req.matchPhotos && input !== "prompt"
+      ? doc.onBrand.slice(0, REFERENCES)
+      : [];
+  if (input === "prompt-and-image" && refs.length === 0) {
+    throw new Error(
+      `${label} reworks a photo: add on-brand photos to the kit and turn on matching`
+    );
+  }
+  const [first, ...rest] = refs;
+  const blends =
+    first !== undefined &&
+    falAcceptsImageList({
+      hasSourceImage: true,
+      masking: false,
+      models,
+      requestedModel: model,
+    });
+  return { blend: blends ? rest : [], model, source: first ?? null };
+};
+
 export const brandImage = async (
   doc: BrandKitDoc,
-  req: ImageRequest
+  req: ImageRequest,
+  models: readonly FalModelDef[] = []
 ): Promise<GeneratedImage & { prompt: string }> => {
+  const plan = imagePlan(doc, req, models);
   const prompt = await writePrompt(doc, req);
-  const refs = req.matchPhotos ? doc.onBrand.slice(0, REFERENCES) : [];
-  const [first, ...rest] = refs;
   const image = await generateImage(
-    first
+    plan.source
       ? `Make a new picture, not a copy of these: they only show the brand's photographic style. ${prompt}`
       : prompt,
-    first ?? null,
-    null,
+    plan.source,
+    plan.model,
     null,
     {
-      blendWith: rest,
+      blendWith: plan.blend,
       palette: doc.palette.map((p) => p.value).slice(0, 6),
       size: imageSizeFor(req.width, req.height),
     }

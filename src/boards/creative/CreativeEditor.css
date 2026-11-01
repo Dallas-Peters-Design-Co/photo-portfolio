@@ -528,6 +528,28 @@ button.creative-export__item:hover:not(:disabled) {
   }
 }
 
+.creative-generate__model {
+  display: grid;
+  gap: calc(var(--spacing) * 0.75);
+  font-size: 0.75rem;
+  color: color-mix(in oklch, var(--color-board-ink) 65%, transparent);
+}
+
+.creative-generate__prompt {
+  font-size: 0.75rem;
+  color: color-mix(in oklch, var(--color-board-ink) 65%, transparent);
+
+  & summary {
+    cursor: pointer;
+  }
+
+  & p {
+    margin-top: var(--spacing);
+    line-height: 1.45;
+    user-select: text;
+  }
+}
+
 .creative-generate__check {
   display: flex;
   gap: calc(var(--spacing) * 1.5);

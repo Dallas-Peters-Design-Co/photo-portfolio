@@ -8,6 +8,7 @@ import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { newItemId } from "../io/newItemId";
 import { newImage } from "./creativeModel";
+import { useGenerateModel } from "./generateModels";
 
 /**
  * Makes a picture for the frame from the brand: the request in your words,
@@ -81,6 +82,8 @@ export function GenerateImage({
   const [matchPhotos, setMatchPhotos] = useState(true);
   const [busy, setBusy] = useState(false);
   const [made, setMade] = useState<string[]>([]);
+  const [prompt, setPrompt] = useState("");
+  const { choices, model, setModel, takesPhotos } = useGenerateModel();
   const onBrand = doc?.onBrand.length ?? 0;
 
   const put = async (url: string) => {
@@ -112,13 +115,16 @@ export function GenerateImage({
         w: frame.width,
       };
       const look = doc?.look ? LOOKS.find((l) => l.id === doc.look?.id) : null;
-      const { url } = await brandKitsApi.generateImage(kit.id, {
+      const result = await brandKitsApi.generateImage(kit.id, {
         ask: ask.trim(),
         height: size.h,
         look: look?.name ?? "",
         matchPhotos: matchPhotos && onBrand > 0,
+        model,
         width: size.w,
       });
+      const { url } = result;
+      setPrompt(result.prompt);
       setMade((was) => [url, ...was].slice(0, 8));
       await put(url);
       toast.success("Picture added. ⌘Z to undo.");
@@ -152,6 +158,21 @@ export function GenerateImage({
         placeholder="What should it show? e.g. a roofer on a ridge at golden hour"
         value={ask}
       />
+      <label className="creative-generate__model">
+        <span>Model</span>
+        <select
+          aria-label="Model"
+          className="creative__input"
+          onChange={(e) => setModel(e.target.value)}
+          value={model}
+        >
+          {choices.map((m) => (
+            <option key={m.id} value={m.id}>
+              {m.label}
+            </option>
+          ))}
+        </select>
+      </label>
       <div className="creative-generate__segments">
         {(["background", "picture"] as const).map((p) => (
           <button
@@ -171,7 +192,9 @@ export function GenerateImage({
             onChange={(e) => setMatchPhotos(e.target.checked)}
             type="checkbox"
           />
-          Match the brand's {onBrand} photo{onBrand === 1 ? "" : "s"}
+          {takesPhotos
+            ? `Match the brand's ${onBrand} photo${onBrand === 1 ? "" : "s"}`
+            : "Match the brand's photos (through the prompt)"}
         </label>
       ) : null}
       <button
@@ -188,6 +211,12 @@ export function GenerateImage({
           ? "Up to a minute."
           : `Made from ${kit.name}'s palette, voice, notes and photos.`}
       </p>
+      {prompt ? (
+        <details className="creative-generate__prompt">
+          <summary>Prompt used</summary>
+          <p>{prompt}</p>
+        </details>
+      ) : null}
       {made.length > 0 ? (
         <div className="creative-generate__made">
           {made.map((url) => (

@@ -29,6 +29,28 @@ vi.mock("../brand/ActiveBrand", () => ({
   }),
 }));
 
+const model = (id: string, input: string, output = "image") => ({
+  id,
+  input,
+  label: id,
+  output,
+  training: null,
+});
+vi.mock("../ModelsContext", () => ({
+  useModels: () => ({
+    failed: false,
+    loading: false,
+    models: [
+      model("auto", "prompt-or-image"),
+      model("fal-ai/nano-banana-pro", "prompt"),
+      model("openai/gpt-image-2", "prompt"),
+      model("fal-ai/birefnet/v2", "image"),
+      model("fal-ai/kling", "prompt", "video"),
+    ],
+    reload: () => undefined,
+  }),
+}));
+
 const { GenerateImage } = await import("./GenerateImage");
 
 const item = (over: Partial<BoardItem>): BoardItem =>
@@ -58,6 +80,8 @@ let host: HTMLDivElement | null = null;
 afterEach(() => {
   act(() => root?.unmount());
   host?.remove();
+  localStorage.removeItem("creative-generate:model");
+  generateImage.mockClear();
 });
 
 describe("GenerateImage", () => {
@@ -97,6 +121,7 @@ describe("GenerateImage", () => {
       height: 1080,
       look: "",
       matchPhotos: true,
+      model: "fal-ai/nano-banana-pro",
       width: 1080,
     });
     const [next, selected] = onChange.mock.calls[0] as [BoardItem[], string];
@@ -112,6 +137,57 @@ describe("GenerateImage", () => {
     expect(next.find((i) => i.id === "bg")?.z).toBe(1);
     expect(host.querySelectorAll(".creative-generate__made img")).toHaveLength(
       1
+    );
+  });
+
+  it("offers the image models that take a request, and remembers the pick", async () => {
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    const render = () =>
+      act(() =>
+        root?.render(
+          <GenerateImage
+            background={null}
+            frame={frame}
+            items={[frame]}
+            layers={[]}
+            onChange={() => undefined}
+          />
+        )
+      );
+    render();
+    const select = host.querySelector(
+      'select[aria-label="Model"]'
+    ) as HTMLSelectElement;
+    expect([...select.options].map((o) => o.value)).toEqual([
+      "auto",
+      "fal-ai/nano-banana-pro",
+      "openai/gpt-image-2",
+    ]);
+    expect(select.value).toBe("fal-ai/nano-banana-pro");
+    act(() => {
+      select.value = "openai/gpt-image-2";
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    act(() => root?.unmount());
+    root = createRoot(host);
+    render();
+    const go = [...host.querySelectorAll("button")].find(
+      (b) => b.textContent?.trim() === "Generate"
+    );
+    await act(async () => {
+      go?.click();
+      await Promise.resolve();
+    });
+    await vi.waitFor(() =>
+      expect(generateImage).toHaveBeenCalledWith(
+        "k1",
+        expect.objectContaining({ model: "openai/gpt-image-2" })
+      )
+    );
+    await vi.waitFor(() =>
+      expect(host?.querySelector(".creative-generate__prompt")).not.toBeNull()
     );
   });
 });

@@ -99,6 +99,8 @@ export const brandKitsApi = {
       height: number;
       look: string;
       matchPhotos: boolean;
+      /** A model id from the models list, or "auto". */
+      model: string;
       width: number;
     }
   ): Promise<{ prompt: string; url: string }> => {
