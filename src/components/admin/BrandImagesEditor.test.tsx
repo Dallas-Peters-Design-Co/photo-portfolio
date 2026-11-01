@@ -41,11 +41,14 @@ const buttons = (text: string) =>
   );
 
 describe("BrandImagesEditor", () => {
-  it("adds an on-brand image from the photo library", () => {
+  it("adds an on-brand image from the photo library", async () => {
     const onChange = vi.fn();
     render(EMPTY_KIT, onChange);
-    act(() => buttons("From library")[0]?.click());
-    act(() => buttons("Add this image")[0]?.click());
+    act(() => buttons("Add from")[0]?.click());
+    await act(async () => {
+      buttons("Add this image")[0]?.click();
+      await Promise.resolve();
+    });
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ onBrand: ["https://blob/p1-full.jpg"] })
     );

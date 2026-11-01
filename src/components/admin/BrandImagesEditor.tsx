@@ -1,16 +1,14 @@
 import { ImagePlus, Library, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import {
   type BrandKitDoc,
   MAX_OFFBRAND,
   MAX_ONBRAND,
 } from "../../../config/brandKit.js";
-import { usePhotos } from "../../hooks/usePhotos";
-import { collectionsApi } from "../../services/libraryService";
 import { portfolioService } from "../../services/portfolioService";
 import { Button } from "../ui/button";
+import { BrandImagePicker } from "./BrandImagePicker";
 import "./BrandImagesEditor.css";
 
 /**
@@ -26,87 +24,6 @@ const LIMIT: Record<Which, number> = {
   offBrand: MAX_OFFBRAND,
   onBrand: MAX_ONBRAND,
 };
-
-function Picker({
-  collectionId,
-  onPick,
-  taken,
-}: {
-  collectionId: string | null;
-  onPick: (url: string) => void;
-  taken: Set<string>;
-}) {
-  const [tab, setTab] = useState<"brand" | "photos">(
-    collectionId ? "brand" : "photos"
-  );
-  const { photos, isLoading: photosLoading } = usePhotos(tab === "photos");
-  const { data: collection, isLoading: brandLoading } = useSWR(
-    tab === "brand" && collectionId ? ["collection", collectionId] : null,
-    () => collectionsApi.get(collectionId as string)
-  );
-  const images =
-    tab === "brand"
-      ? (collection?.items ?? [])
-          .filter((item) => item.kind === "image")
-          .map((item) => ({ id: item.id, thumb: item.url, url: item.url }))
-      : photos.map((p) => ({
-          id: p.id,
-          thumb: p.url,
-          url: p.originalUrl ?? p.url,
-        }));
-  const loading = tab === "brand" ? brandLoading : photosLoading;
-
-  return (
-    <div className="brand-images__picker">
-      <div className="brand-images__tabs">
-        {collectionId ? (
-          <button
-            aria-pressed={tab === "brand"}
-            onClick={() => setTab("brand")}
-            type="button"
-          >
-            Brand library
-          </button>
-        ) : null}
-        <button
-          aria-pressed={tab === "photos"}
-          onClick={() => setTab("photos")}
-          type="button"
-        >
-          Photos
-        </button>
-      </div>
-      {loading ? <p className="brand-kit__hint">Loading…</p> : null}
-      {!loading && images.length === 0 ? (
-        <p className="brand-kit__hint">Nothing here yet.</p>
-      ) : null}
-      <div className="brand-images__grid">
-        {images.map((img) => {
-          const added = taken.has(img.url);
-          return (
-            <button
-              aria-label={added ? "Already added" : "Add this image"}
-              aria-pressed={added}
-              className="brand-images__pick"
-              disabled={added}
-              key={img.id}
-              onClick={() => onPick(img.url)}
-              type="button"
-            >
-              <img
-                alt=""
-                height={96}
-                loading="lazy"
-                src={img.thumb}
-                width={96}
-              />
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
 
 function ImageSet({
   doc,
@@ -191,7 +108,7 @@ function ImageSet({
             type="button"
             variant="ghost"
           >
-            <Library size={14} /> From library
+            <Library size={14} /> Add from…
           </Button>
         </div>
       </div>
@@ -236,13 +153,14 @@ function ImageSet({
           type="button"
         >
           <ImagePlus size={16} />
-          Drop images here, upload, or pick from your library
+          Drop images here, upload, or pick from your library, fal.ai or
+          Pinterest
         </button>
       )}
       {picking ? (
-        <Picker
+        <BrandImagePicker
           collectionId={doc.libraryCollectionId}
-          onPick={add}
+          onAdd={add}
           taken={new Set(urls)}
         />
       ) : null}
