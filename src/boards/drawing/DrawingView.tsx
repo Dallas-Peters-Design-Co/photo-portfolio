@@ -5,6 +5,7 @@ import {
   isTransparent,
   pathFor,
 } from "./drawing";
+import { shapeGeometry } from "./shapes";
 import "./DrawingView.css";
 
 /**
@@ -74,8 +75,29 @@ export function DrawingView({ config, height, width }: DrawingViewProps) {
     );
   }
 
-  const inset = strokeWidth / 2;
   const outline = strokeWidth > 0 ? stroke : "none";
+  const shape = shapeGeometry(config, width, height, strokeWidth);
+  if (shape) {
+    return (
+      <svg
+        className="drawing-view"
+        opacity={opacity}
+        viewBox={`0 0 ${Math.max(width, 1)} ${Math.max(height, 1)}`}
+      >
+        <title>Drawing</title>
+        <path
+          d={shape.d}
+          fill={shape.closed ? paint : "none"}
+          stroke={outline}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={strokeWidth}
+        />
+        {shape.head ? <path d={shape.head} fill={stroke} /> : null}
+      </svg>
+    );
+  }
+  const inset = strokeWidth / 2;
   const defaultRadius = tool === "rounded" ? CORNER_RADIUS : 0;
   const radius =
     typeof config.radius === "number"

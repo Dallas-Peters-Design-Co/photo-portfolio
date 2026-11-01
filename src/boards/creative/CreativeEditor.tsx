@@ -1,14 +1,4 @@
-import {
-  Circle,
-  ImageIcon,
-  Redo2,
-  Sparkles,
-  Square,
-  SquareRoundCorner,
-  Type,
-  Undo2,
-  X,
-} from "lucide-react";
+import { ImageIcon, Redo2, Sparkles, Type, Undo2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
@@ -35,6 +25,7 @@ import {
 import { ExportMenu } from "./ExportMenu";
 import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
+import { ShapePicker } from "./ShapePicker";
 import "./CreativeEditor.css";
 
 /**
@@ -298,27 +289,7 @@ export function CreativeEditor({
           >
             <Type size={13} /> Body text
           </button>
-          <button
-            className="creative__add"
-            onClick={() => shape("rect")}
-            type="button"
-          >
-            <Square size={16} /> Rectangle
-          </button>
-          <button
-            className="creative__add"
-            onClick={() => shape("rounded")}
-            type="button"
-          >
-            <SquareRoundCorner size={16} /> Rounded
-          </button>
-          <button
-            className="creative__add"
-            onClick={() => shape("ellipse")}
-            type="button"
-          >
-            <Circle size={16} /> Ellipse
-          </button>
+          <ShapePicker onPick={shape} />
           <button
             aria-pressed={showBrand}
             className="creative__add"

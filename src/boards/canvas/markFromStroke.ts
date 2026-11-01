@@ -8,6 +8,7 @@ import {
   type Point,
   toUnitSpace,
 } from "../drawing/drawing";
+import { isLineTool } from "../drawing/shapes";
 
 /**
  * The mark a drag just described: what to draw, and the box it occupies.
@@ -54,6 +55,25 @@ export const markFromStroke = (
       config: {
         fill: null,
         points: toUnitSpace(points, box),
+        stroke: style.stroke,
+        strokeWidth: style.strokeWidth,
+        tool,
+      },
+    };
+  }
+
+  // A line keeps both its ends, so it can point any way; its box is padded
+  // like a stroke's, so a level line still has a height to grab.
+  if (isLineTool(tool)) {
+    if (Math.hypot(last.x - first.x, last.y - first.y) < MIN_ITEM_SIZE) {
+      return null;
+    }
+    const box = boundsOf([first, last], style.strokeWidth * 2);
+    return {
+      box,
+      config: {
+        fill: null,
+        points: toUnitSpace([first, last], box),
         stroke: style.stroke,
         strokeWidth: style.strokeWidth,
         tool,

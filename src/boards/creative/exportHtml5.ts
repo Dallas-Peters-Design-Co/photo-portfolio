@@ -10,6 +10,7 @@ import {
   isDrawingConfig,
   isTransparent,
 } from "../drawing/drawing";
+import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 
@@ -42,6 +43,26 @@ const styleOf = (rules: Record<string, string | null | undefined>): string =>
     .map(([k, v]) => `${k}:${v}`)
     .join(";");
 
+/** A triangle, polygon, star, squircle or line (drawing/shapes.ts) as SVG. */
+const pathShapeHtml = (
+  shape: ShapeGeometry,
+  config: DrawingConfig,
+  place: Record<string, string | null>,
+  stroke: number
+): string => {
+  const w = Number.parseFloat(place.width ?? "0");
+  const h = Number.parseFloat(place.height ?? "0");
+  const fill =
+    shape.closed && config.fill && !isTransparent(config.fill)
+      ? escapeHtml(config.fill)
+      : "none";
+  const line = stroke > 0 ? escapeHtml(config.stroke) : "none";
+  const head = shape.head
+    ? `<path d="${shape.head}" fill="${escapeHtml(config.stroke)}"/>`
+    : "";
+  return `<svg style="${styleOf({ ...place, overflow: "visible" })}" viewBox="0 0 ${w} ${h}"><path d="${shape.d}" fill="${fill}" stroke="${line}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>${head}</svg>`;
+};
+
 /** Where a layer sits inside the ad, in the ad's pixels. */
 export const placeOf = (item: Box, frame: Box, scale: number) => ({
   height: px(item.height * scale),
@@ -61,6 +82,15 @@ export const shapeHtml = (
       ? `${config.opacity}`
       : null;
   const stroke = Math.max(0, config.strokeWidth) * scale;
+  const shape = shapeGeometry(
+    config,
+    Number.parseFloat(place.width),
+    Number.parseFloat(place.height),
+    stroke
+  );
+  if (shape) {
+    return pathShapeHtml(shape, config, { ...place, opacity }, stroke);
+  }
   if (config.points && config.points.length > 0) {
     // Freehand: unit-space points stretched across the box, as on the board.
     const points = config.points.map((p) => `${p.x},${p.y}`).join(" ");

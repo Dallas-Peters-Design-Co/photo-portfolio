@@ -5,6 +5,7 @@ import {
   isDrawingConfig,
   isTransparent,
 } from "../drawing/drawing";
+import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 
@@ -29,6 +30,31 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
     img.onerror = () => reject(new Error(`Couldn't load ${url}`));
     img.src = url;
   });
+
+/** A triangle, polygon, star, squircle or line (drawing/shapes.ts). */
+const drawPathShape = (
+  ctx: CanvasRenderingContext2D,
+  shape: ShapeGeometry,
+  config: DrawingConfig,
+  stroke: number
+) => {
+  const outline = new Path2D(shape.d);
+  if (shape.closed && config.fill && !isTransparent(config.fill)) {
+    ctx.fillStyle = config.fill;
+    ctx.fill(outline);
+  }
+  if (stroke > 0 && !isTransparent(config.stroke)) {
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.lineWidth = stroke;
+    ctx.strokeStyle = config.stroke;
+    ctx.stroke(outline);
+  }
+  if (shape.head) {
+    ctx.fillStyle = config.stroke;
+    ctx.fill(new Path2D(shape.head));
+  }
+};
 
 /** object-fit: cover, as the board draws pictures. */
 const drawCover = (
@@ -62,6 +88,11 @@ const drawShape = (
 ) => {
   ctx.globalAlpha = typeof config.opacity === "number" ? config.opacity : 1;
   const stroke = Math.max(0, config.strokeWidth) * scale;
+  const shape = shapeGeometry(config, w, h, stroke);
+  if (shape) {
+    drawPathShape(ctx, shape, config, stroke);
+    return;
+  }
   const path = new Path2D();
   if (config.points && config.points.length > 0) {
     const [first, ...rest] = config.points;

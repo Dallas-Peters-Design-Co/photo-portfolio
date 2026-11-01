@@ -282,6 +282,31 @@ function ShapeControls({
           value={config.strokeWidth}
         />
       </Field>
+      {config.tool === "polygon" || config.tool === "star" ? (
+        <Field label={config.tool === "star" ? "Points" : "Sides"}>
+          <input
+            className="creative__input creative__input--num"
+            max={config.tool === "star" ? 24 : 12}
+            min={3}
+            onChange={(e) => set({ sides: num(e.target.value, 5) })}
+            type="number"
+            value={config.sides ?? (config.tool === "star" ? 5 : 6)}
+          />
+        </Field>
+      ) : null}
+      {config.tool === "star" ? (
+        <Field label="Inner">
+          <input
+            className="creative__range"
+            max={0.95}
+            min={0.1}
+            onChange={(e) => set({ innerRatio: num(e.target.value, 0.45) })}
+            step={0.05}
+            type="range"
+            value={config.innerRatio ?? 0.45}
+          />
+        </Field>
+      ) : null}
       {isBox ? (
         <Field label="Corners">
           <input

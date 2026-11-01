@@ -4,17 +4,26 @@ import { layerKind } from "./creativeModel";
 
 /** The frame's layers, front first, as a design tool lists them. */
 
+const SHAPE_NAMES: Record<string, string> = {
+  arrow: "Arrow",
+  brush: "Drawing",
+  ellipse: "Ellipse",
+  line: "Line",
+  pen: "Drawing",
+  polygon: "Polygon",
+  squircle: "Squircle",
+  star: "Star",
+  triangle: "Triangle",
+};
+
 const labelOf = (item: BoardItem): string => {
   const kind = layerKind(item);
   if (kind === "text") {
     return (item.body ?? "").split("\n")[0]?.slice(0, 40) || "Text";
   }
   if (kind === "shape") {
-    const tool = (item.config as { tool?: string } | null)?.tool;
-    if (tool === "ellipse") {
-      return "Ellipse";
-    }
-    return tool === "pen" || tool === "brush" ? "Drawing" : "Rectangle";
+    const tool = (item.config as { tool?: string } | null)?.tool ?? "";
+    return SHAPE_NAMES[tool] ?? "Rectangle";
   }
   return item.body?.trim() || "Image";
 };

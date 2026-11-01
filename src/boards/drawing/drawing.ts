@@ -18,6 +18,12 @@ export const DRAW_TOOLS = [
   "rect",
   "rounded",
   "ellipse",
+  "triangle",
+  "polygon",
+  "star",
+  "squircle",
+  "line",
+  "arrow",
   "mask",
 ] as const;
 
@@ -44,13 +50,17 @@ export interface Point {
 
 export interface DrawingConfig {
   fill: string | null;
+  /** Star only: the inner points' distance from the centre, 0.1–0.95. */
+  innerRatio?: number;
   /** 0–1; absent is fully opaque. */
   opacity?: number;
-  /** Unit-space path, only for the freehand tools. */
+  /** Unit-space path for the freehand tools; the two ends of a line. */
   points?: Point[];
   /** Corner radius in canvas units, for rect and rounded; absent uses the
    *  tool's default. */
   radius?: number;
+  /** Polygon sides or star points. */
+  sides?: number;
   stroke: string;
   /** Zero draws no outline. */
   strokeWidth: number;

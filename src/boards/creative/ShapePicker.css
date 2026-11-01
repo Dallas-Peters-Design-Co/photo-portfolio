@@ -1,0 +1,31 @@
+.shape-picker {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.shape-picker__label {
+  font-size: 0.6875rem;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+}
+
+.shape-picker__grid {
+  display: grid;
+  grid-template-columns: repeat(
+      auto-fill,
+      minmax(calc(var(--spacing) * 9), 1fr)
+    );
+  gap: calc(var(--spacing) * 1);
+}
+
+.shape-picker__button {
+  display: grid;
+  place-items: center;
+  height: calc(var(--spacing) * 9);
+  color: inherit;
+  background: color-mix(in oklch, var(--color-board-ink) 5%, transparent);
+  border-radius: var(--radius-control, 8px);
+
+  &:hover {
+    background: color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+  }
+}

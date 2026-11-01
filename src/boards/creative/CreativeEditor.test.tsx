@@ -74,8 +74,9 @@ const render = (start: BoardItem[]) => {
 };
 
 const button = (text: string) => {
-  const found = [...document.querySelectorAll("button")].find((b) =>
-    (b.textContent ?? "").includes(text)
+  // Shapes are icon buttons, found by their title.
+  const found = [...document.querySelectorAll("button")].find(
+    (b) => (b.textContent ?? "").includes(text) || b.title.startsWith(text)
   );
   if (!found) {
     throw new Error(`no button ${text}`);

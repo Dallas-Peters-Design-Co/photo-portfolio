@@ -91,7 +91,16 @@ export const newText = (
   };
 };
 
-export type ShapeTool = "ellipse" | "rect" | "rounded";
+export type ShapeTool =
+  | "arrow"
+  | "ellipse"
+  | "line"
+  | "polygon"
+  | "rect"
+  | "rounded"
+  | "squircle"
+  | "star"
+  | "triangle";
 
 export const newShape = (
   frame: Box,
@@ -100,23 +109,40 @@ export const newShape = (
   fill: string
 ): BoardItem => {
   const size = Math.round(unit(frame) * 0.4);
-  const config: DrawingConfig = {
-    fill,
-    opacity: 1,
-    radius: tool === "rounded" ? Math.round(size * 0.12) : 0,
-    stroke: "#00000000",
-    strokeWidth: 0,
-    tool,
-  };
+  // A line is drawn in the colour, left to right, across a box just tall
+  // enough to grab; every other shape is filled with it.
+  const line = tool === "line" || tool === "arrow";
+  const weight = Math.max(4, Math.round(size * 0.03));
+  const config: DrawingConfig = line
+    ? {
+        fill: null,
+        opacity: 1,
+        points: [
+          { x: 0, y: 0.5 },
+          { x: 1, y: 0.5 },
+        ],
+        stroke: fill,
+        strokeWidth: weight,
+        tool,
+      }
+    : {
+        fill,
+        opacity: 1,
+        radius: tool === "rounded" ? Math.round(size * 0.12) : 0,
+        stroke: "#00000000",
+        strokeWidth: 0,
+        tool,
+      };
+  const height = line ? weight * 8 : size;
   return {
     ...BLANK_ITEM,
     config: config as unknown as Record<string, unknown>,
-    height: size,
+    height,
     id: newItemId(),
     kind: "drawing",
     width: size,
     x: Math.round(frame.x + (frame.width - size) / 2),
-    y: Math.round(frame.y + (frame.height - size) / 2),
+    y: Math.round(frame.y + (frame.height - height) / 2),
     z: topZ(items),
   };
 };

@@ -9,6 +9,7 @@ import {
   pathFor,
 } from "./drawing";
 import { MASK_OPACITY, MASK_PAINT } from "./mask";
+import { isLineTool, shapeGeometry } from "./shapes";
 import "./StrokePreview.css";
 
 /**
@@ -91,6 +92,40 @@ function PreviewShape({
   const width = Math.abs(last.x - first.x);
   const height = Math.abs(last.y - first.y);
   const fill = isTransparent(style.fill) ? "none" : style.fill;
+
+  const shape = shapeGeometry(
+    {
+      fill: style.fill,
+      // A line runs from where the drag began to where it is now.
+      points: isLineTool(tool)
+        ? [
+            { x: first.x <= last.x ? 0 : 1, y: first.y <= last.y ? 0 : 1 },
+            { x: first.x <= last.x ? 1 : 0, y: first.y <= last.y ? 1 : 0 },
+          ]
+        : undefined,
+      stroke: style.stroke,
+      strokeWidth: style.strokeWidth,
+      tool,
+    },
+    Math.max(width, 1),
+    Math.max(height, 1),
+    style.strokeWidth
+  );
+  if (shape) {
+    return (
+      <g transform={`translate(${x} ${y})`}>
+        <path
+          d={shape.d}
+          fill={shape.closed ? fill : "none"}
+          stroke={style.stroke}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={style.strokeWidth}
+        />
+        {shape.head ? <path d={shape.head} fill={style.stroke} /> : null}
+      </g>
+    );
+  }
 
   if (tool === "ellipse") {
     return (
