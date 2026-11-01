@@ -91,11 +91,17 @@
   }
 }
 
+.guide__actions {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: start;
+  margin-top: auto;
+}
+
 .guide__print {
   display: inline-flex;
   gap: 0.5rem;
   align-items: center;
-  margin-top: auto;
   font-size: 0.875rem;
   color: var(--muted);
 

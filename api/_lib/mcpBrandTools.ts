@@ -3,6 +3,7 @@ import {
   MAX_REFERENCES,
   sanitizeReferences,
 } from "../../config/brandKit.js";
+import { designMd } from "../../config/designMd.js";
 import {
   type BrandKitDto,
   loadKit,
@@ -94,6 +95,36 @@ const getBrandKit: McpTool<Ctx> = {
       ...summary(found),
       brand: found.resolvedDoc,
       inherited: found.inherited,
+    };
+  },
+};
+
+/** The kit as a DESIGN.md file, for agents and for the Obsidian vault sync. */
+export const designMdOf = (kit: BrandKitDto): string =>
+  designMd({
+    doc: kit.resolvedDoc,
+    name: kit.name,
+    parentName: kit.parentName,
+    version: kit.version,
+  });
+
+const getDesignMd: McpTool<Ctx> = {
+  description:
+    "One brand as a DESIGN.md file (the open google-labs-code/design.md format): colour and type tokens in YAML front matter, then the voice, colours, type, logo rules, on- and off-brand imagery, do's and don'ts, and references in Markdown. Write it into a project or notes as-is.",
+  inputSchema: {
+    properties: {
+      kit: { description: "Brand kit name or id", type: "string" },
+    },
+    required: ["kit"],
+    type: "object",
+  },
+  name: "get_design_md",
+  run: async ({ kit }, { sql }) => {
+    const found = await findKit(sql, kit);
+    return {
+      ...summary(found),
+      fileName: "DESIGN.md",
+      markdown: designMdOf(found),
     };
   },
 };
@@ -205,6 +236,7 @@ const removeBrandReference: McpTool<Ctx> = {
 };
 
 export const BRAND_TOOLS: McpTool<Ctx>[] = [
+  getDesignMd,
   listBrandKits,
   getBrandKit,
   addBrandReference,

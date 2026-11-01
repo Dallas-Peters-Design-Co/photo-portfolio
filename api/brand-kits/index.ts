@@ -10,6 +10,7 @@ import { getSql } from "../_lib/db.js";
 import { isFalConfigured } from "../_lib/fal.js";
 import { adobeKitFamilies, googleCatalog } from "../_lib/fontCatalog.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
+import { designMdOf } from "../_lib/mcpBrandTools.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
@@ -58,6 +59,17 @@ async function handleGet(
           error:
             "Adobe Fonts couldn't find that web project. Check the id and that it's published.",
         });
+  }
+  // A kit as DESIGN.md, for the guide's download (see _lib/mcpBrandTools.ts).
+  if (typeof req.query.design === "string") {
+    const kit = UUID_RE.test(req.query.design)
+      ? await loadKit(sql, req.query.design)
+      : null;
+    if (!kit) {
+      return res.status(404).json({ error: "That brand kit wasn't found" });
+    }
+    res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+    return res.status(200).send(designMdOf(kit));
   }
   return res.status(200).json(await loadKits(sql));
 }

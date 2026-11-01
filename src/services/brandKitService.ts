@@ -75,6 +75,18 @@ export const brandKitsApi = {
     return (await res.json()) as BrandKit;
   },
 
+  /** The kit as a DESIGN.md file's text. */
+  designMd: async (id: string): Promise<string> => {
+    const res = await fetch(
+      `${apiBase()}/api/brand-kits?design=${encodeURIComponent(id)}`,
+      { headers: jsonHeaders() }
+    );
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Couldn't make the DESIGN.md"));
+    }
+    return await res.text();
+  },
+
   /**
    * A picture for a frame, made from the kit: Claude writes the prompt from
    * the kit's voice, palette, notes and pictures, and fal makes it at the

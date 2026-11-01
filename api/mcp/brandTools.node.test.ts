@@ -69,6 +69,7 @@ describe("brand tools on the connector", () => {
         "get_brand_kit",
         "add_brand_reference",
         "remove_brand_reference",
+        "get_design_md",
       ])
     );
     expect(tool("add_brand_reference").writes).toBe(true);
@@ -185,5 +186,21 @@ describe("brand tools on the connector", () => {
     expect(
       (write?.doc as { references: unknown[] } | undefined)?.references
     ).toHaveLength(0);
+  });
+
+  it("hands out a kit as DESIGN.md", async () => {
+    const out = (await tool("get_design_md").run(
+      { kit: "TSRP Solar" },
+      ctx
+    )) as {
+      fileName: string;
+      markdown: string;
+      name: string;
+    };
+    expect(out.name).toBe("TSRP Solar");
+    expect(out.fileName).toBe("DESIGN.md");
+    expect(out.markdown).toContain("name: TSRP Solar");
+    expect(out.markdown).toContain('primary: "#1f4d3a"');
+    expect(tool("get_design_md").writes).toBeFalsy();
   });
 });

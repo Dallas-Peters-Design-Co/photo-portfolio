@@ -1,7 +1,7 @@
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, FileText, Printer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 import useSWR from "swr";
 import { parseFontRef } from "../../config/fontRef.js";
 import {
@@ -35,6 +35,22 @@ const SECTIONS = [
   ["imagery", "Imagery"],
   ["references", "References"],
 ] as const;
+
+const downloadDesignMd = async (kitId: string) => {
+  try {
+    const text = await brandKitsApi.designMd(kitId);
+    const url = URL.createObjectURL(
+      new Blob([text], { type: "text/markdown" })
+    );
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "DESIGN.md";
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : "Couldn't make the DESIGN.md");
+  }
+};
 
 export function BrandGuidePage() {
   const { kitId } = useParams<{ kitId: string }>();
@@ -139,13 +155,23 @@ export function BrandGuidePage() {
             </a>
           ))}
         </nav>
-        <button
-          className="guide__print"
-          onClick={() => window.print()}
-          type="button"
-        >
-          <Printer size={14} /> Print or save PDF
-        </button>
+        <div className="guide__actions">
+          <button
+            className="guide__print"
+            onClick={() => void downloadDesignMd(kit.id)}
+            title="The brand as DESIGN.md, for coding and design agents"
+            type="button"
+          >
+            <FileText size={14} /> Download DESIGN.md
+          </button>
+          <button
+            className="guide__print"
+            onClick={() => window.print()}
+            type="button"
+          >
+            <Printer size={14} /> Print or save PDF
+          </button>
+        </div>
       </aside>
 
       <main className="guide__main">
