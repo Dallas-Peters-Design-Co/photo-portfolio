@@ -4,7 +4,7 @@ import { useFrameActions } from "../FrameOpenContext";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
 import { frameBoardTitle, frameSummary } from "../io/copyToBoard";
 import type { Tool } from "../tools/types";
-import { AdSizesPanel, AdSizesRow } from "./AdSizesPanel";
+import { AdSizesPanel, AdSizesRow, DesignRow } from "./AdSizesPanel";
 import { type CollectTarget, NamePanel, ToolsPanel } from "./CanvasMenuPanels";
 import { CollectionPanel } from "./CollectionPanel";
 import { MenuRows } from "./MenuRows";
@@ -141,7 +141,7 @@ export function CanvasMenu({
     for: CanvasMenuTarget;
     frame: BoardItem;
   } | null>(null);
-  const { fitFrame } = useFrameActions();
+  const { designFrame, fitFrame } = useFrameActions();
 
   if (!menu) {
     return null;
@@ -275,6 +275,14 @@ export function CanvasMenu({
         onVectorize={onVectorize}
         wires={wires}
       />
+      {frame && designFrame ? (
+        <DesignRow
+          onOpen={() => {
+            designFrame(frame.id);
+            onDismiss();
+          }}
+        />
+      ) : null}
       {frame && fitFrame ? (
         <AdSizesRow onOpen={() => setSizing({ for: menu, frame })} />
       ) : null}

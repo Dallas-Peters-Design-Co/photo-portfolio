@@ -1,5 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
+import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
 import { useState } from "react";
 import { AD_SIZES, sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
@@ -25,6 +26,19 @@ export function AdSizesRow({ onOpen }: { onOpen: () => void }) {
     >
       <HugeiconsIcon aria-hidden icon={FrameIcon} size={14} />
       <span>Ad sizes…</span>
+    </button>
+  );
+}
+
+export function DesignRow({ onOpen }: { onOpen: () => void }) {
+  return (
+    <button
+      className="panel-row panel-row--divided"
+      onClick={onOpen}
+      type="button"
+    >
+      <HugeiconsIcon aria-hidden icon={PenTool01Icon} size={14} />
+      <span>Design this frame…</span>
     </button>
   );
 }

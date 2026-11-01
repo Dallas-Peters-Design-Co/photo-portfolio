@@ -28,6 +28,8 @@ import type { FitMode } from "./panels/AdSizesPanel";
 const TRAILING_SLASH = /\/$/;
 
 interface FrameActions {
+  /** Opens a frame in the full-screen creative editor. */
+  designFrame?: (frameId: string) => void;
   /** Resizes a frame to an ad size, or copies it out at several. */
   fitFrame?: (frameId: string, sizeIds: string[], mode: FitMode) => void;
   /** The absolute URL of a frame, or null when the board is not published. */
@@ -50,12 +52,14 @@ const FrameContext = createContext<FrameActions>({});
 
 export function FrameOpenProvider({
   children,
+  designFrame,
   fitFrame,
   linkFor,
   onOpenFrame,
   onTrainOnFrame,
 }: {
   children: ReactNode;
+  designFrame?: FrameActions["designFrame"];
   fitFrame?: FrameActions["fitFrame"];
   linkFor?: (frameId: string) => string | null;
   onOpenFrame?: (frameId: string) => void;
@@ -64,6 +68,7 @@ export function FrameOpenProvider({
   return (
     <FrameContext.Provider
       value={{
+        designFrame,
         fitFrame,
         linkFor,
         open: onOpenFrame,

@@ -44,9 +44,15 @@ export interface Point {
 
 export interface DrawingConfig {
   fill: string | null;
+  /** 0–1; absent is fully opaque. */
+  opacity?: number;
   /** Unit-space path, only for the freehand tools. */
   points?: Point[];
+  /** Corner radius in canvas units, for rect and rounded; absent uses the
+   *  tool's default. */
+  radius?: number;
   stroke: string;
+  /** Zero draws no outline. */
   strokeWidth: number;
   tool: DrawTool;
 }

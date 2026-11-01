@@ -39,7 +39,6 @@ import "./BoardEditor.css";
 import { BoardHeaderActions } from "./boardEditor/BoardHeaderActions";
 import { BoardStatusBar } from "./boardEditor/BoardStatusBar";
 import { BoardToolPanel } from "./boardEditor/BoardToolPanel";
-import { useAdFrames } from "./boardEditor/useAdFrames";
 import { useBoardDocument } from "./boardEditor/useBoardDocument";
 import { useBoardInserts } from "./boardEditor/useBoardInserts";
 import { useBoardItemActions } from "./boardEditor/useBoardItemActions";
@@ -48,6 +47,7 @@ import { useBoardRun } from "./boardEditor/useBoardRun";
 import { useBoardUploads } from "./boardEditor/useBoardUploads";
 import { useBoardVectorTools } from "./boardEditor/useBoardVectorTools";
 import { useDropPoint } from "./boardEditor/useDropPoint";
+import { useFrameDesign } from "./boardEditor/useFrameDesign";
 import { useProofMark } from "./boardEditor/useProofMark";
 import { useRecipes } from "./boardEditor/useRecipes";
 import { useSelectedItem } from "./boardEditor/useSelectedItem";
@@ -118,8 +118,7 @@ export function BoardEditor({
     strokeWidth: DEFAULT_STROKE_WIDTH,
   });
 
-  // A saved item is keyed by its id; an unsaved one by the key it was created
-  // with. Both survive the new object that every edit produces.
+  // Saved items are keyed by id, unsaved by their creation key; both survive edits.
   const keyOf = useCallback((item: BoardItem) => item.id, []);
 
   const {
@@ -159,7 +158,6 @@ export function BoardEditor({
   });
 
   const { proofMark } = useProofMark(items, change, dropPoint);
-  const { fitFrame } = useAdFrames(items, change);
   const { applyRun, createFromPort, flushBeforeRun } = useBoardRun({
     items,
     pending,
@@ -225,6 +223,7 @@ export function BoardEditor({
     change,
     items,
   });
+  const frameDesign = useFrameDesign(items, change, dropFiles);
 
   const {
     addDrawing,
@@ -348,7 +347,8 @@ export function BoardEditor({
           {/* A frame offers its link once published. Nothing to open: that is
               the published board's own view. */}
           <FrameOpenProvider
-            fitFrame={fitFrame}
+            designFrame={frameDesign.designFrame}
+            fitFrame={frameDesign.fitFrame}
             linkFor={(id) => frameLink(publicUrl, items, id)}
             onTrainOnFrame={(id) => void trainOnFrame(id)}
           >
@@ -395,6 +395,7 @@ export function BoardEditor({
               viewCentreRef={viewCentreRef}
               wires={wires}
             />
+            {frameDesign.designer}
           </FrameOpenProvider>
 
           <BoardEditorDialogs
@@ -433,8 +434,7 @@ export function BoardEditor({
                 } else if (action.kind === "shader") {
                   addShader(action.name);
                 } else {
-                  // Images need a source chosen, so the palette hands over to the
-                  // panel that can ask rather than guessing one.
+                  // Images need a source chosen, so the palette hands over.
                   setIsPicking(true);
                 }
               }}
@@ -484,8 +484,7 @@ export function BoardEditor({
               images={elementDraft.images}
               onCancel={() => setElementDraft(null)}
               onSaved={() => {
-                // Ends on the library the element was just added to, so the thing
-                // that was named can be placed without hunting for it.
+                // Ends on the library the element was just added to.
                 setElementDraft(null);
                 setPickAt("elements");
                 setIsPicking(true);

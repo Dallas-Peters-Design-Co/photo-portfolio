@@ -371,9 +371,17 @@ export const parseDrawingConfig = (
   const config: Record<string, unknown> = {
     fill: text(o.fill, 32),
     stroke: text(o.stroke, 32) ?? "#ffffff",
-    strokeWidth: clamp(num(o.strokeWidth, 4), 1, 200),
+    strokeWidth: clamp(num(o.strokeWidth, 4), 0, 200),
     tool,
   };
+  // Appearance a shape can carry beyond its outline: set by the creative
+  // editor, absent on everything drawn before it.
+  if (typeof o.opacity === "number" && Number.isFinite(o.opacity)) {
+    config.opacity = clamp(o.opacity, 0, 1);
+  }
+  if (typeof o.radius === "number" && Number.isFinite(o.radius)) {
+    config.radius = clamp(o.radius, 0, 5000);
+  }
 
   if (Array.isArray(o.points)) {
     config.points = o.points

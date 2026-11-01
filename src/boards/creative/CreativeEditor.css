@@ -1,0 +1,382 @@
+/*
+ * The creative editor: full screen over the board, header across the top,
+ * a rail of things to add and the layers on the left, the artboard in the
+ * middle with the selected layer's controls above it.
+ */
+
+.creative {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-modal-scrim) - 1);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 15rem 1fr;
+  color: var(--color-board-ink);
+  background: color-mix(in oklch, var(--color-board-surface) 92%, black);
+}
+
+.creative__header {
+  display: flex;
+  grid-column: 1 / -1;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  border-bottom: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+}
+
+.creative__title {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: baseline;
+  min-width: 0;
+  font-size: var(--text-sm-ui, 0.8125rem);
+
+  & span {
+    font-variant-numeric: tabular-nums;
+    opacity: 0.55;
+  }
+}
+
+.creative__actions {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+}
+
+.creative__button {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 3);
+  font-size: var(--text-sm-ui, 0.8125rem);
+  color: inherit;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 20%, transparent);
+  border-radius: var(--radius-control, 8px);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.creative__button--primary {
+  color: var(--color-board-surface);
+  background: var(--color-board-ink);
+
+  &:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-board-ink) 85%, transparent);
+  }
+}
+
+.creative__rail {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  min-height: 0;
+  padding: calc(var(--spacing) * 3);
+  overflow-y: auto;
+  border-right: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+}
+
+.creative__label {
+  margin-top: calc(var(--spacing) * 2);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.55;
+}
+
+.creative__hint {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  opacity: 0.55;
+}
+
+.creative__adds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing);
+}
+
+.creative__add {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  padding: calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+  color: inherit;
+  text-align: left;
+  background: color-mix(in oklch, var(--color-board-ink) 5%, transparent);
+  border-radius: var(--radius-control, 8px);
+
+  &:hover,
+  &[aria-pressed="true"] {
+    background: color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+  }
+}
+
+.creative__background {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.creative__layers {
+  display: grid;
+  gap: 1px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.creative__layer-row {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  width: 100%;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+  color: inherit;
+  text-align: left;
+  border-radius: var(--radius-control, 6px);
+
+  & span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  &:hover {
+    background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
+  }
+  &[aria-pressed="true"] {
+    background: color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+  }
+}
+
+.creative__main {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 0;
+  min-height: 0;
+}
+
+.creative__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  min-height: calc(var(--spacing) * 13);
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  font-size: 0.75rem;
+  border-bottom: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+}
+
+.creative__bar--empty {
+  opacity: 0.55;
+}
+
+.creative__field {
+  display: inline-flex;
+  gap: var(--spacing);
+  align-items: center;
+
+  & > span {
+    opacity: 0.55;
+  }
+}
+
+.creative__input {
+  height: calc(var(--spacing) * 7);
+  padding-inline: calc(var(--spacing) * 1.5);
+  font-size: 0.75rem;
+  color: inherit;
+  background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-control, 6px);
+
+  & option,
+  & optgroup {
+    color: initial;
+  }
+}
+
+.creative__input--font {
+  max-width: 12rem;
+}
+
+.creative__input--num {
+  width: 4.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.creative__range {
+  width: 6rem;
+}
+
+.creative__group {
+  display: inline-flex;
+  gap: 2px;
+}
+
+.creative__icon {
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--spacing) * 7);
+  height: calc(var(--spacing) * 7);
+  padding-inline: var(--spacing);
+  font-size: 0.75rem;
+  color: inherit;
+  border-radius: var(--radius-control, 6px);
+
+  &:hover {
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+  &[aria-pressed="true"] {
+    background: color-mix(in oklch, var(--color-board-ink) 16%, transparent);
+  }
+}
+
+.creative__divider {
+  align-self: stretch;
+  width: 1px;
+  background: color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+}
+
+.creative__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  overflow: hidden;
+  background-image: radial-gradient(
+    color-mix(in oklch, var(--color-board-ink) 12%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 16px 16px;
+}
+
+.creative__fit {
+  position: relative;
+}
+
+/* The artboard in canvas units, scaled to fit. Clipped like an ad is. */
+.creative__board {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  background: var(--color-board-surface);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.35);
+  transform-origin: 0 0;
+}
+
+.creative__layer {
+  position: absolute;
+  cursor: move;
+  user-select: none;
+}
+
+.creative__layer--selected {
+  outline: calc(1.5px / var(--s, 1)) solid oklch(65% 0.2 255);
+}
+
+.creative__layer:hover:not(.creative__layer--selected) {
+  outline: 1px solid color-mix(in oklch, oklch(65% 0.2 255) 60%, transparent);
+}
+
+.creative__text {
+  display: block;
+  overflow: hidden;
+}
+
+.creative__image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  object-fit: cover;
+}
+
+.creative__handle {
+  --size: calc(10px / var(--s, 1));
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  background: white;
+  border: calc(1.5px / var(--s, 1)) solid oklch(65% 0.2 255);
+  border-radius: 2px;
+  translate: -50% -50%;
+}
+
+.creative__handle--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+.creative__handle--n {
+  top: 0;
+  left: 50%;
+  cursor: ns-resize;
+}
+.creative__handle--ne {
+  top: 0;
+  left: 100%;
+  cursor: nesw-resize;
+}
+.creative__handle--e {
+  top: 50%;
+  left: 100%;
+  cursor: ew-resize;
+}
+.creative__handle--se {
+  top: 100%;
+  left: 100%;
+  cursor: nwse-resize;
+}
+.creative__handle--s {
+  top: 100%;
+  left: 50%;
+  cursor: ns-resize;
+}
+.creative__handle--sw {
+  top: 100%;
+  left: 0;
+  cursor: nesw-resize;
+}
+.creative__handle--w {
+  top: 50%;
+  left: 0;
+  cursor: ew-resize;
+}
+
+.creative__guide {
+  position: absolute;
+  z-index: 10000;
+  pointer-events: none;
+  background: oklch(65% 0.25 350);
+}
+
+.creative__guide--v {
+  top: 0;
+  bottom: 0;
+  width: calc(1px / var(--s, 1));
+}
+
+.creative__guide--h {
+  right: 0;
+  left: 0;
+  height: calc(1px / var(--s, 1));
+}
+
+/* The brand panel floats above the editor here. */
+.creative .brand-dock {
+  z-index: 2;
+}

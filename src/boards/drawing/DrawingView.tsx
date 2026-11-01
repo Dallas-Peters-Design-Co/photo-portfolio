@@ -28,7 +28,12 @@ interface DrawingViewProps {
 }
 
 export function DrawingView({ config, height, width }: DrawingViewProps) {
-  const { fill, stroke, strokeWidth, tool } = config;
+  const { fill, stroke, tool } = config;
+  const strokeWidth = Math.max(0, config.strokeWidth);
+  const opacity =
+    typeof config.opacity === "number" && config.opacity < 1
+      ? Math.max(0, config.opacity)
+      : undefined;
   // A fully transparent fill is the default and means "no fill"; passing it to
   // SVG as a color would work but "none" is what it actually is.
   const paint = isTransparent(fill) ? "none" : (fill ?? "none");
@@ -70,9 +75,16 @@ export function DrawingView({ config, height, width }: DrawingViewProps) {
   }
 
   const inset = strokeWidth / 2;
+  const outline = strokeWidth > 0 ? stroke : "none";
+  const defaultRadius = tool === "rounded" ? CORNER_RADIUS : 0;
+  const radius =
+    typeof config.radius === "number"
+      ? Math.min(config.radius, width / 2, height / 2)
+      : defaultRadius;
   return (
     <svg
       className="drawing-view"
+      opacity={opacity}
       viewBox={`0 0 ${Math.max(width, 1)} ${Math.max(height, 1)}`}
     >
       <title>Drawing</title>
@@ -85,15 +97,15 @@ export function DrawingView({ config, height, width }: DrawingViewProps) {
           // than straddling its edge and being clipped.
           rx={Math.max(width / 2 - inset, 0)}
           ry={Math.max(height / 2 - inset, 0)}
-          stroke={stroke}
+          stroke={outline}
           strokeWidth={strokeWidth}
         />
       ) : (
         <rect
           fill={paint}
           height={Math.max(height - strokeWidth, 0)}
-          rx={tool === "rounded" ? CORNER_RADIUS : 0}
-          stroke={stroke}
+          rx={radius}
+          stroke={outline}
           strokeWidth={strokeWidth}
           width={Math.max(width - strokeWidth, 0)}
           x={inset}
