@@ -13,6 +13,7 @@ import {
   totalOf,
 } from "./invoices.js";
 import { type McpTool, ToolError } from "./mcp.js";
+import { BRAND_TOOLS } from "./mcpBrandTools.js";
 import { notify } from "./notify.js";
 import {
   cleanEmail,
@@ -349,4 +350,5 @@ export const SITE_TOOLS: McpTool<ToolCtx>[] = [
   listReviews,
   recentActivity,
   searchPhotos,
+  ...BRAND_TOOLS,
 ];

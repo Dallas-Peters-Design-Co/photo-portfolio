@@ -121,7 +121,7 @@ export const handleRpc = <Ctx>(
       return ok(msg.id, {
         capabilities: { tools: { listChanged: false } },
         instructions:
-          "Dallas Peters' site admin: proposals, agreements, invoices, client reviews, recent activity and the photo library. Invoices made here are drafts; they're sent from the site's admin after a last look.",
+          "Dallas Peters' site admin: proposals, agreements, invoices, client reviews, brand kits, recent activity and the photo library. Invoices made here are drafts; they're sent from the site's admin after a last look. Brand kit references are dated notes (decisions, feedback, call notes) with a source; add them with add_brand_reference, citing the note or email they came from.",
         protocolVersion,
         serverInfo: SERVER_INFO,
       });
