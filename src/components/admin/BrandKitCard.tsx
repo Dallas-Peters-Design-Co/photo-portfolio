@@ -1,6 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 import type { BrandKit } from "../../services/brandKitService";
 import { Button } from "../ui/button";
 import { PalettePreview } from "./BrandKitPreviews";
@@ -40,6 +42,14 @@ export function KitCard({
         <PalettePreview doc={kit.resolvedDoc} />
       </button>
       <div className="brand-kit__card-actions">
+        <Link
+          aria-label={`Open the ${kit.name} brand guide`}
+          className="brand-kit__guide-link"
+          title="Brand guide"
+          to={`/admin/brand-kits/${kit.id}/guide`}
+        >
+          <BookOpen size={14} />
+        </Link>
         {onAddSub ? (
           <Button
             aria-label={`Add a sub-brand of ${kit.name}`}

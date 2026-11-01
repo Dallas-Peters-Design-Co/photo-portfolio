@@ -26,6 +26,9 @@ const PhotoPage = lazy(() =>
 const BoardPage = lazy(() =>
   import("./pages/BoardPage").then((m) => ({ default: m.BoardPage }))
 );
+const BrandGuidePage = lazy(() =>
+  import("./pages/BrandGuidePage").then((m) => ({ default: m.BrandGuidePage }))
+);
 const BoardViewPage = lazy(() =>
   import("./pages/BoardViewPage").then((m) => ({ default: m.BoardViewPage }))
 );
@@ -70,6 +73,11 @@ export default function App() {
             {/* Before /:slug, and more specific than /admin, so a board keeps
                 its own URL and survives a reload. */}
             <Route element={<BoardPage />} path="/admin/boards/:boardId" />
+            {/* A kit as a full-page guide, outside the admin shell. */}
+            <Route
+              element={<BrandGuidePage />}
+              path="/admin/brand-kits/:kitId/guide"
+            />
             <Route element={<ResetPasswordPage />} path="/reset-password" />
             <Route element={<PhotoPage />} path="/photo/:id" />
             <Route element={<BoardViewPage />} path="/board/:slug" />
