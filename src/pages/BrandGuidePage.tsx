@@ -11,7 +11,11 @@ import {
   ReferenceSection,
   TypeSection,
 } from "../components/brandGuide/GuideSections";
-import { brandFaces, groupPalette } from "../components/brandGuide/guideModel";
+import {
+  brandFaces,
+  groupPalette,
+  paperAndInk,
+} from "../components/brandGuide/guideModel";
 import { brandKitsApi } from "../services/brandKitService";
 import { authStorage } from "../services/portfolioService";
 import { loadFontRef } from "../theme/remoteFonts";
@@ -107,10 +111,10 @@ export function BrandGuidePage() {
   };
   const theme = {
     "--guide-accent": groups.brand[0]?.value ?? "#1e3dff",
-    "--guide-bg": groups.neutral[0]?.value ?? "#f6f6f3",
+    "--guide-bg": paperAndInk(doc.palette).paper ?? "#f6f6f3",
     "--guide-body-font": stack(body?.ref),
     "--guide-head-font": stack(headline?.ref),
-    "--guide-ink": groups.neutral.at(-1)?.value ?? "#0b0f1a",
+    "--guide-ink": paperAndInk(doc.palette).ink ?? "#0b0f1a",
   } as React.CSSProperties;
 
   return (

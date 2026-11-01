@@ -42,10 +42,7 @@ export const groupPalette = (
   for (const entry of palette) {
     groups[groupOf(entry)].push(entry);
   }
-  // Neutrals read light to dark, as a scale.
-  groups.neutral.sort(
-    (a, b) => (hexToOklch(b.value)?.l ?? 0) - (hexToOklch(a.value)?.l ?? 0)
-  );
+  // Kept in the kit's own order: sorting the palette is the designer's call.
   return groups;
 };
 
@@ -88,4 +85,18 @@ export const brandFaces = (
   const body =
     byRoleBody ?? faces.find((f) => f !== headline) ?? headline ?? null;
   return { body, headline };
+};
+
+const lightness = (hex: string) => hexToOklch(hex)?.l ?? 0;
+
+/** The lightest and darkest neutrals: a brand's paper and its ink. */
+export const paperAndInk = (
+  palette: PaletteEntry[]
+): { ink: string | null; paper: string | null } => {
+  const neutrals = groupPalette(palette).neutral.map((n) => n.value);
+  if (neutrals.length === 0) {
+    return { ink: null, paper: null };
+  }
+  const byLight = [...neutrals].sort((a, b) => lightness(b) - lightness(a));
+  return { ink: byLight.at(-1) ?? null, paper: byLight[0] ?? null };
 };

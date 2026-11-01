@@ -10,7 +10,7 @@ import type {
 import { parseFontRef } from "../../../config/fontRef.js";
 import { LOOKS } from "../../editor/presets";
 import { loadFontRef } from "../../theme/remoteFonts";
-import { groupPalette, inkOn, valuesOf } from "./guideModel";
+import { groupPalette, inkOn, paperAndInk, valuesOf } from "./guideModel";
 
 /** The sections of a brand guide, each a function of the kit's document. */
 
@@ -185,8 +185,9 @@ export function LogoSection({ doc }: { doc: BrandKitDoc }) {
     return <p className="guide-empty">No logos in this kit yet.</p>;
   }
   const groups = groupPalette(doc.palette);
-  const light = groups.neutral[0]?.value ?? "#ffffff";
-  const dark = groups.neutral.at(-1)?.value ?? "#0b0f1a";
+  const { ink, paper } = paperAndInk(doc.palette);
+  const light = paper ?? "#ffffff";
+  const dark = ink ?? "#0b0f1a";
   const brand = groups.brand[0]?.value;
   return (
     <div className="guide-logos">

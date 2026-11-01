@@ -6,6 +6,7 @@ import {
   brandFaces,
   groupPalette,
   inkOn,
+  paperAndInk,
 } from "../../components/brandGuide/guideModel";
 import type { BoardItem } from "../../types";
 import type { DrawingConfig } from "../drawing/drawing";
@@ -64,12 +65,12 @@ export const brandFor = (doc: BrandKitDoc | null, roles: Roles): Brand => {
       (roles.image ? currentImageUrl(roles.image) : null) ??
       doc?.onBrand[0] ??
       null,
-    ink: groups.neutral.at(-1)?.value ?? "#0b0f1a",
+    ink: paperAndInk(doc?.palette ?? []).ink ?? "#0b0f1a",
     logo:
       (roles.logo ? currentImageUrl(roles.logo) : null) ??
       doc?.logos[0]?.url ??
       null,
-    paper: groups.neutral[0]?.value ?? "#ffffff",
+    paper: paperAndInk(doc?.palette ?? []).paper ?? "#ffffff",
   };
 };
 

@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { GripVertical } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
@@ -338,11 +339,54 @@ export function PaletteEditor({
         i === index ? { ...entry, ...patch } : entry
       ),
     });
+  /* Order matters: the first brand colour is the kit's accent everywhere it
+     is used, and the guide shows colours in this order. Drag a row by its
+     handle, or focus the handle and use the arrow keys. */
+  const move = (from: number, to: number) => {
+    if (to < 0 || to >= doc.palette.length || from === to) {
+      return;
+    }
+    const palette = [...doc.palette];
+    const [entry] = palette.splice(from, 1);
+    if (entry) {
+      palette.splice(to, 0, entry);
+      onChange({ ...doc, palette });
+    }
+  };
   return (
     <div className="stack stack--tight">
       {doc.palette.map((entry, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: a palette entry has no identity but its position — two colours may share a value and a name, and keying on content collapsed two new entries into one
-        <div className="brand-kit__row" key={`palette-${index}`}>
+        // biome-ignore lint/a11y/noStaticElementInteractions: the row is a drop target; the handle inside it is the keyboard route
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
+        <div
+          className="brand-kit__row brand-kit__row--sortable"
+          // biome-ignore lint/suspicious/noArrayIndexKey: a palette entry has no identity but its position — two colours may share a value and a name, and keying on content collapsed two new entries into one
+          key={`palette-${index}`}
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => {
+            e.preventDefault();
+            move(Number(e.dataTransfer.getData("text/x-palette-index")), index);
+          }}
+        >
+          <button
+            aria-label={`Move ${entry.name || entry.value}: drag, or use the arrow keys`}
+            className="brand-kit__handle"
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData("text/x-palette-index", String(index));
+              e.dataTransfer.effectAllowed = "move";
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                e.preventDefault();
+                move(index, index + (e.key === "ArrowUp" ? -1 : 1));
+              }
+            }}
+            title="Drag to reorder"
+            type="button"
+          >
+            <GripVertical aria-hidden size={14} />
+          </button>
           <ColorWell
             alpha={false}
             label="Colour"
