@@ -134,10 +134,10 @@ describe("the halftone's settings before anyone touches them", () => {
     await mount({});
     wellFor("Ink")?.click();
     await flush();
-    const fields = Array.from(document.querySelectorAll("input")).map(
-      (field) => field.value
+    // The OKLCH picker shows the colour it opened on as hex under its field.
+    expect(document.querySelector(".oklch__hex")?.textContent).toContain(
+      "#27444d"
     );
-    expect(fields).toContain("27444D");
   });
 
   it("fills every setting that declares a default", async () => {

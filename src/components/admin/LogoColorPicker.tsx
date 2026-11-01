@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import { ColorWell } from "../../boards/ColorWell";
 import type { BrandKit } from "../../services/brandKitService";
 
 /**
@@ -73,12 +74,10 @@ export function LogoColorPicker({
         {colors.map((color, index) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: a swatch has no identity but its place — two may share a colour
           <li className="logo-colors__item" key={`color-${index}`}>
-            <input
-              aria-label={`Colour ${index + 1}`}
-              className="logo-colors__swatch"
-              name={`color-${index}`}
-              onChange={(e) => set(index, e.target.value)}
-              type="color"
+            <ColorWell
+              alpha={false}
+              label={`Colour ${index + 1}`}
+              onChange={(next) => set(index, next)}
               value={color}
             />
             <span className="logo-colors__hex">{color}</span>

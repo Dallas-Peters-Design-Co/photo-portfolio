@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { ColorWell } from "../ColorWell";
 import type { ControlType, ShaderProp } from "./shaderConfig";
 import "./Control.css";
 
@@ -59,16 +60,15 @@ function ColorControl({ onChange, prop, current }: ResolvedControlProps) {
   {
     const hex = typeof current === "string" ? current : "#ffffff";
     return (
-      <label className="control--inline">
+      <span className="control--inline">
         {prop.label}
-        <input
-          className="control__swatch"
-          onChange={(e) => onChange(e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
-          type="color"
+        <ColorWell
+          alpha={false}
+          label={prop.label}
+          onChange={onChange}
           value={hex}
         />
-      </label>
+      </span>
     );
   }
 }
@@ -194,15 +194,14 @@ function GradientControl({ onChange, prop, current }: ResolvedControlProps) {
           stops.map((stop, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: a gradient stop has no identity but its place in the ramp — two stops may share a color and a position, and reordering is what editing one means
             <div className="control__row" key={index}>
-              <input
-                className="control__swatch control__swatch--stop"
-                onChange={(e) => {
+              <ColorWell
+                alpha={false}
+                label={`Stop ${index + 1} colour`}
+                onChange={(color) => {
                   const next = [...stops];
-                  next[index] = { ...stop, color: e.target.value };
+                  next[index] = { ...stop, color };
                   onChange(next);
                 }}
-                onPointerDown={(e) => e.stopPropagation()}
-                type="color"
                 value={stop.color}
               />
               <input

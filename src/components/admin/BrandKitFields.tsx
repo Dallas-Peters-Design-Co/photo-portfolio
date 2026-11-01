@@ -11,6 +11,7 @@ import {
   MAX_PALETTE,
   paletteFromCss,
 } from "../../../config/brandKit.js";
+import { ColorWell } from "../../boards/ColorWell";
 import { LOOK_FAMILIES, LOOKS } from "../../editor/presets";
 import {
   findLook,
@@ -342,11 +343,10 @@ export function PaletteEditor({
       {doc.palette.map((entry, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: a palette entry has no identity but its position — two colours may share a value and a name, and keying on content collapsed two new entries into one
         <div className="brand-kit__row" key={`palette-${index}`}>
-          <input
-            aria-label="Colour"
-            className="brand-kit__colour"
-            onChange={(e) => set(index, { value: e.target.value })}
-            type="color"
+          <ColorWell
+            alpha={false}
+            label="Colour"
+            onChange={(value) => set(index, { value })}
             value={isHexColour(entry.value) ? entry.value : "#000000"}
           />
           <Input

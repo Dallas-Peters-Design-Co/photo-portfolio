@@ -1,6 +1,5 @@
 import { Palette, RotateCcw, Save, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
-import { type ColorResult, SketchPicker } from "react-color";
 import { toast } from "sonner";
 import {
   defaultSiteSettings,
@@ -22,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { OklchPicker } from "../ui/OklchPicker";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
@@ -221,16 +221,14 @@ export function SiteSettingsPanel() {
                           type="button"
                         />
                         <div className="absolute top-12 left-0 z-50">
-                          <SketchPicker
-                            color={draft.theme[key]}
+                          <OklchPicker
                             // Alpha is disabled deliberately: contrastRatio
                             // returns 0 for anything that is not a plain hex,
                             // so an rgba value would silently disable the
                             // WCAG warning below rather than fail loudly.
-                            disableAlpha
-                            onChange={(color: ColorResult) =>
-                              setTheme(key, color.hex)
-                            }
+                            alpha={false}
+                            onChange={(hex) => setTheme(key, hex)}
+                            value={draft.theme[key]}
                           />
                         </div>
                       </>

@@ -1,19 +1,19 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import ColorPickerIcon from "@hugeicons-pro/core-stroke-standard/ColorPickerIcon";
 import { useEffect, useState } from "react";
-import { type ColorResult, SketchPicker } from "react-color";
 import { createPortal } from "react-dom";
 
-/** SketchPicker's own size, used only to keep it on screen. */
-const PICKER_WIDTH = 220;
-const PICKER_HEIGHT = 300;
+/** The picker's own size, used only to keep it on screen. */
+const PICKER_WIDTH = 240;
+const PICKER_HEIGHT = 340;
 
+import { OklchPicker } from "../components/ui/OklchPicker";
 import { useBrandSwatches } from "./brand/ActiveBrand";
 import { isTransparent } from "./drawing/drawing";
 import "./ColorWell.css";
 
 /**
- * A color swatch that opens the project's SketchPicker.
+ * A color swatch that opens the project's OKLCH picker.
  *
  * The same arrangement the site settings panel uses — swatch, a full-screen
  * button behind the popover to catch the dismissing click, picker above it —
@@ -28,6 +28,8 @@ import "./ColorWell.css";
  */
 
 interface ColorWellProps {
+  /** Offer alpha; false for values stored as plain six-digit hex. */
+  alpha?: boolean;
   label: string;
   onChange: (color: string) => void;
   value: string;
@@ -39,34 +41,15 @@ interface ColorWellProps {
  * The alpha pair is dropped at full opacity so ordinary colors stay in the
  * familiar six-digit form, and carried whenever it would otherwise be lost.
  */
-export const toHex = (color: ColorResult): string => {
-  const alpha = color.rgb.a ?? 1;
-  if (alpha >= 1) {
-    return color.hex;
-  }
-  return `${color.hex}${Math.round(alpha * 255)
-    .toString(16)
-    .padStart(2, "0")}`;
-};
-
-/**
- * What the picker should open on.
- *
- * A transparent value is a *sentinel* — NO_FILL is "#00000000", meaning "do not
- * paint" — not an alpha somebody chose. Seeding the picker with it started the
- * alpha slider at zero, so every colour picked came back as `#rrggbb00`, which
- * isTransparent() reads as no paint: the shape stayed hollow and the well
- * appeared to do nothing at all.
- *
- * Opening on opaque white instead makes picking a colour mean what it looks
- * like it means. The swatch still shows the chequerboard, so "there is no fill
- * yet" is not lost, and the alpha slider still reaches zero for anyone who
- * genuinely wants to turn a fill off.
- */
 export const pickerSeed = (value: string): string =>
   isTransparent(value) ? "#ffffff" : value;
 
-export function ColorWell({ label, onChange, value }: ColorWellProps) {
+export function ColorWell({
+  alpha = true,
+  label,
+  onChange,
+  value,
+}: ColorWellProps) {
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   // The board's brand colours replace the picker's stock presets, so the
   // palette is one click away wherever a colour is chosen.
@@ -174,10 +157,11 @@ export function ColorWell({ label, onChange, value }: ColorWellProps) {
                 onPointerDown={(e) => e.stopPropagation()}
                 style={{ left: at.left, top: at.top }}
               >
-                <SketchPicker
-                  color={pickerSeed(value)}
-                  onChange={(color: ColorResult) => onChange(toHex(color))}
-                  presetColors={brandSwatches}
+                <OklchPicker
+                  alpha={alpha}
+                  onChange={onChange}
+                  swatches={brandSwatches}
+                  value={pickerSeed(value)}
                 />
                 {/* Sampling beats matching by eye when the color wanted is
                     already on the board — a reference photograph, a logo, an
