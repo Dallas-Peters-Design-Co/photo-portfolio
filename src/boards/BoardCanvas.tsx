@@ -1034,32 +1034,21 @@ export function BoardCanvas({
           }
           if (stroke) {
             finishStroke(stroke);
+            // Nothing else may still be held once a mark ends.
+            gesture.current = { kind: "none" };
             return;
           }
           endGesture(e);
         }}
         onPointerDown={(e) => {
-          // Only the primary button begins anything. A right-click also emits
-          // pointerdown, so without this it started a drag that captured every
-          // item's position, sat there while the context menu was open, and
-          // wrote those stale positions back when it ended — which looked
-          // exactly like the menu's action being undone a moment after it ran.
-          if (e.button !== 0) {
-            return;
-          }
-          // A press that began on a port is already a wire drag; the surface
-          // must not also start panning underneath it.
-          if (wiring.isDragging) {
-            return;
-          }
-          // A tool is chosen, so a press is a mark rather than a selection or a
-          // pan. Capture the pointer so a stroke that leaves the element still
-          // finishes here instead of being abandoned mid-line.
-          if (isDrawing) {
-            e.currentTarget.setPointerCapture(e.pointerId);
-            setSelection(EMPTY_SELECTION);
-            setEditingId(null);
-            setStroke([view.toCanvas(e.clientX, e.clientY)]);
+          // Primary button only: a right-click's pointerdown started a drag that
+          // wrote stale positions back once the context menu closed.
+          // A press on a port is already a wire drag; don't pan under it.
+          if (
+            e.button !== 0 ||
+            wiring.isDragging ||
+            (isDrawing && !panHeld.current)
+          ) {
             return;
           }
           // Space pans, a plain drag sweeps a selection box. The convention
@@ -1083,6 +1072,19 @@ export function BoardCanvas({
             const start = view.toCanvas(e.clientX, e.clientY);
             setMarquee({ from: start, to: start });
           }
+        }}
+        onPointerDownCapture={(e) => {
+          // A tool is chosen, so a press anywhere — over a shape or a picture
+          // too — is a mark, not a grab: caught on the way down, before the
+          // item under it can start dragging. Space still pans.
+          if (e.button !== 0 || !isDrawing || panHeld.current) {
+            return;
+          }
+          e.stopPropagation();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          setSelection(EMPTY_SELECTION);
+          setEditingId(null);
+          setStroke([view.toCanvas(e.clientX, e.clientY)]);
         }}
         onPointerMove={(e) => {
           if (marquee) {
@@ -1119,6 +1121,8 @@ export function BoardCanvas({
           }
           if (stroke) {
             finishStroke(stroke);
+            // Nothing else may still be held once a mark ends.
+            gesture.current = { kind: "none" };
             return;
           }
           endGesture(e);

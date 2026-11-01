@@ -271,3 +271,50 @@ describe("BoardCanvas — wires", () => {
     expect(changed).toHaveLength(0);
   });
 });
+
+describe("BoardCanvas — painting over things", () => {
+  it("paints over an item instead of picking it up and moving it", async () => {
+    const { box, changed } = await render([item({ id: "a" })], {
+      drawStyle: { fill: "#00000000", stroke: "#ff0000", strokeWidth: 4 },
+      drawTool: "brush",
+      onDraw: () => undefined,
+    });
+    const [el] = drawn(box);
+    if (!el) {
+      throw new Error("no item");
+    }
+    const at = el.getBoundingClientRect();
+    const x = at.left + at.width / 2;
+    const y = at.top + at.height / 2;
+    await press(el, { clientX: x, clientY: y });
+    for (const step of [20, 60, 120]) {
+      const move = {
+        bubbles: true,
+        clientX: x + step,
+        clientY: y + step,
+        pointerId: 1,
+      };
+      el.dispatchEvent(new PointerEvent("pointermove", move));
+      window.dispatchEvent(new PointerEvent("pointermove", move));
+    }
+    el.dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
+    );
+    window.dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
+    );
+    await flush();
+    // The bug: the press had also picked the item up, so after the stroke the
+    // item followed the pointer around.
+    const after = {
+      bubbles: true,
+      clientX: x + 300,
+      clientY: y + 300,
+      pointerId: 1,
+    };
+    el.dispatchEvent(new PointerEvent("pointermove", after));
+    await flush();
+    const moved = changed.flat().find((i) => i.id === "a" && i.x !== 100);
+    expect(moved).toBeUndefined();
+  });
+});
