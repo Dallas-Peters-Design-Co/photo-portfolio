@@ -75,6 +75,32 @@ export const brandKitsApi = {
     return (await res.json()) as BrandKit;
   },
 
+  /**
+   * A picture for a frame, made from the kit: Claude writes the prompt from
+   * the kit's voice, palette, notes and pictures, and fal makes it at the
+   * frame's shape. Comes back already on our own storage.
+   */
+  generateImage: async (
+    kitId: string,
+    req: {
+      ask: string;
+      height: number;
+      look: string;
+      matchPhotos: boolean;
+      width: number;
+    }
+  ): Promise<{ prompt: string; url: string }> => {
+    const res = await fetch(`${apiBase()}/api/brand-kits`, {
+      body: JSON.stringify({ action: "image", kitId, ...req }),
+      headers: jsonHeaders(),
+      method: "POST",
+    });
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Couldn't make the picture"));
+    }
+    return (await res.json()) as { prompt: string; url: string };
+  },
+
   get: async (id: string): Promise<BrandKit> => {
     const res = await fetch(`${apiBase()}/api/brand-kits/${id}`, {
       headers: jsonHeaders(),

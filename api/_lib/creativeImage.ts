@@ -1,0 +1,162 @@
+import { type BrandKitDoc, kitPromptText } from "../../config/brandKit.js";
+import { describeWithClaude } from "./claudeVision.js";
+import { type GeneratedImage, generateImage } from "./fal.js";
+
+/**
+ * A picture for a frame, made from everything the brand kit knows.
+ *
+ * Two steps. Claude reads the kit — voice, palette, the decisions and
+ * feedback in its references, and the on- and off-brand pictures themselves —
+ * and turns the request into one image prompt in the brand's look. Then fal
+ * makes it at the frame's shape. When the kit has on-brand pictures and the
+ * request asks to match them, they go to the model as references too, so the
+ * result is held to the photographs and not only to a description of them.
+ */
+
+export interface ImageRequest {
+  ask: string;
+  /** The frame's shape in pixels, for the image's aspect. */
+  height: number;
+  /**
+   * The kit's photo grade, named. The client sends it because the looks are
+   * defined in the editor, not on the server.
+   */
+  look: string;
+  /** Send the on-brand pictures to the model as style references. */
+  matchPhotos: boolean;
+  width: number;
+}
+
+const MAX_ASK = 600;
+const MAX_PROMPT = 1100;
+/** On-brand pictures shown to Claude, and sent to the model as references. */
+const SHOWN = 4;
+const REFERENCES = 3;
+const OFF_SHOWN = 2;
+
+const clampNumber = (value: unknown): number => {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 10_000) : 1;
+};
+
+export const readImageRequest = (
+  body: Record<string, unknown>
+): ImageRequest => ({
+  ask: typeof body.ask === "string" ? body.ask.trim().slice(0, MAX_ASK) : "",
+  height: clampNumber(body.height),
+  look: typeof body.look === "string" ? body.look.trim().slice(0, 80) : "",
+  matchPhotos: body.matchPhotos !== false,
+  width: clampNumber(body.width),
+});
+
+/** fal's nearest named shape to the frame. */
+export const imageSizeFor = (width: number, height: number): string => {
+  const r = width / height;
+  if (r > 1.55) {
+    return "landscape_16_9";
+  }
+  if (r > 1.15) {
+    return "landscape_4_3";
+  }
+  if (r > 0.87) {
+    return "square_hd";
+  }
+  if (r > 0.65) {
+    return "portrait_4_3";
+  }
+  return "portrait_16_9";
+};
+
+const SYSTEM = `You write one prompt for an image model, for a picture that goes into a brand's ad or design.
+Reply with the prompt only: one paragraph, no preamble, no quotes, under 120 words.
+- Follow the request for what the picture shows. Never add products, people, places, claims or numbers it doesn't ask for.
+- Match the brand's look: its light, colour, grade, composition and mood, as the on-brand pictures and notes show. Steer clear of what the off-brand pictures show.
+- Describe colours in words, never as hex codes.
+- No words, letters, logos or watermarks in the picture: type and logo are set over it afterwards.
+- Leave calm, uncluttered space where a headline could sit.`;
+
+export const promptBrief = (
+  doc: BrandKitDoc,
+  req: ImageRequest,
+  shown: { off: number; on: number }
+): string => {
+  const parts = [`Request: ${req.ask || "an image that sums up the brand"}`];
+  const said = kitPromptText(doc);
+  if (said) {
+    parts.push(`Brand: ${said}`);
+  }
+  if (req.look) {
+    parts.push(`Photography is graded with the "${req.look}" look.`);
+  }
+  const notes = doc.references
+    .slice(0, 8)
+    .map((r) => `- ${r.title}: ${r.body}`.slice(0, 300));
+  if (notes.length > 0) {
+    parts.push(`Brand decisions and feedback:\n${notes.join("\n")}`);
+  }
+  parts.push(`Shape: ${Math.round(req.width)}×${Math.round(req.height)}px.`);
+  if (shown.on > 0) {
+    parts.push(`The first ${shown.on} picture(s) are on-brand.`);
+  }
+  if (shown.off > 0) {
+    parts.push(
+      `The last ${shown.off} picture(s) are OFF-brand: avoid what they do.`
+    );
+  }
+  return parts.join("\n\n");
+};
+
+/** The prompt without Claude: the request and the kit's own words. */
+const plainPrompt = (doc: BrandKitDoc, req: ImageRequest): string =>
+  [
+    req.ask || "an image that sums up the brand",
+    kitPromptText(doc),
+    "no text, no logos",
+  ]
+    .filter(Boolean)
+    .join(", ");
+
+const writePrompt = async (
+  doc: BrandKitDoc,
+  req: ImageRequest
+): Promise<string> => {
+  const on = doc.onBrand.slice(0, SHOWN);
+  const off = doc.offBrand.slice(0, OFF_SHOWN);
+  try {
+    const reply = await describeWithClaude(
+      [...on, ...off],
+      SYSTEM,
+      promptBrief(doc, req, { off: off.length, on: on.length })
+    );
+    const prompt = reply.trim().replace(/^["']|["']$/g, "");
+    return prompt ? prompt.slice(0, MAX_PROMPT) : plainPrompt(doc, req);
+  } catch (e) {
+    // Claude is a refinement, not a requirement: without it the request and
+    // the kit's own description still make a brand-coloured picture.
+    console.warn("[brand-kits] image prompt fell back", e);
+    return plainPrompt(doc, req);
+  }
+};
+
+export const brandImage = async (
+  doc: BrandKitDoc,
+  req: ImageRequest
+): Promise<GeneratedImage & { prompt: string }> => {
+  const prompt = await writePrompt(doc, req);
+  const refs = req.matchPhotos ? doc.onBrand.slice(0, REFERENCES) : [];
+  const [first, ...rest] = refs;
+  const image = await generateImage(
+    first
+      ? `Make a new picture, not a copy of these: they only show the brand's photographic style. ${prompt}`
+      : prompt,
+    first ?? null,
+    null,
+    null,
+    {
+      blendWith: rest,
+      palette: doc.palette.map((p) => p.value).slice(0, 6),
+      size: imageSizeFor(req.width, req.height),
+    }
+  );
+  return { ...image, prompt };
+};

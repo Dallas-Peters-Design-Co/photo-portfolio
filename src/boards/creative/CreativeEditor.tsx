@@ -1,6 +1,7 @@
 import {
   Circle,
   ImageIcon,
+  Sparkles,
   Square,
   SquareRoundCorner,
   Type,
@@ -29,6 +30,7 @@ import {
   type ShapeTool,
 } from "./creativeModel";
 import { ExportMenu } from "./ExportMenu";
+import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
 import "./CreativeEditor.css";
 
@@ -90,6 +92,7 @@ export function CreativeEditor({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showBrand, setShowBrand] = useState(false);
+  const [showGenerate, setShowGenerate] = useState(false);
   const textEls = useRef(new Map<string, HTMLElement>());
   const palette = useActiveBrand()?.kit?.resolvedDoc.palette ?? [];
 
@@ -298,9 +301,29 @@ export function CreativeEditor({
             onClick={() => setShowBrand((v) => !v)}
             type="button"
           >
-            <ImageIcon size={16} /> Brand images
+            <ImageIcon size={16} /> Images
+          </button>
+          <button
+            aria-pressed={showGenerate}
+            className="creative__add"
+            onClick={() => setShowGenerate((v) => !v)}
+            type="button"
+          >
+            <Sparkles size={16} /> Generate
           </button>
         </div>
+        {showGenerate ? (
+          <GenerateImage
+            background={background}
+            frame={frame}
+            items={items}
+            layers={layers}
+            onChange={(next, id) => {
+              onChange(next);
+              setSelectedId(id);
+            }}
+          />
+        ) : null}
         <div className="creative__background">
           <ColorWell
             label="Background"

@@ -5,11 +5,14 @@ import { UUID_RE } from "../_lib/boardItemParse.js";
 import { loadKit, loadKits, writeKitVersion } from "../_lib/brandKitStore.js";
 import { handleCors } from "../_lib/cors.js";
 import { readCopyRequest, writeCopy } from "../_lib/creativeCopy.js";
+import { brandImage, readImageRequest } from "../_lib/creativeImage.js";
 import { getSql } from "../_lib/db.js";
+import { isFalConfigured } from "../_lib/fal.js";
 import { adobeKitFamilies, googleCatalog } from "../_lib/fontCatalog.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
+import { withRequestIdentity } from "../_lib/requestIdentity.js";
 import { deleteLook, listLooks, saveLook } from "../_lib/savedLooks.js";
 
 /**
@@ -74,6 +77,33 @@ async function handleLookAction(
     : res.status(out.status).json({ error: out.error });
 }
 
+async function handleImage(
+  sql: Sql,
+  body: Record<string, unknown>,
+  res: VercelResponse
+) {
+  if (!isFalConfigured()) {
+    return res.status(503).json({
+      error:
+        "Image generation is not configured. Set FAL_API_KEY on the project.",
+    });
+  }
+  const kitId = String(body.kitId ?? "");
+  const kit = UUID_RE.test(kitId) ? await loadKit(sql, kitId) : null;
+  if (!kit) {
+    return res.status(404).json({ error: "That brand kit wasn't found" });
+  }
+  try {
+    const image = await brandImage(kit.resolvedDoc, readImageRequest(body));
+    return res.status(200).json(image);
+  } catch (e) {
+    console.error("[brand-kits] image", e);
+    return res.status(502).json({
+      error: e instanceof Error ? e.message : "Couldn't make the picture",
+    });
+  }
+}
+
 async function handleCopy(
   sql: Sql,
   body: Record<string, unknown>,
@@ -111,6 +141,10 @@ async function handlePost(
   // Ad copy in a kit's voice, for the creative editor (_lib/creativeCopy.ts).
   if (body.action === "copy") {
     return await handleCopy(sql, body, res);
+  }
+  // A picture from the kit, for the creative editor (_lib/creativeImage.ts).
+  if (body.action === "image") {
+    return await handleImage(sql, body, res);
   }
   const name = sanitizeText(String(body.name ?? "")).slice(0, MAX_KIT_NAME);
   if (!name) {
@@ -153,7 +187,7 @@ async function handlePost(
   return res.status(201).json(await loadKit(sql, kit.id));
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+async function serve(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
     return;
   }
@@ -172,4 +206,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.error(e);
     return res.status(500).json({ error: "Could not load brand kits" });
   }
+}
+
+/*
+ * Wrapped so the copy and image writers can reach Claude with this request's
+ * Vercel identity rather than only the build's. See withRequestIdentity.
+ */
+export default function handler(req: VercelRequest, res: VercelResponse) {
+  return withRequestIdentity(req.headers, () => serve(req, res));
 }
