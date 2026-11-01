@@ -1,8 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { MAX_KIT_NAME, sanitizeKitDoc } from "../../config/brandKit.js";
 import { getBearerUser } from "../_lib/auth.js";
+import { UUID_RE } from "../_lib/boardItemParse.js";
 import { loadKit, loadKits, writeKitVersion } from "../_lib/brandKitStore.js";
 import { handleCors } from "../_lib/cors.js";
+import { readCopyRequest, writeCopy } from "../_lib/creativeCopy.js";
 import { getSql } from "../_lib/db.js";
 import { adobeKitFamilies, googleCatalog } from "../_lib/fontCatalog.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
@@ -72,6 +74,27 @@ async function handleLookAction(
     : res.status(out.status).json({ error: out.error });
 }
 
+async function handleCopy(
+  sql: Sql,
+  body: Record<string, unknown>,
+  res: VercelResponse
+) {
+  const kitId = String(body.kitId ?? "");
+  const kit = UUID_RE.test(kitId) ? await loadKit(sql, kitId) : null;
+  if (!kit) {
+    return res.status(404).json({ error: "That brand kit wasn't found" });
+  }
+  try {
+    const variants = await writeCopy(kit.resolvedDoc, readCopyRequest(body));
+    return res.status(200).json({ variants });
+  } catch (e) {
+    console.error("[brand-kits] copy", e);
+    return res.status(502).json({
+      error: e instanceof Error ? e.message : "Couldn't write copy just now",
+    });
+  }
+}
+
 async function handlePost(
   sql: Sql,
   user: User,
@@ -84,6 +107,10 @@ async function handlePost(
   const body = parseJsonBody(req.body) as Record<string, unknown>;
   if (body.action === "saveLook" || body.action === "deleteLook") {
     return await handleLookAction(sql, body, res);
+  }
+  // Ad copy in a kit's voice, for the creative editor (_lib/creativeCopy.ts).
+  if (body.action === "copy") {
+    return await handleCopy(sql, body, res);
   }
   const name = sanitizeText(String(body.name ?? "")).slice(0, MAX_KIT_NAME);
   if (!name) {

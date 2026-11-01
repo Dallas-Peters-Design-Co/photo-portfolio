@@ -1,0 +1,208 @@
+/*
+ * The brand side of the creative editor. Accent is spent on state only: the
+ * score ring and a low bar.
+ */
+
+.brand-panel {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  min-height: 0;
+  padding: calc(var(--spacing) * 3);
+  overflow-y: auto;
+  font-size: 0.75rem;
+  border-left: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+}
+
+.brand-panel__section {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+
+.brand-panel__row {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+
+  & select {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.brand-panel__label {
+  display: inline-flex;
+  gap: var(--spacing);
+  align-items: center;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: color-mix(in oklch, var(--color-board-ink) 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.brand-panel__score {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+  color: inherit;
+  text-align: left;
+
+  & > span:last-child {
+    display: grid;
+    gap: 2px;
+  }
+}
+
+.brand-panel__summary {
+  color: color-mix(in oklch, var(--color-board-ink) 75%, transparent);
+}
+
+.brand-panel__ring {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  background:
+    radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--color-board-surface) 92%, black) 79%,
+      transparent 80%
+    ),
+    conic-gradient(
+      oklch(68% 0.16 150) calc(var(--score) * 360deg),
+      color-mix(in oklch, var(--color-board-ink) 12%, transparent) 0
+    );
+  border-radius: 50%;
+}
+
+.brand-panel__bars {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+
+  & > div {
+    display: grid;
+    grid-template-columns: 5.5rem 1fr 1.25rem;
+    gap: calc(var(--spacing) * 2);
+    align-items: center;
+  }
+  & dt {
+    color: color-mix(in oklch, var(--color-board-ink) 75%, transparent);
+  }
+  & dd {
+    margin: 0;
+  }
+  & dd:nth-child(2) {
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+    border-radius: 2px;
+  }
+}
+
+.brand-panel__bar {
+  display: block;
+  height: 100%;
+  background: oklch(68% 0.16 150);
+}
+
+.brand-panel__bar--low {
+  background: oklch(72% 0.16 60);
+}
+
+.brand-panel__num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.brand-panel__findings {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  & button,
+  & span {
+    display: block;
+    width: 100%;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    color: inherit;
+    text-align: left;
+    border-radius: var(--radius-control, 6px);
+  }
+  & button:hover {
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+}
+
+.brand-panel__finding--error {
+  box-shadow: inset 2px 0 0 oklch(62% 0.2 25);
+}
+
+.brand-panel__finding--warn {
+  box-shadow: inset 2px 0 0 oklch(75% 0.15 75);
+}
+
+.brand-panel__brief {
+  height: auto;
+  min-height: 4.5rem;
+  padding-block: calc(var(--spacing) * 1.5);
+  resize: vertical;
+}
+
+.brand-panel__variant {
+  display: grid;
+  gap: 2px;
+  padding: calc(var(--spacing) * 2);
+  color: inherit;
+  text-align: left;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-control, 6px);
+
+  &:hover {
+    border-color: color-mix(in oklch, var(--color-board-ink) 45%, transparent);
+  }
+  & strong {
+    font-size: 0.8125rem;
+  }
+  & em {
+    font-style: normal;
+    font-weight: 600;
+  }
+}
+
+.brand-panel__angle {
+  font-size: 0.625rem;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.brand-panel__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing);
+}
+
+.brand-panel__chip {
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2.5);
+  color: inherit;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 20%, transparent);
+  border-radius: 999px;
+
+  &:hover:not(:disabled) {
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+  &:disabled {
+    opacity: 0.5;
+  }
+}

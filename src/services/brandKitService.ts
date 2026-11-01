@@ -153,4 +153,35 @@ export const brandKitsApi = {
     }
     return (await res.json()) as BrandKit;
   },
+
+  /** Ad copy in the kit's voice: three variants, or a translation. */
+  writeCopy: async (
+    kitId: string,
+    req: {
+      brief: string;
+      current: { body: string; cta: string; headline: string };
+      language: string;
+      size: string;
+    }
+  ): Promise<
+    { angle: string; body: string; cta: string; headline: string }[]
+  > => {
+    const res = await fetch(`${apiBase()}/api/brand-kits`, {
+      body: JSON.stringify({ action: "copy", kitId, ...req }),
+      headers: jsonHeaders(),
+      method: "POST",
+    });
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Couldn't write copy"));
+    }
+    const json = (await res.json()) as {
+      variants: {
+        angle: string;
+        body: string;
+        cta: string;
+        headline: string;
+      }[];
+    };
+    return json.variants;
+  },
 };

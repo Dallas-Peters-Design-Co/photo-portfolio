@@ -16,6 +16,7 @@ import { ColorWell } from "../ColorWell";
 import { isDrawingConfig } from "../drawing/drawing";
 import { BrandDock } from "../panels/BrandDock";
 import { Artboard } from "./Artboard";
+import { BrandPanel } from "./BrandPanel";
 import { ContextBar } from "./ContextBar";
 import {
   duplicate,
@@ -381,6 +382,14 @@ export function CreativeEditor({
           }}
         />
       </main>
+
+      <BrandPanel
+        frame={frame}
+        items={items}
+        layers={layers}
+        onChange={onChange}
+        onSelect={setSelectedId}
+      />
 
       {showBrand ? (
         <BrandDock

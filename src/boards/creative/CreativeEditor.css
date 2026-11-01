@@ -10,7 +10,7 @@
   z-index: calc(var(--z-modal-scrim) - 1);
   display: grid;
   grid-template-rows: auto 1fr;
-  grid-template-columns: 15rem 1fr;
+  grid-template-columns: 15rem minmax(0, 1fr) 18rem;
   color: var(--color-board-ink);
   background: color-mix(in oklch, var(--color-board-surface) 92%, black);
 }
