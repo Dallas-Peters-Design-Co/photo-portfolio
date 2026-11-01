@@ -16,6 +16,7 @@
 import { describePalette } from "./colourWords.js";
 import { isAdobeKitId, isFontRef } from "./fontRef.js";
 import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
+import { sanitizeTypeScale, type TypeScale } from "./typeScale.js";
 
 /** Six-digit hex, the one colour notation this app writes and reads. */
 export const HEX = /^#[0-9a-f]{6}$/i;
@@ -139,6 +140,8 @@ export interface BrandKitDoc {
    */
   scans: SiteScan[];
   typefaces: TypefaceEntry[];
+  /** Named text styles and spacing steps (config/typeScale.ts), or none. */
+  typeScale: TypeScale | null;
   voice: string;
   /** The brand's live websites, scanned for its DESIGN.md components. */
   websites: string[];
@@ -155,6 +158,7 @@ export const EMPTY_KIT: BrandKitDoc = {
   references: [],
   scans: [],
   typefaces: [],
+  typeScale: null,
   voice: "",
   websites: [],
 };
@@ -317,6 +321,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
       })
       .filter((entry) => entry.name !== "")
       .slice(0, MAX_TYPEFACES),
+    typeScale: sanitizeTypeScale(raw.typeScale),
     voice: clampText(raw.voice, MAX_VOICE),
     websites: sanitizeWebsites(raw.websites),
   };
@@ -358,6 +363,7 @@ export const resolveKitDoc = (
       child.references.length > 0 ? child.references : parent.references,
     scans: child.websites.length > 0 ? child.scans : parent.scans,
     typefaces: child.typefaces.length > 0 ? child.typefaces : parent.typefaces,
+    typeScale: child.typeScale ?? parent.typeScale,
     voice: child.voice.trim() ? child.voice : parent.voice,
     websites: child.websites.length > 0 ? child.websites : parent.websites,
   };
@@ -379,6 +385,9 @@ export const inheritedParts = (
   }
   if (child.typefaces.length === 0 && parent.typefaces.length > 0) {
     parts.push("typefaces");
+  }
+  if (!child.typeScale && parent.typeScale) {
+    parts.push("type scale");
   }
   if (child.logos.length === 0 && parent.logos.length > 0) {
     parts.push("logos");

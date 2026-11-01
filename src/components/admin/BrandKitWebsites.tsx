@@ -17,6 +17,8 @@ import {
   sanitizeWebsites,
 } from "../../../config/siteScan.js";
 import { scanSite } from "../../lib/scanSite";
+import { facesFor } from "../typeScale/faces";
+import { TypeScaleEditor } from "../typeScale/TypeScaleEditor";
 import { Button } from "../ui/button";
 import { ReferencesEditor } from "./BrandKitLibrary";
 import "./BrandKitWebsites.css";
@@ -240,7 +242,7 @@ export function DesignMdPreview({
   );
 }
 
-/** Websites, DESIGN.md, then references. */
+/** Websites, the type scale, DESIGN.md, then references. */
 export function BrandSources({
   doc,
   effective,
@@ -257,6 +259,20 @@ export function BrandSources({
       <section className="stack stack--snug">
         <h3 className="admin-caps">Websites</h3>
         <WebsitesEditor doc={doc} onChange={onChange} />
+      </section>
+      <section className="stack stack--snug">
+        <h3 className="admin-caps">Type &amp; spacing scale</h3>
+        {doc.typeScale === null && effective.typeScale ? (
+          <p className="brand-kit__hint">
+            Inherited from the parent kit. Edit to give this kit its own.
+          </p>
+        ) : null}
+        <TypeScaleEditor
+          faces={facesFor(effective.typefaces)}
+          onChange={(typeScale) => onChange({ ...doc, typeScale })}
+          scan={effective.scans[0]}
+          value={doc.typeScale ?? effective.typeScale}
+        />
       </section>
       <section className="stack stack--snug">
         <h3 className="admin-caps">DESIGN.md</h3>

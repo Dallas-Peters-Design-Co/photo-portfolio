@@ -8,8 +8,10 @@ import type {
   TypefaceEntry,
 } from "../../../config/brandKit.js";
 import { parseFontRef } from "../../../config/fontRef.js";
+import { styleCss } from "../../../config/typeScale.js";
 import { LOOKS } from "../../editor/presets";
 import { loadFontRef } from "../../theme/remoteFonts";
+import { facesFor, familyFor } from "../typeScale/faces";
 import { groupPalette, inkOn, paperAndInk, valuesOf } from "./guideModel";
 
 /** The sections of a brand guide, each a function of the kit's document. */
@@ -110,6 +112,7 @@ export function ColourSection({ doc }: { doc: BrandKitDoc }) {
 const SOURCE = { adobe: "Adobe Fonts", google: "Google Fonts" } as const;
 
 const SAMPLE = "Sphinx of black quartz, judge my vow.";
+const SAMPLE_FOR = { body: SAMPLE, headline: "The quick brown fox" } as const;
 
 function Typeface({ face }: { face: TypefaceEntry }) {
   const ref = parseFontRef(face.ref);
@@ -148,16 +151,49 @@ function Typeface({ face }: { face: TypefaceEntry }) {
   );
 }
 
+/** The kit's type scale, each style set in its face. */
+function TypeScaleRows({ doc }: { doc: BrandKitDoc }) {
+  const faces = facesFor(doc.typefaces);
+  const styles = doc.typeScale?.styles ?? [];
+  if (styles.length === 0) {
+    return null;
+  }
+  return (
+    <div className="guide-scale">
+      {styles.map((s) => (
+        <div className="guide-scale__row" key={s.name}>
+          <div className="guide-scale__spec">
+            <strong>{s.name}</strong>
+            <span>
+              {s.size}px / {s.lineHeight} · {s.weight}
+              {s.tracking ? ` · ${s.tracking}em` : ""}
+            </span>
+          </div>
+          <p
+            className="guide-scale__sample"
+            style={{ ...styleCss(s), fontFamily: familyFor(faces, s.face) }}
+          >
+            {SAMPLE_FOR[s.face]}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function TypeSection({ doc }: { doc: BrandKitDoc }) {
-  if (doc.typefaces.length === 0) {
+  if (doc.typefaces.length === 0 && !doc.typeScale) {
     return <p className="guide-empty">No typefaces in this kit yet.</p>;
   }
   return (
-    <div className="guide-types">
-      {doc.typefaces.map((face) => (
-        <Typeface face={face} key={face.name + face.role} />
-      ))}
-    </div>
+    <>
+      <div className="guide-types">
+        {doc.typefaces.map((face) => (
+          <Typeface face={face} key={face.name + face.role} />
+        ))}
+      </div>
+      <TypeScaleRows doc={doc} />
+    </>
   );
 }
 

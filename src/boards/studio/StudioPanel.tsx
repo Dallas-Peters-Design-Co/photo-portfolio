@@ -6,6 +6,7 @@ import { PaletteTool } from "./color/PaletteTool";
 import { RampTool } from "./color/RampTool";
 import { ImageToolView } from "./ImageToolView";
 import { DEFAULT_PALETTE, IMAGE_TOOLS, STUDIO_TOOLS } from "./tools";
+import { TypeScaleTool } from "./type/TypeScaleTool";
 import type { StudioValues } from "./types";
 import "./Studio.css";
 
@@ -16,7 +17,7 @@ import "./Studio.css";
  * chosen; palettes can be saved back to the brand kit.
  */
 
-const GROUPS = ["Images", "Colour"] as const;
+const GROUPS = ["Images", "Colour", "Type"] as const;
 
 export function StudioPanel({
   initialTool,
@@ -43,6 +44,9 @@ export function StudioPanel({
   const view = () => {
     if (toolId === "palette") {
       return <PaletteTool onAdd={onAdd} />;
+    }
+    if (toolId === "type-scale") {
+      return <TypeScaleTool onAdd={onAdd} />;
     }
     if (toolId === "ramps") {
       return (

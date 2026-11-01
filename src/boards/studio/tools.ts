@@ -17,7 +17,7 @@ export const IMAGE_TOOLS: ImageTool[] = [
 /** Neutral colours for when no brand is chosen. */
 export interface StudioToolInfo {
   blurb: string;
-  group: "Colour" | "Images";
+  group: "Colour" | "Images" | "Type";
   id: string;
   name: string;
 }
@@ -43,6 +43,13 @@ export const STUDIO_TOOLS: StudioToolInfo[] = [
     group: "Colour",
     id: "ramps",
     name: "Color Ramps",
+  },
+  {
+    blurb:
+      "Text styles and spacing steps in the brand fonts: sizes, weights, leading, tracking, case. Saves to the kit and its DESIGN.md.",
+    group: "Type",
+    id: "type-scale",
+    name: "Type & Spacing Scale",
   },
 ];
 

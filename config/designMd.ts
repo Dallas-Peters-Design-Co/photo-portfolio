@@ -1,5 +1,11 @@
 import type { BrandKitDoc, PaletteEntry, TypefaceEntry } from "./brandKit.js";
 import {
+  scaleLayout,
+  scaleProse,
+  scaleSpacing,
+  scaleTypographyLines,
+} from "./designMdScale.js";
+import {
   layoutSection,
   scannedComponentLines,
   scanTokens,
@@ -88,7 +94,7 @@ const isNeutral = (p: PaletteEntry) =>
 const accentOf = (palette: PaletteEntry[]) =>
   palette.find((p) => !(isNeutral(p) || SIGNAL.test(`${p.role} ${p.name}`)));
 
-const facesOf = (faces: TypefaceEntry[]) => {
+export const facesOf = (faces: TypefaceEntry[]) => {
   const head =
     faces.find((f) => HEADLINE_ROLE.test(f.role)) ??
     faces.find((f) => HEAD_ROLE.test(f.role));
@@ -111,7 +117,7 @@ const sourceOf = (face: TypefaceEntry): string => {
   return "a licensed or local font";
 };
 
-const familyOf = (face: TypefaceEntry) =>
+export const familyOf = (face: TypefaceEntry) =>
   parseFontRef(face.ref)?.family ?? face.name;
 
 /**
@@ -158,6 +164,14 @@ const typographyLines = (
 ): string[] => {
   const lines: string[] = [];
   const { body, headline } = facesOf(doc.typefaces);
+  if (doc.typeScale && doc.typeScale.styles.length > 0) {
+    // The kit's own scale states every size; the website's aren't needed.
+    const face = (which: "body" | "headline") => {
+      const f = which === "headline" ? headline : body;
+      return f ? familyOf(f) : undefined;
+    };
+    return ["typography:", ...scaleTypographyLines(doc.typeScale, face)];
+  }
   if (headline || extra.length > 0) {
     lines.push("typography:");
   }
@@ -207,8 +221,12 @@ const frontMatter = (kit: DesignMdKit): Tokens => {
   );
   // What the kit (and its website scan) doesn't have is said to be left out,
   // rather than leaving an agent to wonder whether it was forgotten.
+  const spacing =
+    doc.typeScale && doc.typeScale.spacing.length > 0
+      ? scaleSpacing(doc.typeScale).map(([k, v]) => `  ${k}: ${v}`)
+      : scanned.spacing;
   const omitted = [
-    scanned.spacing.length === 0 ? "spacing" : "",
+    spacing.length === 0 ? "spacing" : "",
     scanned.rounded.length === 0 ? "rounded" : "",
   ].filter(Boolean);
   if (omitted.length > 0) {
@@ -220,12 +238,14 @@ const frontMatter = (kit: DesignMdKit): Tokens => {
       lines.push(`  ${colorNames[i]}: "${p.value}"`);
     });
   }
-  lines.push(...typographyLines(doc, scan, scanned.typography));
+  const typeLines = typographyLines(doc, scan, scanned.typography);
+  const hasBody = typeLines.includes("  body:");
+  lines.push(...typeLines);
   if (scanned.rounded.length > 0) {
     lines.push("rounded:", ...scanned.rounded);
   }
-  if (scanned.spacing.length > 0) {
-    lines.push("spacing:", ...scanned.spacing);
+  if (spacing.length > 0) {
+    lines.push("spacing:", ...spacing);
   }
   if (doc.palette.length > 0 || scanned.components.length > 0) {
     lines.push("components:");
@@ -244,7 +264,7 @@ const frontMatter = (kit: DesignMdKit): Tokens => {
       lines.push(isButton ? "  button-primary:" : `  block-${token}:`);
       lines.push(`    backgroundColor: "{colors.${token}}"`);
       lines.push(`    textColor: ${textOn(p, doc.palette, colorNames)}`);
-      if (facesOf(doc.typefaces).body && isButton) {
+      if (hasBody && isButton) {
         lines.push(`    typography: "{typography.body}"`);
       }
     });
@@ -300,7 +320,7 @@ const useOf = (
 
 const typography = (doc: BrandKitDoc): string[] => {
   if (doc.typefaces.length === 0) {
-    return [];
+    return doc.typeScale ? ["## Typography", ...scaleProse(doc.typeScale)] : [];
   }
   const { body, headline } = facesOf(doc.typefaces);
   return [
@@ -314,6 +334,7 @@ const typography = (doc: BrandKitDoc): string[] => {
         familyOf(face) === face.name ? "" : ` (CSS \`${familyOf(face)}\`)`;
       return `- **${face.name}**${css} for ${use}, from ${sourceOf(face)}${weights}`;
     }),
+    ...(doc.typeScale ? scaleProse(doc.typeScale) : []),
   ];
 };
 
@@ -440,7 +461,9 @@ export const designMd = (kit: DesignMdKit): string => {
     overview(kit),
     colors(kit.doc, colorNames),
     typography(kit.doc),
-    layoutSection(kit.doc.scans[0]),
+    kit.doc.typeScale && kit.doc.typeScale.spacing.length > 0
+      ? scaleLayout(kit.doc.typeScale)
+      : layoutSection(kit.doc.scans[0]),
     shapesSection(kit.doc.scans[0]),
     components(kit.doc),
     logos(kit.doc),

@@ -534,3 +534,40 @@
     print-color-adjust: exact;
   }
 }
+
+.guide-scale {
+  display: grid;
+  margin-top: 3rem;
+  border-top: 1px solid color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.guide-scale__row {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 2rem;
+  align-items: baseline;
+  padding-block: 1.25rem;
+  border-bottom: 1px solid color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.guide-scale__spec {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+
+  & strong {
+    font-family: ui-monospace, monospace;
+  }
+
+  & span {
+    font-variant-numeric: tabular-nums;
+    color: color-mix(in oklch, currentColor 60%, transparent);
+  }
+}
+
+.guide-scale__sample {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
