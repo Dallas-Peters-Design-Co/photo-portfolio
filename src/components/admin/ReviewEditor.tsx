@@ -3,7 +3,7 @@ import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
 import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
 import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
-import { Plus, ScanSearch, X } from "lucide-react";
+import { Plus, ScanSearch } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
@@ -22,6 +22,7 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { BackButton } from "./BackButton";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
@@ -227,15 +228,12 @@ export function ReviewEditor({
       className="w-full max-w-7xl border-white/10 bg-white/2"
       style={reviewAccentStyle(settings.theme.accent)}
     >
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+      <CardHeader className="flex flex-col items-start gap-2">
+        <BackButton label="Reviews" onClick={onClose} />
         <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
           <HugeiconsIcon aria-hidden icon={SearchVisualIcon} size={16} />
           {draft.title}
         </CardTitle>
-        <Button onClick={onClose} type="button" variant="ghost">
-          <X className="mr-1.5" size={14} />
-          Close
-        </Button>
       </CardHeader>
 
       <CardContent className="space-y-10">

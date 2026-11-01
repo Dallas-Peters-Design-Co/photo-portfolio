@@ -19,6 +19,7 @@ import { type BrandKit, brandKitsApi } from "../../services/brandKitService";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
+import { BackButton } from "./BackButton";
 import { KitCard } from "./BrandKitCard";
 import {
   CssImport,
@@ -158,6 +159,7 @@ function KitEditor({
   return (
     <div className="brand-kit">
       <div className="brand-kit__editor stack stack--mid">
+        <BackButton label="Brand kits" onClick={() => void close()} />
         <div className="row row--between">
           <Input
             aria-label="Kit name"
@@ -249,10 +251,7 @@ function KitEditor({
           </p>
         </section>
 
-        <div className="row row--between">
-          <Button onClick={() => void close()} type="button" variant="ghost">
-            Back to kits
-          </Button>
+        <div className="row row--end">
           <span className="row row--snug">
             {/* Said, not implied. An enabled Save button was the only sign that
                 this screen held the sole copy of the work, and it was not
