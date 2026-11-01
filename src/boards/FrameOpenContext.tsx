@@ -1,6 +1,7 @@
 import { createContext, type ReactNode, useContext } from "react";
 import { frameSlugs } from "../../config/frameSlug";
 import type { BoardItem } from "../types";
+import type { FitMode } from "./panels/AdSizesPanel";
 
 /**
  * What a frame can do besides sit there: be opened, and be linked to.
@@ -27,6 +28,8 @@ import type { BoardItem } from "../types";
 const TRAILING_SLASH = /\/$/;
 
 interface FrameActions {
+  /** Resizes a frame to an ad size, or copies it out at several. */
+  fitFrame?: (frameId: string, sizeIds: string[], mode: FitMode) => void;
   /** The absolute URL of a frame, or null when the board is not published. */
   linkFor?: (frameId: string) => string | null;
   /** Opens the frame as its own view. */
@@ -47,18 +50,25 @@ const FrameContext = createContext<FrameActions>({});
 
 export function FrameOpenProvider({
   children,
+  fitFrame,
   linkFor,
   onOpenFrame,
   onTrainOnFrame,
 }: {
   children: ReactNode;
+  fitFrame?: FrameActions["fitFrame"];
   linkFor?: (frameId: string) => string | null;
   onOpenFrame?: (frameId: string) => void;
   onTrainOnFrame?: (frameId: string) => void;
 }) {
   return (
     <FrameContext.Provider
-      value={{ linkFor, open: onOpenFrame, trainOnFrame: onTrainOnFrame }}
+      value={{
+        fitFrame,
+        linkFor,
+        open: onOpenFrame,
+        trainOnFrame: onTrainOnFrame,
+      }}
     >
       {children}
     </FrameContext.Provider>

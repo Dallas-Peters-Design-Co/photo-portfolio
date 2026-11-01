@@ -39,6 +39,7 @@ import "./BoardEditor.css";
 import { BoardHeaderActions } from "./boardEditor/BoardHeaderActions";
 import { BoardStatusBar } from "./boardEditor/BoardStatusBar";
 import { BoardToolPanel } from "./boardEditor/BoardToolPanel";
+import { useAdFrames } from "./boardEditor/useAdFrames";
 import { useBoardDocument } from "./boardEditor/useBoardDocument";
 import { useBoardInserts } from "./boardEditor/useBoardInserts";
 import { useBoardItemActions } from "./boardEditor/useBoardItemActions";
@@ -158,6 +159,7 @@ export function BoardEditor({
   });
 
   const { proofMark } = useProofMark(items, change, dropPoint);
+  const { fitFrame } = useAdFrames(items, change);
   const { applyRun, createFromPort, flushBeforeRun } = useBoardRun({
     items,
     pending,
@@ -346,6 +348,7 @@ export function BoardEditor({
           {/* A frame offers its link once published. Nothing to open: that is
               the published board's own view. */}
           <FrameOpenProvider
+            fitFrame={fitFrame}
             linkFor={(id) => frameLink(publicUrl, items, id)}
             onTrainOnFrame={(id) => void trainOnFrame(id)}
           >
@@ -464,9 +467,7 @@ export function BoardEditor({
                 setIsOpen={(open) => {
                   setIsPicking(open);
                   if (!open) {
-                    // Cleared on close so the next opening goes back to the usual
-                    // first tab — being sent to the library once does not mean the
-                    // panel now lives there.
+                    // Cleared on close so the next opening starts on the first tab.
                     setPickAt(undefined);
                   }
                 }}

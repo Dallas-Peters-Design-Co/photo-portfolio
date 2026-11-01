@@ -1,8 +1,10 @@
 import { useState } from "react";
 import type { BoardItem, BoardWire } from "../../types";
+import { useFrameActions } from "../FrameOpenContext";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
 import { frameBoardTitle, frameSummary } from "../io/copyToBoard";
 import type { Tool } from "../tools/types";
+import { AdSizesPanel, AdSizesRow } from "./AdSizesPanel";
 import { type CollectTarget, NamePanel, ToolsPanel } from "./CanvasMenuPanels";
 import { CollectionPanel } from "./CollectionPanel";
 import { MenuRows } from "./MenuRows";
@@ -134,6 +136,13 @@ export function CanvasMenu({
     item: BoardItem;
   } | null>(null);
 
+  /** Null until "Ad sizes…" is chosen; then the frame being sized. */
+  const [sizing, setSizing] = useState<{
+    for: CanvasMenuTarget;
+    frame: BoardItem;
+  } | null>(null);
+  const { fitFrame } = useFrameActions();
+
   if (!menu) {
     return null;
   }
@@ -142,6 +151,7 @@ export function CanvasMenu({
   const namingRecipe = savingRecipe?.for === menu ? savingRecipe : null;
   const collectingNow = collecting?.for === menu ? collecting : null;
   const picked = picking?.for === menu ? picking : null;
+  const sizingNow = sizing?.for === menu ? sizing : null;
 
   const { frame, selection } = menu;
   const canGroup = selection.length > 0;
@@ -201,6 +211,18 @@ export function CanvasMenu({
         />
       );
     }
+    if (sizingNow && fitFrame) {
+      return (
+        <AdSizesPanel
+          frame={sizingNow.frame}
+          onCancel={onDismiss}
+          onFit={(sizeIds, mode) => {
+            fitFrame(sizingNow.frame.id, sizeIds, mode);
+            onDismiss();
+          }}
+        />
+      );
+    }
     if (picked) {
       return (
         <ToolsPanel
@@ -219,38 +241,44 @@ export function CanvasMenu({
   })();
 
   const rows = panel ?? (
-    <MenuRows
-      items={items}
-      menu={menu}
-      onArrange={onArrange}
-      onBringToFront={onBringToFront}
-      onCollect={(urls, into) => setCollecting({ for: menu, into, urls })}
-      onCopy={(frameToCopy) =>
-        setNaming({
-          for: menu,
-          frame: frameToCopy,
-          title: frameBoardTitle(frameToCopy),
-        })
-      }
-      onDismiss={onDismiss}
-      onExport={onExport}
-      onGroup={onGroup}
-      onOpenInAffinity={onOpenInAffinity}
-      onProofMark={onProofMark}
-      onSaveElement={onSaveElement}
-      onSaveRecipe={
-        onSaveRecipe
-          ? (chosen) => setSavingRecipe({ for: menu, items: chosen, name: "" })
-          : undefined
-      }
-      onSendToBack={onSendToBack}
-      onSendToCanva={onSendToCanva}
-      onTools={
-        onRunTool ? (item) => setPicking({ for: menu, item }) : undefined
-      }
-      onVectorize={onVectorize}
-      wires={wires}
-    />
+    <>
+      <MenuRows
+        items={items}
+        menu={menu}
+        onArrange={onArrange}
+        onBringToFront={onBringToFront}
+        onCollect={(urls, into) => setCollecting({ for: menu, into, urls })}
+        onCopy={(frameToCopy) =>
+          setNaming({
+            for: menu,
+            frame: frameToCopy,
+            title: frameBoardTitle(frameToCopy),
+          })
+        }
+        onDismiss={onDismiss}
+        onExport={onExport}
+        onGroup={onGroup}
+        onOpenInAffinity={onOpenInAffinity}
+        onProofMark={onProofMark}
+        onSaveElement={onSaveElement}
+        onSaveRecipe={
+          onSaveRecipe
+            ? (chosen) =>
+                setSavingRecipe({ for: menu, items: chosen, name: "" })
+            : undefined
+        }
+        onSendToBack={onSendToBack}
+        onSendToCanva={onSendToCanva}
+        onTools={
+          onRunTool ? (item) => setPicking({ for: menu, item }) : undefined
+        }
+        onVectorize={onVectorize}
+        wires={wires}
+      />
+      {frame && fitFrame ? (
+        <AdSizesRow onOpen={() => setSizing({ for: menu, frame })} />
+      ) : null}
+    </>
   );
 
   return (

@@ -1,0 +1,41 @@
+.ad-sizes {
+  inline-size: min(22rem, 86vw);
+}
+
+.ad-sizes__list {
+  display: grid;
+  gap: 0.5rem;
+  max-block-size: min(22rem, 50vh);
+  overflow-y: auto;
+}
+
+.ad-sizes__group {
+  display: grid;
+  gap: 0.125rem;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.ad-sizes__legend {
+  padding: 0;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.6;
+}
+
+.ad-sizes__option {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding-block: 0.125rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.ad-sizes__dims {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.6;
+}
