@@ -133,7 +133,7 @@ function GoogleSearch({
                 <span className="brand-fonts__meta">
                   {added
                     ? "Added"
-                    : `${font.weights.length} weight${font.weights.length === 1 ? "" : "s"}${font.italic ? " · italic" : ""}`}
+                    : `+ Add · ${font.weights.length} weight${font.weights.length === 1 ? "" : "s"}${font.italic ? " · italic" : ""}`}
                 </span>
               </button>
             </li>
@@ -236,7 +236,7 @@ function AdobeProject({
                   <span className="brand-fonts__meta">
                     {taken.has(ref)
                       ? "Added"
-                      : `${family.weights.length} weights`}
+                      : `+ Add · ${family.weights.length} weight${family.weights.length === 1 ? "" : "s"}`}
                   </span>
                 </button>
               </li>
@@ -357,8 +357,9 @@ export function TypefaceEditor({
       ))}
       {doc.typefaces.length === 0 ? (
         <p className="brand-kit__hint">
-          No typefaces yet. Add the brand's fonts and they show up first in the
-          font menu on any board using this brand.
+          No typefaces yet. Open Google Fonts or Adobe Fonts below and click a
+          font to add it. The brand's fonts then show up first in the font menu
+          on any board using this brand.
         </p>
       ) : null}
       <div className="row row--snug">

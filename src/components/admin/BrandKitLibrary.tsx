@@ -9,6 +9,7 @@ import {
 import { newItemId } from "../../../config/proposal.js";
 import { useCollections } from "../../hooks/useCollections";
 import { Button } from "../ui/button";
+import { BrandImagesEditor } from "./BrandImagesEditor";
 
 /**
  * The two parts of a kit that are about *finding* rather than generating: the
@@ -52,6 +53,9 @@ export function LibraryPicker({
           ? "Its images appear in the Brand panel on every board, ready to drop in."
           : "Pick a collection to use as this brand's photos and past work. Add to it from any board's Collect menu."}
       </p>
+      {/* Reference images live here too: picked from that library, the
+          photo library, or uploaded. */}
+      <BrandImagesEditor doc={doc} onChange={onChange} />
     </div>
   );
 }
