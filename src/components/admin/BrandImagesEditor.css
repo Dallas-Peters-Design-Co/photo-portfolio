@@ -103,3 +103,59 @@
     background: #fff;
   }
 }
+
+/* One field: link icon, the address, and Load sitting inside it. */
+.brand-images__link {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  height: 2.5rem;
+  padding: 0 var(--spacing) 0 calc(var(--spacing) * 3);
+  color: color-mix(in oklch, #fff 50%, transparent);
+  background: color-mix(in oklch, #fff 6%, transparent);
+  border: 1px solid color-mix(in oklch, #fff 12%, transparent);
+  border-radius: var(--radius-control);
+
+  &:focus-within {
+    border-color: color-mix(in oklch, #fff 45%, transparent);
+  }
+
+  & input {
+    flex: 1;
+    min-width: 0;
+    font-size: var(--text-sm-ui, 0.875rem);
+    color: #fff;
+    outline: none;
+    background: transparent;
+    border: 0;
+
+    &::placeholder {
+      color: color-mix(in oklch, #fff 40%, transparent);
+    }
+  }
+
+  & button {
+    height: 1.875rem;
+    padding: 0 calc(var(--spacing) * 3);
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #000;
+    background: #fff;
+    border-radius: calc(var(--radius-control) - 2px);
+
+    &:disabled {
+      color: color-mix(in oklch, #fff 40%, transparent);
+      background: color-mix(in oklch, #fff 8%, transparent);
+    }
+  }
+}
+
+.brand-images__note {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  font-size: 0.75rem;
+  color: color-mix(in oklch, #fff 55%, transparent);
+}

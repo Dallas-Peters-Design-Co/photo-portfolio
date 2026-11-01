@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Link2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePhotos } from "../../hooks/usePhotos";
@@ -70,44 +71,88 @@ function FalTab({
   onPick: (p: Pick) => void;
   taken: Set<string>;
 }) {
-  const [page, setPage] = useState(1);
   const [items, setItems] = useState<FalLibraryItem[]>([]);
-  const { data, error, isLoading } = useSWR(["fal-library", page], async () => {
-    const next = await falLibraryApi.list(page);
-    setItems((was) => (page === 1 ? next.items : [...was, ...next.items]));
-    return next;
-  });
-  const images = items.filter((i) =>
-    (i.contentType ?? "image").startsWith("image")
-  );
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetched on every mount rather than through a shared cache: the tab keeps
+  // its own pages, and a cached first page would leave it holding nothing.
+  const load = useCallback(async (next: number) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await falLibraryApi.list(next);
+      setItems((was) =>
+        next === 1 ? result.items : [...was, ...result.items]
+      );
+      setHasMore(result.hasMore);
+      setPage(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Couldn't read fal.ai");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load(1);
+  }, [load]);
+
+  const images = items.filter((i) => isImage(i));
   return (
     <>
       {error ? (
-        <p className="brand-kit__hint">Couldn't read the fal.ai library.</p>
+        <div className="brand-images__note">
+          <span>{error}</span>
+          <Button
+            onClick={() => void load(1)}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            Try again
+          </Button>
+        </div>
+      ) : null}
+      {!(error || loading) && images.length === 0 ? (
+        <p className="brand-images__note">
+          Nothing generated on this fal account in the last 90 days.
+        </p>
       ) : null}
       <Grid
         items={images.map((item) => ({
           id: item.id,
           resolve: () => falLibraryApi.adopt(item),
-          thumb: item.previewUrl,
+          thumb: item.previewUrl || item.url,
           url: null,
         }))}
         onPick={onPick}
         taken={taken}
       />
-      {data?.hasMore ? (
+      {loading ? <p className="brand-images__note">Loading…</p> : null}
+      {hasMore && !loading ? (
         <Button
-          disabled={isLoading}
-          onClick={() => setPage((p) => p + 1)}
+          onClick={() => void load(page + 1)}
+          size="sm"
           type="button"
           variant="ghost"
         >
-          {isLoading ? "Loading…" : "More"}
+          More
         </Button>
       ) : null}
     </>
   );
 }
+
+const NOT_IMAGE = /\.(mp4|webm|mov|mp3|wav)(\?|$)/i;
+
+/** fal lists video and audio too; a missing type is taken from the address. */
+const isImage = (item: FalLibraryItem) =>
+  item.contentType
+    ? item.contentType.startsWith("image")
+    : !NOT_IMAGE.test(item.url);
 
 function PinterestTab({
   onPick,
@@ -155,29 +200,30 @@ function PinterestTab({
 
   return (
     <>
-      <div className="row row--snug">
+      <form
+        className="brand-images__link"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void load();
+        }}
+      >
+        <Link2 aria-hidden size={14} />
         <input
           aria-label="Pinterest board or pin link"
-          className="admin-control"
           onChange={(e) => setLink(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              void load();
-            }
-          }}
-          placeholder="Paste a Pinterest board or pin link"
+          placeholder="Pinterest board or pin link"
+          type="url"
           value={link}
         />
-        <Button
-          disabled={loading}
-          onClick={() => void load()}
-          type="button"
-          variant="outline"
-        >
+        <button disabled={loading || !link.trim()} type="submit">
           {loading ? "Reading…" : "Load"}
-        </Button>
-      </div>
+        </button>
+      </form>
+      {pins.length === 0 && !loading ? (
+        <p className="brand-images__note">
+          Paste a board link to see its latest pins, or a single pin.
+        </p>
+      ) : null}
       {pins.length > 1 ? (
         <div className="row row--between">
           <span className="brand-kit__hint">
