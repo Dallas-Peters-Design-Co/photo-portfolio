@@ -224,7 +224,7 @@ export function BoardEditor({
     change,
     items,
   });
-  const frameDesign = useFrameDesign(items, change, dropFiles);
+  const frameDesign = useFrameDesign(items, change, dropFiles, dropPoint);
 
   const {
     addDrawing,

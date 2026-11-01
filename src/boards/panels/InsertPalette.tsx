@@ -21,6 +21,8 @@ import VideoReplayIcon from "@hugeicons-pro/core-stroke-standard/VideoReplayIcon
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NodeTypeId } from "../../../config/nodeTypes.js";
 import { ALL_SHADERS } from "../shaders/shaderConfig";
+import { openStudio } from "../studio/studioEvents";
+import { IMAGE_TOOLS } from "../studio/tools";
 import "../boardChrome.css";
 import "./InsertPalette.css";
 
@@ -45,6 +47,8 @@ export type InsertAction =
   /** A saved way of working, expanded onto the board as real nodes. */
   | { kind: "recipe"; recipeId: string }
   | { kind: "shader"; name: string }
+  /** A Studio generator; opened here by event, never handed to the board. */
+  | { kind: "studio"; toolId: string }
   | { kind: "writable"; writable: "note" | "text" };
 
 interface Entry {
@@ -249,6 +253,14 @@ export function InsertPalette({
       section: "Recipes",
     }));
 
+    const studio: Entry[] = IMAGE_TOOLS.map((tool) => ({
+      action: { kind: "studio" as const, toolId: tool.id },
+      hint: `studio generate ${tool.blurb}`,
+      icon: PaintBoardIcon,
+      label: tool.name,
+      section: "Studio",
+    }));
+
     const shaders: Entry[] = ALL_SHADERS.map((shader) => ({
       action: { kind: "shader" as const, name: shader.name },
       hint: `${shader.category} ${shader.description}`,
@@ -261,9 +273,14 @@ export function InsertPalette({
     if (!term) {
       // Unsearched, the full library would bury everything else, so only a
       // taste of it shows until someone types.
-      return [...BASE_ENTRIES, ...saved, ...shaders.slice(0, SHADER_PREVIEW)];
+      return [
+        ...BASE_ENTRIES,
+        ...studio,
+        ...saved,
+        ...shaders.slice(0, SHADER_PREVIEW),
+      ];
     }
-    return [...BASE_ENTRIES, ...saved, ...shaders].filter((entry) =>
+    return [...BASE_ENTRIES, ...studio, ...saved, ...shaders].filter((entry) =>
       `${entry.label} ${entry.hint}`.toLowerCase().includes(term)
     );
   }, [query, recipes]);
@@ -276,7 +293,10 @@ export function InsertPalette({
 
   const choose = (index: number) => {
     const entry = entries[index];
-    if (entry) {
+    if (entry?.action.kind === "studio") {
+      openStudio(entry.action.toolId);
+      onDismiss();
+    } else if (entry) {
       onChoose(entry.action);
     }
   };
