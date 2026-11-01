@@ -4,7 +4,7 @@ import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import { BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { BrandKit } from "../../services/brandKitService";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import { PalettePreview } from "./BrandKitPreviews";
 import "./BrandKitsPanel.css";
 
@@ -44,7 +44,7 @@ export function KitCard({
       <div className="brand-kit__card-actions">
         <Link
           aria-label={`Open the ${kit.name} brand guide`}
-          className="brand-kit__guide-link"
+          className={buttonVariants({ size: "icon", variant: "ghost" })}
           title="Brand guide"
           to={`/admin/brand-kits/${kit.id}/guide`}
         >

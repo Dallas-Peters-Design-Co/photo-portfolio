@@ -514,17 +514,3 @@
 .brand-kit__reference-date {
   width: 10rem;
 }
-
-.brand-kit__guide-link {
-  display: grid;
-  place-items: center;
-  width: calc(var(--spacing) * 8);
-  height: calc(var(--spacing) * 8);
-  color: color-mix(in oklch, #fff 70%, transparent);
-  border-radius: var(--radius-control);
-
-  &:hover {
-    color: #fff;
-    background: color-mix(in oklch, #fff 8%, transparent);
-  }
-}

@@ -167,9 +167,12 @@ function Logo({ logo, ground }: { ground: string; logo: LogoEntry }) {
       className={`guide-logo guide-logo--${inkOn(ground)}`}
       style={{ background: ground }}
     >
+      {/* The mark at a fixed share of the tile, its clear space drawn as
+          padding in the same units, so 50% clear space reads as half the
+          mark's width on every side. */}
       <div
         className="guide-logo__clear"
-        style={{ padding: `${logo.clearSpace * 100}%` }}
+        style={{ ["--clear" as string]: logo.clearSpace }}
       >
         <img alt={logo.label} height={120} src={logo.url} width={240} />
       </div>
