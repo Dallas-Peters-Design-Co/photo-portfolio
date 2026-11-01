@@ -1,5 +1,9 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import type { DrawTool } from "../../../boards/drawing/drawing";
+import {
+  isTextEntry,
+  onHistoryRequest,
+} from "../../../boards/hooks/historyRequest";
 import {
   restore,
   type useBoardHistory,
@@ -121,6 +125,27 @@ export const useBoardWindowEvents = (deps: BoardWindowDeps) => {
     };
   }, [history]);
 
+  /** One step back (or forward), restoring results that have since arrived. */
+  const step = useCallback(
+    (redo: boolean) => {
+      setItems((currentItems) => {
+        setWires((currentWires) => {
+          const now = { items: currentItems, wires: currentWires };
+          const next = redo ? history.redo(now) : history.undo(now);
+          if (next) {
+            const restored = restore(next, currentItems);
+            setItems(restored.items);
+            setWires(restored.wires);
+            setIsDirty(true);
+          }
+          return currentWires;
+        });
+        return currentItems;
+      });
+    },
+    [history, setIsDirty, setItems, setWires]
+  );
+
   /**
    * ⌘/ opens the insert palette.
    *
@@ -135,40 +160,22 @@ export const useBoardWindowEvents = (deps: BoardWindowDeps) => {
         setIsInserting((open) => !open);
         return;
       }
+      // Undo and redo. Ignored while typing: a field has its own undo, and
+      // stealing it would make editing a prompt lose the prompt rather than
+      // the last character. A slider or colour well isn't typing.
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.key.toLowerCase() === "z" &&
+        !isTextEntry(document.activeElement)
+      ) {
+        e.preventDefault();
+        step(e.shiftKey);
+        return;
+      }
       // Escape puts the pointer back. Without it a chosen tool is a mode you
       // can only leave by finding the toolbar again, and since a tool draws on
       // every press it also means nothing on the board can be moved — which
       // reads as the cursor being stuck rather than as a mode being on.
-      // Undo and redo. Ignored while typing: a field has its own undo, and
-      // stealing it would make editing a prompt lose the prompt rather than
-      // the last character.
-      const active = document.activeElement;
-      const isTyping =
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        (active instanceof HTMLElement && active.isContentEditable);
-      if (
-        (e.metaKey || e.ctrlKey) &&
-        e.key.toLowerCase() === "z" &&
-        !isTyping
-      ) {
-        e.preventDefault();
-        setItems((currentItems) => {
-          setWires((currentWires) => {
-            const now = { items: currentItems, wires: currentWires };
-            const step = e.shiftKey ? history.redo(now) : history.undo(now);
-            if (step) {
-              const restored = restore(step, currentItems);
-              setItems(restored.items);
-              setWires(restored.wires);
-              setIsDirty(true);
-            }
-            return currentWires;
-          });
-          return currentItems;
-        });
-        return;
-      }
       if (e.key === "Escape") {
         setDrawTool((current) => {
           if (current === null) {
@@ -181,5 +188,8 @@ export const useBoardWindowEvents = (deps: BoardWindowDeps) => {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [history, setDrawTool, setIsDirty, setIsInserting, setItems, setWires]);
+  }, [setDrawTool, setIsInserting, step]);
+
+  // The Undo and Redo buttons drawn over the board (the creative editor's).
+  useEffect(() => onHistoryRequest(step), [step]);
 };

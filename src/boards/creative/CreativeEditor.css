@@ -519,3 +519,12 @@ button.creative-export__item:hover:not(:disabled) {
 .board:has(.creative) .board-panel {
   display: none;
 }
+
+.creative__history {
+  display: flex;
+  gap: 2px;
+}
+
+.creative__button--icon {
+  padding: calc(var(--spacing) * 1.5);
+}

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
+import { requestHistory } from "../../../boards/hooks/historyRequest";
 import { useBoardHistory } from "../../../boards/hooks/useBoardHistory";
 import type { BoardItem, BoardWire } from "../../../types";
 import { useBoardWindowEvents } from "./useBoardWindowEvents";
@@ -88,7 +89,12 @@ const mount = async (): Promise<Harness> => {
       setItems(next);
       setIsDirty(true);
     };
-    return <textarea defaultValue="a prompt" />;
+    return (
+      <>
+        <textarea defaultValue="a prompt" />
+        <input aria-label="Tracking" type="range" />
+      </>
+    );
   }
 
   root.render(<Probe />);
@@ -161,6 +167,29 @@ describe("⌘Z on a board", () => {
     const field = host?.querySelector("textarea");
     field?.focus();
     press(field ?? window);
+    await flush();
+    expect(harness.items()[0].x).toBe(500);
+  });
+
+  it("still undoes after a slider was used (a slider isn't typing)", async () => {
+    const harness = await mount();
+    harness.edit([itemAt("a", 500)]);
+    await flush();
+    const slider = host?.querySelector<HTMLInputElement>('input[type="range"]');
+    slider?.focus();
+    press(slider ?? window);
+    await flush();
+    expect(harness.items()[0].x).toBe(0);
+  });
+
+  it("undoes and redoes from the editor's buttons", async () => {
+    const harness = await mount();
+    harness.edit([itemAt("a", 500)]);
+    await flush();
+    requestHistory(false);
+    await flush();
+    expect(harness.items()[0].x).toBe(0);
+    requestHistory(true);
     await flush();
     expect(harness.items()[0].x).toBe(500);
   });

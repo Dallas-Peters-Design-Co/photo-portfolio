@@ -1,10 +1,12 @@
 import {
   Circle,
   ImageIcon,
+  Redo2,
   Sparkles,
   Square,
   SquareRoundCorner,
   Type,
+  Undo2,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -13,6 +15,7 @@ import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ColorWell } from "../ColorWell";
 import { isDrawingConfig } from "../drawing/drawing";
+import { requestHistory } from "../hooks/historyRequest";
 import { BrandDock } from "../panels/BrandDock";
 import { Artboard } from "./Artboard";
 import { BrandPanel } from "./BrandPanel";
@@ -37,7 +40,8 @@ import "./CreativeEditor.css";
 /**
  * A frame, opened as a design: the artboard full screen, with text, shapes and
  * brand images to place, a layers list, snapping, and PNG export at the ad's
- * real size. Every change is a board change, so undo (⌘Z) is the board's.
+ * real size. Every change is a board change, so undo (⌘Z, or the header's
+ * Undo and Redo) is the board's history.
  */
 
 export interface CreativeEditorProps {
@@ -239,6 +243,26 @@ export function CreativeEditor({
           ) : null}
         </div>
         <div className="creative__actions">
+          <div className="creative__history">
+            <button
+              aria-label="Undo"
+              className="creative__button creative__button--icon"
+              onClick={() => requestHistory(false)}
+              title="Undo (⌘Z)"
+              type="button"
+            >
+              <Undo2 size={15} />
+            </button>
+            <button
+              aria-label="Redo"
+              className="creative__button creative__button--icon"
+              onClick={() => requestHistory(true)}
+              title="Redo (⇧⌘Z)"
+              type="button"
+            >
+              <Redo2 size={15} />
+            </button>
+          </div>
           <ExportMenu
             frame={frame}
             items={items}
