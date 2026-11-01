@@ -125,25 +125,32 @@ export const useBoardWindowEvents = (deps: BoardWindowDeps) => {
     };
   }, [history]);
 
-  /** One step back (or forward), restoring results that have since arrived. */
+  /**
+   * One step back (or forward), restoring results that have since arrived.
+   *
+   * Reads the board from `pending`, the ref that always holds what is on
+   * screen, and sets the result plainly. It used to call the history from
+   * inside nested state updaters; when React ran those straight away (its
+   * fast path, the usual case for a click), the restore was queued *before*
+   * the outer update, which then put the old board back: every undo was
+   * undone in the same instant, and redo with it.
+   */
   const step = useCallback(
     (redo: boolean) => {
-      setItems((currentItems) => {
-        setWires((currentWires) => {
-          const now = { items: currentItems, wires: currentWires };
-          const next = redo ? history.redo(now) : history.undo(now);
-          if (next) {
-            const restored = restore(next, currentItems);
-            setItems(restored.items);
-            setWires(restored.wires);
-            setIsDirty(true);
-          }
-          return currentWires;
-        });
-        return currentItems;
-      });
+      const { items, wires } = pending.current;
+      const now = { items, wires };
+      const next = redo ? history.redo(now) : history.undo(now);
+      if (!next) {
+        return;
+      }
+      const restored = restore(next, items);
+      // Held now, so a second ⌘Z before React re-renders steps from here.
+      pending.current = { ...pending.current, ...restored };
+      setItems(restored.items);
+      setWires(restored.wires);
+      setIsDirty(true);
     },
-    [history, setIsDirty, setItems, setWires]
+    [history, pending, setIsDirty, setItems, setWires]
   );
 
   /**

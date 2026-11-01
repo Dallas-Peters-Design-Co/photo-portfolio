@@ -194,3 +194,16 @@ describe("⌘Z on a board", () => {
     expect(harness.items()[0].x).toBe(500);
   });
 });
+
+describe("number fields", () => {
+  it("hand ⌘Z to the board", async () => {
+    const { isTextEntry } = await import(
+      "../../../boards/hooks/historyRequest"
+    );
+    const input = document.createElement("input");
+    input.type = "number";
+    expect(isTextEntry(input)).toBe(false);
+    input.type = "text";
+    expect(isTextEntry(input)).toBe(true);
+  });
+});

@@ -22,11 +22,14 @@ export const onHistoryRequest = (
   return () => window.removeEventListener(EVENT, listener);
 };
 
-/** Inputs whose own ⌘Z undoes typing. Sliders, colours and boxes have none. */
+/**
+ * Inputs whose own ⌘Z undoes typing. Sliders, colours and boxes have none, and
+ * neither, usefully, does a number field: after setting a size or an angle the
+ * field keeps focus, and ⌘Z there should undo the change, not a keystroke.
+ */
 const TEXT_INPUTS = new Set([
   "",
   "email",
-  "number",
   "password",
   "search",
   "tel",

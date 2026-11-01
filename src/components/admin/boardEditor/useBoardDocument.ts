@@ -250,19 +250,17 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
    * than whatever this closure captured.
    */
   const remember = useCallback(() => {
-    setItems((currentItems) => {
-      setWires((currentWires) => {
-        history.record({ items: currentItems, wires: currentWires });
-        return currentWires;
-      });
-      return currentItems;
-    });
-  }, [history, setItems, setWires]);
+    const { items: currentItems, wires: currentWires } = pending.current;
+    history.record({ items: currentItems, wires: currentWires });
+  }, [history]);
 
   const change = useCallback(
     (next: BoardItem[]) => {
       remember();
-      setItems(dropComposites(next));
+      const kept = dropComposites(next);
+      // Held now, so an undo before the re-render sees this edit.
+      pending.current = { ...pending.current, items: kept };
+      setItems(kept);
       setIsDirty(true);
     },
     [remember, setIsDirty, setItems]
@@ -271,6 +269,7 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
   const changeWires = useCallback(
     (next: BoardWire[]) => {
       remember();
+      pending.current = { ...pending.current, wires: next };
       setWires(next);
       // Rewiring changes what a composite is made of, so it invalidates one
       // just as surely as moving a picture does.
