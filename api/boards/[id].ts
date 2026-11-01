@@ -46,7 +46,7 @@ const loadItems = async (
     SELECT i.id, i.kind, i.photo_id, i.image_url, i.thumb_url,
            i.credit_name, i.credit_url, i.body, i.font_size,
            i.node_type, i.config, i.result, i.run_state, i.run_error,
-           i.text_style,
+           i.text_style, i.rotation,
            i.x, i.y, i.width, i.height, i.z_index, i.created_at,
            i.recipe_use_id,
            p.url AS photo_url
@@ -176,21 +176,21 @@ async function replaceItems(sql: Sql, boardId: string, items: IncomingItem[]) {
         id, board_id, kind, photo_id, image_url, thumb_url,
         credit_name, credit_url, body, font_size,
         node_type, config, text_style,
-        x, y, width, height, z_index
+        x, y, width, height, z_index, rotation
       ) VALUES (
         ${item.id}, ${boardId}, ${item.kind}, ${item.photoId}, ${item.imageUrl},
         ${item.thumbUrl}, ${item.creditName}, ${item.creditUrl}, ${item.body},
         ${item.fontSize},
         ${item.nodeType}, ${item.config === null ? null : JSON.stringify(item.config)},
         ${item.textStyle === null ? null : JSON.stringify(item.textStyle)},
-        ${item.x}, ${item.y}, ${item.width}, ${item.height}, ${item.z}
+        ${item.x}, ${item.y}, ${item.width}, ${item.height}, ${item.z}, ${item.rotation}
       )
       ON CONFLICT (id) DO UPDATE
       SET x = EXCLUDED.x, y = EXCLUDED.y,
           width = EXCLUDED.width, height = EXCLUDED.height,
           z_index = EXCLUDED.z_index, body = EXCLUDED.body,
           font_size = EXCLUDED.font_size, config = EXCLUDED.config,
-          text_style = EXCLUDED.text_style
+          text_style = EXCLUDED.text_style, rotation = EXCLUDED.rotation
       WHERE board_items.board_id = ${boardId}
     `;
   }

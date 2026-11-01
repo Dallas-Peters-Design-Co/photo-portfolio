@@ -844,6 +844,7 @@ export const boardItems = pgTable(
     photoId: uuid("photo_id"),
     recipeUseId: uuid("recipe_use_id"),
     result: jsonb(),
+    rotation: doublePrecision().default(0).notNull(),
     runError: text("run_error"),
     runState: text("run_state"),
     textStyle: jsonb("text_style"),

@@ -9,6 +9,7 @@ import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { rotationOf } from "./rotate";
 
 /**
  * A frame's design, drawn to a PNG at its real pixel size.
@@ -302,6 +303,13 @@ export const renderCreative = async (
     const h = item.height * scale;
     ctx.save();
     ctx.translate((item.x - frame.x) * scale, (item.y - frame.y) * scale);
+    const turn = rotationOf(item);
+    if (turn) {
+      // About the layer's centre, as it turns in the editor.
+      ctx.translate(w / 2, h / 2);
+      ctx.rotate((turn * Math.PI) / 180);
+      ctx.translate(-w / 2, -h / 2);
+    }
     if (item.kind === "drawing" && isDrawingConfig(item.config)) {
       drawShape(ctx, item.config, w, h, scale);
     } else if (item.kind === "text" || item.kind === "note") {

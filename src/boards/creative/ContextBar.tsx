@@ -31,6 +31,7 @@ import {
 } from "../drawing/drawing";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { normalizeAngle, rotationOf } from "./rotate";
 import { TextEffects } from "./TextEffects";
 
 /**
@@ -422,6 +423,19 @@ export function ContextBar({
           <Maximize size={15} />
         </IconButton>
       </div>
+      <Field label="Rotate">
+        <input
+          className="creative__input creative__input--num"
+          max={180}
+          min={-180}
+          onChange={(e) =>
+            onPatch({ rotation: normalizeAngle(num(e.target.value, 0)) })
+          }
+          step={1}
+          type="number"
+          value={rotationOf(item)}
+        />
+      </Field>
       <span className="creative__divider" />
       <div className="creative__group">
         <IconButton

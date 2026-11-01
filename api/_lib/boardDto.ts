@@ -91,6 +91,7 @@ export const rowToItemDto = (
   photoId: row.photo_id,
   recipeUseId: row.recipe_use_id ?? null,
   result: jsonObject(row.result),
+  rotation: num(row.rotation, 0),
   runError: options.isPublicReader ? null : (row.run_error ?? null),
   runState: readRunState(row.run_state),
   // Filtered on the way out as well as on the way in: a row written by an

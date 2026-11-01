@@ -4,17 +4,15 @@ import {
   useRef,
   useState,
 } from "react";
-import { textStyleCss } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
-import { DrawingView } from "../drawing/DrawingView";
-import { isDrawingConfig } from "../drawing/drawing";
-import { useTextFont } from "../hooks/useTextFont";
-import { currentImageUrl } from "../itemOutput";
+import { GroupOutline, LayerBody } from "./ArtboardLayers";
 import type { Box } from "./creativeModel";
-import { imageRadius } from "./imageRadius";
 import { type ResizeDrag, resizeStep } from "./resize";
+import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
 import { type Handle, SelectionBox } from "./SelectionBox";
+import { unionOf } from "./selection";
 import { type Guides, snapMove } from "./snap";
+import { useGroupDrag } from "./useGroupDrag";
 import "../itemBodies.css";
 
 /**
@@ -37,18 +35,32 @@ type Drag =
       startX: number;
       startY: number;
     }
-  | ResizeDrag;
+  | ResizeDrag
+  | {
+      /** The selection's centre on screen, which the angle turns about. */
+      center: { x: number; y: number };
+      id: string;
+      kind: "rotate";
+      origin: Box;
+      originAngle: number;
+      startX: number;
+      startY: number;
+    };
 
 export interface ArtboardProps {
   editingId: string | null;
   frame: BoardItem;
   layers: BoardItem[];
   onCommit: (id: string, patch: Partial<BoardItem>) => void;
+  /** Several layers' changes as one step (a group move). */
+  onCommitMany: (patches: Map<string, Partial<BoardItem>>) => void;
   onDropFiles?: (files: File[], point: { x: number; y: number }) => void;
   onEditText: (id: string | null) => void;
-  onSelect: (id: string | null) => void;
+  /** Picks a layer; `additive` (Shift or ⌘) adds or removes it instead. */
+  onSelect: (id: string | null, additive?: boolean) => void;
+  onSelectMany: (ids: string[]) => void;
   onTextChange: (id: string, body: string) => void;
-  selectedId: string | null;
+  selectedIds: string[];
   textRef: (id: string, el: HTMLElement | null) => void;
 }
 
@@ -59,96 +71,6 @@ const boxOf = (item: BoardItem): Box => ({
   y: item.y,
 });
 
-function LayerText({
-  editing,
-  item,
-  onChange,
-  onDone,
-  textRef,
-}: {
-  editing: boolean;
-  item: BoardItem;
-  onChange: (body: string) => void;
-  onDone: () => void;
-  textRef: (el: HTMLElement | null) => void;
-}) {
-  useTextFont(item.textStyle);
-  return (
-    <textarea
-      className="creative__text text-body text-body--plain"
-      onBlur={onDone}
-      onChange={(e) => onChange(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          e.currentTarget.blur();
-        }
-      }}
-      readOnly={!editing}
-      ref={(el) => {
-        textRef(el);
-        if (el && editing && document.activeElement !== el) {
-          el.focus();
-          el.select();
-        }
-      }}
-      style={{
-        ...textStyleCss(item),
-        pointerEvents: editing ? "auto" : "none",
-      }}
-      value={item.body ?? ""}
-    />
-  );
-}
-
-function LayerBody({
-  editing,
-  item,
-  onDone,
-  onTextChange,
-  textRef,
-}: {
-  editing: boolean;
-  item: BoardItem;
-  onDone: () => void;
-  onTextChange: (body: string) => void;
-  textRef: (el: HTMLElement | null) => void;
-}) {
-  if (item.kind === "text" || item.kind === "note") {
-    return (
-      <LayerText
-        editing={editing}
-        item={item}
-        onChange={onTextChange}
-        onDone={onDone}
-        textRef={textRef}
-      />
-    );
-  }
-  if (item.kind === "drawing" && isDrawingConfig(item.config)) {
-    return (
-      <DrawingView
-        config={item.config}
-        height={item.height}
-        width={item.width}
-      />
-    );
-  }
-  const url = currentImageUrl(item);
-  return url ? (
-    <img
-      alt=""
-      className="creative__image"
-      draggable={false}
-      height={item.height}
-      src={url}
-      style={
-        imageRadius(item) > 0 ? { borderRadius: imageRadius(item) } : undefined
-      }
-      width={item.width}
-    />
-  ) : null;
-}
-
 export function Artboard({
   editingId,
   frame,
@@ -156,19 +78,34 @@ export function Artboard({
   onCommit,
   onDropFiles,
   onEditText,
+  onCommitMany,
   onSelect,
+  onSelectMany,
   onTextChange,
-  selectedId,
+  selectedIds,
   textRef,
 }: ArtboardProps) {
   const stageRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const selectedId = selectedIds.length === 1 ? (selectedIds[0] ?? null) : null;
   const [scale, setScale] = useState(1);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [live, setLive] = useState<{
     box: Box;
     fontSize: number | null;
+    rotation?: number;
   } | null>(null);
   const [guides, setGuides] = useState<Guides>({ x: [], y: [] });
+  const group = useGroupDrag({
+    boardRef,
+    frame,
+    layers,
+    onCommitMany,
+    onSelectMany,
+    scale,
+    selectedIds,
+    snapPx: SNAP_PX,
+  });
 
   useEffect(() => {
     const el = stageRef.current;
@@ -193,10 +130,26 @@ export function Artboard({
   const begin = (
     e: ReactPointerEvent,
     item: BoardItem,
-    handle: Handle | null,
+    handle: Handle | "rotate" | null,
     passThrough = false
   ) => {
     if (e.button !== 0 || editingId === item.id) {
+      return;
+    }
+    // Shift or ⌘ adds the layer to the selection, or takes it out.
+    if (handle === null && !passThrough && (e.shiftKey || e.metaKey)) {
+      e.stopPropagation();
+      e.preventDefault();
+      onSelect(item.id, true);
+      return;
+    }
+    // A press on any layer of a multiple selection moves them all.
+    if (
+      handle === null &&
+      selectedIds.length > 1 &&
+      selectedIds.includes(item.id)
+    ) {
+      group.startGroup(e);
       return;
     }
     e.stopPropagation();
@@ -209,6 +162,20 @@ export function Artboard({
       startX: e.clientX,
       startY: e.clientY,
     };
+    if (handle === "rotate") {
+      const rect = (e.currentTarget as HTMLElement)
+        .closest("[data-selection]")
+        ?.getBoundingClientRect();
+      setDrag({
+        ...common,
+        center: rect
+          ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+          : { x: e.clientX, y: e.clientY },
+        kind: "rotate",
+        originAngle: rotationOf(item),
+      });
+      return;
+    }
     setDrag(
       handle
         ? { ...common, handle, kind: "resize", originFont: item.fontSize }
@@ -217,7 +184,18 @@ export function Artboard({
   };
 
   const move = (e: ReactPointerEvent) => {
-    if (!drag) {
+    if (group.move(e) || !drag) {
+      return;
+    }
+    if (drag.kind === "rotate") {
+      const rotation = dragAngle(
+        drag.center,
+        { x: drag.startX, y: drag.startY },
+        { x: e.clientX, y: e.clientY },
+        drag.originAngle,
+        e.shiftKey
+      );
+      setLive({ box: drag.origin, fontSize: null, rotation });
       return;
     }
     const dx = (e.clientX - drag.startX) / scale;
@@ -237,19 +215,18 @@ export function Artboard({
       setGuides(snapped.guides);
       return;
     }
-    const step = resizeStep(
-      drag,
-      layers.find((l) => l.id === drag.id),
-      {
-        alt: e.altKey,
-        dx,
-        dy,
-        frame,
-        others,
-        shift: e.shiftKey,
-        threshold,
-      }
-    );
+    // A turned layer resizes along its own sides.
+    const layer = layers.find((l) => l.id === drag.id);
+    const local = toLocal(dx, dy, layer ? rotationOf(layer) : 0);
+    const step = resizeStep(drag, layer, {
+      alt: e.altKey,
+      dx: local.dx,
+      dy: local.dy,
+      frame,
+      others,
+      shift: e.shiftKey,
+      threshold,
+    });
     setLive({ box: step.box, fontSize: step.fontSize });
     setGuides(step.guides);
   };
@@ -268,6 +245,9 @@ export function Artboard({
   };
 
   const end = (e: ReactPointerEvent) => {
+    if (group.end(e)) {
+      return;
+    }
     const still =
       Math.abs(e.clientX - (drag?.startX ?? e.clientX)) < 3 &&
       Math.abs(e.clientY - (drag?.startY ?? e.clientY)) < 3;
@@ -278,6 +258,8 @@ export function Artboard({
       if (under) {
         onSelect(under);
       }
+    } else if (drag?.kind === "rotate" && live?.rotation !== undefined) {
+      onCommit(drag.id, { rotation: live.rotation });
     } else if (drag && live) {
       const { box, fontSize } = live;
       onCommit(drag.id, {
@@ -296,6 +278,10 @@ export function Artboard({
   const selected = layers.find((l) => l.id === selectedId);
   const liveSelected = selected && drag?.id === selected.id ? live?.box : null;
   const selectedBox = selected ? (liveSelected ?? boxOf(selected)) : null;
+  const angleOf = (item: BoardItem) =>
+    drag?.id === item.id && live?.rotation !== undefined
+      ? live.rotation
+      : rotationOf(item);
 
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: the stage receives pointer presses (to deselect) and file drops, like the board surface
@@ -331,8 +317,10 @@ export function Artboard({
         <div
           className="creative__board"
           onPointerCancel={end}
+          onPointerDown={group.startMarquee}
           onPointerMove={move}
           onPointerUp={end}
+          ref={boardRef}
           style={{
             height: frame.height,
             transform: `scale(${scale})`,
@@ -341,12 +329,13 @@ export function Artboard({
         >
           {layers.map((item) => {
             const isLive = drag?.id === item.id && live;
-            const box = isLive ? live.box : boxOf(item);
+            const box =
+              group.shownBox(item) ?? (isLive ? live.box : boxOf(item));
             const shown =
               isLive && live.fontSize !== null
                 ? { ...item, fontSize: live.fontSize }
                 : item;
-            const isSelected = selectedId === item.id;
+            const isSelected = selectedIds.includes(item.id);
             return (
               // biome-ignore lint/a11y/noStaticElementInteractions: a layer is a pointer target on a canvas; the layers list is its keyboard route
               // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
@@ -368,6 +357,7 @@ export function Artboard({
                   height: box.height,
                   left: box.x - frame.x,
                   top: box.y - frame.y,
+                  transform: rotateCss(angleOf(item)),
                   width: box.width,
                 }}
               >
@@ -393,17 +383,39 @@ export function Artboard({
                   onEditText(selected.id);
                 }
               }}
+              rotation={angleOf(selected)}
               scale={scale}
             />
           ) : null}
-          {guides.x.map((x) => (
+          {selectedIds.length > 1 ? (
+            <GroupOutline
+              box={unionOf(
+                layers
+                  .filter((l) => selectedIds.includes(l.id))
+                  .map((l) => group.shownBox(l) ?? boxOf(l))
+              )}
+              frame={frame}
+            />
+          ) : null}
+          {group.marquee ? (
+            <span
+              className="creative__marquee"
+              style={{
+                height: group.marquee.height,
+                left: group.marquee.x - frame.x,
+                top: group.marquee.y - frame.y,
+                width: group.marquee.width,
+              }}
+            />
+          ) : null}
+          {[...guides.x, ...group.guides.x].map((x) => (
             <span
               className="creative__guide creative__guide--v"
               key={`x${x}`}
               style={{ left: x - frame.x, ["--s" as string]: scale }}
             />
           ))}
-          {guides.y.map((y) => (
+          {[...guides.y, ...group.guides.y].map((y) => (
             <span
               className="creative__guide creative__guide--h"
               key={`y${y}`}

@@ -14,6 +14,7 @@ import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { rotationOf } from "./rotate";
 import { effectRules, lookOf, scaled, type TextLook } from "./textLook";
 
 /**
@@ -415,7 +416,12 @@ export const exportHtml5 = async (
     .map((item) =>
       layerHtml(
         item,
-        placeOf(item, frame, scale),
+        rotationOf(item)
+          ? {
+              ...placeOf(item, frame, scale),
+              transform: `rotate(${rotationOf(item)}deg)`,
+            }
+          : placeOf(item, frame, scale),
         scale,
         images,
         (id) => looks.get(id) ?? null

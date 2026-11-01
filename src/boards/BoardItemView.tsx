@@ -370,6 +370,8 @@ export function BoardItemView({
         height: fitsContent(item, readOnly) ? "auto" : item.height,
         left: item.x,
         top: item.y,
+        // Turned about its centre; x, y and size stay the upright box.
+        transform: item.rotation ? `rotate(${item.rotation}deg)` : undefined,
         width: item.width,
         // A frame is a backdrop: below everything so items on it stay
         // clickable, and below the wires too, hence negative — at zero it tied

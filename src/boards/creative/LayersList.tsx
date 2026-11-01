@@ -46,11 +46,12 @@ const IconFor = ({ item }: { item: BoardItem }) => {
 export function LayersList({
   layers,
   onSelect,
-  selectedId,
+  selectedIds,
 }: {
   layers: BoardItem[];
-  onSelect: (id: string) => void;
-  selectedId: string | null;
+  /** Shift or ⌘ adds or removes a layer instead of picking only it. */
+  onSelect: (id: string, additive: boolean) => void;
+  selectedIds: string[];
 }) {
   if (layers.length === 0) {
     return <p className="creative__hint">Nothing on this frame yet.</p>;
@@ -60,9 +61,9 @@ export function LayersList({
       {[...layers].reverse().map((item) => (
         <li key={item.id}>
           <button
-            aria-pressed={selectedId === item.id}
+            aria-pressed={selectedIds.includes(item.id)}
             className="creative__layer-row"
-            onClick={() => onSelect(item.id)}
+            onClick={(e) => onSelect(item.id, e.shiftKey || e.metaKey)}
             type="button"
           >
             <IconFor item={item} />

@@ -575,3 +575,46 @@ button.creative-export__item:hover:not(:disabled) {
 .creative__button--icon {
   padding: calc(var(--spacing) * 1.5);
 }
+
+/* The rotate grip: a round handle on a short stem above the top edge. */
+.creative__rotate {
+  --size: calc(12px / var(--s, 1));
+  position: absolute;
+  top: calc(-28px / var(--s, 1));
+  left: 50%;
+  z-index: 1;
+  width: var(--size);
+  height: var(--size);
+  cursor: grab;
+  background: white;
+  border: calc(1.5px / var(--s, 1)) solid oklch(65% 0.2 255);
+  border-radius: 50%;
+  translate: -50% -50%;
+
+  &::after {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    width: calc(1.5px / var(--s, 1));
+    height: calc(16px / var(--s, 1));
+    content: "";
+    background: oklch(65% 0.2 255);
+    translate: -50% 0;
+  }
+}
+
+/* Several layers selected: one dashed box around them, which moves them. */
+.creative__group-box {
+  position: absolute;
+  z-index: 9998;
+  pointer-events: none;
+  outline: calc(1.5px / var(--s, 1)) dashed oklch(65% 0.2 255);
+}
+
+.creative__marquee {
+  position: absolute;
+  z-index: 9999;
+  pointer-events: none;
+  background: oklch(65% 0.2 255 / 0.1);
+  border: 1px solid oklch(65% 0.2 255);
+}

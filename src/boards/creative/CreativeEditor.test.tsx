@@ -303,6 +303,138 @@ describe("CreativeEditor", () => {
       act(() => (rows[index] as HTMLButtonElement).click());
     };
 
+    it("turns the selected layer with the rotate grip, in 15° steps with Shift", () => {
+      render([frame, rect("low", 100, 1)]);
+      selectFromList("Rectangle", 0);
+      const grip = document.querySelector(".creative__rotate") as Element;
+      const board = document.querySelector(".creative__board") as Element;
+      const box = document.querySelector(".creative__selection") as Element;
+      const centre = at(box, 0.5, 0.5);
+      const start = at(grip, 0.5, 0.5);
+      pointer("pointerdown", grip, start);
+      // A quarter turn clockwise: from above the centre to its right.
+      const right = { x: centre.x + (centre.y - start.y), y: centre.y };
+      act(() => {
+        board.dispatchEvent(
+          new PointerEvent("pointermove", {
+            bubbles: true,
+            clientX: right.x,
+            clientY: right.y + 2,
+            pointerId: 1,
+            shiftKey: true,
+          })
+        );
+      });
+      pointer("pointerup", board, right);
+      const low = latest.find((i) => i.id === "low");
+      expect(low?.rotation).toBe(90);
+      expect(low?.x).toBe(100);
+      const layer = document.querySelector(
+        '[data-layer-id="low"]'
+      ) as HTMLElement;
+      expect(layer.style.transform).toBe("rotate(90deg)");
+    });
+
+    const shiftPick = (index: number) => {
+      const rows = [...document.querySelectorAll(".creative__layer-row")];
+      act(() =>
+        rows[index]?.dispatchEvent(
+          new MouseEvent("click", { bubbles: true, shiftKey: true })
+        )
+      );
+    };
+
+    it("selects several layers, moves them together, and aligns them", () => {
+      render([frame, rect("a", 40, 1), rect("b", 300, 2)]);
+      selectFromList("Rectangle", 0);
+      shiftPick(1);
+      expect(document.querySelector(".creative__count")?.textContent).toBe(
+        "2 layers"
+      );
+      expect(
+        document.querySelectorAll(".creative__layer--selected")
+      ).toHaveLength(2);
+
+      // Drag one of them: both move by the same amount.
+      const layer = document.querySelector('[data-layer-id="a"]') as Element;
+      const board = document.querySelector(".creative__board") as Element;
+      const from = at(layer, 0.5, 0.5);
+      // The test stage is small, so the artboard is drawn tiny: a pixel on
+      // screen is many canvas units. ⌥ turns snapping off.
+      const scale = board.getBoundingClientRect().width / 540;
+      const to = { x: from.x + 20 * scale, y: from.y + 30 * scale };
+      pointer("pointerdown", layer, from);
+      act(() => {
+        board.dispatchEvent(
+          new PointerEvent("pointermove", {
+            altKey: true,
+            bubbles: true,
+            clientX: to.x,
+            clientY: to.y,
+            pointerId: 1,
+          })
+        );
+      });
+      pointer("pointerup", board, to);
+      const a = latest.find((i) => i.id === "a");
+      const b = latest.find((i) => i.id === "b");
+      expect([a?.x, a?.y, b?.x, b?.y]).toEqual([60, 130, 320, 130]);
+
+      act(() =>
+        (
+          document.querySelector(
+            '[aria-label="Align left edges"]'
+          ) as HTMLElement
+        ).click()
+      );
+      expect(latest.find((i) => i.id === "b")?.x).toBe(
+        latest.find((i) => i.id === "a")?.x
+      );
+    });
+
+    it("selects with a marquee, and deletes the selection with one key", () => {
+      render([frame, rect("a", 40, 1), rect("b", 300, 2)]);
+      const board = document.querySelector(".creative__board") as Element;
+      const r = board.getBoundingClientRect();
+      const scale = r.width / 540;
+      // From empty artboard top-left, across both rectangles.
+      const start = { x: r.left + 5 * scale, y: r.top + 5 * scale };
+      pointer("pointerdown", board, start);
+      pointer("pointermove", board, {
+        x: r.left + 520 * scale,
+        y: r.top + 150 * scale,
+      });
+      pointer("pointerup", board, {
+        x: r.left + 520 * scale,
+        y: r.top + 150 * scale,
+      });
+      expect(document.querySelector(".creative__count")?.textContent).toBe(
+        "2 layers"
+      );
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete" }));
+      });
+      expect(latest.map((i) => i.id)).toEqual(["f"]);
+    });
+
+    it("selects everything with ⌘A and copies it all with ⌘D", () => {
+      render([frame, rect("a", 40, 1), rect("b", 300, 2)]);
+      act(() => {
+        window.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "a", metaKey: true })
+        );
+      });
+      act(() => {
+        window.dispatchEvent(
+          new KeyboardEvent("keydown", { key: "d", metaKey: true })
+        );
+      });
+      expect(latest).toHaveLength(5);
+      expect(document.querySelector(".creative__count")?.textContent).toBe(
+        "2 layers"
+      );
+    });
+
     it("resizes from a side even where the layer on top covers it", () => {
       // "low" spans 100–300; "top" sits over its right edge at 250–450.
       render([frame, rect("low", 100, 1), rect("top", 250, 2)]);

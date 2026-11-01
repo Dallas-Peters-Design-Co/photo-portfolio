@@ -47,6 +47,8 @@ export interface BoardItemRow {
   photo_url?: string | null;
   recipe_use_id?: string | null;
   result?: unknown;
+  /** Degrees clockwise about the centre; 0 before patch 047. */
+  rotation?: number | string | null;
   run_error?: string | null;
   run_state?: string | null;
   /** One JSONB blob of type settings; see config/textStyle.ts for why. */
@@ -114,6 +116,8 @@ export interface BoardItemDto {
   /** Which recipe group this node belongs to; null for everything else. */
   recipeUseId: string | null;
   result: Record<string, unknown> | null;
+  /** Degrees clockwise about the item's centre; 0 is upright. */
+  rotation: number;
   runError: string | null;
   runState: RunState | null;
   /** How a text or note item is set; null renders the defaults for its kind. */

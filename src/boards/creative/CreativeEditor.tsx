@@ -25,7 +25,9 @@ import {
 import { ExportMenu } from "./ExportMenu";
 import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
+import { MultiBar } from "./MultiBar";
 import { ShapePicker } from "./ShapePicker";
+import { useLayerSelection } from "./selection";
 import "./CreativeEditor.css";
 
 /**
@@ -84,7 +86,9 @@ export function CreativeEditor({
   onClose,
   onDropFiles,
 }: CreativeEditorProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selection = useLayerSelection();
+  const selectedId = selection.primary;
+  const setSelectedId = (id: string | null) => selection.select(id);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showBrand, setShowBrand] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
@@ -94,10 +98,67 @@ export function CreativeEditor({
   const frame = items.find((item) => item.id === frameId);
   const layers = frame ? layersOf(frame, items) : [];
   const selected = layers.find((l) => l.id === selectedId) ?? null;
+  const chosen = layers.filter((l) => selection.ids.includes(l.id));
   const background = frame ? backgroundOf(frame, layers) : null;
 
   const patch = (id: string, next: Partial<BoardItem>) =>
     onChange(patchItems(items, new Map([[id, next]])));
+  const patchMany = (patches: Map<string, Partial<BoardItem>>) =>
+    onChange(patchItems(items, patches));
+
+  /** Several layers at once: delete them, or copy them all. */
+  const removeMany = (ids: string[]) => {
+    onChange(items.filter((item) => !ids.includes(item.id)));
+    selection.select(null);
+  };
+  const copyMany = (group: BoardItem[]) => {
+    const copies: BoardItem[] = [];
+    for (const layer of group) {
+      copies.push(duplicate(layer, [...items, ...copies]));
+    }
+    onChange([...items, ...copies]);
+    selection.setIds(copies.map((c) => c.id));
+  };
+
+  /** ⌘A selects every layer but the background; otherwise the one layer. */
+  const singleKey = (e: KeyboardEvent): (() => void) | null => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "a") {
+      return () =>
+        selection.setIds(
+          layers.filter((l) => l !== background).map((l) => l.id)
+        );
+    }
+    return selected ? keyAction(e, selected) : null;
+  };
+
+  /** What a key does to a multiple selection, or null to let it through. */
+  const groupKey = (e: KeyboardEvent): (() => void) | null => {
+    const step = e.shiftKey ? 10 : 1;
+    const delta = {
+      ArrowDown: [0, step],
+      ArrowLeft: [-step, 0],
+      ArrowRight: [step, 0],
+      ArrowUp: [0, -step],
+    }[e.key];
+    if (delta) {
+      return () =>
+        patchMany(
+          new Map(
+            chosen.map((l) => [
+              l.id,
+              { x: l.x + (delta[0] ?? 0), y: l.y + (delta[1] ?? 0) },
+            ])
+          )
+        );
+    }
+    if (e.key === "Delete" || e.key === "Backspace") {
+      return () => removeMany(chosen.map((l) => l.id));
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "d") {
+      return () => copyMany(chosen);
+    }
+    return singleKey(e);
+  };
 
   const add = (item: BoardItem) => {
     onChange([...items, item]);
@@ -162,14 +223,14 @@ export function CreativeEditor({
       if (e.key === "Escape") {
         e.preventDefault();
         e.stopImmediatePropagation();
-        if (selectedId) {
+        if (selection.ids.length > 0) {
           setSelectedId(null);
         } else {
           onClose();
         }
         return;
       }
-      const action = selected ? keyAction(e, selected) : null;
+      const action = chosen.length > 1 ? groupKey(e) : singleKey(e);
       if (action) {
         action();
         e.preventDefault();
@@ -337,13 +398,22 @@ export function CreativeEditor({
         <p className="creative__label">Layers</p>
         <LayersList
           layers={layers}
-          onSelect={(id) => setSelectedId(id)}
-          selectedId={selectedId}
+          onSelect={selection.select}
+          selectedIds={selection.ids}
         />
       </aside>
 
       <main className="creative__main">
-        {selected ? (
+        {chosen.length > 1 ? (
+          <MultiBar
+            layers={chosen}
+            onClear={() => selection.select(null)}
+            onDelete={() => removeMany(chosen.map((l) => l.id))}
+            onDuplicate={() => copyMany(chosen)}
+            onPatch={patchMany}
+          />
+        ) : null}
+        {chosen.length <= 1 && selected ? (
           <ContextBar
             frame={frame}
             item={selected}
@@ -352,22 +422,26 @@ export function CreativeEditor({
             onPatch={(next) => patch(selected.id, next)}
             onReorder={(how) => order(selected.id, how)}
           />
-        ) : (
+        ) : null}
+        {chosen.length === 0 ? (
           <div className="creative__bar creative__bar--empty">
-            Select a layer to style it. Double-click text to edit. Arrows nudge,
-            ⇧ for 10. Hold ⌥ to drag without snapping.
+            Select a layer to style it, ⇧-click or drag a box to select several.
+            Double-click text to edit. Arrows nudge, ⇧ for 10. Hold ⌥ to drag
+            without snapping.
           </div>
-        )}
+        ) : null}
         <Artboard
           editingId={editingId}
           frame={frame}
           layers={layers}
           onCommit={patch}
+          onCommitMany={patchMany}
           onDropFiles={onDropFiles}
           onEditText={setEditingId}
-          onSelect={setSelectedId}
+          onSelect={selection.select}
+          onSelectMany={selection.setIds}
           onTextChange={(id, body) => patch(id, { body })}
-          selectedId={selectedId}
+          selectedIds={selection.ids}
           textRef={(id, el) => {
             if (el) {
               textEls.current.set(id, el);

@@ -40,6 +40,16 @@ export const isBoardItemKind = (value: unknown): value is BoardItemKind =>
 export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * Any angle as -180–180 to a tenth of a degree, so 350 and -10 store alike
+ * and a junk value is upright.
+ */
+export const rotationOf = (value: unknown): number => {
+  const n = typeof value === "number" && Number.isFinite(value) ? value : 0;
+  const turned = ((((n + 180) % 360) + 360) % 360) - 180;
+  return Math.round(turned * 10) / 10 || 0;
+};
+
 /** One item as accepted from the client, already validated and clamped. */
 export interface IncomingItem {
   body: string | null;
@@ -53,6 +63,8 @@ export interface IncomingItem {
   kind: BoardItemKind;
   nodeType: string | null;
   photoId: string | null;
+  /** Degrees clockwise about the centre, normalised to -180–180. */
+  rotation: number;
   textStyle: TextStyle | null;
   thumbUrl: string | null;
   width: number;
@@ -237,6 +249,7 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     // debounce, so a save in flight when a generation lands would otherwise
     // write back the pre-run copy and destroy a result that cost money.
     photoId,
+    rotation: rotationOf(o.rotation),
     // Allowlisted rather than stored as sent: `text_style` is JSONB, so an
     // unfiltered payload could put anything of any size in it. normalizeTextStyle
     // keeps the eight properties it knows, in range, and drops the rest.

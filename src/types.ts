@@ -224,6 +224,12 @@ export interface BoardItem {
    * write back the pre-run copy and erase it.
    */
   result: BoardItemResult | null;
+  /**
+   * Degrees clockwise about the item's centre. Optional because items made
+   * before rotation existed, or by a tool, have none, and none is upright.
+   * x, y, width and height stay the unrotated box.
+   */
+  rotation?: number;
   /** Why the last run failed, in terms the owner can act on. */
   runError: string | null;
   runState: RunState | null;
