@@ -24,8 +24,8 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { connector } from "./siteConnector.mjs";
 
-const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const LABEL = "com.dallaspeters.design-md";
 const PLIST = join(homedir(), "Library", "LaunchAgents", `${LABEL}.plist`);
 const DEFAULT_DIR = join(
@@ -39,80 +39,22 @@ const DEFAULT_DIR = join(
   "Brands"
 );
 
-const ENV_LINE = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/;
-const QUOTED = /^(['"])(.*)\1$/;
-const TRAILING_SLASH = /\/$/;
 const UNSAFE = /[/\\:*?"<>|]/g;
 const SPACES = /\s+/g;
-
-/** KEY=value lines from the repo's env files, without overriding the shell. */
-const loadEnv = () => {
-  for (const name of [".env", ".env.local"]) {
-    const path = join(ROOT, name);
-    if (!existsSync(path)) {
-      continue;
-    }
-    for (const line of readFileSync(path, "utf8").split("\n")) {
-      const match = ENV_LINE.exec(line);
-      if (match && process.env[match[1]] === undefined) {
-        process.env[match[1]] = match[2].replace(QUOTED, "$2");
-      }
-    }
-  }
-};
 
 /** A kit name as a folder name every OS and iCloud accept. */
 const folderName = (name) =>
   name.replace(UNSAFE, "-").replace(SPACES, " ").trim() || "Untitled";
 
-const rpc = async (site, token, name, args) => {
-  const res = await fetch(`${site}/api/mcp/connect`, {
-    body: JSON.stringify({
-      id: 1,
-      jsonrpc: "2.0",
-      method: "tools/call",
-      params: { arguments: args, name },
-    }),
-    headers: {
-      authorization: `Bearer ${token}`,
-      "content-type": "application/json",
-    },
-    method: "POST",
-  });
-  if (res.status === 401) {
-    throw new Error(
-      "The site refused the key. Check MCP_ACCESS_TOKEN in .env.local matches Vercel."
-    );
-  }
-  if (!res.ok) {
-    throw new Error(`The site answered ${res.status}`);
-  }
-  const json = await res.json();
-  const text = json?.result?.content?.[0]?.text ?? "";
-  if (json?.result?.isError || json?.error) {
-    throw new Error(text || json?.error?.message || "The connector failed");
-  }
-  return JSON.parse(text);
-};
-
 const sync = async () => {
-  loadEnv();
-  const token = process.env.MCP_ACCESS_TOKEN;
-  if (!token) {
-    throw new Error(
-      "Set MCP_ACCESS_TOKEN in .env.local (the site connector's key) first."
-    );
-  }
-  const site = (
-    process.env.DESIGN_MD_SITE ?? "https://www.dallaspeters.com"
-  ).replace(TRAILING_SLASH, "");
+  const call = connector();
   const dir = process.env.DESIGN_MD_DIR ?? DEFAULT_DIR;
 
-  const kits = await rpc(site, token, "list_brand_kits", {});
+  const kits = await call("list_brand_kits", {});
   let written = 0;
   for (const kit of kits) {
     // biome-ignore lint/performance/noAwaitInLoops: one kit at a time keeps the log in order and the site unhurried
-    const { markdown } = await rpc(site, token, "get_design_md", {
+    const { markdown } = await call("get_design_md", {
       kit: kit.id,
     });
     const folder = join(dir, folderName(kit.name));

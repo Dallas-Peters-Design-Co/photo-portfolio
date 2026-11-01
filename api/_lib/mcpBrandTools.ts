@@ -178,6 +178,63 @@ const setBrandPalette: McpTool<Ctx> = {
   writes: true,
 };
 
+const setBrandScan: McpTool<Ctx> = {
+  description:
+    "Save what scanning a brand's live websites found (from `pnpm design-md:scan`): per site, its components, type scale, radii and spacing. Replaces earlier scans of the same sites, adds the sites to the kit's websites, and saves a new version. The kit's DESIGN.md then describes those components.",
+  inputSchema: {
+    properties: {
+      kit: { description: "Brand kit name or id", type: "string" },
+      scans: {
+        description: "One scan per site, as scripts/scanPage.mjs returns it",
+        items: { type: "object" },
+        type: "array",
+      },
+      websites: {
+        description: "The sites to keep on the kit (added to any it has)",
+        items: { type: "string" },
+        type: "array",
+      },
+    },
+    required: ["kit", "scans"],
+    type: "object",
+  },
+  name: "set_brand_scan",
+  run: async (args, { sql }) => {
+    const found = await findKit(sql, args.kit);
+    const own = found.doc;
+    const incoming = sanitizeKitDoc({
+      scans: args.scans,
+      websites: [
+        ...own.websites,
+        ...(Array.isArray(args.websites) ? args.websites : []),
+        ...(Array.isArray(args.scans)
+          ? args.scans.map((s) => (s as { url?: unknown } | null)?.url)
+          : []),
+      ],
+    });
+    if (incoming.scans.length === 0) {
+      throw new ToolError("No usable scans: each needs the site's url.");
+    }
+    const fresh = new Set(incoming.scans.map((s) => s.url));
+    const doc = sanitizeKitDoc({
+      ...own,
+      scans: [...incoming.scans, ...own.scans.filter((s) => !fresh.has(s.url))],
+      websites: incoming.websites,
+    });
+    const version = await writeKitVersion(sql, found.id, doc);
+    return {
+      kit: found.name,
+      scans: doc.scans.map((s) => ({
+        components: s.components.map((c) => c.name),
+        url: s.url,
+      })),
+      version: version?.version ?? null,
+      websites: doc.websites,
+    };
+  },
+  writes: true,
+};
+
 /** Same title, date and source: the same note filed twice. */
 const isDuplicate = (a: BrandReference, b: BrandReference) =>
   a.title.toLowerCase() === b.title.toLowerCase() &&
@@ -287,6 +344,7 @@ const removeBrandReference: McpTool<Ctx> = {
 export const BRAND_TOOLS: McpTool<Ctx>[] = [
   getDesignMd,
   setBrandPalette,
+  setBrandScan,
   listBrandKits,
   getBrandKit,
   addBrandReference,

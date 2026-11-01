@@ -15,6 +15,7 @@
 
 import { describePalette } from "./colourWords.js";
 import { isAdobeKitId, isFontRef } from "./fontRef.js";
+import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
 
 /** Six-digit hex, the one colour notation this app writes and reads. */
 export const HEX = /^#[0-9a-f]{6}$/i;
@@ -132,8 +133,15 @@ export interface BrandKitDoc {
   onBrand: string[];
   palette: PaletteEntry[];
   references: BrandReference[];
+  /**
+   * What scanning the brand's websites found, one per site: components, type
+   * scale, radii and spacing as the browser draws them (config/siteScan.ts).
+   */
+  scans: SiteScan[];
   typefaces: TypefaceEntry[];
   voice: string;
+  /** The brand's live websites, scanned for its DESIGN.md components. */
+  websites: string[];
 }
 
 export const EMPTY_KIT: BrandKitDoc = {
@@ -145,8 +153,10 @@ export const EMPTY_KIT: BrandKitDoc = {
   onBrand: [],
   palette: [],
   references: [],
+  scans: [],
   typefaces: [],
   voice: "",
+  websites: [],
 };
 
 export const isHexColour = (value: unknown): value is string =>
@@ -294,6 +304,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
       .filter((entry) => isHexColour(entry.value))
       .slice(0, MAX_PALETTE),
     references: sanitizeReferences(raw.references),
+    scans: sanitizeScans(raw.scans),
     typefaces: asArray(raw.typefaces)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
@@ -307,6 +318,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
       .filter((entry) => entry.name !== "")
       .slice(0, MAX_TYPEFACES),
     voice: clampText(raw.voice, MAX_VOICE),
+    websites: sanitizeWebsites(raw.websites),
   };
 };
 
@@ -344,8 +356,10 @@ export const resolveKitDoc = (
     palette: child.palette.length > 0 ? child.palette : parent.palette,
     references:
       child.references.length > 0 ? child.references : parent.references,
+    scans: child.websites.length > 0 ? child.scans : parent.scans,
     typefaces: child.typefaces.length > 0 ? child.typefaces : parent.typefaces,
     voice: child.voice.trim() ? child.voice : parent.voice,
+    websites: child.websites.length > 0 ? child.websites : parent.websites,
   };
 };
 

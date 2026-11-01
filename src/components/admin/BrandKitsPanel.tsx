@@ -27,8 +27,9 @@ import {
   LookPicker,
   PaletteEditor,
 } from "./BrandKitFields";
-import { LibraryPicker, ReferencesEditor } from "./BrandKitLibrary";
+import { LibraryPicker } from "./BrandKitLibrary";
 import { FormatPreviews, PalettePreview } from "./BrandKitPreviews";
+import { BrandSources } from "./BrandKitWebsites";
 import { useConfirm } from "./ConfirmProvider";
 import "../../styles/primitives.css";
 import "../../styles/adminChrome.css";
@@ -238,10 +239,7 @@ function KitEditor({
           <LibraryPicker doc={doc} onChange={setDoc} />
         </section>
 
-        <section className="stack stack--snug">
-          <h3 className="admin-caps">References</h3>
-          <ReferencesEditor doc={doc} onChange={setDoc} />
-        </section>
+        <BrandSources doc={doc} kitName={kit.name} onChange={setDoc} />
 
         {/* What the kit contributes to a generation, quoted back (see kitPromptText). */}
         <section className="stack stack--snug">

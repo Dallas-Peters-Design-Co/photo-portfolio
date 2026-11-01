@@ -114,4 +114,65 @@ describe("designMd", () => {
   it("writes the same file for the same kit", () => {
     expect(designMd({ doc, name: "Unruly Chain", version: 17 })).toBe(md);
   });
+
+  it("describes the components the website draws, using palette tokens", () => {
+    const scanned = designMd({
+      doc: {
+        ...doc,
+        scans: [
+          {
+            components: [
+              {
+                count: 6,
+                name: "button-primary",
+                sample: "Explore the book",
+                style: {
+                  backgroundColor: "#f55c3e",
+                  fontFamily: '"Unruly Sans", Arial',
+                  padding: "15px 22px",
+                  rounded: "50px",
+                  textColor: "#0a1112",
+                },
+              },
+            ],
+            rounded: ["50px"],
+            scannedAt: "2026-11-01T19:00:00.000Z",
+            spacing: ["8px", "16px"],
+            title: "Unruly Chain",
+            typography: [
+              {
+                name: "h1",
+                style: { fontFamily: '"Unruly Display"', fontSize: "89px" },
+              },
+              { name: "body", style: { fontSize: "19px", lineHeight: "1.45" } },
+            ],
+            url: "https://unrulychain.com/",
+          },
+        ],
+        websites: ["https://unrulychain.com/"],
+      },
+      name: "Unruly Chain",
+    });
+    const front = scanned.split("---")[1] ?? "";
+    expect(front).not.toContain("omitted:");
+    expect(front).toContain("rounded:\n  sm: 50px");
+    expect(front).toContain("spacing:\n  xs: 8px\n  sm: 16px");
+    expect(front).toContain(
+      'button-primary:\n    backgroundColor: "{colors.primary}"\n    textColor: "{colors.ink}"\n    rounded: "{rounded.sm}"\n    padding: "15px 22px"'
+    );
+    expect(front).toContain(
+      'h1:\n    fontFamily: "Unruly Display"\n    fontSize: 89px'
+    );
+    // The kit's body face, at the size the website sets it.
+    expect(front).toContain(
+      "body:\n    fontFamily: Public Sans\n    fontSize: 19px"
+    );
+    expect(scanned).toContain("## Layout");
+    expect(scanned).toContain(
+      "From [unrulychain.com](https://unrulychain.com/), scanned 2026-11-01:"
+    );
+    expect(scanned).toContain(
+      '**button-primary** ("Explore the book"): fill #f55c3e'
+    );
+  });
 });

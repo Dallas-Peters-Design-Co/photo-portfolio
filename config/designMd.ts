@@ -1,4 +1,10 @@
 import type { BrandKitDoc, PaletteEntry, TypefaceEntry } from "./brandKit.js";
+import {
+  layoutSection,
+  scannedComponentLines,
+  scanTokens,
+  shapesSection,
+} from "./designMdScan.js";
 import { parseFontRef } from "./fontRef.js";
 
 /**
@@ -143,6 +149,45 @@ interface Tokens {
   lines: string[];
 }
 
+/** The kit's headline and body faces, sized from the website when scanned,
+ * then the website's own extra steps (h1, h2, small…). */
+const typographyLines = (
+  doc: BrandKitDoc,
+  scan: BrandKitDoc["scans"][number] | undefined,
+  extra: string[]
+): string[] => {
+  const lines: string[] = [];
+  const { body, headline } = facesOf(doc.typefaces);
+  if (headline || extra.length > 0) {
+    lines.push("typography:");
+  }
+  if (headline) {
+    lines.push("  headline:");
+    lines.push(`    fontFamily: ${yamlString(familyOf(headline))}`);
+    lines.push(
+      `    fontWeight: ${headline.weights.length > 0 ? Math.max(...headline.weights) : 700}`
+    );
+    // Sizes from the website when it was scanned; the faces are the kit's.
+    const h1 = scan?.typography.find((t) => t.name === "h1")?.style;
+    if (h1?.fontSize) {
+      lines.push(`    fontSize: ${h1.fontSize}`);
+    }
+    lines.push(`    lineHeight: ${h1?.lineHeight ?? "1.05"}`);
+    if (body) {
+      const site = scan?.typography.find((t) => t.name === "body")?.style;
+      lines.push("  body:");
+      lines.push(`    fontFamily: ${yamlString(familyOf(body))}`);
+      if (site?.fontSize) {
+        lines.push(`    fontSize: ${site.fontSize}`);
+      }
+      lines.push("    fontWeight: 400");
+      lines.push(`    lineHeight: ${site?.lineHeight ?? "1.5"}`);
+    }
+  }
+  lines.push(...extra);
+  return lines;
+};
+
 const frontMatter = (kit: DesignMdKit): Tokens => {
   const { doc } = kit;
   const colorNames = colorTokenNames(doc.palette);
@@ -154,43 +199,52 @@ const frontMatter = (kit: DesignMdKit): Tokens => {
       `Generated from the ${kit.name} brand kit${kit.version ? ` (version ${kit.version})` : ""}. Edit the kit, not this file.`
     )}`,
   ];
-  // The kit has no spacing or corner scale, so say so rather than leave an
-  // agent to wonder whether they were forgotten.
-  lines.push("omitted:", "  - spacing", "  - rounded");
+  const [scan] = doc.scans;
+  const scanned = scanTokens(
+    scan,
+    doc.palette.map((p, i) => ({ token: colorNames[i] ?? "", value: p.value })),
+    new Set(["headline", "body"])
+  );
+  // What the kit (and its website scan) doesn't have is said to be left out,
+  // rather than leaving an agent to wonder whether it was forgotten.
+  const omitted = [
+    scanned.spacing.length === 0 ? "spacing" : "",
+    scanned.rounded.length === 0 ? "rounded" : "",
+  ].filter(Boolean);
+  if (omitted.length > 0) {
+    lines.push("omitted:", ...omitted.map((o) => `  - ${o}`));
+  }
   if (doc.palette.length > 0) {
     lines.push("colors:");
     doc.palette.forEach((p, i) => {
       lines.push(`  ${colorNames[i]}: "${p.value}"`);
     });
   }
-  const { body, headline } = facesOf(doc.typefaces);
-  if (headline) {
-    lines.push("typography:");
-    lines.push("  headline:");
-    lines.push(`    fontFamily: ${yamlString(familyOf(headline))}`);
-    lines.push(
-      `    fontWeight: ${headline.weights.length > 0 ? Math.max(...headline.weights) : 700}`
-    );
-    lines.push("    lineHeight: 1.05");
-    if (body) {
-      lines.push("  body:");
-      lines.push(`    fontFamily: ${yamlString(familyOf(body))}`);
-      lines.push("    fontWeight: 400");
-      lines.push("    lineHeight: 1.5");
-    }
+  lines.push(...typographyLines(doc, scan, scanned.typography));
+  if (scanned.rounded.length > 0) {
+    lines.push("rounded:", ...scanned.rounded);
   }
-  if (doc.palette.length > 0) {
+  if (scanned.spacing.length > 0) {
+    lines.push("spacing:", ...scanned.spacing);
+  }
+  if (doc.palette.length > 0 || scanned.components.length > 0) {
     lines.push("components:");
+    lines.push(...scanned.components);
     const accent = accentOf(doc.palette);
     doc.palette.forEach((p, i) => {
-      // The main colour is the primary button; every other colour is a
-      // colour block, with the brand colour that reads best on it as text.
-      lines.push(
-        p === accent ? "  button-primary:" : `  block-${colorNames[i]}:`
-      );
-      lines.push(`    backgroundColor: "{colors.${colorNames[i]}}"`);
+      const token = colorNames[i] ?? "";
+      const isButton = p === accent && !scanned.hasPrimaryButton;
+      // A colour a scanned component already uses needs no block of its own.
+      if (!isButton && scanned.used.has(token)) {
+        return;
+      }
+      // The main colour is the primary button (unless the site supplied one);
+      // every other colour is a colour block, with the brand colour that
+      // reads best on it as text.
+      lines.push(isButton ? "  button-primary:" : `  block-${token}:`);
+      lines.push(`    backgroundColor: "{colors.${token}}"`);
       lines.push(`    textColor: ${textOn(p, doc.palette, colorNames)}`);
-      if (body && p === accent) {
+      if (facesOf(doc.typefaces).body && isButton) {
         lines.push(`    typography: "{typography.body}"`);
       }
     });
@@ -264,18 +318,31 @@ const typography = (doc: BrandKitDoc): string[] => {
 };
 
 const components = (doc: BrandKitDoc): string[] => {
-  if (doc.palette.length === 0) {
+  const fromSites = scannedComponentLines(doc.scans);
+  if (doc.palette.length === 0 && fromSites.length === 0) {
     return [];
   }
   return [
     "## Components",
+    ...(fromSites.length > 0
+      ? [
+          "",
+          "As the brand's own website draws them. Match these before inventing new ones.",
+          ...fromSites,
+        ]
+      : []),
     "",
-    ...(accentOf(doc.palette)
+    ...(accentOf(doc.palette) &&
+    !doc.scans[0]?.components.some((c) => c.name === "button-primary")
       ? [
           "- **Primary button**: the main brand colour, with whichever brand colour reads on it at 4.5:1 or better, set in the body face.",
         ]
       : []),
-    "- **Colour blocks** (`block-*`): every other brand colour as a filled area, with the brand colour that reads best on it for text.",
+    ...(doc.palette.length > 0
+      ? [
+          "- **Colour blocks** (`block-*`): brand colours as filled areas, with the brand colour that reads best on each for text.",
+        ]
+      : []),
   ];
 };
 
@@ -373,6 +440,8 @@ export const designMd = (kit: DesignMdKit): string => {
     overview(kit),
     colors(kit.doc, colorNames),
     typography(kit.doc),
+    layoutSection(kit.doc.scans[0]),
+    shapesSection(kit.doc.scans[0]),
     components(kit.doc),
     logos(kit.doc),
     imagery(kit.doc),

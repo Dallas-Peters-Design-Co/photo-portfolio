@@ -71,6 +71,7 @@ describe("brand tools on the connector", () => {
         "remove_brand_reference",
         "get_design_md",
         "set_brand_palette",
+        "set_brand_scan",
       ])
     );
     expect(tool("add_brand_reference").writes).toBe(true);
@@ -221,5 +222,42 @@ describe("brand tools on the connector", () => {
     expect(out.palette.map((p) => p.value)).toEqual(["#c63b2e", "#efe6d2"]);
     expect(writes.at(-1)?.kitId).toBe("11111111-1111-1111-1111-111111111111");
     expect(tool("set_brand_palette").writes).toBe(true);
+  });
+
+  it("saves a website scan, keeping the site on the kit", async () => {
+    const out = (await tool("set_brand_scan").run(
+      {
+        kit: "TSRP",
+        scans: [
+          {
+            components: [
+              {
+                count: 3,
+                name: "button-primary",
+                sample: "Get a quote",
+                style: { backgroundColor: "#c63b2e", rounded: "4px" },
+              },
+              { count: 1, name: "Not A Name!", sample: "", style: {} },
+            ],
+            rounded: ["4px", "nope"],
+            scannedAt: "2026-11-01T00:00:00.000Z",
+            spacing: ["8px", "16px"],
+            title: "TSRP",
+            typography: [{ name: "h1", style: { fontSize: "48px" } }],
+            url: "https://tsrp.example.com/",
+          },
+        ],
+      },
+      ctx
+    )) as {
+      scans: { components: string[]; url: string }[];
+      websites: string[];
+    };
+    expect(out.websites).toEqual(["https://tsrp.example.com/"]);
+    expect(out.scans[0]?.components).toEqual(["button-primary"]);
+    const saved = writes.at(-1)?.doc as {
+      scans: { rounded: string[] }[];
+    };
+    expect(saved.scans[0]?.rounded).toEqual(["4px"]);
   });
 });

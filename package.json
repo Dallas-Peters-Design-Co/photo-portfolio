@@ -26,6 +26,7 @@
     "db:verify-login": "tsx scripts/verify-login.ts",
     "debug": "vite --debug transform",
     "design-md:install": "node scripts/sync-design-md.mjs --install",
+    "design-md:scan": "node scripts/scan-design.mjs",
     "design-md:sync": "node scripts/sync-design-md.mjs",
     "design-md:uninstall": "node scripts/sync-design-md.mjs --uninstall",
     "dev": "cross-env VITE_SITE=dallas-images node scripts/dev-stack.mjs",
