@@ -22,6 +22,9 @@
   gap: calc(var(--spacing) * 2);
   align-items: center;
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
   border-bottom: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
 }
@@ -149,4 +152,14 @@
 
 .brand-dock__select option {
   color: initial;
+}
+
+.brand-dock--dragging,
+.brand-dock--dragging .brand-dock__head {
+  cursor: grabbing;
+}
+
+.brand-dock__grip {
+  flex: none;
+  opacity: 0.45;
 }

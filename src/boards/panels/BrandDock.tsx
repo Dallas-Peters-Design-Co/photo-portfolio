@@ -1,9 +1,10 @@
-import { X } from "lucide-react";
+import { GripVertical, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { collectionsApi } from "../../services/libraryService";
 import { useActiveBrand } from "../brand/ActiveBrand";
+import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import "./BrandDock.css";
 
 /**
@@ -78,14 +79,21 @@ export function BrandDock({
 }) {
   const brand = useActiveBrand();
   const [openRef, setOpenRef] = useState<string | null>(null);
+  const drag = useDraggablePanel("board-brand-dock:position");
   if (!brand) {
     return null;
   }
   const doc = brand.kit?.resolvedDoc ?? null;
 
   return (
-    <aside aria-label="Brand" className="brand-dock">
-      <header className="brand-dock__head">
+    <aside
+      aria-label="Brand"
+      className={`brand-dock${drag.dragging ? "brand-dock--dragging" : ""}`}
+      style={drag.style}
+    >
+      {/* Drag the header (anywhere but its controls) to move the panel. */}
+      <header className="brand-dock__head" {...drag.handleProps}>
+        <GripVertical aria-hidden className="brand-dock__grip" size={14} />
         <select
           aria-label="Brand"
           className="brand-dock__select"
