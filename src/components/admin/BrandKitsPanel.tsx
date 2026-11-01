@@ -25,13 +25,13 @@ import {
   LogoEditor,
   LookPicker,
   PaletteEditor,
-  TypefaceEditor,
 } from "./BrandKitFields";
 import { LibraryPicker, ReferencesEditor } from "./BrandKitLibrary";
 import { FormatPreviews, PalettePreview } from "./BrandKitPreviews";
 import { useConfirm } from "./ConfirmProvider";
 import "../../styles/primitives.css";
 import "../../styles/adminChrome.css";
+import { TypefaceEditor } from "./BrandFontsEditor";
 import "./BrandKitsPanel.css";
 
 /**

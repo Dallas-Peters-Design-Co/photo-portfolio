@@ -4,6 +4,7 @@ import { getBearerUser } from "../_lib/auth.js";
 import { loadKit, loadKits, writeKitVersion } from "../_lib/brandKitStore.js";
 import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
+import { adobeKitFamilies, googleCatalog } from "../_lib/fontCatalog.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
@@ -38,6 +39,20 @@ async function handleGet(
   // Saved photo-editor looks ride on this endpoint (see _lib/savedLooks.ts).
   if (req.query.looks) {
     return res.status(200).json(await listLooks(sql));
+  }
+  // Brand font lookups ride here too (see _lib/fontCatalog.ts).
+  if (req.query.fonts === "google") {
+    res.setHeader("Cache-Control", "private, max-age=86400");
+    return res.status(200).json(await googleCatalog());
+  }
+  if (req.query.typekit) {
+    const families = await adobeKitFamilies(req.query.typekit);
+    return families
+      ? res.status(200).json(families)
+      : res.status(404).json({
+          error:
+            "Adobe Fonts couldn't find that web project. Check the id and that it's published.",
+        });
   }
   return res.status(200).json(await loadKits(sql));
 }

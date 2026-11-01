@@ -151,7 +151,9 @@ describe("drawTile", () => {
     const kit = {
       ...EMPTY_KIT,
       palette: [{ name: "Ink", role: "text", value: "#101a2b" }],
-      typefaces: [{ name: "Georgia", role: "display", weights: [400] }],
+      typefaces: [
+        { name: "Georgia", ref: null, role: "display", weights: [400] },
+      ],
     };
     const mark = markOf();
     for (const tile of proofTilesFor(kit, "Imprint")) {

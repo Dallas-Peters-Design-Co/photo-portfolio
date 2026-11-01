@@ -27,6 +27,7 @@
  */
 
 import { DEFAULT_NOTE_FONT_SIZE, DEFAULT_TEXT_FONT_SIZE } from "./canvas.js";
+import { fontRefStack, parseFontRef } from "./fontRef.js";
 import { type FontId, findFont } from "./theme.js";
 
 export type TextAlign = "center" | "left" | "right";
@@ -58,8 +59,11 @@ export interface TextStyle {
   align: TextAlign | null;
   /** `#rgb`, `#rrggbb` or `#rrggbbaa`. Null inherits the board's ink. */
   color: string | null;
-  /** A family from config/theme.ts — the only ones the app self-hosts. */
-  family: FontId | null;
+  /**
+   * A self-hosted family from config/theme.ts, or a brand font ref
+   * (config/fontRef.ts: `g:Family` or `a:kitId:family`).
+   */
+  family: FontId | string | null;
   /** Only ever true or null: false is the default, so it stores as nothing. */
   italic: boolean | null;
   /** In em, so tracking stays proportional as the text is resized. */
@@ -117,7 +121,11 @@ export const WEIGHT_CHOICES: WeightChoice[] = [
  * which is not knowable from here — so the offer is the range every family
  * shares.
  */
-export const weightsFor = (family: FontId | null): WeightChoice[] => {
+export const weightsFor = (family: FontId | string | null): WeightChoice[] => {
+  // A brand font's cuts aren't known here; the browser picks the nearest.
+  if (parseFontRef(family)) {
+    return WEIGHT_CHOICES;
+  }
   const font = family === null ? undefined : findFont(family);
   const min = font?.weight.min ?? 300;
   const max = font?.weight.max ?? 700;
@@ -148,7 +156,10 @@ const isEmpty = (style: TextStyle): boolean =>
   Object.values(style).every((value) => value === null);
 
 /** Rounds to a named step and pulls it inside the family's axis. */
-const clampToAxis = (weight: number, family: FontId | null): number => {
+const clampToAxis = (
+  weight: number,
+  family: FontId | string | null
+): number => {
   const available = weightsFor(family);
   const min = available.at(0)?.value ?? 300;
   const max = available.at(-1)?.value ?? 700;
@@ -172,7 +183,9 @@ export const normalizeTextStyle = (raw: unknown): TextStyle | null => {
     return null;
   }
   const o = raw as Record<string, unknown>;
-  const family = findFont(typeof o.family === "string" ? o.family : "")?.id;
+  const family =
+    findFont(typeof o.family === "string" ? o.family : "")?.id ??
+    (parseFontRef(o.family) ? (o.family as string) : undefined);
   const weight = bounded(o.weight, 100, 900);
   const style: TextStyle = {
     align: TEXT_ALIGNS.find((align) => align === o.align) ?? null,
@@ -254,6 +267,7 @@ export const textStyleCss = (item: TextStyleTarget): TextCss => {
   const isNote = item.kind === "note";
   const style = item.textStyle ?? null;
   const family = style?.family ? findFont(style.family) : undefined;
+  const ref = family ? null : parseFontRef(style?.family);
 
   const css: TextCss = {
     fontSize:
@@ -278,6 +292,8 @@ export const textStyleCss = (item: TextStyleTarget): TextCss => {
   }
   if (family) {
     css.fontFamily = family.stack;
+  } else if (ref) {
+    css.fontFamily = fontRefStack(ref);
   }
   if (style?.align) {
     css.textAlign = style.align;

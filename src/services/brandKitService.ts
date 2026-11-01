@@ -1,4 +1,5 @@
 import type { BrandKitDoc } from "../../config/brandKit.js";
+import type { AdobeFamily, CatalogFont } from "../../config/fontRef.js";
 import { apiBase, jsonHeaders, readPageError } from "./portfolioService";
 
 /**
@@ -46,6 +47,17 @@ export interface BrandKitVersion {
  * panel debounces nothing and saves on a press.
  */
 export const brandKitsApi = {
+  /** The families in an Adobe Fonts web project. */
+  adobeFamilies: async (kitId: string): Promise<AdobeFamily[]> => {
+    const res = await fetch(
+      `${apiBase()}/api/brand-kits?typekit=${encodeURIComponent(kitId)}`,
+      { headers: jsonHeaders() }
+    );
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Could not load that project"));
+    }
+    return (await res.json()) as AdobeFamily[];
+  },
   /** `parentId` makes it a sub-brand. One level only — see patch 032. */
   create: async (
     name: string,
@@ -71,6 +83,17 @@ export const brandKitsApi = {
       throw new Error(await readPageError(res, "Could not load the kit"));
     }
     return (await res.json()) as BrandKit;
+  },
+
+  /** Every Google Fonts family, most popular first. */
+  googleFonts: async (): Promise<CatalogFont[]> => {
+    const res = await fetch(`${apiBase()}/api/brand-kits?fonts=google`, {
+      headers: jsonHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Could not load Google Fonts"));
+    }
+    return (await res.json()) as CatalogFont[];
   },
 
   /** The kit with its history — asked for only when a kit is open. */

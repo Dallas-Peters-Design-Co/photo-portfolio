@@ -1,0 +1,75 @@
+.brand-fonts__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing);
+}
+
+.brand-fonts__chip {
+  padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 2.5);
+  font-size: var(--text-xs);
+  color: color-mix(in oklch, #fff 70%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, #fff 15%, transparent);
+  border-radius: 999px;
+}
+
+.brand-fonts__chip[aria-pressed="true"] {
+  color: #000;
+  background: #fff;
+}
+
+.brand-fonts__results {
+  display: grid;
+  gap: 2px;
+  max-height: 22rem;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.brand-fonts__result {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  text-align: left;
+  border-radius: var(--radius-control);
+}
+
+.brand-fonts__result:hover:not(:disabled) {
+  background: color-mix(in oklch, #fff 6%, transparent);
+}
+
+.brand-fonts__result:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.brand-fonts__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1.375rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.brand-fonts__meta {
+  flex: none;
+  font-size: var(--text-xs);
+  color: color-mix(in oklch, #fff 50%, transparent);
+}
+
+.brand-fonts__face {
+  display: grid;
+  min-width: 0;
+}
+
+.brand-fonts__face-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--text-base-ui);
+  white-space: nowrap;
+}

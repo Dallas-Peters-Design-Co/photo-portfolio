@@ -14,6 +14,7 @@
  */
 
 import { describePalette } from "./colourWords.js";
+import { isAdobeKitId, isFontRef } from "./fontRef.js";
 
 /** Six-digit hex, the one colour notation this app writes and reads. */
 export const HEX = /^#[0-9a-f]{6}$/i;
@@ -46,6 +47,12 @@ export interface PaletteEntry {
 
 export interface TypefaceEntry {
   name: string;
+  /**
+   * Where the face loads from (config/fontRef.ts): a Google family or one in
+   * the kit's Adobe Fonts project. Null for a name typed in by hand, which a
+   * board can't set text in.
+   */
+  ref: string | null;
   role: string;
   weights: number[];
 }
@@ -104,6 +111,11 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export interface BrandKitDoc {
   /**
+   * The brand's Adobe Fonts web project id, when its fonts are licensed there.
+   * Families from it are listed on the kit's typefaces by ref.
+   */
+  adobeKitId: string | null;
+  /**
    * The collection that is this brand's image library: photography, product
    * shots, past work. A link rather than a copy, so the library is managed
    * where collections already are and every app sees the same pictures.
@@ -125,6 +137,7 @@ export interface BrandKitDoc {
 }
 
 export const EMPTY_KIT: BrandKitDoc = {
+  adobeKitId: null,
   libraryCollectionId: null,
   logos: [],
   look: null,
@@ -224,6 +237,7 @@ export const sanitizeReferences = (value: unknown): BrandReference[] =>
 export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
   const raw = (input ?? {}) as Record<string, unknown>;
   return {
+    adobeKitId: isAdobeKitId(raw.adobeKitId) ? raw.adobeKitId : null,
     libraryCollectionId:
       typeof raw.libraryCollectionId === "string" &&
       UUID.test(raw.libraryCollectionId)
@@ -285,6 +299,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
         const e = (entry ?? {}) as Record<string, unknown>;
         return {
           name: clampText(e.name, MAX_KIT_NAME),
+          ref: isFontRef(e.ref) ? e.ref : null,
           role: clampText(e.role, MAX_KIT_NAME),
           weights: clampWeights(e.weights),
         };
@@ -319,6 +334,7 @@ export const resolveKitDoc = (
     return child;
   }
   return {
+    adobeKitId: child.adobeKitId ?? parent.adobeKitId,
     libraryCollectionId:
       child.libraryCollectionId ?? parent.libraryCollectionId,
     logos: child.logos.length > 0 ? child.logos : parent.logos,

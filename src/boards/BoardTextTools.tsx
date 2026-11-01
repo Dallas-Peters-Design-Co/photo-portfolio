@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import type { BoardItem } from "../types";
+import { useActiveBrand } from "./brand/ActiveBrand";
 import { ColorWell } from "./ColorWell";
 import { isTransparent, NO_FILL } from "./drawing/drawing";
 import { PANEL_GAP } from "./geometry/panelPlacement";
@@ -187,6 +188,10 @@ export function BoardTextTools({
   const [showMore, setShowMore] = useState(false);
   const { panelRef, placement } = useAnchoredPanel(anchor);
   const style = item.textStyle ?? null;
+  // The active brand's fonts come first in the font menu.
+  const brandFaces = (
+    useActiveBrand()?.kit?.resolvedDoc.typefaces ?? []
+  ).filter((face): face is typeof face & { ref: string } => Boolean(face.ref));
 
   useTextFont(style);
 
@@ -314,10 +319,14 @@ export function BoardTextTools({
         />
 
         <Select
-          items={FAMILY_LABELS}
+          items={{
+            ...FAMILY_LABELS,
+            ...Object.fromEntries(brandFaces.map((f) => [f.ref, f.name])),
+          }}
           onValueChange={(value) =>
             set({
               family: value === INHERIT ? null : ((value ?? null) as FontId),
+              // Brand fonts are refs (g:… / a:…); see config/fontRef.ts.
             })
           }
           value={style?.family ?? INHERIT}
@@ -333,6 +342,17 @@ export function BoardTextTools({
             <SelectGroup>
               <SelectItem value={INHERIT}>Board default</SelectItem>
             </SelectGroup>
+            {brandFaces.length > 0 ? (
+              <SelectGroup>
+                <SelectLabel>Brand</SelectLabel>
+                {brandFaces.map((face) => (
+                  <SelectItem key={face.ref} value={face.ref}>
+                    {face.name}
+                    {face.role ? ` · ${face.role}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
             <SelectGroup>
               <SelectLabel>Sans</SelectLabel>
               {SANS_FONTS.map((font) => (

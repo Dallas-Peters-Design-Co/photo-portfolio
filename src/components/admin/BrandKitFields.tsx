@@ -9,7 +9,6 @@ import {
   type LogoEntry,
   MAX_LOGOS,
   MAX_PALETTE,
-  MAX_TYPEFACES,
   paletteFromCss,
 } from "../../../config/brandKit.js";
 import { LOOK_FAMILIES, LOOKS } from "../../editor/presets";
@@ -403,91 +402,6 @@ export function PaletteEditor({
           {MAX_PALETTE} colours is the most a kit can constrain anything with.
         </p>
       )}
-    </div>
-  );
-}
-
-export function TypefaceEditor({
-  doc,
-  onChange,
-}: {
-  doc: BrandKitDoc;
-  onChange: (next: BrandKitDoc) => void;
-}) {
-  return (
-    <div className="stack stack--tight">
-      {doc.typefaces.map((entry, index) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: as above — a typeface's identity here is the row it occupies
-        <div className="brand-kit__row" key={`face-${index}`}>
-          <span
-            className="brand-kit__specimen"
-            style={{ fontFamily: `"${entry.name}", var(--font-sans)` }}
-          >
-            Aa
-          </span>
-          <Input
-            aria-label="Typeface"
-            className="admin-control"
-            onChange={(e) =>
-              onChange({
-                ...doc,
-                typefaces: doc.typefaces.map((f, i) =>
-                  i === index ? { ...f, name: e.target.value } : f
-                ),
-              })
-            }
-            placeholder="Geist"
-            value={entry.name}
-          />
-          <Input
-            aria-label="What it is for"
-            className="admin-control"
-            onChange={(e) =>
-              onChange({
-                ...doc,
-                typefaces: doc.typefaces.map((f, i) =>
-                  i === index ? { ...f, role: e.target.value } : f
-                ),
-              })
-            }
-            placeholder="display, ui…"
-            value={entry.role}
-          />
-          <Button
-            aria-label={`Remove ${entry.name || "typeface"}`}
-            onClick={() =>
-              onChange({
-                ...doc,
-                typefaces: doc.typefaces.filter((_, i) => i !== index),
-              })
-            }
-            size="icon"
-            tone="danger"
-            type="button"
-            variant="ghost"
-          >
-            <HugeiconsIcon icon={Delete02Icon} size={14} />
-          </Button>
-        </div>
-      ))}
-      {doc.typefaces.length < MAX_TYPEFACES ? (
-        <Button
-          onClick={() =>
-            onChange({
-              ...doc,
-              typefaces: [
-                ...doc.typefaces,
-                { name: "", role: "", weights: [] },
-              ],
-            })
-          }
-          type="button"
-          variant="outline"
-        >
-          <HugeiconsIcon icon={PlusSignIcon} size={14} />
-          Add typeface
-        </Button>
-      ) : null}
     </div>
   );
 }

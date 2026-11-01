@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import type { TextStyle } from "../../../config/textStyle";
+import type { FontId } from "../../../config/theme";
 import { loadFont } from "../../theme/fonts";
+import { loadFontRef } from "../../theme/remoteFonts";
 
 /**
  * Fetches the stylesheet for whichever family a text item is set in.
@@ -19,8 +21,10 @@ import { loadFont } from "../../theme/fonts";
 export const useTextFont = (style: TextStyle | null | undefined): void => {
   const family = style?.family ?? null;
   useEffect(() => {
-    if (family) {
-      void loadFont(family);
+    // A brand font (Google or Adobe) loads by stylesheet; anything else is
+    // one of the site's own families.
+    if (family && !loadFontRef(family)) {
+      void loadFont(family as FontId);
     }
   }, [family]);
 };
