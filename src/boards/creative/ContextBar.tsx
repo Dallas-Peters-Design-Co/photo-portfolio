@@ -204,17 +204,46 @@ function TextControls({
           value={css.lineHeight}
         />
       </Field>
+      {/* Tracking in thousandths of an em, as type tools count it. */}
       <Field label="Tracking">
         <input
+          aria-label="Tracking slider"
+          className="creative__range"
+          max={400}
+          min={-150}
+          onChange={(e) =>
+            set({ letterSpacing: num(e.target.value, 0) / 1000 })
+          }
+          step={5}
+          type="range"
+          value={Math.round((style?.letterSpacing ?? 0) * 1000)}
+        />
+        <input
+          aria-label="Tracking"
           className="creative__input creative__input--num"
-          max={1}
-          min={-0.15}
-          onChange={(e) => set({ letterSpacing: num(e.target.value, 0) })}
-          step={0.01}
+          max={400}
+          min={-150}
+          onChange={(e) =>
+            set({ letterSpacing: num(e.target.value, 0) / 1000 })
+          }
+          step={5}
           type="number"
-          value={style?.letterSpacing ?? 0}
+          value={Math.round((style?.letterSpacing ?? 0) * 1000)}
         />
       </Field>
+      <IconButton
+        label={
+          style?.kerning === "none"
+            ? "Kerning off: turn the font's kerning on"
+            : "Kerning on: turn it off"
+        }
+        onClick={() =>
+          set({ kerning: style?.kerning === "none" ? null : "none" })
+        }
+        pressed={style?.kerning !== "none"}
+      >
+        Kern
+      </IconButton>
     </>
   );
 }

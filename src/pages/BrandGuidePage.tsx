@@ -11,7 +11,7 @@ import {
   ReferenceSection,
   TypeSection,
 } from "../components/brandGuide/GuideSections";
-import { groupPalette } from "../components/brandGuide/guideModel";
+import { brandFaces, groupPalette } from "../components/brandGuide/guideModel";
 import { brandKitsApi } from "../services/brandKitService";
 import { authStorage } from "../services/portfolioService";
 import { loadFontRef } from "../theme/remoteFonts";
@@ -49,8 +49,7 @@ export function BrandGuidePage() {
   }, [authed, navigate]);
 
   const doc = kit?.resolvedDoc;
-  const headline = doc?.typefaces.find((f) => f.ref) ?? null;
-  const body = doc?.typefaces.filter((f) => f.ref)[1] ?? headline;
+  const { body, headline } = brandFaces(doc);
 
   useEffect(() => {
     loadFontRef(headline?.ref);

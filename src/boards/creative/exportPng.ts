@@ -156,6 +156,7 @@ const drawText = (
   ctx.font = font;
   ctx.fillStyle = css.color;
   ctx.textBaseline = "top";
+  ctx.fontKerning = css.fontKerning === "none" ? "none" : "normal";
   const tracking = Number.parseFloat(css.letterSpacing);
   if ("letterSpacing" in ctx && Number.isFinite(tracking)) {
     (

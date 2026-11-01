@@ -1,4 +1,8 @@
-import type { PaletteEntry } from "../../../config/brandKit.js";
+import type {
+  BrandKitDoc,
+  PaletteEntry,
+  TypefaceEntry,
+} from "../../../config/brandKit.js";
 import { formatOklch, hexToOklch } from "../../lib/oklch";
 
 /**
@@ -65,3 +69,23 @@ export const valuesOf = (hex: string): ColourValues => {
 /** Dark ink on light colours, light on dark, decided in OKLCH lightness. */
 export const inkOn = (hex: string): "dark" | "light" =>
   (hexToOklch(hex)?.l ?? 0) > 0.68 ? "dark" : "light";
+
+const HEAD_ROLE = /head|display|title/i;
+const BODY_ROLE = /body|text|copy|paragraph/i;
+
+/**
+ * Which of a kit's loadable fonts is for headlines and which for body copy,
+ * by the role written on each. Without roles, the first is the headline face
+ * and the next one the body face.
+ */
+export const brandFaces = (
+  doc: Pick<BrandKitDoc, "typefaces"> | null | undefined
+): { body: TypefaceEntry | null; headline: TypefaceEntry | null } => {
+  const faces = (doc?.typefaces ?? []).filter((f) => f.ref);
+  const byRoleHead = faces.find((f) => HEAD_ROLE.test(f.role));
+  const byRoleBody = faces.find((f) => BODY_ROLE.test(f.role));
+  const headline = byRoleHead ?? faces.find((f) => f !== byRoleBody) ?? null;
+  const body =
+    byRoleBody ?? faces.find((f) => f !== headline) ?? headline ?? null;
+  return { body, headline };
+};

@@ -66,6 +66,11 @@ export interface TextStyle {
   family: FontId | string | null;
   /** Only ever true or null: false is the default, so it stores as nothing. */
   italic: boolean | null;
+  /**
+   * "none" turns the font's own kerning off (CSS font-kerning); null leaves it
+   * on, which is what every font is drawn with by default.
+   */
+  kerning?: "none" | null;
   /** In em, so tracking stays proportional as the text is resized. */
   letterSpacing: number | null;
   /** Unitless multiple of the font size, as CSS line-height. */
@@ -197,6 +202,8 @@ export const normalizeTextStyle = (raw: unknown): TextStyle | null => {
     // Never false. Not italic is the default, so storing it says nothing that
     // an absent key does not already say.
     italic: o.italic === true ? true : null,
+    // Only present when set, so a style without it reads back unchanged.
+    ...(o.kerning === "none" ? { kerning: "none" as const } : {}),
     letterSpacing: bounded(
       o.letterSpacing,
       MIN_LETTER_SPACING,
@@ -233,6 +240,7 @@ export interface TextStyleTarget {
 export interface TextCss {
   color?: string;
   fontFamily?: string;
+  fontKerning?: "none";
   fontSize: number;
   fontStyle: "italic" | "normal";
   fontWeight: number;
@@ -297,6 +305,9 @@ export const textStyleCss = (item: TextStyleTarget): TextCss => {
   }
   if (style?.align) {
     css.textAlign = style.align;
+  }
+  if (style?.kerning === "none") {
+    css.fontKerning = "none";
   }
   return css;
 };
