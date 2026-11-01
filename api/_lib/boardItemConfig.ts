@@ -331,6 +331,19 @@ export const parseLayers = (raw: unknown, depth: number): ShaderLayerDto[] => {
   return parsed;
 };
 
+/**
+ * A picture's own appearance on the board: rounded corners, set in the frame
+ * editor. Null when it has none, which is every picture placed before.
+ */
+export const parseImageConfig = (
+  raw: unknown
+): Record<string, unknown> | null => {
+  const radius = (raw as { radius?: unknown } | null)?.radius;
+  return typeof radius === "number" && Number.isFinite(radius) && radius > 0
+    ? { radius: clamp(radius, 0, 5000) }
+    : null;
+};
+
 /** The tools a drawing may claim to be, mirroring DRAW_TOOLS on the client. */
 export const DRAW_TOOLS = new Set([
   "pen",
@@ -338,6 +351,12 @@ export const DRAW_TOOLS = new Set([
   "rect",
   "rounded",
   "ellipse",
+  "triangle",
+  "polygon",
+  "star",
+  "squircle",
+  "line",
+  "arrow",
 ]);
 
 /** A freehand path this long is a mistake or an attack, not a drawing. */
@@ -381,6 +400,13 @@ export const parseDrawingConfig = (
   }
   if (typeof o.radius === "number" && Number.isFinite(o.radius)) {
     config.radius = clamp(o.radius, 0, 5000);
+  }
+  // Polygon sides or star points, and how deep a star's points go.
+  if (typeof o.sides === "number" && Number.isFinite(o.sides)) {
+    config.sides = Math.round(clamp(o.sides, 3, 24));
+  }
+  if (typeof o.innerRatio === "number" && Number.isFinite(o.innerRatio)) {
+    config.innerRatio = clamp(o.innerRatio, 0.1, 0.95);
   }
 
   if (Array.isArray(o.points)) {

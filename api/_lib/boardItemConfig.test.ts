@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { MAX_BUNDLE_HELD } from "../../config/nodes/bundle.js";
-import { parseNodeConfig } from "./boardItemConfig.js";
+import { DRAW_TOOLS as CLIENT_DRAW_TOOLS } from "../../src/boards/drawing/drawing";
+import {
+  DRAW_TOOLS,
+  parseDrawingConfig,
+  parseImageConfig,
+  parseNodeConfig,
+} from "./boardItemConfig.js";
 
 /**
  * What a save keeps of a node's config.
@@ -46,5 +52,46 @@ describe("parseNodeConfig", () => {
         name: "take 3.mov",
       })
     ).toEqual({ clipUrl: "https://example.com/c.mp4", name: "take 3.mov" });
+  });
+});
+
+describe("parseDrawingConfig", () => {
+  it("keeps every shape the board can draw (all but the mask brush)", () => {
+    for (const tool of CLIENT_DRAW_TOOLS.filter((t) => t !== "mask")) {
+      expect(DRAW_TOOLS.has(tool)).toBe(true);
+    }
+  });
+
+  it("keeps a star's points and depth, and a line's ends", () => {
+    expect(
+      parseDrawingConfig({
+        innerRatio: 2,
+        sides: 40.4,
+        stroke: "#000",
+        strokeWidth: 3,
+        tool: "star",
+      })
+    ).toMatchObject({ innerRatio: 0.95, sides: 24, tool: "star" });
+    expect(
+      parseDrawingConfig({
+        points: [
+          { x: 0, y: 1 },
+          { x: 1, y: 0 },
+        ],
+        stroke: "#000",
+        strokeWidth: 3,
+        tool: "arrow",
+      })?.points
+    ).toHaveLength(2);
+  });
+});
+
+describe("parseImageConfig", () => {
+  it("keeps a picture's corner radius and nothing else", () => {
+    expect(parseImageConfig({ radius: 24, script: "x" })).toEqual({
+      radius: 24,
+    });
+    expect(parseImageConfig({ radius: 0 })).toBeNull();
+    expect(parseImageConfig(null)).toBeNull();
   });
 });

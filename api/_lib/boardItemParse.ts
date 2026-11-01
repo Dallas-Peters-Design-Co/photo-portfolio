@@ -9,6 +9,7 @@ import { isNodeTypeId } from "../../config/nodeTypes.js";
 import { normalizeTextStyle, type TextStyle } from "../../config/textStyle.js";
 import {
   parseDrawingConfig,
+  parseImageConfig,
   parseNodeConfig,
   parseShaderConfig,
 } from "./boardItemConfig.js";
@@ -197,6 +198,8 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     config = parseShaderConfig(o.config);
   } else if (o.kind === "drawing") {
     config = parseDrawingConfig(o.config);
+  } else if (o.kind === "reference" || o.kind === "photo") {
+    config = parseImageConfig(o.config);
   } else if (nodeType) {
     config = parseNodeConfig(nodeType, o.config);
   }
