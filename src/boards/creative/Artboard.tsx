@@ -11,8 +11,9 @@ import { isDrawingConfig } from "../drawing/drawing";
 import { useTextFont } from "../hooks/useTextFont";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { type ResizeDrag, resizeStep } from "./resize";
 import { type Handle, SelectionBox } from "./SelectionBox";
-import { type Guides, snapEdge, snapMove } from "./snap";
+import { type Guides, snapMove } from "./snap";
 import "../itemBodies.css";
 
 /**
@@ -24,7 +25,6 @@ import "../itemBodies.css";
  */
 
 const SNAP_PX = 6;
-const MIN = 8;
 
 type Drag =
   | {
@@ -36,15 +36,7 @@ type Drag =
       startX: number;
       startY: number;
     }
-  | {
-      handle: Handle;
-      id: string;
-      kind: "resize";
-      origin: Box;
-      originFont: number | null;
-      startX: number;
-      startY: number;
-    };
+  | ResizeDrag;
 
 export interface ArtboardProps {
   editingId: string | null;
@@ -65,104 +57,6 @@ const boxOf = (item: BoardItem): Box => ({
   x: item.x,
   y: item.y,
 });
-
-/** A resize from one handle, in canvas units. */
-const resized = (
-  origin: Box,
-  handle: Handle,
-  dx: number,
-  dy: number,
-  keepAspect: boolean
-): Box => {
-  let { height, width, x, y } = origin;
-  if (handle.includes("e")) {
-    width = origin.width + dx;
-  }
-  if (handle.includes("w")) {
-    width = origin.width - dx;
-  }
-  if (handle.includes("s")) {
-    height = origin.height + dy;
-  }
-  if (handle.includes("n")) {
-    height = origin.height - dy;
-  }
-  if (keepAspect && handle.length === 2) {
-    const ratio = origin.width / origin.height;
-    if (Math.abs(dx) * origin.height > Math.abs(dy) * origin.width) {
-      height = width / ratio;
-    } else {
-      width = height * ratio;
-    }
-  }
-  width = Math.max(MIN, width);
-  height = Math.max(MIN, height);
-  if (handle.includes("w")) {
-    x = origin.x + origin.width - width;
-  }
-  if (handle.includes("n")) {
-    y = origin.y + origin.height - height;
-  }
-  return { height, width, x, y };
-};
-
-type ResizeDrag = Extract<Drag, { kind: "resize" }>;
-
-/** One step of a resize: the new box, the font size for text, the guides. */
-const resizeStep = (
-  drag: ResizeDrag,
-  item: BoardItem | undefined,
-  m: {
-    alt: boolean;
-    dx: number;
-    dy: number;
-    frame: Box;
-    others: Box[];
-    shift: boolean;
-    threshold: number;
-  }
-): { box: Box; fontSize: number | null; guides: Guides } => {
-  const isText = item?.kind === "text" || item?.kind === "note";
-  const isPicture = item?.kind === "reference" || item?.kind === "photo";
-  const keepAspect = m.shift || isPicture || isText;
-  let box = resized(drag.origin, drag.handle, m.dx, m.dy, keepAspect);
-  const guides: Guides = { x: [], y: [] };
-  if (!(m.alt || keepAspect)) {
-    if (drag.handle.includes("e")) {
-      const s = snapEdge(
-        box.x + box.width,
-        "x",
-        m.frame,
-        m.others,
-        m.threshold
-      );
-      box = { ...box, width: Math.max(MIN, s.value - box.x) };
-      guides.x = s.line === null ? [] : [s.line];
-    }
-    if (drag.handle.includes("s")) {
-      const s = snapEdge(
-        box.y + box.height,
-        "y",
-        m.frame,
-        m.others,
-        m.threshold
-      );
-      box = { ...box, height: Math.max(MIN, s.value - box.y) };
-      guides.y = s.line === null ? [] : [s.line];
-    }
-  }
-  // Text scales its type with a corner drag, as a design tool does; an edge
-  // drag only changes where it wraps.
-  const corner = drag.handle.length === 2;
-  const fontSize =
-    isText && corner && drag.originFont
-      ? Math.max(
-          8,
-          Math.round((drag.originFont * box.width) / drag.origin.width)
-        )
-      : null;
-  return { box, fontSize, guides };
-};
 
 function LayerText({
   editing,

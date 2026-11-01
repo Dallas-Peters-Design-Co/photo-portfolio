@@ -15,6 +15,7 @@ import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
 import { deleteLook, listLooks, saveLook } from "../_lib/savedLooks.js";
+import { fetchSitePage } from "../_lib/sitePage.js";
 
 /**
  * The brand kits: what exists, and making a new one.
@@ -59,6 +60,13 @@ async function handleGet(
           error:
             "Adobe Fonts couldn't find that web project. Check the id and that it's published.",
         });
+  }
+  // A website's page, scripts stripped, for the admin's in-browser scan.
+  if (typeof req.query.page === "string") {
+    const page = await fetchSitePage(req.query.page);
+    return page.ok
+      ? res.status(200).json({ html: page.html, url: page.url })
+      : res.status(422).json({ error: page.error });
   }
   // A kit as DESIGN.md, for the guide's download (see _lib/mcpBrandTools.ts).
   if (typeof req.query.design === "string") {

@@ -1,13 +1,18 @@
 /**
  * Reads a rendered page's design: run inside the page with page.evaluate().
  *
- * Plain browser JavaScript with nothing from outside its own body, because it
- * is serialised into the page. Colours come back as #rrggbb (via a 1×1 canvas,
+ * Plain browser JavaScript with nothing from outside its own body, because
+ * Playwright serialises it into the page. The admin calls it with a sandboxed
+ * frame's window instead (src/lib/scanSite.ts), so every DOM read goes
+ * through `win`. Colours come back as #rrggbb (via a 1×1 canvas,
  * so oklch() and named colours convert too), sizes as computed pixels.
  */
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: serialised into the page by page.evaluate, so it has to carry its helpers inside
-export function scanPage() {
+export function scanPage(win = window) {
+  const doc = win.document;
+  const css = (el) => win.getComputedStyle(el);
+  // The canvas belongs to whichever page runs this; it only converts colours.
   const canvas = document.createElement("canvas");
   canvas.width = 1;
   canvas.height = 1;
@@ -33,7 +38,7 @@ export function scanPage() {
     if (rect.width < 2 || rect.height < 2) {
       return false;
     }
-    const cs = getComputedStyle(el);
+    const cs = css(el);
     return (
       cs.visibility !== "hidden" &&
       cs.display !== "none" &&
@@ -88,7 +93,7 @@ export function scanPage() {
   };
 
   const styleOf = (el, withSize) => {
-    const cs = getComputedStyle(el);
+    const cs = css(el);
     const radius = px(cs.borderTopLeftRadius);
     const bw = px(cs.borderTopWidth);
     const rect = el.getBoundingClientRect();
@@ -134,9 +139,7 @@ export function scanPage() {
   };
 
   const pick = (selector, ok = () => true) =>
-    [...document.querySelectorAll(selector)].filter(
-      (el) => visible(el) && ok(el)
-    );
+    [...doc.querySelectorAll(selector)].filter((el) => visible(el) && ok(el));
 
   const saturated = (hexValue) => {
     if (!hexValue) {
@@ -213,7 +216,7 @@ export function scanPage() {
   const cards = groups(
     pick('article, [class*="card" i]', (el) => {
       const r = el.getBoundingClientRect();
-      const cs = getComputedStyle(el);
+      const cs = css(el);
       const framed =
         hex(cs.backgroundColor) ||
         px(cs.borderTopWidth) > 0 ||
@@ -240,12 +243,12 @@ export function scanPage() {
 
   const [nav] = pick(
     "header nav, nav, header",
-    (el) => el.getBoundingClientRect().width >= innerWidth * 0.6
+    (el) => el.getBoundingClientRect().width >= win.innerWidth * 0.6
   );
   if (nav) {
     const navLink = [...nav.querySelectorAll("a")].find(visible);
     const navStyle = styleOf(nav, true);
-    const linkStyle = navLink ? typeOf(getComputedStyle(navLink)) : {};
+    const linkStyle = navLink ? typeOf(css(navLink)) : {};
     components.push({
       count: 1,
       name: "nav",
@@ -253,9 +256,7 @@ export function scanPage() {
       style: {
         ...navStyle,
         ...linkStyle,
-        textColor: navLink
-          ? hex(getComputedStyle(navLink).color)
-          : navStyle.textColor,
+        textColor: navLink ? hex(css(navLink).color) : navStyle.textColor,
       },
     });
   }
@@ -281,12 +282,12 @@ export function scanPage() {
   ]) {
     const [el] = pick(selector);
     if (el) {
-      typography.push({ name, style: typeOf(getComputedStyle(el)) });
+      typography.push({ name, style: typeOf(css(el)) });
     }
   }
   const bodyCounts = new Map();
   for (const el of pick("p", (p) => text(p).length >= 40)) {
-    const style = typeOf(getComputedStyle(el));
+    const style = typeOf(css(el));
     const key = JSON.stringify(style);
     const hit = bodyCounts.get(key);
     bodyCounts.set(key, { n: (hit?.n ?? 0) + text(el).length, style });
@@ -300,11 +301,11 @@ export function scanPage() {
   const radii = new Map();
   const spaces = new Map();
   const bump = (map, v) => map.set(v, (map.get(v) ?? 0) + 1);
-  for (const el of [...document.querySelectorAll("body *")].slice(0, 4000)) {
+  for (const el of [...doc.querySelectorAll("body *")].slice(0, 4000)) {
     if (!visible(el)) {
       continue;
     }
-    const cs = getComputedStyle(el);
+    const cs = css(el);
     const r = px(cs.borderTopLeftRadius);
     if (r > 0) {
       bump(radii, r >= 100 ? 9999 : Math.round(r));
@@ -338,7 +339,7 @@ export function scanPage() {
     })),
     rounded: top(radii, 1, 5),
     spacing: top(spaces, 4, 8),
-    title: document.title,
+    title: doc.title,
     typography: typography.map((t) => ({
       ...t,
       style: Object.fromEntries(

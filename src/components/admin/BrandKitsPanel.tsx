@@ -239,7 +239,12 @@ function KitEditor({
           <LibraryPicker doc={doc} onChange={setDoc} />
         </section>
 
-        <BrandSources doc={doc} kitName={kit.name} onChange={setDoc} />
+        <BrandSources
+          doc={doc}
+          effective={effective}
+          kitName={name.trim() || kit.name}
+          onChange={setDoc}
+        />
 
         {/* What the kit contributes to a generation, quoted back (see kitPromptText). */}
         <section className="stack stack--snug">

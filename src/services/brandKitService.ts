@@ -192,6 +192,18 @@ export const brandKitsApi = {
     return (await res.json()) as BrandKit;
   },
 
+  /** A website's page with its scripts stripped, for scanning (lib/scanSite). */
+  sitePage: async (url: string): Promise<{ html: string; url: string }> => {
+    const res = await fetch(
+      `${apiBase()}/api/brand-kits?page=${encodeURIComponent(url)}`,
+      { headers: jsonHeaders() }
+    );
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Couldn't load that site"));
+    }
+    return (await res.json()) as { html: string; url: string };
+  },
+
   /** Ad copy in the kit's voice: three variants, or a translation. */
   writeCopy: async (
     kitId: string,
