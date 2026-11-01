@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CreativeEditor } from "../../../boards/creative/CreativeEditor";
+import { markDesigned } from "../../../boards/geometry/frameLock";
 import { StudioPanel } from "../../../boards/studio/StudioPanel";
 import { onOpenStudio } from "../../../boards/studio/studioEvents";
 import type { BoardItem } from "../../../types";
@@ -31,7 +32,9 @@ export const useFrameDesign = (
     <CreativeEditor
       frameId={designing}
       items={items}
-      onChange={change}
+      // Any change made here makes it a designed frame: one clipped object
+      // on the canvas from then on (frameLock.ts).
+      onChange={(next) => change(markDesigned(next, designing))}
       onClose={() => setDesigning(null)}
       onDropFiles={(files, point) => void dropFiles(files, point)}
     />

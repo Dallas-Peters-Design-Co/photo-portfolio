@@ -118,3 +118,14 @@ describe("a text item's style, saved and reloaded", () => {
     expect(accepted?.textStyle).toBeNull();
   });
 });
+
+describe("a frame's settings", () => {
+  it("keeps only whether it has been designed", () => {
+    const frame = (config: unknown) =>
+      parseIncomingItem(incoming({ body: "Post", config, kind: "frame" }))
+        ?.config;
+    expect(frame({ designed: true, junk: 1 })).toEqual({ designed: true });
+    expect(frame({ designed: "yes" })).toBeNull();
+    expect(frame(null)).toBeNull();
+  });
+});

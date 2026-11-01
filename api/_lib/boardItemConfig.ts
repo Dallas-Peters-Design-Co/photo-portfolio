@@ -344,6 +344,17 @@ export const parseImageConfig = (
     : null;
 };
 
+/**
+ * A frame's settings: only whether it has been designed in the frame editor,
+ * which is what makes it one clipped object on the canvas (frameLock.ts).
+ */
+export const parseFrameConfig = (
+  raw: unknown
+): Record<string, unknown> | null =>
+  (raw as { designed?: unknown } | null)?.designed === true
+    ? { designed: true }
+    : null;
+
 /** The tools a drawing may claim to be, mirroring DRAW_TOOLS on the client. */
 export const DRAW_TOOLS = new Set([
   "pen",

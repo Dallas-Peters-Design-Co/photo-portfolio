@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
 import type { BoardItem } from "../../types";
-import { clipPathFor, frameLocks, liftToFrames } from "./frameLock";
+import {
+  clipPathFor,
+  frameLocks,
+  liftToFrames,
+  markDesigned,
+} from "./frameLock";
 
 const box = (
   id: string,
@@ -10,7 +15,17 @@ const box = (
   y: number,
   width: number,
   height: number
-): BoardItem => ({ ...BLANK_ITEM, height, id, kind, width, x, y, z: 1 });
+): BoardItem => ({
+  ...BLANK_ITEM,
+  config: kind === "frame" ? { designed: true } : null,
+  height,
+  id,
+  kind,
+  width,
+  x,
+  y,
+  z: 1,
+});
 
 describe("frameLock", () => {
   it("locks what sits in a design frame to it, and clips to its edges", () => {
@@ -27,11 +42,14 @@ describe("frameLock", () => {
     expect(clipPathFor(box("in", "text", 10, 10, 10, 10), frame)).toBeNull();
   });
 
-  it("leaves a frame of nodes alone, so a workflow stays clickable", () => {
-    const group = box("g", "frame", 0, 0, 400, 400);
-    const node = box("n", "op", 10, 10, 50, 50);
+  it("leaves a frame that hasn't been designed alone, and marks one that has", () => {
+    const group = { ...box("g", "frame", 0, 0, 400, 400), config: null };
     const pic = box("p", "reference", 100, 100, 50, 50);
-    expect(frameLocks([group, node, pic]).size).toBe(0);
+    expect(frameLocks([group, pic]).size).toBe(0);
+    const designed = markDesigned([group, pic], "g");
+    expect(designed[0]?.config).toEqual({ designed: true });
+    expect(frameLocks(designed).get("p")?.owner).toBe("g");
+    expect(markDesigned(designed, "g")).toBe(designed);
   });
 
   it("hands a nested frame's contents to the outermost design frame", () => {

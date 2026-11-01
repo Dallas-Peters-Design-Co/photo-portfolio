@@ -9,6 +9,7 @@ import { isNodeTypeId } from "../../config/nodeTypes.js";
 import { normalizeTextStyle, type TextStyle } from "../../config/textStyle.js";
 import {
   parseDrawingConfig,
+  parseFrameConfig,
   parseImageConfig,
   parseNodeConfig,
   parseShaderConfig,
@@ -212,6 +213,8 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     config = parseDrawingConfig(o.config);
   } else if (o.kind === "reference" || o.kind === "photo") {
     config = parseImageConfig(o.config);
+  } else if (o.kind === "frame") {
+    config = parseFrameConfig(o.config);
   } else if (nodeType) {
     config = parseNodeConfig(nodeType, o.config);
   }

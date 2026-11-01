@@ -7,9 +7,9 @@ import type { Selection } from "./selectionModel";
  * on it is clipped to its edges and can't be picked out on its own; pressing
  * it picks up the frame, and the layers are edited in the frame editor.
  *
- * Only design frames. A frame holding nodes (an `op` or a shader) is a group
- * of a workflow: its nodes have to stay clickable to be run, wired and
- * prompted, so it keeps the old behaviour — nothing clipped, everything free.
+ * Only frames that have been designed (changed in the frame editor, which
+ * marks them `config.designed`). Until then a frame is a plain group: nothing
+ * clipped, everything on it free to pick up, wire and run.
  *
  * Membership is the board's usual rule (centre inside, see withinFrame), so an
  * item dragged onto a design frame joins it and is clipped from then on.
@@ -29,12 +29,23 @@ export interface FrameLock {
   owner: string;
 }
 
-const WORKFLOW_KINDS = new Set<BoardItem["kind"]>(["op", "shader"]);
-
-/** A frame holding a design rather than a group of nodes. */
-export const isDesignFrame = (frame: BoardItem, items: BoardItem[]): boolean =>
+/** A frame that has been designed in the frame editor. */
+export const isDesignFrame = (frame: BoardItem): boolean =>
   frame.kind === "frame" &&
-  !withinFrame(frame, items).some((item) => WORKFLOW_KINDS.has(item.kind));
+  (frame.config as { designed?: unknown } | null)?.designed === true;
+
+/** The board with this frame marked designed; the same list if it already is. */
+export const markDesigned = (
+  items: BoardItem[],
+  frameId: string
+): BoardItem[] =>
+  items.some((i) => i.id === frameId && !isDesignFrame(i))
+    ? items.map((i) =>
+        i.id === frameId
+          ? { ...i, config: { ...(i.config ?? {}), designed: true } }
+          : i
+      )
+    : items;
 
 const intersect = (a: Rect, b: Rect): Rect => {
   const x = Math.max(a.x, b.x);
@@ -52,7 +63,7 @@ const area = (r: Rect): number => r.width * r.height;
 /** Every item sitting in a design frame, with its owner and clip. */
 export const frameLocks = (items: BoardItem[]): Map<string, FrameLock> => {
   const locks = new Map<string, FrameLock>();
-  const frames = items.filter((item) => isDesignFrame(item, items));
+  const frames = items.filter(isDesignFrame);
   for (const frame of frames) {
     for (const item of withinFrame(frame, items)) {
       const was = locks.get(item.id);
