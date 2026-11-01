@@ -90,13 +90,13 @@ const buttonVariants = cva(
           "relative size-6 after:absolute after:-inset-2 after:content-[''] [&_svg:not([class*='size-'])]:size-3",
         // The tall, wide call to action — "Save settings", "Add photos".
         lg: "min-h-12 gap-2 px-8 text-sm uppercase tracking-widest",
-        sm: "min-h-11 gap-1.5 px-3 text-sm uppercase tracking-widest",
+        sm: "min-h-11 gap-1.5 px-3 text-xs uppercase tracking-widest",
         // Dense toolbars, where a 44px target would not fit. Use sparingly.
-        xs: "min-h-9 gap-1.5 px-2 text-sm uppercase tracking-widest",
+        xs: "min-h-9 gap-1.5 px-2 text-xs uppercase tracking-widest",
       },
       stacked: {
         false: "",
-        true: "w-full flex-col justify-center gap-1.5",
+        true: "w-full flex-col justify-center gap-1.5 text-xs",
       },
       /**
        * Danger is a tone, not a variant.

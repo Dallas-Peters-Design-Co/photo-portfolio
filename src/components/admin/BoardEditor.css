@@ -32,6 +32,7 @@
   align-items: center;
   height: fit-content;
   padding: calc(var(--spacing) * 2);
+  font-size: var(--text-xs);
   background-color: var(--color-board-panel);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
