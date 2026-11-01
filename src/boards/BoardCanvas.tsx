@@ -18,6 +18,7 @@ import {
   RecipeGroupView,
   type RecipeGroupViewProps,
 } from "./canvas/RecipeGroupView";
+import { useFrameLocks } from "./canvas/useFrameLocks";
 import { NO_PREVIEW, resolveWired } from "./canvas/wiredPreviews";
 import {
   type DrawingConfig,
@@ -340,6 +341,7 @@ export function BoardCanvas({
    * same shape.
    */
   const [selection, setSelection] = useState<Selection>(EMPTY_SELECTION);
+  const framed = useFrameLocks(items, selection, setSelection);
   /** The marquee being dragged out on the background, in canvas units. */
   const [marquee, setMarquee] = useState<{ from: Point; to: Point } | null>(
     null
@@ -417,7 +419,11 @@ export function BoardCanvas({
 
   // Selecting vs commenting: comment targeting happens on the item's click
   // (see onCommentTarget below), so a read-only board just never selects.
-  const selectFor = () => (readOnly ? () => undefined : beginMove);
+  const selectFor = () =>
+    readOnly
+      ? () => undefined
+      : (i: number, x: number, y: number, add?: boolean) =>
+          beginMove(framed.pressIndex(i), x, y, add);
 
   // Held in a ref so the effect below can read the current item without
   // depending on it: the item is a new object on every edit, and depending on
@@ -1226,6 +1232,7 @@ export function BoardCanvas({
                 imageCount={preview.imageCount}
                 imageUrl={preview.imageUrl}
                 index={index}
+                inFrame={framed.inFrame(item)}
                 isEditing={!readOnly && editingId === item.id}
                 isSelected={!readOnly && selection.has(item.id)}
                 isSoleSelected={selectedItem?.id === item.id}

@@ -76,6 +76,8 @@ interface BoardItemViewProps {
   /** A picture wired into this item's image input, if it has one. */
   imageUrl?: string | null;
   index: number;
+  /** Set when it sits in a design frame: drawn clipped to it (frameLock.ts). */
+  inFrame?: { clipPath: string | null; open?: () => void };
   /** True while this item's text is being typed into. */
   isEditing: boolean;
   isSelected: boolean;
@@ -305,6 +307,7 @@ export function BoardItemView({
   readOnly = false,
   scale,
   commentCount = 0,
+  inFrame,
   onCommentTarget,
 }: BoardItemViewProps) {
   const isNote = item.kind === "note";
@@ -345,7 +348,7 @@ export function BoardItemView({
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same — the click aims a comment at the item, and the drag already uses pointer events the same way
     // biome-ignore lint/a11y/useKeyWithClickEvents: same — an item is a canvas surface, not a button
     <div
-      className={itemBoxClassName(item, isSelected)}
+      className={`${itemBoxClassName(item, isSelected)}${inFrame ? "board-item--in-frame" : ""}`}
       onClick={
         onCommentTarget
           ? (e) => {
@@ -354,6 +357,7 @@ export function BoardItemView({
             }
           : undefined
       }
+      onDoubleClick={inFrame?.open}
       onPointerDown={itemPointerDown({
         index,
         isEditing,
@@ -367,6 +371,7 @@ export function BoardItemView({
       onPointerMove={handleDragHover}
       ref={boxRef}
       style={{
+        clipPath: inFrame?.clipPath ?? undefined,
         height: fitsContent(item, readOnly) ? "auto" : item.height,
         left: item.x,
         top: item.y,

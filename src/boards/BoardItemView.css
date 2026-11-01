@@ -154,6 +154,11 @@
 .group:hover .board-item__delete {
   opacity: 1;
 }
+/* Part of a design frame: the frame is what gets picked up, so none of the
+   item's own chrome shows. See geometry/frameLock.ts. */
+.group.board-item--in-frame .board-item__delete {
+  display: none;
+}
 
 /*
  * How many comments are pinned to this item.
