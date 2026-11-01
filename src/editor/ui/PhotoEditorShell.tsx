@@ -9,6 +9,7 @@ import {
   NO_TRANSFORM,
   rotatedSize,
 } from "../engine/export";
+import { useExtraLooks } from "../savedLooks";
 import { useEditorExport } from "../useEditorExport";
 import { useEditState } from "../useEditState";
 import { usePhotoPipeline } from "../usePhotoPipeline";
@@ -54,6 +55,7 @@ export function PhotoEditorShell({
     setLookStrength,
     reset,
   } = useEditState();
+  const looks = useExtraLooks();
 
   const { canvasRef, isReady, loadError, dimensions, render } =
     usePhotoPipeline(imageUrl, edit, showOriginal);
@@ -138,8 +140,15 @@ export function PhotoEditorShell({
           {tool === "looks" ? (
             <LooksPanel
               active={activeLook}
+              brandLooks={looks.brands}
+              canSave={!isNeutral(edit)}
               onChoose={chooseLook}
+              onDelete={(look) => looks.remove(look.id)}
+              onSave={async (name) => {
+                chooseLook(await looks.save(name, edit));
+              }}
               onStrength={setLookStrength}
+              savedLooks={looks.savedLooks}
               strength={lookStrength}
             />
           ) : null}

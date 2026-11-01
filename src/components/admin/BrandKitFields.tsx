@@ -13,6 +13,13 @@ import {
   paletteFromCss,
 } from "../../../config/brandKit.js";
 import { LOOK_FAMILIES, LOOKS } from "../../editor/presets";
+import {
+  findLook,
+  SAVED_FAMILY,
+  SAVED_LOOK_FAMILY,
+  savedToLook,
+  useExtraLooks,
+} from "../../editor/savedLooks";
 import { portfolioService } from "../../services/portfolioService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -34,18 +41,26 @@ export function LookPicker({
   doc: BrandKitDoc;
   onChange: (next: BrandKitDoc) => void;
 }) {
-  const chosen = doc.look
-    ? (LOOKS.find((look) => look.id === doc.look?.id) ?? null)
-    : null;
+  // Saved looks (made in the photo editor) can be a brand's look too.
+  const { saved } = useExtraLooks();
+  const savedLooks = saved.map(savedToLook);
+  const families = [
+    ...(savedLooks.length > 0 ? [SAVED_LOOK_FAMILY] : []),
+    ...LOOK_FAMILIES,
+  ];
+  const chosen = doc.look ? findLook(doc.look.id, saved) : null;
   const [family, setFamily] = useState(
     chosen?.family ?? LOOK_FAMILIES[0]?.id ?? "a"
   );
-  const inFamily = LOOKS.filter((look) => look.family === family);
+  const inFamily =
+    family === SAVED_FAMILY
+      ? savedLooks
+      : LOOKS.filter((look) => look.family === family);
 
   return (
     <div className="stack stack--tight">
       <div className="brand-kit__families">
-        {LOOK_FAMILIES.map((entry) => (
+        {families.map((entry) => (
           <button
             aria-pressed={entry.id === family}
             className={`brand-kit__family ${

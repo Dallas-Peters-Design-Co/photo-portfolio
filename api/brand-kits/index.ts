@@ -7,6 +7,7 @@ import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
+import { deleteLook, listLooks, saveLook } from "../_lib/savedLooks.js";
 
 /**
  * The brand kits: what exists, and making a new one.
@@ -25,11 +26,35 @@ import { parseJsonBody } from "../_lib/parseBody.js";
 type Sql = ReturnType<typeof getSql>;
 type User = ReturnType<typeof getBearerUser>;
 
-async function handleGet(sql: Sql, user: User, res: VercelResponse) {
+async function handleGet(
+  sql: Sql,
+  user: User,
+  req: VercelRequest,
+  res: VercelResponse
+) {
   if (!user) {
     return res.status(401).json({ error: "Unauthorized" });
   }
+  // Saved photo-editor looks ride on this endpoint (see _lib/savedLooks.ts).
+  if (req.query.looks) {
+    return res.status(200).json(await listLooks(sql));
+  }
   return res.status(200).json(await loadKits(sql));
+}
+
+async function handleLookAction(
+  sql: Sql,
+  body: Record<string, unknown>,
+  res: VercelResponse
+) {
+  if (body.action === "deleteLook") {
+    await deleteLook(sql, body.id);
+    return res.status(204).end();
+  }
+  const out = await saveLook(sql, body);
+  return out.ok
+    ? res.status(out.status).json(out.look)
+    : res.status(out.status).json({ error: out.error });
 }
 
 async function handlePost(
@@ -42,6 +67,9 @@ async function handlePost(
     return res.status(401).json({ error: "Unauthorized" });
   }
   const body = parseJsonBody(req.body) as Record<string, unknown>;
+  if (body.action === "saveLook" || body.action === "deleteLook") {
+    return await handleLookAction(sql, body, res);
+  }
   const name = sanitizeText(String(body.name ?? "")).slice(0, MAX_KIT_NAME);
   if (!name) {
     return res.status(400).json({ error: "A kit needs a name" });
@@ -91,7 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const user = getBearerUser(req.headers.authorization);
   try {
     if (req.method === "GET") {
-      return await handleGet(sql, user, res);
+      return await handleGet(sql, user, req, res);
     }
     if (req.method === "POST") {
       return await handlePost(sql, user, req, res);
