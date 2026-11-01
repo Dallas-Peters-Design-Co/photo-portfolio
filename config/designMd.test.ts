@@ -68,14 +68,19 @@ describe("designMd", () => {
     const front = md.split("---")[1] ?? "";
     expect(front).toContain("version: alpha");
     expect(front).toContain("name: Unruly Chain");
-    expect(front).toContain('flush-mahogany: "#f55c3e"');
+    expect(front).toContain('primary: "#f55c3e"');
     expect(front).toContain('ink: "#0a1112"');
     // The face whose role says headline, at the weight it actually has.
     expect(front).toContain(
       "headline:\n    fontFamily: alternate-gothic-no-3-d\n    fontWeight: 400"
     );
     expect(front).toContain("fontFamily: Public Sans");
-    expect(front).toContain('backgroundColor: "{colors.flush-mahogany}"');
+    expect(front).toContain('backgroundColor: "{colors.primary}"');
+    // Every other colour is a block, so no token is left unused.
+    expect(front).toContain(
+      'block-parchment:\n    backgroundColor: "{colors.parchment}"\n    textColor: "{colors.ink}"'
+    );
+    expect(front).toContain("omitted:\n  - spacing\n  - rounded");
     expect(front).toContain('textColor: "{colors.ink}"');
   });
 

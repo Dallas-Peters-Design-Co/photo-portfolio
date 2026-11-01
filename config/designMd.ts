@@ -108,6 +108,36 @@ const sourceOf = (face: TypefaceEntry): string => {
 const familyOf = (face: TypefaceEntry) =>
   parseFontRef(face.ref)?.family ?? face.name;
 
+/**
+ * Token names for the palette: the main brand colour is `primary`, the spec's
+ * name for it, and the rest go by their role or name.
+ */
+const colorTokenNames = (palette: PaletteEntry[]): string[] => {
+  const accent = accentOf(palette);
+  const named = tokenNames(palette, (p) => p.role || p.name, "color");
+  if (!accent || named.includes("primary")) {
+    return named;
+  }
+  return named.map((n, i) => (palette[i] === accent ? "primary" : n));
+};
+
+/** The palette colour that reads best on `bg`, else black or white. */
+const textOn = (
+  bg: PaletteEntry,
+  palette: PaletteEntry[],
+  names: string[]
+): string => {
+  const [best] = palette
+    .filter((p) => p !== bg)
+    .sort((a, b) => contrast(b.value, bg.value) - contrast(a.value, bg.value));
+  if (best && contrast(best.value, bg.value) >= 4.5) {
+    return `"{colors.${names[palette.indexOf(best)]}}"`;
+  }
+  return contrast("#ffffff", bg.value) >= contrast("#000000", bg.value)
+    ? '"#ffffff"'
+    : '"#000000"';
+};
+
 interface Tokens {
   colorNames: string[];
   lines: string[];
@@ -115,7 +145,7 @@ interface Tokens {
 
 const frontMatter = (kit: DesignMdKit): Tokens => {
   const { doc } = kit;
-  const colorNames = tokenNames(doc.palette, (p) => p.role || p.name, "color");
+  const colorNames = colorTokenNames(doc.palette);
   const lines = [
     "---",
     "version: alpha",
@@ -124,6 +154,9 @@ const frontMatter = (kit: DesignMdKit): Tokens => {
       `Generated from the ${kit.name} brand kit${kit.version ? ` (version ${kit.version})` : ""}. Edit the kit, not this file.`
     )}`,
   ];
+  // The kit has no spacing or corner scale, so say so rather than leave an
+  // agent to wonder whether they were forgotten.
+  lines.push("omitted:", "  - spacing", "  - rounded");
   if (doc.palette.length > 0) {
     lines.push("colors:");
     doc.palette.forEach((p, i) => {
@@ -146,27 +179,21 @@ const frontMatter = (kit: DesignMdKit): Tokens => {
       lines.push("    lineHeight: 1.5");
     }
   }
-  const accent = accentOf(doc.palette);
-  if (accent) {
-    const at = doc.palette.indexOf(accent);
-    const ink =
-      [...doc.palette]
-        .filter((p) => p !== accent)
-        .sort(
-          (a, b) =>
-            contrast(b.value, accent.value) - contrast(a.value, accent.value)
-        )[0] ?? null;
-    const text =
-      ink && contrast(ink.value, accent.value) >= 4.5
-        ? `"{colors.${colorNames[doc.palette.indexOf(ink)]}}"`
-        : `"${contrast("#ffffff", accent.value) >= contrast("#000000", accent.value) ? "#ffffff" : "#000000"}"`;
+  if (doc.palette.length > 0) {
     lines.push("components:");
-    lines.push("  button-primary:");
-    lines.push(`    backgroundColor: "{colors.${colorNames[at]}}"`);
-    lines.push(`    textColor: ${text}`);
-    if (body) {
-      lines.push(`    typography: "{typography.body}"`);
-    }
+    const accent = accentOf(doc.palette);
+    doc.palette.forEach((p, i) => {
+      // The main colour is the primary button; every other colour is a
+      // colour block, with the brand colour that reads best on it as text.
+      lines.push(
+        p === accent ? "  button-primary:" : `  block-${colorNames[i]}:`
+      );
+      lines.push(`    backgroundColor: "{colors.${colorNames[i]}}"`);
+      lines.push(`    textColor: ${textOn(p, doc.palette, colorNames)}`);
+      if (body && p === accent) {
+        lines.push(`    typography: "{typography.body}"`);
+      }
+    });
   }
   lines.push("---");
   return { colorNames, lines };
@@ -236,14 +263,21 @@ const typography = (doc: BrandKitDoc): string[] => {
   ];
 };
 
-const components = (doc: BrandKitDoc): string[] =>
-  accentOf(doc.palette)
-    ? [
-        "## Components",
-        "",
-        "- **Primary button**: the main brand colour, with whichever brand colour reads on it at 4.5:1 or better, set in the body face.",
-      ]
-    : [];
+const components = (doc: BrandKitDoc): string[] => {
+  if (doc.palette.length === 0) {
+    return [];
+  }
+  return [
+    "## Components",
+    "",
+    ...(accentOf(doc.palette)
+      ? [
+          "- **Primary button**: the main brand colour, with whichever brand colour reads on it at 4.5:1 or better, set in the body face.",
+        ]
+      : []),
+    "- **Colour blocks** (`block-*`): every other brand colour as a filled area, with the brand colour that reads best on it for text.",
+  ];
+};
 
 const FILE_EXT = /\.(svg|png|jpe?g|webp|gif)$/i;
 const logoName = (label: string) => label.replace(FILE_EXT, "") || "Logo";
