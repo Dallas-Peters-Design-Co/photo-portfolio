@@ -13,6 +13,7 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { imageRadius } from "./imageRadius";
 
 /**
  * A frame's design as an HTML5 display ad: one index.html at the ad's real
@@ -165,8 +166,12 @@ export const textHtml = (
     })
   )}">${escapeHtml(body)}</div>`;
 
-export const imageHtml = (src: string, place: Record<string, string>): string =>
-  `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "object-fit": "cover" })}">`;
+export const imageHtml = (
+  src: string,
+  place: Record<string, string>,
+  radius = 0
+): string =>
+  `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": "cover" })}">`;
 
 export interface AdPage {
   body: string[];
@@ -415,7 +420,7 @@ const layerHtml = (
     return look ? textHtml(item.body ?? "", look, place, scale) : null;
   }
   const src = images.get(currentImageUrl(item) ?? "");
-  return src ? imageHtml(src, place) : null;
+  return src ? imageHtml(src, place, imageRadius(item) * scale) : null;
 };
 
 export const exportHtml5 = async (

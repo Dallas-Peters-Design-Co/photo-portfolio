@@ -100,4 +100,45 @@ describe("brand check", () => {
     expect(contrast("#000000", "#ffffff")).toBeCloseTo(21, 0);
     expect(contrast("#777777", "#ffffff")).toBeCloseTo(4.48, 1);
   });
+
+  it("lays bento tiles in a grid that never overlaps, with rounded pictures", () => {
+    const square = { height: 1080, width: 1080, x: 0, y: 0 };
+    const twoPictures = {
+      ...kit,
+      onBrand: ["https://blob/a.jpg", "https://blob/b.jpg"],
+    };
+    for (const id of ["bento", "bento-copy"] as const) {
+      for (const frame of [story, banner, square]) {
+        const brand = brandFor(twoPictures, rolesOf(frame, [], twoPictures));
+        const items = buildLayout(
+          id,
+          frame,
+          1,
+          DEFAULT_COPY,
+          brand
+        ) as BoardItem[];
+        const tiles = items.filter(
+          (i) => i.kind === "drawing" || i.imageUrl?.endsWith(".jpg")
+        );
+        const [, ...cells] = tiles; // the first is the paper behind them
+        for (const [i, a] of cells.entries()) {
+          for (const b of cells.slice(i + 1)) {
+            const apart =
+              a.x + a.width <= b.x + 1 ||
+              b.x + b.width <= a.x + 1 ||
+              a.y + a.height <= b.y + 1 ||
+              b.y + b.height <= a.y + 1;
+            expect(apart, `${id} ${frame.width}x${frame.height}`).toBe(true);
+          }
+        }
+        const pictures = items.filter((i) => i.imageUrl?.endsWith(".jpg"));
+        expect(pictures.length, id).toBeGreaterThan(0);
+        for (const p of pictures) {
+          expect((p.config as { radius?: number }).radius, id).toBeGreaterThan(
+            0
+          );
+        }
+      }
+    }
+  });
 });

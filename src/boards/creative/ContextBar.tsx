@@ -30,6 +30,7 @@ import {
   NO_FILL,
 } from "../drawing/drawing";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
+import { imageRadius } from "./imageRadius";
 
 /**
  * The controls for whatever layer is selected: type for text, paint for
@@ -350,6 +351,21 @@ export function ContextBar({
       {kind === "text" ? <TextControls item={item} onPatch={onPatch} /> : null}
       {kind === "shape" && isDrawingConfig(item.config) ? (
         <ShapeControls config={item.config} onPatch={onPatch} />
+      ) : null}
+      {kind === "image" ? (
+        <Field label="Corners">
+          <input
+            className="creative__input creative__input--num"
+            min={0}
+            onChange={(e) =>
+              onPatch({
+                config: { ...item.config, radius: num(e.target.value, 0) },
+              })
+            }
+            type="number"
+            value={imageRadius(item)}
+          />
+        </Field>
       ) : null}
       <span className="creative__divider" />
       <div className="creative__group">

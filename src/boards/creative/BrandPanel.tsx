@@ -14,10 +14,10 @@ import { copyFrameAtSizes } from "../io/adFrames";
 import { CATEGORIES, checkFrame } from "./brandCheck";
 import { patchItems } from "./creativeModel";
 import { exportWidthFor } from "./exportPng";
+import type { Copy } from "./layoutKit";
 import {
   brandFor,
   buildLayout,
-  type Copy,
   copyOf,
   LAYOUTS,
   type LayoutId,

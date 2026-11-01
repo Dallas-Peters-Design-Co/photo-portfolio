@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MAX_BUNDLE_HELD } from "../../config/nodes/bundle.js";
-import { DRAW_TOOLS as CLIENT_DRAW_TOOLS } from "../../src/boards/drawing/drawing";
+import { DRAW_TOOLS as CLIENT_DRAW_TOOLS } from "../../src/boards/drawing/drawing.js";
 import {
   DRAW_TOOLS,
   parseDrawingConfig,

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { optimizedImageSrc } from "../components/OptimizedImage";
 import type { BoardItem } from "../types";
 import { useAutoplay } from "./autoplayPref";
+import { imageRadius } from "./creative/imageRadius";
 import { grownBucket, wantedWidth } from "./io/imageBucket";
 import { isVideoUrl } from "./io/isVideo";
 import { currentImageUrl } from "./itemOutput";
@@ -60,6 +61,7 @@ export function ItemMedia({
   // put through the image optimizer, so the bucket simply goes unused there.
   const bucket = useImageBucket(item.width);
   const url = shownUrl(item);
+  const radius = imageRadius(item);
   if (isVideoUrl(url)) {
     // Muted and looping because a board holds a dozen of these at once and one
     // of them shouting is the wrong kind of surprise; `playsInline` stops iOS
@@ -104,6 +106,7 @@ export function ItemMedia({
       height={item.height}
       loading="lazy"
       src={optimizedImageSrc(url ?? "", bucket)}
+      style={radius > 0 ? { borderRadius: radius } : undefined}
       width={item.width}
     />
   );

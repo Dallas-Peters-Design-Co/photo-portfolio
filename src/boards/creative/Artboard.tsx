@@ -11,6 +11,7 @@ import { isDrawingConfig } from "../drawing/drawing";
 import { useTextFont } from "../hooks/useTextFont";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { imageRadius } from "./imageRadius";
 import { type ResizeDrag, resizeStep } from "./resize";
 import { type Handle, SelectionBox } from "./SelectionBox";
 import { type Guides, snapMove } from "./snap";
@@ -140,6 +141,9 @@ function LayerBody({
       draggable={false}
       height={item.height}
       src={url}
+      style={
+        imageRadius(item) > 0 ? { borderRadius: imageRadius(item) } : undefined
+      }
       width={item.width}
     />
   ) : null;

@@ -8,6 +8,7 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { imageRadius } from "./imageRadius";
 
 /**
  * A frame's design, drawn to a PNG at its real pixel size.
@@ -267,6 +268,12 @@ export const renderCreative = async (
     } else {
       const picture = pictures.get(currentImageUrl(item) ?? "");
       if (picture) {
+        const radius = imageRadius(item) * scale;
+        if (radius > 0) {
+          const clip = new Path2D();
+          clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
+          ctx.clip(clip);
+        }
         drawCover(ctx, picture, w, h);
       }
     }

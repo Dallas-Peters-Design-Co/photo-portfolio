@@ -1,7 +1,4 @@
 import type { BrandKitDoc } from "../../../config/brandKit.js";
-import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../../config/canvas";
-import type { TextStyle } from "../../../config/textStyle";
-import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
 import {
   brandFaces,
   groupPalette,
@@ -9,10 +6,17 @@ import {
   paperAndInk,
 } from "../../components/brandGuide/guideModel";
 import type { BoardItem } from "../../types";
-import type { DrawingConfig } from "../drawing/drawing";
-import { newItemId } from "../io/newItemId";
 import { currentImageUrl } from "../itemOutput";
+import { BENTO_BUILDERS, BENTO_LAYOUTS } from "./bento";
 import type { Box } from "./creativeModel";
+import {
+  type Brand,
+  type Copy,
+  copyBlock,
+  type Geo,
+  logoAt,
+  Stack,
+} from "./layoutKit";
 import type { Roles } from "./roles";
 
 /**
@@ -28,15 +32,10 @@ export const LAYOUTS = [
   { id: "fullbleed", label: "Full-bleed image" },
   { id: "centered", label: "Centred type" },
   { id: "block", label: "Colour block" },
+  ...BENTO_LAYOUTS,
 ] as const;
 
 export type LayoutId = (typeof LAYOUTS)[number]["id"];
-
-export interface Copy {
-  body: string;
-  cta: string;
-  headline: string;
-}
 
 export const DEFAULT_COPY: Copy = {
   body: "One line on why it matters to the person reading.",
@@ -44,27 +43,16 @@ export const DEFAULT_COPY: Copy = {
   headline: "Say the one thing that matters",
 };
 
-interface Brand {
-  accent: string;
-  bodyFont: string | null;
-  headFont: string | null;
-  image: string | null;
-  ink: string;
-  logo: string | null;
-  paper: string;
-}
-
 export const brandFor = (doc: BrandKitDoc | null, roles: Roles): Brand => {
   const groups = groupPalette(doc?.palette ?? []);
   const { body, headline } = brandFaces(doc);
+  const own = roles.image ? currentImageUrl(roles.image) : null;
   return {
     accent: groups.brand[0]?.value ?? "#1e3dff",
     bodyFont: body?.ref ?? null,
     headFont: headline?.ref ?? null,
-    image:
-      (roles.image ? currentImageUrl(roles.image) : null) ??
-      doc?.onBrand[0] ??
-      null,
+    image: own ?? doc?.onBrand[0] ?? null,
+    images: [...new Set([...(own ? [own] : []), ...(doc?.onBrand ?? [])])],
     ink: paperAndInk(doc?.palette ?? []).ink ?? "#0b0f1a",
     logo:
       (roles.logo ? currentImageUrl(roles.logo) : null) ??
@@ -73,154 +61,6 @@ export const brandFor = (doc: BrandKitDoc | null, roles: Roles): Brand => {
     paper: paperAndInk(doc?.palette ?? []).paper ?? "#ffffff",
   };
 };
-
-const font = (n: number) =>
-  Math.round(Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, n)));
-
-const style = (
-  family: string | null,
-  color: string,
-  weight: number,
-  align: TextStyle["align"],
-  lineHeight: number
-): TextStyle => ({
-  align,
-  color,
-  family,
-  italic: null,
-  letterSpacing: weight >= 600 ? -0.01 : null,
-  lineHeight,
-  transform: null,
-  weight,
-});
-
-/** Lays items out one after another, assigning z in order. */
-class Stack {
-  private z: number;
-  readonly items: BoardItem[] = [];
-
-  constructor(z: number) {
-    this.z = z;
-  }
-
-  private push(item: Omit<BoardItem, "id" | "z">) {
-    this.items.push({ ...item, id: newItemId(), z: this.z } as BoardItem);
-    this.z += 1;
-  }
-
-  rect(box: Box, fill: string, radius = 0, opacity = 1) {
-    const config: DrawingConfig = {
-      fill,
-      opacity,
-      radius,
-      stroke: "#00000000",
-      strokeWidth: 0,
-      tool: radius > 0 ? "rounded" : "rect",
-    };
-    this.push({
-      ...BLANK_ITEM,
-      ...round(box),
-      config: config as unknown as Record<string, unknown>,
-      kind: "drawing",
-    });
-  }
-
-  image(box: Box, url: string) {
-    this.push({
-      ...BLANK_ITEM,
-      ...round(box),
-      imageUrl: url,
-      kind: "reference",
-      thumbUrl: url,
-    });
-  }
-
-  text(box: Box, body: string, fontSize: number, textStyle: TextStyle) {
-    this.push({
-      ...BLANK_ITEM,
-      ...round(box),
-      body,
-      fontSize: font(fontSize),
-      kind: "text",
-      textStyle,
-    });
-  }
-}
-
-const round = (b: Box): Box => ({
-  height: Math.round(b.height),
-  width: Math.round(b.width),
-  x: Math.round(b.x),
-  y: Math.round(b.y),
-});
-
-/** Headline, body and button stacked in a box, from the top. */
-const copyBlock = (
-  s: Stack,
-  box: Box,
-  copy: Copy,
-  brand: Brand,
-  ink: string,
-  align: "center" | "left",
-  u: number
-) => {
-  const head = Math.min(u * 0.1, box.width * 0.11);
-  const bodySize = Math.max(head * 0.42, u * 0.032);
-  const headBox = { ...box, height: head * 2.3 };
-  s.text(
-    headBox,
-    copy.headline,
-    head,
-    style(brand.headFont, ink, 700, align, 1.05)
-  );
-  const bodyBox = {
-    ...box,
-    height: bodySize * 3.4,
-    y: box.y + headBox.height + u * 0.02,
-  };
-  s.text(
-    bodyBox,
-    copy.body,
-    bodySize,
-    style(brand.bodyFont, ink, 400, align, 1.3)
-  );
-  const btnH = Math.max(u * 0.09, bodySize * 2.2);
-  const btnW = Math.min(
-    box.width,
-    Math.max(u * 0.34, copy.cta.length * bodySize * 0.62 + btnH)
-  );
-  const btn = {
-    height: btnH,
-    width: btnW,
-    x: align === "center" ? box.x + (box.width - btnW) / 2 : box.x,
-    y: bodyBox.y + bodyBox.height + u * 0.03,
-  };
-  s.rect(btn, brand.accent, btnH / 2);
-  const ctaInk = inkOn(brand.accent) === "dark" ? brand.ink : "#ffffff";
-  const ctaSize = bodySize * 0.95;
-  s.text(
-    { ...btn, height: ctaSize * 1.6, y: btn.y + (btnH - ctaSize * 1.6) / 2 },
-    copy.cta,
-    ctaSize,
-    style(brand.bodyFont, ctaInk, 600, "center", 1.2)
-  );
-};
-
-const logoAt = (s: Stack, brand: Brand, x: number, y: number, u: number) => {
-  if (brand.logo) {
-    s.image({ height: u * 0.08, width: u * 0.22, x, y }, brand.logo);
-  }
-};
-
-interface Geo {
-  brand: Brand;
-  copy: Copy;
-  frame: Box;
-  m: number;
-  s: Stack;
-  u: number;
-  wide: boolean;
-}
 
 const splitLayout = ({ brand, copy, frame, m, s, u, wide }: Geo): void => {
   const full = { ...frame };
@@ -330,6 +170,7 @@ const blockLayout = ({ brand, copy, frame, m, s, u, wide }: Geo): void => {
 };
 
 const BUILDERS: Record<LayoutId, (g: Geo) => void> = {
+  ...BENTO_BUILDERS,
   block: blockLayout,
   centered: centeredLayout,
   fullbleed: fullbleedLayout,
