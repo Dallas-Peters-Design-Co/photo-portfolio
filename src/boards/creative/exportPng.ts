@@ -258,11 +258,11 @@ export const renderCreative = async (
   });
 };
 
-export const downloadBlob = (blob: Blob, name: string) => {
+export const downloadBlob = (blob: Blob, name: string, ext = "png") => {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${name.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-")}.png`;
+  a.download = `${name.replace(/[^\w.-]+/g, "-").replace(/-+/g, "-")}.${ext}`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 };

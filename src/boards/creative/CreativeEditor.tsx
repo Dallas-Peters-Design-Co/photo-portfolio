@@ -1,6 +1,5 @@
 import {
   Circle,
-  Download,
   ImageIcon,
   Square,
   SquareRoundCorner,
@@ -8,7 +7,6 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 import { sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
@@ -30,7 +28,7 @@ import {
   reorder,
   type ShapeTool,
 } from "./creativeModel";
-import { downloadBlob, exportWidthFor, renderCreative } from "./exportPng";
+import { ExportMenu } from "./ExportMenu";
 import { LayersList } from "./LayersList";
 import "./CreativeEditor.css";
 
@@ -92,7 +90,6 @@ export function CreativeEditor({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showBrand, setShowBrand] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const textEls = useRef(new Map<string, HTMLElement>());
   const palette = useActiveBrand()?.kit?.resolvedDoc.palette ?? [];
 
@@ -193,24 +190,6 @@ export function CreativeEditor({
   const size = sizeFromTitle(frame.body);
   const name = frame.body?.trim() || "Untitled frame";
 
-  const exportPng = async () => {
-    setExporting(true);
-    try {
-      const blob = await renderCreative(
-        frame,
-        layers,
-        exportWidthFor(frame),
-        (id) => textEls.current.get(id) ?? null
-      );
-      downloadBlob(blob, name);
-      toast.success("Exported");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't export");
-    } finally {
-      setExporting(false);
-    }
-  };
-
   const brandFill = palette[0]?.value ?? "#e5e5e5";
   const shape = (tool: ShapeTool) =>
     add(newShape(frame, items, tool, brandFill));
@@ -257,15 +236,12 @@ export function CreativeEditor({
           ) : null}
         </div>
         <div className="creative__actions">
-          <button
-            className="creative__button"
-            disabled={exporting}
-            onClick={() => void exportPng()}
-            type="button"
-          >
-            <Download size={15} />
-            {exporting ? "Exporting…" : "Export PNG"}
-          </button>
+          <ExportMenu
+            frame={frame}
+            layers={layers}
+            name={name}
+            textElementFor={(id) => textEls.current.get(id) ?? null}
+          />
           <button
             className="creative__button creative__button--primary"
             onClick={onClose}

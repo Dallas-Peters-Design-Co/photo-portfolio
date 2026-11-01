@@ -1,7 +1,7 @@
 import "../../index.css";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
 
@@ -125,5 +125,51 @@ describe("CreativeEditor", () => {
     expect(
       document.querySelector(".creative__layer--selected svg")
     ).not.toBeNull();
+  });
+
+  it("exports an HTML5 ad zip with the layers, the size and the clickTag", async () => {
+    let zipped: Blob | null = null;
+    const create = vi
+      .spyOn(URL, "createObjectURL")
+      .mockImplementation((blob) => {
+        zipped = blob as Blob;
+        return "blob:test";
+      });
+    render([frame]);
+    act(() => button("Headline").click());
+    act(() => button("Rectangle").click());
+    act(() => button("Export").click());
+    const field = document.querySelector<HTMLInputElement>(
+      ".creative-export input"
+    );
+    act(() => {
+      const set = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      set?.call(field, "https://example.com/spring");
+      field?.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      button("Export zip").click();
+      await vi.waitFor(() => expect(zipped).not.toBeNull());
+    });
+    create.mockRestore();
+    const bytes = new Uint8Array(
+      await (zipped as unknown as Blob).arrayBuffer()
+    );
+    const view = new DataView(bytes.buffer);
+    expect(view.getUint32(0, true)).toBe(0x04_03_4b_50);
+    const nameLength = view.getUint16(26, true);
+    const size = view.getUint32(18, true);
+    const name = new TextDecoder().decode(bytes.slice(30, 30 + nameLength));
+    const html = new TextDecoder().decode(
+      bytes.slice(30 + nameLength, 30 + nameLength + size)
+    );
+    expect(name).toBe("index.html");
+    expect(html).toContain('content="width=1080,height=1080"');
+    expect(html).toContain('var clickTag = "https://example.com/spring"');
+    expect(html).toContain("Your headline here");
+    expect(html.match(/<div style="height:/g)?.length).toBe(2);
   });
 });

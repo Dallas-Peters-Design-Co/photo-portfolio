@@ -1,10 +1,16 @@
-import { Languages, LayoutTemplate, Sparkles } from "lucide-react";
+import {
+  Copy as CopyIcon,
+  Languages,
+  LayoutTemplate,
+  Sparkles,
+} from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { sizeFromTitle } from "../../../config/adLayout";
+import { AD_SIZES, sizeFromTitle } from "../../../config/adLayout";
 import { brandKitsApi } from "../../services/brandKitService";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
+import { copyFrameAtSizes } from "../io/adFrames";
 import { CATEGORIES, checkFrame } from "./brandCheck";
 import { patchItems } from "./creativeModel";
 import { exportWidthFor } from "./exportPng";
@@ -27,6 +33,17 @@ import "./BrandPanel.css";
 
 const WORKING = "…";
 const LANGUAGES = ["English", "Español", "Français", "Deutsch", "日本語"];
+
+/** The feed and story sizes a campaign usually needs, one of each. */
+const SOCIAL_SET = [
+  "ig-square",
+  "ig-portrait",
+  "ig-story",
+  "fb-link",
+  "li-post",
+  "x-post",
+  "pin",
+];
 
 interface Variant extends Copy {
   angle: string;
@@ -75,6 +92,22 @@ export function BrandPanel({
     );
     onChange([...items.filter((i) => !ids.has(i.id)), ...built]);
     toast.success("Layout applied. ⌘Z to undo.");
+  };
+
+  const everySize = AD_SIZES.filter(
+    (s) =>
+      SOCIAL_SET.includes(s.id) && !(size && s.w === size.w && s.h === size.h)
+  );
+
+  const makeEverySize = () => {
+    const out = copyFrameAtSizes(items, frame.id, everySize);
+    if (!out) {
+      return;
+    }
+    onChange([...items, ...out.added]);
+    toast.success(
+      `${out.frameIds.length} sizes added beside this frame. ⌘Z to undo.`
+    );
   };
 
   const applyCopy = (copy: Copy) => {
@@ -175,6 +208,18 @@ export function BrandPanel({
           Rebuilds this frame from the brand's colours, fonts, logo and
           pictures, keeping its copy and image.
         </p>
+        <button
+          className="creative__button"
+          onClick={makeEverySize}
+          type="button"
+        >
+          <CopyIcon size={14} /> Make every size
+        </button>
+        <p className="creative__hint">
+          Copies this design to {everySize.length} social sizes (Instagram post,
+          portrait and story, Facebook, LinkedIn, X, Pinterest), laid out on the
+          board beside it.
+        </p>
       </section>
 
       <section className="brand-panel__section">
@@ -205,7 +250,11 @@ export function BrandPanel({
               <dt>{c.label}</dt>
               <dd>
                 <span
-                  className={`brand-panel__bar${check.scores[c.id] < 7 ? "brand-panel__bar--low" : ""}`}
+                  className={
+                    check.scores[c.id] < 7
+                      ? "brand-panel__bar brand-panel__bar--low"
+                      : "brand-panel__bar"
+                  }
                   style={{ width: `${check.scores[c.id] * 10}%` }}
                 />
               </dd>
