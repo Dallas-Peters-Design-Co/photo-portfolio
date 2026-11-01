@@ -8,11 +8,13 @@
   width: 18rem;
   max-height: calc(100dvh - var(--spacing) * 24);
   overflow: hidden;
-  color: var(--color-board-ink, #111);
-  background: #fff;
-  border: 1px solid rgb(0 0 0 / 0.1);
-  border-radius: var(--radius-lg, 12px);
-  box-shadow: 0 12px 32px rgb(0 0 0 / 0.12);
+  color: var(--color-board-ink);
+  background: color-mix(in oklch, var(--color-board-panel) 95%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  backdrop-filter: blur(var(--blur-sm));
 }
 
 .brand-dock__head {
@@ -20,7 +22,8 @@
   gap: calc(var(--spacing) * 2);
   align-items: center;
   padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
-  border-bottom: 1px solid rgb(0 0 0 / 0.08);
+  border-bottom: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
 }
 
 .brand-dock__select {
@@ -28,8 +31,10 @@
   min-width: 0;
   padding: var(--spacing) calc(var(--spacing) * 2);
   font-size: var(--text-sm-ui, 0.8125rem);
-  background: transparent;
-  border: 1px solid rgb(0 0 0 / 0.15);
+  color: var(--color-board-ink);
+  background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
   border-radius: var(--radius-md, 8px);
 }
 
@@ -37,10 +42,11 @@
   display: grid;
   place-content: center;
   padding: var(--spacing);
+  color: inherit;
   border-radius: var(--radius-md, 8px);
 
   &:hover {
-    background: rgb(0 0 0 / 0.06);
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
   }
 }
 
@@ -68,7 +74,8 @@
 .brand-dock__swatch {
   aspect-ratio: 1;
   border-radius: var(--radius-md, 8px);
-  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.1);
+  box-shadow: inset 0 0 0 var(--border-hairline)
+    color-mix(in oklch, var(--color-board-ink) 20%, transparent);
   transition: transform 120ms ease;
 
   &:hover {
@@ -85,9 +92,10 @@
 .brand-dock__tile {
   aspect-ratio: 1;
   overflow: hidden;
-  outline: 1px solid rgb(0 0 0 / 0.06);
+  outline: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
   outline-offset: -1px;
-  background: rgb(0 0 0 / 0.04);
+  background: color-mix(in oklch, var(--color-board-ink) 5%, transparent);
   border-radius: var(--radius-md, 8px);
 
   & img {
@@ -97,7 +105,7 @@
   }
 
   &:hover {
-    outline-color: rgb(0 0 0 / 0.3);
+    outline-color: color-mix(in oklch, var(--color-board-ink) 40%, transparent);
   }
 }
 
@@ -118,6 +126,7 @@
 
 .brand-dock__ref {
   width: 100%;
+  color: inherit;
   text-align: left;
 
   &:hover {
@@ -129,11 +138,15 @@
   padding: calc(var(--spacing) * 2);
   margin-top: var(--spacing);
   white-space: pre-wrap;
-  background: rgb(0 0 0 / 0.04);
+  background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
   border-radius: var(--radius-md, 8px);
 }
 
 .brand-dock__empty {
   font-size: var(--text-sm-ui, 0.8125rem);
   opacity: 0.6;
+}
+
+.brand-dock__select option {
+  color: initial;
 }
