@@ -172,17 +172,49 @@ const TRANSFORMS: Record<string, (s: string) => string> = {
   uppercase: (s) => s.toUpperCase(),
 };
 
+const CLEAR = new Set(["", "transparent", "rgba(0, 0, 0, 0)"]);
+
+/** The box behind text, filling the layer's own box. */
+const drawTextBox = (
+  ctx: CanvasRenderingContext2D,
+  css: CSSStyleDeclaration,
+  w: number,
+  h: number,
+  scale: number
+) => {
+  if (CLEAR.has(css.backgroundColor)) {
+    return;
+  }
+  const radius = (Number.parseFloat(css.borderTopLeftRadius) || 0) * scale;
+  const box = new Path2D();
+  box.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
+  ctx.fillStyle = css.backgroundColor;
+  ctx.fill(box);
+};
+
+/** The outline's width and colour, or null when the text has none. */
+const outlineOf = (css: CSSStyleDeclaration, scale: number) => {
+  const width =
+    Number.parseFloat(css.getPropertyValue("-webkit-text-stroke-width")) *
+    scale;
+  const color = css.getPropertyValue("-webkit-text-stroke-color");
+  return width > 0 && !CLEAR.has(color) ? { color, width } : null;
+};
+
 const drawText = (
   ctx: CanvasRenderingContext2D,
   item: BoardItem,
   el: HTMLElement | null,
   w: number,
+  h: number,
   scale: number
 ) => {
   if (!el) {
     return;
   }
   const css = getComputedStyle(el);
+  drawTextBox(ctx, css, w, h, scale);
+  const outline = outlineOf(css, scale);
   const size = Number.parseFloat(css.fontSize) * scale;
   const font = `${css.fontStyle} ${css.fontWeight} ${size}px ${css.fontFamily}`;
   ctx.font = font;
@@ -213,7 +245,16 @@ const drawText = (
   // Half-leading, as CSS centres the glyphs in the line box.
   const leading = (lineHeight - size) / 2;
   wrap(ctx, body, inner).forEach((line, i) => {
-    ctx.fillText(line, x, padTop + i * lineHeight + leading);
+    const y = padTop + i * lineHeight + leading;
+    if (outline) {
+      // Under the fill, as paint-order draws it on the page.
+      ctx.lineJoin = "round";
+      ctx.lineWidth = outline.width;
+      ctx.strokeStyle = outline.color;
+      ctx.strokeText(line, x, y);
+      ctx.fillStyle = css.color;
+    }
+    ctx.fillText(line, x, y);
   });
 };
 
@@ -264,7 +305,7 @@ export const renderCreative = async (
     if (item.kind === "drawing" && isDrawingConfig(item.config)) {
       drawShape(ctx, item.config, w, h, scale);
     } else if (item.kind === "text" || item.kind === "note") {
-      drawText(ctx, item, textElementFor(item.id), w, scale);
+      drawText(ctx, item, textElementFor(item.id), w, h, scale);
     } else {
       const picture = pictures.get(currentImageUrl(item) ?? "");
       if (picture) {

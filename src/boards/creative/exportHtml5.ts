@@ -14,6 +14,7 @@ import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { effectRules, lookOf, scaled, type TextLook } from "./textLook";
 
 /**
  * A frame's design as an HTML5 display ad: one index.html at the ad's real
@@ -117,26 +118,6 @@ export const shapeHtml = (
 };
 
 /** The computed style a text layer was drawn with, at the ad's scale. */
-export interface TextLook {
-  color: string;
-  fontFamily: string;
-  fontKerning: string;
-  fontSize: string;
-  fontStyle: string;
-  fontWeight: string;
-  letterSpacing: string;
-  lineHeight: string;
-  paddingLeft: string;
-  paddingTop: string;
-  textAlign: string;
-  textTransform: string;
-}
-
-const scaled = (value: string, scale: number): string | null => {
-  const n = Number.parseFloat(value);
-  return Number.isFinite(n) ? px(n * scale) : null;
-};
-
 export const textHtml = (
   body: string,
   look: TextLook,
@@ -163,6 +144,7 @@ export const textHtml = (
       "text-transform":
         look.textTransform === "none" ? null : look.textTransform,
       "white-space": "pre-wrap",
+      ...effectRules(look, scale),
     })
   )}">${escapeHtml(body)}</div>`;
 
@@ -380,24 +362,6 @@ const copyImages = async (
 
 const firstFamily = (stack: string) =>
   stack.split(",")[0]?.replaceAll(/["']/g, "").trim() ?? "";
-
-const lookOf = (el: HTMLElement): TextLook => {
-  const css = getComputedStyle(el);
-  return {
-    color: css.color,
-    fontFamily: css.fontFamily,
-    fontKerning: css.fontKerning,
-    fontSize: css.fontSize,
-    fontStyle: css.fontStyle,
-    fontWeight: css.fontWeight,
-    letterSpacing: css.letterSpacing,
-    lineHeight: css.lineHeight,
-    paddingLeft: css.paddingLeft,
-    paddingTop: css.paddingTop,
-    textAlign: css.textAlign,
-    textTransform: css.textTransform,
-  };
-};
 
 export interface Html5Export {
   blob: Blob;

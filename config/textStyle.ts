@@ -57,6 +57,12 @@ export const TEXT_TRANSFORMS: TextTransform[] = [
  */
 export interface TextStyle {
   align: TextAlign | null;
+  /** A box behind the words: its colour (`#rrggbbaa` for see-through). */
+  background?: string | null;
+  /** The box's padding around the words, in em. */
+  backgroundPadding?: number | null;
+  /** The box's corner radius, in em. */
+  backgroundRadius?: number | null;
   /** `#rgb`, `#rrggbb` or `#rrggbbaa`. Null inherits the board's ink. */
   color: string | null;
   /**
@@ -75,9 +81,17 @@ export interface TextStyle {
   letterSpacing: number | null;
   /** Unitless multiple of the font size, as CSS line-height. */
   lineHeight: number | null;
+  /** An outline drawn around each letter, outside it: its colour. */
+  outline?: string | null;
+  /** The outline's thickness, in em, so it scales with the type. */
+  outlineWidth?: number | null;
   transform: TextTransform | null;
   weight: number | null;
 }
+
+/** Bounds for the outline and the box behind text, in em. */
+export const MAX_OUTLINE_WIDTH = 0.2;
+export const MAX_BACKGROUND_PADDING = 2;
 
 /**
  * What the canvas already did before any of this existed, and therefore what a
@@ -160,6 +174,37 @@ const HEX = /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 const isEmpty = (style: TextStyle): boolean =>
   Object.values(style).every((value) => value === null);
 
+const hexOf = (value: unknown): string | null =>
+  typeof value === "string" && HEX.test(value) ? value.toLowerCase() : null;
+
+/**
+ * The outline and the box behind text, only when set: each key is present
+ * only with a value, as kerning is, so older styles read back unchanged. An
+ * outline needs both a colour and a width; a box needs a colour.
+ */
+const effectsOf = (o: Record<string, unknown>): Partial<TextStyle> => {
+  const out: Partial<TextStyle> = {};
+  const outline = hexOf(o.outline);
+  const width = bounded(o.outlineWidth, 0, MAX_OUTLINE_WIDTH);
+  if (outline && width) {
+    out.outline = outline;
+    out.outlineWidth = width;
+  }
+  const background = hexOf(o.background);
+  if (background) {
+    out.background = background;
+    const pad = bounded(o.backgroundPadding, 0, MAX_BACKGROUND_PADDING);
+    const radius = bounded(o.backgroundRadius, 0, MAX_BACKGROUND_PADDING);
+    if (pad) {
+      out.backgroundPadding = pad;
+    }
+    if (radius) {
+      out.backgroundRadius = radius;
+    }
+  }
+  return out;
+};
+
 /** Rounds to a named step and pulls it inside the family's axis. */
 const clampToAxis = (
   weight: number,
@@ -204,6 +249,7 @@ export const normalizeTextStyle = (raw: unknown): TextStyle | null => {
     italic: o.italic === true ? true : null,
     // Only present when set, so a style without it reads back unchanged.
     ...(o.kerning === "none" ? { kerning: "none" as const } : {}),
+    ...effectsOf(o),
     letterSpacing: bounded(
       o.letterSpacing,
       MIN_LETTER_SPACING,
@@ -238,6 +284,8 @@ export interface TextStyleTarget {
  * on textStyleCss.
  */
 export interface TextCss {
+  backgroundColor?: string;
+  borderRadius?: string;
   color?: string;
   fontFamily?: string;
   fontKerning?: "none";
@@ -246,8 +294,13 @@ export interface TextCss {
   fontWeight: number;
   letterSpacing: string;
   lineHeight: number;
+  padding?: string;
+  paintOrder?: "stroke fill";
   textAlign?: TextAlign;
   textTransform: TextTransform;
+  /** The outline: drawn at twice its width under the fill (paint-order), so
+   *  what shows is the outer half, outside the letters, as an outline is. */
+  WebkitTextStroke?: string;
 }
 
 /**
@@ -308,6 +361,21 @@ export const textStyleCss = (item: TextStyleTarget): TextCss => {
   }
   if (style?.kerning === "none") {
     css.fontKerning = "none";
+  }
+  return style ? { ...css, ...effectsCss(style) } : css;
+};
+
+/** The outline and the box behind text, as CSS. */
+const effectsCss = (style: TextStyle): Partial<TextCss> => {
+  const css: Partial<TextCss> = {};
+  if (style.outline && style.outlineWidth) {
+    css.WebkitTextStroke = `${style.outlineWidth * 2}em ${style.outline}`;
+    css.paintOrder = "stroke fill";
+  }
+  if (style.background) {
+    css.backgroundColor = style.background;
+    css.padding = `${style.backgroundPadding ?? 0}em`;
+    css.borderRadius = `${style.backgroundRadius ?? 0}em`;
   }
   return css;
 };

@@ -31,6 +31,7 @@ import {
 } from "../drawing/drawing";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { TextEffects } from "./TextEffects";
 
 /**
  * The controls for whatever layer is selected: type for text, paint for
@@ -103,9 +104,9 @@ function TextControls({
   const css = textStyleCss(item);
   const set = (next: Partial<TextStyle>) =>
     onPatch({ textStyle: normalizeTextStyle({ ...(style ?? {}), ...next }) });
-  const faces = (useActiveBrand()?.kit?.resolvedDoc.typefaces ?? []).filter(
-    (f) => f.ref
-  );
+  const kit = useActiveBrand()?.kit?.resolvedDoc;
+  const faces = (kit?.typefaces ?? []).filter((f) => f.ref);
+  const accent = kit?.palette[0]?.value ?? "#111111";
   return (
     <>
       <Field label="Font">
@@ -245,6 +246,7 @@ function TextControls({
       >
         Kern
       </IconButton>
+      <TextEffects accent={accent} onSet={set} style={style} />
     </>
   );
 }
