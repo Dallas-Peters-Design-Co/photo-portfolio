@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 const PICKER_WIDTH = 220;
 const PICKER_HEIGHT = 300;
 
+import { useBrandSwatches } from "./brand/ActiveBrand";
 import { isTransparent } from "./drawing/drawing";
 import "./ColorWell.css";
 
@@ -67,6 +68,9 @@ export const pickerSeed = (value: string): string =>
 
 export function ColorWell({ label, onChange, value }: ColorWellProps) {
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
+  // The board's brand colours replace the picker's stock presets, so the
+  // palette is one click away wherever a colour is chosen.
+  const brandSwatches = useBrandSwatches();
   const clear = isTransparent(value);
   const canSample = typeof window !== "undefined" && "EyeDropper" in window;
 
@@ -173,6 +177,7 @@ export function ColorWell({ label, onChange, value }: ColorWellProps) {
                 <SketchPicker
                   color={pickerSeed(value)}
                   onChange={(color: ColorResult) => onChange(toHex(color))}
+                  presetColors={brandSwatches}
                 />
                 {/* Sampling beats matching by eye when the color wanted is
                     already on the board — a reference photograph, a logo, an

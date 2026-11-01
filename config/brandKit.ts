@@ -80,7 +80,35 @@ export interface LookRef {
   strength: number;
 }
 
+/**
+ * Something worth knowing about the brand that isn't a colour or a file: a
+ * decision, a note from a call, client feedback, a link to the source note.
+ * Kept as dated plain text so it reads the same in the panel, on the canvas
+ * and to Claude through the site connector.
+ */
+export interface BrandReference {
+  body: string;
+  /** ISO date (YYYY-MM-DD) it was written or decided, or "" when unknown. */
+  date: string;
+  id: string;
+  /** Where it came from: an Obsidian note, an Almanac page, a URL, "call". */
+  source: string;
+  title: string;
+}
+
+export const MAX_REFERENCES = 60;
+export const MAX_REFERENCE_BODY = 4000;
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
 export interface BrandKitDoc {
+  /**
+   * The collection that is this brand's image library: photography, product
+   * shots, past work. A link rather than a copy, so the library is managed
+   * where collections already are and every app sees the same pictures.
+   */
+  libraryCollectionId: string | null;
   logos: LogoEntry[];
   /** The grade, or null for none. */
   look: LookRef | null;
@@ -91,16 +119,19 @@ export interface BrandKitDoc {
   /** Images that are on-brand — what a generation should read like. */
   onBrand: string[];
   palette: PaletteEntry[];
+  references: BrandReference[];
   typefaces: TypefaceEntry[];
   voice: string;
 }
 
 export const EMPTY_KIT: BrandKitDoc = {
+  libraryCollectionId: null,
   logos: [],
   look: null,
   offBrand: [],
   onBrand: [],
   palette: [],
+  references: [],
   typefaces: [],
   voice: "",
 };
@@ -173,9 +204,31 @@ const clampWeights = (value: unknown): number[] =>
     .filter((w) => Number.isFinite(w) && w >= 1 && w <= 1000)
     .slice(0, 12);
 
+/** Dated notes, clamped; an entry with neither a title nor a body is dropped. */
+export const sanitizeReferences = (value: unknown): BrandReference[] =>
+  asArray(value)
+    .map((entry, i) => {
+      const e = (entry ?? {}) as Record<string, unknown>;
+      const date = clampText(e.date, 10);
+      return {
+        body: clampText(e.body, MAX_REFERENCE_BODY),
+        date: ISO_DATE.test(date) ? date : "",
+        id: clampText(e.id, 40) || `ref-${i + 1}`,
+        source: clampText(e.source, MAX_RULE_TEXT),
+        title: clampText(e.title, MAX_KIT_NAME),
+      };
+    })
+    .filter((entry) => entry.title !== "" || entry.body !== "")
+    .slice(0, MAX_REFERENCES);
+
 export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
   const raw = (input ?? {}) as Record<string, unknown>;
   return {
+    libraryCollectionId:
+      typeof raw.libraryCollectionId === "string" &&
+      UUID.test(raw.libraryCollectionId)
+        ? raw.libraryCollectionId.toLowerCase()
+        : null,
     logos: asArray(raw.logos)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
@@ -226,6 +279,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
       })
       .filter((entry) => isHexColour(entry.value))
       .slice(0, MAX_PALETTE),
+    references: sanitizeReferences(raw.references),
     typefaces: asArray(raw.typefaces)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
@@ -265,11 +319,15 @@ export const resolveKitDoc = (
     return child;
   }
   return {
+    libraryCollectionId:
+      child.libraryCollectionId ?? parent.libraryCollectionId,
     logos: child.logos.length > 0 ? child.logos : parent.logos,
     look: child.look ?? parent.look,
     offBrand: child.offBrand.length > 0 ? child.offBrand : parent.offBrand,
     onBrand: child.onBrand.length > 0 ? child.onBrand : parent.onBrand,
     palette: child.palette.length > 0 ? child.palette : parent.palette,
+    references:
+      child.references.length > 0 ? child.references : parent.references,
     typefaces: child.typefaces.length > 0 ? child.typefaces : parent.typefaces,
     voice: child.voice.trim() ? child.voice : parent.voice,
   };
@@ -300,6 +358,12 @@ export const inheritedParts = (
   }
   if (!child.voice.trim() && parent.voice.trim()) {
     parts.push("voice");
+  }
+  if (!child.libraryCollectionId && parent.libraryCollectionId) {
+    parts.push("library");
+  }
+  if (child.references.length === 0 && parent.references.length > 0) {
+    parts.push("references");
   }
   return parts;
 };

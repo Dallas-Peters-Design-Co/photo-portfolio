@@ -177,3 +177,56 @@ describe("paletteFromCss — colours out of a pasted stylesheet", () => {
     expect(paletteFromCss("a { margin: 0 }")).toEqual([]);
   });
 });
+
+describe("library and references", () => {
+  const LIB = "3f2a1b0c-1d2e-4f50-8a9b-0c1d2e3f4a5b";
+
+  it("keeps a linked collection id and drops anything that isn't one", () => {
+    expect(
+      sanitizeKitDoc({ libraryCollectionId: LIB }).libraryCollectionId
+    ).toBe(LIB);
+    expect(
+      sanitizeKitDoc({ libraryCollectionId: "not-a-uuid" }).libraryCollectionId
+    ).toBeNull();
+    expect(sanitizeKitDoc({}).libraryCollectionId).toBeNull();
+  });
+
+  it("clamps references, keeps good dates, and drops empty ones", () => {
+    const refs = sanitizeKitDoc({
+      references: [
+        {
+          body: "Use the teal for CTAs.",
+          date: "2026-10-31",
+          id: "a",
+          source: "Obsidian: Bird Creek",
+          title: "CTA colour",
+        },
+        { body: "", title: "" },
+        { body: "x".repeat(5000), date: "Oct 31", title: "Long" },
+      ],
+    }).references;
+    expect(refs).toHaveLength(2);
+    expect(refs[0]).toMatchObject({
+      date: "2026-10-31",
+      id: "a",
+      title: "CTA colour",
+    });
+    expect(refs[1]?.body).toHaveLength(4000);
+    expect(refs[1]?.date).toBe("");
+    expect(refs[1]?.id).toBe("ref-3");
+  });
+
+  it("inherits the library and references from the parent when unstated", () => {
+    const parent = sanitizeKitDoc({
+      libraryCollectionId: LIB,
+      references: [{ body: "Parent rule", title: "Rule" }],
+    });
+    const child = sanitizeKitDoc({});
+    const resolved = resolveKitDoc(child, parent);
+    expect(resolved.libraryCollectionId).toBe(LIB);
+    expect(resolved.references[0]?.title).toBe("Rule");
+    expect(inheritedParts(child, parent)).toEqual(
+      expect.arrayContaining(["library", "references"])
+    );
+  });
+});

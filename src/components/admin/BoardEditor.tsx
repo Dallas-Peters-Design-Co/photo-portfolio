@@ -7,6 +7,7 @@ import {
   DEFAULT_IMAGE_WIDTH,
 } from "../../../config/canvas.js";
 import { BoardCanvas } from "../../boards/BoardCanvas";
+import { BoardProviders } from "../../boards/BoardProviders";
 import { FloatingTools } from "../../boards/canvas/FloatingTools";
 import type { DrawStyle } from "../../boards/drawing/DrawToolbar";
 import {
@@ -19,7 +20,6 @@ import { FrameOpenProvider, frameLink } from "../../boards/FrameOpenContext";
 import { useBoardHistory } from "../../boards/hooks/useBoardHistory";
 import { useGraphRun } from "../../boards/hooks/useGraphRun";
 import { useVideoNode, useVideoRunner } from "../../boards/hooks/useVideoNode";
-import { ModelsProvider } from "../../boards/ModelsContext";
 import { CommentsPanel } from "../../boards/panels/CommentsPanel";
 import { ElementModal } from "../../boards/panels/ElementModal";
 import { InsertPalette } from "../../boards/panels/InsertPalette";
@@ -276,16 +276,14 @@ export function BoardEditor({
     });
 
   return (
-    <ModelsProvider>
+    <BoardProviders boardId={boardId}>
       {/* `text-board-ink` establishes the board's own writing color for
           everything inside. Without it the subtree inherits the *site's*
           foreground — the branded near-white that SiteSettingsProvider pins to
           <html> — so anything without an explicit color came out white on a
           white board. The site's palette is right for the site and has no say
           here. */}
-      {/* data-surface re-points the --btn-* variables at the board's ink, so
-          every Button inside this tree paints itself for paper without the
-          call site having to say so. See index.css. */}
+      {/* data-surface re-points --btn-* at the board's ink (see index.css). */}
       <CustomCursor cursorColor="#9100FF" userName={displayName} />
       <div
         className="board"
@@ -341,6 +339,7 @@ export function BoardEditor({
             onAddFrame={addFrame}
             onAddNode={addNode}
             onAddWritable={addWritable}
+            onInsertImage={addExternal}
             onTogglePicker={() => setIsPicking((v) => !v)}
           />
 
@@ -494,6 +493,6 @@ export function BoardEditor({
           ) : null}
         </div>
       </div>
-    </ModelsProvider>
+    </BoardProviders>
   );
 }

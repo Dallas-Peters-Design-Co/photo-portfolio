@@ -495,3 +495,22 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro-caps);
 }
+
+.brand-kit__hint {
+  font-size: var(--text-micro-xs);
+  color: color-mix(in oklch, #fff 50%, transparent);
+}
+
+.brand-kit__reference {
+  padding: calc(var(--spacing) * 3);
+  border: 1px solid color-mix(in oklch, #fff 10%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.brand-kit__reference-title {
+  flex: 1;
+}
+
+.brand-kit__reference-date {
+  width: 10rem;
+}

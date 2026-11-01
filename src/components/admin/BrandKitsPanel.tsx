@@ -27,6 +27,7 @@ import {
   PaletteEditor,
   TypefaceEditor,
 } from "./BrandKitFields";
+import { LibraryPicker, ReferencesEditor } from "./BrandKitLibrary";
 import { FormatPreviews, PalettePreview } from "./BrandKitPreviews";
 import { useConfirm } from "./ConfirmProvider";
 import "../../styles/primitives.css";
@@ -230,12 +231,17 @@ function KitEditor({
           </p>
         </section>
 
-        {/*
-          What the kit actually contributes to a generation, quoted back.
-          A kit that shapes a picture in ways nobody can read is the
-          "guidelines nobody applies" problem wearing a new costume — the
-          reasoning kitPromptText already carries.
-        */}
+        <section className="stack stack--snug">
+          <h3 className="admin-caps">Image library</h3>
+          <LibraryPicker doc={doc} onChange={setDoc} />
+        </section>
+
+        <section className="stack stack--snug">
+          <h3 className="admin-caps">References</h3>
+          <ReferencesEditor doc={doc} onChange={setDoc} />
+        </section>
+
+        {/* What the kit contributes to a generation, quoted back (see kitPromptText). */}
         <section className="stack stack--snug">
           <h3 className="admin-caps">What this sends to a model</h3>
           <p className="brand-kit__prompt">
