@@ -1,6 +1,10 @@
 import { toast } from "sonner";
 import { AD_SIZES } from "../../../../config/adLayout";
-import { copyFrameAtSizes, resizeFrame } from "../../../boards/io/adFrames";
+import {
+  copyFrameAtSizes,
+  duplicateFrame as duplicated,
+  resizeFrame,
+} from "../../../boards/io/adFrames";
 import type { FitMode } from "../../../boards/panels/AdSizesPanel";
 import type { BoardItem } from "../../../types";
 
@@ -34,5 +38,12 @@ export const useAdFrames = (
       );
     }
   };
-  return { fitFrame };
+  const duplicateFrame = (frameId: string) => {
+    const out = duplicated(items, frameId);
+    if (out) {
+      change([...items, ...out.added]);
+      toast.success("Frame duplicated");
+    }
+  };
+  return { duplicateFrame, fitFrame };
 };

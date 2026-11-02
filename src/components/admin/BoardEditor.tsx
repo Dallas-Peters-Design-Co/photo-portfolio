@@ -345,10 +345,10 @@ export function BoardEditor({
             onTogglePicker={() => setIsPicking((v) => !v)}
           />
 
-          {/* A frame offers its link once published. Nothing to open: that is
-              the published board's own view. */}
+          {/* Frame actions, and its link once published (nothing to open). */}
           <FrameOpenProvider
             designFrame={frameDesign.designFrame}
+            duplicateFrame={frameDesign.duplicateFrame}
             fitFrame={frameDesign.fitFrame}
             linkFor={(id) => frameLink(publicUrl, items, id)}
             onTrainOnFrame={(id) => void trainOnFrame(id)}

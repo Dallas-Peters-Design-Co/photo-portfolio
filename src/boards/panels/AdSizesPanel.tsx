@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import Copy01Icon from "@hugeicons-pro/core-stroke-standard/Copy01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
 import { useState } from "react";
@@ -39,6 +40,19 @@ export function DesignRow({ onOpen }: { onOpen: () => void }) {
     >
       <HugeiconsIcon aria-hidden icon={PenTool01Icon} size={14} />
       <span>Design this frame…</span>
+    </button>
+  );
+}
+
+export function DuplicateFrameRow({
+  onDuplicate,
+}: {
+  onDuplicate: () => void;
+}) {
+  return (
+    <button className="panel-row" onClick={onDuplicate} type="button">
+      <HugeiconsIcon aria-hidden icon={Copy01Icon} size={14} />
+      <span>Duplicate frame</span>
     </button>
   );
 }

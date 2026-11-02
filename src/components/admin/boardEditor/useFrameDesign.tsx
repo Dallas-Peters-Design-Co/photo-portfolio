@@ -27,7 +27,7 @@ export const useFrameDesign = (
     height: number
   ) => { x: number; y: number }
 ) => {
-  const { fitFrame } = useAdFrames(items, change);
+  const { duplicateFrame, fitFrame } = useAdFrames(items, change);
   const [designing, setDesigning] = useState<string | null>(null);
   // The Studio, opened from the insert palette by event (studioEvents.ts).
   const [studio, setStudio] = useState<string | null>(null);
@@ -64,6 +64,7 @@ export const useFrameDesign = (
       </BoardImagesContext.Provider>
     ),
     designFrame: setDesigning,
+    duplicateFrame,
     fitFrame,
   };
 };

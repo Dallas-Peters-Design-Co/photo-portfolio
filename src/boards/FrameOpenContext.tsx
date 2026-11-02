@@ -30,6 +30,8 @@ const TRAILING_SLASH = /\/$/;
 interface FrameActions {
   /** Opens a frame in the full-screen creative editor. */
   designFrame?: (frameId: string) => void;
+  /** Copies the frame and everything on it, beside it. */
+  duplicateFrame?: (frameId: string) => void;
   /** Resizes a frame to an ad size, or copies it out at several. */
   fitFrame?: (frameId: string, sizeIds: string[], mode: FitMode) => void;
   /** The absolute URL of a frame, or null when the board is not published. */
@@ -53,6 +55,7 @@ const FrameContext = createContext<FrameActions>({});
 export function FrameOpenProvider({
   children,
   designFrame,
+  duplicateFrame,
   fitFrame,
   linkFor,
   onOpenFrame,
@@ -60,6 +63,7 @@ export function FrameOpenProvider({
 }: {
   children: ReactNode;
   designFrame?: FrameActions["designFrame"];
+  duplicateFrame?: FrameActions["duplicateFrame"];
   fitFrame?: FrameActions["fitFrame"];
   linkFor?: (frameId: string) => string | null;
   onOpenFrame?: (frameId: string) => void;
@@ -69,6 +73,7 @@ export function FrameOpenProvider({
     <FrameContext.Provider
       value={{
         designFrame,
+        duplicateFrame,
         fitFrame,
         linkFor,
         open: onOpenFrame,

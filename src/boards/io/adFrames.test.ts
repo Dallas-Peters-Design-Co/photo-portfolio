@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { AD_SIZES, sizeTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
-import { copyFrameAtSizes, resizeFrame } from "./adFrames";
+import { copyFrameAtSizes, duplicateFrame, resizeFrame } from "./adFrames";
 
 const item = (patch: Partial<BoardItem>): BoardItem =>
   ({
@@ -90,5 +90,28 @@ describe("copyFrameAtSizes", () => {
     const far = { ...frame, x: 11_000 };
     const out = copyFrameAtSizes([far], "f", [square]);
     expect(out?.added[0]).toMatchObject({ x: 11_000, y: 1000 + 540 + 120 });
+  });
+});
+
+describe("duplicateFrame", () => {
+  it("copies the frame and its design beside it, as they are", () => {
+    const out = duplicateFrame(board, "f");
+    const copy = out?.added.find((i) => i.kind === "frame");
+    expect(copy).toMatchObject({ body: frame.body, height: 540, width: 540 });
+    expect(copy?.id).not.toBe("f");
+    // Clear of the original, so it isn't read as part of it.
+    expect((copy?.x ?? 0) >= frame.x + frame.width).toBe(true);
+    const words = out?.added.find((i) => i.kind === "text");
+    expect(words?.fontSize).toBe(48);
+    expect((words?.x ?? 0) - (copy?.x ?? 0)).toBe(headline.x - frame.x);
+    expect((words?.y ?? 0) - (copy?.y ?? 0)).toBe(headline.y - frame.y);
+    // The original's contents and the loose item aren't touched or copied.
+    expect(out?.added).toHaveLength(3);
+  });
+
+  it("keeps poster-sized type when copying a frame at another size", () => {
+    const big = { ...headline, fontSize: 1400 };
+    const out = copyFrameAtSizes([frame, photo, big], "f", [square]);
+    expect(out?.added.find((i) => i.kind === "text")?.fontSize).toBe(1400);
   });
 });

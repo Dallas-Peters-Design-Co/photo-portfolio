@@ -4,7 +4,12 @@ import { useFrameActions } from "../FrameOpenContext";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
 import { frameBoardTitle, frameSummary } from "../io/copyToBoard";
 import type { Tool } from "../tools/types";
-import { AdSizesPanel, AdSizesRow, DesignRow } from "./AdSizesPanel";
+import {
+  AdSizesPanel,
+  AdSizesRow,
+  DesignRow,
+  DuplicateFrameRow,
+} from "./AdSizesPanel";
 import { type CollectTarget, NamePanel, ToolsPanel } from "./CanvasMenuPanels";
 import { CollectionPanel } from "./CollectionPanel";
 import { MenuRows } from "./MenuRows";
@@ -141,7 +146,7 @@ export function CanvasMenu({
     for: CanvasMenuTarget;
     frame: BoardItem;
   } | null>(null);
-  const { designFrame, fitFrame } = useFrameActions();
+  const { designFrame, duplicateFrame, fitFrame } = useFrameActions();
 
   if (!menu) {
     return null;
@@ -279,6 +284,14 @@ export function CanvasMenu({
         <DesignRow
           onOpen={() => {
             designFrame(frame.id);
+            onDismiss();
+          }}
+        />
+      ) : null}
+      {frame && duplicateFrame ? (
+        <DuplicateFrameRow
+          onDuplicate={() => {
+            duplicateFrame(frame.id);
             onDismiss();
           }}
         />

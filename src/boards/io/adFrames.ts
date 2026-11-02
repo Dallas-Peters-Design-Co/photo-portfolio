@@ -4,9 +4,14 @@ import {
   relayout,
   sizeTitle,
 } from "../../../config/adLayout";
-import { CANVAS_WIDTH } from "../../../config/canvas";
-import { containedBy } from "../../../config/graph";
+import {
+  CANVAS_WIDTH,
+  MAX_FONT_SIZE,
+  MIN_FONT_SIZE,
+} from "../../../config/canvas";
+import { containedBy, withinFrame } from "../../../config/graph";
 import type { BoardItem } from "../../types";
+import { findFreeSpot } from "../geometry/placement";
 import { newItemId } from "./newItemId";
 
 /**
@@ -18,8 +23,6 @@ import { newItemId } from "./newItemId";
  */
 
 const GAP = 120;
-const MIN_FONT = 8;
-const MAX_FONT = 400;
 
 const layoutOf = (item: BoardItem) => ({ ...item });
 
@@ -34,8 +37,8 @@ const fit = (
     inside.map(layoutOf),
     {},
     {
-      maxFont: MAX_FONT,
-      minFont: MIN_FONT,
+      maxFont: MAX_FONT_SIZE,
+      minFont: MIN_FONT_SIZE,
       minSize: 8,
     }
   );
@@ -114,4 +117,51 @@ export const copyFrameAtSizes = (
     rowHeight = Math.max(rowHeight, box.height);
   });
   return { added, frameIds };
+};
+
+/**
+ * An exact copy of the frame and everything on it (frames inside it too), at
+ * the nearest clear spot to its right. Same size, same title, same design;
+ * the copies stack above everything so none of them hides under the board.
+ * Other frames count as taken, so the copy can't land on one and join it.
+ */
+export const duplicateFrame = (
+  items: BoardItem[],
+  frameId: string
+): { added: BoardItem[]; frameId: string } | null => {
+  const frame = items.find((item) => item.id === frameId);
+  if (frame?.kind !== "frame") {
+    return null;
+  }
+  const inside = withinFrame(frame, items);
+  const obstacles = items.map((i) =>
+    i.kind === "frame" ? { ...i, kind: "drawing" as const } : i
+  );
+  const spot = findFreeSpot({
+    height: frame.height,
+    items: obstacles,
+    origin: {
+      x: frame.x + frame.width * 1.5 + GAP,
+      y: frame.y + frame.height / 2,
+    },
+    width: frame.width,
+  });
+  const dx = spot.x - frame.x;
+  const dy = spot.y - frame.y;
+  const top = Math.max(0, ...items.map((item) => item.z ?? 0)) + 1;
+  const id = newItemId();
+  // Back to front, so the copies keep the original's stacking order.
+  const ordered = [...inside].sort((a, b) => (a.z ?? 0) - (b.z ?? 0));
+  const added: BoardItem[] = [
+    { ...frame, id, recipeUseId: null, x: frame.x + dx, y: frame.y + dy },
+    ...ordered.map((item, i) => ({
+      ...item,
+      id: newItemId(),
+      recipeUseId: null,
+      x: item.x + dx,
+      y: item.y + dy,
+      z: item.kind === "frame" ? item.z : top + i,
+    })),
+  ];
+  return { added, frameId: id };
 };
