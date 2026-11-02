@@ -150,9 +150,17 @@ export const containedBy = <T extends GraphBox>(
   frame: GraphBox,
   items: readonly T[]
 ): T[] => {
+  // Only a smaller frame is nested. Two frames the same size on the same
+  // spot (a reload once stacked frames this way) each have their centre in
+  // the other; counted as nested, each handed every item to the other and
+  // both opened blank in the frame editor while the board still drew it all.
+  const area = frame.width * frame.height;
   const nested = items.filter(
     (item) =>
-      item.kind === "frame" && item.id !== frame.id && centredIn(item, frame)
+      item.kind === "frame" &&
+      item.id !== frame.id &&
+      item.width * item.height < area &&
+      centredIn(item, frame)
   );
   return items.filter((item) => {
     if (item.id === frame.id || item.kind === "frame") {
