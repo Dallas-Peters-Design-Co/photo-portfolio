@@ -18,6 +18,7 @@ import type {
 } from "../../../types";
 import { useConfirm } from "../ConfirmProvider";
 import { dropComposites } from "./placement";
+import { useBoardVersion } from "./useBoardVersion";
 import { useBoardWindowEvents } from "./useBoardWindowEvents";
 
 /** How long after the last change before the board saves itself. */
@@ -69,6 +70,8 @@ export interface BoardDocumentDeps {
 
 export const useBoardDocument = (deps: BoardDocumentDeps) => {
   const { prompt } = useConfirm();
+  const { flushArrangement, isStale, saveArrangement, updateDetails, version } =
+    useBoardVersion(deps.boardId);
   const {
     board,
     boardId,
@@ -104,6 +107,7 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
         if (cancelled) {
           return;
         }
+        version.current = loaded.updatedAt;
         setBoard(loaded);
         setItems(loaded.items ?? []);
         setWires(loaded.wires ?? []);
@@ -131,6 +135,7 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
     setPhotos,
     setSources,
     setWires,
+    version,
   ]);
 
   // Serialises board saves. A save replaces the whole arrangement (the server
@@ -165,12 +170,16 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
       const run = saveChain.current.then(async () => {
         setIsSaving(true);
         try {
-          await boardsApi.update(boardId, {
+          const saved = await saveArrangement({
             coverUrl,
             items: saving,
             sources,
             wires: savingWires,
           });
+          // An out-of-date copy stays unsaved: useBoardVersion has said so.
+          if (!saved) {
+            return;
+          }
           // Deliberately does not adopt saved.items. The canvas is the source of
           // truth while it is open, and replacing state here discarded anything
           // typed or dragged while the request was in flight.
@@ -190,30 +199,16 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
       saveChain.current = run;
       await run;
     },
-    [
-      boardId,
-      isLoaded,
-      items,
-      sources,
-      wires,
-      setIsSaving, // Deliberately does not adopt saved.items. The canvas is the source of
-      // truth while it is open, and replacing state here discarded anything
-      // typed or dragged while the request was in flight.
-      //
-      // Run results are safe from this in the other direction too: the server
-      // never writes them from a save, so a generation landing mid-request
-      // cannot be overwritten by the copy this call carried.
-      setIsDirty,
-    ]
+    [isLoaded, items, saveArrangement, sources, wires, setIsSaving, setIsDirty]
   );
 
   useEffect(() => {
-    if (!isDirty) {
+    if (!isDirty || isStale) {
       return;
     }
     const timer = setTimeout(() => void save(), AUTOSAVE_DELAY_MS);
     return () => clearTimeout(timer);
-  }, [isDirty, save]);
+  }, [isDirty, isStale, save]);
 
   // Latest state, readable from listeners that must not re-subscribe on every
   // drag frame — re-registering pagehide hundreds of times during a drag would
@@ -233,6 +228,7 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
 
   useBoardWindowEvents({
     boardId,
+    flushArrangement,
     history,
     pending,
     setDrawTool,
@@ -346,7 +342,7 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
   const publish = async (isPublic: boolean) => {
     setIsPublishing(true);
     try {
-      const saved = await boardsApi.update(boardId, { isPublic });
+      const saved = await updateDetails({ isPublic });
       setBoard(saved);
       toast.success(isPublic ? "Board published" : "Board unpublished");
     } catch (err) {
@@ -383,7 +379,7 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
       return;
     }
     try {
-      setBoard(await boardsApi.update(boardId, { title }));
+      setBoard(await updateDetails({ title }));
       toast.success("Board renamed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not rename");

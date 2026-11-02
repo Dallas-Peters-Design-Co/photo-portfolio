@@ -19,6 +19,7 @@ import type {
   PhotoExifData,
   RunState,
 } from "../types";
+import { readBoardSave } from "./boardSave";
 
 /** What one node run comes back with. */
 export interface RunNodeResponse {
@@ -1030,23 +1031,26 @@ export const boardsApi = {
   },
 
   /**
-   * Saves on the way out of the page.
-   *
-   * keepalive lets the request outlive the document; a normal fetch is
-   * cancelled the instant the page goes away, which is precisely when the last
-   * unsaved second of work needs to survive.
-   */
-  flush: (id: string, items: BoardItem[], wires: BoardWire[] = []): void => {
-    const token = getAuthToken();
-    if (!token) {
-      return;
+   * Saves on the way out of the page: keepalive outlives the document. It is
+   * answered only while the page lives on (a hidden tab). */
+  flush: (
+    id: string,
+    items: BoardItem[],
+    wires: BoardWire[],
+    baseUpdatedAt: string | null
+  ): Promise<Board | null> => {
+    if (!getAuthToken()) {
+      return Promise.resolve(null);
     }
-    void fetch(boardUrl(id), {
-      body: JSON.stringify({ items, wires }),
+    return fetch(boardUrl(id), {
+      body: JSON.stringify({ baseUpdatedAt, items, wires }),
       headers: jsonHeaders(),
       keepalive: true,
       method: "PATCH",
-    }).catch(() => undefined);
+    }).then(
+      (res) => readBoardSave(res, readPageError),
+      () => null
+    );
   },
 
   get: async (id: string): Promise<Board> => {
@@ -1173,6 +1177,7 @@ export const boardsApi = {
       items?: BoardItem[];
       sources?: BoardSource[];
       wires?: BoardWire[];
+      baseUpdatedAt?: string | null;
     }
   ): Promise<Board> => {
     const res = await fetch(boardUrl(id), {
@@ -1180,10 +1185,7 @@ export const boardsApi = {
       headers: jsonHeaders(),
       method: "PATCH",
     });
-    if (!res.ok) {
-      throw new Error(await readPageError(res, "Could not save board"));
-    }
-    return (await res.json()) as Board;
+    return readBoardSave(res, readPageError);
   },
 
   writebackSvg: async (

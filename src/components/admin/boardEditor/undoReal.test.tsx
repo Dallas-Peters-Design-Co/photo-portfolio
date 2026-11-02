@@ -27,7 +27,7 @@ const loaded = {
 vi.mock("../../../services/portfolioService", () => ({
   authStorage: { getToken: () => "t", getUser: () => null },
   boardsApi: {
-    flush: () => undefined,
+    flush: async () => null,
     get: async () => loaded,
     update: async () => loaded,
   },

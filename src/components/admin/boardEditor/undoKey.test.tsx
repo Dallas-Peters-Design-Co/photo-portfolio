@@ -66,6 +66,7 @@ const mount = async (): Promise<Harness> => {
 
     useBoardWindowEvents({
       boardId: "b1",
+      flushArrangement: () => Promise.resolve(),
       history,
       pending,
       setDrawTool: () => undefined,

@@ -8,7 +8,6 @@ import {
   restore,
   type useBoardHistory,
 } from "../../../boards/hooks/useBoardHistory";
-import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../../types";
 
 /**
@@ -27,6 +26,8 @@ import type { BoardItem, BoardWire } from "../../../types";
  */
 export interface BoardWindowDeps {
   boardId: string;
+  /** Sends the arrangement as the page goes away; see useBoardVersion. */
+  flushArrangement: (items: BoardItem[], wires: BoardWire[]) => Promise<void>;
   history: ReturnType<typeof useBoardHistory>;
   /** The latest state, kept in a ref so a listener never reads a stale copy. */
   pending: React.RefObject<{
@@ -45,6 +46,7 @@ export interface BoardWindowDeps {
 export const useBoardWindowEvents = (deps: BoardWindowDeps) => {
   const {
     boardId,
+    flushArrangement,
     history,
     pending,
     setDrawTool,
@@ -78,7 +80,7 @@ export const useBoardWindowEvents = (deps: BoardWindowDeps) => {
       // Same guard as save(): a page closing before the board loaded must not
       // flush an empty arrangement over a full one.
       if (unsaved && ready) {
-        boardsApi.flush(boardId, latest, latestWires);
+        void flushArrangement(latest, latestWires);
       }
     };
 

@@ -7,6 +7,7 @@ import PauseIcon from "@hugeicons-pro/core-stroke-standard/PauseIcon";
 import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FrameSlide } from "./FrameSlide";
 import type { Slide } from "./slides";
 import "./PresentDeck.css";
 
@@ -14,7 +15,7 @@ import "./PresentDeck.css";
  * A board, presented.
  *
  * Full screen, black, one slide at a time: the board's title, then each
- * frame as a section card followed by its pictures. Arrow keys, space, a
+ * frame, whole, as it was designed. Arrow keys, space, a
  * click on either half of the screen or a swipe move through it; F goes
  * full screen, P plays it by itself, Escape leaves. The cursor hides after
  * a moment still, because a cursor over a cover is a cursor over a cover.
@@ -168,13 +169,8 @@ export function PresentDeck({ slides, onExit }: PresentDeckProps) {
               ) : null}
             </div>
           ) : null}
-          {slide.kind === "section" ? (
-            <div className="present__card">
-              <h2 className="present__section">{slide.title}</h2>
-              <p className="present__subtitle">
-                {slide.count} {slide.count === 1 ? "piece" : "pieces"}
-              </p>
-            </div>
+          {slide.kind === "frame" ? (
+            <FrameSlide frame={slide.frame} layers={slide.layers} />
           ) : null}
           {slide.kind === "picture" ? <Picture slide={slide} /> : null}
         </motion.div>
@@ -196,6 +192,14 @@ export function PresentDeck({ slides, onExit }: PresentDeckProps) {
 
       <footer className="present__bar">
         <span className="present__caption">
+          {slide.kind === "frame" ? (
+            <>
+              <span className="present__where">{slide.title}</span>
+              <span className="present__count">
+                {slide.index} / {slide.count}
+              </span>
+            </>
+          ) : null}
           {slide.kind === "picture" ? (
             <>
               <span className="present__where">{slide.section}</span>

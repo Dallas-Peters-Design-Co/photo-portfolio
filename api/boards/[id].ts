@@ -22,6 +22,7 @@ import type {
   BoardSourceRow,
   BoardWireRow,
 } from "../_lib/boards.js";
+import { saveRefusal } from "../_lib/boardVersion.js";
 import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
@@ -353,11 +354,9 @@ async function handlePatch(
   }
 
   const body = parseJsonBody(req.body);
-  const exists = (await sql`
-    SELECT id FROM boards WHERE id::text = ${id} LIMIT 1
-  `) as { id: string }[];
-  if (exists.length === 0) {
-    return res.status(404).json({ error: "Board not found" });
+  const refused = await saveRefusal(sql, id, body);
+  if (refused) {
+    return res.status(refused.status).json(refused.body);
   }
 
   let parsedItems: IncomingItem[] | null = null;

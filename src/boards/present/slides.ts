@@ -1,6 +1,6 @@
-import { containedBy } from "../../../config/graph";
 import { clipUrlOf } from "../../../config/nodes/clip.js";
 import type { Board, BoardItem } from "../../types";
+import { layersOf } from "../creative/creativeModel";
 import { isVideoUrl } from "../io/isVideo";
 import { currentImageUrl } from "../itemOutput";
 
@@ -8,14 +8,13 @@ import { currentImageUrl } from "../itemOutput";
  * A published board as a run of slides.
  *
  * A board is one wide canvas; a presentation is a sequence. The frames are
- * the sequence: each frame is a section, in reading order across the board
- * — rows top to bottom, left to right within a row — and each picture in a
- * frame is a slide, in the same order within the frame. A frame's name
- * becomes a section card before its pictures, and the board's title opens
- * the deck. Pictures outside any frame are not shown: the board is where you
- * work, and framing something is how you say it is finished. A board with
- * nothing framed at all plays every picture on it instead, rather than a
- * title card and nothing else.
+ * the sequence, in reading order across the board (rows top to bottom, left
+ * to right within a row), and each frame is one slide, shown whole as it was
+ * designed: a poster, a cover, a page of studies. The board's title opens the
+ * deck. Things outside any frame are not shown: the board is where you work,
+ * and framing something is how you say it is finished. A board with nothing
+ * framed at all plays every picture on it instead, rather than a title card
+ * and nothing else.
  *
  * Pure, so the order a deck plays in can be pinned by a test rather than
  * found out on a client call.
@@ -23,7 +22,16 @@ import { currentImageUrl } from "../itemOutput";
 
 export type Slide =
   | { kind: "title"; title: string; subtitle: string | null }
-  | { kind: "section"; title: string; count: number }
+  | {
+      kind: "frame";
+      frame: BoardItem;
+      /** What the frame holds, back to front. */
+      layers: BoardItem[];
+      title: string;
+      /** Its place in the deck's frames, from 1. */
+      index: number;
+      count: number;
+    }
   | {
       kind: "picture";
       url: string;
@@ -109,19 +117,19 @@ export const slidesOf = (
     items.filter((item) => item.kind === "frame")
   );
   const slides: Slide[] = [{ kind: "title", subtitle, title: board.title }];
-  for (const frame of frames) {
-    const pictures = picturesIn(
-      containedBy(frame, items).filter((item) => item.kind !== "frame")
-    );
-    if (pictures.length === 0) {
-      continue;
-    }
-    const section = nameOf(frame) ?? "";
-    if (section) {
-      slides.push({ count: pictures.length, kind: "section", title: section });
-    }
-    slides.push(...pictureSlides(pictures, section));
-  }
+  const filled = frames
+    .map((frame) => ({ frame, layers: layersOf(frame, items) }))
+    .filter(({ layers }) => layers.length > 0);
+  filled.forEach(({ frame, layers }, at) => {
+    slides.push({
+      count: filled.length,
+      frame,
+      index: at + 1,
+      kind: "frame",
+      layers,
+      title: nameOf(frame) ?? "",
+    });
+  });
   if (slides.length === 1) {
     slides.push(
       ...pictureSlides(

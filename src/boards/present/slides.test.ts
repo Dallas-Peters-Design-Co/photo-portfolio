@@ -48,44 +48,42 @@ describe("framesInReadingOrder", () => {
 });
 
 describe("slidesOf", () => {
-  it("opens with the title, then a section card and its pictures per frame", () => {
+  it("opens with the title, then each frame whole, in reading order", () => {
     const covers = frame({ body: "Covers", x: 0, y: 0 });
     const mockups = frame({ body: "Mockups", x: 1200, y: 0 });
+    const c1 = item({ imageUrl: "c1.png", x: 100, y: 100, z: 2 });
+    const c2 = item({ imageUrl: "c2.png", x: 600, y: 100, z: 1 });
+    const words = item({ body: "2027", kind: "text", x: 100, y: 500, z: 3 });
     const items = [
       mockups,
       covers,
-      item({ imageUrl: "c2.png", x: 600, y: 100 }),
-      item({ imageUrl: "c1.png", x: 100, y: 100 }),
+      c1,
+      c2,
+      words,
       item({ imageUrl: "m1.png", x: 1300, y: 100 }),
-      // A note has no picture and makes no slide.
-      item({ body: "a note", kind: "note", x: 100, y: 500 }),
       // Outside every frame: not part of the deck.
       item({ imageUrl: "loose.png", x: 3000, y: 3000 }),
     ];
     const slides = slidesOf({ items, title: "Centrifuge" }, "Unruly Chain");
     expect(
-      slides.map((s) => (s.kind === "picture" ? s.url : `${s.kind}:${s.title}`))
-    ).toEqual([
-      "title:Centrifuge",
-      "section:Covers",
-      "c1.png",
-      "c2.png",
-      "section:Mockups",
-      "m1.png",
-    ]);
-    const [, , first] = slides;
-    expect(
-      first.kind === "picture" && first.index === 1 && first.count === 2
-    ).toBe(true);
+      slides.map((s) => `${s.kind}:${"title" in s ? s.title : ""}`)
+    ).toEqual(["title:Centrifuge", "frame:Covers", "frame:Mockups"]);
+    const [, first] = slides;
+    // One slide holds every layer of the frame, text too, back to front.
+    expect(first).toMatchObject({
+      count: 2,
+      index: 1,
+      layers: [c2, c1, words],
+    });
   });
 
-  it("skips the section card for an unnamed frame and an empty one", () => {
+  it("skips an empty frame and keeps an unnamed one", () => {
     const unnamed = frame({ x: 0, y: 0 });
     const empty = frame({ body: "Empty", x: 1200, y: 0 });
     const items = [unnamed, empty, item({ imageUrl: "p.png", x: 100, y: 100 })];
     expect(slidesOf({ items, title: "T" }).map((s) => s.kind)).toEqual([
       "title",
-      "picture",
+      "frame",
     ]);
   });
 });
