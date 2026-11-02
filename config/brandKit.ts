@@ -14,7 +14,7 @@
  */
 
 import { describePalette } from "./colourWords.js";
-import { isAdobeKitId, isFontRef } from "./fontRef.js";
+import { isAdobeKitId, isFontFamilyName, isFontRef } from "./fontRef.js";
 import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
 import { sanitizeTypeScale, type TypeScale } from "./typeScale.js";
 
@@ -46,6 +46,15 @@ export interface PaletteEntry {
   /** Lower-cased six-digit hex. Anything else is dropped, never stored. */
   value: string;
 }
+
+/**
+ * A typeface entered by name only, as a Google family: that's where nearly
+ * every typed name lives (DM Sans, Geist Mono, Inter), and a ref is what lets
+ * the guide, boards and the frame editor load it. A name Google doesn't have
+ * simply doesn't load, as before.
+ */
+const typedRef = (name: string): string | null =>
+  isFontFamilyName(name) ? `g:${name}` : null;
 
 export interface TypefaceEntry {
   name: string;
@@ -312,9 +321,10 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
     typefaces: asArray(raw.typefaces)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
+        const name = clampText(e.name, MAX_KIT_NAME);
         return {
-          name: clampText(e.name, MAX_KIT_NAME),
-          ref: isFontRef(e.ref) ? e.ref : null,
+          name,
+          ref: isFontRef(e.ref) ? e.ref : typedRef(name),
           role: clampText(e.role, MAX_KIT_NAME),
           weights: clampWeights(e.weights),
         };

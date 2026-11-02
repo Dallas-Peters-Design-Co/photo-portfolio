@@ -73,6 +73,21 @@ describe("sanitizeKitDoc — clamps rather than rejects", () => {
   });
 });
 
+describe("typefaces entered by name", () => {
+  it("load from Google Fonts", () => {
+    const doc = sanitizeKitDoc({
+      typefaces: [
+        { name: "DM Sans", ref: null, role: "headline", weights: [] },
+        { name: "Geist Mono", role: "body" },
+      ],
+    });
+    expect(doc.typefaces.map((f) => f.ref)).toEqual([
+      "g:DM Sans",
+      "g:Geist Mono",
+    ]);
+  });
+});
+
 describe("resolveKitDoc — a sub-brand against its parent", () => {
   const parent = kit({
     look: { id: "b2", strength: 0.6 },
