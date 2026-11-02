@@ -1,7 +1,8 @@
 import "../../index.css";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { page } from "vitest/browser";
 import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
 
@@ -19,6 +20,12 @@ afterEach(() => {
   host?.remove();
   root = null;
   host = null;
+});
+
+// A desktop-sized window: the editor's three columns don't fit the default
+// phone-sized one, which leaves the artboard column no width at all.
+beforeAll(async () => {
+  await page.viewport(1440, 900);
 });
 
 const base = {

@@ -1,7 +1,8 @@
 import "../../index.css";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { page } from "vitest/browser";
 import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
 import { layerOpacity, opacityOf, withOpacity } from "./layerOpacity";
@@ -16,6 +17,12 @@ let host: HTMLDivElement | null = null;
 afterEach(() => {
   act(() => root?.unmount());
   host?.remove();
+});
+
+// A desktop-sized window: the editor's three columns don't fit the default
+// phone-sized one, which leaves the artboard column no width at all.
+beforeAll(async () => {
+  await page.viewport(1440, 900);
 });
 
 const base = {
@@ -254,5 +261,20 @@ describe("dragging near the edge", () => {
       press("ArrowRight", { shiftKey: true });
     }
     expect(document.querySelector('[data-layer-id="a"]')).not.toBeNull();
+  });
+});
+
+describe("the bar above the artboard", () => {
+  it("stays one height whatever is selected, so the artboard doesn't jump", () => {
+    render([frame, rect("a", 40, 1)]);
+    const stage = () =>
+      (
+        document.querySelector(".creative__stage") as HTMLElement
+      ).getBoundingClientRect().height;
+    const empty = stage();
+    press("t");
+    expect(stage()).toBe(empty);
+    press("a", { metaKey: true });
+    expect(stage()).toBe(empty);
   });
 });

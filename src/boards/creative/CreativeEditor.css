@@ -167,16 +167,32 @@
   min-height: 0;
 }
 
+/*
+ * One row, always the same height, whatever is selected. It used to wrap, so
+ * a text layer's longer bar took two or three rows and an empty selection
+ * one: the stage below changed height with every click and the artboard
+ * rescaled and jumped. Controls past the edge scroll sideways instead. Its
+ * pickers open in portals (ColorWell), so the scrolling doesn't clip them.
+ */
 .creative__bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: calc(var(--spacing) * 2);
   align-items: center;
-  min-height: calc(var(--spacing) * 13);
-  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  /* Without this the one long row sets the column's width, not the screen. */
+  min-width: 0;
+  height: calc(var(--spacing) * 13);
+  padding: 0 calc(var(--spacing) * 4);
+  overflow: auto hidden;
   font-size: 0.75rem;
+  white-space: nowrap;
+  scrollbar-width: thin;
   border-bottom: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+
+  & > * {
+    flex: none;
+  }
 }
 
 .creative__bar--empty {
