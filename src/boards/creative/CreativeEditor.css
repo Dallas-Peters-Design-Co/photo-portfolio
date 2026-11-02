@@ -482,6 +482,18 @@ button.creative-export__item:hover:not(:disabled) {
   }
 }
 
+.creative-export__checks {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  font-size: 0.75rem;
+
+  & label {
+    display: flex;
+    gap: calc(var(--spacing) * 1.5);
+    align-items: center;
+  }
+}
+
 .creative-export__field {
   display: grid;
   gap: calc(var(--spacing) * 0.5);

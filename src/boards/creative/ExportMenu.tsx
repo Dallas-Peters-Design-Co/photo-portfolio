@@ -6,6 +6,12 @@ import type { BoardItem } from "../../types";
 import { AD_WEIGHT_LIMIT, exportHtml5 } from "./exportHtml5";
 import { deckSlides, exportDeckPdf, exportEmail } from "./exportOutputs";
 import { downloadBlob, exportWidthFor, renderCreative } from "./exportPng";
+import {
+  exportPrintPdf,
+  type PrintOptions,
+  type PrintSpec,
+  printSpecFor,
+} from "./exportPrint";
 
 /**
  * The editor's export: always a PNG at the frame's real size, plus the file
@@ -16,7 +22,81 @@ import { downloadBlob, exportWidthFor, renderCreative } from "./exportPng";
 
 const kb = (bytes: number) => `${Math.round(bytes / 1024)} KB`;
 
-type Output = "ad" | "deck" | "email" | "page";
+const inches = (n: number) => `${Math.round(n * 100) / 100}`;
+const trimLabel = (spec: PrintSpec) =>
+  `${inches(spec.widthIn)} × ${inches(spec.heightIn)} in`;
+const bleedLabel = (spec: PrintSpec) =>
+  spec.bleedIn < 0.125 ? "3 mm" : "⅛ in";
+
+/** What the output's line under its title says. */
+const hintFor = (
+  output: Output,
+  frame: BoardItem,
+  slideCount: number
+): string => {
+  if (output === "deck") {
+    return `Every slide on this board, in reading order: ${slideCount} ${slideCount === 1 ? "page" : "pages"}`;
+  }
+  if (output === "print") {
+    return `${trimLabel(printSpecFor(frame))}, ready for a print shop`;
+  }
+  return OUTPUTS[output].hint;
+};
+
+const savePrintPdf = async (
+  frame: BoardItem,
+  layers: BoardItem[],
+  textElementFor: (id: string) => HTMLElement | null,
+  options: PrintOptions,
+  name: string
+) => {
+  const { blob, dpi, spec } = await exportPrintPdf(
+    frame,
+    layers,
+    textElementFor,
+    options
+  );
+  downloadBlob(blob, name, "pdf");
+  const extras = [
+    options.bleed ? `${bleedLabel(spec)} bleed` : "",
+    options.marks ? "crop marks" : "",
+  ].filter(Boolean);
+  toast.success("Print PDF exported", {
+    description: [`${trimLabel(spec)} at ${dpi} dpi`, ...extras].join(", "),
+  });
+};
+
+/** Bleed and crop marks, both on by default: what a print shop asks for. */
+function PrintChoices({
+  onChange,
+  value,
+}: {
+  onChange: (next: PrintOptions) => void;
+  value: PrintOptions;
+}) {
+  return (
+    <span className="creative-export__checks">
+      <label>
+        <input
+          checked={value.bleed}
+          onChange={(e) => onChange({ ...value, bleed: e.target.checked })}
+          type="checkbox"
+        />
+        Bleed
+      </label>
+      <label>
+        <input
+          checked={value.marks}
+          onChange={(e) => onChange({ ...value, marks: e.target.checked })}
+          type="checkbox"
+        />
+        Crop marks
+      </label>
+    </span>
+  );
+}
+
+type Output = "ad" | "deck" | "email" | "page" | "print";
 
 interface OutputCopy {
   action: string;
@@ -51,12 +131,19 @@ const OUTPUTS: Record<Output, OutputCopy> = {
     link: "Link (optional)",
     title: "Web page",
   },
+  print: {
+    action: "Export PDF",
+    hint: "",
+    link: null,
+    title: "Print PDF",
+  },
 };
 
 const OUTPUT_FOR: Record<string, Output> = {
   Deck: "deck",
   Email: "email",
   Landing: "page",
+  Print: "print",
 };
 
 export function ExportMenu({
@@ -75,6 +162,10 @@ export function ExportMenu({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState<"file" | "png" | null>(null);
   const [link, setLink] = useState("https://");
+  const [print, setPrint] = useState<PrintOptions>({
+    bleed: true,
+    marks: true,
+  });
   const root = useRef<HTMLDivElement>(null);
   const output = OUTPUT_FOR[groupFromTitle(frame.body)] ?? "ad";
   const copy = OUTPUTS[output];
@@ -96,6 +187,10 @@ export function ExportMenu({
   const url = link.trim() === "https://" ? "" : link.trim();
 
   const exportFile = async () => {
+    if (output === "print") {
+      await savePrintPdf(frame, layers, textElementFor, print, name);
+      return;
+    }
     if (output === "deck") {
       downloadBlob(await exportDeckPdf(items), name, "pdf");
       toast.success(`Deck exported · ${slideCount} slides`);
@@ -180,11 +275,10 @@ export function ExportMenu({
           </button>
           <div className="creative-export__item creative-export__item--form">
             <strong>{copy.title}</strong>
-            <span>
-              {output === "deck"
-                ? `Every slide on this board, in reading order: ${slideCount} ${slideCount === 1 ? "page" : "pages"}`
-                : copy.hint}
-            </span>
+            <span>{hintFor(output, frame, slideCount)}</span>
+            {output === "print" ? (
+              <PrintChoices onChange={setPrint} value={print} />
+            ) : null}
             {copy.link ? (
               <label className="creative-export__field">
                 <span>{copy.link}</span>

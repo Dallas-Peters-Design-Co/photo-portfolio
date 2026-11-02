@@ -83,6 +83,7 @@ export const AD_SIZES: AdSize[] = [
   },
   { group: "Email", h: 300, id: "email-banner", label: "Banner", w: 600 },
   { group: "Email", h: 1200, id: "email-full", label: "Full email", w: 600 },
+  // Print, at 300 dpi: inches × 300. Portrait; the frame can be turned.
   {
     group: "Print",
     h: 3300,
@@ -90,7 +91,17 @@ export const AD_SIZES: AdSize[] = [
     label: "Flyer · Letter",
     w: 2550,
   },
+  { group: "Print", h: 5100, id: "print-11x17", label: "Poster · 11×17", w: 3300 },
+  { group: "Print", h: 5400, id: "print-12x18", label: "Poster · 12×18", w: 3600 },
+  { group: "Print", h: 7200, id: "print-18x24", label: "Poster · 18×24", w: 5400 },
+  { group: "Print", h: 10_800, id: "print-24x36", label: "Poster · 24×36", w: 7200 },
+  { group: "Print", h: 4961, id: "print-a3", label: "Poster · A3", w: 3508 },
+  { group: "Print", h: 7016, id: "print-a2", label: "Poster · A2", w: 4961 },
+  { group: "Print", h: 9933, id: "print-a1", label: "Poster · A1", w: 7016 },
 ];
+
+/** Print sizes are set at this many pixels to the inch. */
+export const PRINT_DPI = 300;
 
 /** Canvas units per pixel for a frame that doesn't say its size yet. */
 export const DEFAULT_UNITS_PER_PX = 0.5;

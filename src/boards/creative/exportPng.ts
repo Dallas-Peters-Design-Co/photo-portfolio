@@ -259,24 +259,108 @@ const drawText = (
   });
 };
 
+/**
+ * A layer's box for print, in frame units: grown out past every frame edge it
+ * touches by the bleed, so a background, a full-bleed picture or a band of
+ * colour runs off the trim instead of stopping at it and leaving a white
+ * sliver when the cut wanders. A turned layer keeps its box.
+ */
+export const bleedBox = (
+  item: Box & { rotation?: number | null },
+  frame: Box,
+  bleed: number
+): Box => {
+  if (bleed <= 0 || rotationOf(item as BoardItem)) {
+    return { height: item.height, width: item.width, x: item.x, y: item.y };
+  }
+  const EDGE = 0.5;
+  const left = item.x <= frame.x + EDGE ? bleed : 0;
+  const top = item.y <= frame.y + EDGE ? bleed : 0;
+  const right = item.x + item.width >= frame.x + frame.width - EDGE ? bleed : 0;
+  const bottom =
+    item.y + item.height >= frame.y + frame.height - EDGE ? bleed : 0;
+  return {
+    height: item.height + top + bottom,
+    width: item.width + left + right,
+    x: item.x - left,
+    y: item.y - top,
+  };
+};
+
+/** The drawing tools that make a box, which can grow without changing shape. */
+const BOX_TOOLS = new Set(["rect", "rounded", "squircle"]);
+
+/**
+ * Whether a layer runs into the bleed when it touches the edge: pictures and
+ * box-shaped fills do. Words never should, and a circle or star would only be
+ * stretched out of shape.
+ */
+const bleeds = (item: BoardItem): boolean => {
+  if (item.kind === "drawing") {
+    return isDrawingConfig(item.config) && BOX_TOOLS.has(item.config.tool);
+  }
+  return item.kind !== "text" && item.kind !== "note";
+};
+
+/** One layer, drawn in place: the caller saves and restores the context. */
+const drawLayer = (
+  ctx: CanvasRenderingContext2D,
+  item: BoardItem,
+  frame: Box,
+  scale: number,
+  pictures: Map<string, HTMLImageElement>,
+  textElementFor: (id: string) => HTMLElement | null
+) => {
+  const w = item.width * scale;
+  const h = item.height * scale;
+  ctx.translate((item.x - frame.x) * scale, (item.y - frame.y) * scale);
+  const turn = rotationOf(item);
+  if (turn) {
+    // About the layer's centre, as it turns in the editor.
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate((turn * Math.PI) / 180);
+    ctx.translate(-w / 2, -h / 2);
+  }
+  if (item.kind === "drawing" && isDrawingConfig(item.config)) {
+    drawShape(ctx, item.config, w, h, scale);
+  } else if (item.kind === "text" || item.kind === "note") {
+    drawText(ctx, item, textElementFor(item.id), w, h, scale);
+  } else {
+    const picture = pictures.get(currentImageUrl(item) ?? "");
+    if (picture) {
+      const radius = imageRadius(item) * scale;
+      if (radius > 0) {
+        const clip = new Path2D();
+        clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
+        ctx.clip(clip);
+      }
+      drawCover(ctx, picture, w, h);
+    }
+  }
+};
+
 export const renderCreative = async (
   frame: Box,
   layers: BoardItem[],
   pxWidth: number,
   textElementFor: (id: string) => HTMLElement | null,
-  background: string | null = null
+  background: string | null = null,
+  /** Extra pixels on every side, filled by layers that touch the edge. */
+  bleedPx = 0
 ): Promise<Blob> => {
   const scale = pxWidth / frame.width;
+  const bleed = bleedPx / scale;
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(frame.width * scale);
-  canvas.height = Math.round(frame.height * scale);
+  canvas.width = Math.round(frame.width * scale + bleedPx * 2);
+  canvas.height = Math.round(frame.height * scale + bleedPx * 2);
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     throw new Error("This browser can't draw the export");
   }
+  ctx.translate(bleedPx, bleedPx);
   if (background) {
     ctx.fillStyle = background;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(-bleedPx, -bleedPx, canvas.width, canvas.height);
   }
   // Pictures first, all at once, so the layers can then be drawn in order.
   const pictures = new Map(
@@ -298,34 +382,12 @@ export const renderCreative = async (
         .catch(() => undefined);
     });
   await Promise.all(fonts);
-  for (const item of layers) {
-    const w = item.width * scale;
-    const h = item.height * scale;
+  for (const layer of layers) {
+    const item = bleeds(layer)
+      ? { ...layer, ...bleedBox(layer, frame, bleed) }
+      : layer;
     ctx.save();
-    ctx.translate((item.x - frame.x) * scale, (item.y - frame.y) * scale);
-    const turn = rotationOf(item);
-    if (turn) {
-      // About the layer's centre, as it turns in the editor.
-      ctx.translate(w / 2, h / 2);
-      ctx.rotate((turn * Math.PI) / 180);
-      ctx.translate(-w / 2, -h / 2);
-    }
-    if (item.kind === "drawing" && isDrawingConfig(item.config)) {
-      drawShape(ctx, item.config, w, h, scale);
-    } else if (item.kind === "text" || item.kind === "note") {
-      drawText(ctx, item, textElementFor(item.id), w, h, scale);
-    } else {
-      const picture = pictures.get(currentImageUrl(item) ?? "");
-      if (picture) {
-        const radius = imageRadius(item) * scale;
-        if (radius > 0) {
-          const clip = new Path2D();
-          clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
-          ctx.clip(clip);
-        }
-        drawCover(ctx, picture, w, h);
-      }
-    }
+    drawLayer(ctx, item, frame, scale, pictures, textElementFor);
     ctx.restore();
   }
   return await new Promise<Blob>((resolve, reject) => {
