@@ -245,7 +245,7 @@ const EXT: Record<string, string> = {
   "image/webp": "webp",
 };
 
-const fetchBytes = async (
+export const fetchBytes = async (
   url: string
 ): Promise<{ bytes: Uint8Array<ArrayBuffer>; type: string } | null> => {
   try {
@@ -265,7 +265,7 @@ const extOf = (url: string, type: string, fallback: string) =>
   new URL(url, location.href).pathname.split(".").pop()?.toLowerCase() ??
   fallback;
 
-const FONT_URL = /url\((["']?)([^"')]+)\1\)/g;
+export const FONT_URL = /url\((["']?)([^"')]+)\1\)/g;
 
 /**
  * Our own @font-face rules for the families in use, with their files copied
@@ -276,7 +276,7 @@ const familyOf = (rule: CSSFontFaceRule) =>
   rule.style.getPropertyValue("font-family").replaceAll(/["']/g, "").trim();
 
 /** Our own @font-face rules for these families, from the readable sheets. */
-const fontFaceRules = (families: Set<string>): string[] =>
+export const fontFaceRules = (families: Set<string>): string[] =>
   [...document.styleSheets].flatMap((sheet) => {
     try {
       return [...sheet.cssRules]
@@ -361,7 +361,7 @@ const copyImages = async (
   );
 };
 
-const firstFamily = (stack: string) =>
+export const firstFamily = (stack: string) =>
   stack.split(",")[0]?.replaceAll(/["']/g, "").trim() ?? "";
 
 export interface Html5Export {
@@ -370,7 +370,7 @@ export interface Html5Export {
   linked: number;
 }
 
-const layerHtml = (
+export const layerHtml = (
   item: BoardItem,
   place: Record<string, string>,
   scale: number,

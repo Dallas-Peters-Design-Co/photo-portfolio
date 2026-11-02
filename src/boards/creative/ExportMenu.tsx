@@ -50,7 +50,7 @@ const savePrintPdf = async (
   options: PrintOptions,
   name: string
 ) => {
-  const { blob, dpi, spec } = await exportPrintPdf(
+  const { blob, spec } = await exportPrintPdf(
     frame,
     layers,
     textElementFor,
@@ -62,7 +62,7 @@ const savePrintPdf = async (
     options.marks ? "crop marks" : "",
   ].filter(Boolean);
   toast.success("Print PDF exported", {
-    description: [`${trimLabel(spec)} at ${dpi} dpi`, ...extras].join(", "),
+    description: [`${trimLabel(spec)}, vector`, ...extras].join(", "),
   });
 };
 

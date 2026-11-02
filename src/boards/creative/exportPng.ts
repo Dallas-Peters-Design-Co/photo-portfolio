@@ -295,7 +295,7 @@ const BOX_TOOLS = new Set(["rect", "rounded", "squircle"]);
  * box-shaped fills do. Words never should, and a circle or star would only be
  * stretched out of shape.
  */
-const bleeds = (item: BoardItem): boolean => {
+export const bleeds = (item: BoardItem): boolean => {
   if (item.kind === "drawing") {
     return isDrawingConfig(item.config) && BOX_TOOLS.has(item.config.tool);
   }
@@ -344,23 +344,19 @@ export const renderCreative = async (
   layers: BoardItem[],
   pxWidth: number,
   textElementFor: (id: string) => HTMLElement | null,
-  background: string | null = null,
-  /** Extra pixels on every side, filled by layers that touch the edge. */
-  bleedPx = 0
+  background: string | null = null
 ): Promise<Blob> => {
   const scale = pxWidth / frame.width;
-  const bleed = bleedPx / scale;
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(frame.width * scale + bleedPx * 2);
-  canvas.height = Math.round(frame.height * scale + bleedPx * 2);
+  canvas.width = Math.round(frame.width * scale);
+  canvas.height = Math.round(frame.height * scale);
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     throw new Error("This browser can't draw the export");
   }
-  ctx.translate(bleedPx, bleedPx);
   if (background) {
     ctx.fillStyle = background;
-    ctx.fillRect(-bleedPx, -bleedPx, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
   // Pictures first, all at once, so the layers can then be drawn in order.
   const pictures = new Map(
@@ -382,10 +378,7 @@ export const renderCreative = async (
         .catch(() => undefined);
     });
   await Promise.all(fonts);
-  for (const layer of layers) {
-    const item = bleeds(layer)
-      ? { ...layer, ...bleedBox(layer, frame, bleed) }
-      : layer;
+  for (const item of layers) {
     ctx.save();
     drawLayer(ctx, item, frame, scale, pictures, textElementFor);
     ctx.restore();

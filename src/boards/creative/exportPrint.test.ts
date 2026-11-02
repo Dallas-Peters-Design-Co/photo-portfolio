@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
 import type { BoardItem } from "../../types";
-import { cropMarks } from "../io/printPdf";
-import { bleedBox, renderCreative } from "./exportPng";
-import { dpiLadder, exportPrintPdf, printSpecFor } from "./exportPrint";
+import { bleedBox } from "./exportPng";
+import { printSpecFor } from "./exportPrint";
+import { cropMarksSvg, printHtml } from "./printHtml";
 
 const frame = {
   ...BLANK_ITEM,
@@ -54,15 +54,6 @@ describe("print export", () => {
     expect(printSpecFor(a2).bleedIn).toBeCloseTo(3 / 25.4, 5);
   });
 
-  it("prints at 300 dpi where it fits, and steps down for big posters", () => {
-    expect(
-      dpiLadder({ bleedIn: 0.125, heightIn: 11, widthIn: 8.5 }, true)[0]
-    ).toBe(300);
-    const big = dpiLadder({ bleedIn: 0.125, heightIn: 36, widthIn: 24 }, true);
-    expect(big[0]).toBeLessThan(300);
-    expect(big[0]).toBeGreaterThanOrEqual(200);
-  });
-
   it("grows layers touching the edge into the bleed, and only those", () => {
     const edge = rect("e", 0, 0, 180, 120, "#ff0000");
     expect(bleedBox(edge, frame, 2)).toEqual({
@@ -80,55 +71,51 @@ describe("print export", () => {
     });
   });
 
-  it("fills the bleed with the background and leaves the words inside", async () => {
-    const png = await renderCreative(
-      frame,
-      [rect("bg", 0, 0, 180, 240, "#ff0000")],
-      180,
-      () => null,
-      "#ffffff",
-      10
-    );
-    const bitmap = await createImageBitmap(png);
-    expect([bitmap.width, bitmap.height]).toEqual([200, 260]);
-    const canvas = document.createElement("canvas");
-    canvas.width = bitmap.width;
-    canvas.height = bitmap.height;
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    ctx.drawImage(bitmap, 0, 0);
-    // The very corner of the bleed is the background colour, not paper.
-    expect([...ctx.getImageData(1, 1, 1, 1).data]).toEqual([255, 0, 0, 255]);
-  });
-
-  it("writes a PDF with trim and bleed boxes and crop marks in the margin", async () => {
+  it("lays the sheet out at paper size, with the bleed and the marks", async () => {
     const letter = {
       ...frame,
       body: "Print · Flyer · Letter · 2550×3300",
       height: 110,
       width: 85,
     };
-    const { blob, dpi } = await exportPrintPdf(
+    const words = {
+      ...BLANK_ITEM,
+      body: "Build Slow",
+      height: 20,
+      id: "t",
+      kind: "text",
+      width: 85,
+      x: 0,
+      y: 0,
+      z: 2,
+    } as BoardItem;
+    const html = await printHtml(
       letter,
-      [rect("bg", 0, 0, 85, 110, "#123456")],
+      [rect("bg", 0, 0, 85, 110, "#123456"), words],
       () => null,
-      { bleed: true, marks: true }
+      { bleedIn: 0.125, heightIn: 11, marksIn: 0.25, widthIn: 8.5 }
     );
-    expect(dpi).toBe(300);
-    const head = new TextDecoder("latin1").decode(
-      new Uint8Array(await blob.arrayBuffer()).slice(0, 2000)
-    );
-    // 8.5 × 11 in + ⅛ in bleed + ¼ in marks on each side, in points.
-    expect(head).toContain("/MediaBox [0 0 666.000 846.000]");
-    expect(head).toContain("/BleedBox [18.000 18.000 648.000 828.000]");
-    expect(head).toContain("/TrimBox [27.000 27.000 639.000 819.000]");
+    // 8.5 × 11 in, plus ⅛ in bleed and ¼ in marks on each side.
+    expect(html).toContain("@page{size:9.25in 11.75in;margin:0}");
+    // 96 px to the inch: the background runs 12 px past each trim edge.
+    expect(html).toContain("left:-12px");
+    expect(html).toContain("width:840px");
+    expect(html).toContain("height:1080px");
+    expect(html).toContain('stroke="#000"');
+  });
+
+  it("draws crop marks only when there is a margin for them", () => {
+    const marks = cropMarksSvg({
+      bleedIn: 0.125,
+      heightIn: 11,
+      marksIn: 0.25,
+      widthIn: 8.5,
+    });
+    // Trim's left edge: ¼ in margin + ⅛ in bleed = 36 px; the mark stops at the margin.
+    expect(marks).toContain("M36 0V24");
+    expect(marks).toContain("M0 36H24");
     expect(
-      cropMarks({
-        bleedIn: 0.125,
-        heightIn: 11.25,
-        marksIn: 0.25,
-        widthIn: 8.75,
-      })
-    ).toContain(" S Q");
-    expect(cropMarks({ bleedIn: 0.125, heightIn: 1, widthIn: 1 })).toBe("");
+      cropMarksSvg({ bleedIn: 0.125, heightIn: 1, marksIn: 0, widthIn: 1 })
+    ).toBe("");
   });
 });

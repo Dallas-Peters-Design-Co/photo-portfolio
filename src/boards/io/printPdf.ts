@@ -22,44 +22,9 @@
 export interface PrintPage {
   /** Inches from the edge of the sheet to the trim. */
   bleedIn: number;
-  /** The picture's size: the trim plus the bleed on every side. */
   heightIn: number;
-  /**
-   * A margin outside the bleed holding crop marks, in inches. Absent or 0
-   * gives no marks and a sheet the size of the picture, as before.
-   */
-  marksIn?: number;
   widthIn: number;
 }
-
-/** Crop marks: a short line out from each corner of the trim, in the margin. */
-export const cropMarks = (page: PrintPage): string => {
-  const m = page.marksIn ?? 0;
-  if (m <= 0) {
-    return "";
-  }
-  const pt = (inches: number) => (inches * 72).toFixed(3);
-  const gap = Math.min(0.0625, m / 4);
-  const left = m + page.bleedIn;
-  const right = m + page.widthIn - page.bleedIn;
-  const bottom = m + page.bleedIn;
-  const top = m + page.heightIn - page.bleedIn;
-  const sheetW = page.widthIn + m * 2;
-  const sheetH = page.heightIn + m * 2;
-  const outer = m - gap;
-  const lines: [number, number, number, number][] = [];
-  for (const x of [left, right]) {
-    lines.push([x, 0, x, outer], [x, sheetH - outer, x, sheetH]);
-  }
-  for (const y of [bottom, top]) {
-    lines.push([0, y, outer, y], [sheetW - outer, y, sheetW, y]);
-  }
-  const path = lines
-    .map(([x1, y1, x2, y2]) => `${pt(x1)} ${pt(y1)} m ${pt(x2)} ${pt(y2)} l`)
-    .join(" ");
-  // Registration-ish black at a quarter point, as print marks are drawn.
-  return ` q 0 0 0 RG 0.25 w ${path} S Q`;
-};
 
 const encoder = new TextEncoder();
 const bytes = (text: string): Uint8Array => encoder.encode(text);
@@ -141,27 +106,19 @@ export const printPdf = async (
   const filter = flate ? "/FlateDecode" : "/DCTDecode";
 
   const pt = (inches: number) => (inches * 72).toFixed(3);
-  const m = page.marksIn ?? 0;
   const W = pt(page.widthIn);
   const H = pt(page.heightIn);
-  const sheetW = pt(page.widthIn + m * 2);
-  const sheetH = pt(page.heightIn + m * 2);
-  const at = pt(m);
-  const bleedEndW = pt(m + page.widthIn);
-  const bleedEndH = pt(m + page.heightIn);
-  const b = pt(m + page.bleedIn);
-  const trimW = pt(m + page.widthIn - page.bleedIn);
-  const trimH = pt(m + page.heightIn - page.bleedIn);
+  const b = pt(page.bleedIn);
+  const trimW = pt(page.widthIn - page.bleedIn);
+  const trimH = pt(page.heightIn - page.bleedIn);
 
-  const content = bytes(
-    `q ${W} 0 0 ${H} ${at} ${at} cm /Im0 Do Q${cropMarks(page)}`
-  );
+  const content = bytes(`q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`);
 
   const objects: Uint8Array[] = [
     bytes("<< /Type /Catalog /Pages 2 0 R >>"),
     bytes("<< /Type /Pages /Kids [3 0 R] /Count 1 >>"),
     bytes(
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${sheetW} ${sheetH}] /BleedBox [${at} ${at} ${bleedEndW} ${bleedEndH}] /TrimBox [${b} ${b} ${trimW} ${trimH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /BleedBox [0 0 ${W} ${H}] /TrimBox [${b} ${b} ${trimW} ${trimH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`
     ),
     concat([
       bytes(

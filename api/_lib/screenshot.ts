@@ -35,7 +35,7 @@ const NAV_TIMEOUT_MS = 20_000;
 const LOAD_GRACE_MS = 10_000;
 const IDLE_GRACE_MS = 3000;
 
-const launch = async (): Promise<Browser> => {
+export const launch = async (): Promise<Browser> => {
   const { chromium } = await import("playwright-core");
   if (process.env.VERCEL) {
     const sparticuz = (await import("@sparticuz/chromium")).default;
