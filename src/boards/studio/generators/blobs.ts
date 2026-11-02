@@ -77,6 +77,7 @@ export const blobsTool: ImageTool = {
       ],
       type: "select",
     },
+    { count: 3, key: "colors", label: "Colours", max: 6, type: "colors" },
     { key: "seed", label: "Seed", type: "seed" },
     {
       default: 8,

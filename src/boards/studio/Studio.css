@@ -448,3 +448,38 @@
   font-size: 0.6875rem;
   color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
 }
+
+/* A tool's colours, each its own well. */
+.studio-colors {
+  grid-template-columns: 8rem minmax(0, 1fr);
+}
+
+.studio-colors__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+}
+
+.studio-colors__remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  color: var(--color-board-panel);
+  background: var(--color-board-ink);
+  border-radius: 50%;
+  opacity: 0;
+}
+
+.studio-colors__well {
+  position: relative;
+
+  &:hover .studio-colors__remove,
+  &:focus-within .studio-colors__remove {
+    opacity: 1;
+  }
+}

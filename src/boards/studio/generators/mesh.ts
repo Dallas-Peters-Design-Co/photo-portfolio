@@ -18,6 +18,7 @@ export const meshTool: ImageTool = {
   kind: "image",
   name: "Gradient Backgrounds",
   params: [
+    { count: 5, key: "colors", label: "Colours", max: 8, type: "colors" },
     { key: "seed", label: "Seed", type: "seed" },
     {
       default: 5,

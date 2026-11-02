@@ -6,11 +6,11 @@ import type { ImageTool, StudioValues } from "../types";
  * paste.
  */
 
-const stopsOf = (v: StudioValues, palette: string[]): string[] => {
-  const n = Math.max(2, Math.min(Number(v.stops) || 3, palette.length || 2));
-  const start = Number(v.offset) || 0;
-  return Array.from({ length: n }, (_, i) => pick(palette, start + i));
-};
+/** The stops are the colours picked in the panel (see chosenColors.ts). */
+const stopsOf = (_v: StudioValues, palette: string[]): string[] =>
+  palette.length > 1
+    ? palette
+    : [palette[0] ?? "#000000", palette[0] ?? "#ffffff"];
 
 /**
  * Conic has no SVG primitive, and fine wedges always seam when drawn as an
@@ -47,7 +47,7 @@ export const gradientTool: ImageTool = {
       return `background: radial-gradient(circle at center, ${colors});`;
     }
     if (v.kind === "conic") {
-      return `background: conic-gradient(from ${angle}deg, ${colors}, ${pick(palette, Number(v.offset) || 0)});`;
+      return `background: conic-gradient(from ${angle}deg, ${colors}, ${pick(palette, 0)});`;
     }
     return `background: linear-gradient(${angle}deg, ${colors});`;
   },
@@ -74,22 +74,7 @@ export const gradientTool: ImageTool = {
       min: 0,
       type: "range",
     },
-    {
-      default: 3,
-      key: "stops",
-      label: "Colours",
-      max: 6,
-      min: 2,
-      type: "range",
-    },
-    {
-      default: 0,
-      key: "offset",
-      label: "Start at colour",
-      max: 8,
-      min: 0,
-      type: "range",
-    },
+    { count: 3, key: "colors", label: "Colours", max: 8, type: "colors" },
   ],
   render: (v, { height: h, palette, width: w }) => {
     const colors = stopsOf(v, palette).map(esc);

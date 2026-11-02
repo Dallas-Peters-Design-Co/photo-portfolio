@@ -1,6 +1,7 @@
 import { Check, Copy, Download, ImageIcon, Plus, Shuffle } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { paletteFor } from "./chosenColors";
 import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
@@ -81,7 +82,8 @@ export function ImageToolView({
   const set = (key: string, value: boolean | number | string) =>
     onValues({ ...values, [key]: value });
 
-  const paletteKey = palette.join();
+  // A tool with its own colour pickers draws with those, not the brand's set.
+  const paletteKey = paletteFor(tool.params, values, palette).join();
   const ctx = useMemo(
     () => ({
       height: size.h,

@@ -27,7 +27,12 @@ export type StudioParam =
   | { default: string; key: string; label: string; type: "color" }
   | { default: boolean; key: string; label: string; type: "checkbox" }
   | { key: string; label: string; type: "seed" }
-  | { key: string; label: string; type: "image" };
+  | { key: string; label: string; type: "image" }
+  /**
+   * The colours a tool draws with, picked one by one. Stored comma-joined;
+   * empty means the brand's first `count`. Replaces the palette the tool sees.
+   */
+  | { count: number; key: string; label: string; max: number; type: "colors" };
 
 export type StudioValues = Record<string, boolean | number | string | null>;
 
