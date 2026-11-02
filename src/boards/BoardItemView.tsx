@@ -349,7 +349,13 @@ export function BoardItemView({
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same — the click aims a comment at the item, and the drag already uses pointer events the same way
     // biome-ignore lint/a11y/useKeyWithClickEvents: same — an item is a canvas surface, not a button
     <div
-      className={`${itemBoxClassName(item, isSelected)}${inFrame ? "board-item--in-frame" : ""}`}
+      // Joined rather than spliced into a template: Biome's class sorting trims
+      // a leading space off a class string, which glued this one onto the
+      // class before it and switched off every in-frame style.
+      className={[
+        itemBoxClassName(item, isSelected),
+        inFrame ? "board-item--in-frame" : "",
+      ].join(" ")}
       onClick={
         onCommentTarget
           ? (e) => {

@@ -318,3 +318,50 @@ describe("BoardCanvas — painting over things", () => {
     expect(moved).toBeUndefined();
   });
 });
+
+describe("BoardCanvas — a designed frame", () => {
+  it("shows no wiring dots or delete button on the frame's own layers", async () => {
+    const words = item({
+      body: "Assets over Hours",
+      height: 80,
+      id: "t",
+      imageUrl: null,
+      kind: "text",
+      width: 300,
+      x: 150,
+      y: 150,
+    });
+    const loose = item({
+      body: "Loose",
+      id: "l",
+      imageUrl: null,
+      kind: "text",
+      x: 900,
+      y: 100,
+    });
+    const frame = item({
+      config: { designed: true },
+      height: 500,
+      id: "f",
+      imageUrl: null,
+      kind: "frame",
+      width: 500,
+      x: 100,
+      y: 100,
+      z: 0,
+    });
+    const { box } = await render([frame, words, loose]);
+    const inFrame = box.querySelector(".board-item--in-frame") as HTMLElement;
+    expect(inFrame).not.toBeNull();
+    const hidden = (el: Element, sel: string) =>
+      [...el.querySelectorAll<HTMLElement>(sel)].every(
+        (found) => getComputedStyle(found).display === "none"
+      );
+    expect(hidden(inFrame, ".board-item__port")).toBe(true);
+    expect(hidden(inFrame, ".board-item__delete")).toBe(true);
+    // A loose text item keeps its dot, so this isn't passing by accident.
+    const looseBox = drawn(box).find((el) => el.textContent?.includes("Loose"));
+    expect(looseBox?.querySelector(".board-item__port")).not.toBeNull();
+    expect(hidden(looseBox as Element, ".board-item__port")).toBe(false);
+  });
+});

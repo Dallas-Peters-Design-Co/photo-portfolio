@@ -155,8 +155,11 @@
   opacity: 1;
 }
 /* Part of a design frame: the frame is what gets picked up, so none of the
-   item's own chrome shows. See geometry/frameLock.ts. */
-.group.board-item--in-frame .board-item__delete {
+   item's own chrome shows, wiring dots included. See geometry/frameLock.ts.
+   (The class used to run straight on from the one before it, without a
+   space, so none of this ever matched.) */
+.group.board-item--in-frame .board-item__delete,
+.group.board-item--in-frame .board-item__port {
   display: none;
 }
 
