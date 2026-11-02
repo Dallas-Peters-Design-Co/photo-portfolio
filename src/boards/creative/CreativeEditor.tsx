@@ -88,8 +88,11 @@ export function CreativeEditor({
   const [showBrand, setShowBrand] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
   const [overlay, setOverlay] = useState<"palette" | "shortcuts" | null>(null);
-  const { editId, setStudio, studio, studioEditorFor } = useFrameStudio();
+  const { editId, retarget, setStudio, studio, studioEditorFor } =
+    useFrameStudio();
   const textEls = useRef(new Map<string, HTMLElement>());
+  const latestItems = useRef(items);
+  latestItems.current = items;
   const kitDoc = useActiveBrand()?.kit?.resolvedDoc ?? null;
   const palette = kitDoc?.palette ?? [];
 
@@ -386,9 +389,17 @@ export function CreativeEditor({
           items,
           layers,
           name,
-          patch,
           size,
           studio,
+          swap: (oldId, next) => {
+            // The latest board: the new picture uploads first, and the
+            // board may have changed while it did.
+            onChange(
+              latestItems.current.map((i) => (i.id === oldId ? next : i))
+            );
+            selection.select(next.id);
+            retarget(next.id);
+          },
         })}
       />
       {showBrand ? (

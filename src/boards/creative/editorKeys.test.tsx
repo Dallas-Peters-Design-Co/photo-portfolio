@@ -302,12 +302,15 @@ describe("frame editor shortcuts", () => {
     act(() => update?.click());
     await vi.waitFor(
       () =>
-        expect(latest.find((i) => i.id === "m")?.imageUrl).toBe(
+        expect(latest.find((i) => i.kind === "reference")?.imageUrl).toBe(
           "https://blob/studio.png"
         ),
       { timeout: 8000 }
     );
-    const after = latest.find((i) => i.id === "m");
+    // A new layer in the old one's place: a board save never changes an
+    // existing item's picture, so patching the old one reverted on reload.
+    const after = latest.find((i) => i.kind === "reference");
+    expect(after?.id).not.toBe("m");
     expect([after?.x, after?.y, after?.width, after?.height]).toEqual([
       60, 60, 200, 200,
     ]);

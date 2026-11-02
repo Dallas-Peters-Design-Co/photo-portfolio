@@ -1,5 +1,6 @@
 import { portfolioService } from "../../services/portfolioService";
 import type { BoardItem } from "../../types";
+import { newItemId } from "../io/newItemId";
 import type { StudioRecipe } from "../studio/types";
 import { newImage } from "./creativeModel";
 
@@ -48,24 +49,32 @@ export const studioLayer = async (
 };
 
 /**
- * A placed Studio picture, made again with changed settings: the new file
- * takes the layer's place (same box, same stacking) and its recipe is updated,
- * so it can be changed again later.
+ * A placed Studio picture, made again with changed settings: a new layer with
+ * the new picture takes the old one's place (same box, same stacking) and
+ * carries the new recipe, so it can be changed again later.
+ *
+ * A new layer rather than a new picture on the old one, because a board save
+ * never changes an existing item's picture (api/boards/[id].ts: an item's
+ * source is fixed once it exists). Patching the URL looked right until the
+ * next reload brought the old picture back.
  */
 export const replaceStudioLayer = async (
   file: File,
   recipe: StudioRecipe,
   layer: BoardItem,
-  patch: (id: string, next: Partial<BoardItem>) => void
+  swap: (oldId: string, next: BoardItem) => void
 ): Promise<void> => {
   const { url } = await portfolioService.uploadImageFile(
     file,
     undefined,
     "boards/uploads"
   );
-  patch(layer.id, {
+  swap(layer.id, {
+    ...layer,
     config: { ...(layer.config ?? {}), studio: recipe },
+    id: newItemId(),
     imageUrl: url,
+    recipeUseId: null,
     thumbUrl: url,
   });
 };

@@ -27,10 +27,12 @@ export const useFrameStudio = () => {
       setEditId(layer.id);
     }
   };
+  /** The layer being edited became a new one (replaceStudioLayer). */
+  const retarget = (id: string) => setEditId(id);
   /** "Edit in Studio" for a layer, when it was made in the Studio. */
   const studioEditorFor = (layer: BoardItem) =>
     recipeOf(layer.config) ? () => editInStudio(layer) : undefined;
-  return { editId, setStudio, studio, studioEditorFor };
+  return { editId, retarget, setStudio, studio, studioEditorFor };
 };
 
 /** What EditorOverlays needs to show the Studio for this frame. */
@@ -42,9 +44,9 @@ export const frameStudioProps = ({
   items,
   layers,
   name,
-  patch,
   size,
   studio,
+  swap,
 }: {
   add: (item: BoardItem) => void;
   applyType: (scale: TypeScale) => void;
@@ -53,9 +55,10 @@ export const frameStudioProps = ({
   items: BoardItem[];
   layers: BoardItem[];
   name: string;
-  patch: (id: string, next: Partial<BoardItem>) => void;
   size: { h: number; w: number } | null;
   studio: string | null;
+  /** Puts a new layer in an old one's place. */
+  swap: (oldId: string, next: BoardItem) => void;
 }) => {
   if (!studio) {
     return null;
@@ -77,7 +80,7 @@ export const frameStudioProps = ({
         ? {
             layerId: target.id,
             onReplace: (file: File, next: StudioRecipe) =>
-              void replaceStudioLayer(file, next, target, patch),
+              void replaceStudioLayer(file, next, target, swap),
             recipe,
           }
         : undefined,
