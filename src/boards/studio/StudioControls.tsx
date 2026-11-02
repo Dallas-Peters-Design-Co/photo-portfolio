@@ -69,7 +69,6 @@ export function StudioControls({
               <div className="studio__field" key={p.key}>
                 <span>{p.label}</span>
                 <ColorWell
-                  alpha={false}
                   label={p.label}
                   onChange={(c) => onChange(p.key, c)}
                   value={String(
@@ -172,7 +171,6 @@ function ColorsField({
           // biome-ignore lint/suspicious/noArrayIndexKey: a colour's place is its identity; two can be the same colour
           <span className="studio-colors__well" key={i}>
             <ColorWell
-              alpha={false}
               label={`${label} ${i + 1}`}
               onChange={(next) =>
                 save(value.map((was, j) => (j === i ? next : was)))
@@ -268,7 +266,6 @@ function RemapField({
             />
             <ArrowRight aria-hidden size={13} />
             <ColorWell
-              alpha={false}
               label={`Swap ${from} for`}
               onChange={(next) => save(i, next)}
               value={swaps[i] || from}

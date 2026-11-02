@@ -117,6 +117,12 @@ describe("Studio generators", () => {
     expect(svg).toContain('fill="#00ff00"');
     expect(svg).toContain(`fill="${light}"`);
     expect(svg).not.toContain(`fill="${dark}"`);
+    // A swap can be see-through, or clear: a clear tile isn't drawn at all.
+    const half = mosaic?.render({ ...values, remap: "#00ff0080," }, at) ?? "";
+    expect(half).toContain('fill="#00ff00" fill-opacity="0.5"');
+    const clear = mosaic?.render({ ...values, remap: "#00ff0000," }, at) ?? "";
+    expect(clear).not.toContain("#00ff00");
+    expect(parse(clear).querySelectorAll("rect")).toHaveLength(2);
     // The swap list only shows while recolouring.
     const remap = mosaic?.params.find((p) => p.type === "remap");
     expect(remap?.when?.({ ...values, colour: "photo" })).toBe(false);

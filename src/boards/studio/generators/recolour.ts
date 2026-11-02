@@ -91,7 +91,8 @@ export const mainColours = (data: Uint8ClampedArray, count: number): Rgb[] => {
   return [...unique.values()].sort((a, b) => luma(...a) - luma(...b));
 };
 
-const HEX = /^#[0-9a-f]{3}([0-9a-f]{3})?$/i;
+/** #rgb, #rrggbb, or #rrggbbaa for a colour with transparency. */
+const HEX = /^#([0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
 /**
  * The replacements, stored comma-joined by position; an empty place keeps
