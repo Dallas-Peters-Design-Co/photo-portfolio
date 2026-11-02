@@ -74,7 +74,7 @@ describe("Studio generators", () => {
     expect(photo).toContain('fill="#0000ff"');
     const snapped =
       mosaic?.render(
-        { ...values, brand: true },
+        { ...values, colour: "nearest" },
         {
           ...ctx,
           height: 400,
@@ -86,6 +86,46 @@ describe("Studio generators", () => {
     expect(snapped).toContain('fill="#ee1111"');
     expect(snapped).not.toContain('fill="#ff0000"');
   });
+
+  it("recolours a mosaic by brightness, banded or blended, and can invert", async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 30;
+    canvas.height = 10;
+    const c = canvas.getContext("2d") as CanvasRenderingContext2D;
+    for (const [i, shade] of ["#000000", "#b0b0b0", "#ffffff"].entries()) {
+      c.fillStyle = shade;
+      c.fillRect(i * 10, 0, 10, 10);
+    }
+    const image = await createImageBitmap(canvas);
+    const mosaic = IMAGE_TOOLS.find((t) => t.id === "mosaic");
+    const base = { ...defaultsOf(mosaic?.params ?? []), columns: 3, gap: 0 };
+    const draw = (values: Record<string, unknown>) =>
+      mosaic?.render(values as typeof base, {
+        ...ctx,
+        height: 100,
+        image,
+        // Picked in any order: dark to light is worked out from brightness.
+        palette: ["#ddeeff", "#112233"],
+        width: 300,
+      }) ?? "";
+    const fills = (svg: string) =>
+      [...parse(svg).querySelectorAll("rect")].map((r) =>
+        r.getAttribute("fill")
+      );
+    expect(fills(draw({ ...base, colour: "tones" }))).toEqual([
+      "#112233",
+      "#ddeeff",
+      "#ddeeff",
+    ]);
+    const [first] = fills(draw({ ...base, colour: "tones", invert: true }));
+    expect(first).toBe("#ddeeff");
+    const [, middle] = fills(draw({ ...base, colour: "blend" }));
+    expect(middle).not.toBe("#112233");
+    expect(middle).not.toBe("#ddeeff");
+    // No background unless asked: the tiles are all there is.
+    expect(fills(draw({ ...base, colour: "tones" }))).toHaveLength(3);
+    expect(fills(draw({ ...base, bg: "#000000", fill: true }))).toHaveLength(4);
+  });
 });
 
 describe("StudioPanel", () => {
@@ -94,6 +134,33 @@ describe("StudioPanel", () => {
   afterEach(() => {
     act(() => root?.unmount());
     host?.remove();
+  });
+
+  it("adds a mosaic as the SVG itself, so it stays vector", async () => {
+    const onAdd = vi.fn();
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    act(() =>
+      root?.render(
+        <StudioPanel
+          initialTool="mosaic"
+          onAdd={onAdd}
+          onClose={() => undefined}
+        />
+      )
+    );
+    const add = [...host.querySelectorAll("button")].find((b) =>
+      b.textContent?.includes("Add to board")
+    );
+    await act(async () => {
+      add?.click();
+      await vi.waitFor(() => expect(onAdd).toHaveBeenCalled());
+    });
+    const file = onAdd.mock.calls[0]?.[0] as File;
+    expect(file.type).toBe("image/svg+xml");
+    expect(file.name).toBe("mosaic-1080x1080.svg");
+    expect(await file.text()).toContain("<svg");
   });
 
   it("adds the chosen tool's image to the board as a PNG at the size picked", async () => {

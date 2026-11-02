@@ -114,8 +114,15 @@ export function ImageToolView({
   const where = frame ? "frame" : "board";
   const add = async (asBackground = false) => {
     try {
-      const png = await svgToPngBlob(svg, size.w, size.h);
-      const file = new File([png], `${fileName}.png`, { type: "image/png" });
+      const file = tool.vector
+        ? new File([svg], `${fileName}.svg`, { type: "image/svg+xml" })
+        : new File(
+            [await svgToPngBlob(svg, size.w, size.h)],
+            `${fileName}.png`,
+            {
+              type: "image/png",
+            }
+          );
       if (asBackground && frame) {
         frame.onBackground(file);
         toast.success(`${tool.name} set as the frame's background`);

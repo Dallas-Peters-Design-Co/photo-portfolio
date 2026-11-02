@@ -3,8 +3,12 @@ import type { ImageTool } from "../types";
 
 /**
  * A picture as a tile mosaic, after Mozayk: the image is averaged into a grid
- * and each cell drawn as a square, circle, diamond, triangle or hexagon, in
- * the photo's own colours or snapped to the brand's.
+ * and each cell drawn as a square, circle, diamond, triangle or hexagon.
+ *
+ * Colour, four ways: the photo's own; each tile snapped to the nearest picked
+ * colour; recoloured by brightness, darkest tiles to the darkest picked colour
+ * and so on up, in bands; or the same as a smooth blend between them (a
+ * gradient map). The picked colours default to the brand's.
  */
 
 const hex = (r: number, g: number, b: number) =>
@@ -12,6 +16,59 @@ const hex = (r: number, g: number, b: number) =>
 
 const rgb = (h: string) =>
   [1, 3, 5].map((i) => Number.parseInt(h.slice(i, i + 2), 16) || 0);
+
+/** Perceived brightness, 0 to 255. */
+const luma = (r: number, g: number, b: number) =>
+  0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+const byLuma = (palette: string[]) =>
+  [...palette].sort((a, b) => {
+    const [ar = 0, ag = 0, ab = 0] = rgb(a);
+    const [br = 0, bg = 0, bb = 0] = rgb(b);
+    return luma(ar, ag, ab) - luma(br, bg, bb);
+  });
+
+/** A brightness, 0 to 1, as one of the colours: dark to light, in bands. */
+const band = (t: number, ramp: string[]) =>
+  ramp[Math.min(ramp.length - 1, Math.floor(t * ramp.length))] ?? "#000000";
+
+/** A brightness, 0 to 1, blended smoothly along the colours. */
+const blend = (t: number, ramp: string[]) => {
+  if (ramp.length < 2) {
+    return ramp[0] ?? "#000000";
+  }
+  const at = t * (ramp.length - 1);
+  const i = Math.min(ramp.length - 2, Math.floor(at));
+  const f = at - i;
+  const [ar = 0, ag = 0, ab = 0] = rgb(ramp[i] ?? "#000000");
+  const [br = 0, bg = 0, bb = 0] = rgb(ramp[i + 1] ?? "#000000");
+  return hex(ar + (br - ar) * f, ag + (bg - ag) * f, ab + (bb - ab) * f);
+};
+
+/** How a tile's averaged colour becomes its fill, for the chosen mode. */
+const colourer = (
+  mode: string,
+  palette: string[],
+  invert: boolean
+): ((r: number, g: number, b: number) => string) => {
+  if (mode === "nearest") {
+    return (r, g, b) => nearest(r, g, b, palette);
+  }
+  if (mode === "tones" || mode === "blend") {
+    const ramp = invert ? byLuma(palette).reverse() : byLuma(palette);
+    const along = mode === "tones" ? band : blend;
+    return (r, g, b) => along(luma(r, g, b) / 255, ramp);
+  }
+  return hex;
+};
+
+/** Earlier settings had a "Snap to brand colours" box rather than a mode. */
+const modeOf = (v: Record<string, unknown>) => {
+  if (typeof v.colour === "string" && v.colour) {
+    return v.colour;
+  }
+  return v.brand ? "nearest" : "photo";
+};
 
 const nearest = (r: number, g: number, b: number, palette: string[]) => {
   let best = palette[0] ?? "#000000";
@@ -92,7 +149,8 @@ const shape = (
 };
 
 export const mosaicTool: ImageTool = {
-  blurb: "A picture rebuilt from tiles, in its own colours or the brand's.",
+  blurb:
+    "A picture rebuilt from tiles: in its own colours, snapped to yours, or recoloured by brightness. Goes in as an SVG.",
   id: "mosaic",
   kind: "image",
   name: "Mosaic",
@@ -121,14 +179,37 @@ export const mosaicTool: ImageTool = {
     },
     { default: 8, key: "gap", label: "Gap", max: 40, min: 0, type: "range" },
     {
+      default: "photo",
+      key: "colour",
+      label: "Colour",
+      options: [
+        { label: "Photo's own", value: "photo" },
+        { label: "Nearest colour", value: "nearest" },
+        { label: "Recolour by brightness", value: "tones" },
+        { label: "Gradient map", value: "blend" },
+      ],
+      type: "select",
+    },
+    { count: 4, key: "colors", label: "Colours", max: 8, type: "colors" },
+    {
       default: false,
-      key: "brand",
-      label: "Snap to brand colours",
+      key: "invert",
+      label: "Light tiles get the dark colours",
       type: "checkbox",
     },
+    {
+      default: false,
+      key: "fill",
+      label: "Fill the background",
+      type: "checkbox",
+    },
+    { default: "#ffffff", key: "bg", label: "Background", type: "color" },
   ],
   render: (v, { height: h, image, palette, width: w }) => {
-    const ground = esc(pick(palette, palette.length - 1));
+    const ground = esc(String(v.bg || pick(palette, palette.length - 1)));
+    const groundRect = v.fill
+      ? `<rect width="${w}" height="${h}" fill="${ground}"/>`
+      : "";
     if (!image) {
       return svgDoc(
         w,
@@ -149,6 +230,7 @@ export const mosaicTool: ImageTool = {
     if (!data) {
       return svgDoc(w, h, "");
     }
+    const colour = colourer(modeOf(v), palette, Boolean(v.invert));
     const inset = cell * ((Number(v.gap) || 0) / 100);
     const s = cell - inset * 2;
     const tiles: string[] = [];
@@ -156,7 +238,7 @@ export const mosaicTool: ImageTool = {
       for (let col = 0; col < cols; col += 1) {
         const i = (row * cols + col) * 4;
         const [r = 0, g = 0, b = 0] = [data[i], data[i + 1], data[i + 2]];
-        const fill = v.brand ? nearest(r, g, b, palette) : hex(r, g, b);
+        const fill = colour(r, g, b);
         tiles.push(
           shape(
             String(v.tile),
@@ -169,10 +251,7 @@ export const mosaicTool: ImageTool = {
         );
       }
     }
-    return svgDoc(
-      w,
-      h,
-      `<rect width="${w}" height="${h}" fill="${ground}"/>${tiles.join("")}`
-    );
+    return svgDoc(w, h, `${groundRect}${tiles.join("")}`);
   },
+  vector: true,
 };

@@ -55,4 +55,10 @@ export interface ImageTool {
   params: StudioParam[];
   /** An SVG document for the size asked. Deterministic for a given seed. */
   render: (values: StudioValues, ctx: RenderContext) => string;
+  /**
+   * Added to a frame or the board as the SVG itself, so it stays vector and
+   * prints sharp; others go in as a PNG (blur filters and the like render
+   * unevenly from an SVG file).
+   */
+  vector?: boolean;
 }
