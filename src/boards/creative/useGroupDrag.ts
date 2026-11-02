@@ -6,7 +6,7 @@ import {
 import type { BoardItem } from "../../types";
 import type { Box } from "./creativeModel";
 import { overlaps, unionOf } from "./selection";
-import { type Guides, skipsSnap, snapMove } from "./snap";
+import { type Guides, keepOnFrame, skipsSnap, snapMove } from "./snap";
 
 /**
  * Moving several layers at once, and the marquee that selects them.
@@ -137,10 +137,14 @@ export const useGroupDrag = ({
     const snapped = skipsSnap(e)
       ? { box: moved, guides: { x: [], y: [] } }
       : snapMove(moved, frame, others, snapPx / scale);
-    setOffset({
-      dx: snapped.box.x - drag.union.x,
-      dy: snapped.box.y - drag.union.y,
-    });
+    setOffset(
+      keepOnFrame(
+        layers.filter((l) => drag.ids.includes(l.id)).map(boxOf),
+        frame,
+        snapped.box.x - drag.union.x,
+        snapped.box.y - drag.union.y
+      )
+    );
     setGuides(snapped.guides);
     return true;
   };

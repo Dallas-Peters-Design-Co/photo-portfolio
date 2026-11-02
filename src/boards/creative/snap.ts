@@ -39,6 +39,38 @@ const bestShift = (
 };
 
 /**
+ * A move cut short so every box's centre stays on the frame. A layer belongs
+ * to the frame its centre is in (config/graph.ts), so a centre dragged past
+ * the edge would drop the layer out of the design and out of the editor.
+ * Half a layer can still hang off any edge; taking one off the frame
+ * altogether is "Move to the board".
+ */
+export const keepOnFrame = (
+  boxes: Box[],
+  frame: Box,
+  dx: number,
+  dy: number
+): { dx: number; dy: number } => {
+  // A unit in from the edge, so rounding the landing spot can't tip it out.
+  const inset = 1;
+  let x = dx;
+  let y = dy;
+  for (const b of boxes) {
+    const cx = b.x + b.width / 2;
+    const cy = b.y + b.height / 2;
+    x = Math.min(
+      Math.max(x, frame.x + inset - cx),
+      frame.x + frame.width - inset - cx
+    );
+    y = Math.min(
+      Math.max(y, frame.y + inset - cy),
+      frame.y + frame.height - inset - cy
+    );
+  }
+  return { dx: x, dy: y };
+};
+
+/**
  * ⌘ (Ctrl elsewhere) held mid-drag places freely, without snapping. Not ⌥:
  * that duplicates, as in Figma and Illustrator.
  */

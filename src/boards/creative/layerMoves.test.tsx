@@ -6,7 +6,10 @@ import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
 import { layerOpacity, opacityOf, withOpacity } from "./layerOpacity";
 
-/** Opacity on every kind of layer, and ⌥-drag to duplicate, in a real browser. */
+/**
+ * Layer opacity, ⌥-drag to duplicate, moving layers back to the board and
+ * keeping dragged layers on the frame, in a real browser.
+ */
 
 let root: Root | null = null;
 let host: HTMLDivElement | null = null;
@@ -217,5 +220,39 @@ describe("move to the board", () => {
     const b = latest.find((i) => i.id === "b");
     expect((b?.x ?? 0) - (a?.x ?? 0)).toBe(260);
     expect(a?.x).toBeGreaterThanOrEqual(frame.width);
+  });
+});
+
+describe("dragging near the edge", () => {
+  it("stops with the layer's centre still on the frame, so it stays in the design", () => {
+    render([frame, rect("a", 40, 1)]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    const layer = document.querySelector('[data-layer-id="a"]') as Element;
+    const board = document.querySelector(".creative__board") as Element;
+    const r = layer.getBoundingClientRect();
+    const from = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    const scale = board.getBoundingClientRect().width / 540;
+    const to = { x: from.x + 900 * scale, y: from.y };
+    pointer("pointerdown", layer, from);
+    pointer("pointermove", board, to, { metaKey: true });
+    pointer("pointerup", board, to);
+    const a = latest.find((i) => i.id === "a");
+    // Centre at the right edge less a unit: half the layer hangs off.
+    expect((a?.x ?? 0) + 50).toBeLessThanOrEqual(540);
+    expect((a?.x ?? 0) + 50).toBeGreaterThan(530);
+    expect(document.querySelector('[data-layer-id="a"]')).not.toBeNull();
+  });
+
+  it("stops arrow-key nudges at the edge too", () => {
+    render([frame, rect("a", 440, 1)]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    for (let i = 0; i < 12; i += 1) {
+      press("ArrowRight", { shiftKey: true });
+    }
+    expect(document.querySelector('[data-layer-id="a"]')).not.toBeNull();
   });
 });

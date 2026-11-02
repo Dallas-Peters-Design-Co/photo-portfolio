@@ -17,6 +17,7 @@ import {
 import { editorCommandList } from "./editorCommandList";
 import { type AlignTo, alignLayers, type useLayerSelection } from "./selection";
 import { sendToBoard } from "./sendToBoard";
+import { keepOnFrame } from "./snap";
 
 /**
  * Everything the frame editor can do, as named commands with their keys:
@@ -126,8 +127,11 @@ export const useEditorCommands = ({
       add(newText(frame, items, role));
     }
   };
-  const nudge = (dx: number, dy: number) =>
-    each((l) => ({ x: l.x + dx, y: l.y + dy }));
+  /** Arrow keys, stopping short of nudging a layer off the frame. */
+  const nudge = (dx: number, dy: number) => {
+    const step = frame ? keepOnFrame(chosen, frame, dx, dy) : { dx, dy };
+    each((l) => ({ x: l.x + step.dx, y: l.y + step.dy }));
+  };
   /** One layer aligns to the frame; several align to each other. */
   const align = (to: AlignTo) => {
     if (one && frame) {
