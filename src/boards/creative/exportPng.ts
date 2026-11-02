@@ -8,6 +8,7 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { anchorFractions, anchorOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { layerOpacity } from "./layerOpacity";
 import { rotationOf } from "./rotate";
@@ -64,15 +65,17 @@ const drawCover = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   w: number,
-  h: number
+  h: number,
+  /** Where the crop is pinned, 0 to 1 across and down (imageAnchor.ts). */
+  at = { x: 0.5, y: 0.5 }
 ) => {
   const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
   const sw = w / scale;
   const sh = h / scale;
   ctx.drawImage(
     img,
-    (img.naturalWidth - sw) / 2,
-    (img.naturalHeight - sh) / 2,
+    (img.naturalWidth - sw) * at.x,
+    (img.naturalHeight - sh) * at.y,
     sw,
     sh,
     0,
@@ -336,7 +339,7 @@ const drawLayer = (
         clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
         ctx.clip(clip);
       }
-      drawCover(ctx, picture, w, h);
+      drawCover(ctx, picture, w, h, anchorFractions(anchorOf(item)));
     }
   }
 };

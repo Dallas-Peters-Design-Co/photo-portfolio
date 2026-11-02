@@ -2,6 +2,7 @@ import { useState } from "react";
 import { optimizedImageSrc } from "../components/OptimizedImage";
 import type { BoardItem } from "../types";
 import { useAutoplay } from "./autoplayPref";
+import { objectPositionOf } from "./creative/imageAnchor";
 import { imageRadius } from "./creative/imageRadius";
 import { grownBucket, wantedWidth } from "./io/imageBucket";
 import { isVideoUrl } from "./io/isVideo";
@@ -106,7 +107,10 @@ export function ItemMedia({
       height={item.height}
       loading="lazy"
       src={optimizedImageSrc(url ?? "", bucket)}
-      style={radius > 0 ? { borderRadius: radius } : undefined}
+      style={{
+        borderRadius: radius > 0 ? radius : undefined,
+        objectPosition: objectPositionOf(item),
+      }}
       width={item.width}
     />
   );

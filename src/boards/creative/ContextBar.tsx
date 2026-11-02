@@ -33,7 +33,7 @@ import {
   NO_FILL,
 } from "../drawing/drawing";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
-import { imageRadius } from "./imageRadius";
+import { ImageControls } from "./ImageControls";
 import { opacityOf, withOpacity } from "./layerOpacity";
 import { OpacityField } from "./OpacityField";
 import { normalizeAngle, rotationOf } from "./rotate";
@@ -371,19 +371,7 @@ export function ContextBar({
         </button>
       ) : null}
       {kind === "image" ? (
-        <Field label="Corners">
-          <input
-            className="creative__input creative__input--num"
-            min={0}
-            onChange={(e) =>
-              onPatch({
-                config: { ...item.config, radius: num(e.target.value, 0) },
-              })
-            }
-            type="number"
-            value={imageRadius(item)}
-          />
-        </Field>
+        <ImageControls item={item} onPatch={onPatch} />
       ) : null}
       {kind ? (
         <OpacityField

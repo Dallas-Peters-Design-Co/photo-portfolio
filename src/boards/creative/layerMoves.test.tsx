@@ -343,3 +343,38 @@ describe("several layers selected", () => {
     ).toEqual([1400, 1400]);
   });
 });
+
+describe("picture position", () => {
+  it("pins which part of a picture stays in view, and keeps it", () => {
+    const pic = {
+      ...base,
+      height: 100,
+      id: "p",
+      imageUrl: "https://example.test/a.png",
+      kind: "reference",
+      width: 300,
+      x: 20,
+      y: 20,
+      z: 1,
+    } as BoardItem;
+    render([frame, pic]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    act(() =>
+      (
+        document.querySelector(
+          '[aria-label="Pin to the top left"]'
+        ) as HTMLElement
+      ).click()
+    );
+    expect(
+      (latest.find((i) => i.id === "p")?.config as { position?: string } | null)
+        ?.position
+    ).toBe("top-left");
+    const img = document.querySelector(
+      '[data-layer-id="p"] img'
+    ) as HTMLImageElement;
+    expect(img.style.objectPosition).toBe("0% 0%");
+  });
+});

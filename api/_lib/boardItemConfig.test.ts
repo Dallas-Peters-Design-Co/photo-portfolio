@@ -99,6 +99,10 @@ describe("parseImageConfig", () => {
 describe("a picture's and text layer's own settings", () => {
   it("keeps opacity below 1 on pictures and text", () => {
     expect(parseImageConfig({ opacity: 0.4 })).toEqual({ opacity: 0.4 });
+    expect(parseImageConfig({ position: "top-left" })).toEqual({
+      position: "top-left",
+    });
+    expect(parseImageConfig({ position: "sideways" })).toBeNull();
     expect(parseTextConfig({ opacity: 0.25, script: "x" })).toEqual({
       opacity: 0.25,
     });

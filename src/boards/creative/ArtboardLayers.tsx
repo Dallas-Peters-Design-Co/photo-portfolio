@@ -7,6 +7,7 @@ import { useTextFont } from "../hooks/useTextFont";
 import { useVerticalAlign } from "../hooks/useVerticalAlign";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { objectPositionOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 
 /**
@@ -100,9 +101,10 @@ export function LayerBody({
       draggable={false}
       height={item.height}
       src={url}
-      style={
-        imageRadius(item) > 0 ? { borderRadius: imageRadius(item) } : undefined
-      }
+      style={{
+        borderRadius: imageRadius(item) > 0 ? imageRadius(item) : undefined,
+        objectPosition: objectPositionOf(item),
+      }}
       width={item.width}
     />
   ) : null;
