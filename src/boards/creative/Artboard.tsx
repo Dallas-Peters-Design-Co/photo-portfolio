@@ -1,6 +1,5 @@
 import {
   type PointerEvent as ReactPointerEvent,
-  useEffect,
   useRef,
   useState,
 } from "react";
@@ -14,7 +13,9 @@ import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
 import { type Handle, SelectionBox } from "./SelectionBox";
 import { unionOf } from "./selection";
 import { type Guides, skipsSnap, snapMove } from "./snap";
+import { useArtboardZoom } from "./useArtboardZoom";
 import { useGroupDrag } from "./useGroupDrag";
+import { ZoomBar } from "./ZoomBar";
 import "../itemBodies.css";
 
 /**
@@ -93,7 +94,8 @@ export function Artboard({
   const stageRef = useRef<HTMLDivElement>(null);
   const boardRef = useRef<HTMLDivElement>(null);
   const selectedId = selectedIds.length === 1 ? (selectedIds[0] ?? null) : null;
-  const [scale, setScale] = useState(1);
+  const view = useArtboardZoom(stageRef, frame);
+  const { scale } = view;
   const [drag, setDrag] = useState<Drag | null>(null);
   const [live, setLive] = useState<{
     box: Box;
@@ -112,26 +114,6 @@ export function Artboard({
     selectedIds,
     snapPx: SNAP_PX,
   });
-
-  useEffect(() => {
-    const el = stageRef.current;
-    if (!el) {
-      return;
-    }
-    const fit = () => {
-      const pad = 64;
-      setScale(
-        Math.min(
-          (el.clientWidth - pad) / frame.width,
-          (el.clientHeight - pad) / frame.height
-        )
-      );
-    };
-    fit();
-    const observer = new ResizeObserver(fit);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [frame.height, frame.width]);
 
   const begin = (
     e: ReactPointerEvent,
@@ -312,147 +294,150 @@ export function Artboard({
       : rotationOf(item);
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: the stage receives pointer presses (to deselect) and file drops, like the board surface
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
-    <div
-      className="creative__stage"
-      onDragOver={(e) => {
-        if (onDropFiles && e.dataTransfer.types.includes("Files")) {
-          e.preventDefault();
-        }
-      }}
-      onDrop={(e) => {
-        const files = Array.from(e.dataTransfer.files);
-        if (!(onDropFiles && files.length > 0)) {
-          return;
-        }
-        e.preventDefault();
-        onDropFiles(files, {
-          x: frame.x + frame.width / 2,
-          y: frame.y + frame.height / 2,
-        });
-      }}
-      onPointerDown={() => {
-        onSelect(null);
-        onEditText(null);
-      }}
-      ref={stageRef}
-    >
+    <div className="creative__viewport">
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: the stage receives pointer presses (to deselect) and file drops, like the board surface */}
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: same */}
       <div
-        className="creative__fit"
-        style={{ height: frame.height * scale, width: frame.width * scale }}
+        className="creative__stage"
+        onDragOver={(e) => {
+          if (onDropFiles && e.dataTransfer.types.includes("Files")) {
+            e.preventDefault();
+          }
+        }}
+        onDrop={(e) => {
+          const files = Array.from(e.dataTransfer.files);
+          if (!(onDropFiles && files.length > 0)) {
+            return;
+          }
+          e.preventDefault();
+          onDropFiles(files, {
+            x: frame.x + frame.width / 2,
+            y: frame.y + frame.height / 2,
+          });
+        }}
+        onPointerDown={() => {
+          onSelect(null);
+          onEditText(null);
+        }}
+        ref={stageRef}
       >
         <div
-          className="creative__board"
-          onPointerCancel={end}
-          onPointerDown={group.startMarquee}
-          onPointerMove={move}
-          onPointerUp={end}
-          ref={boardRef}
-          style={{
-            height: frame.height,
-            transform: `scale(${scale})`,
-            width: frame.width,
-          }}
+          className="creative__fit"
+          style={{ height: frame.height * scale, width: frame.width * scale }}
         >
-          {layers.map((item) => {
-            const isLive = drag?.id === item.id && live;
-            const box =
-              group.shownBox(item) ?? (isLive ? live.box : boxOf(item));
-            const shown =
-              isLive && live.fontSize !== null
-                ? { ...item, fontSize: live.fontSize }
-                : item;
-            const isSelected = selectedIds.includes(item.id);
-            return (
-              // biome-ignore lint/a11y/noStaticElementInteractions: a layer is a pointer target on a canvas; the layers list is its keyboard route
-              // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
-              <div
-                className={
-                  isSelected
-                    ? "creative__layer creative__layer--selected"
-                    : "creative__layer"
+          <div
+            className="creative__board"
+            onPointerCancel={end}
+            onPointerDown={group.startMarquee}
+            onPointerMove={move}
+            onPointerUp={end}
+            ref={boardRef}
+            style={{
+              height: frame.height,
+              transform: `scale(${scale})`,
+              width: frame.width,
+            }}
+          >
+            {layers.map((item) => {
+              const isLive = drag?.id === item.id && live;
+              const box =
+                group.shownBox(item) ?? (isLive ? live.box : boxOf(item));
+              const shown =
+                isLive && live.fontSize !== null
+                  ? { ...item, fontSize: live.fontSize }
+                  : item;
+              const isSelected = selectedIds.includes(item.id);
+              return (
+                // biome-ignore lint/a11y/noStaticElementInteractions: a layer is a pointer target on a canvas; the layers list is its keyboard route
+                // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
+                <div
+                  className={
+                    isSelected
+                      ? "creative__layer creative__layer--selected"
+                      : "creative__layer"
+                  }
+                  data-layer-id={item.id}
+                  key={item.id}
+                  onDoubleClick={() => {
+                    if (item.kind === "text" || item.kind === "note") {
+                      onEditText(item.id);
+                    }
+                  }}
+                  onPointerDown={(e) => begin(e, item, null)}
+                  style={{
+                    height: box.height,
+                    left: box.x - frame.x,
+                    opacity: opacityCss(item),
+                    top: box.y - frame.y,
+                    transform: rotateCss(angleOf(item)),
+                    width: box.width,
+                  }}
+                >
+                  <LayerBody
+                    editing={editingId === item.id}
+                    item={{ ...shown, height: box.height, width: box.width }}
+                    onDone={() => onEditText(null)}
+                    onTextChange={(body) => onTextChange(item.id, body)}
+                    textRef={(el) => textRef(item.id, el)}
+                  />
+                </div>
+              );
+            })}
+            {selected && selectedBox && editingId !== selected.id ? (
+              <SelectionBox
+                box={selectedBox}
+                frame={frame}
+                onBegin={(e, handle) =>
+                  begin(e, selected, handle, handle === null)
                 }
-                data-layer-id={item.id}
-                key={item.id}
                 onDoubleClick={() => {
-                  if (item.kind === "text" || item.kind === "note") {
-                    onEditText(item.id);
+                  if (selected.kind === "text" || selected.kind === "note") {
+                    onEditText(selected.id);
                   }
                 }}
-                onPointerDown={(e) => begin(e, item, null)}
+                rotation={angleOf(selected)}
+                scale={scale}
+              />
+            ) : null}
+            {selectedIds.length > 1 ? (
+              <GroupOutline
+                box={unionOf(
+                  layers
+                    .filter((l) => selectedIds.includes(l.id))
+                    .map((l) => group.shownBox(l) ?? boxOf(l))
+                )}
+                frame={frame}
+              />
+            ) : null}
+            {group.marquee ? (
+              <span
+                className="creative__marquee"
                 style={{
-                  height: box.height,
-                  left: box.x - frame.x,
-                  opacity: opacityCss(item),
-                  top: box.y - frame.y,
-                  transform: rotateCss(angleOf(item)),
-                  width: box.width,
+                  height: group.marquee.height,
+                  left: group.marquee.x - frame.x,
+                  top: group.marquee.y - frame.y,
+                  width: group.marquee.width,
                 }}
-              >
-                <LayerBody
-                  editing={editingId === item.id}
-                  item={{ ...shown, height: box.height, width: box.width }}
-                  onDone={() => onEditText(null)}
-                  onTextChange={(body) => onTextChange(item.id, body)}
-                  textRef={(el) => textRef(item.id, el)}
-                />
-              </div>
-            );
-          })}
-          {selected && selectedBox && editingId !== selected.id ? (
-            <SelectionBox
-              box={selectedBox}
-              frame={frame}
-              onBegin={(e, handle) =>
-                begin(e, selected, handle, handle === null)
-              }
-              onDoubleClick={() => {
-                if (selected.kind === "text" || selected.kind === "note") {
-                  onEditText(selected.id);
-                }
-              }}
-              rotation={angleOf(selected)}
-              scale={scale}
-            />
-          ) : null}
-          {selectedIds.length > 1 ? (
-            <GroupOutline
-              box={unionOf(
-                layers
-                  .filter((l) => selectedIds.includes(l.id))
-                  .map((l) => group.shownBox(l) ?? boxOf(l))
-              )}
-              frame={frame}
-            />
-          ) : null}
-          {group.marquee ? (
-            <span
-              className="creative__marquee"
-              style={{
-                height: group.marquee.height,
-                left: group.marquee.x - frame.x,
-                top: group.marquee.y - frame.y,
-                width: group.marquee.width,
-              }}
-            />
-          ) : null}
-          {[...guides.x, ...group.guides.x].map((x) => (
-            <span
-              className="creative__guide creative__guide--v"
-              key={`x${x}`}
-              style={{ left: x - frame.x, ["--s" as string]: scale }}
-            />
-          ))}
-          {[...guides.y, ...group.guides.y].map((y) => (
-            <span
-              className="creative__guide creative__guide--h"
-              key={`y${y}`}
-              style={{ top: y - frame.y, ["--s" as string]: scale }}
-            />
-          ))}
+              />
+            ) : null}
+            {[...guides.x, ...group.guides.x].map((x) => (
+              <span
+                className="creative__guide creative__guide--v"
+                key={`x${x}`}
+                style={{ left: x - frame.x, ["--s" as string]: scale }}
+              />
+            ))}
+            {[...guides.y, ...group.guides.y].map((y) => (
+              <span
+                className="creative__guide creative__guide--h"
+                key={`y${y}`}
+                style={{ top: y - frame.y, ["--s" as string]: scale }}
+              />
+            ))}
+          </div>
         </div>
       </div>
+      <ZoomBar view={view} />
     </div>
   );
 }

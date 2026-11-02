@@ -378,3 +378,53 @@ describe("picture position", () => {
     expect(img.style.objectPosition).toBe("0% 0%");
   });
 });
+
+describe("zooming the artboard", () => {
+  it("zooms in and out from the corner and the keys, and fits again", () => {
+    render([frame, rect("a", 40, 1)]);
+    const width = () =>
+      (
+        document.querySelector(".creative__board") as HTMLElement
+      ).getBoundingClientRect().width;
+    const fitted = width();
+    act(() =>
+      (
+        document.querySelector('[aria-label="Zoom in (⌘+)"]') as HTMLElement
+      ).click()
+    );
+    expect(width()).toBeCloseTo(fitted * 1.25, 0);
+    press("=", { metaKey: true });
+    expect(width()).toBeCloseTo(fitted * 1.25 * 1.25, 0);
+    // Bigger than the stage now, so the stage scrolls rather than clipping.
+    press("0", { metaKey: true });
+    expect(width()).toBeCloseTo(fitted, 0);
+    act(() =>
+      (
+        document.querySelector('[aria-label="Zoom out (⌘−)"]') as HTMLElement
+      ).click()
+    );
+    expect(width()).toBeCloseTo(fitted / 1.25, 0);
+  });
+
+  it("still moves layers by the right amount when zoomed", () => {
+    render([frame, rect("a", 40, 1)]);
+    act(() =>
+      (
+        document.querySelector('[aria-label="Zoom in (⌘+)"]') as HTMLElement
+      ).click()
+    );
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    const layer = document.querySelector('[data-layer-id="a"]') as Element;
+    const board = document.querySelector(".creative__board") as Element;
+    const r = layer.getBoundingClientRect();
+    const from = { x: r.left + 5, y: r.top + 5 };
+    const scale = board.getBoundingClientRect().width / 540;
+    const to = { x: from.x + 30 * scale, y: from.y };
+    pointer("pointerdown", layer, from);
+    pointer("pointermove", board, to, { metaKey: true });
+    pointer("pointerup", board, to);
+    expect(latest.find((i) => i.id === "a")?.x).toBe(70);
+  });
+});

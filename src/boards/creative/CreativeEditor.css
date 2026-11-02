@@ -275,12 +275,23 @@
   background: color-mix(in oklch, var(--color-board-ink) 12%, transparent);
 }
 
+/* The stage and its zoom controls, which stay put while the stage scrolls. */
+.creative__viewport {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Scrolls once the artboard is zoomed past the fit. `safe` keeps a board
+   bigger than the stage from being centred off its top and left edges, where
+   no scrolling could reach. */
 .creative__stage {
   position: relative;
   display: grid;
-  place-items: center;
+  place-items: safe center;
   min-height: 0;
-  overflow: hidden;
+  overflow: auto;
   background-image: radial-gradient(
     color-mix(in oklch, var(--color-board-ink) 12%, transparent) 1px,
     transparent 1px
@@ -772,4 +783,25 @@ button.creative-export__item:hover:not(:disabled) {
   &[aria-pressed="true"] {
     background: var(--color-board-ink);
   }
+}
+
+.creative-zoom {
+  position: absolute;
+  right: calc(var(--spacing) * 3);
+  bottom: calc(var(--spacing) * 3);
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  padding: 2px;
+  font-size: 0.6875rem;
+  background: var(--color-board-panel);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+  border-radius: var(--radius-control, 6px);
+}
+
+.creative-zoom__level {
+  min-width: 3.5em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
 }
