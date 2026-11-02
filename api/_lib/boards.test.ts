@@ -119,6 +119,17 @@ describe("a text item's style, saved and reloaded", () => {
   });
 });
 
+describe("a text item's size", () => {
+  it("keeps poster-sized type, which print frames at 300 dpi need", () => {
+    expect(parseIncomingItem(incoming({ fontSize: 1400 }))?.fontSize).toBe(
+      1400
+    );
+    expect(parseIncomingItem(incoming({ fontSize: 99_999 }))?.fontSize).toBe(
+      5000
+    );
+  });
+});
+
 describe("a frame's settings", () => {
   it("keeps only whether it has been designed", () => {
     const frame = (config: unknown) =>

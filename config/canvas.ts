@@ -120,11 +120,13 @@ export const DEFAULT_FRAME_HEIGHT = 900;
 /**
  * Text size bounds, in canvas units.
  *
- * Generous at the top end: a heading on a 4000-unit canvas is legitimately
- * enormous compared with body text on a page.
+ * Generous at the top end. Print frames are laid out at 300 dpi, so a poster
+ * is 5400 to 7200 units across and its display type runs to well over a
+ * thousand; the old cap of 400 sent a 1400 headline back to 400 the moment
+ * the board saved.
  */
 export const MIN_FONT_SIZE = 8;
-export const MAX_FONT_SIZE = 400;
+export const MAX_FONT_SIZE = 5000;
 
 /** Defaults when an item has no explicit size. */
 export const DEFAULT_NOTE_FONT_SIZE = 15;

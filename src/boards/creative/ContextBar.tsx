@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../../config/canvas";
 import {
   normalizeTextStyle,
   type TextStyle,
@@ -144,10 +145,15 @@ function TextControls({
       <Field label="Size">
         <input
           className="creative__input creative__input--num"
-          max={400}
-          min={8}
+          max={MAX_FONT_SIZE}
+          min={MIN_FONT_SIZE}
           onChange={(e) =>
-            onPatch({ fontSize: Math.round(num(e.target.value, css.fontSize)) })
+            onPatch({
+              fontSize: Math.min(
+                MAX_FONT_SIZE,
+                Math.round(num(e.target.value, css.fontSize))
+              ),
+            })
           }
           type="number"
           value={css.fontSize}
