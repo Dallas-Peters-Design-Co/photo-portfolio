@@ -86,10 +86,19 @@ describe("copyFrameAtSizes", () => {
     expect(text?.fontSize).toBe(48);
   });
 
-  it("wraps under the frame when a row would leave the canvas", () => {
+  it("keeps going right past the canvas edge, and past a neighbour", () => {
     const far = { ...frame, x: 11_000 };
-    const out = copyFrameAtSizes([far], "f", [square]);
-    expect(out?.added[0]).toMatchObject({ x: 11_000, y: 1000 + 540 + 120 });
+    const next = item({
+      height: 540,
+      id: "n",
+      kind: "frame",
+      width: 540,
+      x: 11_000 + 540 + 120,
+      y: 1000,
+      z: 0,
+    });
+    const out = copyFrameAtSizes([far, next], "f", [square]);
+    expect(out?.added[0]).toMatchObject({ x: next.x + 540 + 120, y: 1000 });
   });
 });
 
@@ -113,5 +122,20 @@ describe("duplicateFrame", () => {
     const big = { ...headline, fontSize: 1400 };
     const out = copyFrameAtSizes([frame, photo, big], "f", [square]);
     expect(out?.added.find((i) => i.kind === "text")?.fontSize).toBe(1400);
+  });
+});
+
+describe("duplicateFrame next to other frames", () => {
+  it("goes past a neighbour instead of landing on it, even off the canvas", () => {
+    const poster = (id: string, x: number) =>
+      item({ height: 5400, id, kind: "frame", width: 3600, x, y: 0, z: 0 });
+    const a = poster("a", 0);
+    const b = poster("b", 3700);
+    const c = poster("c", 7400);
+    const words = item({ id: "w", kind: "text", x: 200, y: 200 });
+    const out = duplicateFrame([a, b, c, words], "a");
+    const copy = out?.added.find((i) => i.kind === "frame");
+    expect(copy?.x).toBeGreaterThanOrEqual(c.x + c.width);
+    expect(copy?.y).toBe(0);
   });
 });

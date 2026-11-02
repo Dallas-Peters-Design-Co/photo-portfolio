@@ -4,14 +4,10 @@ import {
   relayout,
   sizeTitle,
 } from "../../../config/adLayout";
-import {
-  CANVAS_WIDTH,
-  MAX_FONT_SIZE,
-  MIN_FONT_SIZE,
-} from "../../../config/canvas";
+import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../../config/canvas";
 import { containedBy, withinFrame } from "../../../config/graph";
 import type { BoardItem } from "../../types";
-import { findFreeSpot } from "../geometry/placement";
+import { clearSpotRightOf } from "../geometry/placement";
 import { newItemId } from "./newItemId";
 
 /**
@@ -21,8 +17,6 @@ import { newItemId } from "./newItemId";
  * the design (the frame's own contents, by centre), where copies go, and what
  * a copy carries. Pure, so the editor hook is just change() and a toast.
  */
-
-const GAP = 120;
 
 const layoutOf = (item: BoardItem) => ({ ...item });
 
@@ -66,8 +60,8 @@ export const resizeFrame = (
 };
 
 /**
- * Copies of the frame at each size, laid out in a row to its right, wrapping
- * under it when the row would run off the canvas. The original is untouched.
+ * Copies of the frame at each size, laid out in a row to its right, each past
+ * anything in the way. The original is untouched.
  */
 export const copyFrameAtSizes = (
   items: BoardItem[],
@@ -82,24 +76,16 @@ export const copyFrameAtSizes = (
   const top = Math.max(0, ...items.map((item) => item.z ?? 0)) + 1;
   const added: BoardItem[] = [];
   const frameIds: string[] = [];
-  const {
-    height: frameHeight,
-    width: frameWidth,
-    x: left,
-    y: frameTop,
-  } = frame;
-  let x = left + frameWidth + GAP;
-  let y = frameTop;
-  let rowHeight = frameHeight;
+  // Each copy goes to the first clear spot right of the one before, past
+  // anything already there: placing by arithmetic alone put copies straight
+  // on top of the next frame along.
+  let after: { height: number; width: number; x: number; y: number } = frame;
 
   sizes.forEach((size, index) => {
     const box = frameBoxFor(size, frame);
-    if (x + box.width > CANVAS_WIDTH) {
-      x = left;
-      y += rowHeight + GAP;
-      rowHeight = 0;
-    }
-    const next = { ...box, x, y };
+    const spot = clearSpotRightOf(after, [...items, ...added], box);
+    const next = { ...box, x: spot.x, y: spot.y };
+    after = next;
     const id = newItemId();
     frameIds.push(id);
     // The frame goes under its contents: frames sit at the back already, so
@@ -113,15 +99,13 @@ export const copyFrameAtSizes = (
         z: top + index * inside.length + i,
       });
     });
-    x += box.width + GAP;
-    rowHeight = Math.max(rowHeight, box.height);
   });
   return { added, frameIds };
 };
 
 /**
  * An exact copy of the frame and everything on it (frames inside it too), at
- * the nearest clear spot to its right. Same size, same title, same design;
+ * the first clear spot to its right on the same row, however far that is. Same size, same title, same design;
  * the copies stack above everything so none of them hides under the board.
  * Other frames count as taken, so the copy can't land on one and join it.
  */
@@ -134,18 +118,7 @@ export const duplicateFrame = (
     return null;
   }
   const inside = withinFrame(frame, items);
-  const obstacles = items.map((i) =>
-    i.kind === "frame" ? { ...i, kind: "drawing" as const } : i
-  );
-  const spot = findFreeSpot({
-    height: frame.height,
-    items: obstacles,
-    origin: {
-      x: frame.x + frame.width * 1.5 + GAP,
-      y: frame.y + frame.height / 2,
-    },
-    width: frame.width,
-  });
+  const spot = clearSpotRightOf(frame, items);
   const dx = spot.x - frame.x;
   const dy = spot.y - frame.y;
   const top = Math.max(0, ...items.map((item) => item.z ?? 0)) + 1;

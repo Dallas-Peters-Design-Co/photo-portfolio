@@ -110,3 +110,33 @@ export const findFreeSpot = ({
 
   return start;
 };
+
+/**
+ * The first clear spot to the right of `box`, on the same row, for something
+ * the same size: past whatever is in the way, as far as it takes.
+ *
+ * For copies of frames and for layers sent back to the board. findFreeSpot
+ * keeps to the canvas and, when nothing inside it is free, falls back to
+ * stacking; poster-sized frames rarely fit there, so a copy landed squarely
+ * on its neighbour. Here the walk goes right until it is clear, and every
+ * item counts as in the way, frames included.
+ */
+export const clearSpotRightOf = (
+  box: Box,
+  items: BoardItem[],
+  size: { height: number; width: number } = box,
+  ignore: ReadonlySet<string> = new Set(),
+  gap = 120
+): { x: number; y: number } => {
+  const others = items.filter((item) => !ignore.has(item.id));
+  let x = box.x + box.width + gap;
+  for (let guard = 0; guard < 500; guard += 1) {
+    const candidate = { height: size.height, width: size.width, x, y: box.y };
+    const hit = others.find((item) => overlaps(candidate, item));
+    if (!hit) {
+      return { x: Math.round(x), y: Math.round(box.y) };
+    }
+    x = hit.x + hit.width + gap;
+  }
+  return { x: Math.round(x), y: Math.round(box.y) };
+};
