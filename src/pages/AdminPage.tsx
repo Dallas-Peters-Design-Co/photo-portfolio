@@ -25,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
+import { useNewVersion } from "../hooks/useNewVersion";
 import posthog from "../lib/posthog";
 import { authApi, authStorage } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
@@ -57,6 +58,7 @@ const sectionClass = ({ isActive }: { isActive: boolean }) =>
     : "admin-page__section";
 
 export function AdminPage() {
+  useNewVersion();
   const { settings } = useSiteSettings();
   // A token in storage is only a guess until the server confirms it. Until that
   // check lands, an unchecked token means "checking" rather than "signed in" —

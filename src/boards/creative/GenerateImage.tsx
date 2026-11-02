@@ -85,6 +85,10 @@ export function GenerateImage({
   const [prompt, setPrompt] = useState("");
   const { choices, model, setModel, takesPhotos } = useGenerateModel();
   const onBrand = doc?.onBrand.length ?? 0;
+  const sourceNote = kit
+    ? `Made from ${kit.name}'s palette, voice, notes and photos.`
+    : "No brand chosen: made from your words alone. Pick a brand on the right to use its palette and photos.";
+  const hint = busy ? "Up to a minute." : sourceNote;
 
   const put = async (url: string) => {
     if (place === "background") {
@@ -105,9 +109,6 @@ export function GenerateImage({
   };
 
   const generate = async () => {
-    if (!kit) {
-      return;
-    }
     setBusy(true);
     try {
       const size = sizeFromTitle(frame.body) ?? {
@@ -115,7 +116,7 @@ export function GenerateImage({
         w: frame.width,
       };
       const look = doc?.look ? LOOKS.find((l) => l.id === doc.look?.id) : null;
-      const result = await brandKitsApi.generateImage(kit.id, {
+      const result = await brandKitsApi.generateImage(kit?.id ?? null, {
         ask: ask.trim(),
         height: size.h,
         look: look?.name ?? "",
@@ -134,15 +135,6 @@ export function GenerateImage({
       setBusy(false);
     }
   };
-
-  if (!kit) {
-    return (
-      <p className="creative__hint">
-        Choose a brand in the panel on the right, and pictures are made from
-        everything it knows.
-      </p>
-    );
-  }
 
   return (
     <div className="creative-generate">
@@ -206,11 +198,7 @@ export function GenerateImage({
         <Sparkles size={14} />
         {busy ? "Making it…" : "Generate"}
       </button>
-      <p className="creative__hint">
-        {busy
-          ? "Up to a minute."
-          : `Made from ${kit.name}'s palette, voice, notes and photos.`}
-      </p>
+      <p className="creative__hint">{hint}</p>
       {prompt ? (
         <details className="creative-generate__prompt">
           <summary>Prompt used</summary>

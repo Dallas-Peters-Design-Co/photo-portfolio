@@ -29,17 +29,37 @@ export interface FrameLock {
   owner: string;
 }
 
-/** A frame that has been designed in the frame editor. */
-export const isDesignFrame = (frame: BoardItem): boolean =>
-  frame.kind === "frame" &&
+const isMarked = (frame: BoardItem): boolean =>
   (frame.config as { designed?: unknown } | null)?.designed === true;
+
+/**
+ * A frame designed before frames were marked: it holds type and something to
+ * set it on (a shape or a picture), and no nodes, which only a workflow group
+ * has. The mark is added the next time it's changed in the frame editor.
+ */
+const looksDesigned = (frame: BoardItem, items: BoardItem[]): boolean => {
+  const kinds = new Set(withinFrame(frame, items).map((i) => i.kind));
+  return (
+    kinds.has("text") &&
+    (kinds.has("drawing") || kinds.has("reference") || kinds.has("photo")) &&
+    !kinds.has("op") &&
+    !kinds.has("shader")
+  );
+};
+
+/** A frame that has been designed in the frame editor. */
+export const isDesignFrame = (
+  frame: BoardItem,
+  items: BoardItem[] = []
+): boolean =>
+  frame.kind === "frame" && (isMarked(frame) || looksDesigned(frame, items));
 
 /** The board with this frame marked designed; the same list if it already is. */
 export const markDesigned = (
   items: BoardItem[],
   frameId: string
 ): BoardItem[] =>
-  items.some((i) => i.id === frameId && !isDesignFrame(i))
+  items.some((i) => i.id === frameId && i.kind === "frame" && !isMarked(i))
     ? items.map((i) =>
         i.id === frameId
           ? { ...i, config: { ...(i.config ?? {}), designed: true } }
@@ -63,7 +83,7 @@ const area = (r: Rect): number => r.width * r.height;
 /** Every item sitting in a design frame, with its owner and clip. */
 export const frameLocks = (items: BoardItem[]): Map<string, FrameLock> => {
   const locks = new Map<string, FrameLock>();
-  const frames = items.filter(isDesignFrame);
+  const frames = items.filter((item) => isDesignFrame(item, items));
   for (const frame of frames) {
     for (const item of withinFrame(frame, items)) {
       const was = locks.get(item.id);

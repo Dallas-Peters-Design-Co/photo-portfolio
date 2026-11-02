@@ -93,7 +93,8 @@ export const brandKitsApi = {
    * frame's shape. Comes back already on our own storage.
    */
   generateImage: async (
-    kitId: string,
+    /** The brand to make it from, or null for the request alone. */
+    kitId: string | null,
     req: {
       ask: string;
       height: number;

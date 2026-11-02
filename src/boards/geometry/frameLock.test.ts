@@ -52,6 +52,16 @@ describe("frameLock", () => {
     expect(markDesigned(designed, "g")).toBe(designed);
   });
 
+  it("treats a frame designed before the mark as designed: type on a shape or picture, no nodes", () => {
+    const old = { ...box("g", "frame", 0, 0, 400, 400), config: null };
+    const words = box("t", "text", 10, 10, 100, 40);
+    const shape = box("s", "drawing", 0, 200, 400, 200);
+    expect(frameLocks([old, words, shape]).get("t")?.owner).toBe("g");
+    expect(frameLocks([old, shape]).size).toBe(0);
+    const node = box("n", "op", 300, 10, 50, 50);
+    expect(frameLocks([old, words, shape, node]).size).toBe(0);
+  });
+
   it("hands a nested frame's contents to the outermost design frame", () => {
     const outer = box("a", "frame", 0, 0, 400, 400);
     const inner = box("b", "frame", 100, 100, 100, 100);

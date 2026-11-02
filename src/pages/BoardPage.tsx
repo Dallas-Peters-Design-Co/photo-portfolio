@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { useTrainingWatch } from "../boards/hooks/useTrainingWatch";
 import { BoardEditor } from "../components/admin/BoardEditor";
 import { ConfirmProvider } from "../components/admin/ConfirmProvider";
+import { useNewVersion } from "../hooks/useNewVersion";
 import { authStorage } from "../services/portfolioService";
 
 /**
@@ -15,6 +16,7 @@ import { authStorage } from "../services/portfolioService";
  * something you can bookmark and come back to.
  */
 export function BoardPage() {
+  useNewVersion();
   const { boardId } = useParams<{ boardId: string }>();
   const navigate = useNavigate();
   const [isAuthenticated] = useState(() => Boolean(authStorage.getToken()));

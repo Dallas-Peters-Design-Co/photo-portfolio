@@ -48,10 +48,12 @@
 }
 
 .frame-viewer__count {
+  flex-shrink: 0;
   font-size: var(--text-micro-xs);
   font-variant-numeric: tabular-nums;
   color: color-mix(in oklch, oklch(1 0 0) 50%, transparent);
   letter-spacing: var(--tracking-micro);
+  white-space: nowrap;
 }
 
 /*

@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { MAX_KIT_NAME, sanitizeKitDoc } from "../../config/brandKit.js";
+import {
+  EMPTY_KIT,
+  MAX_KIT_NAME,
+  sanitizeKitDoc,
+} from "../../config/brandKit.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { UUID_RE } from "../_lib/boardItemParse.js";
 import { loadKit, loadKits, writeKitVersion } from "../_lib/brandKitStore.js";
@@ -109,14 +113,15 @@ async function handleImage(
         "Image generation is not configured. Set FAL_API_KEY on the project.",
     });
   }
-  const kitId = String(body.kitId ?? "");
+  // No kit is allowed: the picture is made from the request alone.
+  const kitId = typeof body.kitId === "string" ? body.kitId : "";
   const kit = UUID_RE.test(kitId) ? await loadKit(sql, kitId) : null;
-  if (!kit) {
+  if (kitId && !kit) {
     return res.status(404).json({ error: "That brand kit wasn't found" });
   }
   try {
     const image = await brandImage(
-      kit.resolvedDoc,
+      kit?.resolvedDoc ?? EMPTY_KIT,
       readImageRequest(body),
       await loadModelDefs()
     );
