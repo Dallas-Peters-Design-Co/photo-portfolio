@@ -38,6 +38,11 @@ export type StudioParam = (
    * a colour to swap it for. Stored comma-joined by position; empty keeps it.
    */
   | { key: string; label: string; type: "remap" }
+  /**
+   * Tiles coloured one by one on the preview (paintedTiles.ts). Drawn by the
+   * tool view, under the preview, since painting happens on the picture.
+   */
+  | { key: string; label: string; type: "tiles" }
 ) & {
   /** Shown only when this is true of the settings; always, without it. */
   when?: (values: StudioValues) => boolean;

@@ -100,6 +100,8 @@ export function StudioControls({
                 value={v}
               />
             );
+          case "tiles":
+            return null;
           case "checkbox":
             return (
               <label className="studio__check" key={p.key}>

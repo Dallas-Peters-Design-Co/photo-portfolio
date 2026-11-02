@@ -1,5 +1,6 @@
 import { esc, pick, r2, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import { paintedOf, tileKey } from "./paintedTiles";
 import {
   hex,
   luma,
@@ -264,6 +265,7 @@ export const mosaicTool: ImageTool = {
       type: "checkbox",
       when: (v) => ["tones", "blend"].includes(modeOf(v)),
     },
+    { key: "painted", label: "Paint tiles", type: "tiles" },
     {
       default: false,
       key: "fill",
@@ -306,12 +308,13 @@ export const mosaicTool: ImageTool = {
         : colourer(mode, palette, Boolean(v.invert));
     const inset = cell * ((Number(v.gap) || 0) / 100);
     const s = cell - inset * 2;
+    const painted = paintedOf(v.painted);
     const tiles: string[] = [];
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < cols; col += 1) {
         const i = (row * cols + col) * 4;
         const [r = 0, g = 0, b = 0] = [data[i], data[i + 1], data[i + 2]];
-        const fill = paintOf(colour(r, g, b));
+        const fill = paintOf(painted.get(tileKey(col, row)) ?? colour(r, g, b));
         if (!fill) {
           continue;
         }

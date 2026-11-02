@@ -90,6 +90,28 @@ describe("Studio generators", () => {
     expect(snapped).not.toContain('fill="#ff0000"');
   });
 
+  it("paints single tiles over the mosaic's colours, or hides them", async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 40;
+    canvas.height = 40;
+    const c = canvas.getContext("2d") as CanvasRenderingContext2D;
+    c.fillStyle = "#ff0000";
+    c.fillRect(0, 0, 40, 40);
+    const image = await createImageBitmap(canvas);
+    const mosaic = IMAGE_TOOLS.find((t) => t.id === "mosaic");
+    const at = { ...ctx, height: 400, image, width: 400 };
+    const values = { ...defaultsOf(mosaic?.params ?? []), columns: 4, gap: 0 };
+    // Tile (1, 2) green; tile (3, 0) fully clear, so it isn't drawn.
+    const svg =
+      mosaic?.render({ ...values, painted: "1.2#00ff00,3.0#ff000000" }, at) ??
+      "";
+    expect(svg).toContain(
+      'x="100" y="200" width="100" height="100" fill="#00ff00"'
+    );
+    expect(svg).not.toContain('x="300" y="0"');
+    expect(svg.match(/fill="#ff0000"/g)).toHaveLength(14);
+  });
+
   it("recolours a mosaic by swapping each of the picture's colours", async () => {
     const canvas = document.createElement("canvas");
     canvas.width = 40;

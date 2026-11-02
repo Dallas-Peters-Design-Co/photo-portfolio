@@ -541,3 +541,20 @@
   border: 1px solid color-mix(in oklch, var(--color-board-ink) 15%, transparent);
   border-radius: 4px;
 }
+
+/* Painting mosaic tiles on the preview (TilePaint.tsx). */
+.studio__preview--painting {
+  touch-action: none;
+  cursor: crosshair;
+
+  & img {
+    pointer-events: none;
+  }
+}
+
+.studio-paint__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+}

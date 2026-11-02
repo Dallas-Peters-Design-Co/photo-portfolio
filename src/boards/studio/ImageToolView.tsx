@@ -15,6 +15,7 @@ import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
 import type { StudioFrame } from "./StudioPanel";
 import { recipeFor, sizeIndexFor, sizesWith } from "./studioRecipe";
+import { usePaintTiles } from "./TilePaint";
 import { defaultsOf } from "./tools";
 import type { ImageTool, StudioRecipe, StudioValues } from "./types";
 
@@ -124,6 +125,14 @@ export function ImageToolView({
 
   const set = (key: string, value: boolean | number | string) =>
     onValues({ ...values, [key]: value });
+  const paint = usePaintTiles({
+    keyName: image
+      ? (tool.params.find((p) => p.type === "tiles")?.key ?? null)
+      : null,
+    onChange: set,
+    size,
+    values,
+  });
 
   // A tool with its own colour pickers draws with those, not the brand's set.
   const paletteKey = paletteFor(tool.params, values, palette).join();
@@ -189,7 +198,7 @@ export function ImageToolView({
 
   return (
     <>
-      <div className="studio__preview">
+      <div {...paint.previewProps}>
         <img
           alt={`${tool.name} preview`}
           height={size.h}
@@ -207,6 +216,7 @@ export function ImageToolView({
           />
         ) : null}
       </div>
+      {paint.bar}
       <p className="studio__blurb">{tool.blurb}</p>
       <label className="studio__field">
         <span>Size</span>

@@ -13,6 +13,8 @@ import { clamp, text } from "./values.js";
 
 const MAX_SETTINGS = 40;
 const MAX_SETTING_TEXT = 500;
+/** A mosaic's hand-painted tiles: a few thousand short entries. */
+const LONG_SETTINGS: Record<string, number> = { painted: 80_000 };
 const MAX_SIDE = 10_000;
 const TOOL_ID = /^[a-z][a-z0-9-]{0,39}$/;
 const KEY = /^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/;
@@ -40,7 +42,7 @@ const settingsOf = (raw: unknown): Bag => {
     if (typeof value === "boolean" || value === null || finite(value)) {
       out[key] = value;
     } else if (typeof value === "string") {
-      out[key] = value.slice(0, MAX_SETTING_TEXT);
+      out[key] = value.slice(0, LONG_SETTINGS[key] ?? MAX_SETTING_TEXT);
     }
   }
   return out;
