@@ -10,6 +10,7 @@ import {
   ArrowUp,
   ArrowUpToLine,
   Copy,
+  LogOut,
   Maximize,
   Trash2,
 } from "lucide-react";
@@ -48,6 +49,8 @@ interface ContextBarProps {
   onDuplicate: () => void;
   onPatch: (patch: Partial<BoardItem>) => void;
   onReorder: (how: Reorder) => void;
+  /** Off the frame and back onto the board. */
+  onToBoard: () => void;
 }
 
 function Field({ children, label }: { children: ReactNode; label: string }) {
@@ -337,6 +340,7 @@ export function ContextBar({
   onDuplicate,
   onPatch,
   onReorder,
+  onToBoard,
 }: ContextBarProps) {
   const kind = layerKind(item);
   const place = (patch: Partial<Box>) => onPatch(patch);
@@ -461,6 +465,9 @@ export function ContextBar({
         </IconButton>
         <IconButton label="Duplicate (⌘D)" onClick={onDuplicate}>
           <Copy size={15} />
+        </IconButton>
+        <IconButton label="Move to the board (⇧B)" onClick={onToBoard}>
+          <LogOut size={15} />
         </IconButton>
         <IconButton label="Delete" onClick={onDelete}>
           <Trash2 size={15} />

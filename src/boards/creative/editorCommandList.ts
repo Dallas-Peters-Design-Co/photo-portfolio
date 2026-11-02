@@ -37,6 +37,7 @@ export interface EditorOps {
   some: boolean;
   text: (role: "body" | "headline") => void;
   textStyle: (fn: (s: TextStyle | null) => Partial<TextStyle>) => void;
+  toBoard: (group: BoardItem[]) => void;
   ui: EditorUi;
 }
 
@@ -55,6 +56,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
     shape,
     some,
     text,
+    toBoard,
     ui,
   } = ops;
   return [
@@ -213,6 +215,14 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       keys: ["mod+d"],
       label: "Duplicate",
       run: () => copyMany(chosen),
+    },
+    {
+      enabled: some,
+      group: "Edit",
+      id: "to-board",
+      keys: ["shift+b"],
+      label: "Move to the board",
+      run: () => toBoard(chosen),
     },
     {
       enabled: some,

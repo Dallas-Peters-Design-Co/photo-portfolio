@@ -8,6 +8,7 @@ import {
   AlignStartVertical,
   AlignVerticalSpaceAround,
   Copy,
+  LogOut,
   Trash2,
   X,
 } from "lucide-react";
@@ -19,7 +20,8 @@ import { type AlignTo, alignLayers, distributeLayers } from "./selection";
 
 /**
  * The context bar with several layers selected: line them up with each other,
- * space them evenly, fade them, copy or delete them all, or let go of the selection.
+ * space them evenly, fade them, copy them, move them back onto the board or
+ * delete them all, or let go of the selection.
  */
 
 const ALIGNS: { icon: ReactNode; label: string; to: AlignTo }[] = [
@@ -82,12 +84,14 @@ export function MultiBar({
   onDelete,
   onDuplicate,
   onPatch,
+  onToBoard,
 }: {
   layers: BoardItem[];
   onClear: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
   onPatch: (patches: Map<string, Partial<BoardItem>>) => void;
+  onToBoard: () => void;
 }) {
   const few = layers.length < 3;
   const values = new Set(layers.map(opacityOf));
@@ -139,6 +143,9 @@ export function MultiBar({
       <div className="creative__group">
         <Icon label="Duplicate all (⌘D)" onClick={onDuplicate}>
           <Copy size={15} />
+        </Icon>
+        <Icon label="Move all to the board (⇧B)" onClick={onToBoard}>
+          <LogOut size={15} />
         </Icon>
         <Icon label="Delete all" onClick={onDelete}>
           <Trash2 size={15} />

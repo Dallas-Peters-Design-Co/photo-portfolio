@@ -148,7 +148,7 @@ describe("layer opacity", () => {
     press("t");
     typePercent("40");
     const text = latest.find((i) => i.kind === "text");
-    expect((text?.config as { opacity?: number }).opacity).toBe(0.4);
+    expect((text?.config as { opacity?: number } | null)?.opacity).toBe(0.4);
     const layer = document.querySelector(
       `[data-layer-id="${text?.id}"]`
     ) as HTMLElement;
@@ -187,5 +187,35 @@ describe("⌥-drag", () => {
     expect(shapes[0]?.x).toBe(40);
     expect(shapes[1]?.x).toBe(140);
     expect(shapes[1]?.id).not.toBe("a");
+  });
+});
+
+describe("move to the board", () => {
+  it("takes a layer off the frame to a clear spot beside it", () => {
+    render([frame, rect("a", 40, 1), rect("b", 300, 2)]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    act(() =>
+      (
+        document.querySelector(
+          '[aria-label="Move to the board (⇧B)"]'
+        ) as HTMLElement
+      ).click()
+    );
+    const moved = latest.find((i) => i.id === "b");
+    expect(moved?.x).toBeGreaterThanOrEqual(frame.width);
+    expect(document.querySelector('[data-layer-id="b"]')).toBeNull();
+    expect(document.querySelector('[data-layer-id="a"]')).not.toBeNull();
+  });
+
+  it("keeps several layers' layout when moving them together", () => {
+    render([frame, rect("a", 40, 1), rect("b", 300, 2)]);
+    press("a", { metaKey: true });
+    press("B", { shiftKey: true });
+    const a = latest.find((i) => i.id === "a");
+    const b = latest.find((i) => i.id === "b");
+    expect((b?.x ?? 0) - (a?.x ?? 0)).toBe(260);
+    expect(a?.x).toBeGreaterThanOrEqual(frame.width);
   });
 });

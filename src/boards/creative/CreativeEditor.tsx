@@ -327,6 +327,7 @@ export function CreativeEditor({
             onDelete={() => cmd.removeMany(chosen.map((l) => l.id))}
             onDuplicate={() => cmd.copyMany(chosen)}
             onPatch={patchMany}
+            onToBoard={() => cmd.toBoard(chosen)}
           />
         ) : null}
         {chosen.length <= 1 && selected ? (
@@ -337,6 +338,7 @@ export function CreativeEditor({
             onDuplicate={() => cmd.copyMany([selected])}
             onPatch={(next) => patch(selected.id, next)}
             onReorder={(how) => cmd.order(selected.id, how)}
+            onToBoard={() => cmd.toBoard([selected])}
           />
         ) : null}
         {chosen.length === 0 ? (

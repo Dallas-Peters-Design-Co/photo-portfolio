@@ -16,6 +16,7 @@ import {
 } from "./creativeModel";
 import { editorCommandList } from "./editorCommandList";
 import { type AlignTo, alignLayers, type useLayerSelection } from "./selection";
+import { sendToBoard } from "./sendToBoard";
 
 /**
  * Everything the frame editor can do, as named commands with their keys:
@@ -84,6 +85,13 @@ export const useEditorCommands = ({
     }
     onChange([...into, ...copies]);
     selection.setIds(copies.map((c) => c.id));
+  };
+  /** Off the design frame and back onto the board, beside the frame. */
+  const toBoard = (group: BoardItem[]) => {
+    if (frame && group.length > 0) {
+      patchMany(sendToBoard(group, frame, items));
+      selection.select(null);
+    }
   };
   /** ⌥-drag: copies where the drag ended, the originals left in place. */
   const copyMoved = (ids: string[], dx: number, dy: number) => {
@@ -180,6 +188,7 @@ export const useEditorCommands = ({
     some,
     text,
     textStyle,
+    toBoard,
     ui,
   });
 
@@ -205,5 +214,6 @@ export const useEditorCommands = ({
     restack,
     shape,
     text,
+    toBoard,
   };
 };
