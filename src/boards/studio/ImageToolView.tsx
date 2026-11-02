@@ -102,6 +102,10 @@ export function ImageToolView({
     () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
     [svg]
   );
+  const sources = useMemo(
+    () => tool.sources?.(values, ctx) ?? [],
+    [tool, values, ctx]
+  );
   const css = tool.css?.(values, ctx) ?? null;
   const fileName = `${tool.id}-${size.w}x${size.h}`;
 
@@ -176,6 +180,7 @@ export function ImageToolView({
         onImage={setImageUrl}
         palette={palette}
         params={tool.params}
+        sources={sources}
         values={values}
       />
       <div className="studio__actions">

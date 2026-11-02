@@ -70,7 +70,7 @@ export const defaultsOf = (params: StudioParam[]): StudioValues =>
       if (p.type === "image") {
         return [p.key, null];
       }
-      if (p.type === "colors") {
+      if (p.type === "colors" || p.type === "remap") {
         return [p.key, ""];
       }
       return [p.key, p.default];

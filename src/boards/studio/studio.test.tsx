@@ -12,6 +12,9 @@ const { StudioPanel } = await import("./StudioPanel");
 
 const ctx = { height: 400, image: null, palette: DEFAULT_PALETTE, width: 600 };
 
+const rgbOf = (hex: string) =>
+  [1, 3, 5].map((i) => Number.parseInt(hex.slice(i, i + 2), 16));
+
 const parse = (svg: string) =>
   new DOMParser().parseFromString(svg, "image/svg+xml");
 
@@ -85,6 +88,38 @@ describe("Studio generators", () => {
       ) ?? "";
     expect(snapped).toContain('fill="#ee1111"');
     expect(snapped).not.toContain('fill="#ff0000"');
+  });
+
+  it("recolours a mosaic by swapping each of the picture's colours", async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 40;
+    canvas.height = 40;
+    const c = canvas.getContext("2d") as CanvasRenderingContext2D;
+    c.fillStyle = "#ff0000";
+    c.fillRect(0, 0, 20, 40);
+    c.fillStyle = "#0000ff";
+    c.fillRect(20, 0, 20, 40);
+    const image = await createImageBitmap(canvas);
+    const mosaic = IMAGE_TOOLS.find((t) => t.id === "mosaic");
+    const values = {
+      ...defaultsOf(mosaic?.params ?? []),
+      colour: "remap",
+      columns: 2,
+      count: 2,
+      gap: 0,
+    };
+    const at = { ...ctx, height: 400, image, width: 400 };
+    // Dark to light: the blue side is the darker of the two.
+    const [dark = "", light = ""] = mosaic?.sources?.(values, at) ?? [];
+    expect(rgbOf(dark)[2]).toBeGreaterThan(rgbOf(dark)[0]);
+    expect(rgbOf(light)[0]).toBeGreaterThan(rgbOf(light)[2]);
+    const svg = mosaic?.render({ ...values, remap: "#00ff00," }, at) ?? "";
+    expect(svg).toContain('fill="#00ff00"');
+    expect(svg).toContain(`fill="${light}"`);
+    expect(svg).not.toContain(`fill="${dark}"`);
+    // The swap list only shows while recolouring.
+    const remap = mosaic?.params.find((p) => p.type === "remap");
+    expect(remap?.when?.({ ...values, colour: "photo" })).toBe(false);
   });
 
   it("recolours a mosaic by brightness, banded or blended, and can invert", async () => {

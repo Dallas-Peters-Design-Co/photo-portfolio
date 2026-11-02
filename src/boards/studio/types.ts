@@ -7,7 +7,7 @@
  * previews the SVG, and turns it into a PNG or SVG file for the board.
  */
 
-export type StudioParam =
+export type StudioParam = (
   | {
       default: number;
       key: string;
@@ -32,7 +32,16 @@ export type StudioParam =
    * The colours a tool draws with, picked one by one. Stored comma-joined;
    * empty means the brand's first `count`. Replaces the palette the tool sees.
    */
-  | { count: number; key: string; label: string; max: number; type: "colors" };
+  | { count: number; key: string; label: string; max: number; type: "colors" }
+  /**
+   * Recolouring: the picture's main colours (the tool's `sources`), each with
+   * a colour to swap it for. Stored comma-joined by position; empty keeps it.
+   */
+  | { key: string; label: string; type: "remap" }
+) & {
+  /** Shown only when this is true of the settings; always, without it. */
+  when?: (values: StudioValues) => boolean;
+};
 
 export type StudioValues = Record<string, boolean | number | string | null>;
 
@@ -55,6 +64,8 @@ export interface ImageTool {
   params: StudioParam[];
   /** An SVG document for the size asked. Deterministic for a given seed. */
   render: (values: StudioValues, ctx: RenderContext) => string;
+  /** The colours a "remap" setting lists, for these settings. */
+  sources?: (values: StudioValues, ctx: RenderContext) => string[];
   /**
    * Added to a frame or the board as the SVG itself, so it stays vector and
    * prints sharp; others go in as a PNG (blur filters and the like render

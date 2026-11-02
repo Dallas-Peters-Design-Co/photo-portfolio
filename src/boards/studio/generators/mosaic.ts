@@ -1,30 +1,28 @@
 import { esc, pick, r2, svgDoc } from "../rng";
-import type { ImageTool } from "../types";
+import type { ImageTool, RenderContext, StudioValues } from "../types";
+import {
+  hex,
+  luma,
+  mainColours,
+  remapper,
+  replacementsOf,
+  rgb,
+} from "./recolour";
 
 /**
  * A picture as a tile mosaic, after Mozayk: the image is averaged into a grid
  * and each cell drawn as a square, circle, diamond, triangle or hexagon.
  *
- * Colour, four ways: the photo's own; each tile snapped to the nearest picked
- * colour; recoloured by brightness, darkest tiles to the darkest picked colour
- * and so on up, in bands; or the same as a smooth blend between them (a
- * gradient map). The picked colours default to the brand's.
+ * Colour: the photo's own; recoloured, where the picture's main colours are
+ * listed and each swapped for one you choose (recolour.ts); each tile snapped
+ * to the nearest picked colour; by brightness, darkest tiles to the darkest
+ * picked colour, in bands; or the same as a smooth gradient map.
  */
-
-const hex = (r: number, g: number, b: number) =>
-  `#${[r, g, b].map((n) => Math.round(n).toString(16).padStart(2, "0")).join("")}`;
-
-const rgb = (h: string) =>
-  [1, 3, 5].map((i) => Number.parseInt(h.slice(i, i + 2), 16) || 0);
-
-/** Perceived brightness, 0 to 255. */
-const luma = (r: number, g: number, b: number) =>
-  0.2126 * r + 0.7152 * g + 0.0722 * b;
 
 const byLuma = (palette: string[]) =>
   [...palette].sort((a, b) => {
-    const [ar = 0, ag = 0, ab = 0] = rgb(a);
-    const [br = 0, bg = 0, bb = 0] = rgb(b);
+    const [ar, ag, ab] = rgb(a);
+    const [br, bg, bb] = rgb(b);
     return luma(ar, ag, ab) - luma(br, bg, bb);
   });
 
@@ -40,8 +38,8 @@ const blend = (t: number, ramp: string[]) => {
   const at = t * (ramp.length - 1);
   const i = Math.min(ramp.length - 2, Math.floor(at));
   const f = at - i;
-  const [ar = 0, ag = 0, ab = 0] = rgb(ramp[i] ?? "#000000");
-  const [br = 0, bg = 0, bb = 0] = rgb(ramp[i + 1] ?? "#000000");
+  const [ar, ag, ab] = rgb(ramp[i] ?? "#000000");
+  const [br, bg, bb] = rgb(ramp[i + 1] ?? "#000000");
   return hex(ar + (br - ar) * f, ag + (bg - ag) * f, ab + (bb - ab) * f);
 };
 
@@ -74,7 +72,7 @@ const nearest = (r: number, g: number, b: number, palette: string[]) => {
   let best = palette[0] ?? "#000000";
   let bestD = Number.POSITIVE_INFINITY;
   for (const p of palette) {
-    const [pr = 0, pg = 0, pb = 0] = rgb(p);
+    const [pr, pg, pb] = rgb(p);
     const d = (r - pr) ** 2 + (g - pg) ** 2 + (b - pb) ** 2;
     if (d < bestD) {
       bestD = d;
@@ -148,6 +146,30 @@ const shape = (
   }
 };
 
+/** The picture averaged onto the mosaic's grid, or null without one. */
+const gridOf = (
+  v: StudioValues,
+  { height: h, image, width: w }: RenderContext
+) => {
+  if (!image) {
+    return null;
+  }
+  const cols = Math.max(2, Number(v.columns) || 48);
+  const cell = w / cols;
+  const rows = Math.max(1, Math.round(h / cell));
+  const data = sample(
+    image as CanvasImageSource & { height: number; width: number },
+    cols,
+    rows,
+    w,
+    h
+  );
+  return data ? { cell, cols, data, rows } : null;
+};
+
+const countOf = (v: StudioValues) =>
+  Math.max(2, Math.min(12, Number(v.count) || 5));
+
 export const mosaicTool: ImageTool = {
   blurb:
     "A picture rebuilt from tiles: in its own colours, snapped to yours, or recoloured by brightness. Goes in as an SVG.",
@@ -184,18 +206,42 @@ export const mosaicTool: ImageTool = {
       label: "Colour",
       options: [
         { label: "Photo's own", value: "photo" },
-        { label: "Nearest colour", value: "nearest" },
-        { label: "Recolour by brightness", value: "tones" },
+        { label: "Recolour (swap each colour)", value: "remap" },
+        { label: "By brightness", value: "tones" },
         { label: "Gradient map", value: "blend" },
+        { label: "Nearest picked colour", value: "nearest" },
       ],
       type: "select",
     },
-    { count: 4, key: "colors", label: "Colours", max: 8, type: "colors" },
+    {
+      default: 5,
+      key: "count",
+      label: "Colours in the picture",
+      max: 12,
+      min: 2,
+      type: "range",
+      when: (v) => modeOf(v) === "remap",
+    },
+    {
+      key: "remap",
+      label: "Swap",
+      type: "remap",
+      when: (v) => modeOf(v) === "remap",
+    },
+    {
+      count: 4,
+      key: "colors",
+      label: "Colours",
+      max: 8,
+      type: "colors",
+      when: (v) => ["tones", "blend", "nearest"].includes(modeOf(v)),
+    },
     {
       default: false,
       key: "invert",
       label: "Light tiles get the dark colours",
       type: "checkbox",
+      when: (v) => ["tones", "blend"].includes(modeOf(v)),
     },
     {
       default: false,
@@ -203,7 +249,13 @@ export const mosaicTool: ImageTool = {
       label: "Fill the background",
       type: "checkbox",
     },
-    { default: "#ffffff", key: "bg", label: "Background", type: "color" },
+    {
+      default: "#ffffff",
+      key: "bg",
+      label: "Background",
+      type: "color",
+      when: (v) => Boolean(v.fill),
+    },
   ],
   render: (v, { height: h, image, palette, width: w }) => {
     const ground = esc(String(v.bg || pick(palette, palette.length - 1)));
@@ -217,20 +269,19 @@ export const mosaicTool: ImageTool = {
         `<rect width="${w}" height="${h}" fill="${ground}"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="${r2(w / 24)}" fill="${esc(pick(palette, 0))}">Choose a picture</text>`
       );
     }
-    const cols = Math.max(2, Number(v.columns) || 48);
-    const cell = w / cols;
-    const rows = Math.max(1, Math.round(h / cell));
-    const data = sample(
-      image as CanvasImageSource & { height: number; width: number },
-      cols,
-      rows,
-      w,
-      h
-    );
-    if (!data) {
+    const grid = gridOf(v, { height: h, image, palette, width: w });
+    if (!grid) {
       return svgDoc(w, h, "");
     }
-    const colour = colourer(modeOf(v), palette, Boolean(v.invert));
+    const { cell, cols, data, rows } = grid;
+    const mode = modeOf(v);
+    const colour =
+      mode === "remap"
+        ? remapper(
+            mainColours(data, countOf(v)),
+            replacementsOf(v.remap, countOf(v))
+          )
+        : colourer(mode, palette, Boolean(v.invert));
     const inset = cell * ((Number(v.gap) || 0) / 100);
     const s = cell - inset * 2;
     const tiles: string[] = [];
@@ -252,6 +303,11 @@ export const mosaicTool: ImageTool = {
       }
     }
     return svgDoc(w, h, `${groundRect}${tiles.join("")}`);
+  },
+  /** The picture's main colours, dark to light, for the Swap list. */
+  sources: (v, ctx) => {
+    const grid = modeOf(v) === "remap" ? gridOf(v, ctx) : null;
+    return grid ? mainColours(grid.data, countOf(v)).map((c) => hex(...c)) : [];
   },
   vector: true,
 };

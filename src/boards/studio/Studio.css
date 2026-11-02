@@ -506,3 +506,38 @@
     opacity: 1;
   }
 }
+
+/* Recolour: the picture's colour, an arrow, and what it becomes. */
+.studio-remap {
+  grid-template-columns: 8rem minmax(0, 1fr);
+  align-items: start;
+
+  > span {
+    display: flex;
+    gap: var(--spacing);
+    align-items: center;
+  }
+}
+
+.studio-remap__list {
+  display: grid;
+  gap: var(--spacing);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.studio-remap__row {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+}
+
+.studio-remap__from {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  border: 1px solid color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: 4px;
+}
