@@ -127,9 +127,10 @@ export function TextEffects({
             type="range"
             value={Math.round((style?.backgroundRadius ?? 0) * 100)}
           />
-          <VerticalAlign onSet={onSet} style={style} />
         </>
       ) : null}
+      {/* Any text box, boxed or not: a headline set low in a tall frame. */}
+      <VerticalAlign onSet={onSet} style={style} />
     </>
   );
 }

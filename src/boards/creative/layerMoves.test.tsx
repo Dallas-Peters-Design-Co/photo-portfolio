@@ -278,3 +278,18 @@ describe("the bar above the artboard", () => {
     expect(stage()).toBe(empty);
   });
 });
+
+describe("vertical alignment", () => {
+  it("is offered on any text box, with or without a box behind it", () => {
+    render([frame]);
+    press("t");
+    const middle = document.querySelector(
+      '[aria-label="Text in the middle"]'
+    ) as HTMLElement;
+    expect(middle).not.toBeNull();
+    act(() => middle.click());
+    const text = latest.find((i) => i.kind === "text");
+    expect(text?.textStyle?.verticalAlign).toBe("middle");
+    expect(text?.textStyle?.background ?? null).toBeNull();
+  });
+});
