@@ -109,5 +109,20 @@ export const useDraggablePanel = (storageKey: string) => {
     }
   };
 
-  return { dragging, handleProps: { onPointerDown }, reset, style };
+  /**
+   * Pulls a moved panel back on screen when it no longer fits where it was put:
+   * after it grows (unfolded, a wider row of buttons) or the window shrinks.
+   */
+  const fit = (panel: HTMLElement | null) => {
+    if (!(panel && position)) {
+      return;
+    }
+    const next = clamp(position, panel);
+    if (next.x !== position.x || next.y !== position.y) {
+      setPosition(next);
+      write(storageKey, next);
+    }
+  };
+
+  return { dragging, fit, handleProps: { onPointerDown }, reset, style };
 };

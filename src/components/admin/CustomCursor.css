@@ -5,8 +5,11 @@
  * before the first mouse move — and, because the stylesheet stays loaded once
  * the chunk is fetched, it kept applying after leaving the board.
  */
-body.custom-cursor-active {
-  cursor: none;
+body.custom-cursor-active,
+body.custom-cursor-active * {
+  /* Everything, not just the page: a button's pointer or a grip's grab hand
+     otherwise brings the system cursor back next to the drawn one. */
+  cursor: none !important;
 }
 
 .board {
@@ -23,7 +26,7 @@ body.custom-cursor-active {
  */
 body.cursor-precise,
 body.cursor-precise * {
-  cursor: default;
+  cursor: default !important;
 }
 
 .custom-cursor-container {

@@ -1,5 +1,11 @@
 import { ChevronLeft, ChevronRight, GripVertical } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import {
+  type ReactNode,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useDraggablePanel } from "../../../boards/hooks/useDraggablePanel";
 
 /**
@@ -32,6 +38,19 @@ const writeCollapsed = (value: boolean) => {
 export function BoardHeaderPanel({ children }: { children: ReactNode }) {
   const drag = useDraggablePanel(POSITION_KEY);
   const [collapsed, setCollapsed] = useState(readCollapsed);
+  const ref = useRef<HTMLDivElement>(null);
+  const { fit } = drag;
+
+  // Unfolding makes it wider, and a narrower window moves its edge: either can
+  // push a moved bar off screen, grip and all, where it can't be reached.
+  useLayoutEffect(() => {
+    fit(ref.current);
+  });
+  useEffect(() => {
+    const onResize = () => fit(ref.current);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [fit]);
 
   const toggle = () => {
     setCollapsed((was) => {
@@ -47,6 +66,7 @@ export function BoardHeaderPanel({ children }: { children: ReactNode }) {
         drag.dragging ? "board-header--dragging" : "",
         collapsed ? "board-header--collapsed" : "",
       ].join(" ")}
+      ref={ref}
       style={drag.style ? { ...drag.style, right: "auto" } : undefined}
     >
       {/* biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; moving the bar is a mouse nicety and the bar works where it is */}
