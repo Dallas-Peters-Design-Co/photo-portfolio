@@ -273,3 +273,44 @@
   flex-wrap: wrap;
   max-width: calc(100vw - var(--spacing) * 4);
 }
+
+/* The header's icons: square, their names in the tooltip. */
+.board-header-icon {
+  position: relative;
+  width: calc(var(--spacing) * 9);
+  min-width: 0;
+  height: calc(var(--spacing) * 9);
+  padding: 0;
+  color: color-mix(in oklch, var(--color-board-ink) 70%, transparent);
+  border-radius: var(--radius-control);
+
+  &:hover {
+    color: var(--color-board-ink);
+  }
+
+  &[aria-pressed="true"] {
+    color: var(--color-board-ink);
+    background: color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+  }
+}
+
+/* Live: the board is published (emerald-500, as the link always was). */
+.board-header-icon--live {
+  color: oklch(69.6% 0.17 162.48);
+}
+
+.board-header-icon__badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding-inline: 3px;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+  line-height: 14px;
+  color: var(--color-board-panel);
+  text-align: center;
+  background: var(--color-board-ink);
+  border-radius: 7px;
+}

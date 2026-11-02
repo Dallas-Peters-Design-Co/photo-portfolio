@@ -33,7 +33,12 @@ const ICON: Record<ThemeChoice, typeof Sun02Icon> = {
  * you are, not where pressing it will take you — which is why the label it
  * announces to a screen reader says both.
  */
-export default function ThemeToggle() {
+export default function ThemeToggle({
+  iconOnly = false,
+}: {
+  /** Just the icon, its state in the tooltip (the board header). */
+  iconOnly?: boolean;
+} = {}) {
   const [choice, setChoice] = useState<ThemeChoice>(storedTheme);
   const next = nextTheme(choice);
 
@@ -56,12 +61,14 @@ export default function ThemeToggle() {
   return (
     <Button
       aria-label={`Theme: ${LABEL[choice]}. Switch to ${LABEL[next]}.`}
+      className={iconOnly ? "board-header-icon" : undefined}
       onClick={() => setChoice(next)}
+      title={iconOnly ? `Theme: ${LABEL[choice]}` : undefined}
       type="button"
       variant="ghost"
     >
       <HugeiconsIcon aria-hidden icon={ICON[choice]} size={16} />
-      {LABEL[choice]}
+      {iconOnly ? null : LABEL[choice]}
     </Button>
   );
 }

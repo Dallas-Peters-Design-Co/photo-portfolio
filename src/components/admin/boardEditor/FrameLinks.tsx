@@ -1,8 +1,9 @@
+import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import { useState } from "react";
 import { toast } from "sonner";
 import { frameSlugs } from "../../../../config/frameSlug";
 import type { BoardItem } from "../../../types";
-import { Button } from "../../ui/button";
+import { HeaderIcon } from "./HeaderIcon";
 import "./boardEditorChrome.css";
 
 /**
@@ -55,13 +56,13 @@ export function FrameLinks({ boardUrl, items }: FrameLinksProps) {
 
   return (
     <span className="frame-links">
-      <Button
+      <HeaderIcon
+        badge={frames.length}
+        icon={FrameIcon}
+        label="Frame links"
         onClick={() => setOpen((was) => !was)}
-        type="button"
-        variant="ghost"
-      >
-        Frames ({frames.length})
-      </Button>
+        pressed={open}
+      />
       {open ? (
         <>
           {/* Click-away, under the menu and above everything else. */}

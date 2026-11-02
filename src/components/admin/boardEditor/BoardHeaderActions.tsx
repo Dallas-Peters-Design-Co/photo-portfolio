@@ -1,13 +1,16 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Comment01Icon from "@hugeicons-pro/core-stroke-standard/Comment01Icon";
+import Globe02Icon from "@hugeicons-pro/core-stroke-standard/Globe02Icon";
+import Link01Icon from "@hugeicons-pro/core-stroke-standard/Link01Icon";
 import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
+import Presentation01Icon from "@hugeicons-pro/core-stroke-standard/Presentation01Icon";
 import StopIcon from "@hugeicons-pro/core-stroke-standard/StopIcon";
 import { toast } from "sonner";
 import ThemeToggle from "../../ThemeToggle";
-import { Button } from "../../ui/button";
 import "./boardEditorChrome.css";
 import type { BoardItem } from "../../../types";
 import { FrameLinks } from "./FrameLinks";
+import { HeaderIcon } from "./HeaderIcon";
 
 /** Strips the scheme so the shared link reads as a plain address. */
 const SCHEME = /^https?:\/\//;
@@ -49,71 +52,50 @@ export function BoardHeaderActions({
           photographs has nothing to execute, and a control that would always
           be a no-op is noise. */}
       {hasNodes ? (
-        <Button
+        <HeaderIcon
+          icon={isRunning ? StopIcon : PlayIcon}
+          label={isRunning ? "Cancel the run" : "Run the board"}
           onClick={isRunning ? onCancelRun : onRun}
-          type="button"
-          variant="ghost"
-        >
-          <HugeiconsIcon
-            aria-hidden
-            icon={isRunning ? StopIcon : PlayIcon}
-            size={14}
-          />
-          {isRunning ? "Cancel" : "Run board"}
-        </Button>
+        />
       ) : null}
-      <Button
-        aria-label="Comments"
-        className={`board-header-action ${
-          showComments ? "board-header-action--on" : "board-header-action--off"
-        }`}
+      <HeaderIcon
+        badge={commentCount}
+        icon={Comment01Icon}
+        label={showComments ? "Hide comments" : "Comments"}
         onClick={onToggleComments}
-        type="button"
-        variant="ghost"
-      >
-        Comments{commentCount > 0 ? ` (${commentCount})` : ""}
-      </Button>
+        pressed={showComments}
+      />
       {publicUrl ? (
-        <button
-          className="board-header-link"
+        <HeaderIcon
+          className="board-header-icon--live"
+          icon={Link01Icon}
+          label={`Copy the link: ${publicUrl.replace(SCHEME, "")}`}
           onClick={() => {
             void navigator.clipboard.writeText(publicUrl);
             toast.success("Link copied");
           }}
-          type="button"
-        >
-          {publicUrl.replace(SCHEME, "")}
-        </button>
+        />
       ) : null}
       {/* Each frame's own link, beside the board's. See FrameLinks on why it
           cannot live on the frame itself. */}
       <FrameLinks boardUrl={publicUrl} items={items} />
       {publicUrl ? (
-        <Button
+        <HeaderIcon
+          icon={Presentation01Icon}
+          label="Present"
           onClick={() => window.open(`${publicUrl}/present`, "_blank")}
-          type="button"
-          variant="ghost"
-        >
-          Present
-        </Button>
+        />
       ) : null}
-      <Button
+      <HeaderIcon
+        className={isPublic ? "board-header-icon--live" : ""}
         disabled={isPublishing}
+        icon={Globe02Icon}
+        label={isPublic ? "Published · click to unpublish" : "Publish"}
         onClick={onPublish}
-        type="button"
-        variant="ghost"
-      >
-        {isPublic ? "Unpublish" : "Publish"}
-      </Button>
-      <ThemeToggle />
-      <Button
-        aria-label="Close board"
-        onClick={onClose}
-        type="button"
-        variant="ghost"
-      >
-        <HugeiconsIcon icon={Cancel01Icon} size={18} />
-      </Button>
+        pressed={isPublic}
+      />
+      <ThemeToggle iconOnly />
+      <HeaderIcon icon={Cancel01Icon} label="Close board" onClick={onClose} />
     </>
   );
 }
