@@ -26,6 +26,19 @@ export const CANVAS_WIDTH = 12_000;
 export const CANVAS_HEIGHT = 9000;
 
 /**
+ * How far from the origin an item may be stored, either way, and how big.
+ *
+ * Deliberately far past the canvas above. Saves used to clamp every item into
+ * 12,000 × 9,000, and print frames (a 24×36 poster is 3600 × 5400 units)
+ * outgrow that in a row of four: everything past the right edge was saved at
+ * x = 12,000 and everything above the top at y = 0, so a reload flattened a
+ * whole board. The board draws items wherever they are, so the bound is only
+ * there to refuse nonsense, not to keep things on a sheet.
+ */
+export const MAX_COORD = 1_000_000;
+export const MAX_ITEM_SIDE = 100_000;
+
+/**
  * How much of that canvas an empty board opens on.
  *
  * Fitting the whole space would open a new board at nine percent zoom, where a

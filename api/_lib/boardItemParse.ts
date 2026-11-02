@@ -1,7 +1,7 @@
 import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
+  MAX_COORD,
   MAX_FONT_SIZE,
+  MAX_ITEM_SIDE,
   MIN_FONT_SIZE,
   MIN_ITEM_SIZE,
 } from "../../config/canvas.js";
@@ -227,8 +227,8 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     return null;
   }
 
-  const width = clamp(num(o.width, 320), MIN_ITEM_SIZE, CANVAS_WIDTH);
-  const height = clamp(num(o.height, 240), MIN_ITEM_SIZE, CANVAS_HEIGHT);
+  const width = clamp(num(o.width, 320), MIN_ITEM_SIZE, MAX_ITEM_SIDE);
+  const height = clamp(num(o.height, 240), MIN_ITEM_SIZE, MAX_ITEM_SIDE);
 
   // Clamped rather than trusted: the size is dragged from a control, and a NaN
   // or an absurd value would render text that cannot be read or selected.
@@ -261,10 +261,10 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     textStyle: normalizeTextStyle(o.textStyle),
     thumbUrl: text(o.thumbUrl, 2000),
     width,
-    // Keeping the top-left inside the canvas is enough: an item may hang off
-    // the right edge, but it can always be grabbed and pulled back.
-    x: clamp(num(o.x, 0), 0, CANVAS_WIDTH),
-    y: clamp(num(o.y, 0), 0, CANVAS_HEIGHT),
+    // Stored where it is. Clamping to the canvas flattened boards whose print
+    // frames ran past it (see MAX_COORD); this only refuses absurd values.
+    x: clamp(num(o.x, 0), -MAX_COORD, MAX_COORD),
+    y: clamp(num(o.y, 0), -MAX_COORD, MAX_COORD),
     z: Math.trunc(clamp(num(o.z, 0), -9999, 9999)),
   };
 };

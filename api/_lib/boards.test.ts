@@ -119,6 +119,15 @@ describe("a text item's style, saved and reloaded", () => {
   });
 });
 
+describe("where an item is", () => {
+  it("is kept as sent, past the canvas and above or left of it", () => {
+    const placed = parseIncomingItem(incoming({ x: 14_646, y: -1200 }));
+    expect([placed?.x, placed?.y]).toEqual([14_646, -1200]);
+    const tall = parseIncomingItem(incoming({ height: 10_800, width: 7200 }));
+    expect([tall?.width, tall?.height]).toEqual([7200, 10_800]);
+  });
+});
+
 describe("a text item's size", () => {
   it("keeps poster-sized type, which print frames at 300 dpi need", () => {
     expect(parseIncomingItem(incoming({ fontSize: 1400 }))?.fontSize).toBe(
