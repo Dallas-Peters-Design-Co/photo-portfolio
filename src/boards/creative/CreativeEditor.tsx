@@ -174,6 +174,7 @@ export function CreativeEditor({
       aria-label={`Design ${name}`}
       aria-modal
       className={panelWidths.className}
+      data-frame-editor=""
       role="dialog"
       style={panelWidths.style}
     >

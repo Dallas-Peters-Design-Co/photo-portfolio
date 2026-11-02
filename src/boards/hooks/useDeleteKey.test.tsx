@@ -67,6 +67,16 @@ describe("useDeleteKey", () => {
     expect(calls()).toBe(1);
   });
 
+  it("leaves the frame editor's Delete to the frame editor", async () => {
+    const { calls } = await mount();
+    const editor = document.createElement("div");
+    editor.dataset.frameEditor = "";
+    document.body.append(editor);
+    press("Delete");
+    editor.remove();
+    expect(calls()).toBe(0);
+  });
+
   it("ignores every other key", async () => {
     const { calls } = await mount();
     for (const key of ["a", "Enter", "Escape", "ArrowLeft", " "]) {

@@ -31,6 +31,12 @@ export const useDeleteKey = (remove: () => void, enabled = true): void => {
       if (isTyping(e.target)) {
         return;
       }
+      // The frame editor open over the board owns the keyboard: its Delete
+      // removes layers. Falling through to here deleted the frame being
+      // edited, closing the editor and leaving its layers loose on the board.
+      if (document.querySelector("[data-frame-editor]")) {
+        return;
+      }
       // Backspace is "go back" in a browser that still honours it, and losing
       // the board mid-edit to a stray keypress is not a recoverable mistake.
       e.preventDefault();
