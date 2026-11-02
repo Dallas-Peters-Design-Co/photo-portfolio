@@ -107,18 +107,37 @@ const loadPicker = async (): Promise<void> => {
  */
 const TOKEN_KEY = "drive-picker-token";
 const TOKEN_EXPIRY_KEY = "drive-picker-token-expiry";
+const TOKEN_SCOPE_KEY = "drive-picker-token-scope";
 
-const cachedToken = (): string | null => {
-  const token = localStorage.getItem(TOKEN_KEY);
-  const expiry = Number(localStorage.getItem(TOKEN_EXPIRY_KEY) ?? 0);
-  if (!token || expiry <= Date.now()) {
+/** A minute's grace, so a token isn't handed to the picker as it expires. */
+const EXPIRY_SLACK_MS = 60_000;
+
+/**
+ * The stored token, if it is still good and covers Drive.
+ *
+ * The scope check reads what Google said it granted, kept beside the token.
+ * It used to ask GIS's hasGrantedAllScopes, which takes Google's whole token
+ * response, not the token string it was given; it answered "no" every time,
+ * so the consent window came back on every single pick.
+ */
+export const cachedToken = (now = Date.now()): string | null => {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const expiry = Number(localStorage.getItem(TOKEN_EXPIRY_KEY) ?? 0);
+    const scope = localStorage.getItem(TOKEN_SCOPE_KEY) ?? "";
+    if (!token || expiry - EXPIRY_SLACK_MS <= now) {
+      return null;
+    }
+    return scope.split(" ").includes(SCOPE) ? token : null;
+  } catch {
     return null;
   }
-  const oauth2 = window.google?.accounts?.oauth2;
-  if (oauth2 && !oauth2.hasGrantedAllScopes(token, SCOPE)) {
-    return null;
+};
+
+const forgetToken = () => {
+  for (const key of [TOKEN_KEY, TOKEN_EXPIRY_KEY, TOKEN_SCOPE_KEY]) {
+    localStorage.removeItem(key);
   }
-  return token;
 };
 
 /**
@@ -166,10 +185,10 @@ const requestPopupToken = (clientId: string): Promise<string> =>
             TOKEN_EXPIRY_KEY,
             String(Date.now() + (response.expires_in ?? 3600) * 1000)
           );
+          localStorage.setItem(TOKEN_SCOPE_KEY, response.scope ?? SCOPE);
           resolve(response.access_token);
         } else {
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(TOKEN_EXPIRY_KEY);
+          forgetToken();
           reject(new Error(response.error ?? "Google did not grant access"));
         }
       },
@@ -302,6 +321,10 @@ const downloadFile = async (file: DriveFile, token: string): Promise<File> => {
     { headers: { Authorization: `Bearer ${token}` } }
   );
   if (!res.ok) {
+    if (res.status === 401) {
+      // Revoked or expired early: ask afresh next time rather than reuse it.
+      forgetToken();
+    }
     throw new Error(`Could not download ${file.name} (${res.status})`);
   }
   const blob = await res.blob();

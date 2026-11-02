@@ -41,12 +41,13 @@ interface GoogleTokenClient {
 }
 
 interface GoogleOAuth2Api {
-  hasGrantedAllScopes: (token: string, scope: string) => boolean;
   initTokenClient: (config: {
     callback: (response: {
       access_token?: string;
       error?: string;
       expires_in?: number;
+      /** The scopes granted, space-separated. */
+      scope?: string;
     }) => void;
     client_id: string;
     scope: string;
