@@ -124,5 +124,15 @@ export const useDraggablePanel = (storageKey: string) => {
     }
   };
 
-  return { dragging, fit, handleProps: { onPointerDown }, reset, style };
+  /** Holds the panel where it is now, by its left edge (for resizing). */
+  const pin = (panel: HTMLElement) => {
+    if (position) {
+      return;
+    }
+    const { left, top } = panel.getBoundingClientRect();
+    setPosition({ x: left, y: top });
+    write(storageKey, { x: left, y: top });
+  };
+
+  return { dragging, fit, handleProps: { onPointerDown }, pin, reset, style };
 };

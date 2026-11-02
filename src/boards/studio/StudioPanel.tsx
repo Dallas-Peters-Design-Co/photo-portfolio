@@ -9,6 +9,7 @@ import { ImageToolView } from "./ImageToolView";
 import { DEFAULT_PALETTE, IMAGE_TOOLS, STUDIO_TOOLS } from "./tools";
 import { TypeScaleTool } from "./type/TypeScaleTool";
 import type { StudioValues } from "./types";
+import { useStudioSize } from "./useStudioSize";
 import "./Studio.css";
 
 /**
@@ -50,6 +51,7 @@ export function StudioPanel({
   const palette =
     entries.length > 0 ? entries.map((p) => p.value) : DEFAULT_PALETTE;
   const drag = useDraggablePanel("board-studio:position");
+  const size = useStudioSize(drag.pin);
   const [toolId, setToolId] = useState(initialTool);
   const [byTool, setByTool] = useState<Record<string, StudioValues>>({});
   useEffect(() => setToolId(initialTool), [initialTool]);
@@ -82,6 +84,8 @@ export function StudioPanel({
         frame={frame}
         key={tool.id}
         onAdd={onAdd}
+        onResize={size.startResize}
+        onResizeReset={size.reset}
         onValues={(values) =>
           setByTool((was) => ({ ...was, [tool.id]: values }))
         }
@@ -96,7 +100,7 @@ export function StudioPanel({
     <aside
       aria-label="Studio"
       className={drag.dragging ? "studio studio--dragging" : "studio"}
-      style={drag.style}
+      style={{ ...drag.style, ...size.style }}
     >
       <header className="studio__head" {...drag.handleProps}>
         <GripVertical aria-hidden className="studio__grip" size={14} />
@@ -137,6 +141,14 @@ export function StudioPanel({
         </nav>
         <section className="studio__main">{view()}</section>
       </div>
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the panel works at its default size */}
+      <span
+        aria-hidden
+        className="studio__corner"
+        onDoubleClick={size.reset}
+        onPointerDown={size.startResize}
+        title="Drag to resize · double-click to reset"
+      />
     </aside>
   );
 }

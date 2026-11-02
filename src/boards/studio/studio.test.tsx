@@ -126,4 +126,56 @@ describe("StudioPanel", () => {
     const bitmap = await createImageBitmap(file);
     expect([bitmap.width, bitmap.height]).toEqual([1080, 1080]);
   });
+
+  it("resizes from the preview's corner: the preview grows and the panel with it", () => {
+    localStorage.removeItem("studio:size");
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    act(() =>
+      root?.render(
+        <StudioPanel
+          initialTool="gradient"
+          onAdd={() => undefined}
+          onClose={() => undefined}
+        />
+      )
+    );
+    const panel = host.querySelector(".studio") as HTMLElement;
+    const preview = host.querySelector(".studio__preview") as HTMLElement;
+    const corner = host.querySelector(
+      ".studio__corner--preview"
+    ) as HTMLElement;
+    const before = {
+      panel: panel.getBoundingClientRect(),
+      preview: preview.getBoundingClientRect().height,
+    };
+    const at = corner.getBoundingClientRect();
+    act(() => {
+      corner.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          button: 0,
+          clientX: at.left,
+          clientY: at.top,
+        })
+      );
+      window.dispatchEvent(
+        new PointerEvent("pointermove", {
+          clientX: at.left - 100,
+          clientY: at.top + 60,
+        })
+      );
+      window.dispatchEvent(new PointerEvent("pointerup", {}));
+    });
+    expect(preview.getBoundingClientRect().height).toBeCloseTo(
+      before.preview + 60,
+      0
+    );
+    expect(panel.getBoundingClientRect().height).toBeGreaterThan(
+      before.panel.height
+    );
+    localStorage.removeItem("studio:size");
+    localStorage.removeItem("board-studio:position");
+  });
 });

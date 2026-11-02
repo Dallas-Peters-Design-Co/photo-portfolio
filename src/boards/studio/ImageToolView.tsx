@@ -35,6 +35,8 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
 export function ImageToolView({
   frame,
   onAdd,
+  onResize,
+  onResizeReset,
   onValues,
   palette,
   tool,
@@ -43,6 +45,8 @@ export function ImageToolView({
   /** Working for a frame in the editor: its size first, and a background button. */
   frame?: StudioFrame;
   onAdd: (file: File) => void;
+  onResize?: (e: React.PointerEvent<HTMLElement>) => void;
+  onResizeReset?: () => void;
   onValues: (values: StudioValues) => void;
   palette: string[];
   tool: ImageTool;
@@ -133,6 +137,16 @@ export function ImageToolView({
           src={preview}
           width={size.w}
         />
+        {onResize ? (
+          // biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the preview works at its default size
+          <span
+            aria-hidden
+            className="studio__corner studio__corner--preview"
+            onDoubleClick={onResizeReset}
+            onPointerDown={onResize}
+            title="Drag to resize the preview and panel · double-click to reset"
+          />
+        ) : null}
       </div>
       <p className="studio__blurb">{tool.blurb}</p>
       <label className="studio__field">

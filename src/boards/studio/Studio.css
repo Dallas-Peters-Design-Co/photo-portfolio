@@ -89,10 +89,11 @@
 }
 
 .studio__preview {
+  position: relative;
   display: grid;
   flex: none;
   place-items: center;
-  height: 15rem;
+  height: var(--studio-preview-h, 15rem);
   padding: calc(var(--spacing) * 2);
   overflow: hidden;
   background-color: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
@@ -124,6 +125,28 @@
     object-fit: contain;
     filter: drop-shadow(0 4px 12px rgb(0 0 0 / 0.25));
   }
+}
+
+/* Resizing: the panel's corner, and the preview's (which grows the panel). */
+.studio__corner {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 14px;
+  height: 14px;
+  touch-action: none;
+  cursor: nwse-resize;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    color-mix(in oklch, var(--color-board-ink) 35%, transparent) 50%,
+    color-mix(in oklch, var(--color-board-ink) 35%, transparent) 60%,
+    transparent 60%,
+    transparent 75%,
+    color-mix(in oklch, var(--color-board-ink) 35%, transparent) 75%,
+    color-mix(in oklch, var(--color-board-ink) 35%, transparent) 85%,
+    transparent 85%
+  );
 }
 
 .studio__blurb {
