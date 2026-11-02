@@ -9,6 +9,7 @@ import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { layerOpacity } from "./layerOpacity";
 import { rotationOf } from "./rotate";
 
 /**
@@ -321,6 +322,7 @@ const drawLayer = (
     ctx.rotate((turn * Math.PI) / 180);
     ctx.translate(-w / 2, -h / 2);
   }
+  ctx.globalAlpha = layerOpacity(item);
   if (item.kind === "drawing" && isDrawingConfig(item.config)) {
     drawShape(ctx, item.config, w, h, scale);
   } else if (item.kind === "text" || item.kind === "note") {

@@ -342,8 +342,8 @@ export function CreativeEditor({
         {chosen.length === 0 ? (
           <div className="creative__bar creative__bar--empty">
             Select a layer to style it, ⇧-click or drag a box to select several.
-            Double-click text to edit. Arrows nudge, ⇧ for 10. Hold ⌥ to drag
-            without snapping.
+            Double-click text to edit. Arrows nudge, ⇧ for 10. ⌥-drag to
+            duplicate, hold ⌘ to drag without snapping.
           </div>
         ) : null}
         <Artboard
@@ -352,6 +352,7 @@ export function CreativeEditor({
           layers={layers}
           onCommit={patch}
           onCommitMany={patchMany}
+          onCopyMoved={cmd.copyMoved}
           onDropFiles={onDropFiles}
           onEditText={setEditingId}
           onSelect={selection.select}

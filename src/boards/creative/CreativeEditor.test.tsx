@@ -360,17 +360,17 @@ describe("CreativeEditor", () => {
       const board = document.querySelector(".creative__board") as Element;
       const from = at(layer, 0.5, 0.5);
       // The test stage is small, so the artboard is drawn tiny: a pixel on
-      // screen is many canvas units. ⌥ turns snapping off.
+      // screen is many canvas units. ⌘ turns snapping off.
       const scale = board.getBoundingClientRect().width / 540;
       const to = { x: from.x + 20 * scale, y: from.y + 30 * scale };
       pointer("pointerdown", layer, from);
       act(() => {
         board.dispatchEvent(
           new PointerEvent("pointermove", {
-            altKey: true,
             bubbles: true,
             clientX: to.x,
             clientY: to.y,
+            metaKey: true,
             pointerId: 1,
           })
         );

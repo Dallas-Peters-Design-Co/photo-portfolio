@@ -31,6 +31,8 @@ import {
 } from "../drawing/drawing";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { opacityOf, withOpacity } from "./layerOpacity";
+import { OpacityField } from "./OpacityField";
 import { normalizeAngle, rotationOf } from "./rotate";
 import { TextEffects } from "./TextEffects";
 
@@ -324,17 +326,6 @@ function ShapeControls({
           />
         </Field>
       ) : null}
-      <Field label="Opacity">
-        <input
-          className="creative__range"
-          max={1}
-          min={0}
-          onChange={(e) => set({ opacity: num(e.target.value, 1) })}
-          step={0.05}
-          type="range"
-          value={config.opacity ?? 1}
-        />
-      </Field>
     </>
   );
 }
@@ -369,6 +360,12 @@ export function ContextBar({
             value={imageRadius(item)}
           />
         </Field>
+      ) : null}
+      {kind ? (
+        <OpacityField
+          onChange={(v) => onPatch(withOpacity(item, v))}
+          value={opacityOf(item)}
+        />
       ) : null}
       <span className="creative__divider" />
       <div className="creative__group">

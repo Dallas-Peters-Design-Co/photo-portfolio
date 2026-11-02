@@ -6,7 +6,7 @@ import {
 import type { BoardItem } from "../../types";
 import type { Box } from "./creativeModel";
 import { overlaps, unionOf } from "./selection";
-import { type Guides, snapMove } from "./snap";
+import { type Guides, skipsSnap, snapMove } from "./snap";
 
 /**
  * Moving several layers at once, and the marquee that selects them.
@@ -46,6 +46,7 @@ export const useGroupDrag = ({
   frame,
   layers,
   onCommitMany,
+  onCopyMoved,
   onSelectMany,
   scale,
   selectedIds,
@@ -55,6 +56,8 @@ export const useGroupDrag = ({
   frame: Box;
   layers: BoardItem[];
   onCommitMany: (patches: Map<string, Partial<BoardItem>>) => void;
+  /** ⌥ held on release: copies land where the drag ended, the originals stay. */
+  onCopyMoved: (ids: string[], dx: number, dy: number) => void;
   onSelectMany: (ids: string[]) => void;
   scale: number;
   selectedIds: string[];
@@ -131,7 +134,7 @@ export const useGroupDrag = ({
     const dy = (e.clientY - drag.startY) / scale;
     const moved = { ...drag.union, x: drag.union.x + dx, y: drag.union.y + dy };
     const others = layers.filter((l) => !drag.ids.includes(l.id)).map(boxOf);
-    const snapped = e.altKey
+    const snapped = skipsSnap(e)
       ? { box: moved, guides: { x: [], y: [] } }
       : snapMove(moved, frame, others, snapPx / scale);
     setOffset({
@@ -155,8 +158,15 @@ export const useGroupDrag = ({
     onSelectMany(d.additive ? [...new Set([...selectedIds, ...hit])] : hit);
   };
 
-  const finishGroup = (d: Extract<GroupDrag, { kind: "group" }>) => {
+  const finishGroup = (
+    e: ReactPointerEvent,
+    d: Extract<GroupDrag, { kind: "group" }>
+  ) => {
     if (!(offset && (offset.dx || offset.dy))) {
+      return;
+    }
+    if (e.altKey) {
+      onCopyMoved(d.ids, Math.round(offset.dx), Math.round(offset.dy));
       return;
     }
     onCommitMany(
@@ -179,7 +189,7 @@ export const useGroupDrag = ({
     if (drag.kind === "marquee") {
       finishMarquee(e, drag);
     } else {
-      finishGroup(drag);
+      finishGroup(e, drag);
     }
     setDrag(null);
     setOffset(null);

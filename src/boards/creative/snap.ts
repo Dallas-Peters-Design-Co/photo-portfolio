@@ -38,6 +38,13 @@ const bestShift = (
   return best;
 };
 
+/**
+ * ⌘ (Ctrl elsewhere) held mid-drag places freely, without snapping. Not ⌥:
+ * that duplicates, as in Figma and Illustrator.
+ */
+export const skipsSnap = (e: { ctrlKey: boolean; metaKey: boolean }) =>
+  e.metaKey || e.ctrlKey;
+
 /** Where a dragged box should land, and which guide lines it touched. */
 export const snapMove = (
   box: Box,

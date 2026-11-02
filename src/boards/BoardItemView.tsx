@@ -4,6 +4,7 @@ import { type RefObject, useEffect, useRef } from "react";
 import type { BoardItem } from "../types";
 import { BoardTextTools } from "./BoardTextTools";
 import { BoardToolBar } from "./BoardToolBar";
+import { opacityCss } from "./creative/layerOpacity";
 import type { ResizeHandle } from "./geometry/alignmentGuides";
 import { inputPoints } from "./geometry/portGeometry";
 import { fitsContent, useAutoHeight } from "./hooks/useAutoHeight";
@@ -374,6 +375,7 @@ export function BoardItemView({
         clipPath: inFrame?.clipPath ?? undefined,
         height: fitsContent(item, readOnly) ? "auto" : item.height,
         left: item.x,
+        opacity: opacityCss(item),
         top: item.y,
         // Turned about its centre; x, y and size stay the upright box.
         transform: item.rotation ? `rotate(${item.rotation}deg)` : undefined,

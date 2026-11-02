@@ -7,11 +7,12 @@ import {
 import type { BoardItem } from "../../types";
 import { GroupOutline, LayerBody } from "./ArtboardLayers";
 import type { Box } from "./creativeModel";
+import { opacityCss } from "./layerOpacity";
 import { type ResizeDrag, resizeStep } from "./resize";
 import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
 import { type Handle, SelectionBox } from "./SelectionBox";
 import { unionOf } from "./selection";
-import { type Guides, snapMove } from "./snap";
+import { type Guides, skipsSnap, snapMove } from "./snap";
 import { useGroupDrag } from "./useGroupDrag";
 import "../itemBodies.css";
 
@@ -54,6 +55,8 @@ export interface ArtboardProps {
   onCommit: (id: string, patch: Partial<BoardItem>) => void;
   /** Several layers' changes as one step (a group move). */
   onCommitMany: (patches: Map<string, Partial<BoardItem>>) => void;
+  /** ⌥-drag: copies of these layers, moved by this much; the originals stay. */
+  onCopyMoved: (ids: string[], dx: number, dy: number) => void;
   onDropFiles?: (files: File[], point: { x: number; y: number }) => void;
   onEditText: (id: string | null) => void;
   /** Picks a layer; `additive` (Shift or ⌘) adds or removes it instead. */
@@ -79,6 +82,7 @@ export function Artboard({
   onDropFiles,
   onEditText,
   onCommitMany,
+  onCopyMoved,
   onSelect,
   onSelectMany,
   onTextChange,
@@ -101,6 +105,7 @@ export function Artboard({
     frame,
     layers,
     onCommitMany,
+    onCopyMoved,
     onSelectMany,
     scale,
     selectedIds,
@@ -208,7 +213,7 @@ export function Artboard({
         x: drag.origin.x + dx,
         y: drag.origin.y + dy,
       };
-      const snapped = e.altKey
+      const snapped = skipsSnap(e)
         ? { box: raw, guides: { x: [], y: [] } }
         : snapMove(raw, frame, others, threshold);
       setLive({ box: snapped.box, fontSize: null });
@@ -219,7 +224,7 @@ export function Artboard({
     const layer = layers.find((l) => l.id === drag.id);
     const local = toLocal(dx, dy, layer ? rotationOf(layer) : 0);
     const step = resizeStep(drag, layer, {
-      alt: e.altKey,
+      alt: skipsSnap(e),
       dx: local.dx,
       dy: local.dy,
       frame,
@@ -244,6 +249,30 @@ export function Artboard({
     return null;
   };
 
+  /** A move or resize lands; a ⌥-move drops a copy there instead. */
+  const commitBox = (
+    d: Drag,
+    l: { box: Box; fontSize: number | null },
+    copy: boolean
+  ) => {
+    const { box, fontSize } = l;
+    if (d.kind === "move" && copy) {
+      onCopyMoved(
+        [d.id],
+        Math.round(box.x - d.origin.x),
+        Math.round(box.y - d.origin.y)
+      );
+      return;
+    }
+    onCommit(d.id, {
+      height: Math.round(box.height),
+      width: Math.round(box.width),
+      x: Math.round(box.x),
+      y: Math.round(box.y),
+      ...(fontSize === null ? {} : { fontSize }),
+    });
+  };
+
   const end = (e: ReactPointerEvent) => {
     if (group.end(e)) {
       return;
@@ -261,14 +290,7 @@ export function Artboard({
     } else if (drag?.kind === "rotate" && live?.rotation !== undefined) {
       onCommit(drag.id, { rotation: live.rotation });
     } else if (drag && live) {
-      const { box, fontSize } = live;
-      onCommit(drag.id, {
-        height: Math.round(box.height),
-        width: Math.round(box.width),
-        x: Math.round(box.x),
-        y: Math.round(box.y),
-        ...(fontSize === null ? {} : { fontSize }),
-      });
+      commitBox(drag, live, e.altKey && !still);
     }
     setDrag(null);
     setLive(null);
@@ -356,6 +378,7 @@ export function Artboard({
                 style={{
                   height: box.height,
                   left: box.x - frame.x,
+                  opacity: opacityCss(item),
                   top: box.y - frame.y,
                   transform: rotateCss(angleOf(item)),
                   width: box.width,

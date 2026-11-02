@@ -85,6 +85,19 @@ export const useEditorCommands = ({
     onChange([...into, ...copies]);
     selection.setIds(copies.map((c) => c.id));
   };
+  /** ⌥-drag: copies where the drag ended, the originals left in place. */
+  const copyMoved = (ids: string[], dx: number, dy: number) => {
+    const copies: BoardItem[] = [];
+    for (const layer of layers.filter((l) => ids.includes(l.id))) {
+      copies.push({
+        ...duplicate(layer, [...items, ...copies]),
+        x: layer.x + dx,
+        y: layer.y + dy,
+      });
+    }
+    onChange([...items, ...copies]);
+    selection.setIds(copies.map((c) => c.id));
+  };
   const order = (id: string, how: Reorder) =>
     patchMany(
       new Map([...reorder(layers, id, how)].map(([key, z]) => [key, { z }]))
@@ -183,6 +196,7 @@ export const useEditorCommands = ({
     chosen,
     commands,
     copyMany,
+    copyMoved,
     one,
     order,
     patch,

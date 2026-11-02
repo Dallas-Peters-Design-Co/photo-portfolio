@@ -14,6 +14,7 @@ import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
+import { opacityCss } from "./layerOpacity";
 import { rotationOf } from "./rotate";
 import { effectRules, lookOf, scaled, type TextLook } from "./textLook";
 
@@ -380,12 +381,13 @@ export const layerHtml = (
   if (item.kind === "drawing" && isDrawingConfig(item.config)) {
     return shapeHtml(item.config, place, scale);
   }
+  const faded = { ...place, opacity: opacityCss(item)?.toString() ?? "" };
   if (item.kind === "text" || item.kind === "note") {
     const look = text(item.id);
-    return look ? textHtml(item.body ?? "", look, place, scale) : null;
+    return look ? textHtml(item.body ?? "", look, faded, scale) : null;
   }
   const src = images.get(currentImageUrl(item) ?? "");
-  return src ? imageHtml(src, place, imageRadius(item) * scale) : null;
+  return src ? imageHtml(src, faded, imageRadius(item) * scale) : null;
 };
 
 export const exportHtml5 = async (

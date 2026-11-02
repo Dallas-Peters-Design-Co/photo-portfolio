@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { BoardItem } from "../../types";
+import { opacityOf, withOpacity } from "./layerOpacity";
+import { OpacityField } from "./OpacityField";
 import { type AlignTo, alignLayers, distributeLayers } from "./selection";
 
 /**
  * The context bar with several layers selected: line them up with each other,
- * space them evenly, copy or delete them all, or let go of the selection.
+ * space them evenly, fade them, copy or delete them all, or let go of the selection.
  */
 
 const ALIGNS: { icon: ReactNode; label: string; to: AlignTo }[] = [
@@ -88,6 +90,8 @@ export function MultiBar({
   onPatch: (patches: Map<string, Partial<BoardItem>>) => void;
 }) {
   const few = layers.length < 3;
+  const values = new Set(layers.map(opacityOf));
+  const [only] = values;
   return (
     <div className="creative__bar">
       <strong className="creative__count">{layers.length} layers</strong>
@@ -124,6 +128,13 @@ export function MultiBar({
           <AlignVerticalSpaceAround size={15} />
         </Icon>
       </div>
+      <span className="creative__divider" />
+      <OpacityField
+        onChange={(v) =>
+          onPatch(new Map(layers.map((l) => [l.id, withOpacity(l, v)])))
+        }
+        value={values.size === 1 && only !== undefined ? only : null}
+      />
       <span className="creative__divider" />
       <div className="creative__group">
         <Icon label="Duplicate all (⌘D)" onClick={onDuplicate}>
