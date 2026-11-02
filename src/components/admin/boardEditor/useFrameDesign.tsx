@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CreativeEditor } from "../../../boards/creative/CreativeEditor";
 import { markDesigned } from "../../../boards/geometry/frameLock";
+import {
+  BoardImagesContext,
+  boardImages,
+} from "../../../boards/studio/imageShelf";
 import { StudioPanel } from "../../../boards/studio/StudioPanel";
 import { onOpenStudio } from "../../../boards/studio/studioEvents";
 import type { BoardItem } from "../../../types";
@@ -50,12 +54,14 @@ export const useFrameDesign = (
       onClose={() => setStudio(null)}
     />
   ) : null;
+  // Every Studio image picker, here or in the frame editor, offers these.
+  const pictures = useMemo(() => boardImages(items), [items]);
   return {
     designer: (
-      <>
+      <BoardImagesContext.Provider value={pictures}>
         {designer}
         {studioPanel}
-      </>
+      </BoardImagesContext.Provider>
     ),
     designFrame: setDesigning,
     fitFrame,

@@ -1,6 +1,5 @@
 import {
   Copy,
-  Image as ImageIcon,
   Lock,
   LockOpen,
   Plus,
@@ -12,6 +11,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { isTyping } from "../../hooks/isTyping";
+import { ImagePick } from "../ImagePick";
 import { svgToPngBlob } from "../render";
 import {
   generatePalette,
@@ -33,18 +33,11 @@ const MIN = 2;
 const MAX = 8;
 const START = 5;
 
-const loadImage = (file: File): Promise<HTMLImageElement> =>
+const loadImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("That picture couldn't be read"));
-    };
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("That picture couldn't be read"));
     img.src = url;
   });
 
@@ -115,9 +108,9 @@ export function PaletteTool({
       window.removeEventListener("keydown", onKey, { capture: true });
   }, []);
 
-  const fromPhoto = async (file: File) => {
+  const fromPhoto = async (url: string) => {
     try {
-      const img = await loadImage(file);
+      const img = await loadImage(url);
       const found = paletteFromImage(img, colors.length);
       if (found.length > 0) {
         replace(found);
@@ -227,21 +220,10 @@ export function PaletteTool({
             ))}
           </select>
         </label>
-        <label className="studio__field studio__field--image">
-          <span>From a photo</span>
-          <ImageIcon aria-hidden size={16} />
-          <input
-            accept="image/*"
-            className="studio__file"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) {
-                void fromPhoto(file);
-              }
-            }}
-            type="file"
-          />
-        </label>
+        <ImagePick
+          label="From a picture"
+          onPick={(url) => void fromPhoto(url)}
+        />
       </div>
       <div className="studio__actions">
         <button

@@ -1,5 +1,6 @@
 import { Dices } from "lucide-react";
 import { ColorWell } from "../ColorWell";
+import { ImagePick } from "./ImagePick";
 import { newSeed } from "./rng";
 import type { StudioParam, StudioValues } from "./types";
 
@@ -14,7 +15,8 @@ export function StudioControls({
 }: {
   image: string | null;
   onChange: (key: string, value: boolean | number | string) => void;
-  onImage: (file: File) => void;
+  /** A local URL for the picture chosen (ImagePick). */
+  onImage: (url: string) => void;
   palette: string[];
   params: StudioParam[];
   values: StudioValues;
@@ -106,23 +108,12 @@ export function StudioControls({
             );
           default:
             return (
-              <label className="studio__field studio__field--image" key={p.key}>
-                <span>{p.label}</span>
-                {image ? (
-                  <img alt="" height={40} src={image} width={40} />
-                ) : null}
-                <input
-                  accept="image/*"
-                  className="studio__file"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      onImage(file);
-                    }
-                  }}
-                  type="file"
-                />
-              </label>
+              <ImagePick
+                current={image}
+                key={p.key}
+                label={p.label}
+                onPick={onImage}
+              />
             );
         }
       })}

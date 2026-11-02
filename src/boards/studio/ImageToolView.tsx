@@ -150,7 +150,7 @@ export function ImageToolView({
       <StudioControls
         image={imageUrl}
         onChange={set}
-        onImage={(file) => setImageUrl(URL.createObjectURL(file))}
+        onImage={setImageUrl}
         palette={palette}
         params={tool.params}
         values={values}

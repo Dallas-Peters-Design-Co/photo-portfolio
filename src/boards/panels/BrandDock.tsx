@@ -5,6 +5,7 @@ import useSWR from "swr";
 import { collectionsApi } from "../../services/libraryService";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
+import { useImageShelf } from "../studio/imageShelf";
 import "./BrandDock.css";
 
 /**
@@ -67,6 +68,36 @@ function Library({
         </button>
       ))}
     </div>
+  );
+}
+
+/** Pictures generated lately (imageShelf.ts), to place again. */
+function MadeImages({
+  onInsert,
+}: {
+  onInsert: (image: BrandDockInsert) => void;
+}) {
+  const made = useImageShelf().slice(0, 12);
+  if (made.length === 0) {
+    return null;
+  }
+  return (
+    <section>
+      <h4 className="brand-dock__label">Made recently</h4>
+      <div className="brand-dock__grid">
+        {made.map((url) => (
+          <button
+            className="brand-dock__tile"
+            key={url}
+            onClick={() => onInsert({ imageUrl: url, thumbUrl: url })}
+            title="Add"
+            type="button"
+          >
+            <img alt="" height={96} loading="lazy" src={url} width={96} />
+          </button>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -181,6 +212,8 @@ export function BrandDock({
               </ul>
             </section>
           ) : null}
+
+          <MadeImages onInsert={onInsert} />
 
           {doc.onBrand.length > 0 ? (
             <section>

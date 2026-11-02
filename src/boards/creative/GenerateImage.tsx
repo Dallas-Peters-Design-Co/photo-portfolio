@@ -7,6 +7,7 @@ import { brandKitsApi } from "../../services/brandKitService";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { newItemId } from "../io/newItemId";
+import { rememberMade } from "../studio/imageShelf";
 import { newImage } from "./creativeModel";
 import { useGenerateModel } from "./generateModels";
 
@@ -126,6 +127,7 @@ export function GenerateImage({
       });
       const { url } = result;
       setPrompt(result.prompt);
+      rememberMade(url);
       setMade((was) => [url, ...was].slice(0, 8));
       await put(url);
       toast.success("Picture added. ⌘Z to undo.");
