@@ -4,9 +4,9 @@ import BucketIcon from "@hugeicons-pro/core-stroke-standard/BucketIcon";
 import CircleIcon from "@hugeicons-pro/core-stroke-standard/CircleIcon";
 import CursorMagicSelection02Icon from "@hugeicons-pro/core-stroke-standard/CursorMagicSelection02Icon";
 import HexagonIcon from "@hugeicons-pro/core-stroke-standard/HexagonIcon";
-import LineIcon from "@hugeicons-pro/core-stroke-standard/LineIcon";
 import PaintBrush02Icon from "@hugeicons-pro/core-stroke-standard/PaintBrush02Icon";
 import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
+import SlashIcon from "@hugeicons-pro/core-stroke-standard/SlashIcon";
 import SquareIcon from "@hugeicons-pro/core-stroke-standard/SquareIcon";
 import SquircleIcon from "@hugeicons-pro/core-stroke-standard/SquircleIcon";
 import StarIcon from "@hugeicons-pro/core-stroke-standard/StarIcon";
@@ -57,7 +57,7 @@ const TOOLS: { icon: typeof SquareIcon; label: string; tool: DrawTool }[] = [
   { icon: TriangleIcon, label: "Triangle", tool: "triangle" },
   { icon: HexagonIcon, label: "Polygon", tool: "polygon" },
   { icon: StarIcon, label: "Star", tool: "star" },
-  { icon: LineIcon, label: "Line", tool: "line" },
+  { icon: SlashIcon, label: "Line", tool: "line" },
   { icon: ArrowUpRight01Icon, label: "Arrow", tool: "arrow" },
   // Last, and separated below, because it is not a drawing tool: it paints
   // onto a picture instead of leaving a mark of its own.

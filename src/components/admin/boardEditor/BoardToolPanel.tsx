@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import ColorsIcon from "@hugeicons-pro/core-stroke-standard/ColorsIcon";
 import Film01Icon from "@hugeicons-pro/core-stroke-standard/Film01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
@@ -17,6 +18,7 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import type { NodeTypeId } from "../../../../config/nodeTypes.js";
 import { BrandDock } from "../../../boards/panels/BrandDock";
+import { openStudio } from "../../../boards/studio/studioEvents";
 import { Button } from "../../ui/button";
 import type { ExternalImage } from "../BoardInsertPanel";
 import "./boardEditorChrome.css";
@@ -109,6 +111,16 @@ export function BoardToolPanel({
         >
           <HugeiconsIcon aria-hidden icon={PaintBoardIcon} size={14} />
           Brand
+        </Button>
+        <Button
+          onClick={() => openStudio("gradient")}
+          stacked
+          title="Gradients, patterns, palettes, type scales and more"
+          type="button"
+          variant="noborder"
+        >
+          <HugeiconsIcon aria-hidden icon={ColorsIcon} size={14} />
+          Studio
         </Button>
         <Button
           onClick={() => onAddNode("generate")}
