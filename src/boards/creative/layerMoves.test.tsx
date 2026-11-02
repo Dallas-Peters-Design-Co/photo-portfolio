@@ -293,3 +293,27 @@ describe("vertical alignment", () => {
     expect(text?.textStyle?.background ?? null).toBeNull();
   });
 });
+
+describe("several layers selected", () => {
+  it("offers the text controls for text, and sets the size on all of them", () => {
+    render([frame]);
+    press("t");
+    press("t");
+    press("a", { metaKey: true });
+    const size = [...document.querySelectorAll(".creative__field")]
+      .find((f) => f.textContent?.startsWith("Size"))
+      ?.querySelector("input") as HTMLInputElement;
+    expect(size).toBeTruthy();
+    const set = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value"
+    )?.set;
+    act(() => {
+      set?.call(size, "1400");
+      size.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(
+      latest.filter((i) => i.kind === "text").map((i) => i.fontSize)
+    ).toEqual([1400, 1400]);
+  });
+});

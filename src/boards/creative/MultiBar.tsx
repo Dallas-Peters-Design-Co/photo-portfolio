@@ -16,10 +16,12 @@ import type { ReactNode } from "react";
 import type { BoardItem } from "../../types";
 import { opacityOf, withOpacity } from "./layerOpacity";
 import { OpacityField } from "./OpacityField";
+import { SharedControls } from "./SharedControls";
 import { type AlignTo, alignLayers, distributeLayers } from "./selection";
 
 /**
- * The context bar with several layers selected: line them up with each other,
+ * The context bar with several layers selected: style what they share
+ * (SharedControls.tsx), line them up with each other,
  * space them evenly, fade them, copy them, move them back onto the board or
  * delete them all, or let go of the selection.
  */
@@ -99,6 +101,8 @@ export function MultiBar({
   return (
     <div className="creative__bar">
       <strong className="creative__count">{layers.length} layers</strong>
+      <span className="creative__divider" />
+      <SharedControls layers={layers} onPatch={onPatch} />
       <span className="creative__divider" />
       <div className="creative__group">
         {ALIGNS.map((a) => (

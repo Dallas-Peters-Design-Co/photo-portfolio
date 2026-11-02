@@ -100,7 +100,7 @@ const num = (value: string, fallback: number): number => {
   return Number.isFinite(n) ? n : fallback;
 };
 
-function TextControls({
+export function TextControls({
   item,
   onPatch,
 }: {
@@ -263,7 +263,7 @@ function TextControls({
   );
 }
 
-function ShapeControls({
+export function ShapeControls({
   config,
   onPatch,
 }: {
