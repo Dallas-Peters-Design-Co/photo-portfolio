@@ -42,6 +42,15 @@ const boxOf = (item: BoardItem): Box => ({
   y: item.y,
 });
 
+/**
+ * True when the mouse button is up although a drag is still running: it was
+ * let go somewhere the release never reached (outside the window, over
+ * another app), so the drag would otherwise stay stuck to the pointer when it
+ * came back. Mouse only; a pen or finger has no buttons to read.
+ */
+export const released = (e: { buttons: number; pointerType: string }) =>
+  e.pointerType === "mouse" && e.buttons === 0;
+
 export const useGroupDrag = ({
   boardRef,
   frame,
@@ -120,6 +129,10 @@ export const useGroupDrag = ({
   const move = (e: ReactPointerEvent): boolean => {
     if (!drag) {
       return false;
+    }
+    if (released(e)) {
+      end(e);
+      return true;
     }
     if (drag.kind === "marquee") {
       const p = toCanvas(e);
@@ -213,5 +226,14 @@ export const useGroupDrag = ({
       ? { ...boxOf(item), x: item.x + offset.dx, y: item.y + offset.dy }
       : null;
 
-  return { end, guides, marquee, move, shownBox, startGroup, startMarquee };
+  return {
+    dragging: drag !== null,
+    end,
+    guides,
+    marquee,
+    move,
+    shownBox,
+    startGroup,
+    startMarquee,
+  };
 };

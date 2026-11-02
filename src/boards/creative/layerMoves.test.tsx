@@ -428,3 +428,36 @@ describe("zooming the artboard", () => {
     expect(latest.find((i) => i.id === "a")?.x).toBe(70);
   });
 });
+
+describe("letting go outside the window", () => {
+  it("ends the drag when the mouse comes back with its button up", () => {
+    render([frame, rect("a", 40, 1)]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    const layer = document.querySelector('[data-layer-id="a"]') as Element;
+    const board = document.querySelector(".creative__board") as Element;
+    const r = layer.getBoundingClientRect();
+    const from = { x: r.left + 5, y: r.top + 5 };
+    const scale = board.getBoundingClientRect().width / 540;
+    const mouse = { buttons: 1, metaKey: true, pointerType: "mouse" };
+    pointer("pointerdown", layer, from, { pointerType: "mouse" });
+    pointer("pointermove", board, { x: from.x + 50 * scale, y: from.y }, mouse);
+    // Released off-screen: no pointerup arrives. Back over the artboard with
+    // the button up, the drag finishes where it was.
+    pointer(
+      "pointermove",
+      board,
+      { x: from.x + 200 * scale, y: from.y },
+      { ...mouse, buttons: 0 }
+    );
+    expect(latest.find((i) => i.id === "a")?.x).toBe(90);
+    pointer(
+      "pointermove",
+      board,
+      { x: from.x + 300 * scale, y: from.y },
+      { ...mouse, buttons: 0 }
+    );
+    expect(latest.find((i) => i.id === "a")?.x).toBe(90);
+  });
+});

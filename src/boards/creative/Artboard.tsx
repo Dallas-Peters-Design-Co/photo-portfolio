@@ -14,7 +14,7 @@ import { type Handle, SelectionBox } from "./SelectionBox";
 import { unionOf } from "./selection";
 import { type Guides, skipsSnap, snapMove } from "./snap";
 import { useArtboardZoom } from "./useArtboardZoom";
-import { useGroupDrag } from "./useGroupDrag";
+import { released, useGroupDrag } from "./useGroupDrag";
 import { ZoomBar } from "./ZoomBar";
 import "../itemBodies.css";
 
@@ -173,6 +173,11 @@ export function Artboard({
 
   const move = (e: ReactPointerEvent) => {
     if (group.move(e) || !drag) {
+      return;
+    }
+    // Let go outside the window: finish where it was, don't stay attached.
+    if (released(e)) {
+      end(e);
       return;
     }
     if (drag.kind === "rotate") {
