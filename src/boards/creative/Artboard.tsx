@@ -8,11 +8,12 @@ import type { BoardItem } from "../../types";
 import { GroupOutline, LayerBody } from "./ArtboardLayers";
 import type { Box } from "./creativeModel";
 import { opacityCss } from "./layerOpacity";
+import { sayIfLeftFrame } from "./leftFrame";
 import { type ResizeDrag, resizeStep } from "./resize";
 import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
 import { type Handle, SelectionBox } from "./SelectionBox";
 import { unionOf } from "./selection";
-import { type Guides, keepOnFrame, skipsSnap, snapMove } from "./snap";
+import { type Guides, skipsSnap, snapMove } from "./snap";
 import { useGroupDrag } from "./useGroupDrag";
 import "../itemBodies.css";
 
@@ -216,20 +217,9 @@ export function Artboard({
       const snapped = skipsSnap(e)
         ? { box: raw, guides: { x: [], y: [] } }
         : snapMove(raw, frame, others, threshold);
-      const kept = keepOnFrame(
-        [drag.origin],
-        frame,
-        snapped.box.x - drag.origin.x,
-        snapped.box.y - drag.origin.y
-      );
-      setLive({
-        box: {
-          ...drag.origin,
-          x: drag.origin.x + kept.dx,
-          y: drag.origin.y + kept.dy,
-        },
-        fontSize: null,
-      });
+      // Free to leave the artboard: that's how a layer is pulled out of the
+      // design (leftFrame.ts says so when it lands outside).
+      setLive({ box: snapped.box, fontSize: null });
       setGuides(snapped.guides);
       return;
     }
@@ -284,6 +274,9 @@ export function Artboard({
       y: Math.round(box.y),
       ...(fontSize === null ? {} : { fontSize }),
     });
+    if (d.kind === "move") {
+      sayIfLeftFrame([box], frame);
+    }
   };
 
   const end = (e: ReactPointerEvent) => {

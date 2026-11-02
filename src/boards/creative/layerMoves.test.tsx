@@ -1,7 +1,8 @@
 import "../../index.css";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { Toaster } from "sonner";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { page } from "vitest/browser";
 import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
@@ -75,12 +76,15 @@ function Harness({ start }: { start: BoardItem[] }) {
   const [items, setItems] = useState(start);
   latest = items;
   return (
-    <CreativeEditor
-      frameId="f"
-      items={items}
-      onChange={setItems}
-      onClose={() => undefined}
-    />
+    <>
+      <CreativeEditor
+        frameId="f"
+        items={items}
+        onChange={setItems}
+        onClose={() => undefined}
+      />
+      <Toaster />
+    </>
   );
 }
 const render = (start: BoardItem[]) => {
@@ -231,7 +235,7 @@ describe("move to the board", () => {
 });
 
 describe("dragging near the edge", () => {
-  it("stops with the layer's centre still on the frame, so it stays in the design", () => {
+  it("follows the pointer off the artboard, and says when a layer leaves the design", async () => {
     render([frame, rect("a", 40, 1)]);
     act(() =>
       (document.querySelector(".creative__layer-row") as HTMLElement).click()
@@ -246,9 +250,31 @@ describe("dragging near the edge", () => {
     pointer("pointermove", board, to, { metaKey: true });
     pointer("pointerup", board, to);
     const a = latest.find((i) => i.id === "a");
-    // Centre at the right edge less a unit: half the layer hangs off.
-    expect((a?.x ?? 0) + 50).toBeLessThanOrEqual(540);
-    expect((a?.x ?? 0) + 50).toBeGreaterThan(530);
+    // Where the pointer took it, not stopped at the edge.
+    expect(a?.x ?? 0).toBeGreaterThan(800);
+    // Out of the design now, so out of the editor, and the reason is shown.
+    expect(document.querySelector('[data-layer-id="a"]')).toBeNull();
+    await vi.waitFor(() =>
+      expect(document.body.textContent).toContain("Moved out of the frame")
+    );
+  });
+
+  it("lets a layer hang half off an edge and stay in the design", () => {
+    render([frame, rect("a", 40, 1)]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    const layer = document.querySelector('[data-layer-id="a"]') as Element;
+    const board = document.querySelector(".creative__board") as Element;
+    const r = layer.getBoundingClientRect();
+    const from = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+    const scale = board.getBoundingClientRect().width / 540;
+    // From x 40 to x 480: 60 of its 100 hang past the right edge.
+    const to = { x: from.x + 440 * scale, y: from.y };
+    pointer("pointerdown", layer, from);
+    pointer("pointermove", board, to, { metaKey: true });
+    pointer("pointerup", board, to);
+    expect(latest.find((i) => i.id === "a")?.x).toBe(480);
     expect(document.querySelector('[data-layer-id="a"]')).not.toBeNull();
   });
 

@@ -5,8 +5,9 @@ import {
 } from "react";
 import type { BoardItem } from "../../types";
 import type { Box } from "./creativeModel";
+import { sayIfLeftFrame } from "./leftFrame";
 import { overlaps, unionOf } from "./selection";
-import { type Guides, keepOnFrame, skipsSnap, snapMove } from "./snap";
+import { type Guides, skipsSnap, snapMove } from "./snap";
 
 /**
  * Moving several layers at once, and the marquee that selects them.
@@ -137,14 +138,10 @@ export const useGroupDrag = ({
     const snapped = skipsSnap(e)
       ? { box: moved, guides: { x: [], y: [] } }
       : snapMove(moved, frame, others, snapPx / scale);
-    setOffset(
-      keepOnFrame(
-        layers.filter((l) => drag.ids.includes(l.id)).map(boxOf),
-        frame,
-        snapped.box.x - drag.union.x,
-        snapped.box.y - drag.union.y
-      )
-    );
+    setOffset({
+      dx: snapped.box.x - drag.union.x,
+      dy: snapped.box.y - drag.union.y,
+    });
     setGuides(snapped.guides);
     return true;
   };
@@ -173,16 +170,24 @@ export const useGroupDrag = ({
       onCopyMoved(d.ids, Math.round(offset.dx), Math.round(offset.dy));
       return;
     }
+    const moved = layers
+      .filter((l) => d.ids.includes(l.id))
+      .map((l) => ({
+        ...boxOf(l),
+        x: Math.round(l.x + offset.dx),
+        y: Math.round(l.y + offset.dy),
+      }));
     onCommitMany(
       new Map(
         layers
           .filter((l) => d.ids.includes(l.id))
-          .map((l) => [
+          .map((l, i) => [
             l.id,
-            { x: Math.round(l.x + offset.dx), y: Math.round(l.y + offset.dy) },
+            { x: moved[i]?.x ?? l.x, y: moved[i]?.y ?? l.y },
           ])
       )
     );
+    sayIfLeftFrame(moved, frame);
   };
 
   /** True when the release ended the group's or the marquee's drag. */

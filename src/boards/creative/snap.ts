@@ -39,11 +39,10 @@ const bestShift = (
 };
 
 /**
- * A move cut short so every box's centre stays on the frame. A layer belongs
- * to the frame its centre is in (config/graph.ts), so a centre dragged past
- * the edge would drop the layer out of the design and out of the editor.
- * Half a layer can still hang off any edge; taking one off the frame
- * altogether is "Move to the board".
+ * An arrow-key nudge cut short so every box's centre stays on the frame. A
+ * layer belongs to the frame its centre is in (config/graph.ts), and tapping
+ * an arrow shouldn't quietly push one out of the design. Dragging isn't held
+ * back: pulling a layer off the artboard is how it's taken out (leftFrame.ts).
  */
 export const keepOnFrame = (
   boxes: Box[],
