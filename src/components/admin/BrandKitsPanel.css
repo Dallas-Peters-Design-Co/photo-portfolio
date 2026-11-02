@@ -537,3 +537,18 @@
     cursor: grabbing;
   }
 }
+
+/* The linked library's pictures, under its picker. */
+.brand-kit__library {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+  gap: calc(var(--spacing) * 1.5);
+
+  & img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: var(--radius-control, 6px);
+  }
+}

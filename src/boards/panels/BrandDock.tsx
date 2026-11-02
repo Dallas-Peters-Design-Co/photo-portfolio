@@ -1,8 +1,7 @@
 import { GripVertical, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
-import { collectionsApi } from "../../services/libraryService";
+import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { useImageShelf } from "../studio/imageShelf";
@@ -34,10 +33,7 @@ function Library({
   collectionId: string;
   onInsert: (image: BrandDockInsert) => void;
 }) {
-  const { data, isLoading } = useSWR(["collection", collectionId], () =>
-    collectionsApi.get(collectionId)
-  );
-  const images = (data?.items ?? []).filter((item) => item.kind === "image");
+  const { images, isLoading } = useCollectionImages(collectionId);
   if (isLoading) {
     return <p className="brand-dock__empty">Loading…</p>;
   }

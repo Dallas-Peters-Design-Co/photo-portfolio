@@ -7,6 +7,7 @@ import {
   MAX_REFERENCES,
 } from "../../../config/brandKit.js";
 import { newItemId } from "../../../config/proposal.js";
+import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { useCollections } from "../../hooks/useCollections";
 import { Button } from "../ui/button";
 import { BrandImagesEditor } from "./BrandImagesEditor";
@@ -53,9 +54,40 @@ export function LibraryPicker({
           ? "Its images appear in the Brand panel on every board, ready to drop in."
           : "Pick a collection to use as this brand's photos and past work. Add to it from any board's Collect menu."}
       </p>
+      {linked ? <LibraryImages collectionId={linked.id} /> : null}
       {/* Reference images live here too: picked from that library, the
           photo library, or uploaded. */}
       <BrandImagesEditor doc={doc} onChange={onChange} />
+    </div>
+  );
+}
+
+/** The linked collection's pictures, so the kit shows what it holds. */
+function LibraryImages({ collectionId }: { collectionId: string }) {
+  const { images, isLoading } = useCollectionImages(collectionId);
+  if (isLoading) {
+    return <p className="brand-kit__hint">Loading the library…</p>;
+  }
+  if (images.length === 0) {
+    return (
+      <p className="brand-kit__hint">
+        This collection is empty. Add to it from any board's Collect menu.
+      </p>
+    );
+  }
+  return (
+    <div className="brand-kit__library">
+      {images.map((item) => (
+        <img
+          alt={item.alt ?? ""}
+          height={96}
+          key={item.id}
+          loading="lazy"
+          src={item.url}
+          title={item.title ?? undefined}
+          width={96}
+        />
+      ))}
     </div>
   );
 }

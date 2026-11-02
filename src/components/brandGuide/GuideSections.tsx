@@ -10,6 +10,7 @@ import type {
 import { parseFontRef } from "../../../config/fontRef.js";
 import { styleCss } from "../../../config/typeScale.js";
 import { LOOKS } from "../../editor/presets";
+import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { loadFontRef } from "../../theme/remoteFonts";
 import { facesFor, familyFor } from "../typeScale/faces";
 import {
@@ -19,6 +20,7 @@ import {
   paperAndInk,
   valuesOf,
 } from "./guideModel";
+import { useLogoTone } from "./logoTone";
 
 /** The sections of a brand guide, each a function of the kit's document. */
 
@@ -222,24 +224,34 @@ function Logo({ logo, ground }: { ground: string; logo: LogoEntry }) {
   );
 }
 
+/** One logo, on the ground its own ink was made for. */
+function ToneLogo({
+  grounds,
+  logo,
+}: {
+  grounds: { dark: string; light: string };
+  logo: LogoEntry;
+}) {
+  const tone = useLogoTone(logo.label, logo.url);
+  return (
+    <Logo
+      ground={tone === "light" ? grounds.dark : grounds.light}
+      logo={logo}
+    />
+  );
+}
+
 export function LogoSection({ doc }: { doc: BrandKitDoc }) {
   if (doc.logos.length === 0) {
     return <p className="guide-empty">No logos in this kit yet.</p>;
   }
-  const groups = groupPalette(doc.palette);
   const { ink, paper } = paperAndInk(doc.palette);
-  const light = paper ?? "#ffffff";
-  const dark = ink ?? "#0b0f1a";
-  const brand = groups.brand[0]?.value;
+  const grounds = { dark: ink ?? "#0b0f1a", light: paper ?? "#ffffff" };
   return (
     <div className="guide-logos">
       {doc.logos.map((logo) => (
         <article className="guide-logos__entry" key={logo.url}>
-          <div className="guide-logos__grounds">
-            <Logo ground={light} logo={logo} />
-            <Logo ground={dark} logo={logo} />
-            {brand ? <Logo ground={brand} logo={logo} /> : null}
-          </div>
+          <ToneLogo grounds={grounds} logo={logo} />
           <footer className="guide-logos__meta">
             <strong>{logo.label || "Logo"}</strong>
             {logo.minWidth ? <span>Min width {logo.minWidth}px</span> : null}
@@ -262,7 +274,12 @@ export function LogoSection({ doc }: { doc: BrandKitDoc }) {
 }
 
 export function ImagerySection({ doc }: { doc: BrandKitDoc }) {
-  if (doc.onBrand.length === 0 && doc.offBrand.length === 0) {
+  const { images: library } = useCollectionImages(doc.libraryCollectionId);
+  if (
+    doc.onBrand.length === 0 &&
+    doc.offBrand.length === 0 &&
+    library.length === 0
+  ) {
     return <p className="guide-empty">No imagery examples in this kit yet.</p>;
   }
   const look = doc.look ? LOOKS.find((l) => l.id === doc.look?.id) : null;
@@ -285,6 +302,23 @@ export function ImagerySection({ doc }: { doc: BrandKitDoc }) {
                 key={url}
                 loading="lazy"
                 src={url}
+                width={300}
+              />
+            ))}
+          </div>
+        </>
+      ) : null}
+      {library.length > 0 ? (
+        <>
+          <h3 className="guide-subhead">Library</h3>
+          <div className="guide-images">
+            {library.map((item) => (
+              <img
+                alt={item.alt ?? ""}
+                height={300}
+                key={item.id}
+                loading="lazy"
+                src={item.url}
                 width={300}
               />
             ))}
