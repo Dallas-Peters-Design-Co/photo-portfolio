@@ -60,7 +60,17 @@ export const useAnchoredPanel = (point: { x: number; y: number }) => {
     // A menu open across a resize — or a rotation on a tablet — is worth
     // keeping on screen too, and this is one listener for the life of one menu.
     window.addEventListener("resize", reposition);
-    return () => window.removeEventListener("resize", reposition);
+    // And when what's inside changes size (a menu row opening a wider panel),
+    // or it can run off the edge of the window.
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(reposition);
+    observer?.observe(el);
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", reposition);
+    };
   }, [x, y]);
 
   return {

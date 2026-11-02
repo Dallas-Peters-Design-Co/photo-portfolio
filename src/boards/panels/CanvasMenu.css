@@ -8,4 +8,11 @@
  */
 .canvas-menu {
   width: calc(var(--spacing) * 60);
+
+  /* A panel opened from the menu that needs more room (the size picker's
+     names and dimensions) widens the menu rather than being cut off by it. */
+  &:has(.ad-sizes) {
+    width: max-content;
+    max-width: calc(100vw - var(--spacing) * 4);
+  }
 }

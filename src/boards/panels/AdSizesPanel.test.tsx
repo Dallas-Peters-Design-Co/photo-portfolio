@@ -3,6 +3,8 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { BoardItem } from "../../types";
 import { AdSizesPanel } from "./AdSizesPanel";
+import "../../index.css";
+import "./CanvasMenu.css";
 
 /** Checking sizes decides which actions the panel offers. */
 
@@ -66,5 +68,23 @@ describe("AdSizesPanel", () => {
     expect(button(RESIZE).disabled).toBe(true);
     act(() => button(TWO_COPIES).click());
     expect(onFit).toHaveBeenCalledWith(["ig-story", "yt-thumb"], "copy");
+  });
+
+  it("isn't cut off by the canvas menu it opens in", () => {
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    act(() =>
+      root?.render(
+        <div className="panel-surface panel-popover canvas-menu">
+          <AdSizesPanel frame={frame} onCancel={vi.fn()} onFit={vi.fn()} />
+        </div>
+      )
+    );
+    const menu = host.querySelector(".canvas-menu") as HTMLElement;
+    const panel = host.querySelector(".ad-sizes") as HTMLElement;
+    expect(menu.getBoundingClientRect().width).toBeGreaterThanOrEqual(
+      panel.getBoundingClientRect().width
+    );
   });
 });
