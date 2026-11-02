@@ -244,4 +244,28 @@ export const arrangeCommands = ({
     label: "Align text right",
     run: () => textStyle(() => ({ align: "right" })),
   },
+  {
+    enabled: some,
+    group: "Text",
+    id: "text-top",
+    keys: ["shift+alt+t"],
+    label: "Text to the top of its box",
+    run: () => textStyle(() => ({ verticalAlign: null })),
+  },
+  {
+    enabled: some,
+    group: "Text",
+    id: "text-middle",
+    keys: ["shift+alt+m"],
+    label: "Text to the middle of its box",
+    run: () => textStyle(() => ({ verticalAlign: "middle" })),
+  },
+  {
+    enabled: some,
+    group: "Text",
+    id: "text-bottom",
+    keys: ["shift+alt+b"],
+    label: "Text to the bottom of its box",
+    run: () => textStyle(() => ({ verticalAlign: "bottom" })),
+  },
 ];

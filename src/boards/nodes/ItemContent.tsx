@@ -6,6 +6,7 @@ import { isDrawingConfig } from "../drawing/drawing";
 import { MaskOverlay } from "../drawing/MaskOverlay";
 import { maskOf } from "../drawing/mask";
 import { useTextFont } from "../hooks/useTextFont";
+import { useVerticalAlign } from "../hooks/useVerticalAlign";
 import { ItemMedia } from "../ItemMedia";
 import { ElementBody, FrameBody, ShaderItem } from "../itemBodies";
 import { BatchList } from "./BatchList";
@@ -49,6 +50,7 @@ function BoardItemBody({
   // Here rather than in the toolbar, so a published board a visitor is only
   // reading gets the family too.
   useTextFont(item.textStyle);
+  useVerticalAlign(fieldRef, item);
 
   if (isNote || item.kind === "text") {
     // Size, line-height and weight used to be literals here; they live in

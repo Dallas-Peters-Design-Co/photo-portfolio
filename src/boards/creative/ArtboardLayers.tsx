@@ -1,8 +1,10 @@
+import { useRef } from "react";
 import { textStyleCss } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
 import { DrawingView } from "../drawing/DrawingView";
 import { isDrawingConfig } from "../drawing/drawing";
 import { useTextFont } from "../hooks/useTextFont";
+import { useVerticalAlign } from "../hooks/useVerticalAlign";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { imageRadius } from "./imageRadius";
@@ -27,6 +29,8 @@ function LayerText({
   textRef: (el: HTMLElement | null) => void;
 }) {
   useTextFont(item.textStyle);
+  const own = useRef<HTMLTextAreaElement | null>(null);
+  useVerticalAlign(own, item);
   return (
     <textarea
       className="creative__text text-body text-body--plain"
@@ -39,6 +43,7 @@ function LayerText({
       }}
       readOnly={!editing}
       ref={(el) => {
+        own.current = el;
         textRef(el);
         if (el && editing && document.activeElement !== el) {
           el.focus();

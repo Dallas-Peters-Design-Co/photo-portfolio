@@ -86,10 +86,18 @@ export interface TextStyle {
   /** The outline's thickness, in em, so it scales with the type. */
   outlineWidth?: number | null;
   transform: TextTransform | null;
+  /**
+   * Where the words sit in the layer's box, top to bottom. Absent is the top,
+   * as text always sat; set by measuring (src/boards/hooks/useVerticalAlign).
+   */
+  verticalAlign?: TextVerticalAlign | null;
   weight: number | null;
 }
 
 /** Bounds for the outline and the box behind text, in em. */
+export type TextVerticalAlign = "middle" | "bottom";
+const VERTICAL_ALIGNS: TextVerticalAlign[] = ["middle", "bottom"];
+
 export const MAX_OUTLINE_WIDTH = 0.2;
 export const MAX_BACKGROUND_PADDING = 2;
 
@@ -250,6 +258,9 @@ export const normalizeTextStyle = (raw: unknown): TextStyle | null => {
     // Only present when set, so a style without it reads back unchanged.
     ...(o.kerning === "none" ? { kerning: "none" as const } : {}),
     ...effectsOf(o),
+    ...(VERTICAL_ALIGNS.includes(o.verticalAlign as TextVerticalAlign)
+      ? { verticalAlign: o.verticalAlign as TextVerticalAlign }
+      : {}),
     letterSpacing: bounded(
       o.letterSpacing,
       MIN_LETTER_SPACING,

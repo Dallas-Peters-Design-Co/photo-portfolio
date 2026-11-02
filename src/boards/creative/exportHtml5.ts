@@ -140,7 +140,7 @@ export const textHtml = (
           : scaled(look.letterSpacing, scale),
       "line-height":
         look.lineHeight === "normal" ? null : scaled(look.lineHeight, scale),
-      padding: `${scaled(look.paddingTop, scale) ?? "0"} ${scaled(look.paddingLeft, scale) ?? "0"}`,
+      padding: `${scaled(look.paddingTop, scale) ?? "0"} ${scaled(look.paddingLeft, scale) ?? "0"} ${scaled(look.paddingBottom ?? look.paddingTop, scale) ?? "0"}`,
       "text-align": look.textAlign === "start" ? null : look.textAlign,
       "text-transform":
         look.textTransform === "none" ? null : look.textTransform,

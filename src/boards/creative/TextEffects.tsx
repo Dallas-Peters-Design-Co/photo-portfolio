@@ -1,3 +1,8 @@
+import {
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyEnd,
+  AlignVerticalJustifyStart,
+} from "lucide-react";
 import type { TextStyle } from "../../../config/textStyle";
 import { ColorWell } from "../ColorWell";
 
@@ -122,8 +127,51 @@ export function TextEffects({
             type="range"
             value={Math.round((style?.backgroundRadius ?? 0) * 100)}
           />
+          <VerticalAlign onSet={onSet} style={style} />
         </>
       ) : null}
+    </>
+  );
+}
+
+const VERTICAL = [
+  { icon: AlignVerticalJustifyStart, label: "Text at the top", value: null },
+  {
+    icon: AlignVerticalJustifyCenter,
+    label: "Text in the middle",
+    value: "middle",
+  },
+  {
+    icon: AlignVerticalJustifyEnd,
+    label: "Text at the bottom",
+    value: "bottom",
+  },
+] as const;
+
+/** Where the words sit in the box: top, middle or bottom. */
+function VerticalAlign({
+  onSet,
+  style,
+}: {
+  onSet: (next: Partial<TextStyle>) => void;
+  style: TextStyle | null;
+}) {
+  const current = style?.verticalAlign ?? null;
+  return (
+    <>
+      {VERTICAL.map(({ icon: Icon, label, value }) => (
+        <button
+          aria-label={label}
+          aria-pressed={current === value}
+          className="creative__icon"
+          key={label}
+          onClick={() => onSet({ verticalAlign: value })}
+          title={label}
+          type="button"
+        >
+          <Icon size={15} />
+        </button>
+      ))}
     </>
   );
 }

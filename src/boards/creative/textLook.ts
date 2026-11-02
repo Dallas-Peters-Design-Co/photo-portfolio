@@ -16,7 +16,9 @@ export interface TextLook {
   fontWeight: string;
   letterSpacing: string;
   lineHeight: string;
+  paddingBottom?: string;
   paddingLeft: string;
+  /** Includes the space a middle or bottom alignment adds above the words. */
   paddingTop: string;
   textAlign: string;
   /** The outline (-webkit-text-stroke), drawn under the fill. */
@@ -63,6 +65,7 @@ export const lookOf = (el: HTMLElement): TextLook => {
     fontWeight: css.fontWeight,
     letterSpacing: css.letterSpacing,
     lineHeight: css.lineHeight,
+    paddingBottom: css.paddingBottom,
     paddingLeft: css.paddingLeft,
     paddingTop: css.paddingTop,
     textAlign: css.textAlign,
