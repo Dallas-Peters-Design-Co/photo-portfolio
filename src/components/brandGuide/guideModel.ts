@@ -89,14 +89,40 @@ export const brandFaces = (
 
 const lightness = (hex: string) => hexToOklch(hex)?.l ?? 0;
 
-/** The lightest and darkest neutrals: a brand's paper and its ink. */
+/**
+ * The brand's paper and ink: its lightest and darkest neutrals, but only when
+ * they're light and dark enough to be read on. A kit whose one neutral is a
+ * mid grey (#ccc) gave the same grey for both, and the guide set grey text on
+ * a grey page. Null means "use the default".
+ */
 export const paperAndInk = (
   palette: PaletteEntry[]
 ): { ink: string | null; paper: string | null } => {
   const neutrals = groupPalette(palette).neutral.map((n) => n.value);
-  if (neutrals.length === 0) {
-    return { ink: null, paper: null };
-  }
   const byLight = [...neutrals].sort((a, b) => lightness(b) - lightness(a));
-  return { ink: byLight.at(-1) ?? null, paper: byLight[0] ?? null };
+  const [lightest] = byLight;
+  const darkest = byLight.at(-1);
+  return {
+    ink: darkest && lightness(darkest) <= 0.35 ? darkest : null,
+    paper: lightest && lightness(lightest) >= 0.9 ? lightest : null,
+  };
+};
+
+const TOKEN_PREFIX = /^-*(op-)?(colou?r-)?/i;
+const TOKEN_SUFFIX = /-(original|base|default)$/i;
+const DASHES = /[-_]+/g;
+
+/**
+ * A colour's name as a person would say it. Kits imported from CSS carry the
+ * variable's name ("op-color-primary-original"), which reads as code and
+ * wraps over three lines on a card.
+ */
+export const colourName = (entry: PaletteEntry): string => {
+  const plain = entry.name
+    .trim()
+    .replace(TOKEN_PREFIX, "")
+    .replace(TOKEN_SUFFIX, "")
+    .replace(DASHES, " ")
+    .trim();
+  return plain ? plain.charAt(0).toUpperCase() + plain.slice(1) : "";
 };

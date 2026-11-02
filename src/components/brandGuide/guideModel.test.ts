@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { groupPalette, inkOn, paperAndInk, valuesOf } from "./guideModel";
+import {
+  colourName,
+  groupPalette,
+  inkOn,
+  paperAndInk,
+  valuesOf,
+} from "./guideModel";
 
 describe("brand guide colours", () => {
   it("sorts a palette into brand, neutral and signal, in the kit's order", () => {
@@ -23,6 +29,24 @@ describe("brand guide colours", () => {
         { name: "stone", role: "neutral", value: "#a8a29e" },
       ])
     ).toEqual({ ink: "#0b0f1a", paper: "#fafafa" });
+  });
+
+  it("won't make a mid grey both the paper and the ink", () => {
+    expect(
+      paperAndInk([
+        { name: "op-color-primary-original", role: "", value: "#2e84f5" },
+        { name: "op-color-neutral-original", role: "", value: "#cccccc" },
+      ])
+    ).toEqual({ ink: null, paper: null });
+  });
+
+  it("names colours imported from CSS as a person would", () => {
+    const named = (name: string) =>
+      colourName({ name, role: "", value: "#000000" });
+    expect(named("op-color-primary-original")).toBe("Primary");
+    expect(named("op-color-alerts-warning-original")).toBe("Alerts warning");
+    expect(named("--brand-blue")).toBe("Brand blue");
+    expect(named("Cobalt")).toBe("Cobalt");
   });
 
   it("gives each colour's values in every format", () => {

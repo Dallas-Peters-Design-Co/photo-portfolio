@@ -12,7 +12,13 @@ import { styleCss } from "../../../config/typeScale.js";
 import { LOOKS } from "../../editor/presets";
 import { loadFontRef } from "../../theme/remoteFonts";
 import { facesFor, familyFor } from "../typeScale/faces";
-import { groupPalette, inkOn, paperAndInk, valuesOf } from "./guideModel";
+import {
+  colourName,
+  groupPalette,
+  inkOn,
+  paperAndInk,
+  valuesOf,
+} from "./guideModel";
 
 /** The sections of a brand guide, each a function of the kit's document. */
 
@@ -49,7 +55,7 @@ function ColourCard({ entry, large }: { entry: PaletteEntry; large: boolean }) {
       style={{ background: entry.value }}
     >
       <header className="guide-colour__head">
-        <h3 className="guide-colour__name">{entry.name || v.hex}</h3>
+        <h3 className="guide-colour__name">{colourName(entry) || v.hex}</h3>
         {entry.role ? (
           <span className="guide-colour__role">{entry.role}</span>
         ) : null}
