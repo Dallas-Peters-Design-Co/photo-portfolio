@@ -9,6 +9,7 @@ import { useModels } from "../ModelsContext";
  */
 
 const KEY = "creative-generate:model";
+const TEXT_TO_IMAGE = /\/(quality\/)?text-to-image$/;
 /** The text-to-image model the automatic choice uses when no photo is sent. */
 export const PREFERRED = "fal-ai/nano-banana-pro";
 
@@ -59,5 +60,17 @@ export const useGenerateModel = () => {
     }
   };
   const input = choices.find((c) => c.id === model)?.input;
-  return { choices, model, setModel, takesPhotos: input !== "prompt" };
+  // A prompt-only model hands the photos to its /edit endpoint when there is
+  // one (photoPartner in api/_lib/creativeImage.ts does the same).
+  const partner =
+    input === "prompt"
+      ? choices.find((c) => c.id === `${model.replace(TEXT_TO_IMAGE, "")}/edit`)
+      : undefined;
+  return {
+    choices,
+    model,
+    partner: partner?.label ?? null,
+    setModel,
+    takesPhotos: input !== "prompt" || partner !== undefined,
+  };
 };

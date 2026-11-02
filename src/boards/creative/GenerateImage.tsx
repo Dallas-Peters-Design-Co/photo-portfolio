@@ -83,7 +83,7 @@ export function GenerateImage({
   const [busy, setBusy] = useState(false);
   const [made, setMade] = useState<string[]>([]);
   const [prompt, setPrompt] = useState("");
-  const { choices, model, setModel, takesPhotos } = useGenerateModel();
+  const { choices, model, partner, setModel, takesPhotos } = useGenerateModel();
   const onBrand = doc?.onBrand.length ?? 0;
   const sourceNote = kit
     ? `Made from ${kit.name}'s palette, voice, notes and photos.`
@@ -185,8 +185,8 @@ export function GenerateImage({
             type="checkbox"
           />
           {takesPhotos
-            ? `Match the brand's ${onBrand} photo${onBrand === 1 ? "" : "s"}`
-            : "Match the brand's photos (through the prompt)"}
+            ? `Match the brand's ${onBrand} picture${onBrand === 1 ? "" : "s"}${partner ? ` (sent to ${partner})` : ""}`
+            : "Match the brand's pictures (described in the prompt only)"}
         </label>
       ) : null}
       <button

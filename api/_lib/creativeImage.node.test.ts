@@ -28,6 +28,8 @@ const MODELS: FalModelDef[] = [
   def("fal-ai/nano-banana/edit", "prompt-and-image", "image_urls"),
   def("fal-ai/flux-2-pro", "prompt-and-image"),
   def("fal-ai/birefnet/v2", "image"),
+  def("openai/gpt-image-2", "prompt"),
+  def("openai/gpt-image-2/edit", "prompt-and-image", "image_urls"),
 ];
 
 const kit: BrandKitDoc = {
@@ -159,5 +161,32 @@ describe("creativeImage", () => {
     expect(() =>
       imagePlan(kit, req("fal-ai/flux-2-pro", false), MODELS)
     ).toThrow("reworks a photo");
+  });
+
+  it("hands the photos to a prompt-only model's edit endpoint, spread across the kit", () => {
+    const six = {
+      ...kit,
+      onBrand: ["1", "1-web", "2", "2-web", "3", "4"].map(
+        (n) => `https://blob/${n}.jpg`
+      ),
+    };
+    const req = (matchPhotos: boolean) =>
+      readImageRequest({
+        ask: "x",
+        height: 1,
+        matchPhotos,
+        model: "openai/gpt-image-2",
+        width: 1,
+      });
+    expect(imagePlan(six, req(true), MODELS)).toEqual({
+      blend: ["https://blob/2.jpg", "https://blob/3.jpg"],
+      model: "openai/gpt-image-2/edit",
+      source: "https://blob/1.jpg",
+    });
+    expect(imagePlan(six, req(false), MODELS)).toEqual({
+      blend: [],
+      model: "openai/gpt-image-2",
+      source: null,
+    });
   });
 });

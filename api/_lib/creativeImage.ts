@@ -42,9 +42,10 @@ export interface ImageRequest {
 const MAX_ASK = 600;
 const MAX_PROMPT = 1100;
 /** On-brand pictures shown to Claude, and sent to the model as references. */
-const SHOWN = 4;
+const SHOWN = 6;
 const REFERENCES = 3;
 const OFF_SHOWN = 2;
+const TEXT_TO_IMAGE = /\/(quality\/)?text-to-image$/;
 
 const clampNumber = (value: unknown): number => {
   const n = Number(value);
@@ -83,7 +84,9 @@ export const imageSizeFor = (width: number, height: number): string => {
 const SYSTEM = `You write one prompt for an image model, for a picture that goes into a brand's ad or design.
 Reply with the prompt only: one paragraph, no preamble, no quotes, under 120 words.
 - Follow the request for what the picture shows. Never add products, people, places, claims or numbers it doesn't ask for.
-- Match the brand's look: its light, colour, grade, composition and mood, as the on-brand pictures and notes show. Steer clear of what the off-brand pictures show.
+- Match the on-brand pictures first: their medium and technique (painted, printed, drawn, photographed), brushwork or texture, light, colour, composition and mood. Name the medium plainly at the start of the prompt.
+- Where the written notes and the on-brand pictures disagree about medium or style, follow the pictures. Notes about past tools, files or experiments are history, not direction.
+- Steer clear of what the off-brand pictures show.
 - Describe colours in words, never as hex codes.
 - No words, letters, logos or watermarks in the picture: type and logo are set over it afterwards.
 - Leave calm, uncluttered space where a headline could sit.`;
@@ -133,7 +136,7 @@ const writePrompt = async (
   doc: BrandKitDoc,
   req: ImageRequest
 ): Promise<string> => {
-  const on = doc.onBrand.slice(0, SHOWN);
+  const on = spread(doc.onBrand, SHOWN);
   const off = doc.offBrand.slice(0, OFF_SHOWN);
   try {
     const reply = await describeWithClaude(
@@ -159,15 +162,53 @@ const writePrompt = async (
  * refused, so they're left off. A model that needs a picture is refused when
  * there's none to give it, before the call is billed.
  */
+/**
+ * `count` pictures taken evenly across the list rather than the first few: a
+ * kit often holds the same picture twice (a full and a web copy) side by side,
+ * and the first three were then two covers and a duplicate.
+ */
+export const spread = (list: readonly string[], count: number): string[] => {
+  if (list.length <= count) {
+    return [...list];
+  }
+  const step = list.length / count;
+  return Array.from(
+    { length: count },
+    (_, i) => list[Math.floor(i * step)] ?? ""
+  ).filter(Boolean);
+};
+
+/**
+ * The same model's photo-taking endpoint, for a prompt-only model asked to
+ * match photos: Nano Banana Pro and GPT Image read only words, while their
+ * /edit endpoints take the pictures too. Only one listed in the models table.
+ */
+export const photoPartner = (
+  models: readonly FalModelDef[],
+  id: string | null
+): string | null => {
+  if (!id || falModelInput(models, id) !== "prompt") {
+    return null;
+  }
+  const base = id.replace(TEXT_TO_IMAGE, "");
+  const edit = `${base}/edit`;
+  return isFalModel(models, edit) ? edit : null;
+};
+
 export const imagePlan = (
   doc: BrandKitDoc,
   req: ImageRequest,
   models: readonly FalModelDef[]
 ): { blend: string[]; model: string | null; source: string | null } => {
-  const model =
+  const chosen =
     req.model && req.model !== "auto" && isFalModel(models, req.model)
       ? req.model
       : null;
+  const partner =
+    req.matchPhotos && doc.onBrand.length > 0
+      ? photoPartner(models, chosen)
+      : null;
+  const model = partner ?? chosen;
   const input = falModelInput(models, model ?? "auto");
   const label = falModelFor(models, model)?.label ?? "That model";
   if (input === "image" || input === "video" || input === "prompt-and-video") {
@@ -175,7 +216,7 @@ export const imagePlan = (
   }
   const refs =
     req.matchPhotos && input !== "prompt"
-      ? doc.onBrand.slice(0, REFERENCES)
+      ? spread(doc.onBrand, REFERENCES)
       : [];
   if (input === "prompt-and-image" && refs.length === 0) {
     throw new Error(
@@ -203,7 +244,7 @@ export const brandImage = async (
   const prompt = await writePrompt(doc, req);
   const image = await generateImage(
     plan.source
-      ? `Make a new picture, not a copy of these: they only show the brand's photographic style. ${prompt}`
+      ? `Make a new picture, not a copy of these: they show the brand's style: match their medium, technique and texture. ${prompt}`
       : prompt,
     plan.source,
     plan.model,
