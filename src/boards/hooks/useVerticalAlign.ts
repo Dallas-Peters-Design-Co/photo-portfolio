@@ -64,6 +64,15 @@ const align = (el: HTMLTextAreaElement, item: BoardItem) => {
   if (room > 0) {
     el.style.paddingTop = `${pad + (where === "middle" ? room / 2 : room)}px`;
   }
+  // A field that ever overflowed (mid-edit, or measured in a fallback font)
+  // keeps its scroll, which lifts the words off where they were placed.
+  el.scrollTop = 0;
+};
+
+/** This field's own font, by its CSS shorthand, for document.fonts.load. */
+const fontOf = (el: HTMLElement): string => {
+  const css = getComputedStyle(el);
+  return `${css.fontStyle} ${css.fontWeight} ${css.fontSize} ${css.fontFamily}`;
 };
 
 export const useVerticalAlign = (
@@ -78,11 +87,21 @@ export const useVerticalAlign = (
       return;
     }
     align(el, item);
-    // Again once web fonts arrive: a fallback font sets a different height.
+    // Again once the field's own font has arrived: measured in a fallback, a
+    // narrow display face wraps differently and the words land too high.
+    // `fonts.ready` alone isn't enough, since a brand font's stylesheet may
+    // not have started loading yet when it resolves.
     let alive = true;
-    void document.fonts?.ready.then(() => alive && align(el, item));
+    const again = () => alive && align(el, item);
+    const { fonts } = document;
+    if (fonts) {
+      void fonts.load(fontOf(el), el.value || "x").then(again, again);
+      void fonts.ready.then(again);
+      fonts.addEventListener("loadingdone", again);
+    }
     return () => {
       alive = false;
+      fonts?.removeEventListener("loadingdone", again);
     };
   }, [ref, body, fontSize, height, textStyle, width]);
 };
