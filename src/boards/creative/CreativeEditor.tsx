@@ -23,13 +23,13 @@ import { ContextBar } from "./ContextBar";
 import { layersOf, newImage, newShape } from "./creativeModel";
 import { EditorOverlays } from "./EditorOverlays";
 import { ExportMenu } from "./ExportMenu";
+import { frameStudioProps, useFrameStudio } from "./frameStudio";
 import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
 import { MultiBar } from "./MultiBar";
 import { PanelEdge } from "./PanelEdge";
 import { ShapePicker } from "./ShapePicker";
 import { useLayerSelection } from "./selection";
-import { studioLayer } from "./studioLayer";
 import { useEditorCommands } from "./useEditorCommands";
 import { usePanelWidths } from "./usePanelWidths";
 import "./CreativeEditor.css";
@@ -88,7 +88,7 @@ export function CreativeEditor({
   const [showBrand, setShowBrand] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
   const [overlay, setOverlay] = useState<"palette" | "shortcuts" | null>(null);
-  const [studio, setStudio] = useState<string | null>(null);
+  const { editId, setStudio, studio, studioEditorFor } = useFrameStudio();
   const textEls = useRef(new Map<string, HTMLElement>());
   const kitDoc = useActiveBrand()?.kit?.resolvedDoc ?? null;
   const palette = kitDoc?.palette ?? [];
@@ -129,13 +129,6 @@ export function CreativeEditor({
     onPausedEscape: () => (overlay ? setOverlay(null) : setStudio(null)),
     paused: overlay !== null || studio !== null,
   });
-
-  /** A Studio picture placed in the frame: as a layer, or behind everything. */
-  const placeFromStudio = async (file: File, asBackground: boolean) => {
-    if (frame) {
-      cmd.add(await studioLayer(file, frame, items, layers, asBackground));
-    }
-  };
 
   if (!frame) {
     return null;
@@ -336,6 +329,7 @@ export function CreativeEditor({
             item={selected}
             onDelete={() => cmd.removeMany([selected.id])}
             onDuplicate={() => cmd.copyMany([selected])}
+            onEditInStudio={studioEditorFor(selected)}
             onPatch={(next) => patch(selected.id, next)}
             onReorder={(how) => cmd.order(selected.id, how)}
             onToBoard={() => cmd.toBoard([selected])}
@@ -384,20 +378,18 @@ export function CreativeEditor({
         onCloseOverlay={() => setOverlay(null)}
         onCloseStudio={() => setStudio(null)}
         overlay={overlay}
-        studio={
-          studio
-            ? {
-                frame: {
-                  name,
-                  onApplyType: cmd.applyTypeScale,
-                  onBackground: (file) => void placeFromStudio(file, true),
-                  size,
-                },
-                onAdd: (file) => void placeFromStudio(file, false),
-                tool: studio,
-              }
-            : null
-        }
+        studio={frameStudioProps({
+          add: cmd.add,
+          applyType: cmd.applyTypeScale,
+          editId,
+          frame,
+          items,
+          layers,
+          name,
+          patch,
+          size,
+          studio,
+        })}
       />
       {showBrand ? (
         <BrandDock

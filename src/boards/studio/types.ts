@@ -45,6 +45,36 @@ export type StudioParam = (
 
 export type StudioValues = Record<string, boolean | number | string | null>;
 
+/**
+ * How a Studio picture was made, kept on the layer it became, so it can be
+ * opened in the Studio again and changed rather than made over from scratch.
+ */
+export interface StudioRecipe {
+  /** The picture it was made from (Mosaic), at an address that lasts. */
+  image: string | null;
+  size: { h: number; w: number };
+  tool: string;
+  values: StudioValues;
+}
+
+/** The recipe on a layer, if it came from the Studio. */
+export const recipeOf = (config: unknown): StudioRecipe | null => {
+  const studio = (config as { studio?: unknown } | null)?.studio as
+    | Partial<StudioRecipe>
+    | undefined;
+  return studio &&
+    typeof studio.tool === "string" &&
+    studio.values &&
+    studio.size
+    ? {
+        image: typeof studio.image === "string" ? studio.image : null,
+        size: studio.size,
+        tool: studio.tool,
+        values: studio.values,
+      }
+    : null;
+};
+
 export interface RenderContext {
   height: number;
   /** For tools that read a picture (Mosaic): the image, already decoded. */

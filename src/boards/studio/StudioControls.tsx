@@ -18,8 +18,8 @@ export function StudioControls({
 }: {
   image: string | null;
   onChange: (key: string, value: boolean | number | string) => void;
-  /** A local URL for the picture chosen (ImagePick). */
-  onImage: (url: string) => void;
+  /** A local URL for the picture chosen, and where it came from (ImagePick). */
+  onImage: (url: string, source?: string) => void;
   palette: string[];
   params: StudioParam[];
   /** The colours a "remap" setting lists (the tool's `sources`). */

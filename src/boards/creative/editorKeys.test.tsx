@@ -259,4 +259,62 @@ describe("frame editor shortcuts", () => {
         ?.getBoundingClientRect().width
     ).toBeCloseTo(240, 0);
   });
+
+  it("reopens a placed Studio picture with its settings and updates it in place", async () => {
+    const mosaic: BoardItem = {
+      ...base,
+      config: {
+        studio: {
+          image: null,
+          size: { h: 1080, w: 1080 },
+          tool: "mosaic",
+          values: { columns: 12, gap: 8, tile: "circle" },
+        },
+      },
+      height: 200,
+      id: "m",
+      imageUrl: "https://blob/old.svg",
+      kind: "reference",
+      thumbUrl: "https://blob/old.svg",
+      width: 200,
+      x: 60,
+      y: 60,
+      z: 1,
+    };
+    render([frame, mosaic]);
+    act(() => (rows()[0] as HTMLButtonElement).click());
+    const edit = [...document.querySelectorAll("button")].find((b) =>
+      b.textContent?.includes("Edit in Studio")
+    );
+    expect(edit).toBeTruthy();
+    act(() => edit?.click());
+    expect(
+      document.querySelector('.studio [aria-pressed="true"]')?.textContent
+    ).toBe("Mosaic");
+    // Its own settings came back with it.
+    const tile = [...document.querySelectorAll(".studio select")].find((s) =>
+      [...(s as HTMLSelectElement).options].some((o) => o.value === "circle")
+    ) as HTMLSelectElement;
+    expect(tile.value).toBe("circle");
+    const update = [...document.querySelectorAll("button")].find((b) =>
+      b.textContent?.includes("Update the layer")
+    );
+    act(() => update?.click());
+    await vi.waitFor(
+      () =>
+        expect(latest.find((i) => i.id === "m")?.imageUrl).toBe(
+          "https://blob/studio.png"
+        ),
+      { timeout: 8000 }
+    );
+    const after = latest.find((i) => i.id === "m");
+    expect([after?.x, after?.y, after?.width, after?.height]).toEqual([
+      60, 60, 200, 200,
+    ]);
+    expect(
+      (after?.config as { studio?: { values?: { tile?: string } } } | null)
+        ?.studio?.values?.tile
+    ).toBe("circle");
+    expect(latest).toHaveLength(2);
+  });
 });

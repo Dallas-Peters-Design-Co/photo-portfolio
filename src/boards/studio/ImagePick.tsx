@@ -30,8 +30,11 @@ export function ImagePick({
   /** The picture in use, shown first and marked. */
   current?: string | null;
   label: string;
-  /** A local URL for the chosen picture. */
-  onPick: (url: string) => void;
+  /**
+   * A local URL for the chosen picture, and the address it came from when it
+   * has one that lasts (a board picture; not an upload from this computer).
+   */
+  onPick: (url: string, source?: string) => void;
 }) {
   const shelf = useImageShelf();
   const [more, setMore] = useState(false);
@@ -41,7 +44,7 @@ export function ImagePick({
   const pick = async (url: string) => {
     try {
       setChosen(url);
-      onPick(await toLocal(url));
+      onPick(await toLocal(url), url.startsWith("http") ? url : undefined);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't load it");
     }

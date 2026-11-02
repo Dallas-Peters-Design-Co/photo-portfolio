@@ -12,6 +12,7 @@ import {
   Copy,
   LogOut,
   Maximize,
+  Palette,
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -48,6 +49,8 @@ interface ContextBarProps {
   item: BoardItem;
   onDelete: () => void;
   onDuplicate: () => void;
+  /** Opens a picture made in the Studio there again, to change it. */
+  onEditInStudio?: () => void;
   onPatch: (patch: Partial<BoardItem>) => void;
   onReorder: (how: Reorder) => void;
   /** Off the frame and back onto the board. */
@@ -344,6 +347,7 @@ export function ContextBar({
   item,
   onDelete,
   onDuplicate,
+  onEditInStudio,
   onPatch,
   onReorder,
   onToBoard,
@@ -355,6 +359,16 @@ export function ContextBar({
       {kind === "text" ? <TextControls item={item} onPatch={onPatch} /> : null}
       {kind === "shape" && isDrawingConfig(item.config) ? (
         <ShapeControls config={item.config} onPatch={onPatch} />
+      ) : null}
+      {onEditInStudio ? (
+        <button
+          className="creative__icon creative__icon--label"
+          onClick={onEditInStudio}
+          title="Open it in the Studio with its settings, change it, and update it here"
+          type="button"
+        >
+          <Palette size={15} /> Edit in Studio
+        </button>
       ) : null}
       {kind === "image" ? (
         <Field label="Corners">

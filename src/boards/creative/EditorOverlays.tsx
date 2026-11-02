@@ -2,6 +2,7 @@ import { CommandPalette } from "../shortcuts/CommandPalette";
 import type { Command } from "../shortcuts/keys";
 import { ShortcutSheet } from "../shortcuts/ShortcutSheet";
 import { type StudioFrame, StudioPanel } from "../studio/StudioPanel";
+import type { StudioRecipe } from "../studio/types";
 
 /**
  * What the frame editor opens over itself: the Studio (working for this
@@ -19,8 +20,14 @@ export function EditorOverlays({
   onCloseStudio: () => void;
   overlay: "palette" | "shortcuts" | null;
   studio: {
+    /** A placed Studio picture being changed. */
+    editing?: {
+      layerId: string;
+      onReplace: (file: File, recipe: StudioRecipe) => void;
+      recipe: StudioRecipe;
+    };
     frame: StudioFrame;
-    onAdd: (file: File) => void;
+    onAdd: (file: File, recipe?: StudioRecipe) => void;
     tool: string;
   } | null;
 }) {
@@ -28,8 +35,11 @@ export function EditorOverlays({
     <>
       {studio ? (
         <StudioPanel
+          editing={studio.editing}
           frame={studio.frame}
           initialTool={studio.tool}
+          // A fresh panel per picture opened, so its settings load.
+          key={studio.editing ? `edit:${studio.editing.layerId}` : "studio"}
           onAdd={studio.onAdd}
           onClose={onCloseStudio}
         />

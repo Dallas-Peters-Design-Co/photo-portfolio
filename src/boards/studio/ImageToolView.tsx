@@ -1,4 +1,12 @@
-import { Check, Copy, Download, ImageIcon, Plus, Shuffle } from "lucide-react";
+import {
+  Check,
+  Copy,
+  Download,
+  ImageIcon,
+  Plus,
+  RefreshCw,
+  Shuffle,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { paletteFor } from "./chosenColors";
@@ -6,8 +14,9 @@ import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
 import type { StudioFrame } from "./StudioPanel";
+import { recipeFor, sizeIndexFor, sizesWith } from "./studioRecipe";
 import { defaultsOf } from "./tools";
-import type { ImageTool, StudioValues } from "./types";
+import type { ImageTool, StudioRecipe, StudioValues } from "./types";
 
 /**
  * One image generator: live preview, size, its settings, and the ways out
@@ -33,6 +42,7 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
   });
 
 export function ImageToolView({
+  editing,
   frame,
   onAdd,
   onResize,
@@ -42,9 +52,14 @@ export function ImageToolView({
   tool,
   values: stored,
 }: {
+  /** A placed picture being changed: its settings, and where the result goes. */
+  editing?: {
+    onReplace: (file: File, recipe: StudioRecipe) => void;
+    recipe: StudioRecipe;
+  };
   /** Working for a frame in the editor: its size first, and a background button. */
   frame?: StudioFrame;
-  onAdd: (file: File) => void;
+  onAdd: (file: File, recipe: StudioRecipe) => void;
   onResize?: (e: React.PointerEvent<HTMLElement>) => void;
   onResizeReset?: () => void;
   onValues: (values: StudioValues) => void;
@@ -53,7 +68,7 @@ export function ImageToolView({
   values: StudioValues | undefined;
 }) {
   const values = stored ?? defaultsOf(tool.params);
-  const sizes = frame?.size
+  const offered = frame?.size
     ? [
         {
           h: frame.size.h,
@@ -63,11 +78,35 @@ export function ImageToolView({
         ...SIZES,
       ]
     : SIZES;
-  const [sizeIndex, setSizeIndex] = useState(0);
+  const sizes = sizesWith(offered, editing?.recipe);
+  const [sizeIndex, setSizeIndex] = useState(() =>
+    sizeIndexFor(sizes, editing?.recipe)
+  );
   const size = sizes[sizeIndex] ?? SIZES[0];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  // Where the picture came from, so the placed layer can be edited later.
+  const [source, setSource] = useState<string | null>(
+    editing?.recipe.image ?? null
+  );
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Editing: the picture it was made from, fetched to a local copy so its
+  // pixels can be read (ImagePick does the same).
+  const startImage = editing?.recipe.image;
+  useEffect(() => {
+    if (!startImage) {
+      return;
+    }
+    let alive = true;
+    fetch(startImage, { mode: "cors" })
+      .then((res) => res.blob())
+      .then((blob) => alive && setImageUrl(URL.createObjectURL(blob)))
+      .catch(() => toast.error("The picture it was made from couldn't load"));
+    return () => {
+      alive = false;
+    };
+  }, [startImage]);
 
   useEffect(() => {
     if (!imageUrl) {
@@ -127,12 +166,21 @@ export function ImageToolView({
               type: "image/png",
             }
           );
+      const recipe = await recipeFor(tool.id, values, size, {
+        local: tool.params.some((p) => p.type === "image") ? imageUrl : null,
+        source,
+      });
+      if (editing && !asBackground) {
+        editing.onReplace(file, recipe);
+        toast.success(`${tool.name} updated`);
+        return;
+      }
       if (asBackground && frame) {
-        frame.onBackground(file);
+        frame.onBackground(file, recipe);
         toast.success(`${tool.name} set as the frame's background`);
         return;
       }
-      onAdd(file);
+      onAdd(file, recipe);
       toast.success(`${tool.name} added to the ${where}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't add it");
@@ -177,7 +225,10 @@ export function ImageToolView({
       <StudioControls
         image={imageUrl}
         onChange={set}
-        onImage={setImageUrl}
+        onImage={(url, from) => {
+          setImageUrl(url);
+          setSource(from ?? null);
+        }}
         palette={palette}
         params={tool.params}
         sources={sources}
@@ -189,7 +240,15 @@ export function ImageToolView({
           onClick={() => void add()}
           type="button"
         >
-          <Plus size={14} /> Add to {where}
+          {editing ? (
+            <>
+              <RefreshCw size={14} /> Update the layer
+            </>
+          ) : (
+            <>
+              <Plus size={14} /> Add to {where}
+            </>
+          )}
         </button>
         {frame ? (
           <button

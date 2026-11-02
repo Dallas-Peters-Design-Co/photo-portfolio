@@ -261,6 +261,14 @@
   }
 }
 
+/* An icon with its words beside it ("Edit in Studio"). */
+.creative__icon--label {
+  display: inline-flex;
+  gap: var(--spacing);
+  align-items: center;
+  padding-inline: calc(var(--spacing) * 2);
+}
+
 .creative__divider {
   align-self: stretch;
   width: 1px;

@@ -1,5 +1,6 @@
 import { portfolioService } from "../../services/portfolioService";
 import type { BoardItem } from "../../types";
+import type { StudioRecipe } from "../studio/types";
 import { newImage } from "./creativeModel";
 
 const aspectOfFile = (file: File): Promise<number> =>
@@ -44,4 +45,27 @@ export const studioLayer = async (
     y: frame.y,
     z: Math.min(1, ...layers.map((l) => l.z)) - 1,
   };
+};
+
+/**
+ * A placed Studio picture, made again with changed settings: the new file
+ * takes the layer's place (same box, same stacking) and its recipe is updated,
+ * so it can be changed again later.
+ */
+export const replaceStudioLayer = async (
+  file: File,
+  recipe: StudioRecipe,
+  layer: BoardItem,
+  patch: (id: string, next: Partial<BoardItem>) => void
+): Promise<void> => {
+  const { url } = await portfolioService.uploadImageFile(
+    file,
+    undefined,
+    "boards/uploads"
+  );
+  patch(layer.id, {
+    config: { ...(layer.config ?? {}), studio: recipe },
+    imageUrl: url,
+    thumbUrl: url,
+  });
 };

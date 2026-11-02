@@ -332,19 +332,6 @@ export const parseLayers = (raw: unknown, depth: number): ShaderLayerDto[] => {
 };
 
 /**
- * A picture's own appearance on the board: rounded corners, set in the frame
- * editor. Null when it has none, which is every picture placed before.
- */
-export const parseImageConfig = (
-  raw: unknown
-): Record<string, unknown> | null => {
-  const radius = (raw as { radius?: unknown } | null)?.radius;
-  return typeof radius === "number" && Number.isFinite(radius) && radius > 0
-    ? { radius: clamp(radius, 0, 5000) }
-    : null;
-};
-
-/**
  * A frame's settings: only whether it has been designed in the frame editor,
  * which is what makes it one clipped object on the canvas (frameLock.ts).
  */

@@ -10,11 +10,11 @@ import { normalizeTextStyle, type TextStyle } from "../../config/textStyle.js";
 import {
   parseDrawingConfig,
   parseFrameConfig,
-  parseImageConfig,
   parseNodeConfig,
   parseShaderConfig,
 } from "./boardItemConfig.js";
 import type { BoardItemKind } from "./boards.js";
+import { parseImageConfig, parseTextConfig } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
 
 /**
@@ -213,6 +213,8 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     config = parseDrawingConfig(o.config);
   } else if (o.kind === "reference" || o.kind === "photo") {
     config = parseImageConfig(o.config);
+  } else if (o.kind === "text" || o.kind === "note") {
+    config = parseTextConfig(o.config);
   } else if (o.kind === "frame") {
     config = parseFrameConfig(o.config);
   } else if (nodeType) {

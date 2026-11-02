@@ -4,9 +4,9 @@ import { DRAW_TOOLS as CLIENT_DRAW_TOOLS } from "../../src/boards/drawing/drawin
 import {
   DRAW_TOOLS,
   parseDrawingConfig,
-  parseImageConfig,
   parseNodeConfig,
 } from "./boardItemConfig.js";
+import { parseImageConfig, parseTextConfig } from "./layerConfig.js";
 
 /**
  * What a save keeps of a node's config.
@@ -93,5 +93,36 @@ describe("parseImageConfig", () => {
     });
     expect(parseImageConfig({ radius: 0 })).toBeNull();
     expect(parseImageConfig(null)).toBeNull();
+  });
+});
+
+describe("a picture's and text layer's own settings", () => {
+  it("keeps opacity below 1 on pictures and text", () => {
+    expect(parseImageConfig({ opacity: 0.4 })).toEqual({ opacity: 0.4 });
+    expect(parseTextConfig({ opacity: 0.25, script: "x" })).toEqual({
+      opacity: 0.25,
+    });
+    expect(parseTextConfig({ opacity: 1 })).toBeNull();
+    expect(parseTextConfig({ opacity: -3 })).toEqual({ opacity: 0 });
+  });
+
+  it("keeps how a Studio picture was made, cleaned", () => {
+    const kept = parseImageConfig({
+      studio: {
+        image: "javascript:alert(1)",
+        size: { h: 1080, w: 1080 },
+        tool: "mosaic",
+        values: { bad: { nested: true }, colour: "remap", columns: 48 },
+      },
+    });
+    expect(kept).toEqual({
+      studio: {
+        image: null,
+        size: { h: 1080, w: 1080 },
+        tool: "mosaic",
+        values: { colour: "remap", columns: 48 },
+      },
+    });
+    expect(parseImageConfig({ studio: { tool: "Bad Tool!" } })).toBeNull();
   });
 });

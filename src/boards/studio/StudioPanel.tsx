@@ -8,7 +8,7 @@ import { RampTool } from "./color/RampTool";
 import { ImageToolView } from "./ImageToolView";
 import { DEFAULT_PALETTE, IMAGE_TOOLS, STUDIO_TOOLS } from "./tools";
 import { TypeScaleTool } from "./type/TypeScaleTool";
-import type { StudioValues } from "./types";
+import type { StudioRecipe, StudioValues } from "./types";
 import { useStudioSize } from "./useStudioSize";
 import "./Studio.css";
 
@@ -30,20 +30,29 @@ const GROUPS = ["Images", "Colour", "Type"] as const;
 export interface StudioFrame {
   name: string;
   onApplyType: (scale: TypeScale) => void;
-  onBackground: (file: File) => void;
+  onBackground: (file: File, recipe: StudioRecipe) => void;
   size: { h: number; w: number } | null;
 }
 
 export function StudioPanel({
+  editing,
   frame,
   initialTool,
   onAdd,
   onClose,
 }: {
+  /** A placed Studio picture opened to be changed (its layer's recipe). */
+  editing?: {
+    onReplace: (file: File, recipe: StudioRecipe) => void;
+    recipe: StudioRecipe;
+  };
   frame?: StudioFrame;
   initialTool: string;
-  /** Places the file on the board (or in the frame). */
-  onAdd: (file: File) => void;
+  /**
+   * Places the file on the board (or in the frame), with how it was made when
+   * an image tool made it.
+   */
+  onAdd: (file: File, recipe?: StudioRecipe) => void;
   onClose: () => void;
 }) {
   const brand = useActiveBrand();
@@ -53,7 +62,9 @@ export function StudioPanel({
   const drag = useDraggablePanel("board-studio:position");
   const size = useStudioSize(drag.pin);
   const [toolId, setToolId] = useState(initialTool);
-  const [byTool, setByTool] = useState<Record<string, StudioValues>>({});
+  const [byTool, setByTool] = useState<Record<string, StudioValues>>(() =>
+    editing ? { [editing.recipe.tool]: editing.recipe.values } : {}
+  );
   useEffect(() => setToolId(initialTool), [initialTool]);
 
   const imageTool = IMAGE_TOOLS.find((t) => t.id === toolId);
@@ -81,6 +92,7 @@ export function StudioPanel({
     const tool = imageTool ?? IMAGE_TOOLS[0];
     return tool ? (
       <ImageToolView
+        editing={editing?.recipe.tool === tool.id ? editing : undefined}
         frame={frame}
         key={tool.id}
         onAdd={onAdd}
