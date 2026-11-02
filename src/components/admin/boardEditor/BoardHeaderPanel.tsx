@@ -43,14 +43,19 @@ export function BoardHeaderPanel({ children }: { children: ReactNode }) {
 
   // Unfolding makes it wider, and a narrower window moves its edge: either can
   // push a moved bar off screen, grip and all, where it can't be reached.
+  // Read through a ref so neither effect re-runs on every render: an effect
+  // that adjusts the position on each render looped the page to a crash.
+  const fitRef = useRef(fit);
+  fitRef.current = fit;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs when the bar folds or unfolds, which is what changes its width
   useLayoutEffect(() => {
-    fit(ref.current);
-  });
+    fitRef.current(ref.current);
+  }, [collapsed]);
   useEffect(() => {
-    const onResize = () => fit(ref.current);
+    const onResize = () => fitRef.current(ref.current);
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
-  }, [fit]);
+  }, []);
 
   const toggle = () => {
     setCollapsed((was) => {

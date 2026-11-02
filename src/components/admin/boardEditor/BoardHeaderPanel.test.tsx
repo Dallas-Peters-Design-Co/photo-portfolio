@@ -77,4 +77,25 @@ describe("BoardHeaderPanel", () => {
     expect(panel.style.left).toBe("");
     expect(localStorage.getItem("board-header:position")).toBeNull();
   });
+
+  it("comes back on screen from a stored spot off it, and settles", () => {
+    localStorage.setItem(
+      "board-header:position",
+      JSON.stringify({ x: window.innerWidth + 400, y: -200 })
+    );
+    const panel = render();
+    const box = panel.getBoundingClientRect();
+    expect(box.left).toBeGreaterThanOrEqual(0);
+    expect(box.right).toBeLessThanOrEqual(window.innerWidth);
+    expect(box.top).toBeGreaterThanOrEqual(0);
+    // Settled: another render doesn't move it again.
+    const { left } = panel.style;
+    act(() => {
+      (panel.querySelector(".board-header__collapse") as HTMLElement).click();
+    });
+    act(() => {
+      (panel.querySelector(".board-header__collapse") as HTMLElement).click();
+    });
+    expect(panel.style.left).toBe(left);
+  });
 });

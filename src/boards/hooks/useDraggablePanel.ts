@@ -44,7 +44,9 @@ const write = (key: string, point: Point) => {
 const clamp = (point: Point, el: HTMLElement): Point => {
   const { height, width } = el.getBoundingClientRect();
   return {
-    x: Math.min(Math.max(MARGIN, point.x), window.innerWidth - width - MARGIN),
+    // The left edge wins when the panel is wider than the window: its grip
+    // and first buttons stay reachable, and the answer never flips between two.
+    x: Math.max(MARGIN, Math.min(point.x, window.innerWidth - width - MARGIN)),
     y: Math.min(
       Math.max(MARGIN, point.y),
       window.innerHeight - Math.min(height, 48) - MARGIN
@@ -117,8 +119,21 @@ export const useDraggablePanel = (storageKey: string) => {
     if (!(panel && position)) {
       return;
     }
+    const box = panel.getBoundingClientRect();
+    const onScreen =
+      box.left >= 0 &&
+      box.right <= window.innerWidth &&
+      box.top >= 0 &&
+      box.top <= window.innerHeight - 48;
+    if (onScreen) {
+      return;
+    }
     const next = clamp(position, panel);
-    if (next.x !== position.x || next.y !== position.y) {
+    // Whole pixels only: a sub-pixel difference re-rendered forever.
+    if (
+      Math.abs(next.x - position.x) >= 1 ||
+      Math.abs(next.y - position.y) >= 1
+    ) {
       setPosition(next);
       write(storageKey, next);
     }
