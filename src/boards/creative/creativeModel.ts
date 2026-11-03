@@ -22,7 +22,7 @@ export interface Box {
 }
 
 /** The kinds the editor can place and style. */
-export type LayerKind = "image" | "shape" | "text";
+export type LayerKind = "component" | "image" | "shape" | "text";
 
 export const layerKind = (item: BoardItem): LayerKind | null => {
   if (item.kind === "text" || item.kind === "note") {
@@ -33,6 +33,9 @@ export const layerKind = (item: BoardItem): LayerKind | null => {
   }
   if (item.kind === "reference" || item.kind === "photo") {
     return "image";
+  }
+  if (item.kind === "component") {
+    return "component";
   }
   return null;
 };

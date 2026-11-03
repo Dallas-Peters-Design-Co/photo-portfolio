@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import { textStyleCss } from "../../../config/textStyle.js";
 import type { BoardItem } from "../../types";
+import { InstanceView } from "../components/InstanceView";
 import { DrawingView } from "../drawing/DrawingView";
 import { isDrawingConfig } from "../drawing/drawing";
 import { MaskOverlay } from "../drawing/MaskOverlay";
@@ -198,6 +199,9 @@ export function ItemContent({
   }
   if (item.kind === "frame") {
     return <FrameBody {...{ chromeScale, item, onEditBody, readOnly }} />;
+  }
+  if (item.kind === "component") {
+    return <InstanceView item={item} />;
   }
   if (item.kind === "drawing") {
     return isDrawingConfig(item.config) ? (

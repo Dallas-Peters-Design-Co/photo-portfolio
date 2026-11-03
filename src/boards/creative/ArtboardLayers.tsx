@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { textStyleCss } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
+import { InstanceView } from "../components/InstanceView";
 import { DrawingView } from "../drawing/DrawingView";
 import { isDrawingConfig } from "../drawing/drawing";
 import { useTextFont } from "../hooks/useTextFont";
@@ -66,12 +67,15 @@ export function LayerBody({
   onDone,
   onTextChange,
   textRef,
+  textRefFor,
 }: {
   editing: boolean;
   item: BoardItem;
   onDone: () => void;
   onTextChange: (body: string) => void;
   textRef: (el: HTMLElement | null) => void;
+  /** For a placed component: registers its inner text layers by their ids. */
+  textRefFor?: (id: string, el: HTMLElement | null) => void;
 }) {
   if (item.kind === "text" || item.kind === "note") {
     return (
@@ -83,6 +87,9 @@ export function LayerBody({
         textRef={textRef}
       />
     );
+  }
+  if (item.kind === "component") {
+    return <InstanceView item={item} textRef={textRefFor} />;
   }
   if (item.kind === "drawing" && isDrawingConfig(item.config)) {
     return (

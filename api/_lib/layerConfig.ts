@@ -124,6 +124,33 @@ export const parseComponentLink = (raw: unknown): Bag | null => {
   return { base, c: o.c, i: o.i, l: o.l, ...(v ? { v } : {}) };
 };
 
+const PROP_ID = /^[a-zA-Z0-9_-]{1,40}$/;
+const MAX_PROPS = 40;
+
+/**
+ * A placed component (kind "component"): which component, and the value set
+ * for each of its properties (text, or a colour), by property id. Values not
+ * set fall back to the component's own. Without a component it's nothing.
+ */
+export const parseInstanceConfig = (raw: unknown): Bag | null => {
+  const o = bagOf(raw);
+  if (
+    !(o && typeof o.component === "string" && COMPONENT_ID.test(o.component))
+  ) {
+    return null;
+  }
+  const props: Bag = {};
+  for (const [key, value] of Object.entries(bagOf(o.props) ?? {}).slice(
+    0,
+    MAX_PROPS
+  )) {
+    if (PROP_ID.test(key) && typeof value === "string") {
+      props[key] = value.slice(0, 2000);
+    }
+  }
+  return { component: o.component, props, ...opacityOf(o) };
+};
+
 /** The link, as a key to spread into a config. */
 export const componentOf = (o: Bag | null): Bag => {
   const component = parseComponentLink(o?.component);

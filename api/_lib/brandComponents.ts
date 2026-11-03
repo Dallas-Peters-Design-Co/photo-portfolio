@@ -26,6 +26,15 @@ const UUID = /^[0-9a-f-]{36}$/i;
 const LAYER_ID = /^[a-zA-Z0-9_-]{1,64}$/;
 const KINDS = new Set(["text", "note", "reference", "photo", "drawing"]);
 
+/** A property an instance may set: a layer's text or one of its colours. */
+export interface ComponentPropDto {
+  field: "background" | "body" | "color" | "fill" | "stroke";
+  id: string;
+  lid: string;
+  name: string;
+  type: "color" | "text";
+}
+
 export interface BrandComponentDto {
   height: number;
   id: string;
@@ -33,6 +42,7 @@ export interface BrandComponentDto {
   layers: Record<string, unknown>[];
   name: string;
   placement: Record<string, unknown>;
+  props: ComponentPropDto[];
   updatedAt: string;
   width: number;
 }
@@ -44,6 +54,7 @@ interface Row {
   layers: unknown;
   name: string;
   placement: unknown;
+  props?: unknown;
   updated_at: string | Date;
   width: number;
 }
@@ -62,6 +73,7 @@ const toDto = (row: Row): BrandComponentDto => ({
     : [],
   name: row.name,
   placement: bagOf(row.placement) ?? {},
+  props: cleanProps(row.props),
   updatedAt: new Date(row.updated_at).toISOString(),
   width: Number(row.width),
 });
@@ -121,6 +133,61 @@ export const cleanComponentLayers = (
   return ok ? (value as Record<string, unknown>[]) : null;
 };
 
+const PROP_ID = /^[a-zA-Z0-9_-]{1,40}$/;
+const FIELDS = new Set(["background", "body", "color", "fill", "stroke"]);
+
+/** The properties, keeping only well-formed ones. */
+export const cleanProps = (value: unknown): ComponentPropDto[] =>
+  (Array.isArray(value) ? value : [])
+    .slice(0, 40)
+    .map(bagOf)
+    .filter(
+      (o): o is Record<string, unknown> =>
+        o !== null &&
+        typeof o.id === "string" &&
+        PROP_ID.test(o.id) &&
+        typeof o.lid === "string" &&
+        LAYER_ID.test(o.lid) &&
+        typeof o.field === "string" &&
+        FIELDS.has(o.field) &&
+        (o.type === "text" || o.type === "color")
+    )
+    .map((o) => ({
+      field: o.field as ComponentPropDto["field"],
+      id: o.id as string,
+      lid: o.lid as string,
+      name:
+        (typeof o.name === "string" ? sanitizeText(o.name) : "").slice(0, 40) ||
+        "Property",
+      type: o.type as ComponentPropDto["type"],
+    }));
+
+/**
+ * The components a board's items place, for drawing them: sent with the
+ * board, so a published board and Present draw instances without signing in.
+ */
+export const componentsUsedBy = async (
+  sql: Sql,
+  items: { config?: unknown; kind: string }[]
+): Promise<BrandComponentDto[]> => {
+  const ids = [
+    ...new Set(
+      items
+        .filter((i) => i.kind === "component")
+        .map((i) => bagOf(i.config)?.component)
+        .filter((id): id is string => typeof id === "string" && UUID.test(id))
+    ),
+  ];
+  if (ids.length === 0) {
+    return [];
+  }
+  const rows = (await sql`
+    SELECT id, brand_kit_id, name, width, height, placement, layers, props, updated_at
+    FROM brand_components WHERE id = ANY(${ids}::uuid[])
+  `) as Row[];
+  return rows.map(toDto);
+};
+
 const cleanPlacement = (value: unknown): Record<string, number> => {
   const o = bagOf(value) ?? {};
   const out: Record<string, number> = {};
@@ -141,7 +208,7 @@ export const listComponents = async (
     return [];
   }
   const rows = (await sql`
-    SELECT id, brand_kit_id, name, width, height, placement, layers, updated_at
+    SELECT id, brand_kit_id, name, width, height, placement, layers, props, updated_at
     FROM brand_components WHERE brand_kit_id = ${kitId}
     ORDER BY lower(name)
   `) as Row[];
@@ -174,6 +241,7 @@ export const saveComponent = async (
     };
   }
   const placement = JSON.stringify(cleanPlacement(body.placement));
+  const props = JSON.stringify(cleanProps(body.props));
   const json = JSON.stringify(layers);
   const id = typeof body.id === "string" && UUID.test(body.id) ? body.id : null;
   if (id) {
@@ -181,9 +249,10 @@ export const saveComponent = async (
       UPDATE brand_components
       SET name = ${name}, width = ${width}, height = ${height},
           placement = ${placement}::jsonb, layers = ${json}::jsonb,
+          props = ${props}::jsonb,
           updated_at = now()
       WHERE id = ${id}
-      RETURNING id, brand_kit_id, name, width, height, placement, layers, updated_at
+      RETURNING id, brand_kit_id, name, width, height, placement, layers, props, updated_at
     `) as Row[];
     const [row] = rows;
     return row
@@ -201,9 +270,9 @@ export const saveComponent = async (
     return { error: "That brand wasn't found.", ok: false, status: 404 };
   }
   const rows = (await sql`
-    INSERT INTO brand_components (brand_kit_id, name, width, height, placement, layers)
-    VALUES (${kitId}, ${name}, ${width}, ${height}, ${placement}::jsonb, ${json}::jsonb)
-    RETURNING id, brand_kit_id, name, width, height, placement, layers, updated_at
+    INSERT INTO brand_components (brand_kit_id, name, width, height, placement, layers, props)
+    VALUES (${kitId}, ${name}, ${width}, ${height}, ${placement}::jsonb, ${json}::jsonb, ${props}::jsonb)
+    RETURNING id, brand_kit_id, name, width, height, placement, layers, props, updated_at
   `) as Row[];
   const [row] = rows;
   return row

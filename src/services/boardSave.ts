@@ -1,3 +1,4 @@
+import { rememberComponents } from "../boards/components/store";
 import type { Board } from "../types";
 
 /**
@@ -21,4 +22,10 @@ export const readBoardSave = async (
     throw new Error(await readError(res, "Could not save board"));
   }
   return (await res.json()) as Board;
+};
+
+/** A loaded board, its components remembered so its instances can be drawn. */
+export const withComponents = (board: Board): Board => {
+  rememberComponents(board.components);
+  return board;
 };

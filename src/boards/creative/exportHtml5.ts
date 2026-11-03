@@ -5,6 +5,8 @@ import {
 } from "../../../config/fontRef";
 import { type ZipFile, zip } from "../../lib/zip";
 import type { BoardItem } from "../../types";
+import { expandAll } from "../components/model";
+import { componentById } from "../components/store";
 import {
   type DrawingConfig,
   isDrawingConfig,
@@ -403,12 +405,14 @@ export const layerHtml = (
 
 export const exportHtml5 = async (
   frame: Box & { body?: string | null },
-  layers: BoardItem[],
+  given: BoardItem[],
   pxWidth: number,
   textElementFor: (id: string) => HTMLElement | null,
   clickUrl: string,
   mode: AdPage["mode"] = "ad"
 ): Promise<Html5Export> => {
+  // A placed component is drawn as its layers.
+  const layers = expandAll(given, componentById);
   const scale = pxWidth / frame.width;
   const files: ZipFile[] = [];
   const looks = new Map<string, TextLook>();

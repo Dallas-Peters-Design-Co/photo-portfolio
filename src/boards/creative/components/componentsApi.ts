@@ -3,7 +3,7 @@ import {
   jsonHeaders,
   readPageError,
 } from "../../../services/portfolioService";
-import type { BrandComponent, Draft } from "./componentModel";
+import type { BrandComponent, Draft } from "../../components/model";
 
 /** A brand's components, through api/brand-kits (see _lib/brandComponents.ts). */
 export const componentsApi = {

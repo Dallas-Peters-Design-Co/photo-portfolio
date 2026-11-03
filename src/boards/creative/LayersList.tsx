@@ -1,10 +1,19 @@
-import { Circle, GripVertical, ImageIcon, Square, Type } from "lucide-react";
+import {
+  Circle,
+  Component as ComponentIcon,
+  GripVertical,
+  ImageIcon,
+  Square,
+  Type,
+} from "lucide-react";
 import {
   type PointerEvent as ReactPointerEvent,
   useRef,
   useState,
 } from "react";
 import type { BoardItem } from "../../types";
+import { instanceOf } from "../components/model";
+import { componentById } from "../components/store";
 import { layerKind } from "./creativeModel";
 
 /** The frame's layers, front first, as a design tool lists them. */
@@ -30,6 +39,10 @@ const labelOf = (item: BoardItem): string => {
     const tool = (item.config as { tool?: string } | null)?.tool ?? "";
     return SHAPE_NAMES[tool] ?? "Rectangle";
   }
+  if (kind === "component") {
+    const id = instanceOf(item)?.component ?? "";
+    return componentById(id)?.name ?? "Component";
+  }
   return item.body?.trim() || "Image";
 };
 
@@ -44,6 +57,9 @@ const IconFor = ({ item }: { item: BoardItem }) => {
     ) : (
       <Square size={13} />
     );
+  }
+  if (kind === "component") {
+    return <ComponentIcon size={13} />;
   }
   return <ImageIcon size={13} />;
 };

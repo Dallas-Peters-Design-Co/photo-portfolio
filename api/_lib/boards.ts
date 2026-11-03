@@ -17,7 +17,8 @@ export type BoardItemKind =
   | "op"
   | "frame"
   | "shader"
-  | "drawing";
+  | "drawing"
+  | "component";
 
 export interface BoardRow {
   cover_url: string | null;

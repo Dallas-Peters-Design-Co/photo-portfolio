@@ -14,7 +14,11 @@ import {
   parseShaderConfig,
 } from "./boardItemConfig.js";
 import type { BoardItemKind } from "./boards.js";
-import { parseImageConfig, parseTextConfig } from "./layerConfig.js";
+import {
+  parseImageConfig,
+  parseInstanceConfig,
+  parseTextConfig,
+} from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
 
 /**
@@ -36,7 +40,8 @@ export const isBoardItemKind = (value: unknown): value is BoardItemKind =>
   value === "op" ||
   value === "frame" ||
   value === "shader" ||
-  value === "drawing";
+  value === "drawing" ||
+  value === "component";
 
 export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -163,10 +168,46 @@ export const hasRequiredContent = (
     // board_items_shape.
     case "shader":
     case "drawing":
+    case "component":
       return content.config !== null;
     default:
       return true;
   }
+};
+
+/**
+ * Each kind's own config, checked by that kind's rules. Built when first
+ * asked for rather than at load: boardItemConfig.ts imports this module back,
+ * and a table built at load could read its parsers before they exist.
+ */
+const parserFor = (
+  kind: BoardItemKind
+): ((raw: unknown) => Record<string, unknown> | null) | undefined =>
+  (
+    ({
+      component: parseInstanceConfig,
+      drawing: parseDrawingConfig,
+      frame: parseFrameConfig,
+      note: parseTextConfig,
+      photo: parseImageConfig,
+      reference: parseImageConfig,
+      shader: parseShaderConfig,
+      text: parseTextConfig,
+    }) as Partial<
+      Record<BoardItemKind, (raw: unknown) => Record<string, unknown> | null>
+    >
+  )[kind];
+
+const configFor = (
+  kind: BoardItemKind,
+  nodeType: string | null,
+  raw: unknown
+): Record<string, unknown> | null => {
+  const parse = parserFor(kind);
+  if (parse) {
+    return parse(raw);
+  }
+  return nodeType ? parseNodeConfig(nodeType, raw) : null;
 };
 
 /**
@@ -206,20 +247,7 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
 
   // Node settings and shader stacks share the column but not the schema: one is
   // checked against the node registry, the other only for shape.
-  let config: Record<string, unknown> | null = null;
-  if (o.kind === "shader") {
-    config = parseShaderConfig(o.config);
-  } else if (o.kind === "drawing") {
-    config = parseDrawingConfig(o.config);
-  } else if (o.kind === "reference" || o.kind === "photo") {
-    config = parseImageConfig(o.config);
-  } else if (o.kind === "text" || o.kind === "note") {
-    config = parseTextConfig(o.config);
-  } else if (o.kind === "frame") {
-    config = parseFrameConfig(o.config);
-  } else if (nodeType) {
-    config = parseNodeConfig(nodeType, o.config);
-  }
+  const config = configFor(o.kind, nodeType, o.config);
 
   if (
     !hasRequiredContent(o.kind, { body, config, imageUrl, nodeType, photoId })

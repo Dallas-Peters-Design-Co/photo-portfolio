@@ -4,13 +4,15 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
 import { page } from "vitest/browser";
 import type { BoardItem } from "../../../types";
-import type { BrandComponent, Draft } from "./componentModel";
-import { linkOf } from "./componentModel";
+import type { BrandComponent, Draft } from "../../components/model";
+import { instanceOf } from "../../components/model";
 
 /**
- * Components end to end in the real frame editor: make one from two layers,
- * drop a copy into another frame, override its text, update the component
- * from the first copy, and see the second follow but keep its own words.
+ * Components end to end in the real frame editor, the way Figma does them:
+ * make one from two layers (they become one instance), open it, expose the
+ * label's text and the box's colour, place it in another frame, and set those
+ * there with an input and a colour picker. The layers inside an instance
+ * aren't reachable; the instance moves as one thing.
  */
 
 let saved: BrandComponent[] = [];
@@ -25,6 +27,7 @@ vi.mock("./componentsApi", () => ({
         ...d,
         id: d.id ?? "0b9f3c1e-6b8a-4e3c-9f55-2c1d4e5f6a7b",
         kitId: "kit",
+        props: d.props,
         updatedAt: `v${version}`,
       };
       saved = [out];
@@ -122,14 +125,12 @@ const tagBox: BoardItem = {
 
 let latest: BoardItem[] = [];
 let openFrame: (id: string) => void = () => undefined;
-let setAll: (f: (was: BoardItem[]) => BoardItem[]) => void = () => undefined;
 
 function Harness() {
   const [items, setItems] = useState([frameA, frameB, tagBox, tagText]);
   const [frameId, setFrameId] = useState("fa");
   latest = items;
   openFrame = setFrameId;
-  setAll = setItems;
   return (
     <CreativeEditor
       frameId={frameId}
@@ -143,131 +144,98 @@ function Harness() {
 
 const button = (text: string) => {
   const found = [...document.querySelectorAll("button")].find((b) =>
-    (b.textContent ?? "").includes(text)
+    (b.textContent ?? "").trim().includes(text)
   );
   if (!found) {
     throw new Error(`no button ${text}`);
   }
   return found;
 };
+const expose = (text: string) =>
+  [
+    ...document.querySelectorAll<HTMLElement>(".components__expose button"),
+  ].find((b) => (b.textContent ?? "").trim() === text) as HTMLElement;
 const settle = () =>
   act(async () => await new Promise((r) => setTimeout(r, 30)));
+const rows = () => [
+  ...document.querySelectorAll<HTMLElement>(".creative__layer-row"),
+];
+const instances = () => latest.filter((i) => i.kind === "component");
 
-it("makes a component, places a copy elsewhere, and keeps overrides through an update", async () => {
+it("makes, exposes, places and sets a component like Figma", async () => {
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
   act(() => root?.render(<Harness />));
   await settle();
 
-  // Select both layers from the list, then make the component.
-  const rows = [
-    ...document.querySelectorAll<HTMLElement>(".creative__layer-row"),
-  ];
-  act(() => rows[0]?.click());
+  // Two layers become one instance where they were.
+  act(() => rows()[0]?.click());
   act(() =>
-    rows[1]?.dispatchEvent(
+    rows()[1]?.dispatchEvent(
       new MouseEvent("click", { bubbles: true, shiftKey: true })
     )
   );
   act(() => button("Make component").click());
   await settle();
-  const first = latest.filter((i) => linkOf(i));
-  expect(first).toHaveLength(2);
-  expect(first.find((i) => i.kind === "text")).toMatchObject({ x: 250, y: 20 });
+  expect(latest.filter((i) => i.id === "t" || i.id === "b")).toHaveLength(0);
+  expect(instances()).toHaveLength(1);
+  expect(instances()[0]).toMatchObject({
+    height: 40,
+    width: 110,
+    x: 245,
+    y: 15,
+  });
+  expect(rows()).toHaveLength(1);
 
-  // Into frame B: same place in the frame.
+  // Open it, expose the label's text and the box's colour, done.
+  act(() => button("Edit component").click());
+  await settle();
+  const open = () => rows();
+  expect(open()).toHaveLength(2);
+  const textRow = open().find((r) => r.textContent?.includes("Vision"));
+  act(() => textRow?.click());
+  act(() => expose("Text").click());
+  const boxRow = open().find((r) => r.textContent?.includes("Rectangle"));
+  act(() => boxRow?.click());
+  act(() => expose("Fill").click());
+  act(() =>
+    (document.querySelector(".components__done") as HTMLElement).click()
+  );
+  await settle();
+  expect(saved[0]?.props.map((p) => [p.name, p.type])).toEqual([
+    ["Text", "text"],
+    ["Fill", "color"],
+  ]);
+  expect(instances()).toHaveLength(1);
+
+  // Frame B: place it, set its text with the input.
   act(() => openFrame("fb"));
   await settle();
   act(() => button("Vision tag").click());
-  const inB = () => latest.filter((i) => linkOf(i) && i.x >= 1000);
-  expect(inB().find((i) => i.kind === "text")).toMatchObject({
-    x: 1250,
-    y: 20,
-  });
-
-  // B says something else.
-  const bText = inB().find((i) => i.kind === "text") as BoardItem;
-  act(() =>
-    setAll((was) =>
-      was.map((i) => (i.id === bText.id ? { ...i, body: "Mission" } : i))
-    )
-  );
-
-  // Back in A: the box goes blue, then the component is updated from A.
-  act(() => openFrame("fa"));
-  await settle();
-  act(() =>
-    setAll((was) =>
-      was.map((i) =>
-        i.kind === "drawing" && linkOf(i) && i.x < 1000
-          ? { ...i, config: { ...i.config, fill: "#2a84f8" } }
-          : i
-      )
-    )
-  );
-  const aRows = [
-    ...document.querySelectorAll<HTMLElement>(".creative__layer-row"),
-  ];
-  act(() => aRows[0]?.click());
-  act(() => button("Update all").click());
-  await settle();
-
-  expect(inB().find((i) => i.kind === "drawing")?.config?.fill).toBe("#2a84f8");
-  expect(inB().find((i) => i.kind === "text")?.body).toBe("Mission");
-  // A copy layer selected shows what can be done with the copy.
-  expect(document.querySelector(".components__copy")?.textContent).toContain(
-    "Vision tag"
-  );
-
-  // On the artboard a copy is one thing: a press picks all of it and a drag
-  // moves it whole. A double-click goes inside to pick a single layer.
-  const inA = () => latest.filter((i) => linkOf(i) && i.x < 1000);
+  const inB = () => instances().find((i) => i.x >= 1000) as BoardItem;
+  expect(inB()).toMatchObject({ x: 1245, y: 15 });
+  const input = document.querySelector(
+    ".components__text"
+  ) as HTMLTextAreaElement;
+  expect(input.value).toBe("Vision");
+  const set = Object.getOwnPropertyDescriptor(
+    HTMLTextAreaElement.prototype,
+    "value"
+  )?.set;
   act(() => {
-    document
-      .querySelector(".creative__stage")
-      ?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    set?.call(input, "Mission");
+    input.dispatchEvent(new Event("input", { bubbles: true }));
   });
-  const textId = inA().find((i) => i.kind === "text")?.id ?? "";
-  const layer = document.querySelector(
-    `[data-layer-id="${textId}"]`
-  ) as Element;
-  const board = document.querySelector(".creative__board") as Element;
-  const r = layer.getBoundingClientRect();
-  const from = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-  const scale = board.getBoundingClientRect().width / 360;
-  const to = { x: from.x - 100 * scale, y: from.y + 50 * scale };
-  const before = inA().map((i) => [i.x, i.y]);
-  const pointer = (
-    type: string,
-    target: Element,
-    p: { x: number; y: number }
-  ) =>
-    act(() => {
-      target.dispatchEvent(
-        new PointerEvent(type, {
-          bubbles: true,
-          button: 0,
-          buttons: type === "pointerup" ? 0 : 1,
-          clientX: p.x,
-          clientY: p.y,
-          metaKey: type === "pointermove",
-          pointerId: 1,
-          pointerType: "mouse",
-        })
-      );
-    });
-  pointer("pointerdown", layer, from);
-  pointer("pointermove", board, to);
-  pointer("pointerup", board, to);
-  const after = inA().map((i) => [i.x, i.y]);
-  expect(after).toEqual(before.map(([x = 0, y = 0]) => [x - 100, y + 50]));
-  expect(document.querySelectorAll(".creative__layer--selected")).toHaveLength(
-    2
-  );
-
-  act(() => layer.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })));
-  expect(document.querySelectorAll(".creative__layer--selected")).toHaveLength(
-    1
-  );
+  const props = instanceOf(inB())?.props ?? {};
+  expect(Object.values(props)).toEqual(["Mission"]);
+  // Drawn from the component with that value; A's still says Vision.
+  const drawn = document.querySelector(
+    `[data-layer-id="${inB().id}"] textarea`
+  ) as HTMLTextAreaElement;
+  expect(drawn.value).toBe("Mission");
+  // The colour is a picker.
+  expect(document.querySelector(".components__prop--color")).not.toBeNull();
+  // One layer in the list: the instance, nothing inside it.
+  expect(rows()).toHaveLength(1);
 });

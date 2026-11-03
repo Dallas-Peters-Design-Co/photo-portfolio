@@ -1,4 +1,6 @@
 import type { BoardItem } from "../../types";
+import { expandAll } from "../components/model";
+import { componentById } from "../components/store";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import {
@@ -172,10 +174,12 @@ const layerMarkup = (
 
 export const printHtml = async (
   frame: BoardItem,
-  layers: BoardItem[],
+  given: BoardItem[],
   textElementFor: (id: string) => HTMLElement | null,
   layout: SheetLayout
 ): Promise<string> => {
+  // A placed component is drawn as its layers.
+  const layers = expandAll(given, componentById);
   const scale = (layout.widthIn * CSS_PX_PER_IN) / frame.width;
   // The bleed in frame units, for growing layers out to it.
   const bleed = (layout.bleedIn * CSS_PX_PER_IN) / scale;

@@ -1,6 +1,7 @@
 import type { FalModelInput } from "../config/falModels.js";
 import type { RunState } from "../config/nodeTypes.js";
 import type { TextStyle } from "../config/textStyle.js";
+import type { BrandComponent } from "./boards/components/model";
 
 export type { RunState } from "../config/nodeTypes.js";
 
@@ -96,7 +97,9 @@ export type BoardItemKind =
   | "op"
   | "frame"
   | "shader"
-  | "drawing";
+  | "drawing"
+  /** A brand component placed as one item; drawn from the component. */
+  | "component";
 
 /** One image a run produced. A batch produces several. */
 export interface BoardItemVariation {
@@ -278,6 +281,8 @@ export interface BoardSource {
 }
 
 export interface Board {
+  /** The components its instances place (detail responses only). */
+  components?: BrandComponent[];
   coverUrl: string | null;
   createdAt: string;
   id: string;

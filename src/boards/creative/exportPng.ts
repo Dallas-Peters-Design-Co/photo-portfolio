@@ -1,5 +1,7 @@
 import { sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
+import { expandAll } from "../components/model";
+import { componentById } from "../components/store";
 import {
   type DrawingConfig,
   isDrawingConfig,
@@ -365,11 +367,13 @@ const drawLayer = (
 
 export const renderCreative = async (
   frame: Box,
-  layers: BoardItem[],
+  given: BoardItem[],
   pxWidth: number,
   textElementFor: (id: string) => HTMLElement | null,
   background: string | null = null
 ): Promise<Blob> => {
+  // A placed component is drawn as its layers.
+  const layers = expandAll(given, componentById);
   const scale = pxWidth / frame.width;
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(frame.width * scale);

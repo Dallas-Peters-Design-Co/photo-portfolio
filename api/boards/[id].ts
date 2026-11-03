@@ -23,6 +23,7 @@ import type {
   BoardWireRow,
 } from "../_lib/boards.js";
 import { saveRefusal } from "../_lib/boardVersion.js";
+import { componentsUsedBy } from "../_lib/brandComponents.js";
 import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
@@ -121,18 +122,18 @@ async function handleGet(
   // An anonymous visitor gets the graph but not the upstream error text — see
   // ItemDtoOptions for why the prompt stays and the error does not. Sources are
   // withheld from them entirely by rowToBoardDto.
-  return res
-    .status(200)
-    .json(
-      rowToBoardDto(
-        board,
-        items,
-        wires,
-        { isPublicReader: !user },
-        sources,
-        recipeUses
-      )
-    );
+  const components = await componentsUsedBy(sql, items);
+  return res.status(200).json({
+    ...rowToBoardDto(
+      board,
+      items,
+      wires,
+      { isPublicReader: !user },
+      sources,
+      recipeUses
+    ),
+    components,
+  });
 }
 
 /**

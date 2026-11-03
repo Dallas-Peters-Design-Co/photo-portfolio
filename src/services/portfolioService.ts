@@ -19,7 +19,7 @@ import type {
   PhotoExifData,
   RunState,
 } from "../types";
-import { readBoardSave } from "./boardSave";
+import { readBoardSave, withComponents } from "./boardSave";
 
 /** What one node run comes back with. */
 export interface RunNodeResponse {
@@ -1058,7 +1058,7 @@ export const boardsApi = {
     if (!res.ok) {
       throw new Error(await readPageError(res, "Could not load board"));
     }
-    return (await res.json()) as Board;
+    return withComponents((await res.json()) as Board);
   },
 
   list: async (): Promise<Board[]> => {
