@@ -60,6 +60,7 @@ import {
 import { useCanvasMenu } from "./hooks/useCanvasMenu";
 import { useCanvasViewport } from "./hooks/useCanvasViewport";
 import { useDeleteKey } from "./hooks/useDeleteKey";
+import { useMovingLayer } from "./hooks/useMovingLayer";
 import { usePanModifier } from "./hooks/usePanModifier";
 import { useWireGesture } from "./hooks/useWireGesture";
 import { isBoardDrop } from "./io/isVideo";
@@ -329,6 +330,7 @@ export function BoardCanvas({
   // The viewport frames itself on the items, and keeps doing so as the
   // container settles, until the board is panned, zoomed or rearranged.
   const view = useCanvasViewport(containerRef, () => contentBounds(items));
+  useMovingLayer(view.layerRef, view.viewport);
   const panning = usePanModifier();
   // Space, Shift or Control held pans rather than sweeps a box or moves an
   // item. Destructured because the hook returns a fresh object each render

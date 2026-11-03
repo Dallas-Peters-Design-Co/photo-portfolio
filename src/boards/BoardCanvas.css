@@ -64,6 +64,12 @@
   transform-origin: top left;
 }
 
+/* While zooming or panning: scale what's drawn rather than redraw it every
+   frame (useMovingLayer.ts). */
+.board-canvas__layer--moving {
+  will-change: transform;
+}
+
 /*
  * An alignment guide, shown while dragging.
  *

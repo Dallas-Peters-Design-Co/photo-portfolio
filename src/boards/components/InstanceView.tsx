@@ -1,3 +1,4 @@
+import { memo, useMemo } from "react";
 import type { BoardItem } from "../../types";
 import { LayerBody } from "../creative/ArtboardLayers";
 import { opacityCss } from "../creative/layerOpacity";
@@ -16,7 +17,7 @@ import "./InstanceView.css";
  * `textRef` registers each inner text layer under its inner id, so exports
  * (which measure text from the page) can find it.
  */
-export function InstanceView({
+export const InstanceView = memo(function InstanceBody({
   item,
   textRef,
 }: {
@@ -26,12 +27,19 @@ export function InstanceView({
   const lookup = useComponentDefs();
   const instance = instanceOf(item);
   const component = instance ? lookup(instance.component) : null;
+  // Worked out once per change, not per render: every inner text layer
+  // re-measures itself whenever its style object is new, and a board of
+  // thirty instances re-rendering while zooming made that a lot of layout.
+  const layers = useMemo(
+    () => (component ? expandInstance(item, component) : []),
+    [component, item]
+  );
   if (!component) {
     return <div className="instance instance--missing">Component</div>;
   }
   return (
     <div className="instance">
-      {expandInstance(item, component).map((layer) => (
+      {layers.map((layer) => (
         <div
           className="instance__layer"
           key={layer.id}
@@ -55,6 +63,6 @@ export function InstanceView({
       ))}
     </div>
   );
-}
+});
 
 const noop = () => undefined;
