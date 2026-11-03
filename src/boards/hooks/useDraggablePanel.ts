@@ -19,6 +19,8 @@ interface Point {
 }
 
 const MARGIN = 8;
+/** How much of a panel is kept on screen, across, at the least. */
+const VISIBLE = 240;
 const INTERACTIVE = "button, select, input, textarea, a, [role='button']";
 
 const read = (key: string): Point | null => {
@@ -97,8 +99,20 @@ export const useDraggablePanel = (storageKey: string) => {
     window.addEventListener("pointercancel", up);
   };
 
+  // Never drawn off screen: a spot remembered on a bigger window (an external
+  // display, then the laptop) put the Studio somewhere it couldn't be seen, so
+  // opening it looked like nothing happened. At least its header stays in view.
   const style: CSSProperties | undefined = position
-    ? { left: position.x, top: position.y }
+    ? {
+        left: Math.max(
+          MARGIN,
+          Math.min(position.x, window.innerWidth - VISIBLE - MARGIN)
+        ),
+        top: Math.max(
+          MARGIN,
+          Math.min(position.y, window.innerHeight - 48 - MARGIN)
+        ),
+      }
     : undefined;
 
   /** Back to where the panel's own CSS puts it. */
