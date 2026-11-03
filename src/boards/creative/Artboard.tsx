@@ -103,7 +103,18 @@ export function Artboard({
     rotation?: number;
   } | null>(null);
   const [guides, setGuides] = useState<Guides>({ x: [], y: [] });
+  // The layer covering the whole frame at the back: drags from it select.
+  const [bottom] = layers;
+  const background =
+    bottom &&
+    bottom.x <= frame.x &&
+    bottom.y <= frame.y &&
+    bottom.x + bottom.width >= frame.x + frame.width &&
+    bottom.y + bottom.height >= frame.y + frame.height
+      ? bottom
+      : null;
   const group = useGroupDrag({
+    backgroundId: background?.id ?? null,
     boardRef,
     frame,
     layers,
@@ -115,6 +126,35 @@ export function Artboard({
     snapPx: SNAP_PX,
   });
 
+  /**
+   * A press that only picks (true): Shift or ⌘ adds the layer to the
+   * selection or takes it out; a press on the frame's background (not
+   * already picked) draws a selection box, and a click without dragging picks
+   * the background.
+   */
+  const pressPicks = (
+    e: ReactPointerEvent,
+    item: BoardItem,
+    passThrough: boolean
+  ): boolean => {
+    const modified = e.shiftKey || e.metaKey;
+    if (
+      item.id === background?.id &&
+      !selectedIds.includes(item.id) &&
+      !modified
+    ) {
+      group.startMarquee(e, item.id);
+      return true;
+    }
+    if (!passThrough && modified) {
+      e.stopPropagation();
+      e.preventDefault();
+      onSelect(item.id, true);
+      return true;
+    }
+    return false;
+  };
+
   const begin = (
     e: ReactPointerEvent,
     item: BoardItem,
@@ -124,11 +164,7 @@ export function Artboard({
     if (e.button !== 0 || editingId === item.id) {
       return;
     }
-    // Shift or ⌘ adds the layer to the selection, or takes it out.
-    if (handle === null && !passThrough && (e.shiftKey || e.metaKey)) {
-      e.stopPropagation();
-      e.preventDefault();
-      onSelect(item.id, true);
+    if (handle === null && pressPicks(e, item, passThrough)) {
       return;
     }
     // A press on any layer of a multiple selection moves them all.
@@ -320,9 +356,11 @@ export function Artboard({
             y: frame.y + frame.height / 2,
           });
         }}
-        onPointerDown={() => {
+        onPointerDown={(e) => {
           onSelect(null);
           onEditText(null);
+          // Dragging from around the artboard draws a selection box too.
+          group.startMarquee(e);
         }}
         ref={stageRef}
       >
@@ -333,7 +371,7 @@ export function Artboard({
           <div
             className="creative__board"
             onPointerCancel={end}
-            onPointerDown={group.startMarquee}
+            onPointerDown={(e) => group.startMarquee(e)}
             onPointerMove={move}
             onPointerUp={end}
             ref={boardRef}

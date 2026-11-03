@@ -252,4 +252,27 @@ it("makes, exposes, places and sets a component like Figma", async () => {
     "stroke",
   ]);
   expect(document.querySelectorAll(".components__prop--color")).toHaveLength(2);
+
+  // Two copies picked together are set together; differing text shows Mixed.
+  act(() => button("Vision tag").click());
+  const both = rows();
+  expect(both).toHaveLength(2);
+  act(() => both[0]?.click());
+  act(() =>
+    both[1]?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, shiftKey: true })
+    )
+  );
+  const shared = document.querySelector(
+    ".components__text"
+  ) as HTMLTextAreaElement;
+  expect(shared.placeholder).toBe("Mixed");
+  act(() => {
+    set?.call(shared, "Together");
+    shared.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  const inBNow = instances().filter((i) => i.x >= 1000);
+  expect(
+    inBNow.map((i) => Object.values(instanceOf(i)?.props ?? {})[0])
+  ).toEqual(["Together", "Together"]);
 });

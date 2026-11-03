@@ -47,27 +47,41 @@ export function ComponentsSection({
     return <EditingSection chosen={chosen} comps={comps} />;
   }
   const [only] = chosen.length === 1 ? chosen : [];
-  const instance = only ? instanceOf(only) : null;
-  const component = instance ? comps.lookup(instance.component) : null;
+  // Instances of one component, picked together, are set together.
+  const instances = chosen.map(instanceOf);
+  const [first] = instances;
+  const same =
+    chosen.length > 0 &&
+    instances.every((i) => i && i.component === first?.component);
+  const component = same && first ? comps.lookup(first.component) : null;
+  const instance = only && component ? first : null;
   return (
     <section className="components">
       <p className="creative__label">
         Components{comps.kitName ? ` · ${comps.kitName}` : ""}
       </p>
-      {only && instance && component ? (
+      {component ? (
         <div className="components__panel">
           <p className="components__title">
             <ComponentIcon size={13} /> {component.name}
+            {chosen.length > 1 ? ` · ${chosen.length} copies` : ""}
           </p>
           {component.props.map((prop) => {
-            const value = propValue(component, prop, instance.props);
+            const values = instances.map((i) =>
+              propValue(component, prop, i?.props ?? {})
+            );
+            const mixed = new Set(values).size > 1;
+            const value = mixed ? "" : (values[0] ?? "");
             return prop.type === "text" ? (
               <label className="components__prop" key={prop.id}>
                 <span>{prop.name}</span>
                 <textarea
                   className="creative__input components__text"
-                  onChange={(e) => comps.setProp(only, prop.id, e.target.value)}
-                  rows={Math.min(4, value.split("\n").length)}
+                  onChange={(e) =>
+                    comps.setProp(chosen, prop.id, e.target.value)
+                  }
+                  placeholder={mixed ? "Mixed" : undefined}
+                  rows={Math.min(4, Math.max(1, value.split("\n").length))}
                   value={value}
                 />
               </label>
@@ -79,39 +93,45 @@ export function ComponentsSection({
                 <span>{prop.name}</span>
                 <ColorWell
                   label={prop.name}
-                  onChange={(c) => comps.setProp(only, prop.id, c)}
-                  value={value || "#000000"}
+                  onChange={(c) => comps.setProp(chosen, prop.id, c)}
+                  value={value || values[0] || "#000000"}
                 />
               </div>
             );
           })}
           <AddProperty component={component} comps={comps} />
           <div className="components__actions">
+            {only ? (
+              <button
+                className="creative__add"
+                onClick={() => comps.startEdit(only)}
+                title="Open the component to change it; every copy follows"
+                type="button"
+              >
+                <PencilRuler size={14} /> Edit component
+              </button>
+            ) : null}
             <button
               className="creative__add"
-              onClick={() => comps.startEdit(only)}
-              title="Open the component to change it; every copy follows"
-              type="button"
-            >
-              <PencilRuler size={14} /> Edit component
-            </button>
-            <button
-              className="creative__add"
-              disabled={Object.keys(instance.props).length === 0}
-              onClick={() => comps.resetProps(only)}
-              title="Put this copy's properties back to the component's"
+              disabled={instances.every(
+                (i) => Object.keys(i?.props ?? {}).length === 0
+              )}
+              onClick={() => comps.resetProps(chosen)}
+              title="Put these copies' properties back to the component's"
               type="button"
             >
               <RotateCcw size={14} /> Reset
             </button>
-            <button
-              className="creative__add"
-              onClick={() => comps.detach(only)}
-              title="Make this copy ordinary layers, no longer linked"
-              type="button"
-            >
-              <Unlink size={14} /> Detach
-            </button>
+            {only ? (
+              <button
+                className="creative__add"
+                onClick={() => comps.detach(only)}
+                title="Make this copy ordinary layers, no longer linked"
+                type="button"
+              >
+                <Unlink size={14} /> Detach
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}

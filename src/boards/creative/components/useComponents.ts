@@ -200,27 +200,40 @@ export const useComponents = ({
     [frame, onChange, select]
   );
 
-  const patchInstance = useCallback(
-    (item: BoardItem, props: Record<string, string>) =>
+  /** Each of these instances' property values, worked out from its own. */
+  const patchInstances = useCallback(
+    (
+      targets: BoardItem[],
+      next: (props: Record<string, string>) => Record<string, string>
+    ) => {
+      const ids = new Set(targets.map((t) => t.id));
       onChange(
         latest.current.map((i) =>
-          i.id === item.id
-            ? { ...i, config: { ...(i.config ?? {}), props } }
+          ids.has(i.id)
+            ? {
+                ...i,
+                config: {
+                  ...(i.config ?? {}),
+                  props: next(instanceOf(i)?.props ?? {}),
+                },
+              }
             : i
         )
-      ),
+      );
+    },
     [onChange]
   );
 
+  /** One property set on every selected instance. */
   const setProp = useCallback(
-    (item: BoardItem, id: string, value: string) =>
-      patchInstance(item, { ...(instanceOf(item)?.props ?? {}), [id]: value }),
-    [patchInstance]
+    (targets: BoardItem[], id: string, value: string) =>
+      patchInstances(targets, (props) => ({ ...props, [id]: value })),
+    [patchInstances]
   );
 
   const resetProps = useCallback(
-    (item: BoardItem) => patchInstance(item, {}),
-    [patchInstance]
+    (targets: BoardItem[]) => patchInstances(targets, () => ({})),
+    [patchInstances]
   );
 
   /** The instance made into ordinary layers, no longer linked. */

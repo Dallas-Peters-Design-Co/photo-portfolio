@@ -31,6 +31,8 @@ type GroupDrag =
       additive: boolean;
       kind: "marquee";
       start: { x: number; y: number };
+      /** Picked when the press doesn't move (a click on the background). */
+      stillPicks: string | null;
       startX: number;
       startY: number;
     };
@@ -61,7 +63,10 @@ export const useGroupDrag = ({
   scale,
   selectedIds,
   snapPx,
+  backgroundId = null,
 }: {
+  /** The layer covering the whole frame at the back, if there is one. */
+  backgroundId?: string | null;
   boardRef: RefObject<HTMLDivElement | null>;
   frame: Box;
   layers: BoardItem[];
@@ -110,8 +115,15 @@ export const useGroupDrag = ({
     });
   };
 
-  /** A press on empty artboard. */
-  const startMarquee = (e: ReactPointerEvent) => {
+  /**
+   * A press on empty artboard, on the stage around it, or on the frame's
+   * background: dragging draws a selection box. A click on the background
+   * (no drag) picks the background.
+   */
+  const startMarquee = (
+    e: ReactPointerEvent,
+    stillPicks: string | null = null
+  ) => {
     if (e.button !== 0) {
       return;
     }
@@ -122,6 +134,7 @@ export const useGroupDrag = ({
       start: toCanvas(e),
       startX: e.clientX,
       startY: e.clientY,
+      stillPicks,
     });
   };
 
@@ -165,10 +178,18 @@ export const useGroupDrag = ({
   ) => {
     const still =
       Math.abs(e.clientX - d.startX) < 3 && Math.abs(e.clientY - d.startY) < 3;
+    if (still && d.stillPicks) {
+      onSelectMany([d.stillPicks]);
+      return;
+    }
+    // The frame's background is under everything, so the box would always
+    // touch it; it's picked by clicking it, never by the box.
     const hit =
       still || !marquee
         ? []
-        : layers.filter((l) => overlaps(boxOf(l), marquee)).map((l) => l.id);
+        : layers
+            .filter((l) => l.id !== backgroundId && overlaps(boxOf(l), marquee))
+            .map((l) => l.id);
     onSelectMany(d.additive ? [...new Set([...selectedIds, ...hit])] : hit);
   };
 
