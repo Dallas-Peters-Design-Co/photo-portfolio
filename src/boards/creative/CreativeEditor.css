@@ -758,6 +758,27 @@ button.creative-export__item:hover:not(:disabled) {
   grid-column: 3;
 }
 
+/* Picture fit: Cover or Contain, the pressed one filled. */
+.creative-fit {
+  display: inline-flex;
+  padding: 2px;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 20%, transparent);
+  border-radius: 6px;
+}
+
+.creative-fit__option {
+  padding: 2px calc(var(--spacing) * 2);
+  font-size: 0.6875rem;
+  color: inherit;
+  border-radius: 4px;
+
+  &[aria-pressed="true"] {
+    color: var(--color-board-surface);
+    background: var(--color-board-ink);
+  }
+}
+
 /* Picture position: a 3×3 grid of small squares, the pressed one filled. */
 .creative-anchor {
   display: inline-grid;

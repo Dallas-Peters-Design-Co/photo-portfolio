@@ -49,3 +49,11 @@ describe("component layers", () => {
     ).toBeNull();
   });
 });
+
+describe("picture fit", () => {
+  it("keeps contain, and stores nothing for cover", () => {
+    expect(parseImageConfig({ fit: "contain" })).toEqual({ fit: "contain" });
+    expect(parseImageConfig({ fit: "cover" })).toBeNull();
+    expect(parseImageConfig({ fit: "stretch" })).toBeNull();
+  });
+});

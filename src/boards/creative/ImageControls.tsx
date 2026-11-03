@@ -1,11 +1,11 @@
 import type { BoardItem } from "../../types";
-import { ANCHORS, type Anchor, anchorOf } from "./imageAnchor";
+import { ANCHORS, type Anchor, anchorOf, fitOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 
 /**
- * A picture layer's own settings in the bar: rounded corners, and which part
- * of the picture stays in view when its box is a different shape (a 3×3
- * grid, top left to bottom right; see imageAnchor.ts).
+ * A picture layer's own settings in the bar: rounded corners, cover or
+ * contain, and where the picture sits when its box is a different shape (a
+ * 3×3 grid, top left to bottom right; see imageAnchor.ts).
  */
 
 const LABEL: Record<Anchor, string> = {
@@ -46,6 +46,27 @@ export function ImageControls({
           value={imageRadius(item)}
         />
       </label>
+      <span className="creative__field">
+        <span>Fit</span>
+        <span className="creative-fit">
+          {(["cover", "contain"] as const).map((fit) => (
+            <button
+              aria-pressed={fitOf(item) === fit}
+              className="creative-fit__option"
+              key={fit}
+              onClick={() => set({ fit: fit === "cover" ? null : fit })}
+              title={
+                fit === "cover"
+                  ? "Fill the box; the picture is cropped to its shape"
+                  : "Show the whole picture inside the box"
+              }
+              type="button"
+            >
+              {fit === "cover" ? "Cover" : "Contain"}
+            </button>
+          ))}
+        </span>
+      </span>
       <span className="creative__field">
         <span>Position</span>
         <fieldset

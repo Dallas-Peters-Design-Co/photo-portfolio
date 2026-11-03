@@ -2,7 +2,7 @@ import { useState } from "react";
 import { optimizedImageSrc } from "../components/OptimizedImage";
 import type { BoardItem } from "../types";
 import { useAutoplay } from "./autoplayPref";
-import { objectPositionOf } from "./creative/imageAnchor";
+import { fitOf, objectPositionOf } from "./creative/imageAnchor";
 import { imageRadius } from "./creative/imageRadius";
 import { grownBucket, wantedWidth } from "./io/imageBucket";
 import { isVideoUrl } from "./io/isVideo";
@@ -116,6 +116,7 @@ export function ItemMedia({
       }
       style={{
         borderRadius: radius > 0 ? radius : undefined,
+        objectFit: fitOf(item) === "contain" ? "contain" : undefined,
         objectPosition: objectPositionOf(item),
       }}
       width={item.width}

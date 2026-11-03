@@ -6,6 +6,8 @@ import { clamp, text } from "./values.js";
  *
  * - radius: a picture's corner radius;
  * - position: which part of a picture stays in view when cropped;
+ * - fit: "contain" to show the whole picture inside its box (cover, the
+ *   default, isn't stored);
  * - opacity: how see-through the layer is, 0 to 1 (the frame editor's slider);
  * - studio: how a Studio picture was made (tool, settings, size, source
  *   picture), so "Edit in Studio" can reopen it as it was.
@@ -157,6 +159,7 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
   return orNull({
     ...(finite(radius) && radius > 0 ? { radius: clamp(radius, 0, 5000) } : {}),
     ...(POSITIONS.has(position) ? { position } : {}),
+    ...(o?.fit === "contain" ? { fit: "contain" } : {}),
     ...opacityOf(o),
     ...(studio ? { studio } : {}),
     ...componentOf(o),

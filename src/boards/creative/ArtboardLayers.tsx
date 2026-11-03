@@ -7,7 +7,7 @@ import { useTextFont } from "../hooks/useTextFont";
 import { useVerticalAlign } from "../hooks/useVerticalAlign";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { objectPositionOf } from "./imageAnchor";
+import { fitOf, objectPositionOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 
 /**
@@ -103,6 +103,7 @@ export function LayerBody({
       src={url}
       style={{
         borderRadius: imageRadius(item) > 0 ? imageRadius(item) : undefined,
+        objectFit: fitOf(item),
         objectPosition: objectPositionOf(item),
       }}
       width={item.width}

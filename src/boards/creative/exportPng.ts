@@ -8,7 +8,7 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { anchorFractions, anchorOf } from "./imageAnchor";
+import { anchorFractions, anchorOf, type Fit, fitOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { layerOpacity } from "./layerOpacity";
 import { rotationOf } from "./rotate";
@@ -60,15 +60,23 @@ const drawPathShape = (
   }
 };
 
-/** object-fit: cover, as the board draws pictures. */
+/** object-fit cover or contain, as the board draws pictures. */
 const drawCover = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
   w: number,
   h: number,
   /** Where the crop is pinned, 0 to 1 across and down (imageAnchor.ts). */
-  at = { x: 0.5, y: 0.5 }
+  at = { x: 0.5, y: 0.5 },
+  fit: Fit = "cover"
 ) => {
+  if (fit === "contain") {
+    const k = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+    const dw = img.naturalWidth * k;
+    const dh = img.naturalHeight * k;
+    ctx.drawImage(img, (w - dw) * at.x, (h - dh) * at.y, dw, dh);
+    return;
+  }
   const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
   const sw = w / scale;
   const sh = h / scale;
@@ -303,7 +311,11 @@ export const bleeds = (item: BoardItem): boolean => {
   if (item.kind === "drawing") {
     return isDrawingConfig(item.config) && BOX_TOOLS.has(item.config.tool);
   }
-  return item.kind !== "text" && item.kind !== "note";
+  // A fitted (contain) picture keeps its own size; growing its box into the
+  // bleed would only move it.
+  return (
+    item.kind !== "text" && item.kind !== "note" && fitOf(item) === "cover"
+  );
 };
 
 /** One layer, drawn in place: the caller saves and restores the context. */
@@ -339,7 +351,14 @@ const drawLayer = (
         clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
         ctx.clip(clip);
       }
-      drawCover(ctx, picture, w, h, anchorFractions(anchorOf(item)));
+      drawCover(
+        ctx,
+        picture,
+        w,
+        h,
+        anchorFractions(anchorOf(item)),
+        fitOf(item)
+      );
     }
   }
 };

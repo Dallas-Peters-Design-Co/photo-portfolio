@@ -8,6 +8,10 @@ import type { BoardItem } from "../../types";
  *
  * Kept in `config.position`, and read the same way by the editor, the board,
  * and every export.
+ *
+ * `config.fit` says whether the picture fills its box and is cropped (cover,
+ * the default) or fits whole inside it with the rest left clear (contain).
+ * The anchor then says where the cropped or left-over room goes.
  */
 
 export const ANCHORS = [
@@ -45,6 +49,13 @@ export const anchorFractions = (anchor: Anchor): { x: number; y: number } => ({
   x: along(anchor, "left", "right"),
   y: along(anchor, "top", "bottom"),
 });
+
+export type Fit = "contain" | "cover";
+
+export const fitOf = (item: Pick<BoardItem, "config">): Fit =>
+  (item.config as { fit?: unknown } | null)?.fit === "contain"
+    ? "contain"
+    : "cover";
 
 /** CSS object-position, or nothing for the default centre. */
 export const objectPositionOf = (

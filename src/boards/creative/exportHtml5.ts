@@ -13,7 +13,7 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { objectPositionOf } from "./imageAnchor";
+import { type Fit, fitOf, objectPositionOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { opacityCss } from "./layerOpacity";
 import { rotationOf } from "./rotate";
@@ -155,9 +155,10 @@ export const imageHtml = (
   src: string,
   place: Record<string, string>,
   radius = 0,
-  position?: string
+  position?: string,
+  fit: Fit = "cover"
 ): string =>
-  `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": "cover", "object-position": position })}">`;
+  `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": fit, "object-position": position })}">`;
 
 export interface AdPage {
   body: string[];
@@ -390,7 +391,13 @@ export const layerHtml = (
   }
   const src = images.get(currentImageUrl(item) ?? "");
   return src
-    ? imageHtml(src, faded, imageRadius(item) * scale, objectPositionOf(item))
+    ? imageHtml(
+        src,
+        faded,
+        imageRadius(item) * scale,
+        objectPositionOf(item),
+        fitOf(item)
+      )
     : null;
 };
 

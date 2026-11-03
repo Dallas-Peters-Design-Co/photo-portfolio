@@ -377,6 +377,38 @@ describe("picture position", () => {
     ) as HTMLImageElement;
     expect(img.style.objectPosition).toBe("0% 0%");
   });
+
+  it("switches a picture between cover and contain", () => {
+    const pic = {
+      ...base,
+      height: 100,
+      id: "p",
+      imageUrl: "https://example.test/a.png",
+      kind: "reference",
+      width: 300,
+      x: 20,
+      y: 20,
+      z: 1,
+    } as BoardItem;
+    render([frame, pic]);
+    act(() =>
+      (document.querySelector(".creative__layer-row") as HTMLElement).click()
+    );
+    const fitButton = (label: string) =>
+      [...document.querySelectorAll<HTMLElement>(".creative-fit__option")].find(
+        (b) => b.textContent === label
+      ) as HTMLElement;
+    const img = () =>
+      document.querySelector('[data-layer-id="p"] img') as HTMLImageElement;
+    expect(img().style.objectFit).toBe("cover");
+    act(() => fitButton("Contain").click());
+    expect(
+      (latest.find((i) => i.id === "p")?.config as { fit?: string } | null)?.fit
+    ).toBe("contain");
+    expect(img().style.objectFit).toBe("contain");
+    act(() => fitButton("Cover").click());
+    expect(img().style.objectFit).toBe("cover");
+  });
 });
 
 describe("zooming the artboard", () => {
