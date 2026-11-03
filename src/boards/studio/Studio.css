@@ -558,3 +558,12 @@
   gap: calc(var(--spacing) * 1.5);
   align-items: center;
 }
+
+/* The stroke being painted, drawn over the preview until it's rebuilt. */
+.studio__paint-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

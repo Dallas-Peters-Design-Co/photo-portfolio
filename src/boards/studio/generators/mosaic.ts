@@ -179,14 +179,42 @@ const gridOf = (
   const cols = Math.max(2, Number(v.columns) || 48);
   const cell = w / cols;
   const rows = Math.max(1, Math.round(h / cell));
-  const data = sample(
-    image as CanvasImageSource & { height: number; width: number },
-    cols,
-    rows,
-    w,
-    h
-  );
+  // Sampled once per picture and grid: every repaint (a painted tile, a
+  // colour) used to re-draw the whole photo onto the grid first.
+  const byImage =
+    samples.get(image) ?? new Map<string, Uint8ClampedArray | null>();
+  samples.set(image, byImage);
+  const key = `${cols}x${rows}@${w}x${h}`;
+  if (!byImage.has(key)) {
+    byImage.set(
+      key,
+      sample(
+        image as CanvasImageSource & { height: number; width: number },
+        cols,
+        rows,
+        w,
+        h
+      )
+    );
+  }
+  const data = byImage.get(key) ?? null;
   return data ? { cell, cols, data, rows } : null;
+};
+
+const samples = new WeakMap<object, Map<string, Uint8ClampedArray | null>>();
+
+/** The picture's main colours, once per sampled grid and count. */
+const coloursCache = new WeakMap<
+  Uint8ClampedArray,
+  Map<number, ReturnType<typeof mainColours>>
+>();
+const mainColoursOf = (data: Uint8ClampedArray, count: number) => {
+  const byCount = coloursCache.get(data) ?? new Map();
+  coloursCache.set(data, byCount);
+  if (!byCount.has(count)) {
+    byCount.set(count, mainColours(data, count));
+  }
+  return byCount.get(count) as ReturnType<typeof mainColours>;
 };
 
 const countOf = (v: StudioValues) =>
@@ -302,7 +330,7 @@ export const mosaicTool: ImageTool = {
     const colour =
       mode === "remap"
         ? remapper(
-            mainColours(data, countOf(v)),
+            mainColoursOf(data, countOf(v)),
             replacementsOf(v.remap, countOf(v))
           )
         : colourer(mode, palette, Boolean(v.invert));
@@ -335,7 +363,9 @@ export const mosaicTool: ImageTool = {
   /** The picture's main colours, dark to light, for the Swap list. */
   sources: (v, ctx) => {
     const grid = modeOf(v) === "remap" ? gridOf(v, ctx) : null;
-    return grid ? mainColours(grid.data, countOf(v)).map((c) => hex(...c)) : [];
+    return grid
+      ? mainColoursOf(grid.data, countOf(v)).map((c) => hex(...c))
+      : [];
   },
   vector: true,
 };

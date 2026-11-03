@@ -20,7 +20,11 @@ function Probe() {
   });
   return (
     <>
-      <div {...paint.previewProps} data-testid="preview">
+      <div
+        {...paint.previewProps}
+        data-testid="preview"
+        style={{ position: "relative" }}
+      >
         <img
           alt=""
           height={400}
@@ -28,6 +32,7 @@ function Probe() {
           style={{ display: "block", height: 200, width: 400 }}
           width={400}
         />
+        {paint.overlay}
       </div>
       {paint.bar}
     </>
@@ -62,9 +67,21 @@ it("paints the tiles dragged across, fitted like the preview", () => {
     at(10, 10, "pointerdown", 1);
     at(60, 10, "pointermove", 1);
     at(60, 160, "pointermove", 1);
-    at(60, 160, "pointerup", 0);
   });
-  expect(painted).toBe("0.0#000000,1.0#000000,1.3#000000");
+  // Mid-stroke the mosaic isn't rebuilt: the tiles are drawn on the overlay.
+  expect(painted).toBe("");
+  const overlay = host.querySelector("canvas") as HTMLCanvasElement;
+  const dpr = window.devicePixelRatio || 1;
+  // Tile 0,0 sits at 100,0 in the box (the picture is centred), 50 across.
+  const pixel = overlay
+    .getContext("2d")
+    ?.getImageData(125 * dpr, 25 * dpr, 1, 1).data;
+  expect(pixel?.[3]).toBe(255);
+  act(() => at(60, 160, "pointerup", 0));
+  // A fast jump from row 0 to row 3 fills the tiles between.
+  expect(painted).toBe(
+    "0.0#000000,1.0#000000,1.1#000000,1.2#000000,1.3#000000"
+  );
   act(() => root.unmount());
   host.remove();
 });

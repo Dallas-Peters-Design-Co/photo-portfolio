@@ -205,6 +205,7 @@ export function ImageToolView({
           src={preview}
           width={size.w}
         />
+        {paint.overlay}
         {onResize ? (
           // biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the preview works at its default size
           <span
