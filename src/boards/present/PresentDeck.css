@@ -36,13 +36,20 @@
   box-shadow: 0 30px 80px color-mix(in oklch, oklch(0 0 0) 60%, transparent);
 }
 
-/* A title or section card: type alone on the dark ground. */
+/*
+ * A title or section card: type alone on the dark ground. Wide enough for the title's own size: a max-width in the body's ch was
+ * narrower than one line of it, so the title spilled out to the right and
+ * sat off-centre. Letter-spacing also trails the last letter of every line;
+ * the negative inline-end margin takes that back so lines centre truly.
+ */
 .present__card {
-  max-width: 24ch;
+  max-width: min(90vw, 72rem);
   text-align: center;
+  text-wrap: balance;
 }
 
 .present__title {
+  margin-inline-end: -0.12em;
   font-size: clamp(2.5rem, 7vw, 6rem);
   font-weight: 300;
   line-height: 1.05;
@@ -51,6 +58,7 @@
 }
 
 .present__section {
+  margin-inline-end: -0.16em;
   font-size: clamp(1.75rem, 4.5vw, 3.5rem);
   font-weight: 300;
   line-height: 1.1;
@@ -60,6 +68,7 @@
 
 .present__subtitle {
   margin-block-start: calc(var(--spacing) * 5);
+  margin-inline-end: calc(-1 * var(--tracking-micro-caps));
   font-size: var(--text-micro-md);
   color: color-mix(in oklch, oklch(1 0 0) 50%, transparent);
   text-transform: uppercase;
