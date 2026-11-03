@@ -6,6 +6,7 @@ import { objectPositionOf } from "./creative/imageAnchor";
 import { imageRadius } from "./creative/imageRadius";
 import { grownBucket, wantedWidth } from "./io/imageBucket";
 import { isVideoUrl } from "./io/isVideo";
+import { isSvgUrl, useCanvasSrc } from "./io/svgRaster";
 import { currentImageUrl } from "./itemOutput";
 import "./ItemMedia.css";
 
@@ -62,6 +63,8 @@ export function ItemMedia({
   // put through the image optimizer, so the bucket simply goes unused there.
   const bucket = useImageBucket(item.width);
   const url = shownUrl(item);
+  // An SVG is shown as a bitmap of itself; see svgRaster.ts.
+  const svgSrc = useCanvasSrc(url ?? "", bucket);
   const radius = imageRadius(item);
   if (isVideoUrl(url)) {
     // Muted and looping because a board holds a dozen of these at once and one
@@ -106,7 +109,11 @@ export function ItemMedia({
       draggable={false}
       height={item.height}
       loading="lazy"
-      src={optimizedImageSrc(url ?? "", bucket)}
+      src={
+        isSvgUrl(url ?? "")
+          ? (svgSrc ?? undefined)
+          : optimizedImageSrc(url ?? "", bucket)
+      }
       style={{
         borderRadius: radius > 0 ? radius : undefined,
         objectPosition: objectPositionOf(item),
