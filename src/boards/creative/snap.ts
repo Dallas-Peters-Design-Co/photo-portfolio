@@ -42,7 +42,7 @@ const bestShift = (
  * An arrow-key nudge cut short so every box's centre stays on the frame. A
  * layer belongs to the frame its centre is in (config/graph.ts), and tapping
  * an arrow shouldn't quietly push one out of the design. Dragging isn't held
- * back: pulling a layer off the artboard is how it's taken out (leftFrame.ts).
+ * back: pulling a layer off the artboard is how it's taken out.
  */
 export const keepOnFrame = (
   boxes: Box[],

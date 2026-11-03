@@ -5,7 +5,6 @@ import {
 } from "react";
 import type { BoardItem } from "../../types";
 import type { Box } from "./creativeModel";
-import { sayIfLeftFrame } from "./leftFrame";
 import { overlaps, unionOf } from "./selection";
 import { type Guides, skipsSnap, snapMove } from "./snap";
 
@@ -221,7 +220,6 @@ export const useGroupDrag = ({
           ])
       )
     );
-    sayIfLeftFrame(moved, frame);
   };
 
   /** True when the release ended the group's or the marquee's drag. */

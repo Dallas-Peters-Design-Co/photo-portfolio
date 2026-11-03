@@ -2,7 +2,7 @@ import "../../index.css";
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { Toaster } from "sonner";
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, describe, expect, it } from "vitest";
 import { page } from "vitest/browser";
 import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
@@ -235,7 +235,7 @@ describe("move to the board", () => {
 });
 
 describe("dragging near the edge", () => {
-  it("follows the pointer off the artboard, and says when a layer leaves the design", async () => {
+  it("follows the pointer off the artboard, and lets it leave the design without a notice", async () => {
     render([frame, rect("a", 40, 1)]);
     act(() =>
       (document.querySelector(".creative__layer-row") as HTMLElement).click()
@@ -252,11 +252,10 @@ describe("dragging near the edge", () => {
     const a = latest.find((i) => i.id === "a");
     // Where the pointer took it, not stopped at the edge.
     expect(a?.x ?? 0).toBeGreaterThan(800);
-    // Out of the design now, so out of the editor, and the reason is shown.
+    // Out of the design now, so out of the editor, with nothing popping up.
     expect(document.querySelector('[data-layer-id="a"]')).toBeNull();
-    await vi.waitFor(() =>
-      expect(document.body.textContent).toContain("Moved out of the frame")
-    );
+    await new Promise((done) => setTimeout(done, 50));
+    expect(document.body.textContent).not.toContain("Moved out of the frame");
   });
 
   it("lets a layer hang half off an edge and stay in the design", () => {

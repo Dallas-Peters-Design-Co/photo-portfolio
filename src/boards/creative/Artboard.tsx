@@ -7,7 +7,6 @@ import type { BoardItem } from "../../types";
 import { GroupOutline, LayerBody } from "./ArtboardLayers";
 import type { Box } from "./creativeModel";
 import { opacityCss } from "./layerOpacity";
-import { sayIfLeftFrame } from "./leftFrame";
 import { type ResizeDrag, resizeStep } from "./resize";
 import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
 import { type Handle, SelectionBox } from "./SelectionBox";
@@ -241,7 +240,7 @@ export function Artboard({
         ? { box: raw, guides: { x: [], y: [] } }
         : snapMove(raw, frame, others, threshold);
       // Free to leave the artboard: that's how a layer is pulled out of the
-      // design (leftFrame.ts says so when it lands outside).
+      // design, quietly, like Figma; ⌘Z brings it back.
       setLive({ box: snapped.box, fontSize: null });
       setGuides(snapped.guides);
       return;
@@ -297,9 +296,6 @@ export function Artboard({
       y: Math.round(box.y),
       ...(fontSize === null ? {} : { fontSize }),
     });
-    if (d.kind === "move") {
-      sayIfLeftFrame([box], frame);
-    }
   };
 
   const end = (e: ReactPointerEvent) => {
