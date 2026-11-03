@@ -1,0 +1,84 @@
+/* The frame editor rail's Components section (ComponentsSection.tsx). */
+.components {
+  display: grid;
+  gap: var(--spacing);
+}
+
+.components__list {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.components__row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-control, 8px);
+
+  &:hover {
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+}
+
+.components__insert {
+  display: flex;
+  flex: 1;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  min-width: 0;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+  color: inherit;
+  text-align: left;
+
+  & span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.components__icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  color: inherit;
+  opacity: 0;
+
+  .components__row:hover &,
+  &:focus-visible {
+    opacity: 0.6;
+  }
+}
+
+.components__make:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.components__copy {
+  display: grid;
+  gap: var(--spacing);
+  padding: calc(var(--spacing) * 2);
+  border: 1px solid color-mix(in oklch, oklch(65% 0.2 300) 45%, transparent);
+  border-radius: var(--radius-control, 8px);
+}
+
+.components__copy-name {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: oklch(72% 0.17 300);
+}
+
+.components__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing);
+}

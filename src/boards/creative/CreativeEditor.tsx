@@ -20,6 +20,8 @@ import { useShortcuts } from "../shortcuts/useShortcuts";
 import { Artboard } from "./Artboard";
 import { BrandPanel } from "./BrandPanel";
 import { ContextBar } from "./ContextBar";
+import { ComponentsSection } from "./components/ComponentsSection";
+import { useComponents } from "./components/useComponents";
 import { layersOf, newImage, newShape } from "./creativeModel";
 import { EditorOverlays } from "./EditorOverlays";
 import { ExportMenu } from "./ExportMenu";
@@ -122,6 +124,12 @@ export function CreativeEditor({
     },
   });
   const { chosen, patch, patchMany } = cmd;
+  const comps = useComponents({
+    frame,
+    items,
+    onChange,
+    select: selection.setIds,
+  });
 
   // Keys, caught before the board's own so a Delete here never reaches the
   // board's selection. Esc lets go of the selection, then closes the editor.
@@ -306,6 +314,7 @@ export function CreativeEditor({
         <p className="creative__hint">
           Drop image files on the artboard to add them.
         </p>
+        <ComponentsSection chosen={chosen} comps={comps} />
         <p className="creative__label">Layers</p>
         <LayersList
           layers={layers}

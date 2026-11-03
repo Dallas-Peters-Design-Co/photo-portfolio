@@ -9,6 +9,9 @@ import { clamp, text } from "./values.js";
  * - opacity: how see-through the layer is, 0 to 1 (the frame editor's slider);
  * - studio: how a Studio picture was made (tool, settings, size, source
  *   picture), so "Edit in Studio" can reopen it as it was.
+ * - component: the brand component this layer is a copy of (componentLink),
+ *   and what the component last gave it, so a component update can tell a
+ *   value changed on this copy from one it was handed.
  */
 
 const MAX_SETTINGS = 40;
@@ -67,6 +70,64 @@ export const parseStudioRecipe = (raw: unknown): Bag | null => {
   };
 };
 
+const COMPONENT_ID = /^[0-9a-f-]{36}$/i;
+const SHORT_ID = /^[a-zA-Z0-9_-]{1,64}$/;
+const COLOR = (v: unknown) => text(v, 32);
+
+/**
+ * A layer's link to a brand component: which component (c), which copy of it
+ * on the board (i), which of its layers (l), the component version it last
+ * took (v), and the values that version gave it (base): text, font size,
+ * colours, place. Anything malformed drops the link, which leaves an
+ * ordinary layer.
+ */
+export const parseComponentLink = (raw: unknown): Bag | null => {
+  const o = bagOf(raw);
+  if (
+    !(
+      o &&
+      typeof o.c === "string" &&
+      COMPONENT_ID.test(o.c) &&
+      typeof o.i === "string" &&
+      SHORT_ID.test(o.i) &&
+      typeof o.l === "string" &&
+      SHORT_ID.test(o.l)
+    )
+  ) {
+    return null;
+  }
+  const b = bagOf(o.base) ?? {};
+  const base: Bag = {};
+  if (typeof b.body === "string") {
+    base.body = b.body.slice(0, 2000);
+  }
+  if (finite(b.fontSize)) {
+    base.fontSize = clamp(b.fontSize, 1, 5000);
+  }
+  // Where the component put the layer within the copy, to find the copy's
+  // corner again after the whole copy has been moved.
+  for (const key of ["x", "y"]) {
+    if (finite(b[key])) {
+      base[key] = clamp(b[key], -1_000_000, 1_000_000);
+    }
+  }
+  for (const key of ["color", "background", "fill", "stroke"]) {
+    const c = COLOR(b[key]);
+    if (c) {
+      base[key] = c;
+    }
+  }
+  // The component's version (updatedAt) this copy last took.
+  const v = text(o.v, 40);
+  return { base, c: o.c, i: o.i, l: o.l, ...(v ? { v } : {}) };
+};
+
+/** The link, as a key to spread into a config. */
+export const componentOf = (o: Bag | null): Bag => {
+  const component = parseComponentLink(o?.component);
+  return component ? { component } : {};
+};
+
 /** Opacity below 1 is kept; fully opaque is the default and isn't stored. */
 const opacityOf = (o: Bag | null): Bag =>
   finite(o?.opacity) && o.opacity < 1
@@ -98,8 +159,11 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
     ...(POSITIONS.has(position) ? { position } : {}),
     ...opacityOf(o),
     ...(studio ? { studio } : {}),
+    ...componentOf(o),
   });
 };
 
-export const parseTextConfig = (raw: unknown): Bag | null =>
-  orNull(opacityOf(bagOf(raw)));
+export const parseTextConfig = (raw: unknown): Bag | null => {
+  const o = bagOf(raw);
+  return orNull({ ...opacityOf(o), ...componentOf(o) });
+};

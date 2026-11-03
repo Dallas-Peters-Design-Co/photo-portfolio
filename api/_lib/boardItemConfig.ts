@@ -5,6 +5,7 @@ import {
 } from "../../config/nodes/bundle.js";
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
 import { UUID_RE } from "./boardItemParse.js";
+import { componentOf } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
 
 /**
@@ -407,6 +408,7 @@ export const parseDrawingConfig = (
     config.innerRatio = clamp(o.innerRatio, 0.1, 0.95);
   }
 
+  Object.assign(config, componentOf(o));
   if (Array.isArray(o.points)) {
     config.points = o.points
       .slice(0, MAX_DRAW_POINTS)

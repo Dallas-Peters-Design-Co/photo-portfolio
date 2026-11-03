@@ -6,6 +6,11 @@ import {
 } from "../../config/brandKit.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { UUID_RE } from "../_lib/boardItemParse.js";
+import {
+  deleteComponent,
+  listComponents,
+  saveComponent,
+} from "../_lib/brandComponents.js";
 import { loadKit, loadKits, writeKitVersion } from "../_lib/brandKitStore.js";
 import { handleCors } from "../_lib/cors.js";
 import { readCopyRequest, writeCopy } from "../_lib/creativeCopy.js";
@@ -51,6 +56,12 @@ async function handleGet(
   // Saved photo-editor looks ride on this endpoint (see _lib/savedLooks.ts).
   if (req.query.looks) {
     return res.status(200).json(await listLooks(sql));
+  }
+  // A kit's components ride here too (see _lib/brandComponents.ts).
+  if (typeof req.query.components === "string") {
+    return res
+      .status(200)
+      .json(await listComponents(sql, req.query.components));
   }
   // Brand font lookups ride here too (see _lib/fontCatalog.ts).
   if (req.query.fonts === "google") {
@@ -167,6 +178,16 @@ async function handlePost(
   const body = parseJsonBody(req.body) as Record<string, unknown>;
   if (body.action === "saveLook" || body.action === "deleteLook") {
     return await handleLookAction(sql, body, res);
+  }
+  if (body.action === "deleteComponent") {
+    await deleteComponent(sql, body.id);
+    return res.status(204).end();
+  }
+  if (body.action === "saveComponent") {
+    const out = await saveComponent(sql, body);
+    return out.ok
+      ? res.status(out.status).json(out.component)
+      : res.status(out.status).json({ error: out.error });
   }
   // Ad copy in a kit's voice, for the creative editor (_lib/creativeCopy.ts).
   if (body.action === "copy") {
