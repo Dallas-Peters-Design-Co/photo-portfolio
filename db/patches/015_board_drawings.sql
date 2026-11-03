@@ -15,22 +15,35 @@
 ALTER TABLE board_items DROP CONSTRAINT IF EXISTS board_items_kind_check;
 ALTER TABLE board_items DROP CONSTRAINT IF EXISTS board_items_shape;
 
-ALTER TABLE board_items
-  ADD CONSTRAINT board_items_kind_check
-  CHECK (
-    kind IN (
-      'photo', 'reference', 'note', 'text', 'op', 'frame', 'shader', 'drawing'
-    )
-  );
+-- Guarded because every patch replays on every migrate, and 049 widens the
+-- set again (component instances): once such rows exist, re-adding this
+-- narrower check would fail on valid data. Same guard as 011, 012 and 014.
+DO $$
+BEGIN
+  ALTER TABLE board_items
+    ADD CONSTRAINT board_items_kind_check
+    CHECK (
+      kind IN (
+        'photo', 'reference', 'note', 'text', 'op', 'frame', 'shader', 'drawing'
+      )
+    );
+EXCEPTION
+  WHEN check_violation THEN NULL;
+END $$;
 
 /* A drawing is defined entirely by its config — the shape, its colours, and
    for a freehand stroke the points themselves. Without one there is nothing to
    render, so an empty drawing is malformed rather than merely blank. */
-ALTER TABLE board_items
-  ADD CONSTRAINT board_items_shape CHECK (
-    (kind = 'photo' AND photo_id IS NOT NULL)
-    OR (kind = 'reference' AND image_url IS NOT NULL)
-    OR (kind IN ('note', 'text', 'frame') AND body IS NOT NULL)
-    OR (kind = 'op' AND node_type IS NOT NULL)
-    OR (kind IN ('shader', 'drawing') AND config IS NOT NULL)
-  );
+DO $$
+BEGIN
+  ALTER TABLE board_items
+    ADD CONSTRAINT board_items_shape CHECK (
+      (kind = 'photo' AND photo_id IS NOT NULL)
+      OR (kind = 'reference' AND image_url IS NOT NULL)
+      OR (kind IN ('note', 'text', 'frame') AND body IS NOT NULL)
+      OR (kind = 'op' AND node_type IS NOT NULL)
+      OR (kind IN ('shader', 'drawing') AND config IS NOT NULL)
+    );
+EXCEPTION
+  WHEN check_violation THEN NULL;
+END $$;
