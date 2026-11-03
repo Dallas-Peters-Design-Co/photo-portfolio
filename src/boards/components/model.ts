@@ -247,6 +247,38 @@ export const expandAll = (
     return component ? expandInstance(item, component) : [item];
   });
 
+const SPACES = /\s+/;
+
+/** A short label for a component layer: its first words, or its shape. */
+export const layerLabel = (
+  layer: Pick<ComponentLayer, "body" | "config" | "kind">
+) => {
+  if (layer.body?.trim()) {
+    const words = layer.body.trim().split(SPACES).slice(0, 3).join(" ");
+    return words.length > 24 ? `${words.slice(0, 24)}…` : words;
+  }
+  const tool = bag(layer.config)?.tool;
+  if (layer.kind === "drawing") {
+    return tool === "ellipse" ? "Ellipse" : "Shape";
+  }
+  return "Picture";
+};
+
+/**
+ * The properties a new component starts with: each text layer's words, so
+ * every copy can say something different from the moment it's made.
+ */
+export const startingProps = (draft: Draft): ComponentProp[] =>
+  draft.layers
+    .filter((l) => (l.kind === "text" || l.kind === "note") && l.body !== null)
+    .map((l, k) => ({
+      field: "body" as const,
+      id: `text${k + 1}`,
+      lid: l.lid,
+      name: layerLabel(l),
+      type: "text" as const,
+    }));
+
 /** A component from layers in a frame, back to front. */
 export const draftFrom = (
   layers: BoardItem[],

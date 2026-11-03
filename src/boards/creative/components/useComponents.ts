@@ -13,6 +13,7 @@ import {
   type PropField,
   placeIn,
   resolvedLayers,
+  startingProps,
 } from "../../components/model";
 import { rememberComponents, useComponentDefs } from "../../components/store";
 import { newItemId } from "../../io/newItemId";
@@ -154,7 +155,8 @@ export const useComponents = ({
         return;
       }
       try {
-        const draft = draftFrom(chosen, frame, name);
+        const plain = draftFrom(chosen, frame, name);
+        const draft = { ...plain, props: startingProps(plain) };
         const saved = await componentsApi.save({ ...draft, kitId });
         keep([saved]);
         // The chosen layers become one instance, where they were.
@@ -399,7 +401,26 @@ export const useComponents = ({
     [confirm]
   );
 
+  /** A property added straight from an instance, without opening it. */
+  const addProp = useCallback(
+    async (component: BrandComponent, prop: Omit<ComponentProp, "id">) => {
+      try {
+        const { id, kitId: _kit, updatedAt: _at, ...draft } = component;
+        const saved = await componentsApi.save({
+          ...draft,
+          id,
+          props: [...component.props, { ...prop, id: shortId() }],
+        });
+        keep([saved]);
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Couldn't add it");
+      }
+    },
+    [keep]
+  );
+
   return {
+    addProp,
     addToComponent,
     components,
     detach,

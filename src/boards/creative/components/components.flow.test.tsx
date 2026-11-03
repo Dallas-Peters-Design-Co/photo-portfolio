@@ -195,7 +195,8 @@ it("makes, exposes, places and sets a component like Figma", async () => {
   expect(open()).toHaveLength(2);
   const textRow = open().find((r) => r.textContent?.includes("Vision"));
   act(() => textRow?.click());
-  act(() => expose("Text").click());
+  // A new component's text is already a property.
+  expect(expose("Text")?.getAttribute("aria-pressed")).toBe("true");
   const boxRow = open().find((r) => r.textContent?.includes("Rectangle"));
   act(() => boxRow?.click());
   act(() => expose("Fill").click());
@@ -204,7 +205,7 @@ it("makes, exposes, places and sets a component like Figma", async () => {
   );
   await settle();
   expect(saved[0]?.props.map((p) => [p.name, p.type])).toEqual([
-    ["Text", "text"],
+    ["Vision", "text"],
     ["Fill", "color"],
   ]);
   expect(instances()).toHaveLength(1);
@@ -238,4 +239,17 @@ it("makes, exposes, places and sets a component like Figma", async () => {
   expect(document.querySelector(".components__prop--color")).not.toBeNull();
   // One layer in the list: the instance, nothing inside it.
   expect(rows()).toHaveLength(1);
+
+  // A property added straight from the instance, without opening it.
+  const outline = [
+    ...document.querySelectorAll<HTMLElement>(".components__add button"),
+  ].find((b) => b.textContent?.includes("Outline")) as HTMLElement;
+  act(() => outline.click());
+  await settle();
+  expect(saved[0]?.props.map((p) => p.field)).toEqual([
+    "body",
+    "fill",
+    "stroke",
+  ]);
+  expect(document.querySelectorAll(".components__prop--color")).toHaveLength(2);
 });

@@ -13,7 +13,13 @@ import {
 } from "lucide-react";
 import type { BoardItem } from "../../../types";
 import { ColorWell } from "../../ColorWell";
-import { FIELDS_OF, instanceOf, propValue } from "../../components/model";
+import {
+  type BrandComponent,
+  FIELDS_OF,
+  instanceOf,
+  layerLabel,
+  propValue,
+} from "../../components/model";
 import { editLinkOf, type useComponents } from "./useComponents";
 import "./Components.css";
 
@@ -53,11 +59,6 @@ export function ComponentsSection({
           <p className="components__title">
             <ComponentIcon size={13} /> {component.name}
           </p>
-          {component.props.length === 0 ? (
-            <p className="creative__hint">
-              Nothing to set yet. Edit component and expose its text or colours.
-            </p>
-          ) : null}
           {component.props.map((prop) => {
             const value = propValue(component, prop, instance.props);
             return prop.type === "text" ? (
@@ -84,6 +85,7 @@ export function ComponentsSection({
               </div>
             );
           })}
+          <AddProperty component={component} comps={comps} />
           <div className="components__actions">
             <button
               className="creative__add"
@@ -270,5 +272,65 @@ function EditingSection({
         </button>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * Every layer's text and colours that aren't properties yet, each one click
+ * from becoming one. Open while the component has none, so the first thing
+ * an instance shows is what can be made settable.
+ */
+function AddProperty({
+  comps,
+  component,
+}: {
+  comps: ReturnType<typeof useComponents>;
+  component: BrandComponent;
+}) {
+  const options = component.layers.flatMap((layer) =>
+    (FIELDS_OF[layer.kind] ?? [])
+      .filter(
+        (f) =>
+          !component.props.some(
+            (p) => p.lid === layer.lid && p.field === f.field
+          )
+      )
+      .map((f) => ({ ...f, layer }))
+  );
+  if (options.length === 0) {
+    return null;
+  }
+  return (
+    <details className="components__add" open={component.props.length === 0}>
+      <summary>
+        <Plus size={13} /> Add a property
+      </summary>
+      <ul className="components__list">
+        {options.map(({ field, label, layer, type }) => (
+          <li className="components__row" key={`${layer.lid}-${field}`}>
+            <button
+              className="components__insert"
+              onClick={() =>
+                void comps.addProp(component, {
+                  field,
+                  lid: layer.lid,
+                  name:
+                    type === "text"
+                      ? layerLabel(layer)
+                      : `${layerLabel(layer)} ${label.toLowerCase()}`,
+                  type,
+                })
+              }
+              type="button"
+            >
+              {type === "text" ? <Type size={13} /> : <Palette size={13} />}
+              <span>
+                {layerLabel(layer)} · {label}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }

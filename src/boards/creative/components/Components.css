@@ -146,3 +146,21 @@
   cursor: default;
   opacity: 0.5;
 }
+
+.components__add {
+  font-size: 0.75rem;
+
+  & > summary {
+    display: flex;
+    gap: calc(var(--spacing) * 1.5);
+    align-items: center;
+    padding: calc(var(--spacing) * 1.5) 0;
+    cursor: pointer;
+    list-style: none;
+    opacity: 0.8;
+  }
+
+  & > summary::-webkit-details-marker {
+    display: none;
+  }
+}
