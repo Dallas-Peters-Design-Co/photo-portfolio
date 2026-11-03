@@ -5,6 +5,7 @@ import {
 } from "react";
 import type { BoardItem } from "../../types";
 import { GroupOutline, LayerBody } from "./ArtboardLayers";
+import { unitOf, withWholeCopies } from "./components/componentModel";
 import type { Box } from "./creativeModel";
 import { opacityCss } from "./layerOpacity";
 import { sayIfLeftFrame } from "./leftFrame";
@@ -109,11 +110,47 @@ export function Artboard({
     layers,
     onCommitMany,
     onCopyMoved,
-    onSelectMany,
+    // A box dragged across part of a copy picks the whole copy.
+    onSelectMany: (ids) => onSelectMany(withWholeCopies(ids, layers)),
     scale,
     selectedIds,
     snapPx: SNAP_PX,
   });
+
+  /**
+   * What a press on a layer picks, when that's all it does (true): Shift or
+   * ⌘ adds the layer, or its whole component copy, to the selection or takes
+   * it out; a press on a copy not already picked into picks the whole copy
+   * and moves it as one.
+   */
+  const pressPicks = (
+    e: ReactPointerEvent,
+    item: BoardItem,
+    passThrough: boolean
+  ): boolean => {
+    const unit = unitOf(item, layers);
+    if (!passThrough && (e.shiftKey || e.metaKey)) {
+      e.stopPropagation();
+      e.preventDefault();
+      if (unit.length === 1) {
+        onSelect(item.id, true);
+        return true;
+      }
+      const all = unit.every((id) => selectedIds.includes(id));
+      onSelectMany(
+        all
+          ? selectedIds.filter((id) => !unit.includes(id))
+          : [...new Set([...selectedIds, ...unit])]
+      );
+      return true;
+    }
+    if (unit.length > 1 && !selectedIds.includes(item.id)) {
+      onSelectMany(unit);
+      group.startGroup(e, unit);
+      return true;
+    }
+    return false;
+  };
 
   const begin = (
     e: ReactPointerEvent,
@@ -124,11 +161,7 @@ export function Artboard({
     if (e.button !== 0 || editingId === item.id) {
       return;
     }
-    // Shift or ⌘ adds the layer to the selection, or takes it out.
-    if (handle === null && !passThrough && (e.shiftKey || e.metaKey)) {
-      e.stopPropagation();
-      e.preventDefault();
-      onSelect(item.id, true);
+    if (handle === null && pressPicks(e, item, passThrough)) {
       return;
     }
     // A press on any layer of a multiple selection moves them all.
@@ -364,6 +397,14 @@ export function Artboard({
                   data-layer-id={item.id}
                   key={item.id}
                   onDoubleClick={() => {
+                    // Inside a copy picked whole: pick just this layer first.
+                    if (
+                      selectedIds.length > 1 &&
+                      unitOf(item, layers).length > 1
+                    ) {
+                      onSelect(item.id);
+                      return;
+                    }
                     if (item.kind === "text" || item.kind === "note") {
                       onEditText(item.id);
                     }

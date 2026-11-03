@@ -440,3 +440,31 @@ export const copyLayers = (items: BoardItem[], item: BoardItem) => {
   const link = linkOf(item);
   return link ? items.filter((i) => linkOf(i)?.i === link.i) : [];
 };
+
+/**
+ * The layers moved together with this one: every layer of the component copy
+ * it belongs to, or just itself. A copy is picked and dragged as one, like a
+ * group; double-click goes inside it to pick a single layer.
+ */
+export const unitOf = (item: BoardItem, layers: BoardItem[]): string[] => {
+  const copy = linkOf(item)?.i;
+  return copy
+    ? layers.filter((l) => linkOf(l)?.i === copy).map((l) => l.id)
+    : [item.id];
+};
+
+/** A selection widened to whole copies wherever it touches one. */
+export const withWholeCopies = (
+  ids: string[],
+  layers: BoardItem[]
+): string[] => {
+  const byId = new Map(layers.map((l) => [l.id, l]));
+  const out = new Set<string>();
+  for (const id of ids) {
+    const item = byId.get(id);
+    for (const one of item ? unitOf(item, layers) : [id]) {
+      out.add(one);
+    }
+  }
+  return [...out];
+};

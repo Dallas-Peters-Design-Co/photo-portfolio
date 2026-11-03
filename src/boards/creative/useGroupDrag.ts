@@ -94,8 +94,8 @@ export const useGroupDrag = ({
   };
 
   /** A press on a layer that's part of a multiple selection. */
-  const startGroup = (e: ReactPointerEvent) => {
-    const chosen = layers.filter((l) => selectedIds.includes(l.id));
+  const startGroup = (e: ReactPointerEvent, ids: string[] = selectedIds) => {
+    const chosen = layers.filter((l) => ids.includes(l.id));
     const union = unionOf(chosen.map(boxOf));
     if (!union) {
       return;

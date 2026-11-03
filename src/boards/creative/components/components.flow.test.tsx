@@ -219,4 +219,55 @@ it("makes a component, places a copy elsewhere, and keeps overrides through an u
   expect(document.querySelector(".components__copy")?.textContent).toContain(
     "Vision tag"
   );
+
+  // On the artboard a copy is one thing: a press picks all of it and a drag
+  // moves it whole. A double-click goes inside to pick a single layer.
+  const inA = () => latest.filter((i) => linkOf(i) && i.x < 1000);
+  act(() => {
+    document
+      .querySelector(".creative__stage")
+      ?.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+  });
+  const textId = inA().find((i) => i.kind === "text")?.id ?? "";
+  const layer = document.querySelector(
+    `[data-layer-id="${textId}"]`
+  ) as Element;
+  const board = document.querySelector(".creative__board") as Element;
+  const r = layer.getBoundingClientRect();
+  const from = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  const scale = board.getBoundingClientRect().width / 360;
+  const to = { x: from.x - 100 * scale, y: from.y + 50 * scale };
+  const before = inA().map((i) => [i.x, i.y]);
+  const pointer = (
+    type: string,
+    target: Element,
+    p: { x: number; y: number }
+  ) =>
+    act(() => {
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          button: 0,
+          buttons: type === "pointerup" ? 0 : 1,
+          clientX: p.x,
+          clientY: p.y,
+          metaKey: type === "pointermove",
+          pointerId: 1,
+          pointerType: "mouse",
+        })
+      );
+    });
+  pointer("pointerdown", layer, from);
+  pointer("pointermove", board, to);
+  pointer("pointerup", board, to);
+  const after = inA().map((i) => [i.x, i.y]);
+  expect(after).toEqual(before.map(([x = 0, y = 0]) => [x - 100, y + 50]));
+  expect(document.querySelectorAll(".creative__layer--selected")).toHaveLength(
+    2
+  );
+
+  act(() => layer.dispatchEvent(new MouseEvent("dblclick", { bubbles: true })));
+  expect(document.querySelectorAll(".creative__layer--selected")).toHaveLength(
+    1
+  );
 });
