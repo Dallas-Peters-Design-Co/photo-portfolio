@@ -83,7 +83,8 @@ export const AD_SIZES: AdSize[] = [
   },
   { group: "Email", h: 300, id: "email-banner", label: "Banner", w: 600 },
   { group: "Email", h: 1200, id: "email-full", label: "Full email", w: 600 },
-  // Print, at 300 dpi: inches × 300. Portrait; the frame can be turned.
+  // Print, at 300 dpi: inches × 300. Each poster comes tall and wide; the
+  // group stays "Print" so the print-PDF export picks both up.
   {
     group: "Print",
     h: 3300,
@@ -91,13 +92,21 @@ export const AD_SIZES: AdSize[] = [
     label: "Flyer · Letter",
     w: 2550,
   },
+  { group: "Print", h: 2550, id: "flyer-letter-wide", label: "Flyer · Letter · wide", w: 3300 },
   { group: "Print", h: 5100, id: "print-11x17", label: "Poster · 11×17", w: 3300 },
+  { group: "Print", h: 3300, id: "print-17x11", label: "Poster · 17×11 · wide", w: 5100 },
   { group: "Print", h: 5400, id: "print-12x18", label: "Poster · 12×18", w: 3600 },
+  { group: "Print", h: 3600, id: "print-18x12", label: "Poster · 18×12 · wide", w: 5400 },
   { group: "Print", h: 7200, id: "print-18x24", label: "Poster · 18×24", w: 5400 },
+  { group: "Print", h: 5400, id: "print-24x18", label: "Poster · 24×18 · wide", w: 7200 },
   { group: "Print", h: 10_800, id: "print-24x36", label: "Poster · 24×36", w: 7200 },
+  { group: "Print", h: 7200, id: "print-36x24", label: "Poster · 36×24 · wide", w: 10_800 },
   { group: "Print", h: 4961, id: "print-a3", label: "Poster · A3", w: 3508 },
+  { group: "Print", h: 3508, id: "print-a3-wide", label: "Poster · A3 · wide", w: 4961 },
   { group: "Print", h: 7016, id: "print-a2", label: "Poster · A2", w: 4961 },
+  { group: "Print", h: 4961, id: "print-a2-wide", label: "Poster · A2 · wide", w: 7016 },
   { group: "Print", h: 9933, id: "print-a1", label: "Poster · A1", w: 7016 },
+  { group: "Print", h: 7016, id: "print-a1-wide", label: "Poster · A1 · wide", w: 9933 },
 ];
 
 /** Print sizes are set at this many pixels to the inch. */
