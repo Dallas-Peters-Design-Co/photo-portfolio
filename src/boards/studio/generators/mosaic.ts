@@ -90,7 +90,8 @@ const sample = (
   cols: number,
   rows: number,
   w: number,
-  h: number
+  h: number,
+  whole: boolean
 ): Uint8ClampedArray | null => {
   const canvas = document.createElement("canvas");
   canvas.width = cols;
@@ -99,22 +100,31 @@ const sample = (
   if (!ctx) {
     return null;
   }
-  // object-fit: cover onto the grid.
-  const scale = Math.max(w / image.width, h / image.height);
-  const sw = w / scale;
-  const sh = h / scale;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(
-    image,
-    (image.width - sw) / 2,
-    (image.height - sh) / 2,
-    sw,
-    sh,
-    0,
-    0,
-    cols,
-    rows
-  );
+  if (whole) {
+    // object-fit: contain: all of the picture, centred; the rest is clear,
+    // and clear cells get no tile.
+    const k = Math.min(cols / image.width, rows / image.height);
+    const dw = image.width * k;
+    const dh = image.height * k;
+    ctx.drawImage(image, (cols - dw) / 2, (rows - dh) / 2, dw, dh);
+  } else {
+    // object-fit: cover onto the grid.
+    const scale = Math.max(w / image.width, h / image.height);
+    const sw = w / scale;
+    const sh = h / scale;
+    ctx.drawImage(
+      image,
+      (image.width - sw) / 2,
+      (image.height - sh) / 2,
+      sw,
+      sh,
+      0,
+      0,
+      cols,
+      rows
+    );
+  }
   return ctx.getImageData(0, 0, cols, rows).data;
 };
 
@@ -185,7 +195,8 @@ const gridOf = (
   const byImage =
     samples.get(image) ?? new Map<string, Uint8ClampedArray | null>();
   samples.set(image, byImage);
-  const key = `${cols}x${rows}@${w}x${h}`;
+  const whole = v.fit === "contain";
+  const key = `${cols}x${rows}@${w}x${h}${whole ? "c" : ""}`;
   if (!byImage.has(key)) {
     byImage.set(
       key,
@@ -194,7 +205,8 @@ const gridOf = (
         cols,
         rows,
         w,
-        h
+        h,
+        whole
       )
     );
   }
@@ -341,6 +353,16 @@ export const mosaicTool: ImageTool = {
         { label: "Diamonds", value: "diamond" },
         { label: "Triangles", value: "triangle" },
         { label: "Hexagons", value: "hex" },
+      ],
+      type: "select",
+    },
+    {
+      default: "cover",
+      key: "fit",
+      label: "Fit",
+      options: [
+        { label: "Fill the space (crop the edges)", value: "cover" },
+        { label: "Fit it all in", value: "contain" },
       ],
       type: "select",
     },

@@ -64,3 +64,26 @@ it("leaves out tiles where the picture is see-through", async () => {
   // Only the left half: 2 of 4 columns, 4 rows.
   expect((svg.match(/<rect/g) ?? []).length).toBe(8);
 });
+
+it("fits the whole picture in when asked, leaving the rest without tiles", async () => {
+  const src = document.createElement("canvas");
+  src.width = 40;
+  src.height = 10;
+  const g = src.getContext("2d") as CanvasRenderingContext2D;
+  g.fillStyle = "#00ff00";
+  g.fillRect(0, 0, 40, 10);
+  const image = await createImageBitmap(src);
+  const ctx = { height: 400, image, palette: ["#000000"], width: 400 };
+  const base = {
+    colour: "photo",
+    columns: 8,
+    gap: 0,
+    painted: "",
+    tile: "square",
+  };
+  const count = (fit: string) =>
+    (mosaicTool.render({ ...base, fit }, ctx).match(/<rect/g) ?? []).length;
+  // Filling: every cell. Fitting a 4:1 strip into a square: two rows of eight.
+  expect(count("cover")).toBe(64);
+  expect(count("contain")).toBe(16);
+});

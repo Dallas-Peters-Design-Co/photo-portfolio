@@ -36,6 +36,20 @@ export const useFrameStudio = () => {
   return { editId, retarget, setStudio, studio, studioEditorFor };
 };
 
+/** The box around some layers (their unrotated boxes). */
+const boundsOf = (layers: BoardItem[]) => {
+  const x = Math.min(...layers.map((l) => l.x));
+  const y = Math.min(...layers.map((l) => l.y));
+  const right = Math.max(...layers.map((l) => l.x + l.width));
+  const bottom = Math.max(...layers.map((l) => l.y + l.height));
+  return {
+    height: Math.max(1, bottom - y),
+    width: Math.max(1, right - x),
+    x,
+    y,
+  };
+};
+
 /** What EditorOverlays needs to show the Studio for this frame. */
 export const frameStudioProps = ({
   add,
@@ -90,9 +104,12 @@ export const frameStudioProps = ({
   );
   const from =
     picked.length > 0 ? picked : layers.filter((l) => l.id !== editId);
+  // A selection is drawn cropped to its own edges, so it fills the picture
+  // (and the mosaic made from it); nothing selected is the whole frame.
+  const box = picked.length > 0 ? boundsOf(picked) : frame;
   const snapshot = () =>
     renderCreative(
-      frame,
+      box,
       from,
       Math.min(2400, Math.max(800, size?.w ?? 1600)),
       textElementFor
