@@ -36,7 +36,7 @@ const finite = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
 /** A Studio tool's settings: short, flat, and only plain values. */
-const settingsOf = (raw: unknown): Bag => {
+export const settingsOf = (raw: unknown): Bag => {
   const out: Bag = {};
   for (const [key, value] of Object.entries(bagOf(raw) ?? {}).slice(
     0,

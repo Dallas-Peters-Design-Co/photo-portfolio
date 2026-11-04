@@ -6,9 +6,15 @@ import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { PaletteTool } from "./color/PaletteTool";
 import { RampTool } from "./color/RampTool";
 import { ImageToolView } from "./ImageToolView";
-import { DEFAULT_PALETTE, IMAGE_TOOLS, STUDIO_TOOLS } from "./tools";
+import { lastValues, rememberValues } from "./presets";
+import {
+  DEFAULT_PALETTE,
+  defaultsOf,
+  IMAGE_TOOLS,
+  STUDIO_TOOLS,
+} from "./tools";
 import { TypeScaleTool } from "./type/TypeScaleTool";
-import type { StudioRecipe, StudioValues } from "./types";
+import type { StudioParam, StudioRecipe, StudioValues } from "./types";
 import { useStudioSize } from "./useStudioSize";
 import "./Studio.css";
 
@@ -37,6 +43,16 @@ export interface StudioFrame {
   /** The frame's selection (or whole design) drawn as a picture. */
   snapshot?: () => Promise<Blob>;
 }
+
+/**
+ * A tool's settings as it was last left in this browser, on top of its
+ * defaults (so a setting added since still has a value): the Studio opens
+ * where it was, frame after frame.
+ */
+const lastOf = (tool: string, params: StudioParam[]) => {
+  const last = lastValues(tool);
+  return last ? { ...defaultsOf(params), ...last } : undefined;
+};
 
 export function StudioPanel({
   editing,
@@ -102,12 +118,13 @@ export function StudioPanel({
         onAdd={onAdd}
         onResize={size.startResize}
         onResizeReset={size.reset}
-        onValues={(values) =>
-          setByTool((was) => ({ ...was, [tool.id]: values }))
-        }
+        onValues={(values) => {
+          rememberValues(tool.id, values);
+          setByTool((was) => ({ ...was, [tool.id]: values }));
+        }}
         palette={palette}
         tool={tool}
-        values={byTool[tool.id]}
+        values={byTool[tool.id] ?? lastOf(tool.id, tool.params)}
       />
     ) : null;
   };

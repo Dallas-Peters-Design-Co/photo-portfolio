@@ -10,6 +10,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { paletteFor } from "./chosenColors";
+import { PresetBar } from "./PresetBar";
 import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
@@ -228,6 +229,7 @@ export function ImageToolView({
           ))}
         </select>
       </label>
+      <PresetBar onLoad={onValues} tool={tool.id} values={values} />
       <StudioControls
         fromFrame={
           frame?.snapshot

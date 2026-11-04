@@ -593,3 +593,15 @@
     font-size: inherit;
   }
 }
+
+/* Saved settings: the list, Save, and delete for the one loaded. */
+.studio-presets__row {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+
+  & .studio__input {
+    flex: 1;
+    min-width: 0;
+  }
+}

@@ -26,6 +26,11 @@ import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
 import { deleteLook, listLooks, saveLook } from "../_lib/savedLooks.js";
 import { fetchSitePage } from "../_lib/sitePage.js";
+import {
+  deletePreset,
+  listPresets,
+  savePreset,
+} from "../_lib/studioPresets.js";
 
 /**
  * The brand kits: what exists, and making a new one.
@@ -56,6 +61,10 @@ async function handleGet(
   // Saved photo-editor looks ride on this endpoint (see _lib/savedLooks.ts).
   if (req.query.looks) {
     return res.status(200).json(await listLooks(sql));
+  }
+  // Saved Studio settings ride here too (see _lib/studioPresets.ts).
+  if (req.query.presets) {
+    return res.status(200).json(await listPresets(sql));
   }
   // A kit's components ride here too (see _lib/brandComponents.ts).
   if (typeof req.query.components === "string") {
@@ -110,6 +119,21 @@ async function handleLookAction(
   const out = await saveLook(sql, body);
   return out.ok
     ? res.status(out.status).json(out.look)
+    : res.status(out.status).json({ error: out.error });
+}
+
+async function handlePresetAction(
+  sql: Sql,
+  body: Record<string, unknown>,
+  res: VercelResponse
+) {
+  if (body.action === "deletePreset") {
+    await deletePreset(sql, body.id);
+    return res.status(204).end();
+  }
+  const out = await savePreset(sql, body);
+  return out.ok
+    ? res.status(out.status).json(out.preset)
     : res.status(out.status).json({ error: out.error });
 }
 
@@ -178,6 +202,9 @@ async function handlePost(
   const body = parseJsonBody(req.body) as Record<string, unknown>;
   if (body.action === "saveLook" || body.action === "deleteLook") {
     return await handleLookAction(sql, body, res);
+  }
+  if (body.action === "savePreset" || body.action === "deletePreset") {
+    return await handlePresetAction(sql, body, res);
   }
   if (body.action === "deleteComponent") {
     await deleteComponent(sql, body.id);
