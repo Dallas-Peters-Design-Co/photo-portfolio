@@ -398,6 +398,7 @@ export function CreativeEditor({
           items,
           layers,
           name,
+          selected: selection.ids,
           size,
           studio,
           swap: (oldId, next) => {
@@ -409,6 +410,7 @@ export function CreativeEditor({
             selection.select(next.id);
             retarget(next.id);
           },
+          textElementFor: (id) => textEls.current.get(id) ?? null,
         })}
       />
       {showBrand ? (

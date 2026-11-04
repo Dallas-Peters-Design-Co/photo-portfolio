@@ -229,6 +229,16 @@ export function ImageToolView({
         </select>
       </label>
       <StudioControls
+        fromFrame={
+          frame?.snapshot
+            ? {
+                label: frame.selectionCount
+                  ? `Selection (${frame.selectionCount})`
+                  : "Whole frame",
+                take: frame.snapshot,
+              }
+            : undefined
+        }
         image={imageUrl}
         onChange={set}
         onImage={(url, from) => {

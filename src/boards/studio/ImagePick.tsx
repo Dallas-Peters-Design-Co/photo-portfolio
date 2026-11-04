@@ -1,4 +1,4 @@
-import { ImageUp } from "lucide-react";
+import { Frame, ImageUp } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useImageShelf } from "./imageShelf";
@@ -10,6 +10,13 @@ import { useImageShelf } from "./imageShelf";
  */
 
 const SHOWN = 12;
+
+/** The frame editor's layers, drawn as a picture on demand. */
+export interface FromFrame {
+  /** "Selection (3)" or "Whole frame". */
+  label: string;
+  take: () => Promise<Blob>;
+}
 
 const toLocal = async (url: string): Promise<string> => {
   if (url.startsWith("blob:") || url.startsWith("data:")) {
@@ -24,9 +31,11 @@ const toLocal = async (url: string): Promise<string> => {
 
 export function ImagePick({
   current,
+  fromFrame,
   label,
   onPick,
 }: {
+  fromFrame?: FromFrame;
   /** The picture in use, shown first and marked. */
   current?: string | null;
   label: string;
@@ -40,6 +49,23 @@ export function ImagePick({
   const [more, setMore] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const shown = more ? shelf : shelf.slice(0, SHOWN);
+
+  /**
+   * The selection in the frame, as it is right now: draw it, pick it. Taken
+   * again each time it's pressed, so it follows whatever is selected.
+   */
+  const takeFrame = async () => {
+    if (!fromFrame) {
+      return;
+    }
+    try {
+      const blob = await fromFrame.take();
+      setChosen("frame");
+      onPick(URL.createObjectURL(blob));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't draw the frame");
+    }
+  };
 
   const pick = async (url: string) => {
     try {
@@ -74,6 +100,19 @@ export function ImagePick({
             type="file"
           />
         </label>
+        {fromFrame ? (
+          <button
+            aria-label={`Use the frame: ${fromFrame.label}`}
+            aria-pressed={chosen === "frame"}
+            className="studio-pick__item studio-pick__frame"
+            onClick={() => void takeFrame()}
+            title={`${fromFrame.label}: draws it now and uses it. Press again after changing the selection.`}
+            type="button"
+          >
+            <Frame aria-hidden size={16} />
+            <small>{fromFrame.label}</small>
+          </button>
+        ) : null}
         {shown.map((url) => (
           <button
             aria-label="Use this picture"

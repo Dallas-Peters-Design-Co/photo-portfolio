@@ -31,7 +31,11 @@ export interface StudioFrame {
   name: string;
   onApplyType: (scale: TypeScale) => void;
   onBackground: (file: File, recipe: StudioRecipe) => void;
+  /** How many layers are selected in the frame (0: the whole design). */
+  selectionCount?: number;
   size: { h: number; w: number } | null;
+  /** The frame's selection (or whole design) drawn as a picture. */
+  snapshot?: () => Promise<Blob>;
 }
 
 export function StudioPanel({

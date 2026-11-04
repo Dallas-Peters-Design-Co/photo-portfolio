@@ -2,12 +2,13 @@ import { ArrowRight, Dices, Plus, RotateCcw, X } from "lucide-react";
 import { ColorWell } from "../ColorWell";
 import { colorsOf } from "./chosenColors";
 import { replacementsOf } from "./generators/recolour";
-import { ImagePick } from "./ImagePick";
+import { type FromFrame, ImagePick } from "./ImagePick";
 import { newSeed } from "./rng";
 import type { StudioParam, StudioValues } from "./types";
 
 /** One control per setting, drawn from the tool's schema. */
 export function StudioControls({
+  fromFrame,
   image,
   onChange,
   onImage,
@@ -16,6 +17,8 @@ export function StudioControls({
   sources = [],
   values,
 }: {
+  /** The frame editor's selection, offered as a picture (ImagePick). */
+  fromFrame?: FromFrame;
   image: string | null;
   onChange: (key: string, value: boolean | number | string) => void;
   /** A local URL for the picture chosen, and where it came from (ImagePick). */
@@ -151,6 +154,7 @@ export function StudioControls({
             return (
               <ImagePick
                 current={image}
+                fromFrame={fromFrame}
                 key={p.key}
                 label={p.label}
                 onPick={onImage}

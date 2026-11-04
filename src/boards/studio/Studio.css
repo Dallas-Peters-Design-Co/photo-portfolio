@@ -569,3 +569,17 @@
   height: 100%;
   pointer-events: none;
 }
+
+/* The frame's selection, offered as a picture: an icon and what it'll take. */
+.studio-pick__frame {
+  gap: 2px;
+  align-content: center;
+  padding: 2px;
+  font-size: var(--text-micro-2xs);
+  line-height: 1.1;
+  text-align: center;
+
+  & small {
+    font-size: inherit;
+  }
+}

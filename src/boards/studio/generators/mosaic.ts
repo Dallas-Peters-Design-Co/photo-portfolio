@@ -295,12 +295,19 @@ const eachTile = (
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
       const own = fills[row * cols + col] ?? "#000000";
+      const mine =
+        painted.size > 0 ? painted.get(tileKey(col, row)) : undefined;
+      // Where the picture is see-through (a selection drawn from the frame,
+      // a cut-out), there's no tile, unless one's been painted there.
+      if (!mine && (data[(row * cols + col) * 4 + 3] ?? 255) < 64) {
+        continue;
+      }
       emit(
         kind,
         col * cell + inset,
         row * cell + inset,
         s,
-        painted.size > 0 ? (painted.get(tileKey(col, row)) ?? own) : own,
+        mine ?? own,
         (col + row) % 2 === 0
       );
     }

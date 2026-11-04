@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
 import { recipeOf, type StudioRecipe } from "../studio/types";
+import { renderCreative } from "./exportPng";
 import { replaceStudioLayer, studioLayer } from "./studioLayer";
 
 /**
@@ -44,9 +45,11 @@ export const frameStudioProps = ({
   items,
   layers,
   name,
+  selected,
   size,
   studio,
   swap,
+  textElementFor,
 }: {
   add: (item: BoardItem) => void;
   applyType: (scale: TypeScale) => void;
@@ -55,10 +58,13 @@ export const frameStudioProps = ({
   items: BoardItem[];
   layers: BoardItem[];
   name: string;
+  /** The layers selected in the editor. */
+  selected: string[];
   size: { h: number; w: number } | null;
   studio: string | null;
   /** Puts a new layer in an old one's place. */
   swap: (oldId: string, next: BoardItem) => void;
+  textElementFor: (id: string) => HTMLElement | null;
 }) => {
   if (!studio) {
     return null;
@@ -74,6 +80,23 @@ export const frameStudioProps = ({
   };
   const target = layers.find((l) => l.id === editId) ?? null;
   const recipe = target ? recipeOf(target.config) : null;
+  /**
+   * The frame as a picture, for a Studio tool to work from (a mosaic of the
+   * selection): the selected layers, or the whole design when nothing is,
+   * never the picture being edited itself.
+   */
+  const picked = layers.filter(
+    (l) => selected.includes(l.id) && l.id !== editId
+  );
+  const from =
+    picked.length > 0 ? picked : layers.filter((l) => l.id !== editId);
+  const snapshot = () =>
+    renderCreative(
+      frame,
+      from,
+      Math.min(2400, Math.max(800, size?.w ?? 1600)),
+      textElementFor
+    );
   return {
     editing:
       target && recipe
@@ -89,7 +112,9 @@ export const frameStudioProps = ({
       onApplyType: applyType,
       onBackground: (file: File, next: StudioRecipe) =>
         void place(file, true, next),
+      selectionCount: picked.length,
       size,
+      snapshot,
     },
     onAdd: (file: File, next?: StudioRecipe) => void place(file, false, next),
     tool: studio,
