@@ -33,6 +33,7 @@
   display: flex;
   gap: var(--spacing);
   align-items: center;
+  min-width: max-content;
   pointer-events: auto;
   /* Counter-scaled from the top left, so the row is one size at every zoom —
      the same trick the delete badge and the tool bar use. */

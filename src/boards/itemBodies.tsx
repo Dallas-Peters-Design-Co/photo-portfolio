@@ -38,6 +38,24 @@ const fillEmptyEffect = (
   );
 
 /**
+ * The title row, kept one size at every zoom and as wide as the frame looks.
+ *
+ * The row is counter-scaled so its text holds its size, which also stretches
+ * its width: at 100% wide, a frame 1,200 units across got a row 1,200 screen
+ * pixels across however far out the board was zoomed, and Copy link landed
+ * on the far side of the canvas. Shrinking the width by the same factor keeps
+ * the row to the frame's drawn width (never narrower than its own contents).
+ */
+const SCALE = /scale\(([^)]+)\)/;
+
+const frameRowStyle = (chromeScale?: { transform: string }) => {
+  const k = Number(SCALE.exec(chromeScale?.transform ?? "")?.[1]);
+  return chromeScale && Number.isFinite(k) && k > 0
+    ? { ...chromeScale, width: `${100 / k}%` }
+    : chromeScale;
+};
+
+/**
  * A frame: a labelled rectangle that groups whatever sits on it.
  *
  * Drawn as an outline so its contents stay readable through the middle, and
@@ -66,6 +84,7 @@ export function FrameBody({
    * through the canvas.
    */
   const { linkFor, open: openFrame } = useFrameActions();
+  const rowStyle = frameRowStyle(chromeScale);
   const href = linkFor?.(item.id) ?? null;
 
   /*
@@ -106,7 +125,7 @@ export function FrameBody({
   if (readOnly && openFrame) {
     return (
       <div className="frame-body">
-        <div className="frame-body__row" style={chromeScale}>
+        <div className="frame-body__row" style={rowStyle}>
           <button
             className="frame-body__name frame-body__name--open"
             onClick={() => openFrame(item.id)}
@@ -123,7 +142,7 @@ export function FrameBody({
 
   return (
     <div className="frame-body">
-      <div className="frame-body__row" style={chromeScale}>
+      <div className="frame-body__row" style={rowStyle}>
         <input
           aria-label="Frame name"
           className="frame-body__name"
