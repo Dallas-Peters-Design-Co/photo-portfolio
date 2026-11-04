@@ -20,7 +20,8 @@ const MAX_SETTINGS = 40;
 const MAX_SETTING_TEXT = 500;
 /** A mosaic's hand-painted tiles: a few thousand short entries. */
 const LONG_SETTINGS: Record<string, number> = { painted: 80_000 };
-const MAX_SIDE = 10_000;
+// A 24×36 poster at print size is 7200×10800.
+const MAX_SIDE = 16_000;
 const TOOL_ID = /^[a-z][a-z0-9-]{0,39}$/;
 const KEY = /^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/;
 

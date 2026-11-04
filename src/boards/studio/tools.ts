@@ -1,4 +1,5 @@
 import { blobsTool } from "./generators/blobs";
+import { flowTool } from "./generators/flow";
 import { gradientTool } from "./generators/gradient";
 import { meshTool } from "./generators/mesh";
 import { mosaicTool } from "./generators/mosaic";
@@ -12,6 +13,7 @@ export const IMAGE_TOOLS: ImageTool[] = [
   blobsTool,
   gradientTool,
   mosaicTool,
+  flowTool,
 ];
 
 /** Neutral colours for when no brand is chosen. */

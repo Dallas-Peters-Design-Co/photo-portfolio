@@ -27,6 +27,7 @@ export type StudioParam = (
   | { default: string; key: string; label: string; type: "color" }
   | { default: boolean; key: string; label: string; type: "checkbox" }
   | { key: string; label: string; type: "seed" }
+  | { default: string; key: string; label: string; type: "text" }
   | { key: string; label: string; type: "image" }
   /**
    * The colours a tool draws with, picked one by one. Stored comma-joined;

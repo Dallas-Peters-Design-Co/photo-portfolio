@@ -102,6 +102,19 @@ export function StudioControls({
             );
           case "tiles":
             return null;
+          case "text":
+            return (
+              <label className="studio__field" key={p.key}>
+                <span>{p.label}</span>
+                <input
+                  className="studio__input"
+                  maxLength={24}
+                  onChange={(e) => onChange(p.key, e.target.value)}
+                  type="text"
+                  value={String(v ?? "")}
+                />
+              </label>
+            );
           case "checkbox":
             return (
               <label className="studio__check" key={p.key}>

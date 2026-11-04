@@ -86,6 +86,14 @@ function CanvasPreview({
   values: StudioValues;
 }) {
   const ref = useRef<HTMLCanvasElement | null>(null);
+  // Redrawn when a font finishes loading: type drawn before it arrives
+  // comes out in a stand-in face.
+  const [fonts, setFonts] = useState(0);
+  useEffect(() => {
+    const done = () => setFonts((n) => n + 1);
+    document.fonts.addEventListener("loadingdone", done);
+    return () => document.fonts.removeEventListener("loadingdone", done);
+  }, []);
   const k = useResolution(ref, ctx.width, ctx.height);
   const pw = Math.max(1, Math.round(ctx.width * k));
   const ph = Math.max(1, Math.round(ctx.height * k));
@@ -93,7 +101,11 @@ function CanvasPreview({
   useEffect(() => {
     const canvas = ref.current;
     // Drawn once the canvas has taken its new size, which clears it.
-    if (!(canvas && k) || canvas.width !== pw || canvas.height !== ph) {
+    if (
+      !(canvas && k && fonts >= 0) ||
+      canvas.width !== pw ||
+      canvas.height !== ph
+    ) {
       return;
     }
     const frame = requestAnimationFrame(() => {
@@ -104,7 +116,7 @@ function CanvasPreview({
       tool.draw?.(g, values, ctx);
     });
     return () => cancelAnimationFrame(frame);
-  }, [tool, values, ctx, k, pw, ph]);
+  }, [tool, values, ctx, k, pw, ph, fonts]);
 
   return (
     <canvas
