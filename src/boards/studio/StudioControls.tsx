@@ -3,6 +3,7 @@ import { ColorWell } from "../ColorWell";
 import { colorsOf } from "./chosenColors";
 import { replacementsOf } from "./generators/recolour";
 import { type FromFrame, ImagePick } from "./ImagePick";
+import { LettersField } from "./LettersField";
 import { newSeed } from "./rng";
 import type { StudioParam, StudioValues } from "./types";
 
@@ -107,16 +108,38 @@ export function StudioControls({
             return null;
           case "text":
             return (
+              // biome-ignore lint/a11y/noLabelWithoutControl: the control is inside, a field or a text box
               <label className="studio__field" key={p.key}>
                 <span>{p.label}</span>
-                <input
-                  className="studio__input"
-                  maxLength={24}
-                  onChange={(e) => onChange(p.key, e.target.value)}
-                  type="text"
-                  value={String(v ?? "")}
-                />
+                {p.multiline ? (
+                  <textarea
+                    className="studio__input studio__input--lines"
+                    maxLength={200}
+                    onChange={(e) => onChange(p.key, e.target.value)}
+                    rows={Math.min(5, String(v ?? "").split("\n").length + 1)}
+                    value={String(v ?? "")}
+                  />
+                ) : (
+                  <input
+                    className="studio__input"
+                    maxLength={24}
+                    onChange={(e) => onChange(p.key, e.target.value)}
+                    type="text"
+                    value={String(v ?? "")}
+                  />
+                )}
               </label>
+            );
+          case "letters":
+            return (
+              <LettersField
+                key={p.key}
+                label={p.label}
+                onChange={(next) => onChange(p.key, next)}
+                palette={palette}
+                text={String(values[p.of] ?? "")}
+                value={String(v ?? "")}
+              />
             );
           case "checkbox":
             return (

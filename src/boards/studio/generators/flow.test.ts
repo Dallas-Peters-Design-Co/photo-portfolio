@@ -87,3 +87,54 @@ it("spreads the letters apart with letter spacing, still centred", () => {
   expect(wide.empty).toBeGreaterThan(tight.empty);
   expect(Math.abs(wide.left - wide.right)).toBeLessThan(12);
 });
+
+const colourBox = (
+  values: Record<string, unknown>,
+  test: (r: number, g: number, b: number) => boolean
+) => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 300;
+  canvas.height = 300;
+  const g = canvas.getContext("2d") as CanvasRenderingContext2D;
+  flowTool.draw?.(
+    g,
+    { ...defaultsOf(flowTool.params), drift: 0, noise: 0, ...values },
+    { height: 900, image: null, palette: ["#d9bd1c"], width: 900 }
+  );
+  const { data } = g.getImageData(0, 0, 300, 300);
+  let x0 = 1e9;
+  let x1 = -1;
+  let y0 = 1e9;
+  let y1 = -1;
+  for (let y = 0; y < 300; y += 1) {
+    for (let x = 0; x < 300; x += 1) {
+      const i = (y * 300 + x) * 4;
+      if (test(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0)) {
+        x0 = Math.min(x0, x);
+        x1 = Math.max(x1, x);
+        y0 = Math.min(y0, y);
+        y1 = Math.max(y1, y);
+      }
+    }
+  }
+  return { x0, x1, y0, y1 };
+};
+const yellow = (r: number, g: number, b: number) =>
+  r > 150 && g > 130 && b < 100;
+
+it("sets the text over several lines", () => {
+  const one = colourBox({ text: "2027" }, yellow);
+  const two = colourBox({ text: "20\n27" }, yellow);
+  // Two lines: taller and narrower than one.
+  expect(two.y1 - two.y0).toBeGreaterThan((one.y1 - one.y0) * 1.5);
+  expect(two.x1 - two.x0).toBeLessThan(one.x1 - one.x0);
+});
+
+it("colours single letters", () => {
+  // Second line's "2" in blue; everything else stays yellow.
+  const blue = (r: number, _g: number, b: number) => b > 180 && r < 80;
+  const box = colourBox({ charColors: ",,,#2a84f8", text: "20\n27" }, blue);
+  // The blue letter is on the second line, on the left.
+  expect(box.y0).toBeGreaterThan(140);
+  expect(box.x1).toBeLessThan(170);
+});

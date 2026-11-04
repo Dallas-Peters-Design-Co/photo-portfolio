@@ -28,8 +28,7 @@ const trackingOf = (v: StudioValues) =>
 
 /**
  * Letter spacing on a canvas. Chrome and Safari have `letterSpacing`, which
- * keeps the font's own kerning; without it, the text is drawn a letter at a
- * time.
+ * keeps the font's own kerning when a run of text is measured.
  */
 const spaced = (g: CanvasRenderingContext2D, px: number) => {
   const c = g as CanvasRenderingContext2D & { letterSpacing?: string };
@@ -40,38 +39,43 @@ const spaced = (g: CanvasRenderingContext2D, px: number) => {
   return false;
 };
 
-/** The text's width at the current font, spaced by `px` between letters. */
-const widthOf = (g: CanvasRenderingContext2D, text: string, px: number) => {
-  if (spaced(g, px)) {
-    // letterSpacing adds a space after the last letter too.
-    return g.measureText(text).width - px;
-  }
-  const chars = [...text];
-  return (
-    chars.reduce((w, ch) => w + g.measureText(ch).width, 0) +
-    px * Math.max(0, chars.length - 1)
-  );
-};
-
-const fillSpaced = (
+/**
+ * Where each letter of a line starts, and the line's width. Measured as the
+ * run of text up to each letter, so kerning between letters is kept even
+ * though each one is drawn on its own (to know which letter a pixel is in).
+ */
+const lettersOf = (
   g: CanvasRenderingContext2D,
-  text: string,
-  x: number,
-  y: number,
+  line: string,
   px: number
-) => {
-  if (spaced(g, px)) {
-    g.fillText(text, x, y);
-    return;
+): { at: number[]; width: number } => {
+  const chars = [...line];
+  const native = spaced(g, px);
+  const at: number[] = [];
+  let run = "";
+  let manual = 0;
+  for (const ch of chars) {
+    at.push(native ? g.measureText(run).width : manual);
+    run += ch;
+    manual += g.measureText(ch).width + px;
   }
-  let at = x;
-  for (const ch of text) {
-    g.fillText(ch, at, y);
-    at += g.measureText(ch).width + px;
-  }
+  const full = native
+    ? g.measureText(line).width - (chars.length > 0 ? px : 0)
+    : manual - (chars.length > 0 ? px : 0);
+  spaced(g, 0);
+  return { at, width: Math.max(0, full) };
 };
 
-/** The text drawn white on a canvas `W` × `H`, fitted and placed. */
+/** Line spacing, as a share of the type size. */
+const leadingOf = (v: StudioValues) =>
+  Math.max(0.6, Math.min(2, (Number(v.leading) || 95) / 100));
+
+/**
+ * The text drawn on a canvas `W` × `H`, fitted and placed, a line at a time
+ * and a letter at a time. Each letter is drawn in a colour that names it
+ * (red = its place in the text + 1), so the grid can tell which letter each
+ * pixel belongs to and colour it on its own.
+ */
 const drawText = (
   g: CanvasRenderingContext2D,
   v: StudioValues,
@@ -81,54 +85,76 @@ const drawText = (
 ) => {
   const font = fontOf(v);
   const track = trackingOf(v);
+  const lead = leadingOf(v);
+  const lines = text.split("\n");
   g.font = font.css;
-  const probe = g.measureText(text);
-  const tall =
-    probe.actualBoundingBoxAscent + probe.actualBoundingBoxDescent || 70;
-  const wide = Math.max(1, widthOf(g, text, track * 100));
+  const first = g.measureText(lines[0] || " ");
+  const last = g.measureText(lines.at(-1) || " ");
+  const ascent = first.actualBoundingBoxAscent || 70;
+  const descent = last.actualBoundingBoxDescent || 0;
+  const tall = ascent + descent + (lines.length - 1) * 100 * lead;
+  const wide = Math.max(
+    1,
+    ...lines.map((l) => lettersOf(g, l, track * 100).width)
+  );
   const fit = Math.min((H * 0.92) / tall, (W * 0.96) / wide);
-  const size = 100 * fit * ((Number(v.scale) || 100) / 100);
+  const k = fit * ((Number(v.scale) || 100) / 100);
+  const size = 100 * k;
   g.font = `${font.weight} ${size}px "${font.family}"`;
   const px = track * size;
-  const m = g.measureText(text);
-  const width = widthOf(g, text, px);
-  const x =
-    {
-      center: (W - width) / 2,
-      left: W * 0.02,
-      right: W - W * 0.02 - width,
-    }[String(v.align || "center")] ?? (W - width) / 2;
-  g.fillStyle = "#fff";
-  fillSpaced(
-    g,
-    text,
-    x,
-    (H + m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2,
-    px
-  );
+  const top = (H - tall * k) / 2 + ascent * k;
+  let index = 0;
+  lines.forEach((line, n) => {
+    const { at, width } = lettersOf(g, line, px);
+    const x =
+      {
+        center: (W - width) / 2,
+        left: W * 0.02,
+        right: W - W * 0.02 - width,
+      }[String(v.align || "center")] ?? (W - width) / 2;
+    const y = top + n * size * lead;
+    [...line].forEach((ch, i) => {
+      g.fillStyle = `rgb(${Math.min(255, index + i + 1)},0,0)`;
+      g.fillText(ch, x + (at[i] ?? 0), y);
+    });
+    // The newline is a place in the text too.
+    index += [...line].length + 1;
+  });
 };
 
-/** Alpha averaged down to one value a cell. */
+/**
+ * Per cell: how much of it the type covers, 0 to 1, and which letter it's
+ * in (its place in the text, or -1).
+ */
 const coverage = (
   data: Uint8ClampedArray,
   cols: number,
   rows: number,
   W: number
 ) => {
-  const out = new Float32Array(cols * rows);
+  const cover = new Float32Array(cols * rows);
+  const letter = new Int16Array(cols * rows).fill(-1);
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < cols; c += 1) {
       let sum = 0;
+      let best = 0;
+      let which = -1;
       for (let sy = 0; sy < SAMPLES; sy += 1) {
-        const at = ((r * SAMPLES + sy) * W + c * SAMPLES) * 4 + 3;
+        const at = ((r * SAMPLES + sy) * W + c * SAMPLES) * 4;
         for (let sx = 0; sx < SAMPLES; sx += 1) {
-          sum += data[at + sx * 4] ?? 0;
+          const alpha = data[at + sx * 4 + 3] ?? 0;
+          sum += alpha;
+          if (alpha > best) {
+            best = alpha;
+            which = (data[at + sx * 4] ?? 0) - 1;
+          }
         }
       }
-      out[r * cols + c] = sum / (SAMPLES * SAMPLES * 255);
+      cover[r * cols + c] = sum / (SAMPLES * SAMPLES * 255);
+      letter[r * cols + c] = which;
     }
   }
-  return out;
+  return { cover, letter };
 };
 
 /** Whether the face is loaded; asks for it if not (the preview redraws). */
@@ -143,9 +169,19 @@ const fontReady = (v: StudioValues) => {
 };
 
 /** The text as coverage on the grid, 0 to 1 per cell; kept per settings. */
-const masks = new Map<string, Float32Array>();
-export const maskOf = (v: StudioValues, cols: number, rows: number) => {
-  const text = String(v.text ?? "").slice(0, 24) || " ";
+export interface TypeMask {
+  cover: Float32Array;
+  /** Each cell's letter: its place in the text, or -1 outside the type. */
+  letter: Int16Array;
+}
+const masks = new Map<string, TypeMask>();
+export const MAX_TEXT = 200;
+export const maskOf = (
+  v: StudioValues,
+  cols: number,
+  rows: number
+): TypeMask => {
+  const text = String(v.text ?? "").slice(0, MAX_TEXT) || " ";
   const ready = fontReady(v);
   const key = [
     text,
@@ -155,6 +191,7 @@ export const maskOf = (v: StudioValues, cols: number, rows: number) => {
     v.scale,
     v.align,
     v.tracking,
+    v.leading,
     ready,
   ].join("|");
   const kept = masks.get(key);
@@ -165,7 +202,10 @@ export const maskOf = (v: StudioValues, cols: number, rows: number) => {
   canvas.width = cols * SAMPLES;
   canvas.height = rows * SAMPLES;
   const g = canvas.getContext("2d", { willReadFrequently: true });
-  let out = new Float32Array(cols * rows);
+  let out: TypeMask = {
+    cover: new Float32Array(cols * rows),
+    letter: new Int16Array(cols * rows).fill(-1),
+  };
   if (g) {
     drawText(g, v, text, canvas.width, canvas.height);
     const { data } = g.getImageData(0, 0, canvas.width, canvas.height);

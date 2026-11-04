@@ -56,6 +56,19 @@ const withAlpha = (colour: string, a: number) =>
 
 const DIRS: Dir[] = ["left", "right", "top", "bottom"];
 
+const HEX = /^#[0-9a-f]{6}$/i;
+
+/**
+ * Colours given to single letters: a comma list in step with the text,
+ * empty where a letter keeps the type colours ("#f3e9a3,,,#8fd6e8").
+ */
+export const letterColoursOf = (value: unknown): Map<number, string> =>
+  new Map(
+    (typeof value === "string" ? value.split(",") : [])
+      .map((c, i) => [i, c.trim()] as const)
+      .filter(([, c]) => HEX.test(c))
+  );
+
 /** The settings, read once for a whole redraw. */
 const setupOf = (v: StudioValues, ctx: RenderContext) => {
   const cols = Math.max(10, Number(v.columns) || 110);
@@ -63,7 +76,12 @@ const setupOf = (v: StudioValues, ctx: RenderContext) => {
   const rows = Math.max(1, Math.round(ctx.height / cell));
   const mask = maskOf(v, cols, rows);
   const inside = (c: number, r: number) =>
-    c >= 0 && r >= 0 && c < cols && r < rows && (mask[r * cols + c] ?? 0) > 0.5;
+    c >= 0 &&
+    r >= 0 &&
+    c < cols &&
+    r < rows &&
+    (mask.cover[r * cols + c] ?? 0) > 0.5;
+  const letterColours = letterColoursOf(v.charColors);
   const dir = DIRS.find((d) => d === v.flow) ?? "left";
   const drift = (Number(v.drift) || 0) / 100;
   const reachMax = Math.max(1, Math.round(cols * 0.25 * drift));
@@ -76,6 +94,8 @@ const setupOf = (v: StudioValues, ctx: RenderContext) => {
     inset: cell * ((Number(v.gap) || 0) / 200),
     inside,
     lanes: Math.max(0, Number(v.lanes) || 0),
+    letter: mask.letter,
+    letterColours,
     loose: colorsOf(v.scatter, SCATTER, 3),
     order: (Number(v.order) || 0) / 100,
     reach: drift > 0 ? reachOf(inside, cols, rows, dir, reachMax) : null,
@@ -101,10 +121,13 @@ const letterPixel = (
   o: Setup,
   r: number,
   along: number,
-  rand: () => number
+  rand: () => number,
+  at: number
 ): string | null => {
   const a = rand();
   const b = rand();
+  // A letter given its own colour is drawn in it, with the same lanes.
+  const own = o.letterColours.get(o.letter[at] ?? -1);
   const lane = o.lanes === 0 || r % (o.lanes + 1) !== o.lanes;
   const p = lane
     ? o.fill * (1 - o.order + o.order * along) + o.order * 0.15
@@ -114,7 +137,7 @@ const letterPixel = (
       b < 0.2 + along * 0.5
         ? o.shape.length - 1
         : Math.floor(b * o.shape.length);
-    return withAlpha(pick(o.shape, i), 0.6 + rand() * 0.4);
+    return withAlpha(own ?? pick(o.shape, i), 0.6 + rand() * 0.4);
   }
   if (a < p + 0.18 * (1 - along)) {
     return withAlpha(pick(o.loose, Math.floor(b * o.loose.length)), 0.7);
@@ -153,7 +176,7 @@ const eachPixel = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
     for (let c = 0; c < o.cols; c += 1) {
       const along = alongOf(o, c, r);
       const colour = o.inside(c, r)
-        ? letterPixel(o, r, along, rand)
+        ? letterPixel(o, r, along, rand, r * o.cols + c)
         : loosePixel(o, r * o.cols + c, along, rand);
       if (colour) {
         emit(
@@ -181,7 +204,14 @@ export const flowTool: ImageTool = {
   kind: "image",
   name: "Systems Flow",
   params: [
-    { default: "2", key: "text", label: "Text", type: "text" },
+    {
+      default: "2",
+      key: "text",
+      label: "Text",
+      multiline: true,
+      type: "text",
+    },
+    { key: "charColors", label: "Letter colours", of: "text", type: "letters" },
     {
       default: "DM Sans",
       key: "font",
@@ -215,6 +245,14 @@ export const flowTool: ImageTool = {
       max: 600,
       min: -300,
       step: 5,
+      type: "range",
+    },
+    {
+      default: 95,
+      key: "leading",
+      label: "Line spacing",
+      max: 200,
+      min: 60,
       type: "range",
     },
     {

@@ -27,7 +27,19 @@ export type StudioParam = (
   | { default: string; key: string; label: string; type: "color" }
   | { default: boolean; key: string; label: string; type: "checkbox" }
   | { key: string; label: string; type: "seed" }
-  | { default: string; key: string; label: string; type: "text" }
+  | {
+      default: string;
+      key: string;
+      label: string;
+      /** More than one line (a text box rather than a field). */
+      multiline?: boolean;
+      type: "text";
+    }
+  /**
+   * A colour for each letter of a text setting (`of`): a comma list in step
+   * with the text, empty where a letter keeps the tool's own colours.
+   */
+  | { key: string; label: string; of: string; type: "letters" }
   | { key: string; label: string; type: "image" }
   /**
    * The colours a tool draws with, picked one by one. Stored comma-joined;
