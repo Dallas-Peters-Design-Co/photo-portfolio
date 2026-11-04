@@ -680,6 +680,12 @@ button.creative-export__item:hover:not(:disabled) {
   outline: calc(1.5px / var(--s, 1)) dashed oklch(65% 0.2 255);
 }
 
+/* The group's own handles: the box lets presses through to the layers, its
+   handles take them. */
+.creative__group-handle {
+  pointer-events: auto;
+}
+
 .creative__marquee {
   position: absolute;
   z-index: 9999;

@@ -447,6 +447,8 @@ export function Artboard({
                     .map((l) => group.shownBox(l) ?? boxOf(l))
                 )}
                 frame={frame}
+                onScale={group.startScale}
+                scale={scale}
               />
             ) : null}
             {group.marquee ? (

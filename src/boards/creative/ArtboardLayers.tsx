@@ -10,6 +10,7 @@ import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import { fitOf, objectPositionOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
+import { HANDLES, type Handle } from "./SelectionBox";
 import { TintedPicture } from "./TintedPicture";
 
 /**
@@ -137,7 +138,18 @@ export function LayerBody({
  * under it, so any selected layer drags them all and Shift-click still adds
  * or removes one.
  */
-export function GroupOutline({ box, frame }: { box: Box | null; frame: Box }) {
+export function GroupOutline({
+  box,
+  frame,
+  onScale,
+  scale,
+}: {
+  box: Box | null;
+  frame: Box;
+  /** A press on a handle: the whole group resizes from there. */
+  onScale?: (e: React.PointerEvent, handle: Handle) => void;
+  scale?: number;
+}) {
   return box ? (
     <div
       className="creative__group-box"
@@ -146,7 +158,19 @@ export function GroupOutline({ box, frame }: { box: Box | null; frame: Box }) {
         left: box.x - frame.x,
         top: box.y - frame.y,
         width: box.width,
+        ["--s" as string]: scale ?? 1,
       }}
-    />
+    >
+      {onScale
+        ? HANDLES.map((handle) => (
+            <span
+              aria-hidden
+              className={`creative__handle creative__handle--${handle} creative__group-handle`}
+              key={handle}
+              onPointerDown={(e) => onScale(e, handle)}
+            />
+          ))
+        : null}
+    </div>
   ) : null;
 }

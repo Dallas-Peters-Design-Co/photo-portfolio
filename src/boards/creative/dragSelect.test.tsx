@@ -70,8 +70,10 @@ const rect = (id: string, x: number, z: number): BoardItem => ({
   z,
 });
 
+let latest: BoardItem[] = [];
 function Harness({ start }: { start: BoardItem[] }) {
   const [items, setItems] = useState(start);
+  latest = items;
   return (
     <>
       <CreativeEditor
@@ -162,5 +164,37 @@ describe("drag-select", () => {
       y: b.top + 200 * scale,
     });
     expect(selected().sort()).toEqual(["a", "b"]);
+  });
+
+  it("resizes a group of layers from a corner of its box, in proportion", () => {
+    render([frame, rect("a", 40, 1), rect("b", 300, 2)]);
+    const stage = document.querySelector(".creative__stage") as Element;
+    const board = document.querySelector(".creative__board") as Element;
+    const b = board.getBoundingClientRect();
+    const scale = b.width / 540;
+    const at = (x: number, y: number) => ({
+      x: b.left + x * scale,
+      y: b.top + y * scale,
+    });
+    pointer(
+      "pointerdown",
+      stage,
+      { x: b.left - 20, y: b.top - 20 },
+      { buttons: 1 }
+    );
+    pointer("pointermove", board, at(520, 300), { buttons: 1 });
+    pointer("pointerup", board, at(520, 300));
+    // The group spans x 40..400, y 100..200; drag its bottom-right corner
+    // from (400, 200) to (220, 150): half the size.
+    const handle = document.querySelector(
+      ".creative__group-handle.creative__handle--se"
+    ) as Element;
+    pointer("pointerdown", handle, at(400, 200), { buttons: 1 });
+    pointer("pointermove", board, at(220, 150), { buttons: 1 });
+    pointer("pointerup", board, at(220, 150));
+    const a = latest.find((i) => i.id === "a");
+    const bb = latest.find((i) => i.id === "b");
+    expect(a).toMatchObject({ height: 50, width: 50, x: 40, y: 100 });
+    expect(bb).toMatchObject({ height: 50, width: 50, x: 170, y: 100 });
   });
 });
