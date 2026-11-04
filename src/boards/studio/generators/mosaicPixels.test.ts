@@ -62,3 +62,46 @@ it.each(["square", "circle", "hex"])(
     expect(bg.getImageData(0, 0, 1, 1).data[3]).toBe(0);
   }
 );
+
+/**
+ * Every gap the same on screen. Rounding each tile to whole pixels made the
+ * gaps alternate between a pixel and nothing at preview sizes.
+ */
+it("keeps every gap the same width at a preview size", async () => {
+  const src = document.createElement("canvas");
+  src.width = 10;
+  src.height = 10;
+  const sg = src.getContext("2d") as CanvasRenderingContext2D;
+  sg.fillStyle = "#204080";
+  sg.fillRect(0, 0, 10, 10);
+  const image = await createImageBitmap(src);
+  const ctx = { height: 7200, image, palette: ["#000000"], width: 7200 };
+  const c = document.createElement("canvas");
+  c.width = 437;
+  c.height = 437;
+  const g = c.getContext("2d") as CanvasRenderingContext2D;
+  mosaicTool.draw?.(
+    g,
+    { colour: "photo", columns: 97, gap: 8, tile: "square" },
+    ctx
+  );
+  const row = g.getImageData(0, 200, 437, 1).data;
+  // The see-through amount in each gap, summed: what the eye reads as width.
+  const gaps: number[] = [];
+  let open = 0;
+  for (let x = 0; x < 437; x += 1) {
+    const clear = 1 - (row[x * 4 + 3] ?? 0) / 255;
+    if (clear > 0.02) {
+      open += clear;
+    } else if (open > 0) {
+      gaps.push(open);
+      open = 0;
+    }
+  }
+  expect(gaps.length).toBeGreaterThan(80);
+  // The first and last are the half gaps at the picture's edges.
+  gaps.shift();
+  gaps.pop();
+  const spread = Math.max(...gaps) - Math.min(...gaps);
+  expect(spread, gaps.map((v) => v.toFixed(2)).join(" ")).toBeLessThan(0.35);
+});
