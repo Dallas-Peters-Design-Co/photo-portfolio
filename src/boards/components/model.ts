@@ -170,11 +170,21 @@ export const resolvedLayers = (
   );
 
 /** How much an instance's box scales its component: uniformly, to fit. */
+/**
+ * How an instance's box stretches the component: each axis on its own, so
+ * the layers fill the box the way it's been resized (a wider tag is a wider
+ * tag, not the same tag with space beside it). Type, outlines and corners
+ * grow only as much as both axes do, so stretching one way doesn't blow the
+ * text up or squash it.
+ */
 export const scaleOf = (
   item: Pick<BoardItem, "height" | "width">,
   component: BrandComponent
-) =>
-  Math.min(item.width / component.width, item.height / component.height) || 1;
+) => {
+  const sx = item.width / component.width || 1;
+  const sy = item.height / component.height || 1;
+  return { k: Math.min(sx, sy), sx, sy };
+};
 
 const scaledConfig = (
   config: Record<string, unknown> | null,
@@ -202,7 +212,7 @@ export const innerId = (instanceId: string, lid: string) =>
 
 /**
  * An instance as the board items it draws: the component's layers, its
- * property values applied, scaled into its box. Used by every renderer and
+ * property values applied, stretched to fill its box (scaleOf). Used by every renderer and
  * export, so an instance looks the same everywhere.
  */
 export const expandInstance = (
@@ -210,14 +220,14 @@ export const expandInstance = (
   component: BrandComponent
 ): BoardItem[] => {
   const instance = instanceOf(item);
-  const k = scaleOf(item, component);
+  const { k, sx, sy } = scaleOf(item, component);
   return resolvedLayers(component, instance?.props ?? {}).map((layer) => ({
     body: layer.body,
     config: scaledConfig(layer.config, k, instance?.opacity),
     creditName: null,
     creditUrl: null,
     fontSize: layer.fontSize === null ? null : layer.fontSize * k,
-    height: layer.height * k,
+    height: layer.height * sy,
     id: innerId(item.id, layer.lid),
     imageUrl: layer.imageUrl,
     kind: layer.kind,
@@ -229,9 +239,9 @@ export const expandInstance = (
     runState: null,
     textStyle: layer.textStyle ?? null,
     thumbUrl: layer.thumbUrl,
-    width: layer.width * k,
-    x: item.x + layer.x * k,
-    y: item.y + layer.y * k,
+    width: layer.width * sx,
+    x: item.x + layer.x * sx,
+    y: item.y + layer.y * sy,
     z: item.z,
   }));
 };

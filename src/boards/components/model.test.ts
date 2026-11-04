@@ -131,6 +131,20 @@ describe("components", () => {
     expect(b?.config?.strokeWidth).toBe(2);
   });
 
+  it("stretches to fill a box resized one way, without blowing the type up", () => {
+    const inst = {
+      ...newInstance(component, { x: 0, y: 0 }, []),
+      height: 200,
+      width: 1200,
+    };
+    const [b, t] = expandInstance(inst, component);
+    // Twice as wide: the box and the text's line fill the new width…
+    expect(b).toMatchObject({ height: 200, width: 1200, x: 0 });
+    expect(t).toMatchObject({ width: 1048, x: 80 });
+    // …and the type stays its size, since the height didn't change.
+    expect(t?.fontSize).toBe(100);
+  });
+
   it("leaves everything else, and unknown components, alone when expanding", () => {
     const inst = newInstance(component, { x: 0, y: 0 }, []);
     const other = item({ kind: "text" });
