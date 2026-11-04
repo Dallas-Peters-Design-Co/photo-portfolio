@@ -68,3 +68,33 @@ export const objectPositionOf = (
   const { x, y } = anchorFractions(anchor);
   return `${x * 100}% ${y * 100}%`;
 };
+
+const TINT = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i;
+
+/**
+ * A picture recoloured to one colour, keeping its shape (its see-through
+ * parts stay see-through): a white mark made blue, a logo in the poster's
+ * colour. Null for the picture's own colours.
+ */
+export const tintOf = (item: Pick<BoardItem, "config">): string | null => {
+  const t = (item.config as { tint?: unknown } | null)?.tint;
+  return typeof t === "string" && TINT.test(t) ? t : null;
+};
+
+/**
+ * CSS for a tinted picture: the colour, cut to the picture's shape with a
+ * mask, sized and placed the way the picture itself would be.
+ */
+export const tintCss = (
+  url: string,
+  tint: string,
+  fit: Fit,
+  position = "center"
+): Record<string, string> => {
+  const mask = `url("${url.replaceAll('"', "%22")}") ${position} / ${fit} no-repeat`;
+  return {
+    "-webkit-mask": mask,
+    "background-color": tint,
+    mask,
+  };
+};

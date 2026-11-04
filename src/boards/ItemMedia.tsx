@@ -2,8 +2,9 @@ import { useState } from "react";
 import { optimizedImageSrc } from "../components/OptimizedImage";
 import type { BoardItem } from "../types";
 import { useAutoplay } from "./autoplayPref";
-import { fitOf, objectPositionOf } from "./creative/imageAnchor";
+import { fitOf, objectPositionOf, tintOf } from "./creative/imageAnchor";
 import { imageRadius } from "./creative/imageRadius";
+import { TintedPicture } from "./creative/TintedPicture";
 import { grownBucket, wantedWidth } from "./io/imageBucket";
 import { isVideoUrl } from "./io/isVideo";
 import { isSvgUrl, useCanvasSrc } from "./io/svgRaster";
@@ -95,6 +96,19 @@ export function ItemMedia({
       >
         <track kind="captions" />
       </video>
+    );
+  }
+  const tint = tintOf(item);
+  if (url && tint) {
+    return (
+      <TintedPicture
+        className="item-media"
+        fit={fitOf(item)}
+        position={objectPositionOf(item)}
+        radius={radius}
+        tint={tint}
+        url={url}
+      />
     );
   }
   // Lazy and async because a board is mostly off screen. A decoded 1024-square

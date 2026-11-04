@@ -10,7 +10,13 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { anchorFractions, anchorOf, type Fit, fitOf } from "./imageAnchor";
+import {
+  anchorFractions,
+  anchorOf,
+  type Fit,
+  fitOf,
+  tintOf,
+} from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { layerOpacity } from "./layerOpacity";
 import { rotationOf } from "./rotate";
@@ -63,6 +69,29 @@ const drawPathShape = (
 };
 
 /** object-fit cover or contain, as the board draws pictures. */
+/** A picture in one colour: drawn on its own, then filled where it shows. */
+const drawTinted = (
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  w: number,
+  h: number,
+  item: BoardItem,
+  tint: string
+) => {
+  const layer = document.createElement("canvas");
+  layer.width = Math.max(1, Math.ceil(w));
+  layer.height = Math.max(1, Math.ceil(h));
+  const g = layer.getContext("2d");
+  if (!g) {
+    return;
+  }
+  drawCover(g, img, w, h, anchorFractions(anchorOf(item)), fitOf(item));
+  g.globalCompositeOperation = "source-in";
+  g.fillStyle = tint;
+  g.fillRect(0, 0, layer.width, layer.height);
+  ctx.drawImage(layer, 0, 0);
+};
+
 const drawCover = (
   ctx: CanvasRenderingContext2D,
   img: HTMLImageElement,
@@ -353,14 +382,19 @@ const drawLayer = (
         clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
         ctx.clip(clip);
       }
-      drawCover(
-        ctx,
-        picture,
-        w,
-        h,
-        anchorFractions(anchorOf(item)),
-        fitOf(item)
-      );
+      const tint = tintOf(item);
+      if (tint) {
+        drawTinted(ctx, picture, w, h, item, tint);
+      } else {
+        drawCover(
+          ctx,
+          picture,
+          w,
+          h,
+          anchorFractions(anchorOf(item)),
+          fitOf(item)
+        );
+      }
     }
   }
 };

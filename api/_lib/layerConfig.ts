@@ -23,6 +23,8 @@ const LONG_SETTINGS: Record<string, number> = { painted: 80_000 };
 // A 24×36 poster at print size is 7200×10800.
 const MAX_SIDE = 16_000;
 const TOOL_ID = /^[a-z][a-z0-9-]{0,39}$/;
+/** A picture recoloured to one colour (imageAnchor.tintOf). */
+const TINT = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i;
 const KEY = /^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/;
 
 type Bag = Record<string, unknown>;
@@ -188,6 +190,9 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
     ...(finite(radius) && radius > 0 ? { radius: clamp(radius, 0, 5000) } : {}),
     ...(POSITIONS.has(position) ? { position } : {}),
     ...(o?.fit === "contain" ? { fit: "contain" } : {}),
+    ...(typeof o?.tint === "string" && TINT.test(o.tint)
+      ? { tint: o.tint }
+      : {}),
     ...opacityOf(o),
     ...(studio ? { studio } : {}),
     ...componentOf(o),

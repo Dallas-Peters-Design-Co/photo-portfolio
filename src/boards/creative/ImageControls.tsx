@@ -1,10 +1,11 @@
 import type { BoardItem } from "../../types";
-import { ANCHORS, type Anchor, anchorOf, fitOf } from "./imageAnchor";
+import { ColorWell } from "../ColorWell";
+import { ANCHORS, type Anchor, anchorOf, fitOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 
 /**
  * A picture layer's own settings in the bar: rounded corners, cover or
- * contain, and where the picture sits when its box is a different shape (a
+ * contain, one colour instead of its own (a mark recoloured), and where the picture sits when its box is a different shape (a
  * 3×3 grid, top left to bottom right; see imageAnchor.ts).
  */
 
@@ -65,6 +66,25 @@ export function ImageControls({
               {fit === "cover" ? "Cover" : "Contain"}
             </button>
           ))}
+        </span>
+      </span>
+      <span className="creative__field">
+        <span>Colour</span>
+        <span className="creative-fit">
+          <ColorWell
+            label="Picture colour"
+            onChange={(c) => set({ tint: c })}
+            value={tintOf(item) ?? "#ffffff"}
+          />
+          <button
+            aria-pressed={tintOf(item) === null}
+            className="creative-fit__option"
+            onClick={() => set({ tint: null })}
+            title="The picture's own colours"
+            type="button"
+          >
+            Own
+          </button>
         </span>
       </span>
       <span className="creative__field">

@@ -8,8 +8,9 @@ import { useTextFont } from "../hooks/useTextFont";
 import { useVerticalAlign } from "../hooks/useVerticalAlign";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { fitOf, objectPositionOf } from "./imageAnchor";
+import { fitOf, objectPositionOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
+import { TintedPicture } from "./TintedPicture";
 
 /**
  * What the artboard draws for each layer (text, shape or picture), and the
@@ -101,6 +102,19 @@ export function LayerBody({
     );
   }
   const url = currentImageUrl(item);
+  const tint = tintOf(item);
+  if (url && tint) {
+    return (
+      <TintedPicture
+        className="creative__image"
+        fit={fitOf(item)}
+        position={objectPositionOf(item)}
+        radius={imageRadius(item)}
+        tint={tint}
+        url={url}
+      />
+    );
+  }
   return url ? (
     <img
       alt=""

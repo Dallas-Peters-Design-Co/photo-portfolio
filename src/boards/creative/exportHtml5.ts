@@ -15,7 +15,13 @@ import {
 import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { type Fit, fitOf, objectPositionOf } from "./imageAnchor";
+import {
+  type Fit,
+  fitOf,
+  objectPositionOf,
+  tintCss,
+  tintOf,
+} from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { opacityCss } from "./layerOpacity";
 import { rotationOf } from "./rotate";
@@ -158,9 +164,13 @@ export const imageHtml = (
   place: Record<string, string>,
   radius = 0,
   position?: string,
-  fit: Fit = "cover"
+  fit: Fit = "cover",
+  /** One colour, cut to the picture's shape (imageAnchor.tintOf). */
+  tint: string | null = null
 ): string =>
-  `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": fit, "object-position": position })}">`;
+  tint
+    ? `<div aria-hidden="true" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, ...tintCss(src, tint, fit, position ?? "center") })}"></div>`
+    : `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": fit, "object-position": position })}">`;
 
 export interface AdPage {
   body: string[];
@@ -398,7 +408,8 @@ export const layerHtml = (
         faded,
         imageRadius(item) * scale,
         objectPositionOf(item),
-        fitOf(item)
+        fitOf(item),
+        tintOf(item)
       )
     : null;
 };

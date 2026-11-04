@@ -29,16 +29,48 @@ export interface ComponentLayer {
   y: number;
 }
 
-export type PropField = "background" | "body" | "color" | "fill" | "stroke";
+export type PropField =
+  | "background"
+  | "body"
+  | "color"
+  | "fill"
+  | "stroke"
+  | "tint";
 
-/** Something an instance may set: one layer's text or one of its colours. */
+/** One layer's text or colour that a property sets. */
+export interface PropTarget {
+  field: PropField;
+  lid: string;
+}
+
+/**
+ * Something an instance may set: a layer's text or one of its colours, and
+ * any number of others that share it (`more`): one Colour that recolours the
+ * mark, the rule and the label together.
+ */
 export interface ComponentProp {
   field: PropField;
   id: string;
   lid: string;
+  /** Other layers' fields set by the same value. */
+  more?: PropTarget[];
   name: string;
   type: "color" | "text";
 }
+
+/** Every layer field a property sets. */
+export const targetsOf = (prop: ComponentProp): PropTarget[] => [
+  { field: prop.field, lid: prop.lid },
+  ...(prop.more ?? []),
+];
+
+/** Whether a property already sets this field of this layer. */
+export const sets = (prop: ComponentProp, lid: string, field: PropField) =>
+  targetsOf(prop).some((t) => t.lid === lid && t.field === field);
+
+/** The type of value a field holds. */
+export const typeOfField = (field: PropField): ComponentProp["type"] =>
+  field === "body" ? "text" : "color";
 
 export interface BrandComponent {
   height: number;
@@ -103,6 +135,9 @@ export const FIELDS_OF: Record<
     { field: "color", label: "Text colour", type: "color" },
     { field: "background", label: "Box colour", type: "color" },
   ],
+  // A picture recoloured to one colour, its shape kept (imageAnchor.tintOf).
+  photo: [{ field: "tint", label: "Colour", type: "color" }],
+  reference: [{ field: "tint", label: "Colour", type: "color" }],
   text: [
     { field: "body", label: "Text", type: "text" },
     { field: "color", label: "Text colour", type: "color" },
@@ -165,9 +200,40 @@ export const resolvedLayers = (
 ): ComponentLayer[] =>
   component.layers.map((layer) =>
     component.props
-      .filter((p) => p.lid === layer.lid && values[p.id] !== undefined)
-      .reduce((l, p) => withField(l, p.field, values[p.id] as string), layer)
+      .filter((p) => values[p.id] !== undefined)
+      .flatMap((p) =>
+        targetsOf(p)
+          .filter((t) => t.lid === layer.lid)
+          .map((t) => ({ field: t.field, value: values[p.id] as string }))
+      )
+      .reduce((l, t) => withField(l, t.field, t.value), layer)
   );
+
+/**
+ * The layers like this one: the same field, set to the same value, not yet
+ * set by any property. Exposing a colour on one tile of a mark takes in
+ * every tile the same colour, so the mark changes colour as one.
+ */
+export const alikeOf = (
+  component: Pick<BrandComponent, "layers" | "props">,
+  lid: string,
+  field: PropField
+): PropTarget[] => {
+  const layer = component.layers.find((l) => l.lid === lid);
+  const value = layer ? fieldValue(layer, field) : undefined;
+  if (value === undefined || field === "body") {
+    return [];
+  }
+  return component.layers
+    .filter(
+      (l) =>
+        l.lid !== lid &&
+        (FIELDS_OF[l.kind] ?? []).some((f) => f.field === field) &&
+        fieldValue(l, field)?.toLowerCase() === value.toLowerCase() &&
+        !component.props.some((p) => sets(p, l.lid, field))
+    )
+    .map((l) => ({ field, lid: l.lid }));
+};
 
 /** How much an instance's box scales its component: uniformly, to fit. */
 /**
