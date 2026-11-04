@@ -355,6 +355,45 @@ export const startingProps = (draft: Draft): ComponentProp[] =>
       type: "text" as const,
     }));
 
+/**
+ * A component whose layers each have their own id. A layer duplicated while
+ * the component was open kept the original's id, so two layers answered to
+ * one name: their copies on the board collided, drawing a stray box over
+ * every instance. Each repeat gets an id of its own, and every property that
+ * set the original sets the copy too (copies of the same thing share it).
+ */
+export const withUniqueLids = <
+  C extends { layers: ComponentLayer[]; props: ComponentProp[] },
+>(
+  component: C
+): C => {
+  const seen = new Map<string, number>();
+  const added: { from: string; lid: string }[] = [];
+  const layers = component.layers.map((layer) => {
+    const n = seen.get(layer.lid) ?? 0;
+    seen.set(layer.lid, n + 1);
+    if (n === 0) {
+      return layer;
+    }
+    const lid = `${layer.lid.slice(0, 58)}-${n + 1}`;
+    added.push({ from: layer.lid, lid });
+    return { ...layer, lid };
+  });
+  if (added.length === 0) {
+    return component;
+  }
+  const props = component.props.map((p) => {
+    const more = [...(p.more ?? [])];
+    for (const t of targetsOf(p)) {
+      for (const a of added.filter((x) => x.from === t.lid)) {
+        more.push({ field: t.field, lid: a.lid });
+      }
+    }
+    return more.length > 0 ? { ...p, more } : p;
+  });
+  return { ...component, layers, props };
+};
+
 /** A component from layers in a frame, back to front. */
 export const draftFrom = (
   layers: BoardItem[],
@@ -368,7 +407,7 @@ export const draftFrom = (
   const width = Math.max(...layers.map((l) => l.x + l.width)) - x;
   const height = Math.max(...layers.map((l) => l.y + l.height)) - y;
   const ordered = [...layers].sort((a, b) => a.z - b.z);
-  return {
+  return withUniqueLids({
     height,
     layers: ordered.map((item) => {
       const { component: _link, ...config } = item.config ?? {};
@@ -397,7 +436,7 @@ export const draftFrom = (
     },
     props,
     width,
-  };
+  });
 };
 
 /** A new instance at a place, on top of everything in `items`. */

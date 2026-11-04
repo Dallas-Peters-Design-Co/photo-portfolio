@@ -4,6 +4,7 @@ import {
   type BrandComponent,
   type ComponentLayer,
   resolvedLayers,
+  withUniqueLids,
 } from "./model";
 
 /**
@@ -85,4 +86,36 @@ it("sets every layer a property is shared with", () => {
   expect(by("t3")?.config?.fill).toBe("#000000");
   expect(by("label")?.textStyle?.color).toBe("#00ff00");
   expect(by("mark")?.config?.tint).toBe("#00ff00");
+});
+
+it("gives repeated layer ids their own, and shares the original's properties", () => {
+  const dup = {
+    ...component,
+    layers: [
+      layer("t1", { config: { fill: "#fff", tool: "rect" } }),
+      layer("t1", { config: { fill: "#fff", tool: "rect" }, x: 20 }),
+      layer("t1", { config: { fill: "#fff", tool: "rect" }, x: 40 }),
+    ],
+    props: [
+      {
+        field: "fill" as const,
+        id: "p",
+        lid: "t1",
+        name: "Fill",
+        type: "color" as const,
+      },
+    ],
+  };
+  const fixed = withUniqueLids(dup as BrandComponent);
+  expect(fixed.layers.map((l) => l.lid)).toEqual(["t1", "t1-2", "t1-3"]);
+  expect(fixed.props[0]?.more).toEqual([
+    { field: "fill", lid: "t1-2" },
+    { field: "fill", lid: "t1-3" },
+  ]);
+  const out = resolvedLayers(fixed, { p: "#123456" });
+  expect(out.map((l) => l.config?.fill)).toEqual([
+    "#123456",
+    "#123456",
+    "#123456",
+  ]);
 });

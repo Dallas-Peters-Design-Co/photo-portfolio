@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { BrandComponent } from "./model";
+import { type BrandComponent, withUniqueLids } from "./model";
 
 /**
  * The component definitions this page knows, by id: the ones a loaded board
@@ -16,7 +16,7 @@ export const rememberComponents = (list: BrandComponent[] | undefined) => {
   let changed = false;
   for (const def of list ?? []) {
     if (defs.get(def.id)?.updatedAt !== def.updatedAt) {
-      defs.set(def.id, def);
+      defs.set(def.id, withUniqueLids(def));
       changed = true;
     }
   }
