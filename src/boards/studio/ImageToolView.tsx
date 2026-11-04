@@ -14,6 +14,7 @@ import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
 import type { StudioFrame } from "./StudioPanel";
+import { StudioPreview } from "./StudioPreview";
 import { recipeFor, sizeIndexFor, sizesWith } from "./studioRecipe";
 import { usePaintTiles } from "./TilePaint";
 import { defaultsOf } from "./tools";
@@ -145,11 +146,9 @@ export function ImageToolView({
     }),
     [size, image, paletteKey]
   );
-  const svg = useMemo(() => tool.render(values, ctx), [tool, values, ctx]);
-  const preview = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-    [svg]
-  );
+  // Built when it's wanted (the board, a download), not on every change:
+  // the preview draws itself (StudioPreview).
+  const svgNow = () => tool.render(values, ctx);
   const sources = useMemo(
     () => tool.sources?.(values, ctx) ?? [],
     [tool, values, ctx]
@@ -166,6 +165,7 @@ export function ImageToolView({
   const where = frame ? "frame" : "board";
   const add = async (asBackground = false) => {
     try {
+      const svg = svgNow();
       const file = tool.vector
         ? new File([svg], `${fileName}.svg`, { type: "image/svg+xml" })
         : new File(
@@ -199,12 +199,7 @@ export function ImageToolView({
   return (
     <>
       <div {...paint.previewProps}>
-        <img
-          alt={`${tool.name} preview`}
-          height={size.h}
-          src={preview}
-          width={size.w}
-        />
+        <StudioPreview ctx={ctx} tool={tool} values={values} />
         {paint.overlay}
         {onResize ? (
           // biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the preview works at its default size
@@ -279,7 +274,7 @@ export function ImageToolView({
         <button
           className="studio__button"
           onClick={() =>
-            void svgToPngBlob(svg, size.w, size.h).then((b) =>
+            void svgToPngBlob(svgNow(), size.w, size.h).then((b) =>
               saveBlob(b, `${fileName}.png`)
             )
           }
@@ -291,7 +286,7 @@ export function ImageToolView({
           className="studio__button"
           onClick={() =>
             saveBlob(
-              new Blob([svg], { type: "image/svg+xml" }),
+              new Blob([svgNow()], { type: "image/svg+xml" }),
               `${fileName}.svg`
             )
           }

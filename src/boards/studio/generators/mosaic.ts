@@ -1,5 +1,6 @@
 import { esc, pick, r2, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import { drawPixels } from "./mosaicPixels";
 import { paintedOf, tileKey } from "./paintedTiles";
 import {
   hex,
@@ -220,9 +221,104 @@ const mainColoursOf = (data: Uint8ClampedArray, count: number) => {
 const countOf = (v: StudioValues) =>
   Math.max(2, Math.min(12, Number(v.count) || 5));
 
+/**
+ * Each tile's colour before any painting, worked out once per picture and
+ * colour settings: dragging the gap or changing the tile shape redraws
+ * without colouring tens of thousands of tiles again.
+ */
+const fillsCache = new WeakMap<Uint8ClampedArray, Map<string, string[]>>();
+const fillsOf = (
+  v: StudioValues,
+  ctx: RenderContext,
+  data: Uint8ClampedArray,
+  n: number
+): string[] => {
+  const mode = modeOf(v);
+  const key = [
+    mode,
+    ctx.palette.join(),
+    Boolean(v.invert),
+    mode === "remap" ? `${String(v.remap)}#${countOf(v)}` : "",
+  ].join("|");
+  const byKey = fillsCache.get(data) ?? new Map<string, string[]>();
+  fillsCache.set(data, byKey);
+  const kept = byKey.get(key);
+  if (kept) {
+    return kept;
+  }
+  const colour =
+    mode === "remap"
+      ? remapper(
+          mainColoursOf(data, countOf(v)),
+          replacementsOf(v.remap, countOf(v))
+        )
+      : colourer(mode, ctx.palette, Boolean(v.invert));
+  const out = new Array<string>(n);
+  for (let t = 0; t < n; t += 1) {
+    const i = t * 4;
+    out[t] = colour(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0);
+  }
+  if (byKey.size > 8) {
+    byKey.clear();
+  }
+  byKey.set(key, out);
+  return out;
+};
+
+/**
+ * Every tile of the mosaic, in order: its shape, box and colour. Shared by the
+ * SVG (what goes on the board) and the preview, which draws the same tiles
+ * straight onto a canvas instead of building and decoding an SVG each time.
+ */
+const eachTile = (
+  v: StudioValues,
+  ctx: RenderContext,
+  emit: (
+    kind: string,
+    x: number,
+    y: number,
+    s: number,
+    colour: string,
+    flip: boolean
+  ) => void
+) => {
+  const grid = ctx.image ? gridOf(v, ctx) : null;
+  if (!grid) {
+    return;
+  }
+  const { cell, cols, data, rows } = grid;
+  const fills = fillsOf(v, ctx, data, cols * rows);
+  const inset = cell * ((Number(v.gap) || 0) / 100);
+  const s = cell - inset * 2;
+  const painted = paintedOf(v.painted);
+  const kind = String(v.tile);
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const own = fills[row * cols + col] ?? "#000000";
+      emit(
+        kind,
+        col * cell + inset,
+        row * cell + inset,
+        s,
+        painted.size > 0 ? (painted.get(tileKey(col, row)) ?? own) : own,
+        (col + row) % 2 === 0
+      );
+    }
+  }
+};
+
 export const mosaicTool: ImageTool = {
   blurb:
     "A picture rebuilt from tiles: in its own colours, snapped to yours, or recoloured by brightness. Goes in as an SVG.",
+  draw: (g, v, ctx) =>
+    drawPixels(
+      g,
+      ctx,
+      v.fill || ctx.image === null
+        ? String(v.bg || pick(ctx.palette, ctx.palette.length - 1))
+        : null,
+      (emit) => eachTile(v, ctx, emit)
+    ),
   id: "mosaic",
   kind: "image",
   name: "Mosaic",
@@ -308,56 +404,27 @@ export const mosaicTool: ImageTool = {
       when: (v) => Boolean(v.fill),
     },
   ],
-  render: (v, { height: h, image, palette, width: w }) => {
+  render: (v, ctx) => {
+    const { height: h, palette, width: w } = ctx;
     const ground = esc(String(v.bg || pick(palette, palette.length - 1)));
     const groundPaint = v.fill ? paintOf(ground) : null;
     const groundRect = groundPaint
       ? `<rect width="${w}" height="${h}" ${groundPaint}/>`
       : "";
-    if (!image) {
+    if (!ctx.image) {
       return svgDoc(
         w,
         h,
         `<rect width="${w}" height="${h}" fill="${ground}"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="${r2(w / 24)}" fill="${esc(pick(palette, 0))}">Choose a picture</text>`
       );
     }
-    const grid = gridOf(v, { height: h, image, palette, width: w });
-    if (!grid) {
-      return svgDoc(w, h, "");
-    }
-    const { cell, cols, data, rows } = grid;
-    const mode = modeOf(v);
-    const colour =
-      mode === "remap"
-        ? remapper(
-            mainColoursOf(data, countOf(v)),
-            replacementsOf(v.remap, countOf(v))
-          )
-        : colourer(mode, palette, Boolean(v.invert));
-    const inset = cell * ((Number(v.gap) || 0) / 100);
-    const s = cell - inset * 2;
-    const painted = paintedOf(v.painted);
     const tiles: string[] = [];
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        const i = (row * cols + col) * 4;
-        const [r = 0, g = 0, b = 0] = [data[i], data[i + 1], data[i + 2]];
-        const fill = paintOf(painted.get(tileKey(col, row)) ?? colour(r, g, b));
-        if (!fill) {
-          continue;
-        }
-        tiles.push(
-          shape(
-            String(v.tile),
-            col * cell + inset,
-            row * cell + inset,
-            s,
-            fill,
-            (col + row) % 2 === 0
-          )
-        );
+    eachTile(v, ctx, (kind, x, y, s, colour, flip) => {
+      const fill = paintOf(colour);
+      if (fill) {
+        tiles.push(shape(kind, x, y, s, fill, flip));
       }
-    }
+    });
     return svgDoc(w, h, `${groundRect}${tiles.join("")}`);
   },
   /** The picture's main colours, dark to light, for the Swap list. */

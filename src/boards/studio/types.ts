@@ -93,6 +93,16 @@ export interface ImageTool {
   blurb: string;
   /** Plain-text CSS for the result, for tools where that is meaningful. */
   css?: (values: StudioValues, ctx: RenderContext) => string | null;
+  /**
+   * The same picture drawn straight onto a canvas, filling it whatever its
+   * pixel size (the preview's on-screen size, not the full size), for a live preview without building and decoding an SVG on
+   * every change. Optional; tools without it preview their SVG.
+   */
+  draw?: (
+    g: CanvasRenderingContext2D,
+    values: StudioValues,
+    ctx: RenderContext
+  ) => void;
   id: string;
   kind: "image";
   name: string;

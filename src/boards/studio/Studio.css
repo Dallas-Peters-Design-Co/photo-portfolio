@@ -118,7 +118,8 @@
   background-size: 16px 16px;
   border-radius: var(--radius-control, 6px);
 
-  & img {
+  & img,
+  & > canvas:not(.studio__paint-layer) {
     display: block;
     width: 100%;
     height: 100%;
@@ -547,7 +548,8 @@
   touch-action: none;
   cursor: crosshair;
 
-  & img {
+  & img,
+  & > canvas:not(.studio__paint-layer) {
     pointer-events: none;
   }
 }

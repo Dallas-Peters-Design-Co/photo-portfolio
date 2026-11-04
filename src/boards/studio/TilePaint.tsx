@@ -63,7 +63,8 @@ export const usePaintTiles = ({
 
   /** Where the picture is drawn inside the preview box, in CSS pixels. */
   const fit = (box: HTMLElement) => {
-    const img = box.querySelector("img");
+    // The preview picture: an <img>, or the canvas a drawn preview uses.
+    const img = box.querySelector("img, canvas:not(.studio__paint-layer)");
     const outer = box.getBoundingClientRect();
     const rect = img ? img.getBoundingClientRect() : outer;
     const k = Math.min(rect.width / size.w, rect.height / size.h);
