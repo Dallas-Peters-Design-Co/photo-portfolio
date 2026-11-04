@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { textStyleCss } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
 import { InstanceView } from "../components/InstanceView";
@@ -12,6 +12,7 @@ import { fitOf, objectPositionOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { HANDLES, type Handle } from "./SelectionBox";
 import { TintedPicture } from "./TintedPicture";
+import { measureText, textFitOf } from "./textFit";
 
 /**
  * What the artboard draws for each layer (text, shape or picture), and the
@@ -19,22 +20,69 @@ import { TintedPicture } from "./TintedPicture";
  * the pointer handling.
  */
 
+/**
+ * A text box set to fit its words (textFit.ts) resized to them whenever the
+ * words, the type or (fitting the height) the width change, and again when a
+ * font finishes loading, since the stand-in face measures differently.
+ */
+const useFitText = (
+  own: React.RefObject<HTMLTextAreaElement | null>,
+  item: BoardItem,
+  onFit?: (patch: Partial<BoardItem>) => void
+) => {
+  const fit = textFitOf(item);
+  const [fonts, setFonts] = useState(0);
+  useEffect(() => {
+    if (fit === "fixed") {
+      return;
+    }
+    const done = () => setFonts((n) => n + 1);
+    document.fonts.addEventListener("loadingdone", done);
+    return () => document.fonts.removeEventListener("loadingdone", done);
+  }, [fit]);
+  const style = JSON.stringify(item.textStyle);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: measured again when the words, type, width or fonts change
+  useEffect(() => {
+    const el = own.current;
+    if (fit === "fixed" || !el || !onFit) {
+      return;
+    }
+    const size = measureText(el, fit, item.width);
+    if (!size) {
+      return;
+    }
+    const patch: Partial<BoardItem> = {};
+    if (Math.abs(size.height - item.height) > 1) {
+      patch.height = size.height;
+    }
+    if (fit === "both" && Math.abs(size.width - item.width) > 1) {
+      patch.width = size.width;
+    }
+    if (Object.keys(patch).length > 0) {
+      onFit(patch);
+    }
+  }, [fit, item.body, item.fontSize, style, item.width, fonts]);
+};
+
 function LayerText({
   editing,
   item,
   onChange,
   onDone,
+  onFit,
   textRef,
 }: {
   editing: boolean;
   item: BoardItem;
   onChange: (body: string) => void;
   onDone: () => void;
+  onFit?: (patch: Partial<BoardItem>) => void;
   textRef: (el: HTMLElement | null) => void;
 }) {
   useTextFont(item.textStyle);
   const own = useRef<HTMLTextAreaElement | null>(null);
   useVerticalAlign(own, item);
+  useFitText(own, item, onFit);
   return (
     <textarea
       className="creative__text text-body text-body--plain"
@@ -67,6 +115,7 @@ export function LayerBody({
   editing,
   item,
   onDone,
+  onFit,
   onTextChange,
   textRef,
   textRefFor,
@@ -74,6 +123,8 @@ export function LayerBody({
   editing: boolean;
   item: BoardItem;
   onDone: () => void;
+  /** A text box fitting its words resizes itself (textFit.ts). */
+  onFit?: (patch: Partial<BoardItem>) => void;
   onTextChange: (body: string) => void;
   textRef: (el: HTMLElement | null) => void;
   /** For a placed component: registers its inner text layers by their ids. */
@@ -86,6 +137,7 @@ export function LayerBody({
         item={item}
         onChange={onTextChange}
         onDone={onDone}
+        onFit={onFit}
         textRef={textRef}
       />
     );

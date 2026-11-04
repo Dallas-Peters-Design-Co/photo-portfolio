@@ -38,6 +38,7 @@ import { opacityOf, withOpacity } from "./layerOpacity";
 import { OpacityField } from "./OpacityField";
 import { normalizeAngle, rotationOf } from "./rotate";
 import { TextEffects } from "./TextEffects";
+import { TextFitControl } from "./TextFitControl";
 
 /**
  * The controls for whatever layer is selected: type for text, paint for
@@ -356,7 +357,12 @@ export function ContextBar({
   const place = (patch: Partial<Box>) => onPatch(patch);
   return (
     <div className="creative__bar">
-      {kind === "text" ? <TextControls item={item} onPatch={onPatch} /> : null}
+      {kind === "text" ? (
+        <>
+          <TextControls item={item} onPatch={onPatch} />
+          <TextFitControl item={item} onPatch={onPatch} />
+        </>
+      ) : null}
       {kind === "shape" && isDrawingConfig(item.config) ? (
         <ShapeControls config={item.config} onPatch={onPatch} />
       ) : null}

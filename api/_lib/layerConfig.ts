@@ -201,5 +201,12 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
 
 export const parseTextConfig = (raw: unknown): Bag | null => {
   const o = bagOf(raw);
-  return orNull({ ...opacityOf(o), ...componentOf(o) });
+  // A box that fits its words (textFit.ts): its height, or both ways.
+  const autosize =
+    o?.autosize === "height" || o?.autosize === "both" ? o.autosize : null;
+  return orNull({
+    ...opacityOf(o),
+    ...componentOf(o),
+    ...(autosize ? { autosize } : {}),
+  });
 };

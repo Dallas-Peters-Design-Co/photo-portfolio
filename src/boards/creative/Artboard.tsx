@@ -12,6 +12,7 @@ import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
 import { type Handle, SelectionBox } from "./SelectionBox";
 import { unionOf } from "./selection";
 import { type Guides, skipsSnap, snapMove } from "./snap";
+import { widthSetBy } from "./textFit";
 import { useArtboardZoom } from "./useArtboardZoom";
 import { released, useGroupDrag } from "./useGroupDrag";
 import { ZoomBar } from "./ZoomBar";
@@ -295,6 +296,7 @@ export function Artboard({
       x: Math.round(box.x),
       y: Math.round(box.y),
       ...(fontSize === null ? {} : { fontSize }),
+      ...widthSetBy(d, box, layers),
     });
   };
 
@@ -416,6 +418,9 @@ export function Artboard({
                     editing={editingId === item.id}
                     item={{ ...shown, height: box.height, width: box.width }}
                     onDone={() => onEditText(null)}
+                    onFit={
+                      isLive ? undefined : (patch) => onCommit(item.id, patch)
+                    }
                     onTextChange={(body) => onTextChange(item.id, body)}
                     textRef={(el) => textRef(item.id, el)}
                     textRefFor={textRef}
