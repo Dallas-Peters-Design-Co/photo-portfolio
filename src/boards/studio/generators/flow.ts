@@ -35,6 +35,55 @@ const fontOf = (v: StudioValues) => {
 
 const SAMPLES = 4;
 
+/** Tracking in thousandths of an em, as type tools count it. */
+const trackingOf = (v: StudioValues) =>
+  Math.max(-300, Math.min(600, Number(v.tracking) || 0)) / 1000;
+
+/**
+ * Letter spacing on a canvas. Chrome and Safari have `letterSpacing`, which
+ * keeps the font's own kerning; without it, the text is drawn a letter at a
+ * time.
+ */
+const spaced = (g: CanvasRenderingContext2D, px: number) => {
+  const c = g as CanvasRenderingContext2D & { letterSpacing?: string };
+  if ("letterSpacing" in c) {
+    c.letterSpacing = `${px}px`;
+    return true;
+  }
+  return false;
+};
+
+/** The text's width at the current font, spaced by `px` between letters. */
+const widthOf = (g: CanvasRenderingContext2D, text: string, px: number) => {
+  if (spaced(g, px)) {
+    // letterSpacing adds a space after the last letter too.
+    return g.measureText(text).width - px;
+  }
+  const chars = [...text];
+  return (
+    chars.reduce((w, ch) => w + g.measureText(ch).width, 0) +
+    px * Math.max(0, chars.length - 1)
+  );
+};
+
+const fillSpaced = (
+  g: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  px: number
+) => {
+  if (spaced(g, px)) {
+    g.fillText(text, x, y);
+    return;
+  }
+  let at = x;
+  for (const ch of text) {
+    g.fillText(ch, at, y);
+    at += g.measureText(ch).width + px;
+  }
+};
+
 /** The text drawn white on a canvas `W` × `H`, fitted and placed. */
 const drawText = (
   g: CanvasRenderingContext2D,
@@ -44,29 +93,31 @@ const drawText = (
   H: number
 ) => {
   const font = fontOf(v);
+  const track = trackingOf(v);
   g.font = font.css;
   const probe = g.measureText(text);
   const tall =
     probe.actualBoundingBoxAscent + probe.actualBoundingBoxDescent || 70;
-  const fit = Math.min(
-    (H * 0.92) / tall,
-    (W * 0.96) / Math.max(1, probe.width)
-  );
+  const wide = Math.max(1, widthOf(g, text, track * 100));
+  const fit = Math.min((H * 0.92) / tall, (W * 0.96) / wide);
   const size = 100 * fit * ((Number(v.scale) || 100) / 100);
   g.font = `${font.weight} ${size}px "${font.family}"`;
+  const px = track * size;
   const m = g.measureText(text);
-  const left = W * 0.02 + m.actualBoundingBoxLeft;
+  const width = widthOf(g, text, px);
   const x =
     {
-      center: (W - m.width) / 2,
-      left,
-      right: W - W * 0.02 - m.width,
-    }[String(v.align || "center")] ?? (W - m.width) / 2;
+      center: (W - width) / 2,
+      left: W * 0.02,
+      right: W - W * 0.02 - width,
+    }[String(v.align || "center")] ?? (W - width) / 2;
   g.fillStyle = "#fff";
-  g.fillText(
+  fillSpaced(
+    g,
     text,
     x,
-    (H + m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2
+    (H + m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2,
+    px
   );
 };
 
@@ -109,9 +160,16 @@ const masks = new Map<string, Float32Array>();
 const maskOf = (v: StudioValues, cols: number, rows: number) => {
   const text = String(v.text ?? "").slice(0, 24) || " ";
   const ready = fontReady(v);
-  const key = [text, fontOf(v).css, cols, rows, v.scale, v.align, ready].join(
-    "|"
-  );
+  const key = [
+    text,
+    fontOf(v).css,
+    cols,
+    rows,
+    v.scale,
+    v.align,
+    v.tracking,
+    ready,
+  ].join("|");
   const kept = masks.get(key);
   if (kept) {
     return kept;
@@ -320,6 +378,15 @@ export const flowTool: ImageTool = {
       label: "Text size",
       max: 140,
       min: 30,
+      type: "range",
+    },
+    {
+      default: 0,
+      key: "tracking",
+      label: "Letter spacing",
+      max: 600,
+      min: -300,
+      step: 5,
       type: "range",
     },
     {

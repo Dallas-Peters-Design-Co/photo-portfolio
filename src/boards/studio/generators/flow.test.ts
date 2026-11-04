@@ -39,3 +39,51 @@ it("draws a number in pixel lanes with scatter around it", async () => {
   expect(svg.startsWith("<svg")).toBe(true);
   expect((svg.match(/<rect/g) ?? []).length).toBeGreaterThan(1500);
 });
+
+it("spreads the letters apart with letter spacing, still centred", () => {
+  const span = (tracking: number) => {
+    const values = {
+      ...defaultsOf(flowTool.params),
+      drift: 0,
+      noise: 0,
+      text: "2027",
+      tracking,
+    };
+    const canvas = document.createElement("canvas");
+    canvas.width = 400;
+    canvas.height = 400;
+    const g = canvas.getContext("2d") as CanvasRenderingContext2D;
+    flowTool.draw?.(g, values, {
+      height: 1080,
+      image: null,
+      palette: ["#d9bd1c"],
+      width: 1080,
+    });
+    const { data } = g.getImageData(0, 0, 400, 400);
+    // The gaps between letters: empty columns inside the text's span.
+    let first = -1;
+    let last = -1;
+    let empty = 0;
+    for (let x = 0; x < 400; x += 1) {
+      let any = false;
+      for (let y = 0; y < 400; y += 1) {
+        if ((data[(y * 400 + x) * 4] ?? 0) > 150) {
+          any = true;
+          break;
+        }
+      }
+      if (any) {
+        first = first < 0 ? x : first;
+        if (last >= 0 && x - last > 1) {
+          empty += x - last - 1;
+        }
+        last = x;
+      }
+    }
+    return { empty, left: first, right: 399 - last };
+  };
+  const tight = span(0);
+  const wide = span(300);
+  expect(wide.empty).toBeGreaterThan(tight.empty);
+  expect(Math.abs(wide.left - wide.right)).toBeLessThan(12);
+});
