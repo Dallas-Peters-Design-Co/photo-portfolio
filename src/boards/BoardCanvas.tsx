@@ -907,11 +907,16 @@ export function BoardCanvas({
         return;
       }
 
+      // A component scales as one thing from a corner, so its type and marks
+      // keep their shape (Shift stretches it); everything else the other way
+      // round. A side always stretches.
+      const isInstance = items[g.index]?.kind === "component";
       const dragged = resizeBox({
         dx,
         dy,
         handle: g.handle,
-        lockAspect: e.shiftKey,
+        lockAspect:
+          isInstance && g.handle.length === 2 ? !e.shiftKey : e.shiftKey,
         minSize: MIN_ITEM_SIZE,
         origin: g.origin,
       });

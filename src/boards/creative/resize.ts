@@ -73,7 +73,10 @@ export const resizeStep = (
 ): { box: Box; fontSize: number | null; guides: Guides } => {
   const isText = item?.kind === "text" || item?.kind === "note";
   const isPicture = item?.kind === "reference" || item?.kind === "photo";
-  const keepAspect = m.shift || isPicture || isText;
+  // A component scales as one thing from a corner (Shift stretches it); a
+  // side stretches it. resized() only keeps the aspect on corners.
+  const isInstance = item?.kind === "component";
+  const keepAspect = isInstance ? !m.shift : m.shift || isPicture || isText;
   let box = resized(drag.origin, drag.handle, m.dx, m.dy, keepAspect);
   const guides: Guides = { x: [], y: [] };
   if (!(m.alt || keepAspect)) {
