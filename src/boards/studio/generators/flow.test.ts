@@ -151,3 +151,36 @@ it("gives a letter several colours of its own", () => {
   expect(inRed.y0).toBeGreaterThan(140);
   expect(inRed.x1).toBeLessThan(170);
 });
+
+it("cuts the letters out of a field that fills around them", () => {
+  const draw = (values: Record<string, unknown>) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 300;
+    canvas.height = 300;
+    const g = canvas.getContext("2d") as CanvasRenderingContext2D;
+    flowTool.draw?.(
+      g,
+      { ...defaultsOf(flowTool.params), drift: 0, noise: 0, ...values },
+      { height: 900, image: null, palette: ["#d9bd1c"], width: 900 }
+    );
+    const { data } = g.getImageData(0, 0, 300, 300);
+    // Yellow in the middle (inside the letter) and in a corner (outside).
+    const yellowIn = (x0: number, y0: number, size: number) => {
+      let n = 0;
+      for (let y = y0; y < y0 + size; y += 1) {
+        for (let x = x0; x < x0 + size; x += 1) {
+          const i = (y * 300 + x) * 4;
+          n += yellow(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0) ? 1 : 0;
+        }
+      }
+      return n;
+    };
+    return { corner: yellowIn(4, 4, 30), middle: yellowIn(140, 130, 20) };
+  };
+  const plain = draw({ order: 0, text: "I" });
+  const cut = draw({ cutout: true, order: 0, text: "I" });
+  expect(plain.middle).toBeGreaterThan(0);
+  expect(plain.corner).toBe(0);
+  expect(cut.middle).toBe(0);
+  expect(cut.corner).toBeGreaterThan(50);
+});

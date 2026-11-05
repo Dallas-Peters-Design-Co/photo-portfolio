@@ -175,17 +175,68 @@ const loosePixel = (
   );
 };
 
+/**
+ * The cells a cutout leaves empty: the letters, grown by `margin` cells all
+ * round so the field keeps a clean edge off them.
+ */
+export const cutOf = (o: Setup, margin: number): Uint8Array => {
+  const { cols, rows } = o;
+  let cut = new Uint8Array(cols * rows);
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < cols; c += 1) {
+      cut[r * cols + c] = o.inside(c, r) ? 1 : 0;
+    }
+  }
+  // Grown a cell at a time, across then down, which makes a square margin.
+  for (let step = 0; step < margin; step += 1) {
+    const next = cut.slice();
+    for (let r = 0; r < rows; r += 1) {
+      for (let c = 0; c < cols; c += 1) {
+        const at = r * cols + c;
+        if (
+          (c > 0 && cut[at - 1]) ||
+          (c < cols - 1 && cut[at + 1]) ||
+          (r > 0 && cut[at - cols]) ||
+          (r < rows - 1 && cut[at + cols])
+        ) {
+          next[at] = 1;
+        }
+      }
+    }
+    cut = next;
+  }
+  return cut;
+};
+
+/** A cell's colour: the type, the scatter round it, or (cut out) the field. */
+const pixelAt = (
+  o: Setup,
+  cut: Uint8Array | null,
+  c: number,
+  r: number,
+  rand: () => number
+): string | null => {
+  const at = r * o.cols + c;
+  const along = alongOf(o, c, r);
+  if (cut) {
+    // The field fills everywhere but the letters, laned like the type.
+    return cut[at] ? null : letterPixel(o, r, along, rand, -1);
+  }
+  return o.inside(c, r)
+    ? letterPixel(o, r, along, rand, at)
+    : loosePixel(o, at, along, rand);
+};
+
 /** Every pixel of the piece: where it is and its colour. */
 const eachPixel = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
   const o = setupOf(v, ctx);
+  const cut =
+    v.cutout === true ? cutOf(o, Math.max(0, Number(v.margin) || 0)) : null;
   const s = o.cell - o.inset * 2;
   const rand = rng(Number(v.seed) || 1);
   for (let r = 0; r < o.rows; r += 1) {
     for (let c = 0; c < o.cols; c += 1) {
-      const along = alongOf(o, c, r);
-      const colour = o.inside(c, r)
-        ? letterPixel(o, r, along, rand, r * o.cols + c)
-        : loosePixel(o, r * o.cols + c, along, rand);
+      const colour = pixelAt(o, cut, c, r, rand);
       if (colour) {
         emit(
           "square",
@@ -322,6 +373,21 @@ export const flowTool: ImageTool = {
       max: 100,
       min: 0,
       type: "range",
+    },
+    {
+      default: false,
+      key: "cutout",
+      label: "Cut the letters out (fill around them)",
+      type: "checkbox",
+    },
+    {
+      default: 1,
+      key: "margin",
+      label: "Space around the cutout",
+      max: 8,
+      min: 0,
+      type: "range",
+      when: (v) => v.cutout === true,
     },
     {
       default: "left",
