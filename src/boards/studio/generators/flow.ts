@@ -2,6 +2,13 @@ import { colorsOf } from "../chosenColors";
 import { pick, r2, rng, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
 import { FONTS, maskOf } from "./flowText";
+import {
+  drawGrid,
+  GRID_PARAMS,
+  gridFrom,
+  gridSvg,
+  linesLook,
+} from "./gridLines";
 import { paintOf } from "./mosaic";
 import { drawPixels, type TileEmit } from "./mosaicPixels";
 
@@ -79,9 +86,11 @@ export const letterColoursOf = (value: unknown): Map<number, string[]> =>
       .filter(([, set]) => set.length > 0)
   );
 
+const flowColumns = (v: StudioValues) => Math.max(10, Number(v.columns) || 110);
+
 /** The settings, read once for a whole redraw. */
 const setupOf = (v: StudioValues, ctx: RenderContext) => {
-  const cols = Math.max(10, Number(v.columns) || 110);
+  const cols = flowColumns(v);
   const cell = ctx.width / cols;
   const rows = Math.max(1, Math.round(ctx.height / cell));
   const mask = maskOf(v, cols, rows);
@@ -101,7 +110,8 @@ const setupOf = (v: StudioValues, ctx: RenderContext) => {
     dir,
     drift,
     fill: (Number(v.density) || 0) / 100,
-    inset: cell * ((Number(v.gap) || 0) / 200),
+    // Grid lines take the gap's place: the pixels meet under them.
+    inset: v.lines === true ? 0 : cell * ((Number(v.gap) || 0) / 200),
     inside,
     lanes: Math.max(0, Number(v.lanes) || 0),
     letter: mask.letter,
@@ -260,8 +270,10 @@ const groundOf = (v: StudioValues) =>
 export const flowTool: ImageTool = {
   blurb:
     "Big type made of fine pixels in lanes, with loose pixels scattering and drifting in. The site's systems-flow look, for the 2027 numbers.",
-  draw: (g, v, ctx) =>
-    drawPixels(g, ctx, groundOf(v), (emit) => eachPixel(v, ctx, emit)),
+  draw: (g, v, ctx) => {
+    drawPixels(g, ctx, groundOf(v), (emit) => eachPixel(v, ctx, emit));
+    drawGrid(g, gridFrom(flowColumns(v), ctx), linesLook(v), ctx);
+  },
   id: "flow",
   kind: "image",
   name: "Systems Flow",
@@ -336,7 +348,16 @@ export const flowTool: ImageTool = {
       min: 30,
       type: "range",
     },
-    { default: 18, key: "gap", label: "Gap", max: 60, min: 0, type: "range" },
+    {
+      default: 18,
+      key: "gap",
+      label: "Gap",
+      max: 60,
+      min: 0,
+      type: "range",
+      when: (v) => v.lines !== true,
+    },
+    ...GRID_PARAMS,
     {
       default: 2,
       key: "lanes",
@@ -447,6 +468,7 @@ export const flowTool: ImageTool = {
         );
       }
     });
+    parts.push(gridSvg(gridFrom(flowColumns(v), ctx), linesLook(v), ctx));
     return svgDoc(ctx.width, ctx.height, parts.join(""));
   },
   vector: true,

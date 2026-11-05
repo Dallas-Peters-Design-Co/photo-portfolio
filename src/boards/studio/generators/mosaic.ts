@@ -1,5 +1,12 @@
 import { esc, pick, r2, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import {
+  drawGrid,
+  GRID_PARAMS,
+  gridFrom,
+  gridSvg,
+  linesLook,
+} from "./gridLines";
 import { drawPixels } from "./mosaicPixels";
 import { paintedOf, tileKey } from "./paintedTiles";
 import {
@@ -180,6 +187,8 @@ const shape = (
 };
 
 /** The picture averaged onto the mosaic's grid, or null without one. */
+const columnsOf = (v: StudioValues) => Math.max(2, Number(v.columns) || 48);
+
 const gridOf = (
   v: StudioValues,
   { height: h, image, width: w }: RenderContext
@@ -187,7 +196,7 @@ const gridOf = (
   if (!image) {
     return null;
   }
-  const cols = Math.max(2, Number(v.columns) || 48);
+  const cols = columnsOf(v);
   const cell = w / cols;
   const rows = Math.max(1, Math.round(h / cell));
   // Sampled once per picture and grid: every repaint (a painted tile, a
@@ -300,7 +309,8 @@ const eachTile = (
   }
   const { cell, cols, data, rows } = grid;
   const fills = fillsOf(v, ctx, data, cols * rows);
-  const inset = cell * ((Number(v.gap) || 0) / 100);
+  // Grid lines take the gap's place: the tiles meet under them.
+  const inset = v.lines === true ? 0 : cell * ((Number(v.gap) || 0) / 100);
   const s = cell - inset * 2;
   const painted = paintedOf(v.painted);
   const kind = String(v.tile);
@@ -329,7 +339,7 @@ const eachTile = (
 export const mosaicTool: ImageTool = {
   blurb:
     "A picture rebuilt from tiles: in its own colours, snapped to yours, or recoloured by brightness. Goes in as an SVG.",
-  draw: (g, v, ctx) =>
+  draw: (g, v, ctx) => {
     drawPixels(
       g,
       ctx,
@@ -337,7 +347,11 @@ export const mosaicTool: ImageTool = {
         ? String(v.bg || pick(ctx.palette, ctx.palette.length - 1))
         : null,
       (emit) => eachTile(v, ctx, emit)
-    ),
+    );
+    if (ctx.image) {
+      drawGrid(g, gridFrom(columnsOf(v), ctx), linesLook(v), ctx);
+    }
+  },
   id: "mosaic",
   kind: "image",
   name: "Mosaic",
@@ -374,7 +388,16 @@ export const mosaicTool: ImageTool = {
       min: 6,
       type: "range",
     },
-    { default: 8, key: "gap", label: "Gap", max: 40, min: 0, type: "range" },
+    {
+      default: 8,
+      key: "gap",
+      label: "Gap",
+      max: 40,
+      min: 0,
+      type: "range",
+      when: (v) => v.lines !== true,
+    },
+    ...GRID_PARAMS,
     {
       default: "photo",
       key: "colour",
@@ -454,7 +477,8 @@ export const mosaicTool: ImageTool = {
         tiles.push(shape(kind, x, y, s, fill, flip));
       }
     });
-    return svgDoc(w, h, `${groundRect}${tiles.join("")}`);
+    const lines = gridSvg(gridFrom(columnsOf(v), ctx), linesLook(v), ctx);
+    return svgDoc(w, h, `${groundRect}${tiles.join("")}${lines}`);
   },
   /** The picture's main colours, dark to light, for the Swap list. */
   sources: (v, ctx) => {
