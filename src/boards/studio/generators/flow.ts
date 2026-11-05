@@ -199,7 +199,7 @@ const grown = (cut: Uint8Array, cols: number, rows: number): Uint8Array => {
  */
 export const cutOf = (o: Setup, margin: number): Uint8Array => {
   const { cols, rows } = o;
-  let cut = new Uint8Array(cols * rows);
+  let cut: Uint8Array = new Uint8Array(cols * rows);
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < cols; c += 1) {
       cut[r * cols + c] = o.inside(c, r) ? 1 : 0;

@@ -15,6 +15,7 @@ import { type Guides, skipsSnap, snapMove } from "./snap";
 import { widthSetBy } from "./textFit";
 import { useArtboardZoom } from "./useArtboardZoom";
 import { released, useGroupDrag } from "./useGroupDrag";
+import { useVisibleEdges } from "./visibleEdges";
 import { ZoomBar } from "./ZoomBar";
 import "../itemBodies.css";
 
@@ -96,6 +97,7 @@ export function Artboard({
   const selectedId = selectedIds.length === 1 ? (selectedIds[0] ?? null) : null;
   const view = useArtboardZoom(stageRef, frame);
   const { scale } = view;
+  const edges = useVisibleEdges(boardRef, layers, scale);
   const [drag, setDrag] = useState<Drag | null>(null);
   const [live, setLive] = useState<{
     box: Box;
@@ -229,7 +231,10 @@ export function Artboard({
     }
     const dx = (e.clientX - drag.startX) / scale;
     const dy = (e.clientY - drag.startY) / scale;
-    const others = layers.filter((l) => l.id !== drag.id).map(boxOf);
+    // What's drawn lines up, not the boxes (visibleEdges.ts).
+    const others = layers.filter((l) => l.id !== drag.id).map(edges.boxOf);
+    const self = layers.find((l) => l.id === drag.id);
+    const inset = self ? edges.insetsOf(self) : null;
     const threshold = SNAP_PX / scale;
     if (drag.kind === "move") {
       const raw = {
@@ -239,7 +244,7 @@ export function Artboard({
       };
       const snapped = skipsSnap(e)
         ? { box: raw, guides: { x: [], y: [] } }
-        : snapMove(raw, frame, others, threshold);
+        : snapMove(raw, frame, others, threshold, inset);
       // Free to leave the artboard: that's how a layer is pulled out of the
       // design, quietly, like Figma; ⌘Z brings it back.
       setLive({ box: snapped.box, fontSize: null });
@@ -247,13 +252,13 @@ export function Artboard({
       return;
     }
     // A turned layer resizes along its own sides.
-    const layer = layers.find((l) => l.id === drag.id);
-    const local = toLocal(dx, dy, layer ? rotationOf(layer) : 0);
-    const step = resizeStep(drag, layer, {
+    const local = toLocal(dx, dy, self ? rotationOf(self) : 0);
+    const step = resizeStep(drag, self, {
       alt: skipsSnap(e),
       dx: local.dx,
       dy: local.dy,
       frame,
+      inset,
       others,
       shift: e.shiftKey,
       threshold,
@@ -322,6 +327,7 @@ export function Artboard({
     setDrag(null);
     setLive(null);
     setGuides({ x: [], y: [] });
+    edges.reset();
   };
 
   const selected = layers.find((l) => l.id === selectedId);
@@ -338,6 +344,7 @@ export function Artboard({
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: same */}
       <div
         className="creative__stage"
+        data-zoomed={view.zoomed ? "" : undefined}
         onDragOver={(e) => {
           if (onDropFiles && e.dataTransfer.types.includes("Files")) {
             e.preventDefault();

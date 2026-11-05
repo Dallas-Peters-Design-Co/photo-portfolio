@@ -303,6 +303,15 @@
   position: relative;
 }
 
+/*
+ * Zoomed, the artboard keeps room round it, so its edges, corners and their
+ * handles can be scrolled clear of the stage's sides rather than sitting
+ * flush against them. (A grid item's margin counts towards what scrolls.)
+ */
+.creative__stage[data-zoomed] .creative__fit {
+  margin: max(96px, 12vmin);
+}
+
 /* The artboard in canvas units, scaled to fit. Clipped like an ad is. */
 .creative__board {
   position: absolute;

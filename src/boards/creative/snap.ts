@@ -1,4 +1,5 @@
 import type { Box } from "./creativeModel";
+import { type Insets, shrink } from "./visibleEdges";
 
 /**
  * Snapping a moving box to the artboard and to the other layers.
@@ -76,17 +77,22 @@ export const keepOnFrame = (
 export const skipsSnap = (e: { ctrlKey: boolean; metaKey: boolean }) =>
   e.metaKey || e.ctrlKey;
 
-/** Where a dragged box should land, and which guide lines it touched. */
+/**
+ * Where a dragged box should land, and which guide lines it touched. With
+ * `inset`, what's drawn inside the box is what lines up (visibleEdges.ts).
+ */
 export const snapMove = (
   box: Box,
   frame: Box,
   others: Box[],
-  threshold: number
+  threshold: number,
+  inset: Insets | null = null
 ): { box: Box; guides: Guides } => {
+  const inner = shrink(box, inset);
   const targetsX = [frame, ...others].flatMap((b) => linesOf(b, "x"));
   const targetsY = [frame, ...others].flatMap((b) => linesOf(b, "y"));
-  const sx = bestShift(linesOf(box, "x"), targetsX, threshold);
-  const sy = bestShift(linesOf(box, "y"), targetsY, threshold);
+  const sx = bestShift(linesOf(inner, "x"), targetsX, threshold);
+  const sy = bestShift(linesOf(inner, "y"), targetsY, threshold);
   return {
     box: { ...box, x: box.x + sx.shift, y: box.y + sy.shift },
     guides: {
