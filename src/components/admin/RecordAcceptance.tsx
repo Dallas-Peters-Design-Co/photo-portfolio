@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react";
+import { PenLine } from "lucide-react";
 import { useState } from "react";
 import {
   type ProposalRecord,
@@ -10,10 +10,11 @@ import { Label } from "../ui/label";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 
 /**
- * For a client who said yes another way (an email, a call): record which
- * option they chose, by whom and how, as if they'd pressed Accept. That
- * drafts the first invoice from the option's payment terms; the agreement is
- * then drafted from the same option. Nobody is emailed.
+ * The agreement, drafted for the option the client chose when they said yes
+ * by email or on a call rather than on the proposal page. Their choice is
+ * recorded (as Accept would), which drafts the first invoice from the
+ * option's payment terms, and the agreement is drafted from the same option.
+ * Nothing is sent: the agreement goes for signature from its own section.
  */
 export function RecordAcceptance({
   busy,
@@ -51,13 +52,15 @@ export function RecordAcceptance({
   return (
     <div className="space-y-3 rounded-md bg-white/3 p-3">
       <p className="text-sm text-white/70">
-        Accepted outside the site? Record it, and the agreement and first
-        invoice are drafted from the option they chose.
+        Pick the option {proposal.clientName || "the client"} chose (by email or
+        on a call), and the agreement and first invoice are drafted for it.
+        Nothing is sent: you check the agreement, then send it for their
+        signature.
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
           <Label className={proposalLabelClass} htmlFor="ra-option">
-            Option
+            Option they chose
           </Label>
           <select
             className={`${proposalInputClass} w-full rounded-md border px-3`}
@@ -74,7 +77,7 @@ export function RecordAcceptance({
         </div>
         <div className="space-y-1.5">
           <Label className={proposalLabelClass} htmlFor="ra-name">
-            Accepted by
+            Agreed by
           </Label>
           <Input
             className={proposalInputClass}
@@ -85,7 +88,7 @@ export function RecordAcceptance({
         </div>
         <div className="space-y-1.5">
           <Label className={proposalLabelClass} htmlFor="ra-how">
-            How
+            How they told you
           </Label>
           <Input
             className={proposalInputClass}
@@ -101,8 +104,8 @@ export function RecordAcceptance({
         type="button"
         variant="outline"
       >
-        <CheckCircle2 size={14} /> Record and draft
-        {chosen ? ` ${chosen.name}` : ""}
+        <PenLine size={14} /> Draft agreement and invoice
+        {chosen ? ` for ${chosen.name}` : ""}
       </Button>
     </div>
   );

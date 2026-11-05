@@ -196,19 +196,22 @@ export function ProposalContract({
             // Drafted from the option just recorded.
             await run(
               () => contractsApi.create(proposal.slug),
-              "Recorded. Agreement and first invoice drafted."
+              "Agreement and first invoice drafted. Check it, then send it for signature."
             );
           }}
           proposal={proposal}
         />
       )}
 
-      {contract ? null : (
+      {contract || !proposal.acceptance ? null : (
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-white/60">
-            {proposal.acceptance
-              ? "The proposal is signed. Draft the agreement from it: scope, price and the standard terms, ready to edit."
-              : "Usually drafted once the client accepts, from the option they chose."}
+            The client chose{" "}
+            {proposal.doc.packages.find(
+              (p) => p.id === proposal.acceptance?.option
+            )?.name ?? "an option"}
+            . Draft the agreement from it: scope, price and the standard terms,
+            ready to edit and send for their signature.
           </p>
           <Button
             disabled={busy}

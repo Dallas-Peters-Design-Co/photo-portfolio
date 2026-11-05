@@ -61,7 +61,7 @@ it("records the chosen option, by whom and how, without emailing anyone", async 
     return Promise.resolve();
   });
   const button = [...host.querySelectorAll("button")].find((b) =>
-    b.textContent?.includes("Record and draft")
+    b.textContent?.includes("Draft agreement and invoice")
   );
   expect(button?.textContent).toContain("Audit");
   await act(async () => button?.click());
