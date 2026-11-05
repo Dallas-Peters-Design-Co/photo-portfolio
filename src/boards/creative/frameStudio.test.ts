@@ -46,3 +46,10 @@ it("draws a selection cropped to its edges, and the frame without one", async ()
   await propsWith([])?.frame.snapshot?.();
   expect(drawn.at(-1)).toMatchObject({ height: 1500, width: 1000, x: 0, y: 0 });
 });
+
+it("draws a selection in place: the whole frame, only the selection on it", async () => {
+  await propsWith(["a"])?.frame.snapshotInPlace?.();
+  expect(drawn.at(-1)).toMatchObject({ height: 1500, width: 1000, x: 0, y: 0 });
+  // Nothing selected: nothing to take in place.
+  expect(propsWith([])?.frame.snapshotInPlace).toBeUndefined();
+});

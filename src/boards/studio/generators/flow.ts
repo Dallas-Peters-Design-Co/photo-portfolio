@@ -5,8 +5,8 @@ import { FLOW_PARAMS } from "./flowParams";
 import { pictureMask } from "./flowPicture";
 import { maskOf } from "./flowText";
 import { drawGrid, gridFrom, gridSvg, linesLook } from "./gridLines";
-import { paintOf } from "./mosaic";
 import { drawPixels, type TileEmit } from "./mosaicPixels";
+import { paintOf } from "./mosaicSvg";
 
 /**
  * Systems Flow: type (the big 2027 numbers) built from a fine grid of pixels,
@@ -52,10 +52,15 @@ const reachOf = (
   return out;
 };
 
-const withAlpha = (colour: string, a: number) =>
-  `${colour.slice(0, 7)}${Math.round(Math.max(0, Math.min(1, a)) * 255)
+/** The colour at `a` of its own opacity, so a see-through colour stays so. */
+const withAlpha = (colour: string, a: number) => {
+  const own =
+    colour.length === 9 ? Number.parseInt(colour.slice(7, 9), 16) / 255 : 1;
+  const k = Math.max(0, Math.min(1, a * own));
+  return `${colour.slice(0, 7)}${Math.round(k * 255)
     .toString(16)
     .padStart(2, "0")}`;
+};
 
 const DIRS: Dir[] = ["left", "right", "top", "bottom"];
 

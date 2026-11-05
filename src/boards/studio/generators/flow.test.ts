@@ -275,3 +275,32 @@ it("makes the flow from a picture's shape instead of text", async () => {
   expect(rightYellow).toBeGreaterThan(500);
   expect(leftYellow).toBe(0);
 });
+
+it("keeps a see-through type colour see-through", () => {
+  const canvas = document.createElement("canvas");
+  canvas.width = 300;
+  canvas.height = 300;
+  const g = canvas.getContext("2d") as CanvasRenderingContext2D;
+  flowTool.draw?.(
+    g,
+    {
+      ...defaultsOf(flowTool.params),
+      colors: "#d9bd1c40",
+      drift: 0,
+      fill: false,
+      noise: 0,
+      scatter: "#3a73b340",
+      text: "I",
+    },
+    // The Studio hands the tool's own colours over as the palette.
+    { height: 900, image: null, palette: ["#d9bd1c40"], width: 900 }
+  );
+  const { data } = g.getImageData(0, 0, 300, 300);
+  let most = 0;
+  for (let i = 3; i < data.length; i += 4) {
+    most = Math.max(most, data[i] ?? 0);
+  }
+  // A quarter-opaque colour never comes out more than a quarter opaque.
+  expect(most).toBeGreaterThan(0);
+  expect(most).toBeLessThanOrEqual(66);
+});

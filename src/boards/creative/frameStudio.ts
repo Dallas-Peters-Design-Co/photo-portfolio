@@ -83,14 +83,21 @@ export const frameStudioProps = ({
   if (!studio) {
     return null;
   }
-  /** A Studio picture placed in the frame: as a layer, or behind everything. */
+  /**
+   * A Studio picture placed in the frame: as a layer, behind everything, or
+   * (made from the selection in place) over the whole frame, on top, so its
+   * tiles land exactly where the selection is.
+   */
   const place = async (
     file: File,
-    asBackground: boolean,
+    how: "background" | "fit" | "over",
     made?: StudioRecipe
   ) => {
-    const layer = await studioLayer(file, frame, items, layers, asBackground);
-    add(made ? { ...layer, config: { studio: made } } : layer);
+    const covers = how !== "fit";
+    const layer = await studioLayer(file, frame, items, layers, covers);
+    const z =
+      how === "over" ? Math.max(0, ...layers.map((l) => l.z)) + 1 : layer.z;
+    add({ ...layer, z, ...(made ? { config: { studio: made } } : {}) });
   };
   const target = layers.find((l) => l.id === editId) ?? null;
   const recipe = target ? recipeOf(target.config) : null;
@@ -107,13 +114,13 @@ export const frameStudioProps = ({
   // A selection is drawn cropped to its own edges, so it fills the picture
   // (and the mosaic made from it); nothing selected is the whole frame.
   const box = picked.length > 0 ? boundsOf(picked) : frame;
-  const snapshot = () =>
-    renderCreative(
-      box,
-      from,
-      Math.min(2400, Math.max(800, size?.w ?? 1600)),
-      textElementFor
-    );
+  const width = Math.min(2400, Math.max(800, size?.w ?? 1600));
+  const snapshot = () => renderCreative(box, from, width, textElementFor);
+  /** The selection where it sits, the rest of the frame left clear. */
+  const snapshotInPlace =
+    picked.length > 0
+      ? () => renderCreative(frame, picked, width, textElementFor)
+      : undefined;
   return {
     editing:
       target && recipe
@@ -128,12 +135,15 @@ export const frameStudioProps = ({
       name,
       onApplyType: applyType,
       onBackground: (file: File, next: StudioRecipe) =>
-        void place(file, true, next),
+        void place(file, "background", next),
+      onOver: (file: File, next: StudioRecipe) =>
+        void place(file, "over", next),
       selectionCount: picked.length,
       size,
       snapshot,
+      snapshotInPlace,
     },
-    onAdd: (file: File, next?: StudioRecipe) => void place(file, false, next),
+    onAdd: (file: File, next?: StudioRecipe) => void place(file, "fit", next),
     tool: studio,
   };
 };

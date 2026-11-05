@@ -92,6 +92,8 @@ export function ImageToolView({
     editing?.recipe.image ?? null
   );
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  // Picked as the selection in place: it goes back over the frame exactly.
+  const [inPlace, setInPlace] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Editing: the picture it was made from, fetched to a local copy so its
@@ -195,6 +197,11 @@ export function ImageToolView({
         toast.success(`${tool.name} set as the frame's background`);
         return;
       }
+      if (inPlace && frame?.onOver) {
+        frame.onOver(file, recipe);
+        toast.success(`${tool.name} placed over the selection`);
+        return;
+      }
       onAdd(file, recipe);
       toast.success(`${tool.name} added to the ${where}`);
     } catch (e) {
@@ -243,14 +250,23 @@ export function ImageToolView({
                   ? `Selection (${frame.selectionCount})`
                   : "Whole frame",
                 take: frame.snapshot,
+                takeInPlace: frame.snapshotInPlace,
               }
             : undefined
         }
         image={imageUrl}
         onChange={set}
-        onImage={(url, from) => {
+        onImage={(url, from, taken) => {
           setImageUrl(url);
           setSource(from ?? null);
+          setInPlace(Boolean(taken));
+          // In place: made at the frame's own size, so it lines up exactly.
+          if (taken && frame?.size) {
+            const at = sizes.findIndex(
+              (o) => o.w === frame.size?.w && o.h === frame.size?.h
+            );
+            setSizeIndex(Math.max(0, at));
+          }
         }}
         palette={palette}
         params={tool.params}

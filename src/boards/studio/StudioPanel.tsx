@@ -37,11 +37,15 @@ export interface StudioFrame {
   name: string;
   onApplyType: (scale: TypeScale) => void;
   onBackground: (file: File, recipe: StudioRecipe) => void;
+  /** Over the whole frame, on top: for a picture made from the selection in place. */
+  onOver?: (file: File, recipe: StudioRecipe) => void;
   /** How many layers are selected in the frame (0: the whole design). */
   selectionCount?: number;
   size: { h: number; w: number } | null;
   /** The frame's selection (or whole design) drawn as a picture. */
   snapshot?: () => Promise<Blob>;
+  /** The selection where it sits in the frame, the rest left clear. */
+  snapshotInPlace?: () => Promise<Blob>;
 }
 
 /**

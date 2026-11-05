@@ -77,7 +77,9 @@ export const pictureMask = (
   if (g) {
     const iw = image.width || 1;
     const ih = image.height || 1;
-    const size = (Math.max(30, Number(v.scale) || 100) / 100) * 0.94;
+    // At 100% a picture the frame's size (a selection taken in place) lands
+    // cell for cell where it sits.
+    const size = Math.max(30, Number(v.scale) || 100) / 100;
     const k = Math.min(W / iw, H / ih) * size;
     const dw = iw * k;
     const dh = ih * k;

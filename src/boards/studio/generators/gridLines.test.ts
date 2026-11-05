@@ -70,3 +70,43 @@ it("gives Systems Flow the same grid", () => {
   expect(flowTool.render(v, ctx)).toContain('stroke="#ffffff"');
   expect(flowTool.render({ ...v, lines: false }, ctx)).not.toContain("stroke=");
 });
+
+it("feathers a mosaic's edges: fewer tiles near where the picture ends", async () => {
+  const src = document.createElement("canvas");
+  src.width = 40;
+  src.height = 40;
+  const sg = src.getContext("2d") as CanvasRenderingContext2D;
+  sg.fillStyle = "#204080";
+  sg.fillRect(0, 0, 40, 40);
+  const ctx = {
+    height: 400,
+    image: await createImageBitmap(src),
+    palette: ["#000"],
+    width: 400,
+  };
+  const count = (feather: number) => {
+    let edge = 0;
+    let middle = 0;
+    mosaicTool
+      .render(
+        { ...defaultsOf(mosaicTool.params), columns: 20, feather, fill: false },
+        ctx
+      )
+      .replace(/<rect x="([\d.]+)" y="([\d.]+)"/g, (_m, x, y) => {
+        const c = Number(x) / 20;
+        const r = Number(y) / 20;
+        const ring = Math.min(c, r, 19 - c, 19 - r);
+        if (ring < 1) {
+          edge += 1;
+        } else if (ring >= 8) {
+          middle += 1;
+        }
+        return "";
+      });
+    return { edge, middle };
+  };
+  const hard = count(0);
+  const soft = count(6);
+  expect(soft.edge).toBeLessThan(hard.edge * 0.6);
+  expect(soft.middle).toBe(hard.middle);
+});

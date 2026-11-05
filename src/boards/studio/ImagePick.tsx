@@ -1,4 +1,4 @@
-import { Frame, ImageUp } from "lucide-react";
+import { Crosshair, Frame, ImageUp } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useImageShelf } from "./imageShelf";
@@ -16,6 +16,8 @@ export interface FromFrame {
   /** "Selection (3)" or "Whole frame". */
   label: string;
   take: () => Promise<Blob>;
+  /** The selection where it sits in the frame (the picture is the frame's size). */
+  takeInPlace?: () => Promise<Blob>;
 }
 
 const toLocal = async (url: string): Promise<string> => {
@@ -43,7 +45,7 @@ export function ImagePick({
    * A local URL for the chosen picture, and the address it came from when it
    * has one that lasts (a board picture; not an upload from this computer).
    */
-  onPick: (url: string, source?: string) => void;
+  onPick: (url: string, source?: string, inPlace?: boolean) => void;
 }) {
   const shelf = useImageShelf();
   const [more, setMore] = useState(false);
@@ -54,14 +56,15 @@ export function ImagePick({
    * The selection in the frame, as it is right now: draw it, pick it. Taken
    * again each time it's pressed, so it follows whatever is selected.
    */
-  const takeFrame = async () => {
-    if (!fromFrame) {
+  const takeFrame = async (inPlace = false) => {
+    const take = inPlace ? fromFrame?.takeInPlace : fromFrame?.take;
+    if (!take) {
       return;
     }
     try {
-      const blob = await fromFrame.take();
-      setChosen("frame");
-      onPick(URL.createObjectURL(blob));
+      const blob = await take();
+      setChosen(inPlace ? "in-place" : "frame");
+      onPick(URL.createObjectURL(blob), undefined, inPlace);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't draw the frame");
     }
@@ -111,6 +114,19 @@ export function ImagePick({
           >
             <Frame aria-hidden size={16} />
             <small>{fromFrame.label}</small>
+          </button>
+        ) : null}
+        {fromFrame?.takeInPlace ? (
+          <button
+            aria-label="Use the selection where it sits in the frame"
+            aria-pressed={chosen === "in-place"}
+            className="studio-pick__item studio-pick__frame"
+            onClick={() => void takeFrame(true)}
+            title="The selection where it sits in the frame: the picture is the frame's size, and it goes back over the frame in exactly that place."
+            type="button"
+          >
+            <Crosshair aria-hidden size={16} />
+            <small>In place</small>
           </button>
         ) : null}
         {shown.map((url) => (
