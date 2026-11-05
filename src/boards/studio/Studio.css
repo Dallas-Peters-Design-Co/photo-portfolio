@@ -638,3 +638,11 @@
   background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
   border-radius: var(--radius-control, 6px);
 }
+
+/* A painted letter sits on its colours; the outline keeps it readable. */
+.studio-letters__letter[data-own] {
+  color: #fff;
+  text-shadow:
+    0 0 2px #000,
+    0 0 1px #000;
+}

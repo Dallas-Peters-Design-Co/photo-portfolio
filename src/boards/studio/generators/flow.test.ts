@@ -138,3 +138,16 @@ it("colours single letters", () => {
   expect(box.y0).toBeGreaterThan(140);
   expect(box.x1).toBeLessThan(170);
 });
+
+it("gives a letter several colours of its own", () => {
+  // The "2" on the second line in blue and red: both show, only there.
+  const blue = (r: number, _g: number, b: number) => b > 180 && r < 80;
+  const red = (r: number, g: number, b: number) => r > 180 && g < 80 && b < 80;
+  const values = { charColors: ",,,#2a84f8|#e02020", text: "20\n27" };
+  const inBlue = colourBox(values, blue);
+  const inRed = colourBox(values, red);
+  expect(inBlue.x1).toBeGreaterThan(0);
+  expect(inRed.x1).toBeGreaterThan(0);
+  expect(inRed.y0).toBeGreaterThan(140);
+  expect(inRed.x1).toBeLessThan(170);
+});

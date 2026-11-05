@@ -59,14 +59,24 @@ const DIRS: Dir[] = ["left", "right", "top", "bottom"];
 const HEX = /^#[0-9a-f]{6}$/i;
 
 /**
- * Colours given to single letters: a comma list in step with the text,
- * empty where a letter keeps the type colours ("#f3e9a3,,,#8fd6e8").
+ * Colours given to single letters: a comma list in step with the text, each
+ * entry a letter's own colours (dark to bright) joined by "|", empty where a
+ * letter keeps the type colours ("#a|#b|#c,,,#8fd6e8").
  */
-export const letterColoursOf = (value: unknown): Map<number, string> =>
+export const letterColoursOf = (value: unknown): Map<number, string[]> =>
   new Map(
     (typeof value === "string" ? value.split(",") : [])
-      .map((c, i) => [i, c.trim()] as const)
-      .filter(([, c]) => HEX.test(c))
+      .map(
+        (entry, i) =>
+          [
+            i,
+            entry
+              .split("|")
+              .map((c) => c.trim())
+              .filter((c) => HEX.test(c)),
+          ] as const
+      )
+      .filter(([, set]) => set.length > 0)
   );
 
 /** The settings, read once for a whole redraw. */
@@ -126,18 +136,16 @@ const letterPixel = (
 ): string | null => {
   const a = rand();
   const b = rand();
-  // A letter given its own colour is drawn in it, with the same lanes.
-  const own = o.letterColours.get(o.letter[at] ?? -1);
+  // A letter given its own colours draws from them, with the same lanes.
+  const shape = o.letterColours.get(o.letter[at] ?? -1) ?? o.shape;
   const lane = o.lanes === 0 || r % (o.lanes + 1) !== o.lanes;
   const p = lane
     ? o.fill * (1 - o.order + o.order * along) + o.order * 0.15
     : 0.12;
   if (a < p) {
     const i =
-      b < 0.2 + along * 0.5
-        ? o.shape.length - 1
-        : Math.floor(b * o.shape.length);
-    return withAlpha(own ?? pick(o.shape, i), 0.6 + rand() * 0.4);
+      b < 0.2 + along * 0.5 ? shape.length - 1 : Math.floor(b * shape.length);
+    return withAlpha(pick(shape, i), 0.6 + rand() * 0.4);
   }
   if (a < p + 0.18 * (1 - along)) {
     return withAlpha(pick(o.loose, Math.floor(b * o.loose.length)), 0.7);
