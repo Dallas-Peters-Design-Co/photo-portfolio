@@ -43,6 +43,19 @@ const hintFor = (
   return OUTPUTS[output].hint;
 };
 
+/** The converter loads on first use; a big poster takes it a while. */
+const asCmyk = async (pdf: Blob): Promise<Blob> => {
+  const note = toast.loading("Converting to CMYK…", {
+    description: "Large pictures can take up to a minute.",
+  });
+  try {
+    const { toCmykPdf } = await import("../io/cmykPdf");
+    return await toCmykPdf(pdf);
+  } finally {
+    toast.dismiss(note);
+  }
+};
+
 const savePrintPdf = async (
   frame: BoardItem,
   layers: BoardItem[],
@@ -50,14 +63,16 @@ const savePrintPdf = async (
   options: PrintOptions,
   name: string
 ) => {
-  const { blob, spec } = await exportPrintPdf(
+  const { blob: rgb, spec } = await exportPrintPdf(
     frame,
     layers,
     textElementFor,
     options
   );
+  const blob = options.cmyk ? await asCmyk(rgb) : rgb;
   downloadBlob(blob, name, "pdf");
   const extras = [
+    options.cmyk ? "CMYK" : "",
     options.bleed ? `${bleedLabel(spec)} bleed` : "",
     options.marks ? "crop marks" : "",
   ].filter(Boolean);
@@ -66,7 +81,7 @@ const savePrintPdf = async (
   });
 };
 
-/** Bleed and crop marks, both on by default: what a print shop asks for. */
+/** Bleed and crop marks, both on by default: what a print shop asks for; CMYK when the press wants it. */
 function PrintChoices({
   onChange,
   value,
@@ -91,6 +106,14 @@ function PrintChoices({
           type="checkbox"
         />
         Crop marks
+      </label>
+      <label title="Converts every colour and picture to CMYK, for presses that want it. Type and shapes stay vector.">
+        <input
+          checked={value.cmyk}
+          onChange={(e) => onChange({ ...value, cmyk: e.target.checked })}
+          type="checkbox"
+        />
+        CMYK
       </label>
     </span>
   );
@@ -164,6 +187,7 @@ export function ExportMenu({
   const [link, setLink] = useState("https://");
   const [print, setPrint] = useState<PrintOptions>({
     bleed: true,
+    cmyk: false,
     marks: true,
   });
   const root = useRef<HTMLDivElement>(null);

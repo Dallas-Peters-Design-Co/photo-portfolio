@@ -16,6 +16,8 @@ import { printHtml } from "./printHtml";
 
 export interface PrintOptions {
   bleed: boolean;
+  /** Converted to CMYK after it's printed (io/cmykPdf.ts). */
+  cmyk: boolean;
   marks: boolean;
 }
 
