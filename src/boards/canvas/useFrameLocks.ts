@@ -7,7 +7,12 @@ import {
 } from "react";
 import type { BoardItem } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
-import { clipPathFor, frameLocks, liftToFrames } from "../geometry/frameLock";
+import {
+  clipPathFor,
+  frameLocks,
+  isDesignFrame,
+  liftToFrames,
+} from "../geometry/frameLock";
 import type { Selection } from "../geometry/selectionModel";
 
 /**
@@ -45,7 +50,11 @@ export const useFrameLocks = (
   const inFrame = (item: BoardItem) => {
     const lock = locks.get(item.id);
     if (!lock) {
-      return;
+      // The design frame itself opens too: a double-click on its own area,
+      // or on a picture behind it that the frame's box sits over.
+      return designFrame && isDesignFrame(item, items)
+        ? { clipPath: null, isFrame: true, open: () => designFrame(item.id) }
+        : undefined;
     }
     return {
       clipPath: clipPathFor(item, lock.clip),

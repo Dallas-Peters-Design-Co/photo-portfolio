@@ -77,8 +77,11 @@ interface BoardItemViewProps {
   /** A picture wired into this item's image input, if it has one. */
   imageUrl?: string | null;
   index: number;
-  /** Set when it sits in a design frame: drawn clipped to it (frameLock.ts). */
-  inFrame?: { clipPath: string | null; open?: () => void };
+  /**
+   * Set when it sits in a design frame: drawn clipped to it (frameLock.ts).
+   * The design frame itself gets one too (isFrame), only for the double-click.
+   */
+  inFrame?: { clipPath: string | null; isFrame?: boolean; open?: () => void };
   /** True while this item's text is being typed into. */
   isEditing: boolean;
   isSelected: boolean;
@@ -275,6 +278,10 @@ function itemPointerDown({
   };
 }
 
+/** Content of a design frame is styled as such; the frame itself is not. */
+const inFrameClass = (inFrame: BoardItemViewProps["inFrame"]): string =>
+  inFrame && !inFrame.isFrame ? "board-item--in-frame" : "";
+
 /** One item on the board. */
 export function BoardItemView({
   hasWiredPrompt = false,
@@ -354,7 +361,7 @@ export function BoardItemView({
       // class before it and switched off every in-frame style.
       className={[
         itemBoxClassName(item, isSelected),
-        inFrame ? "board-item--in-frame" : "",
+        inFrameClass(inFrame),
       ].join(" ")}
       onClick={
         onCommentTarget
