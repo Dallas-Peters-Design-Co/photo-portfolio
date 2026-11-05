@@ -1,4 +1,5 @@
 import type { StudioParam, StudioValues } from "../types";
+import { FADE_PARAMS } from "./edgeFade";
 import { FONTS } from "./flowText";
 import { GRID_PARAMS } from "./gridLines";
 
@@ -130,6 +131,7 @@ export const FLOW_PARAMS: StudioParam[] = [
     when: (v) => v.lines !== true,
   },
   ...GRID_PARAMS,
+  ...FADE_PARAMS,
   {
     default: 2,
     key: "lanes",

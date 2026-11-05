@@ -1,6 +1,7 @@
 import { r2, rng, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
 import { clouds, coverSample, lumAt } from "./cellField";
+import { edgeFadeOf, FADE_PARAMS, fadeCell } from "./edgeFade";
 import {
   drawGrid,
   gridFrom,
@@ -200,6 +201,7 @@ const eachCell = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
   const matrix = BAYER[String(v.pattern)] ?? null;
   const rand = rng((Number(v.seed) || 1) + 7);
   const ink = String(v.ink || "#ffffff");
+  const fade = edgeFadeOf(v, g.cols, g.rows);
   for (let r = 0; r < g.rows; r += 1) {
     for (let c = 0; c < g.cols; c += 1) {
       const t = adjust(tones[r * g.cols + c] ?? 0, v);
@@ -207,8 +209,16 @@ const eachCell = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
         ? ((matrix[r % matrix.length]?.[c % matrix.length] ?? 0) + 0.5) /
           matrix.length ** 2
         : rand();
-      if (t > cut) {
-        emit("square", c * g.cell + inset, r * g.cell + inset, s, ink, false);
+      const colour = t > cut ? fadeCell(fade, c, r, ink) : null;
+      if (colour) {
+        emit(
+          "square",
+          c * g.cell + inset,
+          r * g.cell + inset,
+          s,
+          colour,
+          false
+        );
       }
     }
   }
@@ -396,6 +406,7 @@ export const ditherTool: ImageTool = {
       type: "range",
     },
     ...gridParams({ lineColour: "#ffffff30", lines: true, lineWidth: 1 }),
+    ...FADE_PARAMS,
     { default: "#ffffff", key: "ink", label: "Cells", type: "color" },
     {
       default: true,

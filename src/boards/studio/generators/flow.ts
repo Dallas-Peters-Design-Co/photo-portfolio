@@ -1,6 +1,7 @@
 import { colorsOf } from "../chosenColors";
 import { pick, r2, rng, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import { edgeFadeOf, fadeCell } from "./edgeFade";
 import { FLOW_PARAMS } from "./flowParams";
 import { pictureMask } from "./flowPicture";
 import { maskOf } from "./flowText";
@@ -252,9 +253,11 @@ const eachPixel = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
     v.cutout === true ? cutOf(o, Math.max(0, Number(v.margin) || 0)) : null;
   const s = o.cell - o.inset * 2;
   const rand = rng(Number(v.seed) || 1);
+  const fade = edgeFadeOf(v, o.cols, o.rows);
   for (let r = 0; r < o.rows; r += 1) {
     for (let c = 0; c < o.cols; c += 1) {
-      const colour = pixelAt(o, cut, c, r, rand);
+      const own = pixelAt(o, cut, c, r, rand);
+      const colour = own && fadeCell(fade, c, r, own);
       if (colour) {
         emit(
           "square",

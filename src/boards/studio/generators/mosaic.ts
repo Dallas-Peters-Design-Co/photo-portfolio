@@ -1,5 +1,6 @@
 import { esc, pick, r2, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import { edgeFadeOf, FADE_PARAMS, fadeCell } from "./edgeFade";
 import {
   drawGrid,
   GRID_PARAMS,
@@ -267,6 +268,7 @@ const eachTile = (
   const painted = paintedOf(v.painted);
   const kind = String(v.tile);
   const fade = featherOf(data, cols, rows, Number(v.feather) || 0);
+  const toEdge = edgeFadeOf(v, cols, rows);
   /**
    * A tile's colour, or null for none: where the picture is see-through (a
    * selection drawn from the frame, a cut-out) there's no tile unless one's
@@ -282,7 +284,12 @@ const eachTile = (
     if ((data[at * 4 + 3] ?? 255) < 64 || (t < 1 && tileNoise(col, row) > t)) {
       return null;
     }
-    return faded(fills[at] ?? "#000000", 0.35 + 0.65 * t);
+    return fadeCell(
+      toEdge,
+      col,
+      row,
+      faded(fills[at] ?? "#000000", 0.35 + 0.65 * t)
+    );
   };
   for (let row = 0; row < rows; row += 1) {
     for (let col = 0; col < cols; col += 1) {
@@ -357,6 +364,7 @@ export const mosaicTool: ImageTool = {
       when: (v) => v.lines !== true,
     },
     FEATHER_PARAM,
+    ...FADE_PARAMS,
     ...GRID_PARAMS,
     {
       default: "photo",
