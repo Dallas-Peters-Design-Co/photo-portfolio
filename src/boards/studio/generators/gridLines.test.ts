@@ -4,7 +4,7 @@ import { flowTool } from "./flow";
 import { mosaicTool } from "./mosaic";
 
 /** Grid lines in place of the gap, and crosshairs where they meet. */
-const picture = async () => {
+const picture = () => {
   const src = document.createElement("canvas");
   src.width = 40;
   src.height = 40;
@@ -46,7 +46,7 @@ it("draws lines between the tiles and crosshairs where they meet", async () => {
   const svg = mosaicTool.render(v, ctx);
   expect(svg).toContain('stroke="#00ff00"');
   expect(svg).toContain('stroke="#ff0000"');
-  expect(svg).toMatch(/width="100"/);
+  expect(svg).toContain('width="100"');
 
   // The preview: a line between tiles, a crosshair at the meeting point, and
   // the tile itself in the middle of a cell.
