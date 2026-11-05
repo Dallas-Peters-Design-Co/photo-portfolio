@@ -175,6 +175,24 @@ const loosePixel = (
   );
 };
 
+/** The cut grown by one cell each way. */
+const grown = (cut: Uint8Array, cols: number, rows: number): Uint8Array => {
+  const next = cut.slice();
+  for (let at = 0; at < cut.length; at += 1) {
+    const c = at % cols;
+    const r = (at - c) / cols;
+    const near =
+      (c > 0 && cut[at - 1]) ||
+      (c < cols - 1 && cut[at + 1]) ||
+      (r > 0 && cut[at - cols]) ||
+      (r < rows - 1 && cut[at + cols]);
+    if (near) {
+      next[at] = 1;
+    }
+  }
+  return next;
+};
+
 /**
  * The cells a cutout leaves empty: the letters, grown by `margin` cells all
  * round so the field keeps a clean edge off them.
@@ -187,23 +205,8 @@ export const cutOf = (o: Setup, margin: number): Uint8Array => {
       cut[r * cols + c] = o.inside(c, r) ? 1 : 0;
     }
   }
-  // Grown a cell at a time, across then down, which makes a square margin.
   for (let step = 0; step < margin; step += 1) {
-    const next = cut.slice();
-    for (let r = 0; r < rows; r += 1) {
-      for (let c = 0; c < cols; c += 1) {
-        const at = r * cols + c;
-        if (
-          (c > 0 && cut[at - 1]) ||
-          (c < cols - 1 && cut[at + 1]) ||
-          (r > 0 && cut[at - cols]) ||
-          (r < rows - 1 && cut[at + cols])
-        ) {
-          next[at] = 1;
-        }
-      }
-    }
-    cut = next;
+    cut = grown(cut, cols, rows);
   }
   return cut;
 };
