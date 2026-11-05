@@ -118,6 +118,11 @@ export interface ImageTool {
   ) => void;
   id: string;
   kind: "image";
+  /**
+   * Ready-made starting points, listed with the saved settings: each is the
+   * tool's defaults with these values on top, so it looks the same each time.
+   */
+  looks?: { name: string; values: StudioValues }[];
   name: string;
   params: StudioParam[];
   /** An SVG document for the size asked. Deterministic for a given seed. */

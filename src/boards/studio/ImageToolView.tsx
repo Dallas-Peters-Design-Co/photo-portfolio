@@ -244,7 +244,13 @@ export function ImageToolView({
           ))}
         </select>
       </label>
-      <PresetBar onLoad={onValues} tool={tool.id} values={values} />
+      <PresetBar
+        defaults={defaultsOf(tool.params)}
+        looks={tool.looks}
+        onLoad={onValues}
+        tool={tool.id}
+        values={values}
+      />
       <StudioControls
         fromFrame={
           frame?.snapshot

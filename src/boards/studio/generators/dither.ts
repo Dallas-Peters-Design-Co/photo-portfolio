@@ -67,7 +67,7 @@ const tonesOf = (
   }
   // Generated clouds sit around the middle; spread them over every tone so
   // there's real black, real light and everything between.
-  if (v.source !== "picture") {
+  if (v.source !== "picture" && v.spread !== "soft") {
     // …leaning dark, so most of it is sparse dots on black.
     base = spreadOut(base).map((t) => t ** 1.6);
   }
@@ -230,6 +230,61 @@ export const ditherTool: ImageTool = {
   },
   id: "dither",
   kind: "image",
+  looks: [
+    { name: "Readout (sparse patches)", values: {} },
+    {
+      name: "Fade down (soft)",
+      values: {
+        block: 6,
+        columns: 96,
+        contrast: 120,
+        gap: 0,
+        levels: 9,
+        lineColour: "#ffffff26",
+        patches: "even",
+        seed: 4,
+        source: "fade",
+        spread: "soft",
+      },
+    },
+    {
+      name: "From a picture",
+      values: {
+        block: 3,
+        columns: 120,
+        contrast: 120,
+        gap: 0,
+        levels: 9,
+        lineColour: "#ffffff26",
+        patches: "even",
+        source: "picture",
+      },
+    },
+    {
+      name: "Brand readout (teal)",
+      values: {
+        bg: "#0c2a2e",
+        ink: "#8fd6e8",
+        lineColour: "#8fd6e833",
+        seed: 5,
+      },
+    },
+    {
+      name: "Words: dense over sparse",
+      values: {
+        bg: "#0c2a2e",
+        block: 2,
+        columns: 150,
+        contrast: 100,
+        gap: 30,
+        ink: "#8fd6e8",
+        levels: 7,
+        lineColour: "#8fd6e822",
+        patches: "even",
+        source: "picture",
+      },
+    },
+  ],
   name: "Dither Grid",
   params: [
     {
@@ -256,6 +311,17 @@ export const ditherTool: ImageTool = {
       max: 100,
       min: 5,
       type: "range",
+      when: (v) => v.source !== "picture",
+    },
+    {
+      default: "full",
+      key: "spread",
+      label: "Tone range",
+      options: [
+        { label: "Full range, leaning dark", value: "full" },
+        { label: "Soft, as the clouds fall", value: "soft" },
+      ],
+      type: "select",
       when: (v) => v.source !== "picture",
     },
     {

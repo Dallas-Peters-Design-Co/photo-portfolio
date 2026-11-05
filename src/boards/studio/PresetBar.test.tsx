@@ -93,3 +93,37 @@ it("saves settings by name and loads them back, keeping painted tiles", async ()
   act(() => root2.unmount());
   host.remove();
 });
+
+it("loads a ready-made look exactly: the defaults under it, painted tiles kept", async () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  let got: StudioValues = {};
+  act(() =>
+    root.render(
+      <PresetBar
+        defaults={{ columns: 72, gap: 44, source: "clouds" }}
+        looks={[{ name: "Fade", values: { gap: 0, source: "fade" } }]}
+        onLoad={(v) => {
+          got = v;
+        }}
+        tool="dither"
+        values={{ columns: 120, gap: 10, painted: "1.1#ff0000" }}
+      />
+    )
+  );
+  await settle();
+  const select = host.querySelector("select") as HTMLSelectElement;
+  act(() => {
+    select.value = "look:0";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  expect(got).toEqual({
+    columns: 72,
+    gap: 0,
+    painted: "1.1#ff0000",
+    source: "fade",
+  });
+  act(() => root.unmount());
+  host.remove();
+});

@@ -9,10 +9,16 @@ import type { StudioValues } from "./types";
  * settings as a new one, or over the one picked.
  */
 export function PresetBar({
+  defaults = {},
+  looks = [],
   onLoad,
   tool,
   values,
 }: {
+  /** The tool's defaults, which a look is laid over. */
+  defaults?: StudioValues;
+  /** The tool's ready-made looks (ImageTool.looks). */
+  looks?: { name: string; values: StudioValues }[];
   onLoad: (values: StudioValues) => void;
   tool: string;
   values: StudioValues;
@@ -73,6 +79,16 @@ export function PresetBar({
           aria-label="Saved settings"
           className="studio__input"
           onChange={(e) => {
+            const look = looks[Number(e.target.value.replace("look:", ""))];
+            if (e.target.value.startsWith("look:") && look) {
+              // The look exactly: defaults under it, this picture's own
+              // settings (its painted tiles) kept.
+              const own = Object.fromEntries(
+                Object.entries(values).filter(([k]) => !(k in lookOf(values)))
+              );
+              onLoad({ ...defaults, ...look.values, ...own });
+              return;
+            }
             const p = presets.find((x) => x.id === e.target.value);
             if (p) {
               // Settings that belong to this picture (its painted tiles) stay.
@@ -82,13 +98,26 @@ export function PresetBar({
           value={current?.id ?? ""}
         >
           <option value="">
-            {presets.length > 0 ? "Choose…" : "None saved yet"}
+            {presets.length + looks.length > 0 ? "Choose…" : "None saved yet"}
           </option>
-          {presets.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
+          {looks.length > 0 ? (
+            <optgroup label="Looks">
+              {looks.map((l, i) => (
+                <option key={l.name} value={`look:${i}`}>
+                  {l.name}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
+          {presets.length > 0 ? (
+            <optgroup label="Saved">
+              {presets.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </optgroup>
+          ) : null}
         </select>
         <button
           className="studio__button"

@@ -221,6 +221,24 @@ export const gridBoxesTool: ImageTool = {
   },
   id: "grid-boxes",
   kind: "image",
+  looks: [
+    {
+      name: "Scattered boxes (teal)",
+      values: { colors: "#2ee6d6", columns: 6, layout: "scatter", seed: 9 },
+    },
+    {
+      name: "Blob breaking apart (yellow)",
+      values: {
+        boxes: 45,
+        colors: "#ffe81f",
+        columns: 28,
+        crosses: false,
+        layout: "blob",
+        photoShare: 100,
+        seed: 3,
+      },
+    },
+  ],
   name: "Grid Boxes",
   params: [
     { key: "image", label: "Picture", type: "image" },
