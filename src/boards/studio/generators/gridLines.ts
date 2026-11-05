@@ -55,6 +55,16 @@ export const GRID_PARAMS: StudioParam[] = [
   },
 ];
 
+/** The grid settings with some defaults changed, for a tool that wants them. */
+export const gridParams = (
+  defaults: Record<string, boolean | number | string>
+) =>
+  GRID_PARAMS.map((p) =>
+    p.key in defaults && "default" in p
+      ? ({ ...p, default: defaults[p.key] } as StudioParam)
+      : p
+  );
+
 /** The tile grid: Mosaic and Systems Flow both size it from `columns`. */
 export interface Grid {
   cell: number;
