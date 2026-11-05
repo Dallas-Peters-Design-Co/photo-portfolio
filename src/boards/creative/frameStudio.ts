@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
 import { recipeOf, type StudioRecipe } from "../studio/types";
-import { renderCreative } from "./exportPng";
+import { exportWidthFor, renderCreative } from "./exportPng";
 import { replaceStudioLayer, studioLayer } from "./studioLayer";
 
 /**
@@ -34,6 +34,12 @@ export const useFrameStudio = () => {
   const studioEditorFor = (layer: BoardItem) =>
     recipeOf(layer.config) ? () => editInStudio(layer) : undefined;
   return { editId, retarget, setStudio, studio, studioEditorFor };
+};
+
+/** A frame's size in pixels when its name gives none: its export size. */
+export const frameSizeOf = (frame: BoardItem): { h: number; w: number } => {
+  const w = exportWidthFor(frame);
+  return { h: Math.round((w * frame.height) / frame.width), w };
 };
 
 /** The box around some layers (their unrotated boxes). */

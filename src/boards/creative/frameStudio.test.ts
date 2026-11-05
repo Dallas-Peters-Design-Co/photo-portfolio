@@ -7,6 +7,7 @@ import type { BoardItem } from "../../types";
  */
 const drawn: { height: number; width: number; x: number; y: number }[] = [];
 vi.mock("./exportPng", () => ({
+  exportWidthFor: (f: { width: number }) => Math.round(f.width * 2),
   renderCreative: (box: {
     height: number;
     width: number;
@@ -52,4 +53,10 @@ it("draws a selection in place: the whole frame, only the selection on it", asyn
   expect(drawn.at(-1)).toMatchObject({ height: 1500, width: 1000, x: 0, y: 0 });
   // Nothing selected: nothing to take in place.
   expect(propsWith([])?.frame.snapshotInPlace).toBeUndefined();
+});
+
+it("gives a frame without an ad size its own shape at export width", async () => {
+  const { frameSizeOf } = await import("./frameStudio");
+  // 1000 × 1500 canvas units, exported at twice the width.
+  expect(frameSizeOf(frame)).toEqual({ h: 3000, w: 2000 });
 });

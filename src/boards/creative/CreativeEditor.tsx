@@ -25,7 +25,7 @@ import { useComponents } from "./components/useComponents";
 import { layersOf, newImage, newShape } from "./creativeModel";
 import { EditorOverlays } from "./EditorOverlays";
 import { ExportMenu } from "./ExportMenu";
-import { frameStudioProps, useFrameStudio } from "./frameStudio";
+import { frameSizeOf, frameStudioProps, useFrameStudio } from "./frameStudio";
 import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
 import { MultiBar } from "./MultiBar";
@@ -399,7 +399,9 @@ export function CreativeEditor({
           layers,
           name,
           selected: selection.ids,
-          size,
+          // Every frame has a size for the Studio: its ad size, or its own
+          // shape at its export width, so a picture can match it exactly.
+          size: size ?? frameSizeOf(frame),
           studio,
           swap: (oldId, next) => {
             // The latest board: the new picture uploads first, and the

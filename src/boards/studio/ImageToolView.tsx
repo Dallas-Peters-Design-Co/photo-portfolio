@@ -197,9 +197,12 @@ export function ImageToolView({
         toast.success(`${tool.name} set as the frame's background`);
         return;
       }
-      if (inPlace && frame?.onOver) {
+      // Made at the frame's size (or from the selection in place): it goes
+      // over the whole frame, exactly, rather than fitted inside it.
+      const frameSized = frame?.size?.w === size.w && frame?.size?.h === size.h;
+      if ((inPlace || frameSized) && frame?.onOver) {
         frame.onOver(file, recipe);
-        toast.success(`${tool.name} placed over the selection`);
+        toast.success(`${tool.name} placed over the whole frame`);
         return;
       }
       onAdd(file, recipe);
