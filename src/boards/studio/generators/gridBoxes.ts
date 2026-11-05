@@ -351,5 +351,7 @@ export const gridBoxesTool: ImageTool = {
     parts.push(gridSvg(grid, linesLook(v), ctx));
     return svgDoc(w, h, parts.join(""));
   },
-  vector: false,
+  // The boxes and grid stay vector; the picture rides inside as a JPEG, its
+  // black and white and contrast already baked in, so nothing needs a filter.
+  vector: true,
 };
