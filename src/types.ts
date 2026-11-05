@@ -281,6 +281,8 @@ export interface BoardSource {
 }
 
 export interface Board {
+  /** Named colours kept on the board (src/boards/colorVars); admin only. */
+  colorVars?: { id: string; name: string; value: string }[];
   /** The components its instances place (detail responses only). */
   components?: BrandComponent[];
   coverUrl: string | null;

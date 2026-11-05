@@ -1,7 +1,7 @@
 import { ArrowRight, Dices, RotateCcw, X } from "lucide-react";
 import { ColorWell } from "../ColorWell";
 import { ColorsField } from "./ColorsField";
-import { colorsOf, paletteFor } from "./chosenColors";
+import { colorsOf } from "./chosenColors";
 import { replacementsOf } from "./generators/recolour";
 import { type FromFrame, ImagePick } from "./ImagePick";
 import { LettersField } from "./LettersField";
@@ -137,7 +137,6 @@ export function StudioControls({
                 key={p.key}
                 label={p.label}
                 onChange={(next) => onChange(p.key, next)}
-                start={paletteFor(params, values, palette)}
                 text={String(values[p.of] ?? "")}
                 value={String(v ?? "")}
               />

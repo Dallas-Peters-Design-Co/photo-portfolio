@@ -8,6 +8,7 @@
 
 import type { RunState } from "../../config/nodeTypes.js";
 import type { TextStyle } from "../../config/textStyle.js";
+import type { ColorVarDto } from "./colorVars.js";
 
 export type BoardItemKind =
   | "photo"
@@ -21,6 +22,7 @@ export type BoardItemKind =
   | "component";
 
 export interface BoardRow {
+  color_vars?: unknown;
   cover_url: string | null;
   created_at: string | Date;
   id: string;
@@ -131,6 +133,8 @@ export interface BoardItemDto {
 }
 
 export interface BoardDto {
+  /** Admin only: the board's colour variables (src/boards/colorVars). */
+  colorVars?: ColorVarDto[];
   coverUrl: string | null;
   createdAt: string;
   id: string;

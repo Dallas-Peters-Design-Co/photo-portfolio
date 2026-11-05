@@ -628,21 +628,30 @@
   align-items: center;
 }
 
-.studio-letters__letter {
+.studio-letters__cell {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  justify-items: center;
   min-width: 1.75rem;
-  height: 1.75rem;
-  padding: 0 0.3rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-board-ink);
-  background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
-  border-radius: var(--radius-control, 6px);
 }
 
-/* A painted letter sits on its colours; the outline keeps it readable. */
-.studio-letters__letter[data-own] {
-  color: #fff;
-  text-shadow:
-    0 0 2px #000,
-    0 0 1px #000;
+.studio-letters__char {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+/* Back to the type colours: a small cross on the well's corner. */
+.studio-letters__clear {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  color: var(--color-board-surface);
+  background: var(--color-board-ink);
+  border-radius: 50%;
 }

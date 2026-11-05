@@ -9,6 +9,7 @@ import {
 import { BoardCanvas } from "../../boards/BoardCanvas";
 import { BoardProviders } from "../../boards/BoardProviders";
 import { FloatingTools } from "../../boards/canvas/FloatingTools";
+import { useColorVarsDoc } from "../../boards/colorVars/ColorVarsContext";
 import type { DrawStyle } from "../../boards/drawing/DrawToolbar";
 import {
   DEFAULT_STROKE,
@@ -54,11 +55,9 @@ import { useRecipes } from "./boardEditor/useRecipes";
 import { useSelectedItem } from "./boardEditor/useSelectedItem";
 
 /**
- * Full-screen board editor.
- *
- * Saves on a debounce rather than behind a button: the canvas is edited by
- * dragging, and a drag has no natural moment where a person would think to
- * press save. The unsaved marker is what makes that honest.
+ * Full-screen board editor. Saves on a debounce rather than behind a button:
+ * a drag has no natural moment where a person would think to press save. The
+ * unsaved marker is what makes that honest.
  */
 export function BoardEditor({
   boardId,
@@ -92,22 +91,16 @@ export function BoardEditor({
   const [showComments, setShowComments] = useState(false);
   const [isInserting, setIsInserting] = useState(false);
   /**
-   * The selection waiting to be named, or null when nothing is being saved.
-   *
-   * Held here rather than in the modal because it is gathered from the board —
-   * once the panel is open the selection may have moved on, and what is being
-   * saved should be what was chosen when it was chosen.
+   * The selection waiting to be named, or null. Held here, not in the modal:
+   * what is saved should be what was chosen when it was chosen.
    */
   const [elementDraft, setElementDraft] = useState<{
     description: string;
     images: string[];
   } | null>(null);
   /**
-   * Which tab the insert panel opens on, or undefined for its own default.
-   *
-   * Decided by whoever opens it. Naming an element ends on the library it was
-   * just added to, so the thing that was named can be placed without hunting
-   * for it; the toolbar opens where it always did.
+   * Which tab the insert panel opens on (undefined: its own default). Naming
+   * an element ends on its library, so it can be placed without hunting.
    */
   const [pickAt, setPickAt] = useState<"elements" | undefined>();
   const history = useBoardHistory();
@@ -135,6 +128,7 @@ export function BoardEditor({
     publish,
     rename,
     save,
+    saveColorVars,
   } = useBoardDocument({
     board,
     boardId,
@@ -277,8 +271,14 @@ export function BoardEditor({
       setWires,
     });
 
+  const colours = useColorVarsDoc(
+    board?.colorVars,
+    pending,
+    change,
+    saveColorVars
+  );
   return (
-    <BoardProviders boardId={boardId}>
+    <BoardProviders boardId={boardId} colours={colours}>
       {/* `text-board-ink` establishes the board's own writing color for
           everything inside. Without it the subtree inherits the *site's*
           foreground — the branded near-white that SiteSettingsProvider pins to

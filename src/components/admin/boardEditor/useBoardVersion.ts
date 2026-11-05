@@ -155,7 +155,9 @@ export const useBoardVersion = (boardId: string) => {
    * move the version on, so it counts as one of ours for an overlapping save.
    */
   const updateDetails = useCallback(
-    async (input: Pick<ArrangementSave, "isPublic" | "title">) => {
+    async (
+      input: Pick<ArrangementSave, "colorVars" | "isPublic" | "title">
+    ) => {
       const { result } = await tracked(() => boardsApi.update(boardId, input));
       adopt(result);
       return result;

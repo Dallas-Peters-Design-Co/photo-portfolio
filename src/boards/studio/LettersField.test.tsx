@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
 import { LettersField } from "./LettersField";
 
-/** Painting single letters with a set of colours each, not one flat colour. */
+/** A colour for each letter: one well per letter, one colour each. */
 function Harness({ out }: { out: { value: string } }) {
   const [value, setValue] = useState("");
   out.value = value;
@@ -11,34 +11,57 @@ function Harness({ out }: { out: { value: string } }) {
     <LettersField
       label="Letter colours"
       onChange={setValue}
-      start={["#111111", "#222222", "#333333"]}
       text={"20\n27"}
       value={value}
     />
   );
 }
 
-const letter = (host: HTMLElement, i: number) =>
-  host.querySelectorAll<HTMLButtonElement>(".studio-letters__letter")[i];
+const cells = (host: HTMLElement) =>
+  host.querySelectorAll<HTMLElement>(".studio-letters__cell");
 
-it("paints a letter with every colour in the brush, and puts it back", async () => {
+/** Opens a letter's well and types a colour into the picker. */
+const colour = async (host: HTMLElement, i: number, hex: string) => {
+  await act(async () =>
+    cells(host)
+      [i]?.querySelector<HTMLButtonElement>(".color-well__swatch")
+      ?.click()
+  );
+  const field = document.querySelector<HTMLInputElement>(".oklch__text");
+  const set = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value"
+  )?.set;
+  await act(() => {
+    set?.call(field, hex);
+    field?.dispatchEvent(new Event("input", { bubbles: true }));
+    return Promise.resolve();
+  });
+  // Close the picker.
+  await act(async () =>
+    document.querySelector<HTMLButtonElement>(".color-well__scrim")?.click()
+  );
+};
+
+it("gives each letter its own single colour, and puts one back", async () => {
   const host = document.createElement("div");
   document.body.append(host);
   const out = { value: "" };
   const root = createRoot(host);
   await act(async () => root.render(<Harness out={out} />));
 
-  // The "0": its own set of three colours, kept in step with the text.
-  await act(async () => letter(host, 1)?.click());
-  expect(out.value).toBe(",#111111|#222222|#333333");
-  expect(letter(host, 1)?.style.background).toContain("linear-gradient");
+  await colour(host, 1, "#ff0000"); // the "0"
+  await colour(host, 3, "#0000ff"); // the "7" (text index 4, after the break)
+  expect(out.value).toBe(",#ff0000,,,#0000ff");
+  expect(cells(host)[0]?.dataset.own).toBeUndefined();
+  expect(cells(host)[1]?.dataset.own).toBe("");
 
-  // The second line's "7" (text index 4, after the line break).
-  await act(async () => letter(host, 3)?.click());
-  expect(out.value.split(",")[4]).toBe("#111111|#222222|#333333");
-
-  // Clicking again with the same colours puts the letter back.
-  await act(async () => letter(host, 1)?.click());
-  expect(out.value.split(",")[1]).toBe("");
+  // The cross puts a letter back to the type colours.
+  await act(async () =>
+    cells(host)[1]
+      ?.querySelector<HTMLButtonElement>(".studio-letters__clear")
+      ?.click()
+  );
+  expect(out.value).toBe(",,,,#0000ff");
   root.unmount();
 });

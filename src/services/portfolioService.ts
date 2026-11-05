@@ -1163,10 +1163,8 @@ export const boardsApi = {
   /**
    * Saves the board. Passing `items` replaces the whole arrangement, so the
    * canvas must send every item it still has — anything omitted is deleted.
-   * `wires` works the same way.
-   *
-   * Run results are deliberately not sent back: the server owns them, and a
-   * save in flight when a generation lands must not overwrite what arrived.
+   * `wires` works the same way. Run results are not sent back: the server
+   * owns them, and a save in flight must not overwrite what arrived.
    */
   update: async (
     id: string,
@@ -1174,6 +1172,7 @@ export const boardsApi = {
       title?: string;
       isPublic?: boolean;
       coverUrl?: string;
+      colorVars?: Board["colorVars"];
       items?: BoardItem[];
       sources?: BoardSource[];
       wires?: BoardWire[];

@@ -26,6 +26,23 @@
  * — a transparent swatch on a plain ground reads as black, which is a different
  * colour rather than no colour.
  */
+/* A colour that's one of the board's variables: a small corner mark. */
+.color-well__swatch[data-var] {
+  position: relative;
+}
+
+.color-well__swatch[data-var]::after {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 6px;
+  height: 6px;
+  content: "";
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 50%;
+}
+
 .color-well__fill {
   display: block;
   width: 100%;

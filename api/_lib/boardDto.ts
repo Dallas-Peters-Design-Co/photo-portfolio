@@ -11,6 +11,7 @@ import type {
   BoardWireDto,
   BoardWireRow,
 } from "./boards.js";
+import { parseColorVars } from "./colorVars.js";
 import { num } from "./values.js";
 
 /**
@@ -128,6 +129,10 @@ export const rowToBoardDto = (
   sources?: BoardSourceRow[],
   recipeUses?: BoardRecipeUseDto[]
 ): BoardDto => ({
+  // Admin only: the owner's working colours, nothing a visitor needs.
+  ...(row.color_vars === undefined || options.isPublicReader
+    ? {}
+    : { colorVars: parseColorVars(row.color_vars) ?? [] }),
   coverUrl: row.cover_url,
   createdAt: toIso(row.created_at),
   id: row.id,
