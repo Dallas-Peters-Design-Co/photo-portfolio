@@ -258,9 +258,9 @@ export const flowTool: ImageTool = {
     {
       default: 95,
       key: "leading",
-      label: "Line spacing",
-      max: 200,
-      min: 60,
+      label: "Line height",
+      max: 250,
+      min: 40,
       type: "range",
     },
     {

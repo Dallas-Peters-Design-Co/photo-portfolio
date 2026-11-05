@@ -66,9 +66,9 @@ const lettersOf = (
   return { at, width: Math.max(0, full) };
 };
 
-/** Line spacing, as a share of the type size. */
+/** Line height, as a share of the type size. */
 const leadingOf = (v: StudioValues) =>
-  Math.max(0.6, Math.min(2, (Number(v.leading) || 95) / 100));
+  Math.max(0.4, Math.min(2.5, (Number(v.leading) || 95) / 100));
 
 /**
  * The text drawn on a canvas `W` × `H`, fitted and placed, a line at a time
