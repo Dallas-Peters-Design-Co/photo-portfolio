@@ -65,7 +65,89 @@ const tonesOf = (
       });
     }
   }
-  return patched(base, cols, rows, Math.max(1, Number(v.block) || 1));
+  // Generated clouds sit around the middle; spread them over every tone so
+  // there's real black, real light and everything between.
+  if (v.source !== "picture") {
+    // …leaning dark, so most of it is sparse dots on black.
+    base = spreadOut(base).map((t) => t ** 1.6);
+  }
+  const block = Math.max(1, Number(v.block) || 1);
+  return v.patches === "even"
+    ? patched(base, cols, rows, block)
+    : varied(base, cols, rows, block, seed);
+};
+
+/** Each value replaced by its rank: an even spread from 0 to 1. */
+const spreadOut = (base: Float32Array): Float32Array => {
+  const order = Array.from(base.keys()).sort(
+    (a, b) => (base[a] ?? 0) - (base[b] ?? 0)
+  );
+  const out = new Float32Array(base.length);
+  order.forEach((at, rank) => {
+    out[at] = rank / Math.max(1, order.length - 1);
+  });
+  return out;
+};
+
+/**
+ * Patches of mixed sizes, like a data readout: the grid is split into
+ * rectangles, smaller where the tone changes and larger where it's even
+ * (never bigger than `most` cells), and each takes its average tone.
+ */
+const varied = (
+  base: Float32Array,
+  cols: number,
+  rows: number,
+  most: number,
+  seed: number
+) => {
+  const out = new Float32Array(base.length);
+  const rand = rng(seed + 29);
+  const leaf = (x: number, y: number, w: number, h: number) => {
+    // Each patch nudged off its neighbours' tone, so the edges read.
+    const tone = meanOf(base, cols, x, y, w, h) + (rand() - 0.5) * 0.3;
+    for (let r = y; r < y + h; r += 1) {
+      out.fill(Math.max(0, Math.min(1, tone)), r * cols + x, r * cols + x + w);
+    }
+  };
+  const fill = (x: number, y: number, w: number, h: number) => {
+    const long = Math.max(w, h);
+    // Bigger than the most allowed always splits; below it, by chance,
+    // down to about three cells, so the sizes vary.
+    if (!(long > most || (long >= 6 && rand() < 0.3))) {
+      leaf(x, y, w, h);
+      return;
+    }
+    const k = 0.3 + rand() * 0.4;
+    if (w > h || (w === h && rand() < 0.5)) {
+      const a = Math.max(3, Math.min(w - 3, Math.round(w * k)));
+      fill(x, y, a, h);
+      fill(x + a, y, w - a, h);
+    } else {
+      const a = Math.max(3, Math.min(h - 3, Math.round(h * k)));
+      fill(x, y, w, a);
+      fill(x, y + a, w, h - a);
+    }
+  };
+  fill(0, 0, cols, rows);
+  return out;
+};
+
+const meanOf = (
+  base: Float32Array,
+  cols: number,
+  x: number,
+  y: number,
+  w: number,
+  h: number
+) => {
+  let sum = 0;
+  for (let r = y; r < y + h; r += 1) {
+    for (let c = x; c < x + w; c += 1) {
+      sum += base[r * cols + c] ?? 0;
+    }
+  }
+  return sum / Math.max(1, w * h);
 };
 
 /** Cells averaged in square patches, so each patch is one tone. */
@@ -111,7 +193,9 @@ const adjust = (t: number, v: StudioValues) => {
 const eachCell = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
   const g = gridFrom(Math.max(8, Number(v.columns) || 96), ctx);
   const tones = tonesOf(v, ctx, g.cols, g.rows);
-  const inset = v.lines === true ? 0 : g.cell * ((Number(v.gap) || 0) / 200);
+  // Lit cells sit inside their cells, the grid lines between (as in a
+  // printed readout), so the gap stays with or without lines.
+  const inset = g.cell * ((Number(v.gap) || 0) / 200);
   const s = g.cell - inset * 2;
   const matrix = BAYER[String(v.pattern)] ?? null;
   const rand = rng((Number(v.seed) || 1) + 7);
@@ -149,7 +233,7 @@ export const ditherTool: ImageTool = {
   name: "Dither Grid",
   params: [
     {
-      default: "fade",
+      default: "clouds",
       key: "source",
       label: "Made from",
       options: [
@@ -175,7 +259,7 @@ export const ditherTool: ImageTool = {
       when: (v) => v.source !== "picture",
     },
     {
-      default: 96,
+      default: 72,
       key: "columns",
       label: "Cells across",
       max: 240,
@@ -183,7 +267,17 @@ export const ditherTool: ImageTool = {
       type: "range",
     },
     {
-      default: 6,
+      default: "varied",
+      key: "patches",
+      label: "Patches",
+      options: [
+        { label: "Mixed sizes", value: "varied" },
+        { label: "Even squares", value: "even" },
+      ],
+      type: "select",
+    },
+    {
+      default: 12,
       key: "block",
       label: "Patch size (cells)",
       max: 24,
@@ -203,7 +297,7 @@ export const ditherTool: ImageTool = {
       type: "select",
     },
     {
-      default: 9,
+      default: 7,
       key: "levels",
       label: "Tones",
       max: 17,
@@ -219,7 +313,7 @@ export const ditherTool: ImageTool = {
       type: "range",
     },
     {
-      default: 120,
+      default: 110,
       key: "contrast",
       label: "Contrast",
       max: 300,
@@ -228,15 +322,14 @@ export const ditherTool: ImageTool = {
     },
     { default: false, key: "invert", label: "Invert", type: "checkbox" },
     {
-      default: 30,
+      default: 44,
       key: "gap",
       label: "Gap",
       max: 80,
       min: 0,
       type: "range",
-      when: (v) => v.lines !== true,
     },
-    ...gridParams({ lineColour: "#ffffff26", lines: true, lineWidth: 1 }),
+    ...gridParams({ lineColour: "#ffffff30", lines: true, lineWidth: 1 }),
     { default: "#ffffff", key: "ink", label: "Cells", type: "color" },
     {
       default: true,
