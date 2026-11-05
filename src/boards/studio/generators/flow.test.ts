@@ -184,3 +184,94 @@ it("cuts the letters out of a field that fills around them", () => {
   expect(cut.middle).toBe(0);
   expect(cut.corner).toBeGreaterThan(50);
 });
+
+it("makes the flow from a picture's shape instead of text", async () => {
+  // A see-through picture with a solid block on its left half.
+  const src = document.createElement("canvas");
+  src.width = 100;
+  src.height = 100;
+  const sg = src.getContext("2d") as CanvasRenderingContext2D;
+  sg.fillStyle = "#000000";
+  sg.fillRect(0, 0, 50, 100);
+  const image = await createImageBitmap(src);
+  const draw = (values: Record<string, unknown>) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 300;
+    canvas.height = 300;
+    const g = canvas.getContext("2d") as CanvasRenderingContext2D;
+    flowTool.draw?.(
+      g,
+      {
+        ...defaultsOf(flowTool.params),
+        drift: 0,
+        fill: false,
+        noise: 0,
+        order: 0,
+        source: "picture",
+        ...values,
+      },
+      { height: 900, image, palette: ["#d9bd1c"], width: 900 }
+    );
+    const { data } = g.getImageData(0, 0, 300, 300);
+    let left = 0;
+    let right = 0;
+    for (let y = 40; y < 260; y += 1) {
+      for (let x = 30; x < 270; x += 1) {
+        const i = (y * 300 + x) * 4;
+        if (yellow(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0)) {
+          if (x < 140) {
+            left += 1;
+          } else if (x > 160) {
+            right += 1;
+          }
+        }
+      }
+    }
+    return { left, right };
+  };
+  const byShape = draw({});
+  expect(byShape.left).toBeGreaterThan(500);
+  expect(byShape.right).toBe(0);
+  // Opaque white on the right instead: its light parts are the shape.
+  sg.fillStyle = "#ffffff";
+  sg.fillRect(50, 0, 50, 100);
+  const lit = await createImageBitmap(src);
+  const canvas = document.createElement("canvas");
+  canvas.width = 300;
+  canvas.height = 300;
+  flowTool.draw?.(
+    canvas.getContext("2d") as CanvasRenderingContext2D,
+    {
+      ...defaultsOf(flowTool.params),
+      drift: 0,
+      fill: false,
+      noise: 0,
+      order: 0,
+      shapeBy: "light",
+      source: "picture",
+    },
+    { height: 900, image: lit, palette: ["#d9bd1c"], width: 900 }
+  );
+  const d = (canvas.getContext("2d") as CanvasRenderingContext2D).getImageData(
+    0,
+    0,
+    300,
+    300
+  ).data;
+  let rightYellow = 0;
+  let leftYellow = 0;
+  for (let y = 40; y < 260; y += 1) {
+    for (let x = 30; x < 270; x += 1) {
+      const i = (y * 300 + x) * 4;
+      if (yellow(d[i] ?? 0, d[i + 1] ?? 0, d[i + 2] ?? 0)) {
+        if (x > 160) {
+          rightYellow += 1;
+        } else if (x < 140) {
+          leftYellow += 1;
+        }
+      }
+    }
+  }
+  expect(rightYellow).toBeGreaterThan(500);
+  expect(leftYellow).toBe(0);
+});

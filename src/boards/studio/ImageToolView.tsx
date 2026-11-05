@@ -177,7 +177,12 @@ export function ImageToolView({
             }
           );
       const recipe = await recipeFor(tool.id, values, size, {
-        local: tool.params.some((p) => p.type === "image") ? imageUrl : null,
+        // Only when the picture is in use (Systems Flow can work from text).
+        local: tool.params.some(
+          (p) => p.type === "image" && (!p.when || p.when(values))
+        )
+          ? imageUrl
+          : null,
         source,
       });
       if (editing && !asBackground) {

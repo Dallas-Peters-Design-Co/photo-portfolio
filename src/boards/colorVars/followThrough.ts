@@ -57,8 +57,8 @@ export const recolourComponents = async (
 
 /**
  * The Studio pictures among `ids` made again from their (already changed)
- * recipes. Tools that work from a picture (Mosaic) are left: their source
- * has to be loaded again in the Studio.
+ * recipes. Ones made from a picture (Mosaic, a picture's Systems Flow) are
+ * left: their source has to be loaded again in the Studio.
  */
 export const redrawStudioLayers = async (
   items: BoardItem[],
@@ -71,7 +71,8 @@ export const redrawStudioLayers = async (
     .map(async (layer) => {
       const recipe = recipeOf(layer.config);
       const tool = recipe && IMAGE_TOOLS.find((t) => t.id === recipe.tool);
-      if (!(recipe && tool) || tool.params.some((p) => p.type === "image")) {
+      // A tool working from a picture needs it loaded again in the Studio.
+      if (!(recipe && tool) || recipe.image) {
         return 0;
       }
       await redraw(layer, recipe, tool, brandPalette, swap);

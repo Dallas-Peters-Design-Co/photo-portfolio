@@ -1,14 +1,10 @@
 import { colorsOf } from "../chosenColors";
 import { pick, r2, rng, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
-import { FONTS, maskOf } from "./flowText";
-import {
-  drawGrid,
-  GRID_PARAMS,
-  gridFrom,
-  gridSvg,
-  linesLook,
-} from "./gridLines";
+import { FLOW_PARAMS } from "./flowParams";
+import { pictureMask } from "./flowPicture";
+import { maskOf } from "./flowText";
+import { drawGrid, gridFrom, gridSvg, linesLook } from "./gridLines";
 import { paintOf } from "./mosaic";
 import { drawPixels, type TileEmit } from "./mosaicPixels";
 
@@ -93,7 +89,11 @@ const setupOf = (v: StudioValues, ctx: RenderContext) => {
   const cols = flowColumns(v);
   const cell = ctx.width / cols;
   const rows = Math.max(1, Math.round(ctx.height / cell));
-  const mask = maskOf(v, cols, rows);
+  // A picture's shape (an object from the frame, a logo) or the typed text.
+  const mask =
+    v.source === "picture" && ctx.image
+      ? pictureMask(v, ctx.image, cols, rows)
+      : maskOf(v, cols, rows);
   const inside = (c: number, r: number) =>
     c >= 0 &&
     r >= 0 &&
@@ -277,183 +277,7 @@ export const flowTool: ImageTool = {
   id: "flow",
   kind: "image",
   name: "Systems Flow",
-  params: [
-    {
-      default: "2",
-      key: "text",
-      label: "Text",
-      multiline: true,
-      type: "text",
-    },
-    { key: "charColors", label: "Letter colours", of: "text", type: "letters" },
-    {
-      default: "DM Sans",
-      key: "font",
-      label: "Font",
-      options: FONTS.map((f) => ({ label: f, value: f })),
-      type: "select",
-    },
-    {
-      default: "800",
-      key: "weight",
-      label: "Weight",
-      options: [
-        { label: "Regular", value: "400" },
-        { label: "Bold", value: "700" },
-        { label: "Extra bold", value: "800" },
-      ],
-      type: "select",
-    },
-    {
-      default: 100,
-      key: "scale",
-      label: "Text size",
-      max: 140,
-      min: 30,
-      type: "range",
-    },
-    {
-      default: 0,
-      key: "tracking",
-      label: "Letter spacing",
-      max: 600,
-      min: -300,
-      step: 5,
-      type: "range",
-    },
-    {
-      default: 95,
-      key: "leading",
-      label: "Line height",
-      max: 250,
-      min: 40,
-      type: "range",
-    },
-    {
-      default: "center",
-      key: "align",
-      label: "Place",
-      options: [
-        { label: "Centre", value: "center" },
-        { label: "Left", value: "left" },
-        { label: "Right", value: "right" },
-      ],
-      type: "select",
-    },
-    {
-      default: 110,
-      key: "columns",
-      label: "Pixels across",
-      max: 260,
-      min: 30,
-      type: "range",
-    },
-    {
-      default: 18,
-      key: "gap",
-      label: "Gap",
-      max: 60,
-      min: 0,
-      type: "range",
-      when: (v) => v.lines !== true,
-    },
-    ...GRID_PARAMS,
-    {
-      default: 2,
-      key: "lanes",
-      label: "Lanes (rows between gaps)",
-      max: 6,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: 80,
-      key: "density",
-      label: "Fill",
-      max: 100,
-      min: 10,
-      type: "range",
-    },
-    {
-      default: 60,
-      key: "order",
-      label: "Order along the flow",
-      max: 100,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: 30,
-      key: "noise",
-      label: "Scatter",
-      max: 100,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: 45,
-      key: "drift",
-      label: "Drift in",
-      max: 100,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: false,
-      key: "cutout",
-      label: "Cut the letters out (fill around them)",
-      type: "checkbox",
-    },
-    {
-      default: 1,
-      key: "margin",
-      label: "Space around the cutout",
-      max: 8,
-      min: 0,
-      type: "range",
-      when: (v) => v.cutout === true,
-    },
-    {
-      default: "left",
-      key: "flow",
-      label: "Flows from",
-      options: [
-        { label: "Left", value: "left" },
-        { label: "Right", value: "right" },
-        { label: "Top", value: "top" },
-        { label: "Bottom", value: "bottom" },
-      ],
-      type: "select",
-    },
-    {
-      count: 3,
-      key: "colors",
-      label: "Type colours (dark to bright)",
-      max: 5,
-      type: "colors",
-    },
-    {
-      count: 3,
-      key: "scatter",
-      label: "Scatter colours",
-      max: 5,
-      type: "colors",
-    },
-    {
-      default: true,
-      key: "fill",
-      label: "Fill the background",
-      type: "checkbox",
-    },
-    {
-      default: "#0c2a2e",
-      key: "bg",
-      label: "Background",
-      type: "color",
-      when: (v) => v.fill !== false,
-    },
-    { key: "seed", label: "Variation", type: "seed" },
-  ],
+  params: FLOW_PARAMS,
   render: (v, ctx) => {
     const ground = groundOf(v);
     const groundPaint = ground ? paintOf(ground) : null;

@@ -20,7 +20,7 @@ const fontOf = (v: StudioValues) => {
   return { css: `${weight} 100px "${family}"`, family, weight };
 };
 
-const SAMPLES = 4;
+export const SAMPLES = 4;
 
 /** Tracking in thousandths of an em, as type tools count it. */
 const trackingOf = (v: StudioValues) =>
