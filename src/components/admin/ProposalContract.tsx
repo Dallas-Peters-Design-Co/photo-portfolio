@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { ContractStatus } from "../../../config/contract.js";
 import { downloadPagePdf } from "../../pages/pagePdf";
+import { invoicesApi } from "../../services/activityService";
 import {
   type ContractRecord,
   contractPdfFilename,
@@ -25,6 +26,7 @@ import {
   proposalLabelClass,
   proposalTextareaClass,
 } from "./proposalStyles";
+import { RecordAcceptance } from "./RecordAcceptance";
 
 /**
  * The services agreement for this proposal.
@@ -35,6 +37,15 @@ import {
  * the text is frozen, so what was signed is what stays on file.
  */
 
+/** Every invoice still a draft on this proposal, sent through Stripe. */
+const sendDraftInvoices = async (slug: string) => {
+  const { invoices } = await invoicesApi.list(slug);
+  for (const invoice of invoices.filter((i) => i.status === "draft")) {
+    // biome-ignore lint/performance/noAwaitInLoops: one at a time, so a failure stops before the next
+    await invoicesApi.send(invoice.id);
+  }
+};
+
 const STATUS: Record<ContractStatus, { cls: string; label: string }> = {
   countersigned: { cls: "text-emerald-300/90", label: "Signed by both" },
   draft: { cls: "text-amber-300/80", label: "Draft" },
@@ -44,8 +55,11 @@ const STATUS: Record<ContractStatus, { cls: string; label: string }> = {
 
 export function ProposalContract({
   proposal,
+  onAccepted,
   onActivity,
 }: {
+  /** An acceptance recorded here (a client who said yes by email). */
+  onAccepted: (next: ProposalRecord) => Promise<void>;
   onActivity: () => void;
   proposal: ProposalRecord;
 }) {
@@ -55,6 +69,8 @@ export function ProposalContract({
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [note, setNote] = useState("");
+  // Sending the agreement sends the drafted invoice(s) with it, by default.
+  const [withInvoice, setWithInvoice] = useState(true);
 
   const load = useCallback(async () => {
     try {
@@ -112,22 +128,28 @@ export function ProposalContract({
     }
     const ok = await confirm({
       confirmLabel: "Send",
-      description: `${c.clientEmail} gets a link to read and sign it.`,
+      description: `${c.clientEmail} gets a link to read and sign it${withInvoice ? ", and Stripe emails the drafted invoice with a link to pay" : ""}.`,
       title: "Send the agreement for signature?",
     });
     if (ok) {
-      await run(async () => {
-        if (dirty) {
-          await save(c);
-        }
-        const sent = await contractsApi.send(c.id, note);
-        if (!sent.emailed) {
-          toast.warning(
-            "Saved as sent, but the email didn't go out. Share the link yourself."
-          );
-        }
-        return sent;
-      }, "Agreement sent");
+      await run(
+        async () => {
+          if (dirty) {
+            await save(c);
+          }
+          const sent = await contractsApi.send(c.id, note);
+          if (!sent.emailed) {
+            toast.warning(
+              "Saved as sent, but the email didn't go out. Share the link yourself."
+            );
+          }
+          if (withInvoice) {
+            await sendDraftInvoices(proposal.slug);
+          }
+          return sent;
+        },
+        withInvoice ? "Agreement and invoice sent" : "Agreement sent"
+      );
     }
   };
 
@@ -166,6 +188,21 @@ export function ProposalContract({
         ) : null}
       </div>
 
+      {contract || proposal.acceptance ? null : (
+        <RecordAcceptance
+          busy={busy}
+          onRecorded={async (next) => {
+            await onAccepted(next);
+            // Drafted from the option just recorded.
+            await run(
+              () => contractsApi.create(proposal.slug),
+              "Recorded. Agreement and first invoice drafted."
+            );
+          }}
+          proposal={proposal}
+        />
+      )}
+
       {contract ? null : (
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-white/60">
@@ -188,6 +225,17 @@ export function ProposalContract({
           </Button>
         </div>
       )}
+
+      {contract?.status === "draft" ? (
+        <label className="flex items-center gap-2 text-sm text-white/70">
+          <input
+            checked={withInvoice}
+            onChange={(e) => setWithInvoice(e.target.checked)}
+            type="checkbox"
+          />
+          Send the drafted invoice with it (Invoices, below)
+        </label>
+      ) : null}
 
       {contract?.status === "draft" ? (
         <DraftForm

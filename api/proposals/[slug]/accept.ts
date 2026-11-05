@@ -99,6 +99,8 @@ const readFields = (body: Record<string, unknown>) => ({
     typeof body.name === "string"
       ? sanitizeText(body.name).slice(0, MAX_FIELD)
       : "",
+  /** Recorded by the owner for a client who accepted another way (email). */
+  offline: body.offline === true,
   option:
     typeof body.option === "string"
       ? sanitizeText(body.option).slice(0, 40)
@@ -159,7 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: "Missing proposal address" });
   }
 
-  const { name, title, option } = readFields(parseJsonBody(req.body));
+  const { name, offline, title, option } = readFields(parseJsonBody(req.body));
   if (!name) {
     return res.status(400).json({ error: "Please type your name to accept." });
   }
@@ -169,6 +171,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // A draft can be accepted only by a signed-in admin, which is how the
     // flow gets tested before the link goes out.
     const admin = getBearerUser(req.headers.authorization);
+    // Only the signed-in owner can record an acceptance given elsewhere.
+    if (offline && !admin) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
     const rows = (await sql`
       SELECT ${sql.unsafe(PROPOSAL_SELECT)}
       WHERE p.slug = ${slug} AND (p.status = 'published' OR ${Boolean(admin)})
@@ -220,7 +226,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       proposal: fresh ? rowToDto(fresh) : rowToDto(row),
       url: `https://${site.domain}/proposal/${slug}`,
     };
-    const emailed = await sendEmails(emailInput, row.client_email ?? null);
+    // Accepted elsewhere (by email): nobody needs a copy or a notice of it;
+    // the acceptance and the first invoice's draft are what's wanted.
+    const emailed = offline
+      ? { client: false, owner: true }
+      : await sendEmails(emailInput, row.client_email ?? null);
     await recordAcceptance(sql, row, {
       chosen,
       name,
