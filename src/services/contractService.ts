@@ -95,10 +95,11 @@ export const contractsApi = {
 
   reopen: (id: string) => act(id, { action: "reopen" }, "Could not reopen"),
 
-  send: (id: string, note = "") =>
+  /** Sends it for signature; `sign` signs it as the Designer first. */
+  send: (id: string, note = "", sign = false) =>
     act<ContractRecord & { emailed: boolean }>(
       id,
-      { action: "send", note },
+      { action: "send", note, sign },
       "Could not send the agreement"
     ),
 

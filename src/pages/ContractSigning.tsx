@@ -10,8 +10,8 @@ import { downloadPagePdf } from "./pagePdf";
 /**
  * Both signatures. The client's side is a form while the agreement is open
  * for signing; once signed it shows the name, title and date. The designer's
- * side waits until the owner countersigns in the admin, then shows the
- * handwritten signature dated that day.
+ * side shows the handwritten signature, dated, once the owner has signed:
+ * usually as it was sent, otherwise by countersigning after the client.
  */
 export function ContractSigning({
   contract,

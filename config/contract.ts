@@ -112,31 +112,32 @@ export const sanitizeContractDoc = (value: unknown): ContractDoc => {
   };
 };
 
-/** The standard clauses, with the parties' names written in. */
-export const defaultClauses = (
-  owner: string,
-  client: string
-): ContractClause[] =>
+/**
+ * The standard clauses. They name the parties by role, "the Designer" and "the
+ * Client", which the header of the agreement defines, so a name never has to
+ * be bent into a possessive and renaming a party never leaves a clause behind.
+ */
+export const defaultClauses = (): ContractClause[] =>
   [
     [
       "Services",
-      `${owner} will provide the services described in the scope above. Changes to the scope are agreed in writing (email is fine). Work outside the scope is quoted separately before it starts.`,
+      "The Designer will provide the services described in the scope above. Changes to the scope are agreed in writing (email is fine). Work outside the scope is quoted separately before it starts.",
     ],
     [
       "Fees and payment",
-      `${client} pays the fees on the payment schedule above. Invoices are sent through Stripe and are due within 14 days unless the invoice says otherwise. If a payment is more than 14 days late, ${owner} may pause work until it is paid, and the timeline moves by the length of the pause.`,
+      "The Client pays the fees on the payment schedule above. Invoices are sent through Stripe and are due within 14 days unless the invoice says otherwise. If a payment is more than 14 days late, the Designer may pause work until it is paid, and the timeline moves by the length of the pause.",
     ],
     [
       "Revisions and feedback",
-      `Each deliverable includes the revision rounds listed above. Further rounds are billed at the add-on rate in the proposal. ${client} gives feedback within two working days of each round; the timeline assumes it.`,
+      "Each deliverable includes the revision rounds listed above. Further rounds are billed at the add-on rate in the proposal. The Client gives feedback within two working days of each round; the timeline assumes it.",
     ],
     [
       "Ownership",
-      `On full payment, ${owner} assigns to ${client} all rights in the final deliverables, including logos, source files and the drafts and explorations made for this project. Third-party material (fonts, stock imagery) is licensed rather than owned, in ${client}'s name where possible. ${owner}'s pre-existing tools, templates and methods stay ${owner}'s; ${client} receives a perpetual licence to use any that are part of a deliverable.`,
+      "On full payment, the Designer assigns to the Client all rights in the final deliverables, including logos, source files and the drafts and explorations made for this project. Third-party material (fonts, stock imagery) is licensed rather than owned, in the Client's name where possible. The Designer's pre-existing tools, templates and methods stay the Designer's; the Client receives a perpetual licence to use any that are part of a deliverable.",
     ],
     [
       "Portfolio",
-      `${owner} may show the work in a portfolio after it has been made public, unless ${client} asks otherwise in writing.`,
+      "The Designer may show the work in a portfolio after it has been made public, unless the Client asks otherwise in writing.",
     ],
     [
       "Confidentiality",
@@ -144,7 +145,7 @@ export const defaultClauses = (
     ],
     [
       "Independent contractor",
-      `${owner} works as an independent contractor in a personal capacity, not as an employee or agent of ${client}, and is responsible for their own taxes and tools.`,
+      "The Designer works as an independent contractor in a personal capacity, not as an employee or agent of the Client, and is responsible for their own taxes and tools.",
     ],
     [
       "Ending the agreement",
@@ -152,7 +153,7 @@ export const defaultClauses = (
     ],
     [
       "Liability",
-      `To ${owner}'s knowledge the work is original and does not infringe anyone's rights. Each party's total liability under this agreement is limited to the fees paid under it.`,
+      "To the Designer's knowledge the work is original and does not infringe anyone's rights. Each party's total liability under this agreement is limited to the fees paid under it.",
     ],
     [
       "General",
@@ -186,9 +187,8 @@ export const draftContractFromProposal = ({
     doc.packages.find((p) => p.id === option) ??
     doc.packages.find((p) => p.recommended) ??
     doc.packages[0];
-  const client = clientCompany || clientName || "the client";
   return sanitizeContractDoc({
-    clauses: defaultClauses(ownerName || "the designer", client),
+    clauses: defaultClauses(),
     effectiveDate: today(),
     parties: { clientCompany, clientName, ownerBusiness, ownerName },
     scope: {

@@ -53,7 +53,7 @@ const draft = (option: string | null) =>
     clientName: "Vin Gokhale",
     doc,
     option,
-    ownerBusiness: "Product Designer",
+    ownerBusiness: "Dallas Peters Design",
     ownerName: "Dallas Peters",
   });
 
@@ -78,11 +78,18 @@ describe("draftContractFromProposal", () => {
     });
   });
 
-  it("writes the parties into the standard clauses", () => {
+  it("names the parties by role in the clauses, and in full in the header", () => {
     const { clauses, parties, effectiveDate } = draft("launch");
-    expect(parties.clientName).toBe("Vin Gokhale");
+    expect(parties).toMatchObject({
+      clientCompany: "Viaskai",
+      clientName: "Vin Gokhale",
+      ownerName: "Dallas Peters",
+    });
     const ownership = clauses.find((c) => c.heading === "Ownership");
-    expect(ownership?.body).toContain("Dallas Peters assigns to Viaskai");
+    expect(ownership?.body).toContain("the Designer assigns to the Client");
+    const text = clauses.map((c) => c.body).join(" ");
+    expect(text).not.toContain("Dallas");
+    expect(text).not.toContain("Vin");
     expect(clauses.find((c) => c.heading === "General")?.body).toContain(
       "Texas"
     );

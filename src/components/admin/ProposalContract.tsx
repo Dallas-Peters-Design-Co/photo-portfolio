@@ -32,8 +32,9 @@ import { RecordAcceptance } from "./RecordAcceptance";
  * The services agreement for this proposal.
  *
  * Drafted from the proposal in one click (the chosen option's scope and
- * price, plus the standard clauses), edited here, then sent: the client signs
- * at its own link and the owner countersigns here. Once the client has signed
+ * price, plus the standard clauses), edited here, then signed and sent: the
+ * client's signature at its own link completes it. One sent unsigned is
+ * countersigned here after the client signs. Once the client has signed
  * the text is frozen, so what was signed is what stays on file.
  */
 
@@ -126,10 +127,11 @@ export function ProposalContract({
       toast.error("Add the client's email first.");
       return;
     }
+    const signer = c.doc.parties.ownerName || "you";
     const ok = await confirm({
-      confirmLabel: "Send",
-      description: `${c.clientEmail} gets a link to read and sign it${withInvoice ? ", and Stripe emails the drafted invoice with a link to pay" : ""}.`,
-      title: "Send the agreement for signature?",
+      confirmLabel: "Sign and send",
+      description: `You sign it as ${signer}, then ${c.clientEmail} gets a link to read and sign it${withInvoice ? ", and Stripe emails the drafted invoice with a link to pay" : ""}. Their signature completes it, and you both get the signed copy.`,
+      title: "Sign and send the agreement?",
     });
     if (ok) {
       await run(
@@ -137,7 +139,7 @@ export function ProposalContract({
           if (dirty) {
             await save(c);
           }
-          const sent = await contractsApi.send(c.id, note);
+          const sent = await contractsApi.send(c.id, note, true);
           if (!sent.emailed) {
             toast.warning(
               "Saved as sent, but the email didn't go out. Share the link yourself."
@@ -369,7 +371,7 @@ function ContractActions({
             type="button"
             variant="outline"
           >
-            <Send size={14} /> Send for signature
+            <Send size={14} /> Sign and send
           </Button>
         </>
       ) : null}
@@ -436,19 +438,22 @@ function ContractActions({
 }
 
 function SignedLine({ contract }: { contract: ContractRecord }) {
-  if (!contract.clientSignature) {
+  const { clientSignature: client, ownerSignature: owner } = contract;
+  const day = (at: string) => new Date(at).toLocaleDateString();
+  const theirs = client
+    ? `signed by ${client.name}${client.title ? `, ${client.title}` : ""} on ${day(client.at)}`
+    : null;
+  const parts = [
+    owner ? `Signed by ${owner.name} on ${day(owner.at)}` : null,
+    theirs ?? (owner ? "waiting for the client's signature" : null),
+  ].filter(Boolean);
+  if (parts.length === 0) {
     return null;
   }
+  const line = parts.join("; ");
   return (
     <p className="text-sm text-white/60">
-      Signed by {contract.clientSignature.name}
-      {contract.clientSignature.title
-        ? `, ${contract.clientSignature.title}`
-        : ""}{" "}
-      on {new Date(contract.clientSignature.at).toLocaleDateString()}
-      {contract.ownerSignature
-        ? `; countersigned ${new Date(contract.ownerSignature.at).toLocaleDateString()}.`
-        : "."}
+      {line.charAt(0).toUpperCase() + line.slice(1)}.
     </p>
   );
 }
