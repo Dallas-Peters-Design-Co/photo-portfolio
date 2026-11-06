@@ -9,6 +9,7 @@ import { lineWavesTool } from "./generators/lineWaves";
 import { meshTool } from "./generators/mesh";
 import { mosaicTool } from "./generators/mosaic";
 import { patternTool } from "./generators/pattern";
+import { pixelFieldTool } from "./generators/pixelField";
 import { radialTool } from "./generators/radial";
 import { typeEchoTool } from "./generators/typeEcho";
 import type { ImageTool, StudioParam, StudioValues } from "./types";
@@ -23,6 +24,7 @@ export const IMAGE_TOOLS: ImageTool[] = [
   flowTool,
   ditherTool,
   gridBoxesTool,
+  pixelFieldTool,
   halftoneTool,
   typeEchoTool,
   radialTool,

@@ -1,3 +1,4 @@
+import { rng } from "../rng";
 import type { RenderContext, StudioParam, StudioValues } from "../types";
 import { clouds, coverSample, numOr } from "./cellField";
 import { shapeByOf } from "./flowPicture";
@@ -10,6 +11,7 @@ import { FONTS, maskOf } from "./flowText";
  * one. Shared by Halftone, Line Waves and Iso Blocks.
  */
 export type FieldSource =
+  | "blobs"
   | "gradient"
   | "noise"
   | "picture"
@@ -18,6 +20,7 @@ export type FieldSource =
   | "waves";
 
 const LABELS: Record<FieldSource, string> = {
+  blobs: "Soft blobs",
   gradient: "A gradient",
   noise: "Soft noise",
   picture: "A picture (an object, the selection, a file)",
@@ -121,6 +124,24 @@ export const fieldParams = (
     when: (v) => v.source === "waves",
   },
   {
+    default: 3,
+    key: "blobCount",
+    label: "Blobs",
+    max: 12,
+    min: 1,
+    type: "range",
+    when: (v) => v.source === "blobs",
+  },
+  {
+    default: 35,
+    key: "blobSize",
+    label: "Blob size",
+    max: 100,
+    min: 5,
+    type: "range",
+    when: (v) => v.source === "blobs",
+  },
+  {
     default: 30,
     key: "noiseSize",
     label: "Noise size",
@@ -138,6 +159,24 @@ export const fieldParams = (
     step: 5,
     type: "range",
     when: (v) => v.source === "gradient" || v.source === "waves",
+  },
+  {
+    default: 50,
+    key: "fieldX",
+    label: "Centre across (%)",
+    max: 150,
+    min: -50,
+    type: "range",
+    when: (v) => v.source === "radial",
+  },
+  {
+    default: 50,
+    key: "fieldY",
+    label: "Centre down (%)",
+    max: 150,
+    min: -50,
+    type: "range",
+    when: (v) => v.source === "radial",
   },
   {
     default: 100,
@@ -180,8 +219,10 @@ const geometricAt = (
   aspect: number
 ): number => {
   if (v.source === "radial") {
+    const cx = numOr(v.fieldX, 50) / 100;
+    const cy = numOr(v.fieldY, 50) / 100;
     const d =
-      Math.hypot((u - 0.5) * aspect, w - 0.5) / Math.hypot(aspect / 2, 0.5);
+      Math.hypot((u - cx) * aspect, w - cy) / Math.hypot(aspect / 2, 0.5);
     return 1 - Math.min(1, d);
   }
   // Along the direction, 0 to 1 across the piece.
@@ -197,6 +238,41 @@ const geometricAt = (
   const amp = numOr(v.waveAmp, 30) / 100;
   const bend = amp * Math.sin(TAU * numOr(v.waveCount, 4) * across * 0.25);
   return 0.5 + 0.5 * Math.sin(TAU * (numOr(v.waveFreq, 3) * along + bend));
+};
+
+/**
+ * A few soft round glows, placed by the seed, adding up where they meet:
+ * the low-resolution heat-map look.
+ */
+const blobs = (
+  v: StudioValues,
+  cols: number,
+  rows: number,
+  aspect: number
+): Float32Array => {
+  const rand = rng(Number(v.seed) || 1);
+  const n = Math.max(1, Math.round(numOr(v.blobCount, 3)));
+  const size = Math.max(0.05, numOr(v.blobSize, 35) / 100);
+  const spots = Array.from({ length: n }, () => ({
+    r: size * (0.6 + rand() * 0.8),
+    w: 0.6 + rand() * 0.4,
+    x: rand() * aspect,
+    y: rand(),
+  }));
+  const out = new Float32Array(cols * rows);
+  for (let r = 0; r < rows; r += 1) {
+    for (let c = 0; c < cols; c += 1) {
+      const x = ((c + 0.5) / cols) * aspect;
+      const y = (r + 0.5) / rows;
+      let sum = 0;
+      for (const s of spots) {
+        const d2 = ((x - s.x) ** 2 + (y - s.y) ** 2) / (s.r * s.r);
+        sum += s.w * Math.exp(-d2 * 2);
+      }
+      out[r * cols + c] = Math.min(1, sum);
+    }
+  }
+  return out;
 };
 
 /** A picture's amount per cell, by its dark, light or opaque parts. */
@@ -236,6 +312,9 @@ const raw = (
   }
   if (v.source === "picture") {
     return pictured(v, ctx, cols, rows) ?? new Float32Array(cols * rows);
+  }
+  if (v.source === "blobs") {
+    return blobs(v, cols, rows, ctx.width / ctx.height);
   }
   if (v.source === "noise") {
     const size = Math.max(5, numOr(v.noiseSize, 30)) / 100;
