@@ -1,7 +1,9 @@
 import {
   type AdSize,
+  DEFAULT_UNITS_PER_PX,
   frameBoxFor,
   relayout,
+  sizeFromTitle,
   sizeTitle,
 } from "../../../config/adLayout";
 import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../../config/canvas";
@@ -137,4 +139,71 @@ export const duplicateFrame = (
     })),
   ];
   return { added, frameId: id };
+};
+
+/** A config's lengths (in canvas units) at a new scale. */
+const scaledConfig = (
+  config: BoardItem["config"],
+  k: number
+): BoardItem["config"] => {
+  if (!config) {
+    return config;
+  }
+  const out = { ...config };
+  for (const key of ["strokeWidth", "radius"]) {
+    if (typeof out[key] === "number") {
+      out[key] = Math.round((out[key] as number) * k * 100) / 100;
+    }
+  }
+  return out;
+};
+
+/**
+ * How much a frame would scale to sit at the standard board size for its
+ * named size (half its print pixels), or null when it has no named size or
+ * already does.
+ */
+export const scaleResetOf = (frame: BoardItem): number | null => {
+  const size = sizeFromTitle(frame.body);
+  if (!size || frame.width <= 0) {
+    return null;
+  }
+  const k = (size.w * DEFAULT_UNITS_PER_PX) / frame.width;
+  return Math.abs(k - 1) < 0.001 ? null : k;
+};
+
+/**
+ * The frame and everything on it (frames inside it too) scaled together to
+ * the standard board size for its named size, about its top-left corner.
+ * What it prints doesn't change: the print size comes from the name. What
+ * changes is that type and lengths now match every other frame of that size,
+ * so copying between them keeps sizes.
+ */
+export const resetFrameScale = (
+  items: BoardItem[],
+  frameId: string
+): BoardItem[] | null => {
+  const frame = items.find((item) => item.id === frameId);
+  const k = frame?.kind === "frame" ? scaleResetOf(frame) : null;
+  if (!(frame && k)) {
+    return null;
+  }
+  const moving = new Set([
+    frame.id,
+    ...withinFrame(frame, items).map((item) => item.id),
+  ]);
+  const at = (v: number) => Math.round(v * k * 100) / 100;
+  return items.map((item) =>
+    moving.has(item.id)
+      ? {
+          ...item,
+          config: scaledConfig(item.config, k),
+          fontSize: item.fontSize === null ? null : at(item.fontSize),
+          height: at(item.height),
+          width: at(item.width),
+          x: frame.x + at(item.x - frame.x),
+          y: frame.y + at(item.y - frame.y),
+        }
+      : item
+  );
 };

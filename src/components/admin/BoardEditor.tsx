@@ -352,6 +352,7 @@ export function BoardEditor({
             fitFrame={frameDesign.fitFrame}
             linkFor={(id) => frameLink(publicUrl, items, id)}
             onTrainOnFrame={(id) => void trainOnFrame(id)}
+            resetScale={frameDesign.resetScale}
           >
             <BoardCanvas
               autoEditId={autoEditId}

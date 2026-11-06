@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
+import { scaleResetOf } from "../io/adFrames";
 import {
   type CopyTarget,
   frameBoardTitle,
@@ -13,6 +14,7 @@ import {
   AdSizesRow,
   DesignRow,
   DuplicateFrameRow,
+  ResetScaleRow,
 } from "./AdSizesPanel";
 import { type CollectTarget, ToolsPanel } from "./CanvasMenuPanels";
 import { CollectionPanel } from "./CollectionPanel";
@@ -150,7 +152,8 @@ export function CanvasMenu({
     for: CanvasMenuTarget;
     frame: BoardItem;
   } | null>(null);
-  const { designFrame, duplicateFrame, fitFrame } = useFrameActions();
+  const { designFrame, duplicateFrame, fitFrame, resetScale } =
+    useFrameActions();
 
   if (!menu) {
     return null;
@@ -294,6 +297,14 @@ export function CanvasMenu({
         <DuplicateFrameRow
           onDuplicate={() => {
             duplicateFrame(frame.id);
+            onDismiss();
+          }}
+        />
+      ) : null}
+      {frame && resetScale && scaleResetOf(frame) ? (
+        <ResetScaleRow
+          onReset={() => {
+            resetScale(frame.id);
             onDismiss();
           }}
         />

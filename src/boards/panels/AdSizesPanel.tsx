@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import ArrowShrink02Icon from "@hugeicons-pro/core-stroke-standard/ArrowShrink02Icon";
 import Copy01Icon from "@hugeicons-pro/core-stroke-standard/Copy01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
@@ -53,6 +54,16 @@ export function DuplicateFrameRow({
     <button className="panel-row" onClick={onDuplicate} type="button">
       <HugeiconsIcon aria-hidden icon={Copy01Icon} size={14} />
       <span>Duplicate frame</span>
+    </button>
+  );
+}
+
+/** Shown only on a frame drawn at another scale than its named size's. */
+export function ResetScaleRow({ onReset }: { onReset: () => void }) {
+  return (
+    <button className="panel-row" onClick={onReset} type="button">
+      <HugeiconsIcon aria-hidden icon={ArrowShrink02Icon} size={14} />
+      <span>Reset scale</span>
     </button>
   );
 }

@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { AD_SIZES, sizeTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
-import { copyFrameAtSizes, duplicateFrame, resizeFrame } from "./adFrames";
+import {
+  copyFrameAtSizes,
+  duplicateFrame,
+  resetFrameScale,
+  resizeFrame,
+  scaleResetOf,
+} from "./adFrames";
 
 const item = (patch: Partial<BoardItem>): BoardItem =>
   ({
@@ -137,5 +143,40 @@ describe("duplicateFrame next to other frames", () => {
     const copy = out?.added.find((i) => i.kind === "frame");
     expect(copy?.x).toBeGreaterThanOrEqual(c.x + c.width);
     expect(copy?.y).toBe(0);
+  });
+});
+
+describe("resetting a frame's scale", () => {
+  // A 1080 square drawn at 810 units, 1.5x the standard 540.
+  const big = item({ ...frame, height: 810, width: 810 });
+  const words = item({
+    config: { radius: 12 },
+    fontSize: 72,
+    height: 150,
+    id: "w",
+    kind: "text",
+    width: 300,
+    x: 1150,
+    y: 1300,
+  });
+
+  it("knows a frame drawn at another scale, and one that isn't", () => {
+    expect(scaleResetOf(big)).toBeCloseTo(540 / 810);
+    expect(scaleResetOf(frame)).toBeNull();
+  });
+
+  it("scales the frame and its contents together about its corner", () => {
+    const out = resetFrameScale([big, words], "f");
+    const f = out?.find((i) => i.id === "f");
+    const w = out?.find((i) => i.id === "w");
+    expect(f).toMatchObject({ height: 540, width: 540, x: 1000, y: 1000 });
+    expect(w).toMatchObject({
+      fontSize: 48,
+      height: 100,
+      width: 200,
+      x: 1100,
+      y: 1200,
+    });
+    expect(w?.config).toEqual({ radius: 8 });
   });
 });
