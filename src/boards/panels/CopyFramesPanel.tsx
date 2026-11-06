@@ -16,21 +16,36 @@ import "./CollectionPanel.css";
  * duplicating a frame in place is a separate row.
  */
 interface CopyFramesPanelProps {
+  /** Everything on this board, for copying the lot. */
+  everything: BoardItem[];
   frames: BoardItem[];
   onCancel: () => void;
-  onConfirm: (frames: BoardItem[], to: CopyTarget) => void;
-  summary: { count: number; severed: number };
+  onConfirm: (items: BoardItem[], to: CopyTarget) => void;
+  summaryOf: (items: BoardItem[]) => { count: number; severed: number };
   /** The new board's suggested name. */
   title: string;
 }
 
+const whatOf = (whole: boolean, frames: number): string => {
+  if (whole) {
+    return "the whole board";
+  }
+  return frames === 1 ? "frame" : `${frames} frames`;
+};
+
 export function CopyFramesPanel({
+  everything,
   frames,
   onCancel,
   onConfirm,
-  summary,
+  summaryOf,
   title,
 }: CopyFramesPanelProps) {
+  const [whole, setWhole] = useState(false);
+  // The whole board copies every item (each one counts as its own "frame"
+  // for the copy, so loose ones come too), laid out as it is.
+  const going = whole ? everything : frames;
+  const summary = summaryOf(going);
   const { boardId: currentId } = useParams<{ boardId: string }>();
   const [boards, setBoards] = useState<Board[] | null>(null);
   const [name, setName] = useState(title);
@@ -54,11 +69,11 @@ export function CopyFramesPanel({
     };
   }, [currentId]);
 
-  const what = frames.length === 1 ? "frame" : `${frames.length} frames`;
+  const what = whatOf(whole, frames.length);
   const create = () => {
     const named = name.trim();
     if (named) {
-      onConfirm(frames, { title: named });
+      onConfirm(going, { title: named });
     }
   };
 
@@ -74,6 +89,15 @@ export function CopyFramesPanel({
         <span className="collection-panel__title">Copy {what} to…</span>
       </div>
 
+      <label className="panel-hint">
+        <input
+          checked={whole}
+          onChange={(e) => setWhole(e.target.checked)}
+          type="checkbox"
+        />{" "}
+        Everything on this board ({everything.length} items)
+      </label>
+
       <div className="collection-panel__list">
         {boards === null ? (
           <p className="collection-panel__message">Loading…</p>
@@ -88,7 +112,7 @@ export function CopyFramesPanel({
             className="collection-panel__option"
             key={board.id}
             onClick={() =>
-              onConfirm(frames, { id: board.id, title: board.title })
+              onConfirm(going, { id: board.id, title: board.title })
             }
             type="button"
           >
@@ -103,7 +127,7 @@ export function CopyFramesPanel({
       <p className="panel-hint">
         {summary.count} item{summary.count === 1 ? "" : "s"}, copied. Added to
         the right of what's on that board; this one keeps its own.
-        {summary.severed > 0 ? (
+        {!whole && summary.severed > 0 ? (
           <span className="panel-warning">
             {summary.severed === 1
               ? "1 wire leaves the frames and will not come across."

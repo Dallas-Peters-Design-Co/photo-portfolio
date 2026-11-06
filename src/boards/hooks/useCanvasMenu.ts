@@ -66,12 +66,15 @@ export const useCanvasMenu = ({
        */
       const at = view.toCanvas(e.clientX, e.clientY);
       const under = topmostAt(items, at, () => true);
+      const frame = onCopyFrame ? frameAt(at) : null;
       let chosen = selectedItems(selection, items);
-      if (under && !selection.has(under.id)) {
+      // Something on a selected frame keeps the selection too, so selected
+      // frames can be right-clicked anywhere on them.
+      const onSelected = frame !== null && selection.has(frame.id);
+      if (under && !selection.has(under.id) && !onSelected) {
         setSelection(select(under.id));
         chosen = [under];
       }
-      const frame = onCopyFrame ? frameAt(at) : null;
       if (chosen.length === 0 && !frame) {
         // Nothing to offer, so the browser's own menu stays — which is still
         // how an image gets saved or a link copied.

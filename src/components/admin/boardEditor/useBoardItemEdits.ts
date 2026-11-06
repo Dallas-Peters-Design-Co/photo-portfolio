@@ -137,14 +137,16 @@ export const useBoardItemEdits = (deps: BoardItemEditDeps) => {
         wires: [...(to.id ? (board.wires ?? []) : []), ...copy.wires],
       });
       toast.dismiss(toastId);
-      const what =
-        frames.length === 1 ? "the frame" : `${frames.length} frames`;
-      toast.success(`Copied ${what} to "${board.title}"`, {
-        action: {
-          label: "Open",
-          onClick: () => navigate(`/admin/boards/${board.id}`),
-        },
-      });
+      const n = copy.items.length;
+      toast.success(
+        `Copied ${n} item${n === 1 ? "" : "s"} to "${board.title}"`,
+        {
+          action: {
+            label: "Open",
+            onClick: () => navigate(`/admin/boards/${board.id}`),
+          },
+        }
+      );
     } catch (err) {
       toast.dismiss(toastId);
       toast.error(

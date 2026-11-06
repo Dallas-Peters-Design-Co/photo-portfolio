@@ -200,10 +200,11 @@ export function CanvasMenu({
     if (typing) {
       return (
         <CopyFramesPanel
+          everything={items}
           frames={typing.frames}
           onCancel={onDismiss}
           onConfirm={onCopyFrame}
-          summary={frameSummary(typing.frames, items, wires)}
+          summaryOf={(of) => frameSummary(of, items, wires)}
           title={
             typing.frames.length === 1 && typing.frames[0]
               ? frameBoardTitle(typing.frames[0])
