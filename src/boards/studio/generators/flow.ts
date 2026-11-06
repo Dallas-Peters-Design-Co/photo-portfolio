@@ -246,17 +246,169 @@ const pixelAt = (
     : loosePixel(o, at, along, rand);
 };
 
+/**
+ * Moving (a video, io/hyperframes): `flowPhase` (0 to 1 over the loop) and
+ * `flowMotion` (how much; 0 still). The pixels run along their lanes with
+ * the flow, each lane at its own whole-number pace so the loop joins up,
+ * the loose ones drift in toward the letters, and every pixel shimmers.
+ * Without them the piece is drawn exactly as it always has been.
+ */
+const PERIOD = 48;
+const TAU = Math.PI * 2;
+
+/** A repeatable random number for a cell, from its place and a salt. */
+const hashAt = (c: number, r: number, seed: number, k: number) => {
+  const x =
+    Math.sin(c * 12.9898 + r * 78.233 + seed * 37.719 + k * 4.581) *
+    43_758.5453;
+  return x - Math.floor(x);
+};
+
+/** A cell's own run of random numbers, the same every time it's asked. */
+const randomsAt = (c: number, r: number, seed: number) => {
+  let k = 0;
+  return () => {
+    k += 1;
+    return hashAt(c, r, seed, k);
+  };
+};
+
+interface Motion {
+  amount: number;
+  phase: number;
+}
+
+const motionOf = (v: StudioValues): Motion | null => {
+  const amount = Number(v.flowMotion) || 0;
+  return amount > 0 ? { amount, phase: (Number(v.flowPhase) || 0) % 1 } : null;
+};
+
+/**
+ * Where a cell's pixel comes from at this point in the loop: back along
+ * the flow, by a whole number of periods over the loop (so it ends where it
+ * began), at the lane's own pace. Wraps by the period, so the pattern is
+ * seamless as it moves.
+ */
+const sourceOf = (
+  o: Setup,
+  m: Motion,
+  seed: number,
+  c: number,
+  r: number
+): [number, number] => {
+  const across = o.dir === "left" || o.dir === "right";
+  const lane = across ? r : c;
+  const pace = Math.max(
+    1,
+    Math.round(m.amount * (1 + hashAt(lane, 0, seed, 9) * 2))
+  );
+  const shift = Math.floor(pace * PERIOD * m.phase);
+  const back = o.dir === "left" || o.dir === "top" ? -shift : shift;
+  const wrap = (n: number) => ((n % PERIOD) + PERIOD) % PERIOD;
+  return across ? [wrap(c + back), r] : [c, wrap(r + back)];
+};
+
+/** A pixel's brightness as it shimmers, once round over the loop or more. */
+const shimmerOf = (m: Motion, seed: number, c: number, r: number) =>
+  1 -
+  0.35 *
+    Math.min(1, m.amount) *
+    (0.5 + 0.5 * Math.sin(TAU * (2 * m.phase + hashAt(c, r, seed, 7))));
+
+/** How long a stream is, in cells, and how many a row may carry. */
+const STREAM = 10;
+const STREAMS_PER_ROW = 3;
+
+/**
+ * A stream passing through this cell: a short run of bright pixels racing
+ * through the letters with the flow, brightest at its head, each one at its
+ * own whole number of crossings per loop so the loop joins up. 0 for none.
+ */
+const streamAt = (
+  o: Setup,
+  m: Motion,
+  seed: number,
+  c: number,
+  r: number
+): number => {
+  const across = o.dir === "left" || o.dir === "right";
+  const lane = across ? r : c;
+  const pos = across ? c : r;
+  const length = across ? o.cols : o.rows;
+  const span = length + STREAM;
+  const forward = o.dir === "left" || o.dir === "top";
+  let best = 0;
+  for (let j = 0; j < STREAMS_PER_ROW; j += 1) {
+    // Some lanes carry fewer streams, so they don't march in step.
+    if (hashAt(lane, j, seed, 11) > Math.min(1, 0.55 * m.amount)) {
+      continue;
+    }
+    const laps = 1 + Math.floor(hashAt(lane, j, seed, 12) * 3);
+    const travelled = (hashAt(lane, j, seed, 13) + laps * m.phase) * span;
+    const head = (travelled % span) - STREAM;
+    const at = forward ? pos : length - 1 - pos;
+    const behind = head - at;
+    if (behind >= 0 && behind < STREAM) {
+      best = Math.max(best, 1 - behind / STREAM);
+    }
+  }
+  return best;
+};
+
+/** A #rrggbb colour mixed toward white by `k` (0 to 1). */
+const towardWhite = (hex: string, k: number): string => {
+  const channel = (i: number) => {
+    const n = Number.parseInt(hex.slice(i, i + 2), 16) || 0;
+    return Math.round(n + (255 - n) * k)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(1)}${channel(3)}${channel(5)}`;
+};
+
+/**
+ * A pixel while moving: a stream lights it in the type's brightest colour
+ * (where the type is: in the letters, or round them when they're cut out),
+ * otherwise it shimmers.
+ */
+const movingPixel = (
+  o: Setup,
+  cut: Uint8Array | null,
+  m: Motion,
+  seed: number,
+  c: number,
+  r: number,
+  drawn: string | null
+): string | null => {
+  const inType = cut ? !cut[r * o.cols + c] : o.inside(c, r);
+  const lit = inType ? streamAt(o, m, seed, c, r) : 0;
+  if (lit > 0) {
+    // Glowing: the type's brightest colour, towards white at the head.
+    const bright = (o.shape.at(-1) ?? "#ffffff").slice(0, 7);
+    return withAlpha(towardWhite(bright, 0.75 * lit), 0.45 + 0.55 * lit);
+  }
+  return drawn ? withAlpha(drawn, shimmerOf(m, seed, c, r)) : null;
+};
+
 /** Every pixel of the piece: where it is and its colour. */
 const eachPixel = (v: StudioValues, ctx: RenderContext, emit: TileEmit) => {
   const o = setupOf(v, ctx);
   const cut =
     v.cutout === true ? cutOf(o, Math.max(0, Number(v.margin) || 0)) : null;
   const s = o.cell - o.inset * 2;
-  const rand = rng(Number(v.seed) || 1);
+  const seed = Number(v.seed) || 1;
+  const still = rng(seed);
+  const moving = motionOf(v);
   const fade = edgeFadeOf(v, o.cols, o.rows);
   for (let r = 0; r < o.rows; r += 1) {
     for (let c = 0; c < o.cols; c += 1) {
-      const own = pixelAt(o, cut, c, r, rand);
+      const rand = moving
+        ? randomsAt(...sourceOf(o, moving, seed, c, r), seed)
+        : still;
+      const drawn = pixelAt(o, cut, c, r, rand);
+      const own = moving
+        ? movingPixel(o, cut, moving, seed, c, r, drawn)
+        : drawn;
       const colour = own && fadeCell(fade, c, r, own);
       if (colour) {
         emit(

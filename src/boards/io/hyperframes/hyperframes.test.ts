@@ -243,3 +243,29 @@ describe("exporting a frame", () => {
     expect(bytes).toContain('"tool":"pixel-field"');
   });
 });
+
+describe("Systems Flow moving", () => {
+  const flow = () => {
+    const tool = IMAGE_TOOLS.find((t) => t.id === "flow");
+    if (!tool) {
+      throw new Error("no flow tool");
+    }
+    return tool;
+  };
+  const values: StudioValues = { columns: 40, source: "text", text: "27" };
+
+  it("is drawn as it always was without motion", () => {
+    const tool = flow();
+    expect(tool.render({ ...values, flowMotion: 0, flowPhase: 0.4 }, ctx)).toBe(
+      tool.render(values, ctx)
+    );
+  });
+
+  it("moves through the loop and joins up at the end", () => {
+    const tool = flow();
+    const at = (phase: number) =>
+      tool.render({ ...values, flowMotion: 1, flowPhase: phase }, ctx);
+    expect(at(0.3)).not.toBe(at(0));
+    expect(at(1)).toBe(at(0));
+  });
+});

@@ -22,6 +22,12 @@ export type BuildOrder = "across" | "none" | "out" | "rise";
 export interface StudioMotion {
   build: BuildOrder;
   drift: boolean;
+  /**
+   * A tool that moves its own parts (Flow's lanes running, its scatter
+   * drifting in): the setting prefix it reads the loop from, as
+   * `<prefix>Phase` and `<prefix>Motion`.
+   */
+  own?: string;
   sway: { by: number; key: string }[];
 }
 
@@ -34,7 +40,7 @@ export const MOTION_FOR: Record<string, StudioMotion> = {
     drift: false,
     sway: [{ by: 12, key: "brightness" }],
   },
-  flow: { build: "across", drift: false, sway: [] },
+  flow: { build: "across", drift: false, own: "flow", sway: [] },
   gradient: { build: "none", drift: false, sway: [{ by: 30, key: "angle" }] },
   "grid-boxes": { build: "across", drift: false, sway: [] },
   halftone: { build: "out", drift: true, sway: [{ by: 10, key: "angle" }] },
@@ -110,6 +116,10 @@ export const valuesAt = (
   if (motion.drift) {
     next.fieldDrift = amount;
     next.fieldPhase = phase;
+  }
+  if (motion.own) {
+    next[`${motion.own}Motion`] = amount;
+    next[`${motion.own}Phase`] = phase;
   }
   return next;
 };
