@@ -53,7 +53,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           // Namespaced per user, and suffixed so re-uploading the same filename
           // never overwrites an existing photo.
           addRandomSuffix: true,
-          allowedContentTypes: [...UPLOAD_TYPES],
+          // Print jobs (a sheet too big to post, see printTransport.ts) are
+          // plain text; everything else is a picture or a clip.
+          allowedContentTypes: pathname.startsWith("print-jobs/")
+            ? ["text/plain"]
+            : [...UPLOAD_TYPES],
           tokenPayload: JSON.stringify({ pathname, userId: user.userId }),
         });
       },

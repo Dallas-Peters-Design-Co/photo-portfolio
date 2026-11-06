@@ -6,6 +6,7 @@ import {
 } from "../../services/portfolioService";
 import type { BoardItem } from "../../types";
 import { printHtml } from "./printHtml";
+import { pdfFrom, sheetPayload } from "./printTransport";
 
 /**
  * A print-ready PDF of a frame, fully vector, with bleed
@@ -66,12 +67,16 @@ export const exportPrintPdf = async (
   };
   const html = await printHtml(frame, layers, textElementFor, layout);
   const res = await fetch(`${apiBase()}/api/boards/print-pdf`, {
-    body: JSON.stringify({ ...layout, html, origin: window.location.origin }),
+    body: JSON.stringify({
+      ...layout,
+      ...(await sheetPayload(html)),
+      origin: window.location.origin,
+    }),
     headers: jsonHeaders(),
     method: "POST",
   });
   if (!res.ok) {
     throw new Error(await readPageError(res, "Could not make the print PDF"));
   }
-  return { blob: await res.blob(), spec };
+  return { blob: await pdfFrom(res), spec };
 };

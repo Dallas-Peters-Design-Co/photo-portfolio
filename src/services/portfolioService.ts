@@ -88,7 +88,7 @@ const photosPath = (): string => `${apiBase()}/api/photos`;
 const readUrl = (url: string): string =>
   getAuthToken() ? `${url}${url.includes("?") ? "&" : "?"}scope=admin` : url;
 const categoriesPath = (): string => `${apiBase()}/api/categories`;
-const uploadPath = (): string => `${apiBase()}/api/upload`;
+export const uploadPath = (): string => `${apiBase()}/api/upload`;
 const dailyChallengePath = (): string => `${apiBase()}/api/daily-challenge`;
 const dailyChallengeHistoryPath = (): string =>
   `${apiBase()}/api/daily-challenge/history`;
@@ -140,7 +140,7 @@ const writeStoredToken = (token: string | null): void => {
   }
 };
 
-const getAuthToken = (): string | null => readStoredToken();
+export const getAuthToken = (): string | null => readStoredToken();
 
 export interface AuthenticatedUser {
   /**
