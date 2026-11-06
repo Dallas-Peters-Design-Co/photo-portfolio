@@ -59,6 +59,18 @@ describe("the shape and pattern tools", () => {
     expect(svg).not.toContain("<image");
   });
 
+  it("turns and tilts the blocks, showing only faces toward the viewer", () => {
+    const v = { ...defaultsOf(isoBlocksTool), columns: 12 };
+    const iso = isoBlocksTool.render(v, ctx);
+    const turned = isoBlocksTool.render({ ...v, tilt: 60, turn: 200 }, ctx);
+    const plan = isoBlocksTool.render({ ...v, tilt: 90, turn: 0 }, ctx);
+    expect(turned).not.toBe(iso);
+    // Straight down, only tops show: no side faces at all.
+    expect(plan.split("<polygon").length).toBeLessThan(
+      iso.split("<polygon").length
+    );
+  });
+
   it("draws the same picture for the same seed", () => {
     const v = { ...defaultsOf(lineWavesTool), source: "noise" };
     expect(lineWavesTool.render(v, ctx)).toBe(lineWavesTool.render(v, ctx));

@@ -2,8 +2,8 @@ import { pick } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
 import { numOr } from "./cellField";
 import { fieldOf, fieldParams } from "./field";
+import { columnFaces, depthOf, viewFor } from "./isoView";
 import { drawPrims, type Prim, primsDoc } from "./prims";
-import { hex, rgb } from "./recolour";
 
 /**
  * Iso Blocks: text, a picture or noise built as stacks of isometric cubes,
@@ -11,94 +11,19 @@ import { hex, rgb } from "./recolour";
  * Vector.
  */
 
-const COS = Math.cos(Math.PI / 6);
-const SIN = 0.5;
-
 interface Setup {
   cols: number;
   levels: number;
-  ox: number;
-  oy: number;
   rows: number;
-  u: number;
 }
 
-const setupOf = (v: StudioValues, ctx: RenderContext): Setup => {
+const setupOf = (v: StudioValues): Setup => {
   const cols = Math.max(4, Math.round(numOr(v.columns, 64)));
-  const rows = Math.max(2, Math.round((cols * numOr(v.depth, 36)) / 100));
-  const levels = Math.max(1, Math.round(numOr(v.levels, 3)));
-  // Fitted: the whole build, its height included, inside the piece.
-  const wide = (cols + rows) * COS;
-  const tall = (cols + rows) * SIN + levels;
-  const u =
-    Math.min((ctx.width * 0.92) / wide, (ctx.height * 0.9) / tall) *
-    (numOr(v.zoom, 100) / 100);
   return {
     cols,
-    levels,
-    ox: ctx.width / 2 - ((cols - rows) * COS * u) / 2,
-    oy: (ctx.height - tall * u) / 2 + levels * u,
-    rows,
-    u,
+    levels: Math.max(1, Math.round(numOr(v.levels, 3))),
+    rows: Math.max(2, Math.round((cols * numOr(v.depth, 36)) / 100)),
   };
-};
-
-/** A ground point (c, r) at height z, on screen. */
-const at = (s: Setup, c: number, r: number, z: number): [number, number] => [
-  s.ox + (c - r) * COS * s.u,
-  s.oy + (c + r) * SIN * s.u - z * s.u,
-];
-
-const shade = (colour: string, k: number): string => {
-  const [r, g, b] = rgb(colour);
-  return hex(r * k, g * k, b * k);
-};
-
-const faces = (
-  s: Setup,
-  c: number,
-  r: number,
-  z0: number,
-  z1: number,
-  colour: string,
-  v: StudioValues
-): Prim[] => {
-  const dark = 1 - numOr(v.shading, 35) / 100;
-  const line = v.edges === true ? String(v.edgeColour || "#00000055") : null;
-  const sw = s.u * 0.04;
-  const p = (cc: number, rr: number, z: number) => at(s, cc, rr, z);
-  const quad = (pts: [number, number][], fill: string): Prim => ({
-    fill,
-    pts: pts.flat(),
-    stroke: line,
-    sw,
-    t: "poly",
-  });
-  return [
-    // Left face (along the row's front edge), then right, then the top.
-    quad(
-      [
-        p(c, r + 1, z0),
-        p(c + 1, r + 1, z0),
-        p(c + 1, r + 1, z1),
-        p(c, r + 1, z1),
-      ],
-      shade(colour, (1 + dark) / 2)
-    ),
-    quad(
-      [
-        p(c + 1, r, z0),
-        p(c + 1, r + 1, z0),
-        p(c + 1, r + 1, z1),
-        p(c + 1, r, z1),
-      ],
-      shade(colour, dark)
-    ),
-    quad(
-      [p(c, r, z1), p(c + 1, r, z1), p(c + 1, r + 1, z1), p(c, r + 1, z1)],
-      colour
-    ),
-  ];
 };
 
 const colourOf = (
@@ -139,33 +64,47 @@ const heightsOf = (v: StudioValues, ctx: RenderContext, s: Setup): number[] => {
 };
 
 const blocksOf = (v: StudioValues, ctx: RenderContext): Prim[] => {
-  const s = setupOf(v, ctx);
+  const s = setupOf(v);
   const heights = heightsOf(v, ctx, s);
-  const stacked = v.stacked !== false;
-  const out: Prim[] = [];
-  // Back to front: by c + r, so nearer columns are drawn over farther ones.
-  for (let sum = 0; sum <= s.cols + s.rows - 2; sum += 1) {
-    for (
-      let r = Math.max(0, sum - s.cols + 1);
-      r <= Math.min(s.rows - 1, sum);
-      r += 1
-    ) {
-      const c = sum - r;
-      const h = heights[r * s.cols + c] ?? 0;
-      if (h === 0) {
-        continue;
-      }
-      const colour = colourOf(v, ctx, c, s.cols, h, s.levels);
-      if (stacked) {
-        for (let z = 0; z < h; z += 1) {
-          out.push(...faces(s, c, r, z, z + 1, colour, v));
-        }
-      } else {
-        out.push(...faces(s, c, r, 0, h, colour, v));
+  const view = viewFor(
+    ctx.width,
+    ctx.height,
+    s.cols,
+    s.rows,
+    s.levels,
+    numOr(v.turn, 45),
+    numOr(v.tilt, 35),
+    numOr(v.zoom, 100) / 100
+  );
+  const heightAt = (c: number, r: number) =>
+    c < 0 || r < 0 || c >= s.cols || r >= s.rows
+      ? 0
+      : (heights[r * s.cols + c] ?? 0);
+  const look = {
+    dark: 1 - numOr(v.shading, 35) / 100,
+    edge: v.edges === true ? String(v.edgeColour || "#00000055") : null,
+  };
+  // Back to front from wherever the viewer stands: farthest columns first.
+  const cells: [number, number, number][] = [];
+  for (let r = 0; r < s.rows; r += 1) {
+    for (let c = 0; c < s.cols; c += 1) {
+      if (heightAt(c, r) > 0) {
+        cells.push([c, r, depthOf(view, c + 0.5, r + 0.5, 0)]);
       }
     }
   }
-  return out;
+  cells.sort((a, b) => a[2] - b[2]);
+  return cells.flatMap(([c, r]) =>
+    columnFaces(
+      view,
+      c,
+      r,
+      heightAt,
+      colourOf(v, ctx, c, s.cols, heightAt(c, r), s.levels),
+      look,
+      v.stacked !== false
+    )
+  );
 };
 
 const groundOf = (v: StudioValues) =>
@@ -173,12 +112,20 @@ const groundOf = (v: StudioValues) =>
 
 export const isoBlocksTool: ImageTool = {
   blurb:
-    "Text, a picture or noise built as stacks of isometric cubes, taller where it's strongest. Goes in as an SVG.",
+    "Text, a picture or noise built as stacks of cubes, taller where it's strongest, seen from any turn and tilt. Goes in as an SVG.",
   draw: (g, v, ctx) => drawPrims(g, blocksOf(v, ctx), ctx, groundOf(v)),
   id: "iso-blocks",
   kind: "image",
   looks: [
     { name: "Built type", values: { colour: "across" } },
+    {
+      name: "Face on, from above",
+      values: { colour: "across", tilt: 55, turn: 0 },
+    },
+    {
+      name: "Low and turned",
+      values: { colour: "across", tilt: 22, turn: 20 },
+    },
     {
       name: "Skyline from noise",
       values: {
@@ -256,6 +203,22 @@ export const isoBlocksTool: ImageTool = {
       key: "stacked",
       label: "Show each cube",
       type: "checkbox",
+    },
+    {
+      default: 45,
+      key: "turn",
+      label: "Turn (°)",
+      max: 360,
+      min: 0,
+      type: "range",
+    },
+    {
+      default: 35,
+      key: "tilt",
+      label: "Tilt: level to straight down (°)",
+      max: 90,
+      min: 5,
+      type: "range",
     },
     {
       default: 100,
