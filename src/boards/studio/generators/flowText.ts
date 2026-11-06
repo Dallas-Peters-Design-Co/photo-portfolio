@@ -157,10 +157,20 @@ const coverage = (
   return { cover, letter };
 };
 
-/** Whether the face is loaded; asks for it if not (the preview redraws). */
+/**
+ * Whether the face is loaded; asks for it if not (the preview redraws). A
+ * face already there (a video's own copy, io/hyperframes) isn't fetched again.
+ */
 const fontReady = (v: StudioValues) => {
   const font = fontOf(v);
-  loadFontRef(`g:${font.family}`);
+  // check() is true for a family with no faces at all, so only a face that
+  // has actually loaded counts as already here.
+  const here = [...document.fonts].some(
+    (f) => f.status === "loaded" && f.family.replaceAll('"', "") === font.family
+  );
+  if (!here) {
+    loadFontRef(`g:${font.family}`);
+  }
   const ready = document.fonts.check(font.css);
   if (!ready) {
     void document.fonts.load(font.css);

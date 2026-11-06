@@ -12,6 +12,7 @@ import {
   type PrintSpec,
   printSpecFor,
 } from "./exportPrint";
+import { VideoExport } from "./VideoExport";
 
 /**
  * The editor's export: always a PNG at the frame's real size, plus the file
@@ -183,7 +184,7 @@ export function ExportMenu({
   textElementFor: (id: string) => HTMLElement | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState<"file" | "png" | null>(null);
+  const [busy, setBusy] = useState<"file" | "png" | "video" | null>(null);
   const [link, setLink] = useState("https://");
   const [print, setPrint] = useState<PrintOptions>({
     bleed: true,
@@ -323,6 +324,13 @@ export function ExportMenu({
               {busy === "file" ? "Building…" : copy.action}
             </button>
           </div>
+          <VideoExport
+            busy={busy !== null}
+            frame={frame}
+            layers={layers}
+            onBusy={(on) => setBusy(on ? "video" : null)}
+            textElementFor={textElementFor}
+          />
         </div>
       ) : null}
     </div>

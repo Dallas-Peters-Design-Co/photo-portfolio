@@ -276,7 +276,7 @@ export const fetchBytes = async (
   }
 };
 
-const extOf = (url: string, type: string, fallback: string) =>
+export const extOf = (url: string, type: string, fallback: string) =>
   EXT[type] ??
   new URL(url, location.href).pathname.split(".").pop()?.toLowerCase() ??
   fallback;
@@ -311,7 +311,7 @@ export const fontFaceRules = (families: Set<string>): string[] =>
  * Self-hosted fonts in use, their files copied into the zip and the rules
  * pointed at the copies.
  */
-const selfHostedFonts = async (
+export const selfHostedFonts = async (
   families: Set<string>,
   files: ZipFile[]
 ): Promise<string> => {
@@ -349,7 +349,7 @@ const selfHostedFonts = async (
 };
 
 /** Every picture the layers use, copied in where the host allows it. */
-const copyImages = async (
+export const copyImages = async (
   layers: BoardItem[],
   files: ZipFile[]
 ): Promise<Map<string, string>> => {

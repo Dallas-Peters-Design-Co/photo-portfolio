@@ -9,6 +9,11 @@ import { FONTS, maskOf } from "./flowText";
  * text, a picture (an object, the selection, a file), soft noise, waves
  * (crossing sine waves, the Durves look), a straight gradient or a radial
  * one. Shared by Halftone, Line Waves and Iso Blocks.
+ *
+ * Two settings no control shows move the field for video (io/hyperframes):
+ * `fieldDrift`, how much (0 still), and `fieldPhase`, where in the loop (0
+ * to 1). Every source comes back to where it started at phase 1, and at
+ * phase 0 the field is exactly the picture as made.
  */
 export type FieldSource =
   | "blobs"
@@ -218,9 +223,11 @@ const geometricAt = (
   dy: number,
   aspect: number
 ): number => {
+  const [ox, oy, shift] = driftOf(v);
   if (v.source === "radial") {
-    const cx = numOr(v.fieldX, 50) / 100;
-    const cy = numOr(v.fieldY, 50) / 100;
+    // The centre traces a figure of eight through where it was set.
+    const cx = numOr(v.fieldX, 50) / 100 + ox;
+    const cy = numOr(v.fieldY, 50) / 100 + oy;
     const d =
       Math.hypot((u - cx) * aspect, w - cy) / Math.hypot(aspect / 2, 0.5);
     return 1 - Math.min(1, d);
@@ -231,13 +238,34 @@ const geometricAt = (
     ((u - 0.5) * dx * aspect + (w - 0.5) * dy) /
       (Math.abs(dx) * aspect + Math.abs(dy) || 1);
   if (v.source === "gradient") {
-    return along;
+    return along + oy;
   }
   // Waves: bands along the direction, bent by a sine across it (Durves).
   const across = 0.5 + ((u - 0.5) * -dy * aspect + (w - 0.5) * dx);
   const amp = numOr(v.waveAmp, 30) / 100;
   const bend = amp * Math.sin(TAU * numOr(v.waveCount, 4) * across * 0.25);
-  return 0.5 + 0.5 * Math.sin(TAU * (numOr(v.waveFreq, 3) * along + bend));
+  return (
+    0.5 + 0.5 * Math.sin(TAU * (numOr(v.waveFreq, 3) * along + bend + shift))
+  );
+};
+
+/**
+ * The drift at this phase: a figure-of-eight offset (radial centre, a
+ * gradient's slide) and a whole number of wave cycles travelled, all zero
+ * at the start and end of the loop.
+ */
+const driftOf = (v: StudioValues): [number, number, number] => {
+  const amount = numOr(v.fieldDrift, 0);
+  if (amount <= 0) {
+    return [0, 0, 0];
+  }
+  const p = numOr(v.fieldPhase, 0);
+  const r = 0.12 * amount;
+  return [
+    r * Math.sin(TAU * p),
+    (r / 2) * Math.sin(2 * TAU * p),
+    Math.max(1, Math.round(amount)) * p,
+  ];
 };
 
 /**
@@ -259,6 +287,19 @@ const blobs = (
     x: rand() * aspect,
     y: rand(),
   }));
+  // Drifting, each glow circles near where the seed put it, its own way
+  // round, and is back there at the end of the loop.
+  const amount = numOr(v.fieldDrift, 0);
+  if (amount > 0) {
+    const p = numOr(v.fieldPhase, 0);
+    spots.forEach((s, i) => {
+      const at = (i * 0.618) % 1;
+      const way = i % 2 === 0 ? 1 : -1;
+      const reach = 0.25 * size * amount;
+      s.x += reach * (Math.sin(TAU * (way * p + at)) - Math.sin(TAU * at));
+      s.y += reach * (Math.cos(TAU * (way * p + at)) - Math.cos(TAU * at));
+    });
+  }
   const out = new Float32Array(cols * rows);
   for (let r = 0; r < rows; r += 1) {
     for (let c = 0; c < cols; c += 1) {
@@ -301,6 +342,43 @@ const pictured = (
   });
 };
 
+/** Noise that breathes: eased toward a second noise and back over the loop. */
+const noise = (v: StudioValues, cols: number, rows: number): Float32Array => {
+  const size = Math.max(5, numOr(v.noiseSize, 30)) / 100;
+  const seed = Number(v.seed) || 1;
+  const base = clouds(cols, rows, seed, size);
+  const amount = Math.min(1, numOr(v.fieldDrift, 0));
+  if (amount <= 0) {
+    return base;
+  }
+  const mix = amount * (0.5 - 0.5 * Math.cos(TAU * numOr(v.fieldPhase, 0)));
+  const other = clouds(cols, rows, seed + 1, size);
+  return base.map((x, i) => x + ((other[i] ?? x) - x) * mix);
+};
+
+/**
+ * Type and pictures don't move; a band of light passes across them
+ * instead, strongest at mid-loop and off the piece at either end.
+ */
+const lit = (
+  field: Float32Array,
+  v: StudioValues,
+  cols: number,
+  rows: number
+): Float32Array => {
+  const amount = numOr(v.fieldDrift, 0);
+  if (amount <= 0) {
+    return field;
+  }
+  const centre = numOr(v.fieldPhase, 0) * 1.6 - 0.3;
+  return field.map((x, i) => {
+    const u = ((i % cols) + 0.5) / cols;
+    const w = (Math.floor(i / cols) + 0.5) / rows;
+    const d = u + w * 0.3 - centre;
+    return x * (1 + 0.6 * amount * Math.exp(-(d * d) / 0.02));
+  });
+};
+
 const raw = (
   v: StudioValues,
   ctx: RenderContext,
@@ -308,17 +386,19 @@ const raw = (
   rows: number
 ): Float32Array => {
   if (v.source === "text") {
-    return maskOf(v, cols, rows).cover;
+    return lit(maskOf(v, cols, rows).cover, v, cols, rows);
   }
   if (v.source === "picture") {
-    return pictured(v, ctx, cols, rows) ?? new Float32Array(cols * rows);
+    const picture = pictured(v, ctx, cols, rows);
+    return picture
+      ? lit(picture, v, cols, rows)
+      : new Float32Array(cols * rows);
   }
   if (v.source === "blobs") {
     return blobs(v, cols, rows, ctx.width / ctx.height);
   }
   if (v.source === "noise") {
-    const size = Math.max(5, numOr(v.noiseSize, 30)) / 100;
-    return clouds(cols, rows, Number(v.seed) || 1, size);
+    return noise(v, cols, rows);
   }
   return geometric(v, cols, rows, ctx.width / ctx.height);
 };
