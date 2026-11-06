@@ -299,6 +299,7 @@ export function BoardEditor({
           isDirty={isDirty}
           isSaving={isSaving}
           onRename={() => void rename()}
+          onSwitch={(to) => void close(() => navigate(to))}
           title={board?.title ?? "Board"}
         />
 

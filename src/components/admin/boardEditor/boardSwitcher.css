@@ -1,0 +1,47 @@
+/*
+ * The board switcher, dropped from the board's name (BoardSwitcher.tsx).
+ *
+ * A board panel of its own just under the status bar, sized for a list of
+ * names; the list part is the collection panel's.
+ */
+.board-switcher {
+  top: calc(var(--spacing) * 15);
+  left: 180px;
+  flex-direction: column;
+  align-items: stretch;
+  width: calc(var(--spacing) * 80);
+  max-height: min(70vh, calc(var(--spacing) * 120));
+  padding: 0;
+  overflow: hidden;
+}
+
+.board-switcher__field {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-micro-md);
+  color: var(--color-board-ink);
+  outline: none;
+  background: none;
+  border: 0;
+}
+
+.board-switcher__field::placeholder {
+  color: color-mix(in oklch, var(--color-board-ink) 35%, transparent);
+}
+
+.board-switcher .collection-panel__option[data-active] {
+  background: color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+}
+
+.board-switcher__foot {
+  padding-block: var(--spacing);
+  border-top: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+}
+
+.board-switcher__action {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  color: color-mix(in oklch, var(--color-board-ink) 70%, transparent);
+}
