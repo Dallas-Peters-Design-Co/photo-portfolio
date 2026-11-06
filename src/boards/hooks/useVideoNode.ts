@@ -1,7 +1,9 @@
 import { useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { missingVideoInputs } from "../../../config/nodes/falVideoInputs.js";
+import { portfolioService } from "../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../types";
+import { framesToRender, withFrameRenders } from "../io/frameRender";
 import { videoInputsOf } from "../io/videoInputs";
 import { runVideo } from "../io/videoRun";
 
@@ -52,6 +54,16 @@ const settingsOf = (item: BoardItem) => {
  * that actually failed throws, because a board run has to know not to spend
  * money on the nodes downstream of it.
  */
+/** Uploads a designed frame's render, returning its address. */
+const uploadFrame = async (png: Blob): Promise<string> =>
+  (
+    await portfolioService.uploadImageFile(
+      new File([png], "frame.png", { type: "image/png" }),
+      undefined,
+      "boards/frames"
+    )
+  ).url;
+
 export const useVideoRunner = (
   boardId: string | null,
   items: BoardItem[],
@@ -83,6 +95,18 @@ export const useVideoRunner = (
       // a text-to-video model needs none of the pictures, a reference model
       // needs the list — so it is checked against the endpoint's schema here,
       // before anything is spent, and refused with what is actually missing.
+      // A designed frame wired in goes as one picture, drawn now if needed.
+      const stale = framesToRender(latest.current, wires, item.id);
+      if (stale.length > 0) {
+        const drawn = await withFrameRenders(
+          stale,
+          latest.current,
+          uploadFrame,
+          (message) => toast.error(message)
+        );
+        latest.current = drawn;
+        onChange(drawn);
+      }
       const wired = videoInputsOf(item, { items: latest.current, wires });
       const settings = settingsOf(item);
       const prompt = [settings.prompt, ...wired.prompts]

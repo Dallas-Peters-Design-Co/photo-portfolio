@@ -5,6 +5,7 @@ import { HEX_COLOUR } from "../../config/nodes/palette.js";
 import { renderedUrlOf } from "../../config/nodes/rendered.js";
 import type { BoardItem, BoardItemVariation, BoardWire } from "../types";
 import { bundleWired } from "./bundleWires";
+import { currentFrameRender } from "./io/frameRenderKey";
 import { parseItems } from "./listItems";
 
 /**
@@ -370,6 +371,11 @@ export const outputImagesOf = (
     return [];
   }
   if (item.kind === "frame") {
+    // A designed frame hands over itself, flattened, once it has been drawn.
+    const render = currentFrameRender(item, graph.items);
+    if (render) {
+      return [render];
+    }
     return containedBy(item, graph.items)
       .sort((a, b) => a.z - b.z)
       .flatMap((inside) => outputImagesOf(inside, graph, depth + 1));
@@ -434,6 +440,10 @@ export const outputImageOf = (
     return currentImageUrl(item);
   }
   if (item.kind === "frame") {
+    const render = currentFrameRender(item, items);
+    if (render) {
+      return render;
+    }
     // The topmost picture on the frame, as a stand-in for all of them. The
     // wire really carries every one — the run fans out over the lot — but a
     // preview shows one thing, and showing nothing made a correctly wired
