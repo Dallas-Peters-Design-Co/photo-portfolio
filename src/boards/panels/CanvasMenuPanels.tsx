@@ -2,9 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
 import ArrowRight02Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight02Icon";
 import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
-import { useEffect, useRef } from "react";
 import type { BoardItem } from "../../types";
-import { frameBoardTitle } from "../io/copyToBoard";
 import { toolContextOf } from "../tools/itemContext";
 import { toolsForKind } from "../tools/registry";
 import type { Tool } from "../tools/types";
@@ -12,7 +10,7 @@ import { ToolPicker } from "./ToolPicker";
 import "../boardChrome.css";
 
 /**
- * The two things the canvas menu turns itself into.
+ * Panels the canvas menu turns itself into.
  *
  * Both replace the row list rather than opening beside it, because the menu is
  * 240px of chrome floating over a board and a second popup hanging off it would
@@ -20,79 +18,6 @@ import "../boardChrome.css";
  * with its own state, and the menu was heading past its size ceiling one panel
  * at a time.
  */
-
-interface NamePanelProps {
-  frame: BoardItem;
-  onCancel: () => void;
-  onConfirm: (frame: BoardItem, title: string) => void;
-  onType: (title: string) => void;
-  summary: { count: number; severed: number } | null;
-  title: string;
-}
-
-/** The name a copied frame's board gets, and what the copy will contain. */
-export function NamePanel({
-  frame,
-  onCancel,
-  onConfirm,
-  onType,
-  summary,
-  title,
-}: NamePanelProps) {
-  const field = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    // Selected, not merely focused: the suggestion should be typed over.
-    field.current?.select();
-  }, []);
-  const submit = () => onConfirm(frame, title.trim() || frameBoardTitle(frame));
-
-  return (
-    <div className="panel-section">
-      <span className="panel-label">New board name</span>
-      <input
-        aria-label="New board name"
-        className="panel-field"
-        onChange={(e) => onType(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            submit();
-          }
-          if (e.key === "Escape") {
-            onCancel();
-          }
-        }}
-        ref={field}
-        value={title}
-      />
-      <p className="panel-hint">
-        {summary?.count === 1
-          ? "The frame alone"
-          : `${summary?.count ?? 0} items`}
-        , copied. This board keeps its own.
-        {summary && summary.severed > 0 ? (
-          <span className="panel-warning">
-            {summary.severed === 1
-              ? "1 wire leaves the frame and will not come across."
-              : `${summary.severed} wires leave the frame and will not come across.`}
-          </span>
-        ) : null}
-      </p>
-      <div className="panel-actions">
-        <button className="panel-button" onClick={onCancel} type="button">
-          Cancel
-        </button>
-        <button
-          className="panel-button panel-button--tinted"
-          onClick={submit}
-          type="button"
-        >
-          Create
-        </button>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Whether opening the picker on this item would show anything.

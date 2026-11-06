@@ -14,7 +14,11 @@ import {
   type MaskStroke,
   maskOf,
 } from "../../../boards/drawing/mask";
-import { copyOfFrame } from "../../../boards/io/copyToBoard";
+import {
+  type CopyTarget,
+  copyOfFrames,
+  landingOn,
+} from "../../../boards/io/copyToBoard";
 import { buildDataset, startTraining } from "../../../boards/io/dataset";
 import { isVideoUrl } from "../../../boards/io/isVideo";
 import { newItemId } from "../../../boards/io/newItemId";
@@ -109,39 +113,42 @@ export const useBoardItemEdits = (deps: BoardItemEditDeps) => {
   };
 
   /**
-   * A frame, and everything sitting on it, copied to a board of its own.
+   * Frames, and everything sitting on them, copied to another board: one
+   * that exists (added to the right of what's on it) or a new one.
    *
-   * Two calls rather than one: boards are created empty, so the arrangement
-   * follows in the save that every board already uses. If that second call
-   * fails the board still exists — empty — which is why the error says so
-   * rather than claiming nothing happened.
+   * A save replaces a whole board, so an existing one is read first and
+   * written back with the copies added, its own wires included. A new board
+   * takes two calls (it's created empty); if the second fails the board still
+   * exists, empty.
    *
    * Nothing here touches this board. A copy that also deleted would be a move,
    * and a mis-aimed right-click would then cost work.
    */
-  const copyFrameToBoard = async (frame: BoardItem, title: string) => {
-    const copy = copyOfFrame(frame, items, wires);
-    const toastId = toast.loading(`Creating "${title}"…`);
+  const copyFrameToBoard = async (frames: BoardItem[], to: CopyTarget) => {
+    const toastId = toast.loading(`Copying to "${to.title}"…`);
     try {
-      const created = await boardsApi.create(title);
-      await boardsApi.update(created.id, {
-        items: copy.items,
-        wires: copy.wires,
+      const board = to.id
+        ? await boardsApi.get(to.id)
+        : await boardsApi.create(to.title);
+      const theirs = to.id ? (board.items ?? []) : [];
+      const copy = copyOfFrames(frames, items, wires, landingOn(theirs));
+      await boardsApi.update(board.id, {
+        items: [...theirs, ...copy.items],
+        wires: [...(to.id ? (board.wires ?? []) : []), ...copy.wires],
       });
       toast.dismiss(toastId);
-      toast.success(
-        `Copied ${copy.items.length} item${copy.items.length === 1 ? "" : "s"} to "${title}"`,
-        {
-          action: {
-            label: "Open",
-            onClick: () => navigate(`/admin/boards/${created.id}`),
-          },
-        }
-      );
+      const what =
+        frames.length === 1 ? "the frame" : `${frames.length} frames`;
+      toast.success(`Copied ${what} to "${board.title}"`, {
+        action: {
+          label: "Open",
+          onClick: () => navigate(`/admin/boards/${board.id}`),
+        },
+      });
     } catch (err) {
       toast.dismiss(toastId);
       toast.error(
-        err instanceof Error ? err.message : "Could not copy to a new board"
+        err instanceof Error ? err.message : "Could not copy to that board"
       );
     }
   };

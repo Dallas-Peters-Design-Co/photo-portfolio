@@ -366,9 +366,7 @@ export function BoardEditor({
               onCancel={graphRun.cancel}
               onChange={change}
               onConfigChange={changeConfig}
-              onCopyFrame={(frame, title) =>
-                void copyFrameToBoard(frame, title)
-              }
+              onCopyFrame={(frames, to) => void copyFrameToBoard(frames, to)}
               onCreateFromPort={createFromPort}
               onDraw={addDrawing}
               onDrawTool={setDrawTool}

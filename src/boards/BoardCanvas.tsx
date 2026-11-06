@@ -8,7 +8,7 @@ import {
 import { findOutputPort, withWire } from "../../config/graph.js";
 import type { PortType } from "../../config/nodeTypes.js";
 import type { BoardComment } from "../services/comments";
-import type { BoardItem, BoardWire } from "../types";
+import type { BoardItem, BoardWire, CopyTarget } from "../types";
 import { BoardItemView } from "./BoardItemView";
 import { CanvasChrome } from "./canvas/CanvasChrome";
 import { markFromStroke } from "./canvas/markFromStroke";
@@ -139,7 +139,7 @@ interface BoardCanvasProps {
    * Same division as onCreateFromPort: the canvas knows which frame was asked
    * for, and the editor is the only thing that can talk to the API.
    */
-  onCopyFrame?: (frame: BoardItem, title: string) => void;
+  onCopyFrame?: (frames: BoardItem[], to: CopyTarget) => void;
   /**
    * Creates the thing a clicked port should feed, already wired to it.
    *
@@ -1308,8 +1308,8 @@ export function BoardCanvas({
         menu={menu}
         onArrange={closing(onArrangeFrame)}
         onBringToFront={closing(onBringToFront)}
-        onCopyFrame={(frame, title) => {
-          onCopyFrame?.(frame, title);
+        onCopyFrame={(frames, to) => {
+          onCopyFrame?.(frames, to);
           setMenu(null);
         }}
         onDismiss={() => setMenu(null)}

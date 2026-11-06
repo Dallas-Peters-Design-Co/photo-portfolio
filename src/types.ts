@@ -434,3 +434,10 @@ export interface AiModelInput {
   sortOrder?: number;
   vector?: boolean;
 }
+
+/** Where frames are being copied: an existing board, or a new one named. */
+export interface CopyTarget {
+  /** Absent for a new board. */
+  id?: string;
+  title: string;
+}
