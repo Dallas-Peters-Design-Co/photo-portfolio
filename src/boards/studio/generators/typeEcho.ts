@@ -1,33 +1,16 @@
-import { loadFontRef } from "../../../theme/remoteFonts";
-import { esc, svgDoc } from "../rng";
-import type { ImageTool, RenderContext, StudioValues } from "../types";
+import type { ImageTool, StudioValues } from "../types";
 import { numOr } from "./cellField";
-import { FONTS } from "./flowText";
+import { faded } from "./mosaicFeather";
+import { drawPrims, type Prim, primsDoc } from "./prims";
 import { hex, rgb } from "./recolour";
+import { fontFor, OUTLINE_FAMILIES, textPath, textWidth } from "./vectorType";
 
 /**
  * Type Echo: a word repeated in steps, each copy moved on, squashed and
  * faded, like an echo or a long exposure, landing on one solid copy (which
- * can say something else: HOURS echoing into ASSETS). Drawn with the real
- * font, so it goes in as a picture rather than an SVG.
+ * can say something else: HOURS echoing into ASSETS). The letters are vector
+ * outlines (vectorType.ts), so it goes in as an SVG.
  */
-
-const fontOf = (v: StudioValues) => {
-  const family = FONTS.includes(String(v.font)) ? String(v.font) : "DM Sans";
-  return { family, weight: Number(v.weight) || 800 };
-};
-
-/** Asks for the face if it isn't loaded yet; the preview redraws when it is. */
-const fontReady = (v: StudioValues) => {
-  const { family, weight } = fontOf(v);
-  loadFontRef(`g:${family}`);
-  const css = `${weight} 100px "${family}"`;
-  if (!document.fonts.check(css)) {
-    void document.fonts.load(css);
-    return false;
-  }
-  return true;
-};
 
 const mix = (a: string, b: string, t: number): string => {
   const [r1, g1, b1] = rgb(a);
@@ -47,55 +30,68 @@ interface Copy {
   y: number;
 }
 
+interface Layout {
+  H: number;
+  size: number;
+  textW: number;
+  W: number;
+}
+
+/** Where a copy `i` steps along, squashed `k`, from the landing copy. */
+const moved = (
+  dir: Direction,
+  base: [number, number],
+  off: number,
+  k: number,
+  l: Layout
+): [number, number, number, number] => {
+  const [x, y] = base;
+  if (dir === "down") {
+    return [x, y + off, 1, k];
+  }
+  if (dir === "left") {
+    return [x - off, y, k, 1];
+  }
+  if (dir === "right") {
+    return [x + off, y, k, 1];
+  }
+  if (dir === "into") {
+    const tx = x + (l.W / 2 - x - (l.textW * k) / 2) * (1 - k);
+    return [tx, y - (y - l.H * 0.15) * (1 - k), k, k];
+  }
+  return [x, y - off, 1, k];
+};
+
 /** Each copy's place, squash, colour and opacity, farthest first. */
-const copiesOf = (
-  v: StudioValues,
-  W: number,
-  H: number,
-  size: number,
-  textW: number
-): Copy[] => {
+const copiesOf = (v: StudioValues, l: Layout): Copy[] => {
   const n = Math.max(1, Math.round(numOr(v.copies, 10)));
   const dir = String(v.direction || "up") as Direction;
-  const step = (numOr(v.step, 35) / 100) * size;
+  const step = (numOr(v.step, 35) / 100) * l.size;
   const squash = numOr(v.squash, 85) / 100;
   const far = numOr(v.fade, 15) / 100;
   const word = String(v.text ?? "HOURS");
   const last = String(v.landing ?? "").trim() || word;
-  const margin = Math.min(W, H) * 0.05;
-  const baseX =
-    { center: (W - textW) / 2, left: margin, right: W - margin - textW }[
-      String(v.align || "left")
-    ] ?? margin;
-  const baseY = dir === "down" ? margin + size * 0.75 : H - margin;
+  const margin = Math.min(l.W, l.H) * 0.05;
+  const placeX: Record<string, number> = {
+    center: (l.W - l.textW) / 2,
+    left: margin,
+    right: l.W - margin - l.textW,
+  };
+  const base: [number, number] = [
+    placeX[String(v.align || "left")] ?? margin,
+    dir === "down" ? margin + l.size * 0.75 : l.H - margin,
+  ];
   const out: Copy[] = [];
   for (let i = n - 1; i >= 0; i -= 1) {
     const t = n === 1 ? 0 : i / (n - 1);
-    const k = squash ** i;
-    const off = step * i;
-    const moves: Record<Direction, [number, number, number, number]> = {
-      down: [baseX, baseY + off, 1, k],
-      into: [
-        baseX + (W / 2 - baseX - textW / 2) * (1 - k) * 0.9,
-        baseY - (baseY - H * 0.15) * (1 - k),
-        k,
-        k,
-      ],
-      left: [baseX - off, baseY, k, 1],
-      right: [baseX + off, baseY, k, 1],
-      up: [baseX, baseY - off, 1, k],
-    };
-    const [x, y, sx, sy] = moves[dir] ?? moves.up;
+    const [x, y, sx, sy] = moved(dir, base, step * i, squash ** i, l);
+    const near = String(v.echoNear || "#8fd6e8");
     out.push({
       alpha: i === 0 ? 1 : 1 - (1 - far) * t,
       colour:
         i === 0
           ? String(v.landColour || "#c5cf3a")
-          : mix(
-              String(v.echoNear || "#8fd6e8"),
-              String(v.echoFar || "#2f86ff"),
-              t
-            ),
+          : mix(near, String(v.echoFar || "#2f86ff"), t),
       sx,
       sy,
       text: i === 0 ? last : word,
@@ -106,57 +102,47 @@ const copiesOf = (
   return out;
 };
 
-/** The whole piece on a canvas `W` × `H` (the preview, or the full file). */
-const paint = (
-  g: CanvasRenderingContext2D,
-  v: StudioValues,
-  W: number,
-  H: number
-) => {
-  g.clearRect(0, 0, W, H);
-  if (v.fill !== false) {
-    g.fillStyle = String(v.bg || "#0c2a2e");
-    g.fillRect(0, 0, W, H);
+const shapesOf = (v: StudioValues, W: number, H: number): Prim[] => {
+  const font = fontFor(String(v.font || "DM Sans"), Number(v.weight) || 800);
+  if (!font) {
+    return [];
   }
-  fontReady(v);
-  const { family, weight } = fontOf(v);
   const word = String(v.text ?? "HOURS");
   const last = String(v.landing ?? "").trim() || word;
-  g.font = `${weight} 100px "${family}"`;
   const wide = Math.max(
-    g.measureText(word).width,
-    g.measureText(last).width,
+    textWidth(font, word, 100),
+    textWidth(font, last, 100),
     1
   );
   const size = ((W * 0.9) / wide) * 100 * (numOr(v.scale, 100) / 100);
-  g.font = `${weight} ${size}px "${family}"`;
-  const textW = g.measureText(last).width;
+  const layout = { H, size, textW: textWidth(font, last, size), W };
   const outline = v.style === "outline";
-  for (const c of copiesOf(v, W, H, size, textW)) {
-    g.save();
-    g.globalAlpha = c.alpha;
-    g.translate(c.x, c.y);
-    g.scale(c.sx, c.sy);
-    const echo = c.text !== last || c.alpha < 1;
+  const paths = new Map<string, string>();
+  const pathOf = (text: string) => {
+    const had = paths.get(text) ?? textPath(font, text, size);
+    paths.set(text, had);
+    return had;
+  };
+  return copiesOf(v, layout).map((c, i, all) => {
+    const colour = faded(c.colour, c.alpha);
+    const echo = i < all.length - 1;
+    const m = [c.sx, 0, 0, c.sy, c.x, c.y];
     if (outline && echo) {
-      g.strokeStyle = c.colour;
-      g.lineWidth = (size * numOr(v.outline, 2)) / 100 / Math.min(c.sx, c.sy);
-      g.strokeText(c.text, 0, 0);
-    } else {
-      g.fillStyle = c.colour;
-      g.fillText(c.text, 0, 0);
+      const sw = (size * numOr(v.outline, 2)) / 100 / Math.min(c.sx, c.sy);
+      return { d: pathOf(c.text), m, stroke: colour, sw, t: "path" };
     }
-    g.restore();
-  }
+    return { d: pathOf(c.text), fill: colour, m, t: "path" };
+  });
 };
 
-/** The full file: drawn on a canvas, kept within a size browsers handle. */
-const MAX_SIDE = 5000;
+const groundOf = (v: StudioValues) =>
+  v.fill === false ? null : String(v.bg || "#0c2a2e");
 
 export const typeEchoTool: ImageTool = {
   blurb:
-    "A word repeated in steps, each copy moved, squashed and faded, landing on one solid copy that can say something else. Goes in as a picture.",
-  draw: (g, v) => paint(g, v, g.canvas.width, g.canvas.height),
+    "A word repeated in steps, each copy moved, squashed and faded, landing on one solid copy that can say something else. Letters as outlines; goes in as an SVG.",
+  draw: (g, v, ctx) =>
+    drawPrims(g, shapesOf(v, ctx.width, ctx.height), ctx, groundOf(v)),
   id: "type-echo",
   kind: "image",
   looks: [
@@ -171,14 +157,8 @@ export const typeEchoTool: ImageTool = {
       values: { copies: 24, direction: "into", squash: 88, step: 0 },
     },
     {
-      name: "Sideways smear",
-      values: {
-        align: "left",
-        copies: 18,
-        direction: "right",
-        squash: 92,
-        step: 4,
-      },
+      name: "Condensed stack (Anton)",
+      values: { copies: 12, font: "Anton", step: 30, weight: "400" },
     },
   ],
   name: "Type Echo",
@@ -194,7 +174,7 @@ export const typeEchoTool: ImageTool = {
       default: "DM Sans",
       key: "font",
       label: "Font",
-      options: FONTS.map((f) => ({ label: f, value: f })),
+      options: OUTLINE_FAMILIES.map((f) => ({ label: f, value: f })),
       type: "select",
     },
     {
@@ -205,6 +185,7 @@ export const typeEchoTool: ImageTool = {
         { label: "Regular", value: "400" },
         { label: "Bold", value: "700" },
         { label: "Extra bold", value: "800" },
+        { label: "Black", value: "900" },
       ],
       type: "select",
     },
@@ -324,20 +305,7 @@ export const typeEchoTool: ImageTool = {
       when: (v) => v.fill !== false,
     },
   ],
-  render: (v: StudioValues, ctx: RenderContext) => {
-    const k = Math.min(1, MAX_SIDE / Math.max(ctx.width, ctx.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(ctx.width * k);
-    canvas.height = Math.round(ctx.height * k);
-    const g = canvas.getContext("2d");
-    if (g) {
-      paint(g, v, canvas.width, canvas.height);
-    }
-    return svgDoc(
-      ctx.width,
-      ctx.height,
-      `<image href="${esc(canvas.toDataURL("image/png"))}" x="0" y="0" width="${ctx.width}" height="${ctx.height}" preserveAspectRatio="none"/>`
-    );
-  },
-  vector: false,
+  render: (v, ctx) =>
+    primsDoc(shapesOf(v, ctx.width, ctx.height), ctx, groundOf(v)),
+  vector: true,
 };

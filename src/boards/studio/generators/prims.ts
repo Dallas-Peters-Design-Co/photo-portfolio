@@ -19,6 +19,8 @@ export type Prim =
   | {
       d: string;
       fill?: string | null;
+      /** An affine transform [a, b, c, d, e, f], as SVG's matrix(). */
+      m?: number[];
       stroke?: string | null;
       sw?: number;
       t: "path";
@@ -48,7 +50,10 @@ const primSvg = (p: Prim): string => {
   if (p.t === "poly") {
     return `<polygon points="${p.pts.map(r2).join(" ")}" ${fillOf(p.fill)}${strokeOf(p.stroke, p.sw)}/>`;
   }
-  return `<path d="${p.d}" ${fillOf(p.fill)}${strokeOf(p.stroke, p.sw)}/>`;
+  const m = p.m
+    ? ` transform="matrix(${p.m.map((n) => Math.round(n * 1e4) / 1e4).join(" ")})"`
+    : "";
+  return `<path d="${p.d}"${m} ${fillOf(p.fill)}${strokeOf(p.stroke, p.sw)}/>`;
 };
 
 /** The shapes as an SVG document, over a ground colour if there is one. */
@@ -129,7 +134,13 @@ export const drawPrims = (
       tracePoly(g, p.pts);
       paint(g, p);
     } else {
+      g.save();
+      if (p.m) {
+        const [a = 1, b = 0, c = 0, d = 1, e = 0, f = 0] = p.m;
+        g.transform(a, b, c, d, e, f);
+      }
       paint(g, p, new Path2D(p.d));
+      g.restore();
     }
   }
   g.restore();

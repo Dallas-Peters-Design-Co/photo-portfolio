@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import type { ImageTool, StudioValues } from "../types";
 import { halftoneTool } from "./halftone";
 import { isoBlocksTool } from "./isoBlocks";
 import { lineWavesTool } from "./lineWaves";
 import { radialTool } from "./radial";
 import { typeEchoTool } from "./typeEcho";
+import { fontReady } from "./vectorType";
 
 const ctx = {
   height: 200,
@@ -24,6 +25,12 @@ const defaultsOf = (tool: ImageTool): StudioValues => {
 };
 
 describe("the shape and pattern tools", () => {
+  // Type Echo's letters are outlines from the font files, loaded first.
+  beforeAll(async () => {
+    await fontReady("DM Sans", 800);
+    await fontReady("Anton", 400);
+  });
+
   const tools = [
     halftoneTool,
     typeEchoTool,
@@ -44,6 +51,12 @@ describe("the shape and pattern tools", () => {
         expect(svg.length).toBeGreaterThan(200);
       }
     }
+  });
+
+  it("sets Type Echo's words as vector outlines, not as a picture", () => {
+    const svg = typeEchoTool.render(defaultsOf(typeEchoTool), ctx);
+    expect(svg).toContain("<path");
+    expect(svg).not.toContain("<image");
   });
 
   it("draws the same picture for the same seed", () => {
