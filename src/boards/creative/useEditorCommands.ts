@@ -2,6 +2,12 @@ import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { normalizeTextStyle, type TextStyle } from "../../../config/textStyle";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
+import {
+  bundleOf,
+  heldClip,
+  holdClip,
+  layersForFrame,
+} from "../io/itemClipboard";
 import { applyTypeScale } from "./applyTypeScale";
 import {
   duplicate,
@@ -79,13 +85,45 @@ export const useEditorCommands = ({
     onChange(items.filter((item) => !ids.includes(item.id)));
     selection.select(null);
   };
-  const copyMany = (group: BoardItem[], into = items) => {
+  const copyMany = (group: BoardItem[], into = items, stepOn = true) => {
     const copies: BoardItem[] = [];
     for (const layer of group) {
-      copies.push(duplicate(layer, [...into, ...copies]));
+      const copy = duplicate(layer, [...into, ...copies]);
+      copies.push(stepOn ? copy : { ...copy, x: layer.x, y: layer.y });
     }
     onChange([...into, ...copies]);
     selection.setIds(copies.map((c) => c.id));
+  };
+  /**
+   * ⌘C and ⌘X: the layers on the clipboard the board shares (io/
+   * itemClipboard.ts), so they paste into another frame or onto the board.
+   * The system clipboard gets the bundle's label, which is how a paste on
+   * the board knows the held layers are still what was copied last.
+   */
+  const copyLayers = (cut: boolean) => {
+    if (chosen.length === 0) {
+      return;
+    }
+    const from = frame
+      ? { height: frame.height, width: frame.width, x: frame.x, y: frame.y }
+      : null;
+    const bundle = bundleOf(chosen, items, [], from);
+    holdClip(bundle);
+    navigator.clipboard?.writeText(bundle.label).catch(() => undefined);
+    if (cut) {
+      removeMany(chosen.map((l) => l.id));
+    }
+  };
+  /** ⌘V: what was copied, here or on the board, placed in this frame. */
+  const pasteLayers = () => {
+    const bundle = heldClip();
+    if (!(bundle && frame)) {
+      return;
+    }
+    const { layers: group, nudge: stepOn } = layersForFrame(bundle, frame);
+    if (group.length > 0) {
+      copyMany(group, items, stepOn);
+    }
   };
   /** Off the design frame and back onto the board, beside the frame. */
   const toBoard = (group: BoardItem[]) => {
@@ -176,6 +214,7 @@ export const useEditorCommands = ({
     align,
     background,
     chosen,
+    copyLayers,
     copyMany,
     cycle,
     each,
@@ -183,6 +222,7 @@ export const useEditorCommands = ({
     nudge,
     one,
     order,
+    pasteLayers,
     patchMany,
     removeMany,
     resizeText,
