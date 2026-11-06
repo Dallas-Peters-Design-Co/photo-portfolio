@@ -16,7 +16,12 @@ import { downloadImage } from "../io/downloadImage";
 import { saveTargetOf } from "../io/saveTarget";
 import { outputImageOf, outputImagesOf } from "../itemOutput";
 import type { CanvasMenuTarget } from "./CanvasMenu";
-import { CollectionRow, hasTools, ToolsRow } from "./CanvasMenuPanels";
+import {
+  CollectionRow,
+  hasTools,
+  SendToBoardRow,
+  ToolsRow,
+} from "./CanvasMenuPanels";
 import { FrameRows, framesToCopy } from "./FrameRows";
 import { PrintRow } from "./PrintRow";
 import "../boardChrome.css";
@@ -404,6 +409,14 @@ export function MenuRows({
           className={rowClass}
           count={pictures.length}
           onOpen={(into) => onCollect(pictures, into)}
+        />
+      ) : null}
+
+      {selection.length > 0 ? (
+        <SendToBoardRow
+          className={rowClass}
+          items={selection}
+          onSend={() => onCopy(selection)}
         />
       ) : null}
 

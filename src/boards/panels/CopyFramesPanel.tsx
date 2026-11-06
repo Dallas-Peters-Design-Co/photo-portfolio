@@ -26,11 +26,15 @@ interface CopyFramesPanelProps {
   title: string;
 }
 
-const whatOf = (whole: boolean, frames: number): string => {
+const whatOf = (whole: boolean, items: BoardItem[]): string => {
   if (whole) {
     return "the whole board";
   }
-  return frames === 1 ? "frame" : `${frames} frames`;
+  const frames = items.filter((item) => item.kind === "frame").length;
+  if (frames === items.length) {
+    return frames === 1 ? "the frame" : `${frames} frames`;
+  }
+  return items.length === 1 ? "it" : `${items.length} items`;
 };
 
 export function CopyFramesPanel({
@@ -69,7 +73,7 @@ export function CopyFramesPanel({
     };
   }, [currentId]);
 
-  const what = whatOf(whole, frames.length);
+  const what = whatOf(whole, frames);
   const create = () => {
     const named = name.trim();
     if (named) {
@@ -86,7 +90,7 @@ export function CopyFramesPanel({
           icon={CopyIcon}
           size={14}
         />
-        <span className="collection-panel__title">Copy {what} to…</span>
+        <span className="collection-panel__title">Send {what} to…</span>
       </div>
 
       <label className="panel-hint">

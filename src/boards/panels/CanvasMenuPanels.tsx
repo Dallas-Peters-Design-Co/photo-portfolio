@@ -56,24 +56,42 @@ export function CollectionRow({
 }) {
   const what = count === 1 ? "it" : String(count);
   return (
-    <>
-      <button
-        className={className}
-        onClick={() => onOpen("collection")}
-        type="button"
-      >
-        <HugeiconsIcon aria-hidden icon={Album02Icon} size={14} />
-        <span>Save {what} to a collection</span>
-      </button>
-      <button
-        className={className}
-        onClick={() => onOpen("board")}
-        type="button"
-      >
-        <HugeiconsIcon aria-hidden icon={ArrowRight02Icon} size={14} />
-        <span>Send {what} to a board</span>
-      </button>
-    </>
+    <button
+      className={className}
+      onClick={() => onOpen("collection")}
+      type="button"
+    >
+      <HugeiconsIcon aria-hidden icon={Album02Icon} size={14} />
+      <span>Save {what} to a collection</span>
+    </button>
+  );
+}
+
+/**
+ * Sends the selection itself to another board: frames with everything on
+ * them, and anything else as it is, laid out as it was (CopyFramesPanel).
+ */
+export function SendToBoardRow({
+  className,
+  items,
+  onSend,
+}: {
+  className: string;
+  items: BoardItem[];
+  onSend: () => void;
+}) {
+  const frames = items.filter((item) => item.kind === "frame").length;
+  let what = items.length === 1 ? "it" : String(items.length);
+  if (frames === items.length && frames > 1) {
+    what = `${frames} frames`;
+  } else if (frames === 1 && items.length === 1) {
+    what = "the frame";
+  }
+  return (
+    <button className={className} onClick={onSend} type="button">
+      <HugeiconsIcon aria-hidden icon={ArrowRight02Icon} size={14} />
+      <span>Send {what} to a board</span>
+    </button>
   );
 }
 

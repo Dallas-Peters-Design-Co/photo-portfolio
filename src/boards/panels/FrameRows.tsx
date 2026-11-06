@@ -8,17 +8,15 @@ import "../boardChrome.css";
 
 const rowClass = "panel-row";
 
-/** The frames a copy takes: all the selected ones, if this is one of them. */
+/**
+ * The frame the frame row sends: this one, unless it's selected, when the
+ * selection's own "Send to a board" covers it (with the rest selected).
+ */
 export const framesToCopy = (
   frame: BoardItem | null | undefined,
   selection: BoardItem[]
-): BoardItem[] => {
-  if (!frame) {
-    return [];
-  }
-  const selected = selection.filter((item) => item.kind === "frame");
-  return selected.some((f) => f.id === frame.id) ? selected : [frame];
-};
+): BoardItem[] =>
+  frame && !selection.some((item) => item.id === frame.id) ? [frame] : [];
 
 /** The things a frame under the pointer can do. */
 export function FrameRows({
@@ -62,16 +60,18 @@ export function FrameRows({
         <HugeiconsIcon aria-hidden icon={Download01Icon} size={14} />
         <span>Download {count === 1 ? "it" : `all ${count}`}</span>
       </button>
-      <button
-        className={`${rowClass} panel-row--divided`}
-        onClick={onCopy}
-        type="button"
-      >
-        <HugeiconsIcon aria-hidden icon={CopyIcon} size={14} />
-        <span>
-          Copy {copies === 1 ? "frame" : `${copies} frames`} to another board…
-        </span>
-      </button>
+      {copies > 0 ? (
+        <button
+          className={`${rowClass} panel-row--divided`}
+          onClick={onCopy}
+          type="button"
+        >
+          <HugeiconsIcon aria-hidden icon={CopyIcon} size={14} />
+          <span>
+            Send {copies === 1 ? "frame" : `${copies} frames`} to a board
+          </span>
+        </button>
+      ) : null}
       {/* Last, and divided: it is the only row here that hands work to a
           third party, so it should not sit next to the local ones. */}
       {onTrain ? (
