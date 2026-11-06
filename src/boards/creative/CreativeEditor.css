@@ -485,7 +485,10 @@
   display: grid;
   gap: var(--spacing);
   width: 18rem;
+  max-width: calc(100vw - var(--spacing) * 4);
+  max-height: calc(100vh - 6rem);
   padding: var(--spacing);
+  overflow-y: auto;
   background: var(--color-board-surface);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
@@ -528,13 +531,33 @@ button.creative-export__item:hover:not(:disabled) {
 
 .creative-export__checks {
   display: flex;
-  gap: calc(var(--spacing) * 3);
+  flex-wrap: wrap;
+  gap: var(--spacing) calc(var(--spacing) * 3);
   font-size: 0.75rem;
 
   & label {
     display: flex;
     gap: calc(var(--spacing) * 1.5);
     align-items: center;
+  }
+}
+
+/* Two settings side by side, each label above its select, inside the menu. */
+.creative-export__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+
+  & label {
+    display: grid;
+    gap: calc(var(--spacing) * 0.5);
+    min-width: 0;
+  }
+
+  & select {
+    width: 100%;
+    min-width: 0;
   }
 }
 

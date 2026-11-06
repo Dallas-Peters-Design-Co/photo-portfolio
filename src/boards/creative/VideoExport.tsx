@@ -17,9 +17,9 @@ import { downloadBlob } from "./exportPng";
 
 const LENGTHS = [6, 8, 10, 15];
 const SIZES = [
-  { label: "HD", value: 1920 },
-  { label: "4K", value: 3840 },
-  { label: "Social", value: 1080 },
+  { label: "HD · 1920", value: 1920 },
+  { label: "4K · 3840", value: 3840 },
+  { label: "Social · 1080", value: 1080 },
 ];
 
 const saveVideo = async (
@@ -107,7 +107,7 @@ export function VideoExport({
             onChange={() => set({ style: "loop" as VideoStyle })}
             type="radio"
           />
-          Seamless loop
+          Loop
         </label>
         <label title="A slow push in over the whole video. Not on a loop, which has to end where it starts.">
           <input
@@ -119,7 +119,7 @@ export function VideoExport({
           Push in
         </label>
       </span>
-      <span className="creative-export__checks">
+      <span className="creative-export__pair">
         <label>
           Length
           <select
@@ -134,7 +134,7 @@ export function VideoExport({
             ))}
           </select>
         </label>
-        <label>
+        <label title="The video's longer side, in pixels">
           Size
           <select
             className="creative__input"
@@ -143,7 +143,7 @@ export function VideoExport({
           >
             {SIZES.map((s) => (
               <option key={s.value} value={s.value}>
-                {s.label} ({s.value} px long side)
+                {s.label}
               </option>
             ))}
           </select>
