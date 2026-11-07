@@ -195,8 +195,31 @@ export const brandKitsApi = {
     return (await res.json()) as BrandKit;
   },
 
-  /** A website's page with its scripts stripped, for scanning (lib/scanSite). */
-  sitePage: async (url: string): Promise<{ html: string; url: string }> => {
+  /**
+   * A logo a site scan found, kept as our own file: inline SVG markup, or the
+   * address of an image the site serves. Resolves to its new address.
+   */
+  siteLogo: async (
+    logo: { src: string } | { svg: string }
+  ): Promise<string> => {
+    const res = await fetch(`${apiBase()}/api/brand-kits`, {
+      body: JSON.stringify({ action: "siteLogo", ...logo }),
+      headers: jsonHeaders(),
+      method: "POST",
+    });
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Couldn't keep the logo"));
+    }
+    return ((await res.json()) as { url: string }).url;
+  },
+
+  /**
+   * A website's page with its scripts stripped, and the text of the
+   * stylesheets it links to, for scanning (lib/scanSite).
+   */
+  sitePage: async (
+    url: string
+  ): Promise<{ css: string; html: string; url: string }> => {
     const res = await fetch(
       `${apiBase()}/api/brand-kits?page=${encodeURIComponent(url)}`,
       { headers: jsonHeaders() }
@@ -204,7 +227,12 @@ export const brandKitsApi = {
     if (!res.ok) {
       throw new Error(await readPageError(res, "Couldn't load that site"));
     }
-    return (await res.json()) as { html: string; url: string };
+    const page = (await res.json()) as {
+      css?: string;
+      html: string;
+      url: string;
+    };
+    return { css: page.css ?? "", html: page.html, url: page.url };
   },
 
   /** Ad copy in the kit's voice: three variants, or a translation. */

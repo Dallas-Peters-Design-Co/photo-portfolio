@@ -107,6 +107,12 @@ const sniff = (bytes: Uint8Array): string | null => {
   return null;
 };
 
+/** The image type the bytes really are, or null; see sniff. */
+export const sniffImage = (bytes: Uint8Array): string | null => {
+  const type = sniff(bytes);
+  return type?.startsWith("image/") ? type : null;
+};
+
 export const persistGenerated = async (
   sourceUrl: string,
   /** Folder under the blob store, e.g. "boards/ai" or "boards/icons". */
