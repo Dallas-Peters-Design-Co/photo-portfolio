@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
@@ -10,9 +10,11 @@ import { DEFAULT_PALETTE } from "../studio/tools";
 import { downloadBlob } from "./exportPng";
 
 /**
- * The export menu's video: the frame as a HyperFrames project, to open in
- * the HyperFrames app, retime there and render to MP4. The exporter and the
- * Studio runtime it copies in load on first use.
+ * The export menu's video: the frame as a HyperFrames project, written
+ * straight into a folder on this computer (picked once, then updated in
+ * place each time), where HyperFrames Studio or its preview picks it up to
+ * retime and render to MP4. A zip where the browser can't write to a folder.
+ * The exporter and the Studio runtime it copies in load on first use.
  */
 
 const LENGTHS = [6, 8, 10, 15];
@@ -22,29 +24,79 @@ const SIZES = [
   { label: "Social · 1080", value: 1080 },
 ];
 
-const saveVideo = async (
-  frame: BoardItem,
-  layers: BoardItem[],
-  textElementFor: (id: string) => HTMLElement | null,
-  palette: string[],
-  options: VideoOptions
-) => {
-  const [{ exportHyperframes }, { runtimeBytes }] = await Promise.all([
+type Folder = FileSystemDirectoryHandle;
+
+interface Build {
+  frame: BoardItem;
+  layers: BoardItem[];
+  options: VideoOptions;
+  palette: string[];
+  textElementFor: (id: string) => HTMLElement | null;
+}
+
+const projectOf = async (b: Build) => {
+  const [{ hyperframesProject }, { runtimeBytes }] = await Promise.all([
     import("../io/hyperframes/exportHyperframes"),
     import("../io/hyperframes/runtimeUrl"),
   ]);
-  const { blob, name, studioLayers } = await exportHyperframes(
-    frame,
-    layers,
-    textElementFor,
-    palette,
-    options,
+  return hyperframesProject(
+    b.frame,
+    b.layers,
+    b.textElementFor,
+    b.palette,
+    b.options,
     await runtimeBytes()
   );
-  downloadBlob(blob, name, "zip");
-  toast.success("HyperFrames project exported", {
-    description: `${studioLayers} Studio layer${studioLayers === 1 ? "" : "s"} drawn live. Unzip it and open the folder in HyperFrames, or run npm run dev.`,
+};
+
+const studioNote = (n: number) =>
+  `${n} Studio layer${n === 1 ? "" : "s"} drawn live.`;
+
+/** Into the folder: `<folder>/<project>/`, replacing what was there. */
+const sendToFolder = async (folder: Folder, b: Build) => {
+  const [{ writeProject }, project] = await Promise.all([
+    import("../io/hyperframes/projectFolder"),
+    projectOf(b),
+  ]);
+  await writeProject(folder, project.name, project.files);
+  toast.success(`Updated ${folder.name}/${project.name}`, {
+    description: `${studioNote(project.studioLayers)} HyperFrames Studio reloads it if it's open on that folder; otherwise open it there or run npm run dev in it.`,
   });
+};
+
+const downloadZip = async (b: Build) => {
+  const { zip } = await import("../../lib/zip");
+  const project = await projectOf(b);
+  downloadBlob(
+    zip(
+      project.files.map((f) => ({ ...f, name: `${project.name}/${f.name}` }))
+    ),
+    project.name,
+    "zip"
+  );
+  toast.success("HyperFrames project exported", {
+    description: `${studioNote(project.studioLayers)} Unzip it and open the folder in HyperFrames, or run npm run dev.`,
+  });
+};
+
+/**
+ * The folder to write to: the one picked before, or a new pick. Permission
+ * is asked straight from the click, before anything slow, since browsers
+ * only ask while the click is fresh.
+ */
+const folderToUse = async (change: boolean): Promise<Folder | null> => {
+  const { chooseFolder, mayWrite, savedFolder } = await import(
+    "../io/hyperframes/projectFolder"
+  );
+  const folder =
+    (change ? null : await savedFolder()) ?? (await chooseFolder());
+  if (!folder) {
+    return null;
+  }
+  if (!(await mayWrite(folder))) {
+    throw new Error(`Can't write to ${folder.name}: allow it when asked`);
+  }
+  return folder;
 };
 
 export function VideoExport({
@@ -73,10 +125,38 @@ export function VideoExport({
   const set = (patch: Partial<VideoOptions>) =>
     setOptions((o) => ({ ...o, ...patch }));
 
-  const run = async () => {
+  const [canFolder, setCanFolder] = useState(false);
+  const [folderName, setFolderName] = useState<string | null>(null);
+  useEffect(() => {
+    let live = true;
+    import("../io/hyperframes/projectFolder")
+      .then(async ({ canUseFolder, savedFolder }) => {
+        const can = canUseFolder();
+        const folder = can ? await savedFolder() : null;
+        if (live) {
+          setCanFolder(can);
+          setFolderName(folder?.name ?? null);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const run = async (how: "change" | "folder" | "zip") => {
     onBusy(true);
     try {
-      await saveVideo(frame, layers, textElementFor, palette, options);
+      const build = { frame, layers, options, palette, textElementFor };
+      if (how === "zip") {
+        await downloadZip(build);
+        return;
+      }
+      const folder = await folderToUse(how === "change");
+      if (folder) {
+        setFolderName(folder.name);
+        await sendToFolder(folder, build);
+      }
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't export the video");
     } finally {
@@ -88,7 +168,8 @@ export function VideoExport({
     <div className="creative-export__item creative-export__item--form">
       <strong>Video for HyperFrames</strong>
       <span>
-        A project to retime and render to MP4. Studio layers move as themselves.
+        A project for HyperFrames Studio to retime and render to MP4. Studio
+        layers move as themselves.
       </span>
       <span className="creative-export__checks">
         <label>
@@ -149,14 +230,58 @@ export function VideoExport({
           </select>
         </label>
       </span>
+      <ExportButtons
+        busy={busy}
+        canFolder={canFolder}
+        folderName={folderName}
+        onRun={(how) => void run(how)}
+      />
+    </div>
+  );
+}
+
+function ExportButtons({
+  busy,
+  canFolder,
+  folderName,
+  onRun,
+}: {
+  busy: boolean;
+  canFolder: boolean;
+  folderName: string | null;
+  onRun: (how: "change" | "folder" | "zip") => void;
+}) {
+  if (!canFolder) {
+    return (
       <button
         className="creative__button creative__button--primary"
         disabled={busy}
-        onClick={() => void run()}
+        onClick={() => onRun("zip")}
         type="button"
       >
-        {busy ? "Building…" : "Export project"}
+        {busy ? "Building…" : "Download project"}
       </button>
-    </div>
+    );
+  }
+  return (
+    <>
+      <button
+        className="creative__button creative__button--primary"
+        disabled={busy}
+        onClick={() => onRun("folder")}
+        title="Writes the project into this folder on your computer, replacing the last export"
+        type="button"
+      >
+        {busy ? "Building…" : `Send to ${folderName ?? "a folder…"}`}
+      </button>
+      <span className="creative-export__links">
+        <button disabled={busy} onClick={() => onRun("change")} type="button">
+          {folderName ? "Change folder" : "Choose folder"}
+        </button>
+        <button disabled={busy} onClick={() => onRun("zip")} type="button">
+          Download zip
+        </button>
+      </span>
+    </>
   );
 }

@@ -310,14 +310,36 @@ const typeFonts = async (
   };
 };
 
+/** The project's files (paths inside its folder), its folder name and how many Studio layers it draws. */
+export interface HyperframesProject {
+  files: ZipFile[];
+  name: string;
+  studioLayers: number;
+}
+
+/** The frame as a HyperFrames project, zipped in a folder of its own name. */
 export const exportHyperframes = async (
+  ...args: Parameters<typeof hyperframesProject>
+): Promise<{ blob: Blob; name: string; studioLayers: number }> => {
+  const project = await hyperframesProject(...args);
+  return {
+    blob: zip(
+      project.files.map((f) => ({ ...f, name: `${project.name}/${f.name}` }))
+    ),
+    name: project.name,
+    studioLayers: project.studioLayers,
+  };
+};
+
+/** The frame as a HyperFrames project's files. */
+export const hyperframesProject = async (
   frame: BoardItem,
   given: BoardItem[],
   textElementFor: (id: string) => HTMLElement | null,
   brandPalette: string[],
   options: VideoOptions,
   runtimeJs: Uint8Array<ArrayBuffer>
-): Promise<{ blob: Blob; name: string; studioLayers: number }> => {
+): Promise<HyperframesProject> => {
   const layers = expandAll(given, componentById);
   const { height, width } = videoSizeOf(frame, options.longEdge);
   const scale = width / frame.width;
@@ -382,11 +404,14 @@ export const exportHyperframes = async (
     width,
   });
   const name = slug(title);
-  const all: ZipFile[] = [
-    { bytes: new TextEncoder().encode(html), name: "index.html" },
-    ...projectFiles(name, title),
-    { bytes: runtimeJs, name: "assets/studio.js" },
-    ...files,
-  ].map((f) => ({ ...f, name: `${name}/${f.name}` }));
-  return { blob: zip(all), name, studioLayers: got.runtime.length };
+  return {
+    files: [
+      { bytes: new TextEncoder().encode(html), name: "index.html" },
+      ...projectFiles(name, title),
+      { bytes: runtimeJs, name: "assets/studio.js" },
+      ...files,
+    ],
+    name,
+    studioLayers: got.runtime.length,
+  };
 };

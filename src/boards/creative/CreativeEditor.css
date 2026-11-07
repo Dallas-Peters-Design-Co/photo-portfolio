@@ -542,6 +542,29 @@ button.creative-export__item:hover:not(:disabled) {
   }
 }
 
+/* Quiet text actions under a button: change folder, download instead. */
+.creative-export__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  font-size: 0.75rem;
+
+  & button {
+    padding: 0;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    opacity: 0.75;
+  }
+
+  & button:hover:not(:disabled) {
+    opacity: 1;
+  }
+}
+
 /* Two settings side by side, each label above its select, inside the menu. */
 .creative-export__pair {
   display: grid;
