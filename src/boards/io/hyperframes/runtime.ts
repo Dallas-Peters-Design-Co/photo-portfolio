@@ -148,6 +148,27 @@ const reveal = (live: Live, svg: SVGSVGElement, built: number) => {
   });
 };
 
+/**
+ * How far a layer has built in at `t`, 0 to 1. A tool that fills itself
+ * takes longer over it (nearly half the loop), since that is the motion.
+ */
+const builtOf = (live: Live, spec: RuntimeSpec, t: number): number => {
+  const { build } = live.layer;
+  if (!build) {
+    return 1;
+  }
+  if (live.motion.own) {
+    return builtAt(
+      t,
+      build.start,
+      Math.max(build.length, spec.duration * 0.45)
+    );
+  }
+  return live.motion.build === "none"
+    ? 1
+    : builtAt(t, build.start, build.length);
+};
+
 const draw = (lives: Live[], spec: RuntimeSpec, amount: number, t: number) => {
   const phase = spec.duration > 0 ? (t / spec.duration) % 1 : 0;
   for (const live of lives) {
@@ -159,10 +180,13 @@ const draw = (lives: Live[], spec: RuntimeSpec, amount: number, t: number) => {
       phase,
       amount * layer.motion
     );
-    const built =
-      layer.build && live.motion.build !== "none"
-        ? builtAt(t, layer.build.start, layer.build.length)
-        : 1;
+    const built = builtOf(live, spec, t);
+    // A tool that moves its own parts fills itself in (Flow's letters fill
+    // as the flow runs past); others fade their marks in here.
+    const { own } = live.motion;
+    if (own) {
+      values[`${own}Fill`] = built;
+    }
     const key = `${JSON.stringify(values)}|${built}`;
     if (key === live.key) {
       continue;
@@ -179,7 +203,7 @@ const draw = (lives: Live[], spec: RuntimeSpec, amount: number, t: number) => {
       "preserveAspectRatio",
       layer.fit === "cover" ? "xMidYMid slice" : "xMidYMid meet"
     );
-    if (built < 1) {
+    if (built < 1 && !own) {
       reveal(live, svg, built);
     }
   }
