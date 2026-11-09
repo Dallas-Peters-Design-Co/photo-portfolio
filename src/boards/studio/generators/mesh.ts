@@ -7,7 +7,8 @@ import type { ImageTool } from "../types";
  * grain. All colours come from the brand unless the ground is set.
  */
 
-const grain = (amount: number) =>
+/** The film-grain filter (`#g`), or nothing at 0. Shared with liquid.ts. */
+export const grain = (amount: number) =>
   amount <= 0
     ? ""
     : `<filter id="g" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope="${r2(amount / 100)}"/></feComponentTransfer></filter>`;

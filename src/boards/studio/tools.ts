@@ -6,6 +6,7 @@ import { gridBoxesTool } from "./generators/gridBoxes";
 import { halftoneTool } from "./generators/halftone";
 import { isoBlocksTool } from "./generators/isoBlocks";
 import { lineWavesTool } from "./generators/lineWaves";
+import { liquidTool } from "./generators/liquid";
 import { meshTool } from "./generators/mesh";
 import { mosaicTool } from "./generators/mosaic";
 import { patternTool } from "./generators/pattern";
@@ -17,6 +18,7 @@ import type { ImageTool, StudioParam, StudioValues } from "./types";
 /** Every image tool in the Studio, in the order the panel lists them. */
 export const IMAGE_TOOLS: ImageTool[] = [
   meshTool,
+  liquidTool,
   patternTool,
   blobsTool,
   gradientTool,
