@@ -47,6 +47,14 @@ const isWebp = (bytes: Uint8Array): boolean =>
 const isIsoVideo = (bytes: Uint8Array): boolean =>
   startsWith(bytes.subarray(4), [0x66, 0x74, 0x79, 0x70]);
 
+/**
+ * EBML, the container WebM is built on. Background-removal models return
+ * WebM for its alpha channel; unrecognised, it was filed as a .jpg labelled
+ * image/jpeg, which won't play and saves as a picture nobody can open.
+ */
+const isWebm = (bytes: Uint8Array): boolean =>
+  startsWith(bytes, [0x1a, 0x45, 0xdf, 0xa3]);
+
 /** ....ftypavif — the brand sits at offset 4, after the box length. */
 const isAvif = (bytes: Uint8Array): boolean =>
   startsWith(
@@ -78,6 +86,7 @@ const EXTENSIONS: Record<string, string> = {
   "image/svg+xml": "svg",
   "image/webp": "webp",
   "video/mp4": "mp4",
+  "video/webm": "webm",
 };
 
 /**
@@ -103,6 +112,9 @@ const sniff = (bytes: Uint8Array): string | null => {
   }
   if (isIsoVideo(bytes)) {
     return "video/mp4";
+  }
+  if (isWebm(bytes)) {
+    return "video/webm";
   }
   return null;
 };

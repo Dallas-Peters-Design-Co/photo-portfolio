@@ -182,7 +182,12 @@ export function BoardToolBar({
     onRun(tool);
   };
 
-  if (applicable.length === 0) {
+  // A node gets no bar: it is a recipe, and a generating one saves its results
+  // from its own gallery. A Clip node is the exception. It holds a file and
+  // has no download of its own, so without the bar its only way off the board
+  // was a right-click nobody knew to try.
+  const clipOnly = item.nodeType === "clip" && shown !== null;
+  if (applicable.length === 0 && !clipOnly) {
     return null;
   }
 
@@ -313,19 +318,24 @@ export function BoardToolBar({
             Edit by hand
           </Button>
         ) : null}
-        <EditorButton itemId={item.id} onOpen={onOpenInEditor} />
-        <Button
-          aria-expanded={picking || pending !== null}
-          onClick={() => {
-            setPending(null);
-            setPicking((open) => !open);
-          }}
-          size="xs"
-          title="Every tool for this item"
-          variant="ghost"
-        >
-          Tools…
-        </Button>
+        {/* A vector editor has nothing to do with an mp4. */}
+        {shown?.noun === "clip" ? null : (
+          <EditorButton itemId={item.id} onOpen={onOpenInEditor} />
+        )}
+        {applicable.length > 0 ? (
+          <Button
+            aria-expanded={picking || pending !== null}
+            onClick={() => {
+              setPending(null);
+              setPicking((open) => !open);
+            }}
+            size="xs"
+            title="Every tool for this item"
+            variant="ghost"
+          >
+            Tools…
+          </Button>
+        ) : null}
       </div>
 
       {/* Hung directly off the bar, on whichever side the bar itself is on, so

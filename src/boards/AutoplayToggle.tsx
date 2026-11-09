@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import PauseIcon from "@hugeicons-pro/core-stroke-standard/PauseIcon";
 import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
+import { clipUrlOf } from "../../config/nodes/clip.js";
 import type { BoardItem } from "../types";
 import { setAutoplay, useAutoplay } from "./autoplayPref";
 import { isVideoUrl } from "./io/isVideo";
@@ -19,8 +20,19 @@ import "./AutoplayToggle.css";
  * board content at all — see autoplayPref for why it is not published.
  */
 
+/**
+ * A clip pinned to the board, a Video node's result, or a Clip node.
+ *
+ * The Clip node keeps its file in config rather than as a picture, so reading
+ * only `result` and `imageUrl` missed it: a board whose clips were all Clip
+ * nodes had no toggle, and once paused there was no way to set them going.
+ */
 const hasClip = (items: readonly BoardItem[]): boolean =>
-  items.some((item) => isVideoUrl(item.result?.url ?? item.imageUrl ?? null));
+  items.some(
+    (item) =>
+      (item.nodeType === "clip" && clipUrlOf(item.config) !== null) ||
+      isVideoUrl(item.result?.url ?? item.imageUrl ?? null)
+  );
 
 export function AutoplayToggle({ items }: { items: readonly BoardItem[] }) {
   const playing = useAutoplay();

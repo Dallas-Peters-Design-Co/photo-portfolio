@@ -238,3 +238,60 @@ describe("saving the picture", () => {
     expect(labels().some((text) => text.includes("Save"))).toBe(false);
   });
 });
+
+describe("a Clip node's bar", () => {
+  it("offers Save for the clip it holds, and nothing that can't take an mp4", async () => {
+    const anchor = createRef<HTMLDivElement>();
+    const box = document.createElement("div");
+    document.body.append(box);
+    Object.assign(anchor, { current: box });
+    const el = await render(
+      <BoardToolBar
+        anchor={anchor}
+        chromeScale={{ transform: "scale(1)" }}
+        isRunning={false}
+        item={item({
+          config: { clipUrl: "https://example.com/boards/clips/a.mp4" },
+          kind: "op",
+          nodeType: "clip",
+        } as Partial<BoardItem>)}
+        onOpenInEditor={() => {
+          /* not under test */
+        }}
+        onRun={() => {
+          /* not under test */
+        }}
+      />
+    );
+    box.remove();
+    const labels = [...el.querySelectorAll("button")].map((b) =>
+      b.textContent?.trim()
+    );
+    expect(labels).toEqual(["Save"]);
+    expect(buttonSaying(el, "Save")?.title).toBe("Save this clip");
+  });
+
+  it("gives an empty Clip node no bar", async () => {
+    const anchor = createRef<HTMLDivElement>();
+    const box = document.createElement("div");
+    document.body.append(box);
+    Object.assign(anchor, { current: box });
+    const el = await render(
+      <BoardToolBar
+        anchor={anchor}
+        chromeScale={{ transform: "scale(1)" }}
+        isRunning={false}
+        item={item({
+          config: {},
+          kind: "op",
+          nodeType: "clip",
+        } as Partial<BoardItem>)}
+        onRun={() => {
+          /* not under test */
+        }}
+      />
+    );
+    box.remove();
+    expect(el.querySelectorAll("button")).toHaveLength(0);
+  });
+});
