@@ -1,6 +1,7 @@
 /**
- * The shader behind Liquid Gradients (liquid.ts): colour that looks poured,
- * worked out per pixel on the GPU.
+ * The shader behind Liquid Gradients (liquid.ts): the Silk and Marble looks,
+ * colour that looks poured, worked out per pixel on the GPU. Aura and Mesh
+ * are plain SVG (liquidSvg.ts) and never come here.
  *
  * WebGL, not the shader library's WebGPU, for the reason halftoneGl.ts gives:
  * a WebGPU canvas hands back nothing to `drawImage` or `toDataURL`, and the
@@ -30,22 +31,24 @@ const LONGEST = 4096;
 /** How many colours the shader blends between, at most. */
 export const LIQUID_COLOURS = 6;
 
-/** The four pictures the shader can draw, in the order `look` counts them. */
+/** The four looks. The first two are the shader's; `look` counts them in this order. */
 export const LIQUID_LOOKS = ["silk", "marble", "aura", "mesh"] as const;
 export type LiquidLook = (typeof LIQUID_LOOKS)[number];
 
 export interface LiquidFrame {
+  /** The turn of the whole picture, in radians. */
+  angle: number;
   /** The colours as OKLab triples, blended there so mixes stay clean. */
   colours: [number, number, number][];
   look: LiquidLook;
   /** Where in the loop, 0 to 1. */
   phase: number;
   /**
-   * A point per colour for Aura and Mesh: x and y (0 to 1 over the piece),
-   * its size, and where on its small orbit it starts.
+   * A point per colour, for the looks drawn as discs (liquidSvg.ts): x and y
+   * (0 to 1 over the piece), its size, and where on its orbit it starts.
    */
   points: [number, number, number, number][];
-  /** 1 as made; above is closer in, below further out. */
+  /** How much of the pattern fits across the piece: 1 as made, 2 twice as much. */
   scale: number;
   /** Four numbers from the seed, each 0 to 1. */
   seed: [number, number, number, number];
@@ -62,7 +65,7 @@ const FRAGMENT_SOURCE = `
 precision highp float;
 uniform vec2 uRes;
 uniform vec3 uLab[6];
-uniform vec4 uPts[6];
+uniform float uAngle;
 uniform vec4 uSeed;
 uniform float uCount;
 uniform float uLook;
@@ -129,42 +132,6 @@ vec3 marble(vec2 p){
   return ramp(.5 + .5 * sin(TAU * (t * 1.1 + r.x * .6 + uSeed.z)));
 }
 
-// Aura: the first colour as the ground, the others as soft lights over it.
-vec3 aura(vec2 p, vec2 asp){
-  float ph = TAU * uPhase;
-  vec3 lab = uLab[0];
-  for (int k = 1; k < 6; k++) {
-    if (float(k) < uCount) {
-      vec4 pt = uPts[k];
-      vec2 c = (pt.xy - .5) * asp + .12 * uWarp * vec2(cos(ph + pt.w), sin(ph + pt.w));
-      float d = length(p - c) * uScale / pt.z;
-      lab = mix(lab, uLab[k], exp(-d * d * mix(6., 1.6, uSoft)));
-    }
-  }
-  return lab;
-}
-
-// Mesh: every colour has a point, and each pixel takes most from the nearest.
-vec3 mesh(vec2 p, vec2 asp){
-  float ph = TAU * uPhase;
-  vec2 q = p;
-  q += .12 * uWarp * vec2(sin(3. * q.y * uScale + ph + uSeed.z * TAU),
-                          cos(3. * q.x * uScale - ph + uSeed.w * TAU));
-  q += .06 * uWarp * vec2(sin(7. * q.y * uScale - ph + uSeed.x * TAU),
-                          cos(6. * q.x * uScale + ph + uSeed.y * TAU));
-  float k = mix(9., 3., uSoft);
-  vec3 sum = vec3(0.);
-  float total = 0.;
-  for (int i = 0; i < 6; i++) {
-    if (float(i) < uCount) {
-      float w = pow(length(q - (uPts[i].xy - .5) * asp) + .02, -k);
-      sum += w * uLab[i];
-      total += w;
-    }
-  }
-  return sum / total;
-}
-
 vec3 toSrgb(vec3 c){
   float l = c.x + .3963377774 * c.y + .2158037573 * c.z;
   float m = c.x - .1055613458 * c.y - .0638541728 * c.z;
@@ -180,17 +147,16 @@ vec3 toSrgb(vec3 c){
 void main(){
   vec2 asp = vec2(uRes.x / uRes.y, 1.);
   vec2 p = (gl_FragCoord.xy / uRes - .5) * asp;
-  vec3 lab = uLook < .5 ? silk(p)
-    : uLook < 1.5 ? marble(p)
-    : uLook < 2.5 ? aura(p, asp)
-    : mesh(p, asp);
+  float c = cos(uAngle), s = sin(uAngle);
+  p = vec2(p.x * c - p.y * s, p.x * s + p.y * c);
+  vec3 lab = uLook < .5 ? silk(p) : marble(p);
   gl_FragColor = vec4(toSrgb(lab), 1.);
 }`;
 
 const UNIFORMS = [
   "uRes",
   "uLab",
-  "uPts",
+  "uAngle",
   "uSeed",
   "uCount",
   "uLook",
@@ -331,7 +297,7 @@ export const paintLiquid = (
   gl.viewport(0, 0, w, h);
   gl.uniform2f(at.uRes, w, h);
   gl.uniform3fv(at.uLab, padded(frame.colours, 3));
-  gl.uniform4fv(at.uPts, padded(frame.points, 4));
+  gl.uniform1f(at.uAngle, frame.angle);
   gl.uniform4fv(at.uSeed, frame.seed);
   gl.uniform1f(at.uCount, Math.min(LIQUID_COLOURS, frame.colours.length));
   gl.uniform1f(at.uLook, Math.max(0, LIQUID_LOOKS.indexOf(frame.look)));

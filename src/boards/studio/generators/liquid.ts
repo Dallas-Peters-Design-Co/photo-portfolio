@@ -1,5 +1,6 @@
-import { esc, r2, rng, svgDoc } from "../rng";
+import { rng, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import { numberOr, oklabOf } from "./liquidColour";
 import {
   LIQUID_COLOURS,
   LIQUID_LOOKS,
@@ -8,68 +9,43 @@ import {
   liquidLimit,
   paintLiquid,
 } from "./liquidGl";
+import {
+  adjustCss,
+  adjustOf,
+  adjustSvg,
+  discsSvg,
+  drawDiscs,
+  isPlain,
+  rampSvg,
+} from "./liquidSvg";
 import { grain } from "./mesh";
 
 /**
  * Liquid Gradients: colour that looks poured rather than drawn, in the
- * brand's colours. Four looks from one shader (liquidGl.ts): silk, marble,
- * aura and mesh.
+ * brand's colours. Four looks: Silk and Marble from a shader (liquidGl.ts),
+ * Aura and Mesh as plain SVG discs (liquidSvg.ts).
  *
- * The colour is worked out on the GPU and comes back as a picture; the grain
- * goes over it as an SVG filter, so it stays one pixel fine at any size while
- * the colour under it, which has no detail to lose, can be drawn smaller and
- * stretched (a 24×36 poster is more pixels than a GPU will draw in one go).
+ * The file is kept light. Aura and Mesh are vector through and through. Silk
+ * and Marble have to carry a picture, so it is WebP, drawn no larger than
+ * `RASTER` on a side and stretched: poured colour has no fine detail to lose,
+ * and a 24×36 poster as PNG would be a hundred megabytes. The grain and the
+ * adjustments go over the top as SVG filters, so they add nothing to the
+ * file and stay one pixel fine at any size.
  *
  * "Moment" is where in its loop the picture is stopped. A video reads the
  * same loop from `liquidPhase` (0 to 1), which no control shows.
  */
 
 const TAU = Math.PI * 2;
-const HEX = /^#(?<hex>[\da-f]{3}|[\da-f]{6}|[\da-f]{8})$/iu;
-
-/** `#rgb`, `#rrggbb` or `#rrggbbaa` as three 0–1 floats (black if neither). */
-const rgbOf = (colour: string): [number, number, number] => {
-  const raw = colour.trim().match(HEX)?.groups?.hex ?? "000000";
-  const full =
-    raw.length === 3 ? [...raw].map((c) => c + c).join("") : raw.slice(0, 6);
-  return [0, 2, 4].map(
-    (at) => Number.parseInt(full.slice(at, at + 2), 16) / 255
-  ) as [number, number, number];
-};
-
-const linear = (c: number) =>
-  c <= 0.040_45 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-
-/**
- * A colour in OKLab, where a mix of two colours passes through the colours
- * between them rather than through grey (blue to yellow by way of green, not
- * mud).
- */
-export const oklabOf = (colour: string): [number, number, number] => {
-  const [r, g, b] = rgbOf(colour).map(linear) as [number, number, number];
-  const l = Math.cbrt(
-    0.412_221_470_8 * r + 0.536_332_536_3 * g + 0.051_445_992_9 * b
-  );
-  const m = Math.cbrt(
-    0.211_903_498_2 * r + 0.680_699_545_1 * g + 0.107_396_956_6 * b
-  );
-  const s = Math.cbrt(
-    0.088_302_461_9 * r + 0.281_718_837_6 * g + 0.629_978_700_5 * b
-  );
-  return [
-    0.210_454_255_3 * l + 0.793_617_785 * m - 0.004_072_046_8 * s,
-    1.977_998_495_1 * l - 2.428_592_205 * m + 0.450_593_709_9 * s,
-    0.025_904_037_1 * l + 0.782_771_766_2 * m - 0.808_675_766 * s,
-  ];
-};
+/** The longest side the shader looks are drawn at before being stretched. */
+const RASTER = 2048;
+/** What `toDataURL` begins with when the browser can write WebP. */
+const WEBP_PREFIX = "data:image/webp";
 
 const lookOf = (v: StudioValues): LiquidLook =>
   LIQUID_LOOKS.find((look) => look === v.look) ?? "silk";
 
-const numberOr = (value: unknown, fallback: number) => {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
-};
+const isShader = (look: LiquidLook) => look === "silk" || look === "marble";
 
 /**
  * A point per colour, spread round the middle so no colour is left out of
@@ -89,7 +65,7 @@ const pointsOf = (count: number, random: () => number) => {
   });
 };
 
-/** Everything the shader needs for these settings and colours. */
+/** Everything a look needs for these settings and colours. */
 export const liquidFrame = (
   v: StudioValues,
   palette: string[]
@@ -99,22 +75,18 @@ export const liquidFrame = (
   const seed = [random(), random(), random(), random()] as LiquidFrame["seed"];
   const phase = numberOr(v.moment, 0) / 100 + numberOr(v.liquidPhase, 0);
   return {
+    angle: (numberOr(v.angle, 0) / 360) * TAU,
     colours: colours.map(oklabOf),
     look: lookOf(v),
     phase: ((phase % 1) + 1) % 1,
     points: pointsOf(colours.length, random),
-    scale: Math.max(0.05, numberOr(v.scale, 100) / 100),
+    // The slider is how big the features are; the maths wants how many fit.
+    scale: 1 / Math.max(0.05, numberOr(v.scale, 100) / 100),
     seed,
     soft: Math.max(0, Math.min(1, numberOr(v.soft, 70) / 100)),
     warp: Math.max(0, numberOr(v.warp, 100) / 100),
   };
 };
-
-/** The colours as plain stops, for a browser with no WebGL to draw with. */
-const stopsOf = (palette: string[]) =>
-  palette.length > 1
-    ? palette
-    : [palette[0] ?? "#000000", palette[0] ?? "#000000"];
 
 /**
  * The grain the SVG filter makes, near enough, for the preview: a small tile
@@ -159,31 +131,111 @@ const drawGrain = (g: CanvasRenderingContext2D, amount: number) => {
   g.restore();
 };
 
-/** The picture's pixel size: its own, or as near as the GPU can draw. */
-const drawnSize = ({ height, width }: RenderContext) => {
-  const k = Math.min(1, liquidLimit() / Math.max(width, height));
+/** A scratch canvas the preview draws colour on before adjusting it. */
+let scratch: HTMLCanvasElement | null = null;
+const scratchFor = (width: number, height: number) => {
+  scratch ??= document.createElement("canvas");
+  if (scratch.width !== width || scratch.height !== height) {
+    scratch.width = width;
+    scratch.height = height;
+  }
+  return scratch;
+};
+
+/** The colour of the preview, before grain, onto `g`. */
+const drawColour = (
+  g: CanvasRenderingContext2D,
+  frame: LiquidFrame,
+  palette: string[]
+) => {
+  const { height, width } = g.canvas;
+  if (isShader(frame.look)) {
+    const picture = paintLiquid(frame, width, height);
+    if (picture) {
+      g.drawImage(picture, 0, 0, width, height);
+      return;
+    }
+    const fill = g.createLinearGradient(0, 0, width, height);
+    const stops = palette.length > 1 ? palette : [...palette, ...palette];
+    for (const [i, c] of stops.entries()) {
+      fill.addColorStop(i / (stops.length - 1), c);
+    }
+    g.fillStyle = fill;
+    g.fillRect(0, 0, width, height);
+    return;
+  }
+  drawDiscs(g, frame);
+};
+
+/** The shader looks' pixel size: as asked, or as large as will be carried. */
+const rasterSize = ({ height, width }: RenderContext) => {
+  const k = Math.min(
+    1,
+    Math.min(RASTER, liquidLimit()) / Math.max(width, height)
+  );
   return {
     h: Math.max(1, Math.round(height * k)),
     w: Math.max(1, Math.round(width * k)),
   };
 };
 
+/** The picture as a data URL: WebP where the browser writes it, else PNG. */
+const encoded = (canvas: HTMLCanvasElement) => {
+  const webp = canvas.toDataURL("image/webp", 0.9);
+  return webp.startsWith(WEBP_PREFIX) ? webp : canvas.toDataURL("image/png");
+};
+
+/** The colour part of the file: a picture for the shader looks, discs else. */
+const colourSvg = (
+  frame: LiquidFrame,
+  ctx: RenderContext
+): { body: string; defs: string } => {
+  const { height: h, palette, width: w } = ctx;
+  if (!isShader(frame.look)) {
+    return discsSvg(frame, w, h);
+  }
+  const size = rasterSize(ctx);
+  const picture = paintLiquid(frame, size.w, size.h);
+  if (!picture) {
+    return {
+      body: `<rect width="${w}" height="${h}" fill="url(#l)"/>`,
+      defs: rampSvg(palette),
+    };
+  }
+  return {
+    body: `<image width="${w}" height="${h}" preserveAspectRatio="none" href="${encoded(picture)}"/>`,
+    defs: "",
+  };
+};
+
+const range = (
+  key: string,
+  label: string,
+  fallback: number,
+  min: number,
+  max: number
+) => ({ default: fallback, key, label, max, min, type: "range" as const });
+
 export const liquidTool: ImageTool = {
   blurb:
     "Colour that looks poured: silk folds, marble veins, soft auras and blended mesh, in the brand colours.",
   draw: (g, v, ctx) => {
     const { height, width } = g.canvas;
-    const picture = paintLiquid(liquidFrame(v, ctx.palette), width, height);
-    if (picture) {
-      g.drawImage(picture, 0, 0, width, height);
+    const frame = liquidFrame(v, ctx.palette);
+    const adjust = adjustOf(v);
+    if (isPlain(adjust)) {
+      drawColour(g, frame, ctx.palette);
     } else {
-      const fill = g.createLinearGradient(0, 0, width, height);
-      const stops = stopsOf(ctx.palette);
-      for (const [i, c] of stops.entries()) {
-        fill.addColorStop(i / (stops.length - 1), c);
+      const under = scratchFor(width, height);
+      const ug = under.getContext("2d");
+      if (ug) {
+        ug.clearRect(0, 0, width, height);
+        drawColour(ug, frame, ctx.palette);
+        g.save();
+        g.filter = adjustCss(adjust);
+        g.drawImage(under, 0, 0);
+        g.restore();
       }
-      g.fillStyle = fill;
-      g.fillRect(0, 0, width, height);
     }
     drawGrain(g, numberOr(v.grain, 0));
   },
@@ -193,19 +245,19 @@ export const liquidTool: ImageTool = {
     { name: "Silk (slow folds)", values: {} },
     {
       name: "Silk, hard bands",
-      values: { grain: 0, look: "silk", scale: 80, soft: 6, warp: 150 },
+      values: { grain: 0, look: "silk", scale: 125, soft: 6, warp: 150 },
     },
     {
       name: "Marble veins",
-      values: { grain: 8, look: "marble", scale: 110, soft: 40, warp: 130 },
+      values: { grain: 8, look: "marble", scale: 90, soft: 40, warp: 130 },
     },
     {
       name: "Marble, smoke",
-      values: { grain: 20, look: "marble", scale: 60, soft: 100, warp: 70 },
+      values: { grain: 20, look: "marble", scale: 165, soft: 100, warp: 70 },
     },
     {
       name: "Aura (soft lights)",
-      values: { grain: 18, look: "aura", scale: 90, soft: 80, warp: 60 },
+      values: { grain: 18, look: "aura", scale: 110, soft: 80, warp: 60 },
     },
     {
       name: "Mesh (blended)",
@@ -234,68 +286,31 @@ export const liquidTool: ImageTool = {
       type: "colors",
     },
     { key: "seed", label: "Seed", type: "seed" },
-    {
-      default: 100,
-      key: "scale",
-      label: "Zoom",
-      max: 300,
-      min: 20,
-      type: "range",
-    },
-    {
-      default: 100,
-      key: "warp",
-      label: "Swirl",
-      max: 200,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: 70,
-      key: "soft",
-      label: "Softness",
-      max: 100,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: 0,
-      key: "moment",
-      label: "Moment",
-      max: 100,
-      min: 0,
-      type: "range",
-    },
-    {
-      default: 12,
-      key: "grain",
-      label: "Grain",
-      max: 60,
-      min: 0,
-      type: "range",
-    },
+    range("scale", "Scale", 100, 33, 300),
+    range("warp", "Swirl", 100, 0, 200),
+    range("soft", "Softness", 70, 0, 100),
+    range("angle", "Angle", 0, 0, 360),
+    range("moment", "Moment", 0, 0, 100),
+    range("grain", "Grain", 12, 0, 60),
+    range("brightness", "Brightness", 100, 50, 150),
+    range("contrast", "Contrast", 100, 50, 150),
+    range("saturation", "Saturation", 100, 0, 200),
+    range("hue", "Hue", 0, -180, 180),
   ],
   render: (v, ctx) => {
-    const { height: h, palette, width: w } = ctx;
+    const { height: h, width: w } = ctx;
     const amount = numberOr(v.grain, 0);
-    const size = drawnSize(ctx);
-    const picture = paintLiquid(liquidFrame(v, palette), size.w, size.h);
-    const stops = stopsOf(palette).map(esc);
-    const colour = picture
-      ? `<image width="${w}" height="${h}" preserveAspectRatio="none" href="${picture.toDataURL("image/png")}"/>`
-      : `<rect width="${w}" height="${h}" fill="url(#l)"/>`;
-    const fallback = picture
-      ? ""
-      : `<linearGradient id="l" x1="0" y1="0" x2="1" y2="1">${stops
-          .map(
-            (c, i) =>
-              `<stop offset="${r2((i / (stops.length - 1)) * 100)}%" stop-color="${c}"/>`
-          )
-          .join("")}</linearGradient>`;
+    const adjust = adjustOf(v);
+    const colour = colourSvg(liquidFrame(v, ctx.palette), ctx);
+    const adjusted = isPlain(adjust)
+      ? colour.body
+      : `<g filter="url(#a)">${colour.body}</g>`;
+    const grained =
+      amount > 0 ? `<rect width="${w}" height="${h}" filter="url(#g)"/>` : "";
     return svgDoc(
       w,
       h,
-      `<defs>${fallback}${grain(amount)}</defs>${colour}${amount > 0 ? `<rect width="${w}" height="${h}" filter="url(#g)"/>` : ""}`
+      `<defs>${colour.defs}${adjustSvg(adjust)}${grain(amount)}</defs>${adjusted}${grained}`
     );
   },
 };

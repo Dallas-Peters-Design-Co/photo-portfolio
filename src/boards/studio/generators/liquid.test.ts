@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { defaultsOf } from "../tools";
 import type { StudioValues } from "../types";
-import { liquidTool, oklabOf } from "./liquid";
+import { liquidTool } from "./liquid";
+import { hexOfOklab, oklabOf } from "./liquidColour";
 import { LIQUID_LOOKS, liquidLimit } from "./liquidGl";
 
 const PALETTE = ["#041045", "#1e3dff", "#8fd6e8", "#f6f4ef"];
-const PNG_DATA = /^data:image\/png;base64,/;
+const RASTER_DATA = /^data:image\/(?:webp|png);base64,/;
 const W = 64;
 const H = 36;
 
@@ -45,6 +46,9 @@ describe("Liquid Gradients", () => {
     expect(Math.abs(b)).toBeLessThan(1e-4);
     // The short form and an alpha on the end read as the same colour.
     expect(oklabOf("#fff")).toEqual(oklabOf("#ffffff80"));
+    for (const hex of ["#041045", "#1e3dff", "#ff6b4a", "#808080"]) {
+      expect(hexOfOklab(oklabOf(hex))).toBe(hex);
+    }
   });
 
   for (const look of LIQUID_LOOKS) {
@@ -101,8 +105,8 @@ describe("Liquid Gradients", () => {
     }
   });
 
-  it("draws a poster bigger than the GPU can, stretched to the size asked", () => {
-    const side = liquidLimit() * 2;
+  it("draws a poster bigger than it will carry, stretched to the size asked", () => {
+    const side = 7200;
     const svg = liquidTool.render(
       { ...defaultsOf(liquidTool.params), grain: 12 },
       { height: side, image: null, palette: PALETTE, width: side / 2 }
@@ -112,9 +116,77 @@ describe("Liquid Gradients", () => {
     const image = doc.querySelector("image");
     expect(image?.getAttribute("width")).toBe(String(side / 2));
     expect(image?.getAttribute("height")).toBe(String(side));
-    expect(image?.getAttribute("href")).toMatch(PNG_DATA);
+    expect(image?.getAttribute("href")).toMatch(RASTER_DATA);
+    // Light: a picture of a 24×36 poster as PNG would be a hundred megabytes.
+    expect(svg.length).toBeLessThan(600_000);
     // The grain is a filter over the top, so it is not stretched with it.
     expect(doc.querySelector("filter#g")).not.toBeNull();
+  });
+
+  for (const look of ["aura", "mesh"] as const) {
+    it(`${look} is vector: no picture inside, and small at poster size`, () => {
+      const svg = liquidTool.render(
+        { ...defaultsOf(liquidTool.params), grain: 12, look },
+        { height: 10_800, image: null, palette: PALETTE, width: 7200 }
+      );
+      expect(svg).not.toContain("<image");
+      expect(svg).toContain("<radialGradient");
+      expect(svg.length).toBeLessThan(6000);
+      const doc = new DOMParser().parseFromString(svg, "image/svg+xml");
+      expect(doc.querySelector("parsererror")).toBeNull();
+    });
+  }
+
+  it("writes the adjustments as a filter, and none when they are as made", () => {
+    const made = defaultsOf(liquidTool.params);
+    const at = { height: 90, image: null, palette: PALETTE, width: 160 };
+    expect(liquidTool.render({ ...made, look: "aura" }, at)).not.toContain(
+      'id="a"'
+    );
+    const svg = liquidTool.render(
+      {
+        ...made,
+        brightness: 120,
+        contrast: 110,
+        hue: 30,
+        look: "aura",
+        saturation: 80,
+      },
+      at
+    );
+    expect(svg).toContain('<filter id="a"');
+    expect(svg).toContain('slope="1.2"');
+    expect(svg).toContain('type="saturate" values="0.8"');
+    expect(svg).toContain('type="hueRotate" values="30"');
+    expect(svg).toContain('<g filter="url(#a)">');
+  });
+
+  it("turns with the angle, the same picture at 0 and 360", () => {
+    for (const look of LIQUID_LOOKS) {
+      const flat = pixels({ look, seed: 9 });
+      expect(
+        apart(flat, pixels({ angle: 360, look, seed: 9 }))
+      ).toBeLessThanOrEqual(2);
+      expect(apart(flat, pixels({ angle: 90, look, seed: 9 }))).toBeGreaterThan(
+        20
+      );
+    }
+  });
+
+  it("scale makes the features larger, not more of them", () => {
+    // Zoomed right in on silk, a small patch is nearly one colour; zoomed
+    // out, the same patch runs through many.
+    const spread = (scale: number) => {
+      const data = pixels({ look: "silk", scale, seed: 3, soft: 100 });
+      let lo = 255;
+      let hi = 0;
+      for (let at = 0; at < data.length; at += 4) {
+        lo = Math.min(lo, data[at] ?? 0);
+        hi = Math.max(hi, data[at] ?? 0);
+      }
+      return hi - lo;
+    };
+    expect(spread(300)).toBeLessThan(spread(33));
   });
 
   it("leaves the grain out at 0", () => {
