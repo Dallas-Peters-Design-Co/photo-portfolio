@@ -163,7 +163,9 @@ describe("the HyperFrames project", () => {
     expect(html).toContain('data-start="2" data-duration="6"');
     expect(html).toContain('tl.fromTo("#layer-2 > .layer__in"');
     expect(html).toContain('at("layer-2")');
-    expect(html).toContain('window.__timelines["main"] = tl;');
+    // Registered without assuming the host made the table: the Studio app
+    // and a plain browser haven't, and a throw there hides every layer.
+    expect(html).toContain('(window.__timelines ||= {})["main"] = tl;');
     expect(html).toContain('src="assets/studio.js"');
     expect(html).not.toContain("#layer-1 > .layer__in");
   });

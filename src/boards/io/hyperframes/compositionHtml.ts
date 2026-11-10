@@ -108,7 +108,10 @@ const timelineScript = (doc: VideoDoc): string => {
       const at = (id) => Number(document.getElementById(id).dataset.start) || 0;
       const tl = gsap.timeline({ paused: true });
 ${[...lines, push].filter(Boolean).join("\n")}
-      window.__timelines["main"] = tl;
+      // The CLI defines __timelines before the page runs; the Studio app and a
+      // plain browser don't, and a throw here would leave every layer at the
+      // opacity 0 the tweens just set. Make the table if there isn't one.
+      (window.__timelines ||= {})["main"] = tl;
       tl.seek(0);
     </script>`;
 };
