@@ -50,6 +50,7 @@ import { useBoardUploads } from "./boardEditor/useBoardUploads";
 import { useBoardVectorTools } from "./boardEditor/useBoardVectorTools";
 import { useDropPoint } from "./boardEditor/useDropPoint";
 import { useFrameDesign } from "./boardEditor/useFrameDesign";
+import { useLiveFrameRenders } from "./boardEditor/useLiveFrameRenders";
 import { useProofMark } from "./boardEditor/useProofMark";
 import { useRecipes } from "./boardEditor/useRecipes";
 import { useSelectedItem } from "./boardEditor/useSelectedItem";
@@ -268,6 +269,7 @@ export function BoardEditor({
     setItems,
     setWires,
   });
+  useLiveFrameRenders({ items, pending, save, setItems, wires });
 
   const colours = useColorVarsDoc(
     board?.colorVars,
