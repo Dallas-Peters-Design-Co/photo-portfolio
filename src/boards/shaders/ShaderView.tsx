@@ -92,8 +92,11 @@ export function ShaderView({ config, imageUrl, onAddSource }: ShaderViewProps) {
   // Recomputing these on a render that only toggles visibility is wasted, and
   // both walk the whole tree.
   const layers = useMemo(
-    () => activeLayers(withImage(normalizeLayers(config.layers), imageUrl)),
-    [config.layers, imageUrl]
+    () =>
+      activeLayers(
+        withImage(normalizeLayers(config.layers), imageUrl, config.imageFit)
+      ),
+    [config.layers, config.imageFit, imageUrl]
   );
   const Shader = componentFor("Shader");
 

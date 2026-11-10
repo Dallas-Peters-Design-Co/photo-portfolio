@@ -125,3 +125,32 @@
 .effect-stack__source > * + * {
   margin-block-start: var(--spacing);
 }
+
+.effect-stack__wired > * + * {
+  margin-block-start: var(--spacing);
+}
+
+/* The one setting a wired picture has: how it fills the item. */
+.effect-stack__fit {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: var(--text-micro-xs);
+  color: color-mix(in oklch, var(--color-board-ink) 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+}
+
+.effect-stack__fit-select {
+  flex-grow: 1;
+  padding-block: var(--spacing);
+  padding-inline: calc(var(--spacing) * 1.5);
+  font-size: var(--text-micro-xs);
+  color: var(--color-board-ink);
+  text-transform: none;
+  letter-spacing: normal;
+  background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-control);
+}

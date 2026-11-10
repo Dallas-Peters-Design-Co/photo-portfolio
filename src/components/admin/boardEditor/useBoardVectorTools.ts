@@ -236,15 +236,24 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
       toast.error("That item has no picture to put effects on");
       return;
     }
+    // The item takes the picture's shape, so the picture fills it rather
+    // than sitting letterboxed in a default box.
+    const k = Math.min(
+      DEFAULT_SHADER_WIDTH / source.width,
+      DEFAULT_SHADER_HEIGHT / source.height,
+      1
+    );
+    const width = Math.max(120, Math.round(source.width * k));
+    const height = Math.max(120, Math.round(source.height * k));
     const shader: BoardItem = {
       ...BLANK_ITEM,
-      config: { layers: [] },
-      height: DEFAULT_SHADER_HEIGHT,
+      config: { imageFit: "cover", layers: [] },
+      height,
       id: newItemId(),
       kind: "shader",
-      width: DEFAULT_SHADER_WIDTH,
+      width,
       x: source.x + source.width + PORT_SPAWN_GAP,
-      y: source.y + source.height / 2 - DEFAULT_SHADER_HEIGHT / 2,
+      y: source.y + source.height / 2 - height / 2,
       z: pending.current.items.length + 1,
     };
     const wire: BoardWire = {

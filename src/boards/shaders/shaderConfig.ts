@@ -90,7 +90,12 @@ export interface ShaderLayer {
   props: Record<string, unknown>;
 }
 
+/** How a wired picture fills the item: whole and letterboxed, or filling. */
+export type ImageFit = "contain" | "cover";
+
 export interface ShaderConfig {
+  /** For the picture wired in; an ImageTexture layer has its own setting. */
+  imageFit?: ImageFit;
   layers: ShaderLayer[];
 }
 
@@ -325,7 +330,8 @@ export const bindImage = (layers: ShaderLayer[], url: string): ShaderLayer[] =>
  */
 export const insertImage = (
   layers: ShaderLayer[],
-  url: string
+  url: string,
+  fit: ImageFit = "contain"
 ): ShaderLayer[] => {
   const last = layers.at(-1);
   const image = {
@@ -342,14 +348,14 @@ export const insertImage = (
      * should arrive whole, and silently cropping a third of it is the worse of
      * the two failures.
      */
-    props: { objectFit: "contain", url },
+    props: { objectFit: fit, url },
   };
   if (!(last && isEffect(last.name))) {
     return [...layers, image];
   }
   return [
     ...layers.slice(0, -1),
-    { ...last, children: insertImage(last.children ?? [], url) },
+    { ...last, children: insertImage(last.children ?? [], url, fit) },
   ];
 };
 
@@ -363,12 +369,13 @@ export const insertImage = (
  */
 export const withImage = (
   layers: ShaderLayer[],
-  imageUrl: string | null | undefined
+  imageUrl: string | null | undefined,
+  fit: ImageFit = "contain"
 ): ShaderLayer[] => {
   if (!imageUrl) {
     return layers;
   }
   return hasImageLayer(layers)
     ? bindImage(layers, imageUrl)
-    : insertImage(layers, imageUrl);
+    : insertImage(layers, imageUrl, fit);
 };

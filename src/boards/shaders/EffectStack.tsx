@@ -5,7 +5,12 @@ import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import DragDropVerticalIcon from "@hugeicons-pro/core-stroke-standard/DragDropVerticalIcon";
 import { useState } from "react";
 import { Control } from "./Control";
-import { groupProps, type ShaderLayer, shaderMeta } from "./shaderConfig";
+import {
+  groupProps,
+  type ImageFit,
+  type ShaderLayer,
+  shaderMeta,
+} from "./shaderConfig";
 import type { Chain } from "./shaderStack";
 import "./EffectStack.css";
 
@@ -164,7 +169,10 @@ function Row({
 
 export interface EffectStackProps {
   chain: Chain;
+  /** How the wired picture fills the item. */
+  fit: ImageFit;
   onChange: (chain: Chain) => void;
+  onFitChange: (fit: ImageFit) => void;
   /** Opens the picker for a new effect (above) or source (below). */
   onPick: (wanting: "source" | "effect") => void;
   /** True when a picture wired into the item is the source. */
@@ -173,7 +181,9 @@ export interface EffectStackProps {
 
 export function EffectStack({
   chain,
+  fit,
   onChange,
+  onFitChange,
   onPick,
   wiredSource,
 }: EffectStackProps) {
@@ -257,10 +267,24 @@ export function EffectStack({
       {source ? null : (
         <div className="effect-stack__source">
           {wiredSource ? (
-            <p className="shader-layer__note">
-              The picture wired into this item. Unplug it to draw something
-              else.
-            </p>
+            <div className="effect-stack__wired">
+              <p className="shader-layer__note">
+                The picture wired into this item. Unplug it to draw something
+                else.
+              </p>
+              <label className="effect-stack__fit">
+                <span>Fit</span>
+                <select
+                  className="effect-stack__fit-select"
+                  onChange={(e) => onFitChange(e.target.value as ImageFit)}
+                  onPointerDown={stop}
+                  value={fit}
+                >
+                  <option value="contain">Contain (whole picture)</option>
+                  <option value="cover">Cover (fill the item)</option>
+                </select>
+              </label>
+            </div>
           ) : (
             <>
               <p className="shader-layer__note shader-layer__note--warn">

@@ -96,6 +96,16 @@ describe("the stack as a React component", () => {
     expect(src).toContain("<MeshGradient speed={0.5} />");
   });
 
+  it("binds the wired picture with the fit chosen for it", () => {
+    const src = reactSource(
+      [layer("Glass", "g", { children: [] })],
+      "https://example.test/pic.png",
+      null,
+      "cover"
+    );
+    expect(src).toContain('<ImageTexture objectFit="cover" url=');
+  });
+
   it("leaves out a switched-off effect and binds a wired picture", () => {
     const src = reactSource(
       [layer("Glass", "g", { children: [], enabled: false })],

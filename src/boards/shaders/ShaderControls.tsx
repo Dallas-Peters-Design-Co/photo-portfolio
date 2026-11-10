@@ -411,7 +411,9 @@ export function ShaderControls({
         ) : (
           <EffectStack
             chain={chain}
+            fit={config.imageFit ?? "contain"}
             onChange={(next) => put(layersOfChain(next))}
+            onFitChange={(imageFit) => onChange({ ...config, imageFit })}
             onPick={setAdding}
             wiredSource={Boolean(imageUrl)}
           />

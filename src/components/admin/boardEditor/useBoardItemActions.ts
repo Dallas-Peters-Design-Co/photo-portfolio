@@ -194,7 +194,7 @@ export const useBoardItemActions = (deps: BoardItemActionDeps) => {
       const source = wiredImageFor(item.id, { items, wires });
       const config = isShaderConfig(item.config) ? item.config : { layers: [] };
       await navigator.clipboard.writeText(
-        reactSource(config.layers, source, item.body)
+        reactSource(config.layers, source, item.body, config.imageFit)
       );
       toast.success("React component copied", {
         description: "Needs the shaders package: npm i shaders",

@@ -1,4 +1,4 @@
-import type { ShaderLayer } from "./shaderConfig";
+import type { ImageFit, ShaderLayer } from "./shaderConfig";
 import { normalizeLayers, withImage } from "./shaderConfig";
 import { activeLayers } from "./shaderStack";
 
@@ -70,9 +70,10 @@ const componentName = (name: string | null | undefined): string => {
 export const reactSource = (
   layers: ShaderLayer[],
   imageUrl: string | null | undefined,
-  name?: string | null
+  name?: string | null,
+  fit?: ImageFit
 ): string => {
-  const tree = activeLayers(withImage(normalizeLayers(layers), imageUrl));
+  const tree = activeLayers(withImage(normalizeLayers(layers), imageUrl, fit));
   const names = [...namesIn(tree, new Set<string>())].sort();
   const imports = ["Shader", ...names.filter((n) => n !== "Shader")].join(", ");
   return [
