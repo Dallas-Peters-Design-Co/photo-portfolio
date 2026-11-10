@@ -159,15 +159,58 @@ describe("the HyperFrames project", () => {
     };
     const html = compositionHtml(doc);
     expect(html).toContain('data-composition-id="main"');
-    expect(html).toContain('id="layer-1-studio"');
-    expect(html).toContain('data-start="2" data-duration="6"');
-    expect(html).toContain('tl.fromTo("#layer-2 > .layer__in"');
+    // One row, one element: the layer's own tag carries the clip attributes
+    // and its place, with no wrapper for Studio's lint to call a scene.
+    expect(html).toContain(
+      '<div id="layer-1" class="clip layer studio" data-name="Pixel Field layer"'
+    );
+    expect(html).toContain(
+      '<div id="layer-2" class="clip layer" data-name="Build slow." data-start="2" data-duration="6" data-track-index="2" style="position:absolute;left:60px;top:1180px;width:900px;height:80px;z-index:2">Build slow.</div>'
+    );
+    expect(html).not.toContain("layer__in");
+    expect(html).not.toContain('id="stage"');
+    expect(html).toContain('tl.fromTo("#layer-2", { opacity: 0, y: 40.5 }');
     expect(html).toContain('at("layer-2")');
-    // Registered without assuming the host made the table: the Studio app
-    // and a plain browser haven't, and a throw there hides every layer.
-    expect(html).toContain('(window.__timelines ||= {})["main"] = tl;');
+    // The push in, per row, about the canvas centre.
+    expect(html).toContain(
+      'tl.fromTo("#layer-2", { scale: 1, transformOrigin: "480px -505px" }'
+    );
+    // Registered in the two lines Studio's lint looks for, without assuming
+    // the host made the table (the Studio app and a plain browser haven't).
+    expect(html).toContain("window.__timelines = window.__timelines || {};");
+    expect(html).toContain('window.__timelines["main"] = tl;');
     expect(html).toContain('src="assets/studio.js"');
-    expect(html).not.toContain("#layer-1 > .layer__in");
+  });
+
+  it("merges the clip onto a layer that already has a style, keeping both", () => {
+    const html = compositionHtml({
+      background: "#fff",
+      duration: 4,
+      fontCss: "",
+      fontLinks: [],
+      height: 100,
+      layers: [
+        {
+          box: { height: 50, left: 10, top: 20, width: 80 },
+          entrance: "fade",
+          html: '<img alt="" src="assets/a.png" style="object-fit:cover">',
+          id: "layer-1",
+          name: "Photo",
+          rotate: 15,
+          start: 0,
+          studio: false,
+        },
+      ],
+      pushIn: true,
+      runtime: { duration: 4, fonts: {}, layers: [] },
+      title: "T",
+      width: 100,
+    });
+    expect(html).toContain(
+      '<img id="layer-1" class="clip layer" data-name="Photo" data-start="0" data-duration="4" data-track-index="1" alt="" src="assets/a.png" style="object-fit:cover;position:absolute;left:10px;top:20px;width:80px;height:50px;z-index:1;transform:rotate(15deg)">'
+    );
+    // A turned layer keeps its own centre, so it gets no push in.
+    expect(html).not.toContain("transformOrigin");
   });
 
   it("rewrites the runtime's new Date so HyperFrames' check passes", () => {

@@ -13,6 +13,13 @@ import type { RuntimeSpec } from "./runtime";
  * id, and each entrance reads its clip's `data-start`, so dragging a clip on
  * Studio's timeline moves its entrance with it. The amount of Studio motion
  * is the video's one variable.
+ *
+ * One row, one element. Studio's lint reads a timed element holding a block
+ * child as a scene that should be its own file, so a clip is not a wrapper
+ * round the layer's markup: the layer's own element is the clip, with the
+ * timing attributes and its place on the canvas merged onto it. The push in
+ * is per row too, each scaled about the canvas centre, since a wrapper round
+ * the rows would be one more block to object to.
  */
 
 export type Entrance = "fade" | "none" | "rise";
@@ -66,9 +73,32 @@ const VARIABLES = [
   },
 ];
 
+const OPEN_TAG = /^\s*<(?<tag>[a-z][\w-]*)(?<attrs>[^>]*?)(?<close>\/?)>/i;
+const STYLE_ATTR = /\sstyle="(?<css>[^"]*)"/i;
+
+/** `html`'s first tag with these attributes added and this CSS appended. */
+const onOpeningTag = (
+  html: string,
+  attrs: string,
+  css: string
+): string | null => {
+  const m = html.match(OPEN_TAG);
+  const tag = m?.groups?.tag;
+  if (!(m && tag)) {
+    return null;
+  }
+  const had = m.groups?.attrs ?? "";
+  const styled = STYLE_ATTR.test(had)
+    ? had.replace(STYLE_ATTR, (_, old: string) => ` style="${old};${css}"`)
+    : `${had} style="${css}"`;
+  const open = `<${tag} ${attrs}${styled}${m.groups?.close ?? ""}>`;
+  return open + html.slice(m[0].length);
+};
+
 const clipHtml = (layer: VideoLayer, z: number, end: number): string => {
   const { box } = layer;
-  const style = [
+  const place = [
+    "position:absolute",
     `left:${r2(box.left)}px`,
     `top:${r2(box.top)}px`,
     `width:${r2(box.width)}px`,
@@ -78,12 +108,11 @@ const clipHtml = (layer: VideoLayer, z: number, end: number): string => {
   ]
     .filter(Boolean)
     .join(";");
-  const inner = layer.studio
-    ? `<div class="studio" id="${layer.id}-studio"></div>`
-    : layer.html;
-  return `      <div id="${layer.id}" class="clip layer" data-name="${escapeHtml(layer.name)}" data-start="${r2(layer.start)}" data-duration="${r2(Math.max(0.1, end - layer.start))}" data-track-index="${z}" style="${style}">
-        <div class="layer__in">${inner}</div>
-      </div>`;
+  const attrs = `id="${layer.id}" class="clip layer${layer.studio ? " studio" : ""}" data-name="${escapeHtml(layer.name)}" data-start="${r2(layer.start)}" data-duration="${r2(Math.max(0.1, end - layer.start))}" data-track-index="${z}"`;
+  const row = layer.studio
+    ? `<div ${attrs} style="${place}"></div>`
+    : onOpeningTag(layer.html, attrs, place);
+  return `      ${row ?? `<div ${attrs} style="${place}"></div>`}`;
 };
 
 /** The entrance tweens: from each clip's own start, so Studio retimes them. */
@@ -99,10 +128,19 @@ const timelineScript = (doc: VideoDoc): string => {
         l.entrance === "rise"
           ? `{ opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }`
           : `{ opacity: 1, scale: 1, duration: 0.9, ease: "power2.out" }`;
-      return `      tl.fromTo("#${l.id} > .layer__in", ${from}, ${to}, at("${l.id}"));`;
+      return `      tl.fromTo("#${l.id}", ${from}, ${to}, at("${l.id}"));`;
     });
+  // Each row scaled about the canvas centre is the whole picture pushing in.
+  // A turned layer keeps its own centre: scaling it about the canvas's would
+  // swing it round the frame.
   const push = doc.pushIn
-    ? `      tl.fromTo("#stage", { scale: 1 }, { scale: 1.05, duration: ${r2(doc.duration)}, ease: "none" }, 0);`
+    ? doc.layers
+        .filter((l) => !l.rotate)
+        .map(
+          (l) =>
+            `      tl.fromTo("#${l.id}", { scale: 1, transformOrigin: "${r2(doc.width / 2 - l.box.left)}px ${r2(doc.height / 2 - l.box.top)}px" }, { scale: 1.05, duration: ${r2(doc.duration)}, ease: "none" }, 0);`
+        )
+        .join("\n")
     : "";
   return `    <script>
       const at = (id) => Number(document.getElementById(id).dataset.start) || 0;
@@ -110,8 +148,10 @@ const timelineScript = (doc: VideoDoc): string => {
 ${[...lines, push].filter(Boolean).join("\n")}
       // The CLI defines __timelines before the page runs; the Studio app and a
       // plain browser don't, and a throw here would leave every layer at the
-      // opacity 0 the tweens just set. Make the table if there isn't one.
-      (window.__timelines ||= {})["main"] = tl;
+      // opacity 0 the tweens just set. Written in the two lines Studio's lint
+      // looks for; a shorter form passes the browser and fails the lint.
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
       tl.seek(0);
     </script>`;
 };
@@ -132,17 +172,12 @@ ${doc.fontCss}
       * { margin: 0; padding: 0; box-sizing: border-box; }
       html, body { width: ${width}px; height: ${height}px; overflow: hidden; background: ${doc.background}; -webkit-font-smoothing: antialiased; }
       #root { position: relative; width: 100%; height: 100%; overflow: hidden; }
-      #stage { position: absolute; inset: 0; transform-origin: 50% 50%; }
-      .layer { position: absolute; }
-      .layer__in { position: absolute; inset: 0; }
-      .studio, .studio > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+      .studio > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="${r2(duration)}" data-width="${width}" data-height="${height}">
-      <div id="stage" data-layout-allow-overflow>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="${r2(duration)}" data-width="${width}" data-height="${height}" data-layout-allow-overflow>
 ${clips.join("\n")}
-      </div>
     </div>
     <script type="application/json" id="studio-layers">${json(doc.runtime)}</script>
     <script src="assets/studio.js"></script>

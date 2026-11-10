@@ -220,7 +220,11 @@ const start = async (spec: RuntimeSpec): Promise<void> => {
   await loadFonts(spec.fonts);
   const lives = await Promise.all(
     spec.layers.map(async (layer): Promise<Live | null> => {
-      const el = document.getElementById(`${layer.id}-studio`);
+      // The row is the Studio element itself now; older exports held it in
+      // a child of its own.
+      const el =
+        document.getElementById(layer.id) ??
+        document.getElementById(`${layer.id}-studio`);
       const tool = IMAGE_TOOLS.find((t) => t.id === layer.tool);
       if (!(el && tool)) {
         return null;
