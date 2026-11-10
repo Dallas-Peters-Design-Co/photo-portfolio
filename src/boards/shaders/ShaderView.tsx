@@ -9,6 +9,7 @@ import {
   type ShaderLayer,
   withImage,
 } from "./shaderConfig";
+import { activeLayers } from "./shaderStack";
 import "./ShaderView.css";
 
 /**
@@ -91,7 +92,7 @@ export function ShaderView({ config, imageUrl, onAddSource }: ShaderViewProps) {
   // Recomputing these on a render that only toggles visibility is wasted, and
   // both walk the whole tree.
   const layers = useMemo(
-    () => withImage(normalizeLayers(config.layers), imageUrl),
+    () => activeLayers(withImage(normalizeLayers(config.layers), imageUrl)),
     [config.layers, imageUrl]
   );
   const Shader = componentFor("Shader");

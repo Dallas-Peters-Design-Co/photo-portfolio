@@ -241,8 +241,7 @@ export function BoardEditor({
 
   const {
     bringToFront,
-    downloadShader,
-    exportShader,
+    shaderActions,
     canvaTarget,
     openSendToCanva,
     resolveComment,
@@ -259,17 +258,16 @@ export function BoardEditor({
     wires,
   });
 
-  const { editorNode, openEditor, openItemInAffinity, vectorizeItem } =
-    useBoardVectorTools({
-      boardId,
-      graphRun,
-      items,
-      pending,
-      save,
-      setIsDirty,
-      setItems,
-      setWires,
-    });
+  const { editorNode, itemTools, openEditor } = useBoardVectorTools({
+    boardId,
+    graphRun,
+    items,
+    pending,
+    save,
+    setIsDirty,
+    setItems,
+    setWires,
+  });
 
   const colours = useColorVarsDoc(
     board?.colorVars,
@@ -329,12 +327,11 @@ export function BoardEditor({
             drawTool={drawTool}
             items={items}
             onConfigChange={changeConfig}
-            onDownloadShader={downloadShader}
-            onExportShader={exportShader}
             onMaskChange={changeMask}
             onStyle={setDrawStyle}
             onTool={setDrawTool}
             selected={selection.item}
+            shaderActions={shaderActions}
             wires={wires}
           />
 
@@ -363,6 +360,7 @@ export function BoardEditor({
               drawTool={drawTool}
               items={items}
               keyOf={keyOf}
+              onAddEffects={itemTools.addEffects}
               onArrangeFrame={autoArrange}
               onBringToFront={bringToFront}
               onCancel={graphRun.cancel}
@@ -378,7 +376,7 @@ export function BoardEditor({
               onExportItem={(itemId) => void exportItem(itemId)}
               onGroupIntoFrame={groupIntoFrame}
               onMaskStroke={addMaskStroke}
-              onOpenInAffinity={(id) => void openItemInAffinity(id)}
+              onOpenInAffinity={itemTools.openInAffinity}
               onProofMark={(id) => void proofMark(id)}
               onRemoveVersion={(itemId, index) =>
                 void removeVersion(itemId, index)
@@ -390,7 +388,7 @@ export function BoardEditor({
               onSendToBack={sendToBack}
               onSendToCanva={openSendToCanva}
               onSendVersions={sendVersions}
-              onVectorize={(itemId) => void vectorizeItem(itemId)}
+              onVectorize={itemTools.vectorize}
               onWiresChange={changeWires}
               recipeUses={uses}
               viewCentreRef={viewCentreRef}

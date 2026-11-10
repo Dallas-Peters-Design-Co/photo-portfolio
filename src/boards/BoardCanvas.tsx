@@ -112,6 +112,8 @@ interface BoardCanvasProps {
   items: BoardItem[];
   /** Stable per-item React key. */
   keyOf: (item: BoardItem) => string;
+  /** Wires a new Shader item to a picture, ready for effects. */
+  onAddEffects?: (itemId: string) => void;
   /**
    * A stroke painted onto an image with the mask brush. The canvas owns the
    * gesture and knows which picture it landed on; the editor owns the config.
@@ -315,6 +317,7 @@ export function BoardCanvas({
   onSendVersions,
   comments,
   commentMode,
+  onAddEffects,
   onCommentItem,
   onVectorize,
   onWiresChange,
@@ -1271,6 +1274,7 @@ export function BoardCanvas({
       <CanvasMenu
         items={items}
         menu={menu}
+        onAddEffects={closing(onAddEffects)}
         onArrange={closing(onArrangeFrame)}
         onBringToFront={closing(onBringToFront)}
         onCopyFrame={(frames, to) => {

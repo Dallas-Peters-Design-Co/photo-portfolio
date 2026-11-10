@@ -8,7 +8,10 @@ import {
 import { nodeTypeFor } from "../../../../config/nodeTypes.js";
 import { renderHalftone } from "../../../boards/canvas/renderShaderNode";
 import { renderShaderStack } from "../../../boards/canvas/renderShaderStack";
-import { wiredImageFor } from "../../../boards/canvas/wiredPreviews";
+import {
+  wiredImageFor,
+  wiredImagesFor,
+} from "../../../boards/canvas/wiredPreviews";
 import { downloadBlob } from "../../../boards/io/downloadImage";
 import { newItemId } from "../../../boards/io/newItemId";
 import { outputImageOf } from "../../../boards/itemOutput";
@@ -163,8 +166,10 @@ export const useBoardItemActions = (deps: BoardItemActionDeps) => {
    * so asking renderShaderStack for one handed back `{ layers: [] }` — an empty
    * stack, which renders nothing. Exporting a halftone produced a blank file.
    */
-  const renderSelected = async (item: BoardItem): Promise<Blob> => {
-    const source = wiredImageFor(item.id, { items, wires });
+  const renderSelected = async (
+    item: BoardItem,
+    source: string | null = wiredImageFor(item.id, { items, wires })
+  ): Promise<Blob> => {
     if (item.nodeType === "standard") {
       return await renderHalftone(item.config ?? {}, source);
     }
@@ -172,6 +177,31 @@ export const useBoardItemActions = (deps: BoardItemActionDeps) => {
       isShaderConfig(item.config) ? item.config : { layers: [] },
       source
     );
+  };
+
+  /**
+   * The stack as a React component, on the clipboard.
+   *
+   * The canvas draws a stack as a tree of `shaders/react` components; this is
+   * that tree as source, for an app, a site or a Framer code component. A
+   * wired picture goes in as an ImageTexture pointing at its stored copy.
+   */
+  const copyShaderReact = async (item: BoardItem) => {
+    try {
+      const { reactSource } = await import(
+        "../../../boards/shaders/shaderReact"
+      );
+      const source = wiredImageFor(item.id, { items, wires });
+      const config = isShaderConfig(item.config) ? item.config : { layers: [] };
+      await navigator.clipboard.writeText(
+        reactSource(config.layers, source, item.body)
+      );
+      toast.success("React component copied", {
+        description: "Needs the shaders package: npm i shaders",
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not copy it");
+    }
   };
 
   /** The same picture, saved to the machine rather than put on the board. */
@@ -190,24 +220,50 @@ export const useBoardItemActions = (deps: BoardItemActionDeps) => {
     }
   };
 
+  /**
+   * Every picture wired in, or one null for a stack drawing on its own.
+   *
+   * A shader shows the first picture wired into it, but several may be: the
+   * same effects over a batch. An export runs each through the stack, one
+   * after another, so the batch comes back restyled.
+   */
+  const sourcesOf = (item: BoardItem): (string | null)[] => {
+    const wired = wiredImagesFor(item.id, { items, wires });
+    return wired.length > 0 ? wired : [null];
+  };
+
   const exportShader = async (item: BoardItem) => {
-    const toastId = toast.loading("Rendering the shader…");
+    const sources = sourcesOf(item);
+    const toastId = toast.loading(
+      sources.length > 1
+        ? `Rendering the shader over ${sources.length} pictures…`
+        : "Rendering the shader…"
+    );
     try {
-      const blob = await renderSelected(item);
-      const { url } = await portfolioService.uploadImageFile(
-        new File([blob], "shader.png", { type: "image/png" }),
-        undefined,
-        "boards/shaders"
-      );
-      addExternal({
-        altText: null,
-        creditName: null,
-        creditUrl: null,
-        imageUrl: url,
-        thumbUrl: url,
-      });
+      for (const source of sources) {
+        // One at a time on purpose: each render mounts a GPU canvas, and a
+        // batch of them at once is how a browser loses its WebGPU context.
+        // biome-ignore lint/performance/noAwaitInLoops: renders must not overlap
+        const blob = await renderSelected(item, source);
+        const { url } = await portfolioService.uploadImageFile(
+          new File([blob], "shader.png", { type: "image/png" }),
+          undefined,
+          "boards/shaders"
+        );
+        addExternal({
+          altText: null,
+          creditName: null,
+          creditUrl: null,
+          imageUrl: url,
+          thumbUrl: url,
+        });
+      }
       toast.dismiss(toastId);
-      toast.success("Shader added to the board");
+      toast.success(
+        sources.length > 1
+          ? `${sources.length} pictures added to the board`
+          : "Shader added to the board"
+      );
     } catch (err) {
       toast.dismiss(toastId);
       toast.error(
@@ -219,12 +275,16 @@ export const useBoardItemActions = (deps: BoardItemActionDeps) => {
   return {
     bringToFront,
     canvaTarget,
-    downloadShader,
-    exportShader,
     openSendToCanva,
     resolveComment,
     sendToBack,
     sendVersions,
     setCanvaTarget,
+    /** What the shader panel can do with the selected stack. */
+    shaderActions: {
+      copyReact: copyShaderReact,
+      download: downloadShader,
+      export: exportShader,
+    },
   };
 };

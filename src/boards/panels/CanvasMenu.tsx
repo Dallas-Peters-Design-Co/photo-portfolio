@@ -53,6 +53,8 @@ export interface CanvasMenuTarget {
 interface CanvasMenuProps {
   items: BoardItem[];
   menu: CanvasMenuTarget | null;
+  /** Opens a node's SVG in Affinity, and syncs its edits back. */
+  onAddEffects?: (itemId: string) => void;
   /** Lays the frame's contents out in a grid, keeping their order. */
   onArrange: (itemId: string) => void;
   /** Brings one item to the very front of the stack. */
@@ -62,7 +64,6 @@ interface CanvasMenuProps {
   /** Downloads everything the frame holds, as one archive. */
   onExport: (itemId: string) => void;
   onGroup: (items: BoardItem[]) => void;
-  /** Opens a node's SVG in Affinity, and syncs its edits back. */
   onOpenInAffinity?: (itemId: string) => void;
   /** Places a proof sheet for a Brand node's mark on this board. */
   onProofMark?: (itemId: string) => void;
@@ -95,6 +96,7 @@ export function CanvasMenu({
   onCopyFrame,
   onDismiss,
   onExport,
+  onAddEffects,
   onGroup,
   onOpenInAffinity,
   onProofMark,
@@ -261,6 +263,7 @@ export function CanvasMenu({
       <MenuRows
         items={items}
         menu={menu}
+        onAddEffects={onAddEffects}
         onArrange={onArrange}
         onBringToFront={onBringToFront}
         onCollect={(urls, into) => setCollecting({ for: menu, into, urls })}

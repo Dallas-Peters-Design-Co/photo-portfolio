@@ -5,7 +5,6 @@ import ArrowUp01Icon from "@hugeicons-pro/core-stroke-standard/ArrowUp01Icon";
 import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
-import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
 import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
 import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
 import type { BoardItem, BoardWire } from "../../types";
@@ -23,6 +22,7 @@ import {
   ToolsRow,
 } from "./CanvasMenuPanels";
 import { FrameRows, framesToCopy } from "./FrameRows";
+import { PictureToolRows } from "./PictureToolRows";
 import { PrintRow } from "./PrintRow";
 import "../boardChrome.css";
 import { useVectorEditorName } from "../hooks/useVectorEditorName";
@@ -121,15 +121,6 @@ function SaveRow({ noun, onSave }: { noun: string; onSave: () => void }) {
   );
 }
 
-function VectorizeRow({ onVectorize }: { onVectorize: () => void }) {
-  return (
-    <button className={rowClass} onClick={onVectorize} type="button">
-      <HugeiconsIcon aria-hidden icon={MagicWand01Icon} size={14} />
-      <span>Vectorize</span>
-    </button>
-  );
-}
-
 /** The two ends of the stack, for an item buried (or lost) in the middle. */
 function StackRows({
   onBringToFront,
@@ -171,6 +162,7 @@ function CanvaRow({ onSend }: { onSend: () => void }) {
  */
 function SingleItemRows({
   items,
+  onAddEffects,
   onBringToFront,
   onExport,
   onOpenInAffinity,
@@ -181,6 +173,8 @@ function SingleItemRows({
   onlyPicked,
 }: {
   items: BoardItem[];
+  /** Wires a new Shader item to this picture, for effects over it. */
+  onAddEffects?: (itemId: string) => void;
   onBringToFront: (itemId: string) => void;
   onExport: (itemId: string) => void;
   onOpenInAffinity?: (itemId: string) => void;
@@ -235,9 +229,13 @@ function SingleItemRows({
         <ProofRow onProof={() => onProofMark(onlyPicked.id)} />
       ) : null}
 
-      {onlyPicked && placedImage && onVectorize ? (
-        <VectorizeRow onVectorize={() => onVectorize(onlyPicked.id)} />
-      ) : null}
+      <PictureToolRows
+        canVectorize={Boolean(placedImage)}
+        hasPicture={pickedImage}
+        onAddEffects={onAddEffects}
+        onVectorize={onVectorize}
+        picked={onlyPicked}
+      />
 
       {onlyPicked && onSendToCanva && outputImageOf(onlyPicked, items) ? (
         <CanvaRow onSend={() => onSendToCanva(onlyPicked)} />
@@ -288,6 +286,7 @@ export function MenuRows({
   onGroup,
   onSaveElement,
   onSaveRecipe,
+  onAddEffects,
   onOpenInAffinity,
   onProofMark,
   onSendToCanva,
@@ -298,6 +297,7 @@ export function MenuRows({
 }: {
   items: BoardItem[];
   menu: CanvasMenuTarget;
+  onAddEffects?: (itemId: string) => void;
   onArrange: (itemId: string) => void;
   onBringToFront: (itemId: string) => void;
   /** Opens the collection panel on the pictures the selection can hand over. */
@@ -354,6 +354,7 @@ export function MenuRows({
 
       <SingleItemRows
         items={items}
+        onAddEffects={onAddEffects}
         onBringToFront={onBringToFront}
         onExport={onExport}
         onlyPicked={onlyPicked}

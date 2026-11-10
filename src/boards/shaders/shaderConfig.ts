@@ -71,6 +71,14 @@ export interface ShaderLayer {
    */
   children?: ShaderLayer[];
   /**
+   * Switched off, but kept.
+   *
+   * Absent means on. An effect that is off is skipped at render time and its
+   * contents drawn in its place, so a stack can be tried with and without a
+   * step while keeping the step's settings. A source that is off draws nothing.
+   */
+  enabled?: boolean;
+  /**
    * Stable identity for a layer.
    *
    * Its position is not its identity: the same effect may appear twice in a
@@ -238,12 +246,14 @@ const categoriesOf = (shaders: ShaderMeta[]): string[] => [
 export const SOURCE_CATEGORIES: string[] = categoriesOf(SOURCE_SHADERS);
 export const EFFECT_CATEGORIES: string[] = categoriesOf(EFFECT_SHADERS);
 
-export const newLayer = (name: string): ShaderLayer => {
+export const newLayer = (name: string, seedSource = true): ShaderLayer => {
   const layer: ShaderLayer = { id: newLayerId(), name, props: {} };
   // An effect with nothing inside it renders an empty box, which reads as a
   // broken shader rather than an unfinished one. It arrives holding something,
-  // and the source can be swapped or removed afterwards.
-  if (isEffect(name)) {
+  // and the source can be swapped or removed afterwards. Not when a picture is
+  // wired in: then the picture is what it holds, and a seeded source would sit
+  // beside the picture and take the effect instead of it.
+  if (seedSource && isEffect(name)) {
     layer.children = [{ id: newLayerId(), name: DEFAULT_SOURCE, props: {} }];
   }
   return layer;

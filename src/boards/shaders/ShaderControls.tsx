@@ -5,6 +5,7 @@ import ArrowUp01Icon from "@hugeicons-pro/core-stroke-standard/ArrowUp01Icon";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import { useState } from "react";
 import { Control } from "./Control";
+import { EffectStack } from "./EffectStack";
 import {
   EFFECT_CATEGORIES,
   EFFECT_SHADERS,
@@ -18,6 +19,7 @@ import {
   SOURCE_SHADERS,
   shaderMeta,
 } from "./shaderConfig";
+import { chainOf, layersOfChain } from "./shaderStack";
 import "./ShaderControls.css";
 
 /**
@@ -383,6 +385,40 @@ export function ShaderControls({
   // shape is rewritten the first time it is touched rather than half-converted.
   const layers = normalizeLayers(config.layers);
   const put = (next: ShaderLayer[]) => onChange({ ...config, layers: next });
+  const chain = chainOf(layers);
+
+  // A chain is shown as the list it is; only a stack that branches (Group,
+  // two things at one level) needs the tree below.
+  if (chain) {
+    return (
+      <div className="shader-controls">
+        {adding ? (
+          <Picker
+            onCancel={() => setAdding(null)}
+            onPick={(name) => {
+              const added = { ...newLayer(name, false), children: undefined };
+              put(
+                layersOfChain(
+                  adding === "effect"
+                    ? { ...chain, effects: [added, ...chain.effects] }
+                    : { ...chain, source: added }
+                )
+              );
+              setAdding(null);
+            }}
+            wanting={adding}
+          />
+        ) : (
+          <EffectStack
+            chain={chain}
+            onChange={(next) => put(layersOfChain(next))}
+            onPick={setAdding}
+            wiredSource={Boolean(imageUrl)}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="shader-controls">
@@ -393,7 +429,7 @@ export function ShaderControls({
           key={layer.id}
           layer={layer}
           onAdd={(parentId, name) =>
-            put(appendTo(layers, parentId, newLayer(name)))
+            put(appendTo(layers, parentId, newLayer(name, !imageUrl)))
           }
           onMove={(id, delta) => put(moveById(layers, id, delta))}
           onRemove={(id) => put(removeById(layers, id))}
@@ -413,7 +449,7 @@ export function ShaderControls({
         <Picker
           onCancel={() => setAdding(null)}
           onPick={(name) => {
-            put(appendTo(layers, null, newLayer(name)));
+            put(appendTo(layers, null, newLayer(name, !imageUrl)));
             setAdding(null);
           }}
           wanting={adding}

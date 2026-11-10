@@ -1,0 +1,127 @@
+/*
+ * The effect stack as a list: a row per effect, the source at the bottom.
+ *
+ * Rows sit on the board's surface like .shader-layer does, so the two views
+ * of a stack read as the same panel. The switch is drawn in ink when on and
+ * in a tint of it when off: there is no accent on the board, and on/off is
+ * plain enough in contrast alone.
+ */
+
+.effect-stack > * + * {
+  margin-block-start: calc(var(--spacing) * 2);
+}
+
+.effect-stack__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.effect-row {
+  background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.effect-row--dragging {
+  opacity: 0.4;
+}
+
+.effect-row__header {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  min-height: calc(var(--spacing) * 8);
+  padding-inline: calc(var(--spacing) * 1.5);
+}
+
+.effect-row__handle {
+  display: flex;
+  flex-shrink: 0;
+  width: calc(var(--spacing) * 4);
+  color: color-mix(in oklch, var(--color-board-ink) 30%, transparent);
+  cursor: grab;
+}
+
+.effect-row__handle:active {
+  cursor: grabbing;
+}
+
+.effect-row__handle--none {
+  cursor: default;
+}
+
+/* The name is the row's own disclosure: the whole width of it opens the
+   settings, so there is a large target rather than a 12px chevron. */
+.effect-row__name {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--text-micro-xs);
+  color: var(--color-board-ink);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+  white-space: nowrap;
+}
+
+.effect-row--off .effect-row__name {
+  color: color-mix(in oklch, var(--color-board-ink) 40%, transparent);
+}
+
+.effect-row__switch {
+  position: relative;
+  flex-shrink: 0;
+  width: calc(var(--spacing) * 7);
+  height: calc(var(--spacing) * 4);
+  background: color-mix(in oklch, var(--color-board-ink) 18%, transparent);
+  border-radius: calc(var(--spacing) * 2);
+  transition: background var(--default-transition-duration) var(--ease-in-out);
+}
+
+.effect-row__switch[aria-checked="true"] {
+  background: var(--color-board-ink);
+}
+
+.effect-row__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(var(--spacing) * 4 - 4px);
+  height: calc(var(--spacing) * 4 - 4px);
+  background: var(--color-board-panel);
+  border-radius: 50%;
+  transition: transform var(--default-transition-duration) var(--ease-in-out);
+}
+
+.effect-row__switch[aria-checked="true"] .effect-row__knob {
+  transform: translateX(calc(var(--spacing) * 3));
+}
+
+.effect-row__control {
+  flex-shrink: 0;
+  color: color-mix(in oklch, var(--color-board-ink) 30%, transparent);
+  transition: color var(--default-transition-duration) var(--ease-in-out);
+}
+
+.effect-row__control:hover {
+  color: var(--color-board-ink);
+}
+
+.effect-row__settings {
+  padding: calc(var(--spacing) * 2);
+  border-top: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+}
+
+.effect-row__settings > * + * {
+  margin-block-start: calc(var(--spacing) * 2);
+}
+
+.effect-stack__source > * + * {
+  margin-block-start: var(--spacing);
+}

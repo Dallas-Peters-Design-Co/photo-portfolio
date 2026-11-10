@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import {
   DEFAULT_NODE_HEIGHT,
   DEFAULT_NODE_WIDTH,
+  DEFAULT_SHADER_HEIGHT,
+  DEFAULT_SHADER_WIDTH,
 } from "../../../../config/canvas.js";
 import { OUTPUT_PORT_KEY } from "../../../../config/ports.js";
 import { useAffinityBridge } from "../../../boards/hooks/useAffinityBridge";
@@ -218,5 +220,62 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
     }
   };
 
-  return { editorNode, openEditor, openItemInAffinity, vectorizeItem };
+  /**
+   * Puts effects on a picture, in one gesture.
+   *
+   * A Shader item wired to the picture, with no effects yet: it shows the
+   * picture as it is, and the panel beside it offers the stack to add glass,
+   * halftone, grain and the rest over it. Placed beside the source, like a
+   * vectorize, so the wire is short.
+   *
+   * Nothing is run and nothing is spent: a shader draws live in the browser.
+   */
+  const addEffectsTo = async (itemId: string) => {
+    const source = pending.current.items.find((item) => item.id === itemId);
+    if (!(source && outputImageOf(source, pending.current.items))) {
+      toast.error("That item has no picture to put effects on");
+      return;
+    }
+    const shader: BoardItem = {
+      ...BLANK_ITEM,
+      config: { layers: [] },
+      height: DEFAULT_SHADER_HEIGHT,
+      id: newItemId(),
+      kind: "shader",
+      width: DEFAULT_SHADER_WIDTH,
+      x: source.x + source.width + PORT_SPAWN_GAP,
+      y: source.y + source.height / 2 - DEFAULT_SHADER_HEIGHT / 2,
+      z: pending.current.items.length + 1,
+    };
+    const wire: BoardWire = {
+      id: newItemId(),
+      sourceItemId: source.id,
+      sourcePort: OUTPUT_PORT_KEY,
+      targetItemId: shader.id,
+      targetPort: "image",
+    };
+    const nextItems = [...pending.current.items, shader];
+    const nextWires = [...pending.current.wires, wire];
+    setItems(nextItems);
+    setWires(nextWires);
+    setIsDirty(true);
+    try {
+      await save({ items: nextItems, wires: nextWires });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not add the effects"
+      );
+    }
+  };
+
+  return {
+    editorNode,
+    /** The right-click tools on one item, each by its id. */
+    itemTools: {
+      addEffects: (id: string) => void addEffectsTo(id),
+      openInAffinity: (id: string) => void openItemInAffinity(id),
+      vectorize: (id: string) => void vectorizeItem(id),
+    },
+    openEditor,
+  };
 };
