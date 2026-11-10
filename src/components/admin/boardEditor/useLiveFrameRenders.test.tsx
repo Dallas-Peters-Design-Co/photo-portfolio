@@ -128,8 +128,8 @@ describe("a frame feeding a shader", () => {
     vi.useRealTimers();
     await vi.waitFor(() => expect(save).toHaveBeenCalled());
     expect(uploads).toHaveLength(1);
-    const saved = (save.mock.calls[0]?.[0] as { items: BoardItem[] }).items;
-    const rendered = saved.find((i) => i.id === "f");
+    const [first] = save.mock.calls[0] as [{ items: BoardItem[] }];
+    const rendered = first.items.find((i) => i.id === "f");
     expect(rendered?.config?.renderUrl).toBe("https://blob.test/frame-1.png");
     expect(typeof rendered?.config?.renderKey).toBe("string");
   });
