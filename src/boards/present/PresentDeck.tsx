@@ -53,7 +53,15 @@ export function PresentDeck({ slides, onExit }: PresentDeckProps) {
     const onKey = (event: KeyboardEvent) => {
       switch (event.key) {
         case "Escape":
-          onExit();
+          // Out of full screen first, then out of the deck. A browser takes
+          // this Escape itself and never passes it on; the desktop app
+          // passes it here, and leaving the deck alone left the window stuck
+          // full screen with nothing showing how to get out.
+          if (document.fullscreenElement) {
+            void leaveFullscreen();
+          } else {
+            onExit();
+          }
           break;
         case "ArrowRight":
         case " ":
@@ -87,6 +95,17 @@ export function PresentDeck({ slides, onExit }: PresentDeckProps) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [count, go, onExit, step]);
+
+  // Leaving the deck any other way (the close button, a route change) never
+  // leaves the window full screen behind it.
+  useEffect(
+    () => () => {
+      if (document.fullscreenElement) {
+        void leaveFullscreen();
+      }
+    },
+    []
+  );
 
   // Playing by itself: hold, advance, stop at the end.
   useEffect(() => {
@@ -289,6 +308,14 @@ function Picture({ slide }: { slide: Extract<Slide, { kind: "picture" }> }) {
     />
   );
 }
+
+const leaveFullscreen = async (): Promise<void> => {
+  try {
+    await document.exitFullscreen();
+  } catch {
+    // Already out.
+  }
+};
 
 const toggleFullscreen = async (): Promise<void> => {
   try {

@@ -342,6 +342,27 @@ const createWindow = () => {
 
   // Show once painted so there is no white flash before the site arrives.
   win.once("ready-to-show", () => win.show());
+
+  // Escape leaves full screen, as it does in a browser. Electron leaves that
+  // to the app, so a window made full screen (by present mode's F, or the
+  // green button) had no key out of it. The page doesn't see this Escape, so
+  // the deck stays open, as it would in Chrome.
+  win.webContents.on("before-input-event", (event, input) => {
+    if (
+      input.type !== "keyDown" ||
+      input.key !== "Escape" ||
+      !win.isFullScreen()
+    ) {
+      return;
+    }
+    event.preventDefault();
+    win.webContents
+      .executeJavaScript(
+        "document.fullscreenElement ? document.exitFullscreen() : null"
+      )
+      .catch(() => null);
+    win.setFullScreen(false);
+  });
   win.webContents.on("did-finish-load", () => {
     win.webContents.insertCSS(TITLE_BAND_CSS);
     console.log(`[electron] loaded ${win.webContents.getURL()}`);
