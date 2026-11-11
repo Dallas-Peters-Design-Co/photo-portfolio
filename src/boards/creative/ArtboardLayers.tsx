@@ -93,6 +93,14 @@ function LayerText({
           e.currentTarget.blur();
         }
       }}
+      // While typing, the press is the text box's: placing the caret,
+      // drag-selecting, double and triple clicks. Let up to the board, it was
+      // taken for a marquee, cancelled and captured, so none of them worked.
+      onPointerDown={(e) => {
+        if (editing) {
+          e.stopPropagation();
+        }
+      }}
       readOnly={!editing}
       ref={(el) => {
         own.current = el;
