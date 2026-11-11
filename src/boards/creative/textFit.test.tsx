@@ -101,3 +101,54 @@ it("leaves a fixed box alone", async () => {
   const t = await render([frame, text("fixed", "Hi")]);
   expect(t).toMatchObject({ height: 400, width: 600 });
 });
+
+it("hugs a line without wrapping its last word", async () => {
+  // offsetWidth rounds, so a line 0.4px wider than its rounded width fitted a
+  // box a fraction too narrow and the last word dropped onto a hidden line.
+  // Several phrases, so at least one lands on a fractional width.
+  const phrases = [
+    "Pretext launch kickoff",
+    "Systems flow, in and out",
+    "Will it fit? Every word",
+    "illuminate millimetre",
+  ];
+  const singleLine = await render([frame, text("both", "Hi")]);
+  for (const phrase of phrases) {
+    act(() => root?.unmount());
+    host?.remove();
+    const t = await render([frame, text("both", phrase)]);
+    const area = host?.querySelector("textarea") as HTMLTextAreaElement;
+    expect(t.height).toBe(singleLine.height);
+    expect(area.scrollHeight).toBeLessThanOrEqual(area.clientHeight + 1);
+  }
+});
+
+it("lets the text box being edited take its own clicks", async () => {
+  // Triple-click and drag-select need the press to reach the textarea
+  // untouched; the board used to take it for a marquee and cancel it.
+  await render([frame, text("fixed", "Select these words")]);
+  const layer = host?.querySelector('[data-layer-id="t"]') as HTMLElement;
+  act(() => {
+    layer.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }));
+  });
+  await act(async () => await new Promise((r) => setTimeout(r, 30)));
+  const area = host?.querySelector("textarea") as HTMLTextAreaElement;
+  expect(area.readOnly).toBe(false);
+  const press = new PointerEvent("pointerdown", {
+    bubbles: true,
+    button: 0,
+    cancelable: true,
+    clientX: 10,
+    clientY: 10,
+    pointerId: 1,
+  });
+  act(() => {
+    area.dispatchEvent(press);
+  });
+  await act(async () => await new Promise((r) => setTimeout(r, 30)));
+  expect(press.defaultPrevented).toBe(false);
+  expect(
+    (host?.querySelector("textarea") as HTMLTextAreaElement).readOnly
+  ).toBe(false);
+  expect(getComputedStyle(area).userSelect).toBe("text");
+});

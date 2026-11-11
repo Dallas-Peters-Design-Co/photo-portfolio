@@ -342,6 +342,12 @@
   overflow: hidden;
 }
 
+/* Being typed in: selectable, whatever the layer around it says. */
+.creative__text:not([readonly]) {
+  cursor: text;
+  user-select: text;
+}
+
 .creative__image {
   display: block;
   width: 100%;

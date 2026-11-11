@@ -163,7 +163,15 @@ export function Artboard({
     handle: Handle | "rotate" | null,
     passThrough = false
   ) => {
-    if (e.button !== 0 || editingId === item.id) {
+    if (editingId === item.id) {
+      // The text box being typed in owns the press: clicking to place the
+      // caret, dragging to select, double and triple clicks. Let past, the
+      // board took it for a marquee, cancelled it and captured the pointer,
+      // so none of those worked and nothing showed as selected.
+      e.stopPropagation();
+      return;
+    }
+    if (e.button !== 0) {
       return;
     }
     if (handle === null && pressPicks(e, item, passThrough)) {

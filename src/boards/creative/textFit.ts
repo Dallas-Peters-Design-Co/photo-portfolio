@@ -40,7 +40,20 @@ const COPIED = [
   "textTransform",
   "wordSpacing",
   "tabSize",
+  "fontStretch",
+  "fontVariant",
+  "fontFeatureSettings",
+  "fontVariationSettings",
+  "fontOpticalSizing",
+  "textRendering",
+  "textIndent",
 ] as const;
+
+/**
+ * Room for the browser's own rounding. A textarea exactly as wide as its
+ * line can still wrap the last word.
+ */
+const SLACK = 1;
 
 /** The size the text needs, in the box's own units (the canvas's). */
 export const measureText = (
@@ -48,7 +61,11 @@ export const measureText = (
   fit: Exclude<TextFit, "fixed">,
   width: number
 ): { height: number; width: number } | null => {
-  const host = el.parentElement;
+  // Measured on the page itself, not inside the layer: the artboard is scaled
+  // and the layer may be rotated, and either would bend the fractional size
+  // read below. Every style that shapes the words is copied, so where the
+  // copy sits doesn't change how it sets.
+  const host = el.ownerDocument.body;
   if (!host) {
     return null;
   }
@@ -68,9 +85,13 @@ export const measureText = (
   mirror.textContent =
     `${el.value}${el.value.endsWith("\n") ? " " : ""}` || " ";
   host.append(mirror);
+  // offsetWidth rounds to the nearest pixel, so a line 312.4px wide came back
+  // as 312 and the box was a fraction too narrow: the last word wrapped onto
+  // a line the fitted height had no room for, and was cut off.
+  const rect = mirror.getBoundingClientRect();
   const out = {
-    height: Math.ceil(mirror.offsetHeight),
-    width: Math.ceil(mirror.offsetWidth),
+    height: Math.ceil(rect.height),
+    width: Math.ceil(rect.width) + (fit === "both" ? SLACK : 0),
   };
   mirror.remove();
   return out;
