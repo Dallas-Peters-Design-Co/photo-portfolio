@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { act, type ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 import type { BoardItem } from "../types";
@@ -16,13 +16,15 @@ const render = async (ui: ReactElement): Promise<HTMLElement> => {
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
-  root.render(ui);
-  await new Promise((resolve) => requestAnimationFrame(resolve));
+  await act(async () => {
+    root?.render(ui);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+  });
   return host;
 };
 
 afterEach(() => {
-  root?.unmount();
+  act(() => root?.unmount());
   host?.remove();
   host = null;
   root = null;

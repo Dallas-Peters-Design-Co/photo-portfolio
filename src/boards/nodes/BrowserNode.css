@@ -1,0 +1,274 @@
+/*
+ * The browser node (BrowserNode.tsx): a bar, the page or its screenshot, and
+ * the numbered notes in a column outside the node to the right.
+ */
+
+.browser-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  font-size: 12px;
+  color: var(--color-board-ink);
+  background: var(--color-board-panel);
+}
+
+.browser-node__bar {
+  display: flex;
+  flex: none;
+  gap: 6px;
+  align-items: center;
+  min-height: 36px;
+  padding: 4px 6px;
+  border-bottom: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+}
+
+.browser-node__address {
+  flex: 1;
+  min-width: 0;
+}
+
+.browser-node__url,
+.browser-node__viewport,
+.browser-node__login input,
+.browser-node__type input:not([type="checkbox"]),
+.browser-node__note-title,
+.browser-node__note-body,
+.browser-node__note-kind {
+  width: 100%;
+  min-width: 0;
+  padding: 4px 8px;
+  font: inherit;
+  color: inherit;
+  background: var(--color-board-surface);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 22%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.browser-node__viewport {
+  width: auto;
+}
+
+.browser-node__icon,
+.browser-node__button,
+.browser-node__tool {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 8px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 22%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.browser-node__icon,
+.browser-node__tool {
+  width: 26px;
+  padding: 0;
+}
+
+.browser-node__icon:disabled,
+.browser-node__button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+
+.browser-node__icon[data-on],
+.browser-node__tool[aria-pressed="true"],
+.browser-node__button--primary {
+  color: var(--color-board-surface);
+  background: var(--color-board-ink);
+  border-color: var(--color-board-ink);
+}
+
+.browser-node__tools {
+  display: flex;
+  gap: 2px;
+}
+
+.browser-node__page {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.7;
+}
+
+.browser-node__login {
+  display: grid;
+  flex: none;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+}
+
+.browser-node__login-note {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.browser-node__login-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+/* The page or the screenshot: scrolls inside the node. */
+.browser-node__view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--color-board-surface);
+}
+
+.browser-node__page-shot,
+.browser-node__shot {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.browser-node__page-shot {
+  cursor: pointer;
+}
+
+.browser-node__page-shot[data-busy] {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+.browser-node__empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 16px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.browser-node__busy {
+  position: sticky;
+  bottom: 8px;
+  width: max-content;
+  padding: 4px 10px;
+  margin: 0 auto;
+  color: var(--color-board-surface);
+  background: var(--color-board-ink);
+  border-radius: var(--radius-pill);
+}
+
+.browser-node__type {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 6px;
+  border-top: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+}
+
+.browser-node__type label {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+  align-items: center;
+}
+
+.browser-node__error {
+  padding: 4px 8px;
+  margin: 0;
+  color: oklch(52% 0.19 28);
+}
+
+/* Markup on the screenshot. */
+.browser-node__surface {
+  position: relative;
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.browser-node__surface--erase {
+  cursor: cell;
+}
+
+.browser-node__pin--selected {
+  outline: 2px solid var(--color-board-ink);
+  outline-offset: 2px;
+}
+
+/* The notes, outside the node on its right, numbered to match the pins. */
+.browser-node__notes {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 24px);
+  display: grid;
+  gap: 10px;
+  width: 320px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.browser-node__note {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  background: var(--color-board-panel);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 18%, transparent);
+  border-radius: var(--radius-xs);
+}
+
+.browser-node__note--selected {
+  border-color: var(--color-board-ink);
+}
+
+.browser-node__note-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.browser-node__note-head .review-pin {
+  position: static;
+  flex: none;
+  transform: none;
+}
+
+.browser-node__note-kind {
+  flex: 1;
+}
+
+.browser-node__note-remove {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+.browser-node__note-title {
+  font-weight: 600;
+}
+
+.browser-node__note-body {
+  resize: vertical;
+}

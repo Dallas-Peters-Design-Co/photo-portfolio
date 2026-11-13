@@ -44,6 +44,9 @@ import { BLANK_ITEM, dropOrigin } from "./placement";
  * nothing until it is run, which is Principle VI's rule that a paid operation is
  * never a side effect of editing.
  */
+
+const BROWSER_NODE = { height: 640, width: 760 };
+
 export interface BoardInsertDeps {
   boardId: string;
   /** Replaces the whole item list, recording a history step. */
@@ -119,18 +122,23 @@ export const useBoardInserts = (deps: BoardInsertDeps) => {
     nodeType: NodeTypeId,
     config: Record<string, unknown> = {}
   ) => {
-    const p = dropPoint(items, DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT);
+    // A browser node shows a whole web page, so it starts page-sized.
+    const width =
+      nodeType === "browser" ? BROWSER_NODE.width : DEFAULT_NODE_WIDTH;
+    const height =
+      nodeType === "browser" ? BROWSER_NODE.height : DEFAULT_NODE_HEIGHT;
+    const p = dropPoint(items, width, height);
     change([
       ...items,
       {
         ...BLANK_ITEM,
         config,
-        height: DEFAULT_NODE_HEIGHT,
+        height,
         id: newItemId(),
         kind: "op",
         nodeType,
         runState: "idle",
-        width: DEFAULT_NODE_WIDTH,
+        width,
         x: p.x,
         y: p.y,
         z: items.length + 1,

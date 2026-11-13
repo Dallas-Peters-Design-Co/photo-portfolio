@@ -19,6 +19,9 @@
  * the finishers, and three copies of "which key" is how they drift.
  */
 export const RENDER_URL_KEYS: Readonly<Record<string, string>> = {
+  // Not drawn by the browser, but captured by it: the screenshot a Browser
+  // node took (config/nodes/browser.ts), read from the same place.
+  browser: "captureUrl",
   composite: "compositeUrl",
   cover: "coverUrl",
   mockup: "mockupUrl",

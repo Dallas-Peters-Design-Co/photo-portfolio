@@ -5,6 +5,7 @@ import {
   MIN_FONT_SIZE,
   MIN_ITEM_SIZE,
 } from "../../config/canvas.js";
+import { cleanBrowserConfig } from "../../config/nodes/browser.js";
 import { isNodeTypeId } from "../../config/nodeTypes.js";
 import { normalizeTextStyle, type TextStyle } from "../../config/textStyle.js";
 import {
@@ -206,6 +207,11 @@ const configFor = (
   const parse = parserFor(kind);
   if (parse) {
     return parse(raw);
+  }
+  // A browser node keeps its own shape (config/nodes/browser.ts): a login and
+  // session the server sealed, the screenshot, and its markup and notes.
+  if (nodeType === "browser") {
+    return cleanBrowserConfig(raw);
   }
   return nodeType ? parseNodeConfig(nodeType, raw) : null;
 };

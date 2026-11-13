@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import BrowserIcon from "@hugeicons-pro/core-stroke-standard/BrowserIcon";
 import ColorsIcon from "@hugeicons-pro/core-stroke-standard/ColorsIcon";
 import Film01Icon from "@hugeicons-pro/core-stroke-standard/Film01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
@@ -150,6 +151,17 @@ export function BoardToolPanel({
         >
           <HugeiconsIcon aria-hidden icon={Film01Icon} size={14} />
           Clip
+        </Button>
+        {/* A real browser: sign in, click through a site, screenshot the
+          page, then mark it up for a review. */}
+        <Button
+          onClick={() => onAddNode("browser")}
+          stacked
+          type="button"
+          variant="noborder"
+        >
+          <HugeiconsIcon aria-hidden icon={BrowserIcon} size={14} />
+          Browser
         </Button>
         <Button
           onClick={() => onAddNode("describe")}

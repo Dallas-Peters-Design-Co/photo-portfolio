@@ -1,5 +1,5 @@
 import { put } from "@vercel/blob";
-import type { Browser } from "playwright-core";
+import type { Browser, Page } from "playwright-core";
 import { blobToken } from "./blobToken.js";
 
 /**
@@ -85,87 +85,100 @@ export const captureScreenshot = async ({
     await page
       .waitForLoadState("networkidle", { timeout: IDLE_GRACE_MS })
       .catch(() => undefined);
-    // Reveal-on-scroll sections and lazy images: animations are cut so a
-    // reveal completes the moment it fires, then the page is walked once so
-    // every observer fires. The walk ends at the bottom on purpose; coming
-    // back up un-reveals sections on sites that animate both ways, and the
-    // full-page capture does not care where the scroll is.
-    await page
-      .addStyleTag({
-        content:
-          "*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; transition-delay: 0s !important; scroll-behavior: auto !important; }",
-      })
-      .catch(() => undefined);
-    // Only as far as the shot reaches: an endless feed would otherwise keep
-    // growing ahead of the walk until the function ran out of time.
-    await page.evaluate(
-      ({ step, limit }) =>
-        new Promise<void>((done) => {
-          let y = 0;
-          const tick = () => {
-            window.scrollTo(0, y);
-            y += step;
-            if (y < Math.min(document.documentElement.scrollHeight, limit)) {
-              setTimeout(tick, 80);
-            } else {
-              done();
-            }
-          };
-          tick();
-        }),
-      { limit: MAX_HEIGHT, step: 400 }
-    );
-    // A fixed or sticky header is wherever the viewport is when the shot is
-    // taken, which after the walk is the bottom of the page. Each fixed
-    // element is pinned at its viewport offset from the top of the document
-    // instead, which is where a reader at the top of the page sees it. A
-    // sticky one goes back into the flow, which is where it sits before any
-    // scrolling. Sticky is most headers; handling only fixed left them at
-    // the foot of every capture. Set as important so a site's own
-    // `position: sticky !important` cannot win.
-    await page.evaluate(() => {
-      const pin = (node: HTMLElement, values: Record<string, string>) => {
-        for (const [name, value] of Object.entries(values)) {
-          node.style.setProperty(name, value, "important");
-        }
-      };
-      for (const el of Array.from(document.body.querySelectorAll("*"))) {
-        const { position } = getComputedStyle(el);
-        const node = el as HTMLElement;
-        if (position === "fixed") {
-          const rect = el.getBoundingClientRect();
-          pin(node, {
-            bottom: "auto",
-            left: `${rect.left}px`,
-            position: "absolute",
-            right: "auto",
-            top: `${rect.top}px`,
-            width: `${rect.width}px`,
-          });
-        } else if (position === "sticky") {
-          pin(node, { bottom: "auto", position: "relative", top: "auto" });
-        }
-      }
-    });
-    await page.waitForTimeout(SETTLE_MS);
-    const fullHeight = await page.evaluate(
-      () => document.documentElement.scrollHeight
-    );
-    const height = Math.min(fullHeight, MAX_HEIGHT);
-    const png = await page.screenshot({
-      clip: { height, width, x: 0, y: 0 },
-      fullPage: true,
-      type: "png",
-    });
-    const blob = await put(`${prefix}/${crypto.randomUUID()}.png`, png, {
-      access: "public",
-      contentType: "image/png",
-      token: blobToken(),
-    });
-    return { height, url: blob.url, width };
+    return await captureFullPage(page, width, prefix);
   } finally {
     await browser.close();
   }
+};
+
+/**
+ * A page that is already open, captured whole and stored: animations cut,
+ * lazy sections walked into view, fixed headers put back at the top, and the
+ * height capped. Shared by the review capture and the board's browser node.
+ */
+export const captureFullPage = async (
+  page: Page,
+  width: number,
+  prefix: string
+): Promise<CaptureResult> => {
+  // Reveal-on-scroll sections and lazy images: animations are cut so a
+  // reveal completes the moment it fires, then the page is walked once so
+  // every observer fires. The walk ends at the bottom on purpose; coming
+  // back up un-reveals sections on sites that animate both ways, and the
+  // full-page capture does not care where the scroll is.
+  await page
+    .addStyleTag({
+      content:
+        "*, *::before, *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition-duration: 0s !important; transition-delay: 0s !important; scroll-behavior: auto !important; }",
+    })
+    .catch(() => undefined);
+  // Only as far as the shot reaches: an endless feed would otherwise keep
+  // growing ahead of the walk until the function ran out of time.
+  await page.evaluate(
+    ({ step, limit }) =>
+      new Promise<void>((done) => {
+        let y = 0;
+        const tick = () => {
+          window.scrollTo(0, y);
+          y += step;
+          if (y < Math.min(document.documentElement.scrollHeight, limit)) {
+            setTimeout(tick, 80);
+          } else {
+            done();
+          }
+        };
+        tick();
+      }),
+    { limit: MAX_HEIGHT, step: 400 }
+  );
+  // A fixed or sticky header is wherever the viewport is when the shot is
+  // taken, which after the walk is the bottom of the page. Each fixed
+  // element is pinned at its viewport offset from the top of the document
+  // instead, which is where a reader at the top of the page sees it. A
+  // sticky one goes back into the flow, which is where it sits before any
+  // scrolling. Sticky is most headers; handling only fixed left them at
+  // the foot of every capture. Set as important so a site's own
+  // `position: sticky !important` cannot win.
+  await page.evaluate(() => {
+    const pin = (node: HTMLElement, values: Record<string, string>) => {
+      for (const [name, value] of Object.entries(values)) {
+        node.style.setProperty(name, value, "important");
+      }
+    };
+    for (const el of Array.from(document.body.querySelectorAll("*"))) {
+      const { position } = getComputedStyle(el);
+      const node = el as HTMLElement;
+      if (position === "fixed") {
+        const rect = el.getBoundingClientRect();
+        pin(node, {
+          bottom: "auto",
+          left: `${rect.left}px`,
+          position: "absolute",
+          right: "auto",
+          top: `${rect.top}px`,
+          width: `${rect.width}px`,
+        });
+      } else if (position === "sticky") {
+        pin(node, { bottom: "auto", position: "relative", top: "auto" });
+      }
+    }
+  });
+  await page.waitForTimeout(SETTLE_MS);
+  const fullHeight = await page.evaluate(
+    () => document.documentElement.scrollHeight
+  );
+  const height = Math.min(fullHeight, MAX_HEIGHT);
+  const png = await page.screenshot({
+    clip: { height, width, x: 0, y: 0 },
+    fullPage: true,
+    type: "png",
+  });
+  const blob = await put(`${prefix}/${crypto.randomUUID()}.png`, png, {
+    access: "public",
+    contentType: "image/png",
+    token: blobToken(),
+  });
+  return { height, url: blob.url, width };
 };
 
 export interface PdfInput {

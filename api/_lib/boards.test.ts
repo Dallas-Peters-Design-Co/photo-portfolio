@@ -159,3 +159,48 @@ describe("a frame's settings", () => {
     expect(frame({ guides: { x: [], y: [] } })).toBeNull();
   });
 });
+
+describe("a browser node's settings", () => {
+  it("keeps where it is, its sealed login and session, its screenshot, and clean notes", () => {
+    const config = parseIncomingItem(
+      incoming({
+        config: {
+          captureHeight: 900,
+          captureUrl: "https://blob.example.com/a.png",
+          captureWidth: 1440,
+          junk: "x",
+          loginUser: "dallas@example.com",
+          marks: [
+            {
+              id: "m",
+              kind: "box",
+              points: [
+                [0.1, 0.1],
+                [0.4, 0.3],
+              ],
+            },
+            { kind: "nope" },
+          ],
+          notes: [
+            { body: "b", id: "n", kind: "issue", title: "t", x: 2, y: 0.5 },
+          ],
+          pageUrl: "https://app.example.com/home",
+          sealedLogin: "v1.a.b.c",
+          session: "v1.d.e.f",
+          url: "javascript:alert(1)",
+          viewport: "mobile",
+        },
+        kind: "op",
+        nodeType: "browser",
+      })
+    )?.config as Record<string, unknown>;
+    expect(config.junk).toBeUndefined();
+    expect(config.url).toBe("");
+    expect(config.pageUrl).toBe("https://app.example.com/home");
+    expect(config.sealedLogin).toBe("v1.a.b.c");
+    expect(config.captureUrl).toBe("https://blob.example.com/a.png");
+    expect(config.marks).toHaveLength(1);
+    expect((config.notes as { x: number }[])[0]?.x).toBe(1);
+    expect(config.viewport).toBe("mobile");
+  });
+});
