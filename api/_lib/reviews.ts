@@ -9,10 +9,15 @@ import {
   sanitizeReviewDoc,
 } from "../../config/review.js";
 import {
+  feedbackOf,
+  type ReviewFeedback,
+} from "../../config/reviewFeedback.js";
+import {
   type ProposalBrand,
   type ProposalSent,
   pickAccent,
 } from "./proposals.js";
+import { accessOf } from "./reviewAccess.js";
 
 export interface ReviewRow {
   brand_kit_id: string | null;
@@ -38,6 +43,10 @@ export interface ReviewDto {
   clientName: string;
   createdAt: string;
   doc: ReviewDoc;
+  /** What the client has said on the review page (config/reviewFeedback.ts). */
+  feedback: ReviewFeedback[];
+  /** Whether a password guards it. The password itself never leaves the server. */
+  hasPassword: boolean;
   id: string;
   sent: ProposalSent | null;
   slug: string;
@@ -46,7 +55,7 @@ export interface ReviewDto {
   updatedAt: string;
 }
 
-export type ReviewSummaryDto = Omit<ReviewDto, "doc"> & {
+export type ReviewSummaryDto = Omit<ReviewDto, "doc" | "feedback"> & {
   /** How many screens and notes it holds, for the list. */
   counts: { notes: number; screens: number };
 };
@@ -70,6 +79,8 @@ export const rowToReviewDto = (row: ReviewRow): ReviewDto => ({
   clientName: row.client_name,
   createdAt: toIso(row.created_at),
   doc: sanitizeReviewDoc(row.doc),
+  feedback: feedbackOf(row.doc),
+  hasPassword: accessOf(row.doc) !== null,
   id: row.id,
   sent:
     row.sent_at && row.sent_to
@@ -82,7 +93,7 @@ export const rowToReviewDto = (row: ReviewRow): ReviewDto => ({
 });
 
 export const rowToReviewSummary = (row: ReviewRow): ReviewSummaryDto => {
-  const { doc, ...rest } = rowToReviewDto(row);
+  const { doc, feedback: _feedback, ...rest } = rowToReviewDto(row);
   return {
     ...rest,
     counts: {

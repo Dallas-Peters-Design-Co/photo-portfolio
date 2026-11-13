@@ -8,6 +8,15 @@ import { sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { cleanEmail, normalizeProposalSlug } from "../_lib/proposals.js";
 import {
+  accessOf,
+  keepPrivate,
+  passFor,
+  passOf,
+  passValid,
+  passwordMatches,
+  passwordProblem,
+} from "../_lib/reviewAccess.js";
+import {
   isReviewStatus,
   REVIEW_SELECT,
   type ReviewRow,
@@ -17,6 +26,9 @@ import {
 /**
  * One review, by address: public once published, a draft only while signed
  * in. The public response is noindex; a review is for one client.
+ *
+ * A review with a password answers a visitor with only its title until they
+ * send a pass (_lib/reviewAccess.ts), which POST { password } hands out.
  */
 
 type Sql = ReturnType<typeof getSql>;
@@ -71,6 +83,91 @@ const readPatch = (body: Record<string, unknown>, current: ReviewRow) => {
   };
 };
 
+const unlock = (
+  row: ReviewRow,
+  access: ReturnType<typeof accessOf>,
+  body: Record<string, unknown>,
+  res: VercelResponse
+) => {
+  if (!access) {
+    return res.status(200).json({ pass: null });
+  }
+  const password = typeof body.password === "string" ? body.password : "";
+  if (!(password && passwordMatches(password, access))) {
+    return res.status(401).json({ error: "That isn't the password" });
+  }
+  return res.status(200).json({ pass: passFor(row.id, access) });
+};
+
+type Viewer = ReturnType<typeof getBearerUser>;
+
+/** GET the review, or POST its password for a pass. */
+const read = (
+  req: VercelRequest,
+  res: VercelResponse,
+  row: ReviewRow | null,
+  user: Viewer
+) => {
+  if (!row || (row.status !== "published" && !user)) {
+    return res.status(404).json({ error: "Review not found" });
+  }
+  res.setHeader("X-Robots-Tag", "noindex, nofollow");
+  res.setHeader("Cache-Control", "no-store");
+  const access = accessOf(row.doc);
+  if (req.method === "POST") {
+    return unlock(row, access, parseJsonBody(req.body), res);
+  }
+  if (access && !user && !passValid(passOf(req), row.id, access)) {
+    return res.status(401).json({ locked: true, title: row.title });
+  }
+  return res.status(200).json(rowToReviewDto(row));
+};
+
+const save = async (
+  sql: Sql,
+  req: VercelRequest,
+  res: VercelResponse,
+  row: ReviewRow,
+  userId: string
+) => {
+  const body = parseJsonBody(req.body);
+  const patch = readPatch(body, row);
+  if ("error" in patch) {
+    return res.status(400).json({ error: patch.error });
+  }
+  const weak =
+    typeof body.password === "string" && body.password !== ""
+      ? passwordProblem(body.password)
+      : null;
+  if (weak) {
+    return res.status(400).json({ error: weak });
+  }
+  // The doc arrives without the password or the client's comments, which
+  // are never sent out; carry both over from what's stored.
+  const doc = { ...patch.doc, ...keepPrivate(row.doc, body.password) };
+  if (patch.slug !== row.slug) {
+    const taken = await loadBySlug(sql, patch.slug);
+    if (taken) {
+      return res.status(409).json({ error: "That address is already taken" });
+    }
+  }
+  await sql`
+    UPDATE reviews SET
+      slug = ${patch.slug},
+      title = ${patch.title},
+      client_name = ${patch.clientName},
+      client_email = ${patch.clientEmail},
+      brand_kit_id = ${patch.brandKitId},
+      doc = ${JSON.stringify(doc)}::jsonb,
+      status = ${patch.status},
+      updated_at = now(),
+      updated_by = ${userId}
+    WHERE id = ${row.id}
+  `;
+  const fresh = await loadBySlug(sql, patch.slug);
+  return res.status(200).json(fresh ? rowToReviewDto(fresh) : null);
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
     return;
@@ -85,13 +182,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const sql = getSql();
     const row = await loadBySlug(sql, slug);
-    if (req.method === "GET") {
-      if (!row || (row.status !== "published" && !user)) {
-        return res.status(404).json({ error: "Review not found" });
-      }
-      res.setHeader("X-Robots-Tag", "noindex, nofollow");
-      res.setHeader("Cache-Control", "no-store");
-      return res.status(200).json(rowToReviewDto(row));
+    if (req.method === "GET" || req.method === "POST") {
+      return read(req, res, row, user);
     }
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });
@@ -104,34 +196,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(204).end();
     }
     if (req.method !== "PATCH") {
-      res.setHeader("Allow", "GET, PATCH, DELETE");
+      res.setHeader("Allow", "GET, POST, PATCH, DELETE");
       return res.status(405).json({ error: "Method not allowed" });
     }
-    const patch = readPatch(parseJsonBody(req.body), row);
-    if ("error" in patch) {
-      return res.status(400).json({ error: patch.error });
-    }
-    if (patch.slug !== row.slug) {
-      const taken = await loadBySlug(sql, patch.slug);
-      if (taken) {
-        return res.status(409).json({ error: "That address is already taken" });
-      }
-    }
-    await sql`
-      UPDATE reviews SET
-        slug = ${patch.slug},
-        title = ${patch.title},
-        client_name = ${patch.clientName},
-        client_email = ${patch.clientEmail},
-        brand_kit_id = ${patch.brandKitId},
-        doc = ${JSON.stringify(patch.doc)}::jsonb,
-        status = ${patch.status},
-        updated_at = now(),
-        updated_by = ${user.userId}
-      WHERE id = ${row.id}
-    `;
-    const fresh = await loadBySlug(sql, patch.slug);
-    return res.status(200).json(fresh ? rowToReviewDto(fresh) : null);
+    return await save(sql, req, res, row, user.userId);
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: "Could not save the review" });
