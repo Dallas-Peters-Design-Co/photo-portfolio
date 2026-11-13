@@ -336,12 +336,47 @@ export const parseLayers = (raw: unknown, depth: number): ShaderLayerDto[] => {
  * A frame's settings: only whether it has been designed in the frame editor,
  * which is what makes it one clipped object on the canvas (frameLock.ts).
  */
+/** More guides than this on one frame is a mistake, not a layout. */
+const MAX_GUIDES = 40;
+
+const guideFractions = (raw: unknown): number[] =>
+  Array.isArray(raw)
+    ? raw
+        .filter(
+          (n): n is number =>
+            typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1
+        )
+        .slice(0, MAX_GUIDES)
+    : [];
+
+/**
+ * A frame's own settings: whether it has been opened as a design, and the
+ * guides dragged onto it (src/boards/creative/frameGuides.ts) as fractions of
+ * the frame, with its safe zone switched off or not.
+ */
 export const parseFrameConfig = (
   raw: unknown
-): Record<string, unknown> | null =>
-  (raw as { designed?: unknown } | null)?.designed === true
-    ? { designed: true }
-    : null;
+): Record<string, unknown> | null => {
+  const source = (raw ?? {}) as { designed?: unknown; guides?: unknown };
+  const config: Record<string, unknown> = {};
+  if (source.designed === true) {
+    config.designed = true;
+  }
+  const guides = (source.guides ?? null) as {
+    hideSafe?: unknown;
+    x?: unknown;
+    y?: unknown;
+  } | null;
+  if (guides && typeof guides === "object") {
+    const x = guideFractions(guides.x);
+    const y = guideFractions(guides.y);
+    const hideSafe = guides.hideSafe === true;
+    if (x.length > 0 || y.length > 0 || hideSafe) {
+      config.guides = { hideSafe, x, y };
+    }
+  }
+  return Object.keys(config).length > 0 ? config : null;
+};
 
 /** The tools a drawing may claim to be, mirroring DRAW_TOOLS on the client. */
 export const DRAW_TOOLS = new Set([

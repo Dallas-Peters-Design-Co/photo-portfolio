@@ -148,4 +148,14 @@ describe("a frame's settings", () => {
     expect(frame({ designed: "yes" })).toBeNull();
     expect(frame(null)).toBeNull();
   });
+
+  it("keeps the guides dragged onto it, and nothing off the frame", () => {
+    const frame = (config: unknown) =>
+      parseIncomingItem(incoming({ body: "Post", config, kind: "frame" }))
+        ?.config;
+    expect(
+      frame({ guides: { hideSafe: true, x: [0.25, 2, "a"], y: [0.5] } })
+    ).toEqual({ guides: { hideSafe: true, x: [0.25], y: [0.5] } });
+    expect(frame({ guides: { x: [], y: [] } })).toBeNull();
+  });
 });
