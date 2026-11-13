@@ -24,6 +24,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { BackButton } from "./BackButton";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
@@ -407,6 +408,11 @@ export function ReviewEditor({
             value={toEditorDoc(draft.doc.closing)}
           />
         </section>
+
+        <ReviewClientPanel
+          onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
+          review={draft}
+        />
 
         <ReviewSendPanel
           busy={isSaving}

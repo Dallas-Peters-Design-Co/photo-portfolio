@@ -35,6 +35,7 @@ const REVIEW: ReviewRecord = {
 };
 
 vi.mock("../services/reviewService", () => ({
+  ReviewLockedError: class extends Error {},
   reviewsApi: { get: () => Promise.resolve(REVIEW) },
 }));
 vi.mock("../theme/SiteSettingsProvider", () => ({
