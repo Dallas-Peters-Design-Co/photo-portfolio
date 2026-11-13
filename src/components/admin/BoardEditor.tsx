@@ -305,9 +305,9 @@ export function BoardEditor({
 
         <BoardHeaderPanel>
           <BoardHeaderActions
+            board={board}
             commentCount={comments.length}
             hasNodes={items.some((item) => item.kind === "op")}
-            isPublic={board?.isPublic ?? false}
             isPublishing={isPublishing}
             isRunning={graphRun.isRunning}
             items={items}

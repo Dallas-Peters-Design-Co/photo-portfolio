@@ -59,6 +59,8 @@ const REVIEW: ReviewRecord = {
   clientName: "",
   createdAt: "2026-10-18T00:00:00Z",
   doc: { closing: "", intro: "", screens: [], sections: [], summary: "" },
+  feedback: [],
+  hasPassword: false,
   id: "r1",
   sent: null,
   slug: "back-acres",

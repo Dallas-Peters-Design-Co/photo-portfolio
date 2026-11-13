@@ -3,6 +3,7 @@ import {
   jsonHeaders,
   readPageError,
 } from "../services/portfolioService";
+import { passHeaders } from "../services/reviewPass";
 
 /**
  * "Download PDF" for any page the API can print (a proposal, a review): the
@@ -13,11 +14,12 @@ import {
  */
 export const downloadPagePdf = async (
   endpoint: string,
-  filename: string
+  filename: string,
+  extraHeaders: Record<string, string> = {}
 ): Promise<void> => {
   const res = await fetch(`${apiBase()}${endpoint}`, {
     body: JSON.stringify({ origin: window.location.origin }),
-    headers: jsonHeaders(),
+    headers: { ...(jsonHeaders() as Record<string, string>), ...extraHeaders },
     method: "POST",
   });
   if (!res.ok) {
@@ -39,5 +41,6 @@ export const reviewPdfFilename = (slug: string): string => `review-${slug}.pdf`;
 export const downloadReviewPdf = (slug: string): Promise<void> =>
   downloadPagePdf(
     `/api/reviews/${encodeURIComponent(slug)}/pdf`,
-    reviewPdfFilename(slug)
+    reviewPdfFilename(slug),
+    passHeaders(slug)
   );
