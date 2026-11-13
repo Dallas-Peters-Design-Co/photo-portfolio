@@ -6,6 +6,7 @@ import {
 import type { BoardItem } from "../../types";
 import { GroupOutline, LayerBody } from "./ArtboardLayers";
 import type { Box } from "./creativeModel";
+import { FrameGuides } from "./FrameGuides";
 import { opacityCss } from "./layerOpacity";
 import { type ResizeDrag, resizeStep } from "./resize";
 import { dragAngle, rotateCss, rotationOf, toLocal } from "./rotate";
@@ -489,6 +490,7 @@ export function Artboard({
               />
             ))}
           </div>
+          <FrameGuides frame={frame} onCommit={onCommit} scale={scale} />
         </div>
       </div>
       <ZoomBar view={view} />

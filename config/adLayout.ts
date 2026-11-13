@@ -20,45 +20,23 @@
  * Pure geometry, shared by the canvas and the tests.
  */
 
+import { type SafeZone, SOCIAL_SIZES } from "./socialSizes.js";
+
+export type { SafeCover, SafeZone } from "./socialSizes.js";
+
 export interface AdSize {
   group: string;
   h: number;
   id: string;
   label: string;
+  /** Where the platform crops or covers it (config/socialSizes.ts). */
+  safe?: SafeZone;
   w: number;
 }
 
-/** Common sizes, in pixels. */
+/** Common sizes, in pixels: every social size, then the rest. */
 export const AD_SIZES: AdSize[] = [
-  {
-    group: "Instagram",
-    h: 1080,
-    id: "ig-square",
-    label: "Post · square",
-    w: 1080,
-  },
-  {
-    group: "Instagram",
-    h: 1350,
-    id: "ig-portrait",
-    label: "Post · portrait",
-    w: 1080,
-  },
-  {
-    group: "Instagram",
-    h: 1920,
-    id: "ig-story",
-    label: "Story / Reel",
-    w: 1080,
-  },
-  { group: "Facebook", h: 630, id: "fb-link", label: "Link / feed", w: 1200 },
-  { group: "Facebook", h: 312, id: "fb-cover", label: "Page cover", w: 820 },
-  { group: "LinkedIn", h: 627, id: "li-post", label: "Post", w: 1200 },
-  { group: "LinkedIn", h: 396, id: "li-banner", label: "Banner", w: 1584 },
-  { group: "X", h: 675, id: "x-post", label: "Post", w: 1200 },
-  { group: "X", h: 500, id: "x-header", label: "Header", w: 1500 },
-  { group: "Pinterest", h: 1500, id: "pin", label: "Pin", w: 1000 },
-  { group: "YouTube", h: 720, id: "yt-thumb", label: "Thumbnail", w: 1280 },
+  ...SOCIAL_SIZES,
   {
     group: "Landing",
     h: 900,
@@ -92,21 +70,93 @@ export const AD_SIZES: AdSize[] = [
     label: "Flyer · Letter",
     w: 2550,
   },
-  { group: "Print", h: 2550, id: "flyer-letter-wide", label: "Flyer · Letter · wide", w: 3300 },
-  { group: "Print", h: 5100, id: "print-11x17", label: "Poster · 11×17", w: 3300 },
-  { group: "Print", h: 3300, id: "print-17x11", label: "Poster · 17×11 · wide", w: 5100 },
-  { group: "Print", h: 5400, id: "print-12x18", label: "Poster · 12×18", w: 3600 },
-  { group: "Print", h: 3600, id: "print-18x12", label: "Poster · 18×12 · wide", w: 5400 },
-  { group: "Print", h: 7200, id: "print-18x24", label: "Poster · 18×24", w: 5400 },
-  { group: "Print", h: 5400, id: "print-24x18", label: "Poster · 24×18 · wide", w: 7200 },
-  { group: "Print", h: 10_800, id: "print-24x36", label: "Poster · 24×36", w: 7200 },
-  { group: "Print", h: 7200, id: "print-36x24", label: "Poster · 36×24 · wide", w: 10_800 },
+  {
+    group: "Print",
+    h: 2550,
+    id: "flyer-letter-wide",
+    label: "Flyer · Letter · wide",
+    w: 3300,
+  },
+  {
+    group: "Print",
+    h: 5100,
+    id: "print-11x17",
+    label: "Poster · 11×17",
+    w: 3300,
+  },
+  {
+    group: "Print",
+    h: 3300,
+    id: "print-17x11",
+    label: "Poster · 17×11 · wide",
+    w: 5100,
+  },
+  {
+    group: "Print",
+    h: 5400,
+    id: "print-12x18",
+    label: "Poster · 12×18",
+    w: 3600,
+  },
+  {
+    group: "Print",
+    h: 3600,
+    id: "print-18x12",
+    label: "Poster · 18×12 · wide",
+    w: 5400,
+  },
+  {
+    group: "Print",
+    h: 7200,
+    id: "print-18x24",
+    label: "Poster · 18×24",
+    w: 5400,
+  },
+  {
+    group: "Print",
+    h: 5400,
+    id: "print-24x18",
+    label: "Poster · 24×18 · wide",
+    w: 7200,
+  },
+  {
+    group: "Print",
+    h: 10_800,
+    id: "print-24x36",
+    label: "Poster · 24×36",
+    w: 7200,
+  },
+  {
+    group: "Print",
+    h: 7200,
+    id: "print-36x24",
+    label: "Poster · 36×24 · wide",
+    w: 10_800,
+  },
   { group: "Print", h: 4961, id: "print-a3", label: "Poster · A3", w: 3508 },
-  { group: "Print", h: 3508, id: "print-a3-wide", label: "Poster · A3 · wide", w: 4961 },
+  {
+    group: "Print",
+    h: 3508,
+    id: "print-a3-wide",
+    label: "Poster · A3 · wide",
+    w: 4961,
+  },
   { group: "Print", h: 7016, id: "print-a2", label: "Poster · A2", w: 4961 },
-  { group: "Print", h: 4961, id: "print-a2-wide", label: "Poster · A2 · wide", w: 7016 },
+  {
+    group: "Print",
+    h: 4961,
+    id: "print-a2-wide",
+    label: "Poster · A2 · wide",
+    w: 7016,
+  },
   { group: "Print", h: 9933, id: "print-a1", label: "Poster · A1", w: 7016 },
-  { group: "Print", h: 7016, id: "print-a1-wide", label: "Poster · A1 · wide", w: 9933 },
+  {
+    group: "Print",
+    h: 7016,
+    id: "print-a1-wide",
+    label: "Poster · A1 · wide",
+    w: 9933,
+  },
 ];
 
 /** Print sizes are set at this many pixels to the inch. */
@@ -138,6 +188,10 @@ export interface LayoutItem extends Box {
 /** "Instagram · Post · square · 1080×1080": what a sized frame is called. */
 export const sizeTitle = (size: AdSize): string =>
   `${size.group} · ${size.label} · ${size.w}×${size.h}`;
+
+/** The size a frame was made at, found by its title, with its safe zone. */
+export const sizeOfTitle = (title: string | null | undefined): AdSize | null =>
+  AD_SIZES.find((s) => sizeTitle(s) === (title ?? "").trim()) ?? null;
 
 const SIZE_IN_TITLE = /(\d{2,5})\s*[×x]\s*(\d{2,5})\s*$/;
 

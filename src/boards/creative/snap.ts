@@ -1,4 +1,5 @@
 import type { Box } from "./creativeModel";
+import { guideLines } from "./frameGuides";
 import { type Insets, shrink } from "./visibleEdges";
 
 /**
@@ -89,8 +90,13 @@ export const snapMove = (
   inset: Insets | null = null
 ): { box: Box; guides: Guides } => {
   const inner = shrink(box, inset);
-  const targetsX = [frame, ...others].flatMap((b) => linesOf(b, "x"));
-  const targetsY = [frame, ...others].flatMap((b) => linesOf(b, "y"));
+  // The frame's own guides (frameGuides.ts) are lines to snap to as well.
+  const targetsX = [frame, ...others]
+    .flatMap((b) => linesOf(b, "x"))
+    .concat(guideLines(frame, "x"));
+  const targetsY = [frame, ...others]
+    .flatMap((b) => linesOf(b, "y"))
+    .concat(guideLines(frame, "y"));
   const sx = bestShift(linesOf(inner, "x"), targetsX, threshold);
   const sy = bestShift(linesOf(inner, "y"), targetsY, threshold);
   return {
@@ -113,7 +119,9 @@ export const snapEdge = (
   others: Box[],
   threshold: number
 ): { line: number | null; value: number } => {
-  const targets = [frame, ...others].flatMap((b) => linesOf(b, axis));
+  const targets = [frame, ...others]
+    .flatMap((b) => linesOf(b, axis))
+    .concat(guideLines(frame, axis));
   const { line, shift } = bestShift([value], targets, threshold);
   return { line, value: value + shift };
 };
