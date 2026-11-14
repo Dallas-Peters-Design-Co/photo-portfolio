@@ -34,7 +34,7 @@ function tagFieldsScript(userSelectors: string[], passSelectors: string[]): stri
   const user = pick(${JSON.stringify(userSelectors)});
   if (user && user !== pass) user.setAttribute('data-eve-login', 'user');
   if (pass) pass.setAttribute('data-eve-login', 'pass');
-  return JSON.stringify({ user: !!user && user !== pass, pass: !!pass });
+  return { user: !!user && user !== pass, pass: !!pass };
 })()`;
 }
 
