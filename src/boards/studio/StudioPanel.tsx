@@ -11,6 +11,7 @@ import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { PaletteTool } from "./color/PaletteTool";
 import { RampTool } from "./color/RampTool";
+import { SchemeTool } from "./color/SchemeTool";
 import { ImageToolView, type StudioEditing } from "./ImageToolView";
 import { lastValues, rememberValues } from "./presets";
 import {
@@ -129,6 +130,9 @@ export function StudioPanel({
     if (toolId === "palette") {
       return <PaletteTool onAdd={onAdd} />;
     }
+    if (toolId === "scheme") {
+      return <SchemeTool onAdd={onAdd} />;
+    }
     if (toolId === "type-scale") {
       return <TypeScaleTool onAdd={onAdd} onApply={frame?.onApplyType} />;
     }
@@ -195,8 +199,8 @@ export function StudioPanel({
         {DOCKS.map(({ Icon, id, label }) => (
           <button
             aria-label={label}
-            data-active={dock.dock === id ? "" : undefined}
             className="studio__icon"
+            data-active={dock.dock === id ? "" : undefined}
             key={id}
             onClick={() => dock.set(id)}
             title={label}

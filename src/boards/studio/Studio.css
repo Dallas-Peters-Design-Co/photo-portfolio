@@ -721,3 +721,52 @@
 .studio--docked-right .studio__edge {
   left: 0;
 }
+
+/* Palette Builder (color/SchemeTool.tsx): its settings beside the hue map. */
+.studio-scheme {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: calc(var(--spacing) * 4);
+  align-items: start;
+}
+
+.studio-scheme__map {
+  color: var(--color-board-ink);
+}
+
+.studio-scheme__anchor {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+}
+
+/* One bar of choices, one of them on. */
+.studio-segments {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  border-radius: var(--radius-control, 6px);
+}
+
+.studio-segments__option {
+  flex: 1;
+  min-width: 0;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.75rem;
+  color: inherit;
+  white-space: nowrap;
+  border-radius: calc(var(--radius-control, 6px) - 2px);
+
+  &:hover {
+    background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+  }
+
+  &[aria-checked="true"] {
+    color: var(--color-board-panel);
+    background: var(--color-board-ink);
+  }
+}

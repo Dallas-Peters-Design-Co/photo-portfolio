@@ -59,6 +59,13 @@ export const STUDIO_TOOLS: StudioToolInfo[] = [
   },
   {
     blurb:
+      "A palette grown from one colour in OKLCH: balanced, companion, sequential or diverging, with neutrals and a colour-vision check.",
+    group: "Colour",
+    id: "scheme",
+    name: "Palette Builder",
+  },
+  {
+    blurb:
       "Tints and shades, 50 to 950, of every brand colour, as CSS, Tailwind or JSON.",
     group: "Colour",
     id: "ramps",
