@@ -8,6 +8,7 @@ import { opacityCss } from "./creative/layerOpacity";
 import type { ResizeHandle } from "./geometry/alignmentGuides";
 import { inputPoints } from "./geometry/portGeometry";
 import { fitsContent, useAutoHeight } from "./hooks/useAutoHeight";
+import { INV_SCALE_VAR } from "./hooks/useCanvasViewport";
 import { itemBoxClassName } from "./itemBodies";
 import { ItemContent } from "./nodes/ItemContent";
 import { PortHandles } from "./PortHandles";
@@ -23,6 +24,8 @@ import "./BoardItemView.css";
  * and should stay visible over a selected item.
  */
 const CHROME_STACK = 9998;
+
+const CHROME_SCALE = { transform: `scale(var(${INV_SCALE_VAR}, 1))` };
 
 /**
  * The input port closest to a point, in canvas units.
@@ -336,7 +339,10 @@ export function BoardItemView({
   // shrink with the zoom — unusably small when zoomed out to see the whole
   // board, absurd when zoomed in. Cancelling the scale keeps them thumb-sized
   // at every zoom level.
-  const chromeScale = { transform: `scale(${1 / scale})` };
+  // From the layer's own variable, not this render's zoom: the view moves
+  // without a render mid-gesture (useCanvasViewport's glide), and the chrome
+  // has to keep its size while it does.
+  const chromeScale = CHROME_SCALE;
 
   // Handed to the text panel, which reads this box's position off the DOM to
   // decide whether it fits above the item. The canvas viewport lives in a ref

@@ -59,7 +59,7 @@ import {
 } from "./geometry/snapIndex";
 import { useBoardClipboard } from "./hooks/useBoardClipboard";
 import { useCanvasMenu } from "./hooks/useCanvasMenu";
-import { useCanvasViewport } from "./hooks/useCanvasViewport";
+import { INV_SCALE_VAR, useCanvasViewport } from "./hooks/useCanvasViewport";
 import { useDeleteKey } from "./hooks/useDeleteKey";
 import { useMovingLayer } from "./hooks/useMovingLayer";
 import { usePanModifier } from "./hooks/usePanModifier";
@@ -1117,6 +1117,7 @@ export function BoardCanvas({
             height: CANVAS_HEIGHT,
             transform: `translate(${view.viewport.tx}px, ${view.viewport.ty}px) scale(${view.viewport.scale})`,
             width: CANVAS_WIDTH,
+            [INV_SCALE_VAR as string]: 1 / view.viewport.scale,
           }}
         >
           {guides.vertical.map((guide) => (
