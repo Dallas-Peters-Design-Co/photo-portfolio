@@ -34,7 +34,7 @@
   /*
    * Its own step on the micro ladder, not the nearest rung of the page scale.
    *
-   * `--text-xs` is 0.528rem — 8.4px — which is the board's dense chrome, not a
+   * `--text-xs` is 0.75rem — 12px — the board's dense chrome, not a
    * page. The pages have always set micro-caps at 10px with 0.18em of tracking,
    * and reaching for the nearest token shrank every label on every converted
    * page by a sixth and tightened its tracking by nearly half. That is a
