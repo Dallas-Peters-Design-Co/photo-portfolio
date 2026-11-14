@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { normalizeTextStyle, type TextStyle } from "../../../config/textStyle";
 import type { TypeScale } from "../../../config/typeScale.js";
@@ -70,28 +71,40 @@ export const useEditorCommands = ({
   const one = chosen.length === 1 ? (chosen[0] ?? null) : null;
   const some = chosen.length > 0;
 
+  // Every write starts from the newest board, not the one this render saw.
+  // Two writes before the next render (two text boxes fitting their words as
+  // the editor opens, a fit landing just after a drag) each started from the
+  // same old list, and the second undid the first: the next open fitted the
+  // lost one again, so boxes changed size and place open after open.
+  const live = useRef(items);
+  live.current = items;
+  const write = (next: BoardItem[]) => {
+    live.current = next;
+    onChange(next);
+  };
+
   const patchMany = (patches: Map<string, Partial<BoardItem>>) =>
-    onChange(patchItems(items, patches));
+    write(patchItems(live.current, patches));
   const patch = (id: string, next: Partial<BoardItem>) =>
     patchMany(new Map([[id, next]]));
   const each = (fn: (l: BoardItem) => Partial<BoardItem>) =>
     patchMany(new Map(chosen.map((l) => [l.id, fn(l)])));
 
   const add = (item: BoardItem) => {
-    onChange([...items, item]);
+    write([...live.current, item]);
     selection.select(item.id);
   };
   const removeMany = (ids: string[]) => {
-    onChange(items.filter((item) => !ids.includes(item.id)));
+    write(live.current.filter((item) => !ids.includes(item.id)));
     selection.select(null);
   };
-  const copyMany = (group: BoardItem[], into = items, stepOn = true) => {
+  const copyMany = (group: BoardItem[], into = live.current, stepOn = true) => {
     const copies: BoardItem[] = [];
     for (const layer of group) {
       const copy = duplicate(layer, [...into, ...copies]);
       copies.push(stepOn ? copy : { ...copy, x: layer.x, y: layer.y });
     }
-    onChange([...into, ...copies]);
+    write([...into, ...copies]);
     selection.setIds(copies.map((c) => c.id));
   };
   /**
@@ -137,12 +150,12 @@ export const useEditorCommands = ({
     const copies: BoardItem[] = [];
     for (const layer of layers.filter((l) => ids.includes(l.id))) {
       copies.push({
-        ...duplicate(layer, [...items, ...copies]),
+        ...duplicate(layer, [...live.current, ...copies]),
         x: layer.x + dx,
         y: layer.y + dy,
       });
     }
-    onChange([...items, ...copies]);
+    write([...live.current, ...copies]);
     selection.setIds(copies.map((c) => c.id));
   };
   const order = (id: string, how: Reorder) =>

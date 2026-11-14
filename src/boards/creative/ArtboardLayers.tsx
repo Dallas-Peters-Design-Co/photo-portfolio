@@ -12,7 +12,7 @@ import { fitOf, objectPositionOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { HANDLES, type Handle } from "./SelectionBox";
 import { TintedPicture } from "./TintedPicture";
-import { measureText, textFitOf } from "./textFit";
+import { fitPatch, measureText, textFitOf } from "./textFit";
 
 /**
  * What the artboard draws for each layer (text, shape or picture), and the
@@ -25,6 +25,14 @@ import { measureText, textFitOf } from "./textFit";
  * words, the type or (fitting the height) the width change, and again when a
  * font finishes loading, since the stand-in face measures differently.
  */
+/** The face a text box is set in, as `document.fonts` asks for it. */
+const fontOf = (el: HTMLElement): string | null => {
+  const css = getComputedStyle(el);
+  return css.fontFamily
+    ? `${css.fontStyle} ${css.fontWeight} ${css.fontSize} ${css.fontFamily}`
+    : null;
+};
+
 const useFitText = (
   own: React.RefObject<HTMLTextAreaElement | null>,
   item: BoardItem,
@@ -47,18 +55,23 @@ const useFitText = (
     if (fit === "fixed" || !el || !onFit) {
       return;
     }
+    // Not measured in a stand-in face: the box would be fitted to the wrong
+    // words, saved, and fitted back when the real face arrived, so it changed
+    // size (and place) every time the editor opened. Measured once it loads.
+    const face = fontOf(el);
+    if (face && !document.fonts.check(face)) {
+      let alive = true;
+      document.fonts
+        .load(face)
+        .then(() => alive && setFonts((n) => n + 1))
+        .catch(() => undefined);
+      return () => {
+        alive = false;
+      };
+    }
     const size = measureText(el, fit, item.width);
-    if (!size) {
-      return;
-    }
-    const patch: Partial<BoardItem> = {};
-    if (Math.abs(size.height - item.height) > 1) {
-      patch.height = size.height;
-    }
-    if (fit === "both" && Math.abs(size.width - item.width) > 1) {
-      patch.width = size.width;
-    }
-    if (Object.keys(patch).length > 0) {
+    const patch = size ? fitPatch(item, fit, size) : null;
+    if (patch) {
       onFit(patch);
     }
   }, [fit, item.body, item.fontSize, style, item.width, fonts]);

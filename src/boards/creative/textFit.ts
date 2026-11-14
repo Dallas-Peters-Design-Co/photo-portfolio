@@ -117,3 +117,48 @@ export const widthSetBy = (
   }
   return { config: { ...(item.config ?? {}), autosize: "height" } };
 };
+
+/** How far across (0 left, 1 right) a box's words are pinned. */
+const across = (item: Pick<BoardItem, "textStyle">): number => {
+  const align = item.textStyle?.align;
+  if (align === "center") {
+    return 0.5;
+  }
+  return align === "right" ? 1 : 0;
+};
+
+/** How far down (0 top, 1 bottom) a box's words are pinned. */
+const down = (item: Pick<BoardItem, "textStyle">): number => {
+  const v = (item.textStyle as { verticalAlign?: unknown } | null)
+    ?.verticalAlign;
+  if (v === "middle") {
+    return 0.5;
+  }
+  return v === "bottom" ? 1 : 0;
+};
+
+/**
+ * A fitted box's new size, and where it moves so its words stay put: a
+ * centred headline grows or shrinks about its middle, right-aligned type
+ * about its right edge, bottom-aligned about its foot.
+ *
+ * Fitting kept the top-left corner, so a centred line that measured a little
+ * narrower on opening (a font still loading, a word changed) slid left, and
+ * every open moved it again. Null when the box already fits.
+ */
+export const fitPatch = (
+  item: Pick<BoardItem, "height" | "textStyle" | "width" | "x" | "y">,
+  fit: Exclude<TextFit, "fixed">,
+  size: { height: number; width: number }
+): Partial<BoardItem> | null => {
+  const patch: Partial<BoardItem> = {};
+  if (Math.abs(size.height - item.height) > 1) {
+    patch.height = size.height;
+    patch.y = item.y + (item.height - size.height) * down(item);
+  }
+  if (fit === "both" && Math.abs(size.width - item.width) > 1) {
+    patch.width = size.width;
+    patch.x = item.x + (item.width - size.width) * across(item);
+  }
+  return Object.keys(patch).length > 0 ? patch : null;
+};
