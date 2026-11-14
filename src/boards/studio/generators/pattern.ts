@@ -63,6 +63,8 @@ const halftone = (
   return `<g fill="${fg}">${dots.join("")}</g>`;
 };
 
+const NOT_ID = /[^A-Za-z0-9_-]/g;
+
 export const patternTool: ImageTool = {
   blurb: "Ben-Day dots, halftone fades, lines, grids, checks and waves.",
   css: (v) => {
@@ -146,10 +148,20 @@ export const patternTool: ImageTool = {
         ground + halftone(w, h, s, angle, fg, String(v.direction))
       );
     }
+    // Named for what it draws, not just "p": two patterns' SVGs inlined in
+    // one page (an export, a composition) would otherwise both paint the
+    // first one's tile.
+    const id = `pattern-${String(v.kind)}-${s}-${d}-${angle}`.replace(
+      NOT_ID,
+      "_"
+    );
     return svgDoc(
       w,
       h,
-      `<defs><pattern id="p" width="${s}" height="${s}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">${tile(String(v.kind), s, d, fg)}</pattern></defs>${ground}<rect width="${w}" height="${h}" fill="url(#p)"/>`
+      `<defs><pattern id="${id}" width="${s}" height="${s}" patternUnits="userSpaceOnUse" patternTransform="rotate(${angle})">${tile(String(v.kind), s, d, fg)}</pattern></defs>${ground}<rect width="${w}" height="${h}" fill="url(#${id})"/>`
     );
   },
+  // Plain shapes and a tile, no filters: it stays vector on the board and in
+  // a frame, so it prints sharp at any size, rather than going in as a PNG.
+  vector: true,
 };
