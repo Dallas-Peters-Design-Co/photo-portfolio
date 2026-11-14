@@ -730,8 +730,90 @@
   align-items: start;
 }
 
-.studio-scheme__map {
-  color: var(--color-board-ink);
+/*
+ * The hue wheel (color/SchemeHueMap.tsx): a ring of every hue with a handle
+ * per colour, dragged round it. The ring is a disc with its middle covered.
+ */
+.studio-hue {
+  width: 16rem;
+}
+
+.studio-hue__wheel {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 50%;
+}
+
+.studio-hue__middle {
+  position: absolute;
+  inset: 11%;
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  place-content: center;
+  justify-items: center;
+  font-size: 0.6875rem;
+  color: color-mix(in oklch, var(--color-board-ink) 60%, transparent);
+  background: var(--color-board-panel);
+  border-radius: 50%;
+
+  & strong {
+    font-size: 1.75rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-board-ink);
+  }
+}
+
+/* On the ring at its hue: turned to the angle, pushed out, turned back. */
+.studio-hue__handle {
+  --at: calc(50% - 5.5%);
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: -0.875rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  touch-action: none;
+  cursor: grab;
+  border: 2px solid var(--color-board-panel);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px
+    color-mix(in oklch, var(--color-board-ink) 45%, transparent);
+  transform: rotate(var(--hue)) translateY(calc(-1 * 7.1rem))
+    rotate(calc(-1 * var(--hue)));
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-board-ink);
+    outline-offset: 2px;
+  }
+
+  /* The anchor: every other colour is made from it. */
+  &[data-anchor] {
+    width: 2.125rem;
+    height: 2.125rem;
+    margin: -1.0625rem;
+    box-shadow: 0 0 0 3px var(--color-board-ink);
+  }
+
+  /* Set by hand: held where it was dragged. */
+  &[data-held] {
+    box-shadow: 0 0 0 2px var(--color-board-ink);
+  }
 }
 
 .studio-scheme__anchor {
@@ -768,5 +850,61 @@
   &[aria-checked="true"] {
     color: var(--color-board-panel);
     background: var(--color-board-ink);
+  }
+}
+
+/* The anchor's lightness, chroma and hue (color/SchemeDials.tsx). */
+.studio-dials {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+}
+
+.studio-dials__dial {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+
+  & output {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.studio-dials__name strong {
+  display: inline-block;
+  width: 1.25rem;
+  font-weight: 700;
+}
+
+/* The track is the colour itself; the thumb a bar that reads on any of it. */
+.studio-dials__track {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 1.75rem;
+  margin: 0;
+  appearance: none;
+  cursor: ew-resize;
+  border-radius: var(--radius-control, 6px);
+
+  &::-webkit-slider-thumb {
+    width: 6px;
+    height: 2.125rem;
+    appearance: none;
+    background: var(--color-board-ink);
+    border: 1.5px solid var(--color-board-panel);
+    border-radius: 2px;
+  }
+
+  &::-moz-range-thumb {
+    width: 4px;
+    height: 2rem;
+    background: var(--color-board-ink);
+    border: 1.5px solid var(--color-board-panel);
+    border-radius: 2px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-board-ink);
+    outline-offset: 2px;
   }
 }

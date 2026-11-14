@@ -1,10 +1,16 @@
 import { Copy, Download, Lock, LockOpen, Plus, Save } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { formatOklch, hexToOklch } from "../../../lib/oklch";
+import {
+  formatOklch,
+  hexToOklch,
+  oklchToHex,
+  toSrgbGamut,
+} from "../../../lib/oklch";
 import { saveBlob, svgToPngBlob } from "../render";
 import { inkOn } from "./harmony";
 import { SchemeControls } from "./SchemeControls";
+import { type Lch, SchemeDials } from "./SchemeDials";
 import { HueMap } from "./SchemeHueMap";
 import {
   buildScheme,
@@ -26,6 +32,13 @@ import { useKitPalette } from "./useKitPalette";
 
 type Settings = Omit<SchemeOptions, "anchor" | "locked">;
 
+const START = "#2f7cf6";
+
+const lchOf = (hex: string): Lch => {
+  const c = hexToOklch(hex) ?? hexToOklch(START);
+  return { c: c?.c ?? 0, h: c?.h ?? 0, l: c?.l ?? 0.6 };
+};
+
 const oklchOf = (hex: string) => {
   const c = hexToOklch(hex);
   return c ? formatOklch(c) : hex;
@@ -38,15 +51,24 @@ const cssOf = (colors: string[]) =>
 
 export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
   const { entries, kit, save, saving } = useKitPalette();
-  const [anchor, setAnchor] = useState(entries[0]?.value ?? "#2f7cf6");
+  // The anchor as lightness, chroma and hue: the dials and the wheel set
+  // these, and the hex every colour is made from follows.
+  const [lch, setLch] = useState<Lch>(() => lchOf(entries[0]?.value ?? ""));
+  const anchor = useMemo(
+    () => oklchToHex(toSrgbGamut({ a: 1, ...lch })),
+    [lch]
+  );
+  const setAnchor = (hex: string) => setLch(lchOf(hex));
   const [settings, setSettings] = useState<Settings>(SCHEME_DEFAULTS);
   // Colours held as they are, by position (the anchor is never in here).
   const [locked, setLocked] = useState<(string | null)[]>([]);
   const [vision, setVision] = useState<Vision>("none");
+  // Hues dragged on the wheel, by position: held until double-clicked back.
+  const [hueAt, setHueAt] = useState<(number | null)[]>([]);
 
   const colors = useMemo(
-    () => buildScheme({ ...settings, anchor, locked }),
-    [anchor, locked, settings]
+    () => buildScheme({ ...settings, anchor, hueAt, locked }),
+    [anchor, hueAt, locked, settings]
   );
 
   // Where the anchor sits: first, except in a ramp, where it takes the step
@@ -59,6 +81,26 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
       next[i] = next[i] ? null : (colors[i] ?? null);
       return next;
     });
+
+  const isRamp =
+    settings.model === "sequential" || settings.model === "diverging";
+  const neutralFrom = isRamp
+    ? colors.length
+    : colors.length - Math.min(settings.neutrals, colors.length - 1);
+  /** A handle dragged on the wheel: the anchor turns, another colour holds. */
+  const setHue = (i: number, hue: number) => {
+    if (i === anchorAt) {
+      setLch((was) => ({ ...was, h: ((hue % 360) + 360) % 360 }));
+      return;
+    }
+    setHueAt((was) => {
+      const next = [...was];
+      next[i] = ((hue % 360) + 360) % 360;
+      return next;
+    });
+  };
+  const releaseHue = (i: number) =>
+    setHueAt((was) => was.map((h, k) => (k === i ? null : h)));
 
   const copy = (text: string, what: string) => {
     void navigator.clipboard?.writeText(text);
@@ -120,13 +162,28 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
         })}
       </div>
       <div className="studio-scheme">
-        <SchemeControls
-          onChange={(next) => setSettings((was) => ({ ...was, ...next }))}
-          onVision={setVision}
-          settings={settings}
-          vision={vision}
+        <div className="studio__controls">
+          <SchemeDials onChange={setLch} value={lch} />
+          <SchemeControls
+            onChange={(next) => setSettings((was) => ({ ...was, ...next }))}
+            onVision={setVision}
+            settings={settings}
+            vision={vision}
+          />
+        </div>
+        <HueMap
+          handles={colors.map((hex, i) => ({
+            // A ramp's steps follow the anchor; neutrals and locks stay put.
+            fixed:
+              i !== anchorAt &&
+              (isRamp || i >= neutralFrom || Boolean(locked[i])),
+            held: i !== anchorAt && typeof hueAt[i] === "number",
+            hex,
+            isAnchor: i === anchorAt,
+          }))}
+          onHue={setHue}
+          onRelease={releaseHue}
         />
-        <HueMap colors={colors} />
       </div>
       <div className="studio__actions">
         {kit ? (

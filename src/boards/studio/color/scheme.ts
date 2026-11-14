@@ -87,6 +87,11 @@ export interface SchemeOptions {
   anchor: string;
   /** 2–9 colours, the anchor included. */
   count: number;
+  /**
+   * Hues set by hand (dragged on the hue wheel), by position: that colour
+   * takes this hue whatever the hue settings say. Not used by the ramps.
+   */
+  hueAt?: (number | null)[];
   hues: HueMode;
   /** Colours kept as they are, by position; the anchor is position 0. */
   locked?: (string | null)[];
@@ -266,7 +271,7 @@ export const buildScheme = (options: SchemeOptions): string[] => {
         : companion(
             base,
             options.model,
-            turn(base.h + offset),
+            turn(options.hueAt?.[i] ?? base.h + offset),
             i - 1,
             count - 1
           )
@@ -360,4 +365,16 @@ export const simulate = (hex: string, vision: Vision): string => {
         .padStart(2, "0")
     )
     .join("")}`;
+};
+
+/** The smallest step between neighbouring hues round the wheel, in degrees. */
+export const hueSpacing = (hues: number[]): number | null => {
+  if (hues.length < 2) {
+    return null;
+  }
+  const sorted = [...hues].map(turn).sort((a, b) => a - b);
+  const gaps = sorted.map(
+    (h, i) => turn((sorted[(i + 1) % sorted.length] ?? 0) - h) || 360
+  );
+  return Math.round(Math.min(...gaps));
 };

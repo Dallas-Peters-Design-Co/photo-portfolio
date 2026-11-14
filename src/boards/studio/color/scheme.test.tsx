@@ -8,6 +8,7 @@ import { hexToOklch } from "../../../lib/oklch";
 import {
   buildScheme,
   hueOffsets,
+  hueSpacing,
   SCHEME_DEFAULTS,
   type SchemeOptions,
   simulate,
@@ -97,6 +98,16 @@ describe("buildScheme", () => {
     );
   });
 
+  it("takes a hue set by hand for one colour and leaves the rest", () => {
+    const plain = make();
+    const moved = make({ hueAt: [null, null, 40] });
+    expect(hueGap(lch(moved[2] ?? "").h, 40)).toBeLessThan(8);
+    expect(moved[1]).toBe(plain[1]);
+    expect(moved[3]).toBe(plain[3]);
+    expect(hueSpacing([0, 90, 180, 270])).toBe(90);
+    expect(hueSpacing([350, 10, 180])).toBe(20);
+  });
+
   it("keeps a locked colour where it is", () => {
     const out = make({ locked: [null, null, "#123456"], model: "companion" });
     expect(out[2]).toBe("#123456");
@@ -141,5 +152,116 @@ describe("SchemeTool", () => {
     expect(anchor?.textContent).toContain("2F7CF6");
     act(() => root.unmount());
     host.remove();
+  });
+});
+
+describe("dialling a palette in", () => {
+  const mount = async () => {
+    await page.viewport(1200, 1000);
+    const { SchemeTool } = await import("./SchemeTool");
+    const host = document.createElement("div");
+    host.className = "studio";
+    host.style.cssText = "position:static;width:900px;max-height:none";
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() => root.render(<SchemeTool onAdd={() => undefined} />));
+    const hexes = () =>
+      [...host.querySelectorAll(".studio-palette__hex")].map(
+        (b) => `#${b.textContent?.toLowerCase()}`
+      );
+    const done = () => {
+      act(() => root.unmount());
+      host.remove();
+    };
+    return { done, hexes, host };
+  };
+
+  /** Drags a wheel handle to the point at `hue` on the ring. */
+  const dragTo = (host: HTMLElement, label: string, hue: number) => {
+    const handle = host.querySelector(`[aria-label="${label}"]`) as HTMLElement;
+    const box = (
+      host.querySelector(".studio-hue__wheel") as HTMLElement
+    ).getBoundingClientRect();
+    const rad = (hue * Math.PI) / 180;
+    const at = {
+      clientX: box.left + box.width / 2 + Math.sin(rad) * 100,
+      clientY: box.top + box.height / 2 - Math.cos(rad) * 100,
+    };
+    const fire = (type: string) =>
+      handle.dispatchEvent(
+        new PointerEvent(type, { bubbles: true, pointerId: 1, ...at })
+      );
+    act(() => {
+      fire("pointerdown");
+      fire("pointermove");
+      fire("pointerup");
+    });
+  };
+
+  it("drags one colour round the wheel and leaves the others", async () => {
+    const { done, hexes, host } = await mount();
+    const before = hexes();
+    dragTo(host, "Colour 3 on the hue wheel", 40);
+    const after = hexes();
+    expect(hueGap(lch(after[2] ?? "").h, 40)).toBeLessThan(8);
+    expect([after[0], after[1], after[3]]).toEqual([
+      before[0],
+      before[1],
+      before[3],
+    ]);
+    // Double-click gives it back to the settings.
+    act(() =>
+      (
+        host.querySelector(
+          '[aria-label="Colour 3 on the hue wheel"]'
+        ) as HTMLElement
+      ).dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+    );
+    expect(hexes()).toEqual(before);
+    done();
+  });
+
+  it("turns the whole palette with the anchor's handle", async () => {
+    const { done, hexes, host } = await mount();
+    const before = hexes().map((c) => lch(c).h);
+    dragTo(host, "Anchor on the hue wheel", 150);
+    const after = hexes().map((c) => lch(c).h);
+    expect(hueGap(after[0] ?? 0, 150)).toBeLessThan(6);
+    // The others kept their distance from it.
+    expect(
+      hueGap(
+        (after[1] ?? 0) - (after[0] ?? 0),
+        (before[1] ?? 0) - (before[0] ?? 0)
+      )
+    ).toBeLessThan(15);
+    done();
+  });
+
+  it("sets the anchor's lightness, chroma and hue from the dials", async () => {
+    const { done, hexes, host } = await mount();
+    const set = (label: string, value: string) => {
+      const input = host.querySelector(
+        `[aria-label="${label}"]`
+      ) as HTMLInputElement;
+      const setter = Object.getOwnPropertyDescriptor(
+        HTMLInputElement.prototype,
+        "value"
+      )?.set;
+      act(() => {
+        setter?.call(input, value);
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+    };
+    set("Anchor lightness", "45");
+    set("Anchor chroma", "0.1");
+    set("Anchor hue", "180");
+    const anchor = lch(hexes()[0] ?? "");
+    expect(anchor.l).toBeCloseTo(0.45, 1);
+    expect(hueGap(anchor.h, 180)).toBeLessThan(6);
+    // Down to grey and back: the hue is remembered.
+    set("Anchor chroma", "0");
+    set("Anchor chroma", "0.1");
+    expect(hueGap(lch(hexes()[0] ?? "").h, 180)).toBeLessThan(6);
+    done();
   });
 });
