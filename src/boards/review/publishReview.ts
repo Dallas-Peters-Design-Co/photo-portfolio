@@ -16,6 +16,12 @@ import type { Board, BoardItem } from "../../types";
  * from the board are replaced, anything written in the review editor (the
  * opening, findings, a screen's paragraph, screens added there) is kept,
  * and so are the client's comments.
+ *
+ * A board and a review can also be linked from the other side (the review
+ * editor's "Send to board", sendToBoard.ts): the review then holds the
+ * board's id, and publishing updates that review rather than one named
+ * after the board. A node sent from a review publishes back to the screen
+ * it came from.
  */
 
 /** Nodes this close in height are read as one row, left to right. */
@@ -43,9 +49,11 @@ export const browserScreens = (
     .sort(readingOrder)
     .map((item) => {
       const cfg = browserConfigOf(item.config);
-      const before = existing.find((s) => s.id === item.id);
+      // A node sent from the review keeps that screen's id.
+      const id = cfg.reviewScreenId || item.id;
+      const before = existing.find((s) => s.id === id);
       return {
-        id: item.id,
+        id,
         image: cfg.capture,
         marks: cfg.marks,
         // A paragraph written in the review editor stays.
@@ -99,6 +107,23 @@ const existingReview = async (slug: string): Promise<ReviewRecord | null> => {
   }
 };
 
+/** Where the board publishes: its linked review, else the one named after it. */
+export const linkedReviewSlug = async (
+  board: Pick<Board, "id" | "slug" | "title">
+): Promise<string> => {
+  try {
+    const linked = (await reviewsApi.list()).find(
+      (r) => r.boardId === board.id
+    );
+    if (linked) {
+      return linked.slug;
+    }
+  } catch {
+    // The list is a lookup; without it the board's own address still works.
+  }
+  return reviewSlugFor(board);
+};
+
 /** Creates the board's review, or updates it, and publishes it. */
 export const publishBoardReview = async ({
   board,
@@ -107,7 +132,7 @@ export const publishBoardReview = async ({
   password,
   title,
 }: PublishInput): Promise<ReviewRecord> => {
-  const slug = reviewSlugFor(board);
+  const slug = await linkedReviewSlug(board);
   const current = await existingReview(slug);
   if (current) {
     const screens = mergeScreens(
@@ -116,7 +141,7 @@ export const publishBoardReview = async ({
     );
     return reviewsApi.update(slug, {
       clientName: clientName || current.clientName,
-      doc: { ...current.doc, screens },
+      doc: { ...current.doc, boardId: board.id, screens },
       ...(password === undefined ? {} : { password }),
       status: "published",
       title: title || current.title,
@@ -124,7 +149,11 @@ export const publishBoardReview = async ({
   }
   return reviewsApi.create({
     clientName,
-    doc: { ...DEFAULT_REVIEW_DOC, screens: browserScreens(items) },
+    doc: {
+      ...DEFAULT_REVIEW_DOC,
+      boardId: board.id,
+      screens: browserScreens(items),
+    },
     ...(password ? { password } : {}),
     slug,
     status: "published",

@@ -25,6 +25,10 @@ import {
  *                     the screenshot, once taken
  *   marks, notes      markup on the screenshot and its numbered notes, in
  *                     the review's own shapes (config/review.ts)
+ *   reviewScreenId    the review screen this node was sent from, so
+ *                     publishing back updates that screen, not a new one
+ *   reviewImage       that screen's private picture address, so sending
+ *                     again copies the picture only when it changed
  *
  * No capability: it never spends anything.
  */
@@ -38,6 +42,9 @@ export const BROWSER: NodeType = {
 
 export type BrowserViewport = "desktop" | "mobile";
 
+/** A browser node shows a whole web page, so it starts page-sized. */
+export const BROWSER_NODE_SIZE = { height: 640, width: 760 } as const;
+
 export interface BrowserCapture {
   height: number;
   url: string;
@@ -50,6 +57,8 @@ export interface BrowserNodeConfig {
   marks: ReviewMark[];
   notes: ReviewPin[];
   pageUrl: string;
+  reviewImage: string;
+  reviewScreenId: string;
   sealedLogin: string;
   session: string;
   title: string;
@@ -89,6 +98,8 @@ export const browserConfigOf = (
     marks: Array.isArray(source.marks) ? (source.marks as ReviewMark[]) : [],
     notes: Array.isArray(source.notes) ? (source.notes as ReviewPin[]) : [],
     pageUrl: text(source.pageUrl, MAX_URL),
+    reviewImage: text(source.reviewImage, MAX_URL),
+    reviewScreenId: text(source.reviewScreenId, 64),
     sealedLogin: text(source.sealedLogin, MAX_SEALED_LOGIN),
     session: text(source.session, MAX_SEALED_SESSION),
     title: text(source.title, 200),
@@ -112,6 +123,8 @@ export const cleanBrowserConfig = (raw: unknown): Record<string, unknown> => {
       .filter((m): m is ReviewMark => m !== null),
     notes: read.notes.slice(0, MAX_NOTES).map(cleanPin),
     pageUrl: HTTP.test(read.pageUrl) ? read.pageUrl : "",
+    reviewImage: HTTP.test(read.reviewImage) ? read.reviewImage : "",
+    reviewScreenId: read.reviewScreenId,
     sealedLogin: read.sealedLogin,
     session: read.session,
     title: read.title,

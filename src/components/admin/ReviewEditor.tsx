@@ -32,6 +32,7 @@ import {
 import { AdminCard, AdminFrame } from "./AdminFrame";
 import { BackButton } from "./BackButton";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { ReviewBoardSync } from "./ReviewBoardSync";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
@@ -483,6 +484,11 @@ export function ReviewEditor({
               />
               {isPublished ? "Unpublish" : "Publish"}
             </Button>
+            <ReviewBoardSync
+              boardId={draft.doc.boardId}
+              latest={latest}
+              onLinked={(boardId) => setDoc({ boardId })}
+            />
             <span
               className={`text-micro-xs uppercase tracking-micro-wide ${
                 isPublished ? "text-emerald-400/70" : "text-amber-400/70"

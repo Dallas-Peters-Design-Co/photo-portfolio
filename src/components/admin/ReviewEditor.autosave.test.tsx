@@ -1,5 +1,6 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UxAudit } from "../../../config/reviewAudit.js";
 import type { ReviewRecord } from "../../services/reviewService";
@@ -58,7 +59,14 @@ const REVIEW: ReviewRecord = {
   clientEmail: null,
   clientName: "",
   createdAt: "2026-10-18T00:00:00Z",
-  doc: { closing: "", intro: "", screens: [], sections: [], summary: "" },
+  doc: {
+    boardId: null,
+    closing: "",
+    intro: "",
+    screens: [],
+    sections: [],
+    summary: "",
+  },
   feedback: [],
   hasPassword: false,
   id: "r1",
@@ -82,11 +90,13 @@ beforeEach(async () => {
   root = createRoot(host);
   await act(() =>
     root?.render(
-      <ReviewEditor
-        onClose={() => undefined}
-        onSaved={() => Promise.resolve()}
-        review={REVIEW}
-      />
+      <MemoryRouter>
+        <ReviewEditor
+          onClose={() => undefined}
+          onSaved={() => Promise.resolve()}
+          review={REVIEW}
+        />
+      </MemoryRouter>
     )
   );
 });
@@ -152,12 +162,14 @@ describe("ReviewEditor autosave", () => {
     };
     await act(() =>
       root?.render(
-        <ReviewEditor
-          key="with-image"
-          onClose={() => undefined}
-          onSaved={() => Promise.resolve()}
-          review={withImage}
-        />
+        <MemoryRouter>
+          <ReviewEditor
+            key="with-image"
+            onClose={() => undefined}
+            onSaved={() => Promise.resolve()}
+            review={withImage}
+          />
+        </MemoryRouter>
       )
     );
     const auditBtn = [...(host?.querySelectorAll("button") ?? [])].find((b) =>

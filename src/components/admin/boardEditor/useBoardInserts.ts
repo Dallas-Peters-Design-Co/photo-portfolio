@@ -14,6 +14,7 @@ import {
   DEFAULT_TEXT_WIDTH,
 } from "../../../../config/canvas.js";
 import { containedBy } from "../../../../config/graph.js";
+import { BROWSER_NODE_SIZE } from "../../../../config/nodes/browser.js";
 import type { NodeTypeId } from "../../../../config/nodeTypes.js";
 import { elementConfig } from "../../../boards/elementNode";
 import { gridLayout, readingOrder } from "../../../boards/geometry/arrange";
@@ -46,7 +47,7 @@ import { useExtensionCaptures } from "./useExtensionCaptures";
  * never a side effect of editing.
  */
 
-const BROWSER_NODE = { height: 640, width: 760 };
+const BROWSER_NODE = BROWSER_NODE_SIZE;
 
 export interface BoardInsertDeps {
   boardId: string;

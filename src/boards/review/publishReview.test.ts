@@ -3,10 +3,13 @@ import type { ReviewScreen } from "../../../config/review.js";
 import type { BoardItem } from "../../types";
 
 const get = vi.fn();
+const list = vi.fn(
+  async (): Promise<{ boardId: string; slug: string }[]> => []
+);
 const create = vi.fn(async (input: unknown) => input);
 const update = vi.fn(async (_slug: string, input: unknown) => input);
 vi.mock("../../services/reviewService", () => ({
-  reviewsApi: { create, get, update },
+  reviewsApi: { create, get, list, update },
 }));
 
 const { browserScreens, mergeScreens, publishBoardReview, reviewSlugFor } =
@@ -157,5 +160,54 @@ describe("publishBoardReview", () => {
     const doc = input.doc as { intro: string; screens: { id: string }[] };
     expect(doc.intro).toBe("Hello");
     expect(doc.screens.map((s) => s.id)).toEqual(["a", "manual"]);
+  });
+
+  it("records the link to the board on the review it creates", async () => {
+    get.mockRejectedValue(new Error("Review not found"));
+    await publishBoardReview({
+      board,
+      clientName: "",
+      items: [browser("a", 0, 0)],
+      title: "",
+    });
+    const input = create.mock.calls[0]?.[0] as { doc: { boardId: string } };
+    expect(input.doc.boardId).toBe("b1");
+  });
+
+  it("publishes to the review the board is linked to, back onto its own screens", async () => {
+    list.mockResolvedValue([
+      { boardId: "other", slug: "someone-else" },
+      { boardId: "b1", slug: "client-site-review" },
+    ]);
+    get.mockResolvedValue({
+      clientName: "Vin",
+      doc: {
+        boardId: "b1",
+        closing: "",
+        intro: "",
+        screens: [{ id: "from-review", note: "Kept" }],
+        sections: [],
+        summary: "",
+      },
+      title: "Client site",
+    });
+    const sent = browser("node-1", 0, 0);
+    (sent.config as Record<string, unknown>).reviewScreenId = "from-review";
+    await publishBoardReview({
+      board,
+      clientName: "",
+      items: [sent],
+      title: "",
+    });
+    const [slug, input] = update.mock.calls[0] as [
+      string,
+      { doc: { screens: { id: string; note: string }[] } },
+    ];
+    expect(get).toHaveBeenCalledWith("client-site-review");
+    expect(slug).toBe("client-site-review");
+    // The node updates the screen it was sent from, not a new one.
+    expect(input.doc.screens.map((s) => [s.id, s.note])).toEqual([
+      ["from-review", "Kept"],
+    ]);
   });
 });

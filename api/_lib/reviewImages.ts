@@ -1,4 +1,5 @@
-import { head, issueSignedToken, presignUrl } from "@vercel/blob";
+import { createHash } from "node:crypto";
+import { head, issueSignedToken, presignUrl, put } from "@vercel/blob";
 import type { ReviewDoc, ReviewScreen } from "../../config/review.js";
 
 /**
@@ -85,6 +86,73 @@ export const unsignDoc = async (doc: ReviewDoc): Promise<ReviewDoc> => ({
   ...doc,
   screens: await unsignScreens(doc.screens),
 });
+
+const PUBLIC_BLOB_HOST = /^[a-z0-9]+\.public\.blob\.vercel-storage\.com$/;
+const MAX_COPY_BYTES = 25 * 1024 * 1024;
+const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+/**
+ * A public Blob picture copied into the private review store; its address
+ * there, or the original when the copy cannot be made.
+ *
+ * A board's pictures are public (the canvas has to read them), so a screen
+ * published from a board, or captured or uploaded the old way, arrives with
+ * a public address. The copy is named from that address, so saving the same
+ * picture again finds the copy already there instead of making another.
+ */
+const copyToPrivate = async (url: string, token: string): Promise<string> => {
+  const parsed = parse(url);
+  if (!(parsed?.protocol === "https:" && PUBLIC_BLOB_HOST.test(parsed.host))) {
+    return url;
+  }
+  const key = createHash("sha256").update(url).digest("hex").slice(0, 40);
+  // No extension in the name, so the copy can be looked for before the
+  // picture is downloaded; the stored content type says what it is.
+  const pathname = `reviews/copied/${key}`;
+  try {
+    const existing = await head(pathname, { token }).catch(() => null);
+    if (existing) {
+      return existing.url;
+    }
+    const res = await fetch(url, { redirect: "error" });
+    const type = res.headers.get("content-type")?.split(";")[0]?.trim() ?? "";
+    if (!(res.ok && IMAGE_TYPES.has(type))) {
+      return url;
+    }
+    const bytes = await res.arrayBuffer();
+    if (bytes.byteLength > MAX_COPY_BYTES) {
+      return url;
+    }
+    const blob = await put(pathname, Buffer.from(bytes), {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType: type,
+      token,
+    });
+    return blob.url;
+  } catch (e) {
+    console.error("[review images] copy failed", e);
+    return url;
+  }
+};
+
+/**
+ * A review doc as it is stored: signatures stripped, and every public
+ * picture copied into the private store, so a review's pictures stay
+ * private however they arrived. Sites without the store keep what they had.
+ */
+export const storeDoc = async (doc: ReviewDoc): Promise<ReviewDoc> => {
+  const plain = await unsignDoc(doc);
+  const token = reviewBlobToken();
+  if (!token) {
+    return plain;
+  }
+  return {
+    ...plain,
+    screens: await mapImages(plain.screens, (url) => copyToPrivate(url, token)),
+  };
+};
 
 /**
  * Screens with every picture from the private store as a signed link that

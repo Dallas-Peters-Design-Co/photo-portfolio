@@ -14,6 +14,8 @@ import { keepPass, passHeaders } from "./reviewPass";
 /** The reviews client, beside proposalService for the same reason it exists. */
 
 export interface ReviewSummary {
+  /** The board it is synced with, if any (ReviewDoc.boardId). */
+  boardId: string | null;
   brand: ProposalBrand | null;
   brandKitId: string | null;
   clientEmail: string | null;
@@ -28,7 +30,8 @@ export interface ReviewSummary {
   updatedAt: string;
 }
 
-export type ReviewRecord = Omit<ReviewSummary, "counts"> & {
+// The board link travels in the doc (doc.boardId) on a full record.
+export type ReviewRecord = Omit<ReviewSummary, "boardId" | "counts"> & {
   doc: ReviewDoc;
   /** What the client has said on the review page. */
   feedback: ReviewFeedback[];

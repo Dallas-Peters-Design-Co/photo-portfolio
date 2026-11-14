@@ -56,6 +56,8 @@ export interface ReviewDto {
 }
 
 export type ReviewSummaryDto = Omit<ReviewDto, "doc" | "feedback"> & {
+  /** The board it is synced with, from its doc; null when there is none. */
+  boardId: string | null;
   /** How many screens and notes it holds, for the list. */
   counts: { notes: number; screens: number };
 };
@@ -96,6 +98,7 @@ export const rowToReviewSummary = (row: ReviewRow): ReviewSummaryDto => {
   const { doc, feedback: _feedback, ...rest } = rowToReviewDto(row);
   return {
     ...rest,
+    boardId: doc.boardId,
     counts: {
       notes: doc.screens.reduce((n, s) => n + s.pins.length, 0),
       screens: doc.screens.length,

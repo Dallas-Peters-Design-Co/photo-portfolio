@@ -3,6 +3,7 @@ import { type FormEvent, useState } from "react";
 import { toast } from "sonner";
 import {
   countCaptured,
+  linkedReviewSlug,
   publishBoardReview,
   reviewSlugFor,
 } from "../../../boards/review/publishReview";
@@ -43,12 +44,15 @@ export function PublishReview({
   const [removePassword, setRemovePassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [published, setPublished] = useState<ReviewRecord | null>(null);
+  // The review this board is linked to, once looked up; see linkedReviewSlug.
+  const [linkedSlug, setLinkedSlug] = useState<string | null>(null);
   const count = countCaptured(items);
 
   if (!board || count === 0) {
     return null;
   }
-  const slug = reviewSlugFor(board);
+  const slug =
+    published?.slug ?? existing?.slug ?? linkedSlug ?? reviewSlugFor(board);
   const link = `${window.location.origin}/review/${slug}`;
 
   const start = async () => {
@@ -56,7 +60,9 @@ export function PublishReview({
     setPublished(null);
     setPassword("");
     setRemovePassword(false);
-    const found = await reviewsApi.get(slug).catch(() => null);
+    const target = await linkedReviewSlug(board);
+    setLinkedSlug(target);
+    const found = await reviewsApi.get(target).catch(() => null);
     setExisting(found);
     setTitle(found?.title ?? `${board.title} review`);
     setClientName(found?.clientName ?? "");

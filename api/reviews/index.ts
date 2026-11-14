@@ -12,7 +12,7 @@ import { sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { cleanEmail, normalizeProposalSlug } from "../_lib/proposals.js";
 import { keepPrivate, passwordProblem } from "../_lib/reviewAccess.js";
-import { signDoc, unsignDoc } from "../_lib/reviewImages.js";
+import { signDoc, storeDoc } from "../_lib/reviewImages.js";
 import {
   isReviewStatus,
   REVIEW_SELECT,
@@ -90,7 +90,7 @@ async function create(
     return res.status(400).json({ error: weak });
   }
   const doc = {
-    ...(await unsignDoc(sanitizeReviewDoc(body.doc ?? DEFAULT_REVIEW_DOC))),
+    ...(await storeDoc(sanitizeReviewDoc(body.doc ?? DEFAULT_REVIEW_DOC))),
     ...keepPrivate(null, password),
   };
   const brandKitId =

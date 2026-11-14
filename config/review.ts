@@ -100,6 +100,12 @@ export interface ReviewSection {
 }
 
 export interface ReviewDoc {
+  /**
+   * The board this review is synced with, or null. Set by "Send to board" in
+   * the review editor or by publishing from a board; both directions then
+   * find each other through it (src/boards/review/).
+   */
+  boardId: string | null;
   closing: RichText;
   intro: RichText;
   screens: ReviewScreen[];
@@ -110,6 +116,7 @@ export interface ReviewDoc {
 }
 
 export const DEFAULT_REVIEW_DOC: ReviewDoc = {
+  boardId: null,
   closing:
     "Happy to walk through any of this on a call. If you'd like me to take on the fixes, I'll turn the notes into a scoped proposal.",
   intro:
@@ -121,6 +128,8 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
 
 export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
 const MAX_SCREENS = 40;
+const BOARD_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_SECTIONS = 12;
 const MAX_PINS = 60;
 const MAX_MARKS = 80;
@@ -236,6 +245,10 @@ const cleanSection = (v: unknown): ReviewSection => {
 export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
   const raw = (value ?? {}) as Partial<ReviewDoc>;
   return {
+    boardId:
+      typeof raw.boardId === "string" && BOARD_ID.test(raw.boardId)
+        ? raw.boardId
+        : null,
     closing: cleanRich(raw.closing, MAX_DOC_BYTES / 4),
     intro: cleanRich(raw.intro, MAX_DOC_BYTES / 4),
     screens: (Array.isArray(raw.screens) ? raw.screens : [])

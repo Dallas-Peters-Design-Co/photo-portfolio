@@ -16,7 +16,7 @@ import {
   passwordMatches,
   passwordProblem,
 } from "../_lib/reviewAccess.js";
-import { signDoc, unsignDoc } from "../_lib/reviewImages.js";
+import { signDoc, storeDoc } from "../_lib/reviewImages.js";
 import {
   isReviewStatus,
   REVIEW_SELECT,
@@ -146,7 +146,7 @@ const save = async (
   // The doc arrives without the password or the client's comments, which
   // are never sent out; carry both over from what's stored.
   const doc = {
-    ...(await unsignDoc(patch.doc)),
+    ...(await storeDoc(patch.doc)),
     ...keepPrivate(row.doc, body.password),
   };
   if (patch.slug !== row.slug) {
