@@ -2,7 +2,7 @@ import "../../../index.css";
 import "../Studio.css";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { page } from "vitest/browser";
 import { hexToOklch } from "../../../lib/oklch";
 import {
@@ -18,6 +18,9 @@ vi.mock("../../brand/ActiveBrand", () => ({
   useActiveBrand: () => null,
   useBrandSwatches: () => null,
 }));
+
+// The builder keeps its palette in the browser: each test starts clean.
+beforeEach(() => localStorage.removeItem("studio:scheme:none"));
 
 const HEX = /^#[0-9a-f]{6}$/;
 const ANCHOR = "#2f7cf6";
@@ -306,5 +309,32 @@ describe("dialling a palette in", () => {
     );
     expect(hexes()).toEqual(before);
     done();
+  });
+
+  it("is as it was left after going to another tool and back", async () => {
+    const first = await mount();
+    dragTo(first.host, "Colour 3 on the hue wheel", 40);
+    act(() =>
+      (
+        [...first.host.querySelectorAll("[role=radio]")].find(
+          (b) => b.textContent === "Companion"
+        ) as HTMLElement
+      ).click()
+    );
+    const left = first.hexes();
+    first.done();
+    const again = await mount();
+    expect(again.hexes()).toEqual(left);
+    // Start over is the way back to a new palette.
+    act(() =>
+      (
+        [...again.host.querySelectorAll("button")].find((b) =>
+          b.textContent?.includes("Start over")
+        ) as HTMLElement
+      ).click()
+    );
+    expect(again.hexes()[0]).toBe(ANCHOR);
+    expect(again.hexes()).not.toEqual(left);
+    again.done();
   });
 });

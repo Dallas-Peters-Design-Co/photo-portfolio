@@ -261,7 +261,8 @@ export const buildScheme = (options: SchemeOptions): string[] => {
   if (!base) {
     return [];
   }
-  const count = Math.round(clamp(options.count, 2, 9));
+  // The slider stops at 9; a loaded brand palette can be longer.
+  const count = Math.round(clamp(options.count, 2, 16));
   const isRamp =
     options.model === "sequential" || options.model === "diverging";
   let colours: Oklch[];

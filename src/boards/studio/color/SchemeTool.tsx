@@ -1,10 +1,12 @@
 import {
   Copy,
   Download,
+  FolderOpen,
   Link2,
   Lock,
   LockOpen,
   Plus,
+  RotateCcw,
   Save,
 } from "lucide-react";
 import { useState } from "react";
@@ -39,8 +41,23 @@ const cssOf = (colors: string[]) =>
     .join("\n")}\n}`;
 
 export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
+  const { kit } = useKitPalette();
+  // Kept per brand kit, so each brand's palette in progress is its own; and
+  // a fresh builder per kit, so it opens on that kit's (the kit can arrive
+  // a moment after the Studio does).
+  const key = `studio:scheme:${kit?.id ?? "none"}`;
+  return <SchemeBuilder key={key} onAdd={onAdd} storageKey={key} />;
+}
+
+function SchemeBuilder({
+  onAdd,
+  storageKey,
+}: {
+  onAdd: (file: File) => void;
+  storageKey: string;
+}) {
   const { entries, kit, save, saving } = useKitPalette();
-  const scheme = useScheme(entries[0]?.value);
+  const scheme = useScheme(entries[0]?.value, storageKey);
   const { anchorAt, colors, locked, selected, settings } = scheme;
   const [vision, setVision] = useState<Vision>("none");
 
@@ -102,7 +119,12 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
               {i === anchorAt ? (
                 <span className="studio-scheme__anchor">Anchor</span>
               ) : null}
-              {scheme.held(i) ? (
+              {scheme.base?.[i]?.name ? (
+                <span className="studio-scheme__by-hand">
+                  {scheme.base[i]?.name}
+                </span>
+              ) : null}
+              {scheme.held(i) && !scheme.base?.[i]?.name ? (
                 <span className="studio-scheme__by-hand">By hand</span>
               ) : null}
             </div>
@@ -175,13 +197,31 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
           <button
             className="studio__button studio__button--primary"
             disabled={saving}
-            onClick={() => void save(colors)}
+            onClick={() => void save(colors, scheme.base)}
             title="Saves a new version of the kit; the old palette stays in its history"
             type="button"
           >
             <Save size={14} /> Save to {kit.name}
           </button>
         ) : null}
+        {entries.length > 0 ? (
+          <button
+            className="studio__button"
+            onClick={() => scheme.loadBrand(entries)}
+            title="Loads the brand's own colours to edit; Save puts them back with their names"
+            type="button"
+          >
+            <FolderOpen size={14} /> Load brand colours
+          </button>
+        ) : null}
+        <button
+          className="studio__button"
+          onClick={scheme.startOver}
+          title="A new palette from the defaults"
+          type="button"
+        >
+          <RotateCcw size={14} /> Start over
+        </button>
         <button
           className="studio__button"
           onClick={() => void add()}

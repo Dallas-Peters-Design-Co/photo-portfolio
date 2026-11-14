@@ -103,7 +103,7 @@ export function SchemeControls({
       <p className="studio__blurb">{model?.blurb}</p>
       <Slider
         label="Colour count"
-        max={9}
+        max={Math.max(9, settings.count)}
         min={2}
         onChange={(count) => onChange({ count })}
         value={settings.count}
