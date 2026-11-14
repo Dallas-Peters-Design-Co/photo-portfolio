@@ -5,7 +5,7 @@ import {
 } from "../../config/nodes/bundle.js";
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
 import { UUID_RE } from "./boardItemParse.js";
-import { componentOf } from "./layerConfig.js";
+import { componentOf, parseStudioRecipe } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
 
 /**
@@ -408,6 +408,8 @@ export const MAX_DRAW_POINTS = 4000;
  * is chosen by whoever is drawing, and an unbounded array of coordinates is an
  * unbounded row.
  */
+const BORDER_SIDES = ["top", "right", "bottom", "left"];
+
 export const parseDrawingConfig = (
   raw: unknown
 ): Record<string, unknown> | null => {
@@ -441,6 +443,22 @@ export const parseDrawingConfig = (
   }
   if (typeof o.innerRatio === "number" && Number.isFinite(o.innerRatio)) {
     config.innerRatio = clamp(o.innerRatio, 0.1, 0.95);
+  }
+
+  // A box's border on only some sides, and a Studio picture as the fill with
+  // how it was made (src/boards/drawing/shapePaint.ts).
+  if (Array.isArray(o.borderSides)) {
+    config.borderSides = BORDER_SIDES.filter((s) =>
+      (o.borderSides as unknown[]).includes(s)
+    );
+  }
+  const fillImage = text(o.fillImage, 2000);
+  if (fillImage?.startsWith("https://")) {
+    config.fillImage = fillImage;
+    const studio = parseStudioRecipe(o.studio);
+    if (studio) {
+      config.studio = studio;
+    }
   }
 
   Object.assign(config, componentOf(o));

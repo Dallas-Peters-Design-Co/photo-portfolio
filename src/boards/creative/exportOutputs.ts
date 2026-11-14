@@ -3,8 +3,8 @@ import { zip } from "../../lib/zip";
 import type { BoardItem } from "../../types";
 import { jpegPage, type PdfPage, slidesPdf } from "../io/slidesPdf";
 import { layersOf } from "./creativeModel";
-import { escapeHtml } from "./exportHtml5";
 import { exportWidthFor, renderCreative } from "./exportPng";
+import { escapeHtml } from "./htmlBits";
 import { withTextGhosts } from "./textGhosts";
 
 /**

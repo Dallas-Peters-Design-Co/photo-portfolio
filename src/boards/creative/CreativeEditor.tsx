@@ -90,8 +90,14 @@ export function CreativeEditor({
   const [showBrand, setShowBrand] = useState(false);
   const [showGenerate, setShowGenerate] = useState(false);
   const [overlay, setOverlay] = useState<"palette" | "shortcuts" | null>(null);
-  const { editId, retarget, setStudio, studio, studioEditorFor } =
-    useFrameStudio();
+  const {
+    editId,
+    fillWithStudio,
+    retarget,
+    setStudio,
+    studio,
+    studioEditorFor,
+  } = useFrameStudio();
   const textEls = useRef(new Map<string, HTMLElement>());
   const latestItems = useRef(items);
   latestItems.current = items;
@@ -342,6 +348,7 @@ export function CreativeEditor({
             onDelete={() => cmd.removeMany([selected.id])}
             onDuplicate={() => cmd.copyMany([selected])}
             onEditInStudio={studioEditorFor(selected)}
+            onFillFromStudio={() => fillWithStudio(selected)}
             onPatch={(next) => patch(selected.id, next)}
             onReorder={(how) => cmd.order(selected.id, how)}
             onToBoard={() => cmd.toBoard([selected])}
@@ -394,6 +401,20 @@ export function CreativeEditor({
           add: cmd.add,
           applyType: cmd.applyTypeScale,
           editId,
+          fillShape: (id, url, made) => {
+            // The latest shape: the picture uploads first, and the shape may
+            // have been changed while it did.
+            const shape = latestItems.current.find((i) => i.id === id);
+            if (shape) {
+              patch(id, {
+                config: {
+                  ...(shape.config ?? {}),
+                  fillImage: url,
+                  studio: made,
+                },
+              });
+            }
+          },
           frame,
           items,
           layers,

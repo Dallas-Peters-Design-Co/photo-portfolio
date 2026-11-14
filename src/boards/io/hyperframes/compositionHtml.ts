@@ -1,4 +1,4 @@
-import { escapeHtml } from "../../creative/exportHtml5";
+import { escapeHtml } from "../../creative/htmlBits";
 import type { RuntimeSpec } from "./runtime";
 
 /**

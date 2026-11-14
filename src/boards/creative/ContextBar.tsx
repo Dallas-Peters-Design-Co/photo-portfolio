@@ -27,16 +27,14 @@ import { DISPLAY_FONTS } from "../../../config/theme";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ColorWell } from "../ColorWell";
-import {
-  type DrawingConfig,
-  isDrawingConfig,
-  NO_FILL,
-} from "../drawing/drawing";
+import { isDrawingConfig } from "../drawing/drawing";
+import { Field, num } from "./barFields";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
 import { ImageControls } from "./ImageControls";
 import { opacityOf, withOpacity } from "./layerOpacity";
 import { OpacityField } from "./OpacityField";
 import { normalizeAngle, rotationOf } from "./rotate";
+import { ShapeControls } from "./ShapeControls";
 import { TextEffects } from "./TextEffects";
 import { TextFitControl } from "./TextFitControl";
 
@@ -52,20 +50,12 @@ interface ContextBarProps {
   onDuplicate: () => void;
   /** Opens a picture made in the Studio there again, to change it. */
   onEditInStudio?: () => void;
+  /** Opens the Studio to fill the selected shape. */
+  onFillFromStudio?: () => void;
   onPatch: (patch: Partial<BoardItem>) => void;
   onReorder: (how: Reorder) => void;
   /** Off the frame and back onto the board. */
   onToBoard: () => void;
-}
-
-function Field({ children, label }: { children: ReactNode; label: string }) {
-  return (
-    // biome-ignore lint/a11y/noLabelWithoutControl: the control is passed in as children
-    <label className="creative__field">
-      <span>{label}</span>
-      {children}
-    </label>
-  );
 }
 
 function IconButton({
@@ -97,11 +87,6 @@ const ALIGN_ICON = {
   center: <AlignCenterVertical size={15} />,
   left: <AlignStartVertical size={15} />,
   right: <AlignEndVertical size={15} />,
-};
-
-const num = (value: string, fallback: number): number => {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : fallback;
 };
 
 export function TextControls({
@@ -267,88 +252,13 @@ export function TextControls({
   );
 }
 
-export function ShapeControls({
-  config,
-  onPatch,
-}: {
-  config: DrawingConfig;
-  onPatch: (patch: Partial<BoardItem>) => void;
-}) {
-  const set = (next: Partial<DrawingConfig>) =>
-    onPatch({
-      config: { ...config, ...next } as unknown as Record<string, unknown>,
-    });
-  const isBox = config.tool === "rect" || config.tool === "rounded";
-  return (
-    <>
-      <ColorWell
-        label="Fill"
-        onChange={(fill) => set({ fill })}
-        value={config.fill ?? NO_FILL}
-      />
-      <ColorWell
-        label="Outline"
-        onChange={(stroke) => set({ stroke })}
-        value={config.stroke}
-      />
-      <Field label="Outline">
-        <input
-          className="creative__input creative__input--num"
-          max={200}
-          min={0}
-          onChange={(e) => set({ strokeWidth: num(e.target.value, 0) })}
-          type="number"
-          value={config.strokeWidth}
-        />
-      </Field>
-      {config.tool === "polygon" || config.tool === "star" ? (
-        <Field label={config.tool === "star" ? "Points" : "Sides"}>
-          <input
-            className="creative__input creative__input--num"
-            max={config.tool === "star" ? 24 : 12}
-            min={3}
-            onChange={(e) => set({ sides: num(e.target.value, 5) })}
-            type="number"
-            value={config.sides ?? (config.tool === "star" ? 5 : 6)}
-          />
-        </Field>
-      ) : null}
-      {config.tool === "star" ? (
-        <Field label="Inner">
-          <input
-            className="creative__range"
-            max={0.95}
-            min={0.1}
-            onChange={(e) => set({ innerRatio: num(e.target.value, 0.45) })}
-            step={0.05}
-            type="range"
-            value={config.innerRatio ?? 0.45}
-          />
-        </Field>
-      ) : null}
-      {isBox ? (
-        <Field label="Corners">
-          <input
-            className="creative__input creative__input--num"
-            min={0}
-            onChange={(e) =>
-              set({ radius: num(e.target.value, 0), tool: "rounded" })
-            }
-            type="number"
-            value={config.radius ?? (config.tool === "rounded" ? 18 : 0)}
-          />
-        </Field>
-      ) : null}
-    </>
-  );
-}
-
 export function ContextBar({
   frame,
   item,
   onDelete,
   onDuplicate,
   onEditInStudio,
+  onFillFromStudio,
   onPatch,
   onReorder,
   onToBoard,
@@ -364,9 +274,13 @@ export function ContextBar({
         </>
       ) : null}
       {kind === "shape" && isDrawingConfig(item.config) ? (
-        <ShapeControls config={item.config} onPatch={onPatch} />
+        <ShapeControls
+          config={item.config}
+          onFillFromStudio={onFillFromStudio}
+          onPatch={onPatch}
+        />
       ) : null}
-      {onEditInStudio ? (
+      {onEditInStudio && kind !== "shape" ? (
         <button
           className="creative__icon creative__icon--label"
           onClick={onEditInStudio}

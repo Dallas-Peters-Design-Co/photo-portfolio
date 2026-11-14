@@ -3,12 +3,13 @@ import { createRoot } from "react-dom/client";
 import { describe, expect, it } from "vitest";
 import { markFromStroke } from "../canvas/markFromStroke";
 import { newShape } from "../creative/creativeModel";
-import { shapeHtml } from "../creative/exportHtml5";
+import { shapeHtml } from "../creative/shapeHtml";
 import { DrawingView } from "./DrawingView";
 import type { DrawingConfig } from "./drawing";
 import { PATH_TOOLS, shapeGeometry } from "./shapes";
 
 const COMMANDS = /[ML]/;
+const PATTERN_FILL = /^url\(#shape-fill-/;
 const style = { fill: "#ff0000", stroke: "#111111", strokeWidth: 4 };
 const config = (
   tool: DrawingConfig["tool"],
@@ -137,5 +138,79 @@ describe("path shapes", () => {
     expect(cfg.stroke).toBe("#c63b2e");
     expect(cfg.fill).toBeNull();
     expect(item.height).toBeLessThan(item.width);
+  });
+});
+
+describe("a shape's border sides and Studio fill", () => {
+  const banner = config("rect", {
+    borderSides: ["bottom"],
+    fill: "#001a1f",
+    stroke: "#2f7cf6",
+    strokeWidth: 24,
+  });
+
+  const mount = (cfg: DrawingConfig) => {
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() =>
+      root.render(<DrawingView config={cfg} height={396} width={1584} />)
+    );
+    return {
+      done: () => {
+        act(() => root.unmount());
+        host.remove();
+      },
+      host,
+    };
+  };
+
+  it("lays a bottom border inside the box, which keeps its size", () => {
+    const { done, host } = mount(banner);
+    const bands = host.querySelectorAll("[data-border] rect");
+    expect(bands).toHaveLength(1);
+    const band = bands[0] as SVGRectElement;
+    expect([band.getAttribute("y"), band.getAttribute("height")]).toEqual([
+      "372",
+      "24",
+    ]);
+    // The fill runs to the box's edges; there's no all-round outline.
+    const fill = host.querySelector("svg > rect") as SVGRectElement;
+    expect(fill.getAttribute("height")).toBe("396");
+    expect(fill.getAttribute("stroke")).toBe("none");
+    done();
+  });
+
+  it("fills with a Studio picture over the colour", () => {
+    const { done, host } = mount({
+      ...banner,
+      fillImage: "https://blob.example/grad.png",
+    });
+    expect(host.querySelector("pattern image")?.getAttribute("href")).toBe(
+      "https://blob.example/grad.png"
+    );
+    const fills = [...host.querySelectorAll("svg > rect")].map((r) =>
+      r.getAttribute("fill")
+    );
+    expect(fills[0]).toBe("#001a1f");
+    expect(fills[1]).toMatch(PATTERN_FILL);
+    done();
+  });
+
+  it("exports the same to HTML5: one inset shadow per side, the picture as a cover", () => {
+    const place = { height: "396px", left: "0px", top: "0px", width: "1584px" };
+    const html = shapeHtml(
+      { ...banner, fillImage: "https://blob.example/grad.png" },
+      place,
+      1,
+      new Map([["https://blob.example/grad.png", "images/image-1.png"]])
+    );
+    expect(html).toContain("box-shadow:inset 0 -24px 0 0 #2f7cf6");
+    expect(html).toContain("url('images/image-1.png')");
+    expect(html).toContain("background-size:cover");
+    // All four sides is the plain border.
+    expect(shapeHtml(config("rect"), place, 1)).toContain(
+      "box-shadow:inset 0 0 0 4px #111111"
+    );
   });
 });

@@ -5,7 +5,7 @@ import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { PaletteTool } from "./color/PaletteTool";
 import { RampTool } from "./color/RampTool";
-import { ImageToolView } from "./ImageToolView";
+import { ImageToolView, type StudioEditing } from "./ImageToolView";
 import { lastValues, rememberValues } from "./presets";
 import {
   DEFAULT_PALETTE,
@@ -58,6 +58,23 @@ const lastOf = (tool: string, params: StudioParam[]) => {
   return last ? { ...defaultsOf(params), ...last } : undefined;
 };
 
+/**
+ * What a tool is working on: a shape's fill whichever tool fills it (with
+ * the recipe only for the tool that made it), a placed picture only in the
+ * tool that made it.
+ */
+const editingFor = (
+  editing: StudioEditing | undefined,
+  tool: string
+): StudioEditing | undefined => {
+  if (editing?.fill) {
+    return editing.recipe?.tool === tool
+      ? editing
+      : { ...editing, recipe: null };
+  }
+  return editing?.recipe?.tool === tool ? editing : undefined;
+};
+
 export function StudioPanel({
   editing,
   frame,
@@ -65,11 +82,8 @@ export function StudioPanel({
   onAdd,
   onClose,
 }: {
-  /** A placed Studio picture opened to be changed (its layer's recipe). */
-  editing?: {
-    onReplace: (file: File, recipe: StudioRecipe) => void;
-    recipe: StudioRecipe;
-  };
+  /** A placed Studio picture opened to be changed, or a shape to fill. */
+  editing?: StudioEditing;
   frame?: StudioFrame;
   initialTool: string;
   /**
@@ -87,7 +101,7 @@ export function StudioPanel({
   const size = useStudioSize(drag.pin);
   const [toolId, setToolId] = useState(initialTool);
   const [byTool, setByTool] = useState<Record<string, StudioValues>>(() =>
-    editing ? { [editing.recipe.tool]: editing.recipe.values } : {}
+    editing?.recipe ? { [editing.recipe.tool]: editing.recipe.values } : {}
   );
   useEffect(() => setToolId(initialTool), [initialTool]);
 
@@ -116,7 +130,7 @@ export function StudioPanel({
     const tool = imageTool ?? IMAGE_TOOLS[0];
     return tool ? (
       <ImageToolView
-        editing={editing?.recipe.tool === tool.id ? editing : undefined}
+        editing={editingFor(editing, tool.id)}
         frame={frame}
         key={tool.id}
         onAdd={onAdd}

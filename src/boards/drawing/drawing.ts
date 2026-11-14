@@ -49,7 +49,12 @@ export interface Point {
 }
 
 export interface DrawingConfig {
+  /** Rect and rounded only: the sides the border runs along (shapePaint.ts);
+   *  absent is all four. */
+  borderSides?: ("top" | "right" | "bottom" | "left")[];
   fill: string | null;
+  /** A Studio picture filling the shape, over the fill colour. */
+  fillImage?: string;
   /** Star only: the inner points' distance from the centre, 0.1–0.95. */
   innerRatio?: number;
   /** 0–1; absent is fully opaque. */

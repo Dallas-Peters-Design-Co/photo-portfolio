@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
 import { recipeOf, type StudioRecipe } from "../studio/types";
 import { exportWidthFor, renderCreative } from "./exportPng";
-import { replaceStudioLayer, studioLayer } from "./studioLayer";
+import {
+  replaceStudioLayer,
+  studioLayer,
+  uploadStudioFile,
+} from "./studioLayer";
 
 /**
  * The Studio as the frame editor uses it: which tool is open, and the placed
@@ -28,12 +33,24 @@ export const useFrameStudio = () => {
       setEditId(layer.id);
     }
   };
+  /** The Studio, opened to fill a shape (or change its fill). */
+  const fillWithStudio = (shape: BoardItem) => {
+    setStudio(recipeOf(shape.config)?.tool ?? "gradient");
+    setEditId(shape.id);
+  };
   /** The layer being edited became a new one (replaceStudioLayer). */
   const retarget = (id: string) => setEditId(id);
   /** "Edit in Studio" for a layer, when it was made in the Studio. */
   const studioEditorFor = (layer: BoardItem) =>
     recipeOf(layer.config) ? () => editInStudio(layer) : undefined;
-  return { editId, retarget, setStudio, studio, studioEditorFor };
+  return {
+    editId,
+    fillWithStudio,
+    retarget,
+    setStudio,
+    studio,
+    studioEditorFor,
+  };
 };
 
 /** A frame's size in pixels when its name gives none: its export size. */
@@ -56,11 +73,55 @@ const boundsOf = (layers: BoardItem[]) => {
   };
 };
 
+/**
+ * What the Studio works on when opened on a layer: a shape's fill (made at
+ * the shape's own size in the frame's pixels), or a placed Studio picture to
+ * swap for a new one.
+ */
+const editingOf = (
+  target: BoardItem,
+  recipe: StudioRecipe | null,
+  frame: BoardItem,
+  size: { h: number; w: number } | null,
+  fillShape: (id: string, url: string, recipe: StudioRecipe) => void,
+  swap: (oldId: string, next: BoardItem) => void
+) => {
+  if (target.kind === "drawing") {
+    const k = (size?.w ?? frame.width) / frame.width;
+    return {
+      fill: true,
+      layerId: target.id,
+      onReplace: (file: File, next: StudioRecipe) =>
+        void uploadStudioFile(file)
+          .then((url) => fillShape(target.id, url, next))
+          .catch((e: unknown) =>
+            toast.error(
+              e instanceof Error ? e.message : "Couldn't fill the shape"
+            )
+          ),
+      recipe,
+      size: {
+        h: Math.max(1, Math.round(target.height * k)),
+        w: Math.max(1, Math.round(target.width * k)),
+      },
+    };
+  }
+  return recipe
+    ? {
+        layerId: target.id,
+        onReplace: (file: File, next: StudioRecipe) =>
+          void replaceStudioLayer(file, next, target, swap),
+        recipe,
+      }
+    : undefined;
+};
+
 /** What EditorOverlays needs to show the Studio for this frame. */
 export const frameStudioProps = ({
   add,
   applyType,
   editId,
+  fillShape,
   frame,
   items,
   layers,
@@ -74,6 +135,8 @@ export const frameStudioProps = ({
   add: (item: BoardItem) => void;
   applyType: (scale: TypeScale) => void;
   editId: string | null;
+  /** Fills a shape with an uploaded Studio picture, and how it was made. */
+  fillShape: (id: string, url: string, recipe: StudioRecipe) => void;
   frame: BoardItem;
   items: BoardItem[];
   layers: BoardItem[];
@@ -128,15 +191,9 @@ export const frameStudioProps = ({
       ? () => renderCreative(frame, picked, width, textElementFor)
       : undefined;
   return {
-    editing:
-      target && recipe
-        ? {
-            layerId: target.id,
-            onReplace: (file: File, next: StudioRecipe) =>
-              void replaceStudioLayer(file, next, target, swap),
-            recipe,
-          }
-        : undefined,
+    editing: target
+      ? editingOf(target, recipe, frame, size, fillShape, swap)
+      : undefined,
     frame: {
       name,
       onApplyType: applyType,

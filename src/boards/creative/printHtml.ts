@@ -4,7 +4,6 @@ import { componentById } from "../components/store";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import {
-  escapeHtml,
   FONT_URL,
   fetchBytes,
   firstFamily,
@@ -14,6 +13,7 @@ import {
   placeOf,
 } from "./exportHtml5";
 import { bleedBox, bleeds } from "./exportPng";
+import { escapeHtml } from "./htmlBits";
 import { rotationOf } from "./rotate";
 import { lookOf, type TextLook } from "./textLook";
 

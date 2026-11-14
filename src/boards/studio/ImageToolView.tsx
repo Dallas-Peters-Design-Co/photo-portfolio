@@ -3,6 +3,7 @@ import {
   Copy,
   Download,
   ImageIcon,
+  PaintBucket,
   Plus,
   RefreshCw,
   Shuffle,
@@ -50,6 +51,60 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
     img.src = url;
   });
 
+/**
+ * What the Studio is working on in place of adding a picture: a placed
+ * Studio picture being changed, or a shape being filled (fill), which may
+ * not have a recipe yet and takes a picture from any tool.
+ */
+export interface StudioEditing {
+  /** A shape's fill: every tool fills it, and there's no background button. */
+  fill?: boolean;
+  onReplace: (file: File, recipe: StudioRecipe) => void;
+  recipe: StudioRecipe | null;
+  /** Offered first among the sizes: the shape's own, in the frame's pixels. */
+  size?: { h: number; w: number };
+}
+
+/** The sizes on offer: the shape's own and the frame's first, when there. */
+const offeredSizes = (
+  editing: StudioEditing | undefined,
+  frame: StudioFrame | undefined
+) => {
+  const own = (label: string, at?: { h: number; w: number } | null) =>
+    at ? [{ h: at.h, label: `${label} ${at.w}×${at.h}`, w: at.w }] : [];
+  return [
+    ...own("This shape", editing?.size),
+    ...own("This frame", frame?.size),
+    ...SIZES,
+  ];
+};
+
+/** What the main button says. */
+function PrimaryLabel({
+  editing,
+  where,
+}: {
+  editing?: StudioEditing;
+  where: string;
+}) {
+  if (editing?.fill) {
+    return (
+      <>
+        <PaintBucket size={14} /> Fill the shape
+      </>
+    );
+  }
+  return editing ? (
+    <>
+      <RefreshCw size={14} /> Update the layer
+    </>
+  ) : (
+    <>
+      <Plus size={14} /> Add to {where}
+    </>
+  );
+}
+
 export function ImageToolView({
   editing,
   frame,
@@ -62,10 +117,7 @@ export function ImageToolView({
   values: stored,
 }: {
   /** A placed picture being changed: its settings, and where the result goes. */
-  editing?: {
-    onReplace: (file: File, recipe: StudioRecipe) => void;
-    recipe: StudioRecipe;
-  };
+  editing?: StudioEditing;
   /** Working for a frame in the editor: its size first, and a background button. */
   frame?: StudioFrame;
   onAdd: (file: File, recipe: StudioRecipe) => void;
@@ -77,25 +129,17 @@ export function ImageToolView({
   values: StudioValues | undefined;
 }) {
   const values = stored ?? defaultsOf(tool.params);
-  const offered = frame?.size
-    ? [
-        {
-          h: frame.size.h,
-          label: `This frame ${frame.size.w}×${frame.size.h}`,
-          w: frame.size.w,
-        },
-        ...SIZES,
-      ]
-    : SIZES;
-  const sizes = sizesWith(offered, editing?.recipe);
+  const offered = offeredSizes(editing, frame);
+  const recipeNow = editing?.recipe ?? undefined;
+  const sizes = sizesWith(offered, recipeNow);
   const [sizeIndex, setSizeIndex] = useState(() =>
-    sizeIndexFor(sizes, editing?.recipe)
+    sizeIndexFor(sizes, recipeNow)
   );
   const size = sizes[sizeIndex] ?? SIZES[0];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   // Where the picture came from, so the placed layer can be edited later.
   const [source, setSource] = useState<string | null>(
-    editing?.recipe.image ?? null
+    editing?.recipe?.image ?? null
   );
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   // Picked as the selection in place: it goes back over the frame exactly.
@@ -104,7 +148,7 @@ export function ImageToolView({
 
   // Editing: the picture it was made from, fetched to a local copy so its
   // pixels can be read (ImagePick does the same).
-  const startImage = editing?.recipe.image;
+  const startImage = editing?.recipe?.image;
   useEffect(() => {
     if (!startImage) {
       return;
@@ -172,6 +216,32 @@ export function ImageToolView({
   };
 
   const where = frame ? "frame" : "board";
+  /** Where a made picture goes, and saying so. */
+  const place = (file: File, recipe: StudioRecipe, asBackground: boolean) => {
+    if (editing && !asBackground) {
+      editing.onReplace(file, recipe);
+      toast.success(
+        editing.fill ? `${tool.name} fills the shape` : `${tool.name} updated`
+      );
+      return;
+    }
+    if (asBackground && frame) {
+      frame.onBackground(file, recipe);
+      toast.success(`${tool.name} set as the frame's background`);
+      return;
+    }
+    // Made at the frame's size (or from the selection in place): it goes
+    // over the whole frame, exactly, rather than fitted inside it.
+    const frameSized = frame?.size?.w === size.w && frame?.size?.h === size.h;
+    if ((inPlace || frameSized) && frame?.onOver) {
+      frame.onOver(file, recipe);
+      toast.success(`${tool.name} placed over the whole frame`);
+      return;
+    }
+    onAdd(file, recipe);
+    toast.success(`${tool.name} added to the ${where}`);
+  };
+
   const add = async (asBackground = false) => {
     try {
       const svg = svgNow();
@@ -193,26 +263,7 @@ export function ImageToolView({
           : null,
         source,
       });
-      if (editing && !asBackground) {
-        editing.onReplace(file, recipe);
-        toast.success(`${tool.name} updated`);
-        return;
-      }
-      if (asBackground && frame) {
-        frame.onBackground(file, recipe);
-        toast.success(`${tool.name} set as the frame's background`);
-        return;
-      }
-      // Made at the frame's size (or from the selection in place): it goes
-      // over the whole frame, exactly, rather than fitted inside it.
-      const frameSized = frame?.size?.w === size.w && frame?.size?.h === size.h;
-      if ((inPlace || frameSized) && frame?.onOver) {
-        frame.onOver(file, recipe);
-        toast.success(`${tool.name} placed over the whole frame`);
-        return;
-      }
-      onAdd(file, recipe);
-      toast.success(`${tool.name} added to the ${where}`);
+      place(file, recipe, asBackground);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't add it");
     }
@@ -294,17 +345,9 @@ export function ImageToolView({
           onClick={() => void add()}
           type="button"
         >
-          {editing ? (
-            <>
-              <RefreshCw size={14} /> Update the layer
-            </>
-          ) : (
-            <>
-              <Plus size={14} /> Add to {where}
-            </>
-          )}
+          <PrimaryLabel editing={editing} where={where} />
         </button>
-        {frame ? (
+        {frame && !editing?.fill ? (
           <button
             className="studio__button"
             onClick={() => void add(true)}

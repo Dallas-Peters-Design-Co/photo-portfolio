@@ -25,11 +25,15 @@ const item = (id: string, x: number, y: number, w: number, h: number) =>
 const frame = { ...item("f", 0, 0, 1000, 1500), kind: "frame" } as BoardItem;
 const layers = [item("a", 100, 200, 300, 400), item("b", 500, 900, 200, 100)];
 
-const propsWith = (selected: string[]) =>
+const propsWith = (
+  selected: string[],
+  more: Partial<Parameters<typeof frameStudioProps>[0]> = {}
+) =>
   frameStudioProps({
     add: () => undefined,
     applyType: () => undefined,
     editId: null,
+    fillShape: () => undefined,
     frame,
     items: [frame, ...layers],
     layers,
@@ -39,6 +43,7 @@ const propsWith = (selected: string[]) =>
     studio: "mosaic",
     swap: () => undefined,
     textElementFor: () => null,
+    ...more,
   });
 
 it("draws a selection cropped to its edges, and the frame without one", async () => {
@@ -59,4 +64,25 @@ it("gives a frame without an ad size its own shape at export width", async () =>
   const { frameSizeOf } = await import("./frameStudio");
   // 1000 × 1500 canvas units, exported at twice the width.
   expect(frameSizeOf(frame)).toEqual({ h: 3000, w: 2000 });
+});
+
+it("fills a shape at its own size from any tool, without a recipe yet", () => {
+  const bar = {
+    ...item("bar", 0, 1400, 1000, 100),
+    config: { fill: "#000", stroke: "#fff", strokeWidth: 0, tool: "rect" },
+    kind: "drawing",
+  } as BoardItem;
+  const props = propsWith([], {
+    editId: "bar",
+    items: [frame, ...layers, bar],
+    layers: [...layers, bar],
+    // The frame exports at twice its canvas size.
+    size: { h: 3000, w: 2000 },
+  });
+  expect(props?.editing).toMatchObject({
+    fill: true,
+    layerId: "bar",
+    recipe: null,
+    size: { h: 200, w: 2000 },
+  });
 });
