@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   captureMessage,
   captureState,
   isAgentImageUrl,
   parseFacts,
+  startCapture,
 } from "./reviewAgent.js";
 
 const line = (...facts: unknown[]) =>
@@ -133,5 +134,36 @@ describe("captureMessage", () => {
     expect(text).toContain("Do not write an audit.");
     expect(text).toContain("https://app.example.com/login");
     expect(text).toContain("up to 3 more key pages");
+  });
+});
+
+describe("startCapture", () => {
+  it("sends the login page as client context, defaulting to the start URL", async () => {
+    process.env.EVE_AGENT_URL = "https://agent.example.com";
+    process.env.EVE_API_TOKEN = "token";
+    const bodies: Record<string, unknown>[] = [];
+    vi.stubGlobal("fetch", (_url: string, init: RequestInit) => {
+      bodies.push(JSON.parse(String(init.body)));
+      return Promise.resolve(
+        new Response(JSON.stringify({ sessionId: "wrun_1" }), { status: 202 })
+      );
+    });
+    await startCapture({
+      loginUrl: "https://auth.example.com/login",
+      pages: 2,
+      url: "https://app.example.com",
+    });
+    await startCapture({
+      loginUrl: null,
+      pages: 2,
+      url: "https://app.example.com",
+    });
+    vi.unstubAllGlobals();
+    expect(bodies[0]?.clientContext).toEqual({
+      loginUrl: "https://auth.example.com/login",
+    });
+    expect(bodies[1]?.clientContext).toEqual({
+      loginUrl: "https://app.example.com",
+    });
   });
 });

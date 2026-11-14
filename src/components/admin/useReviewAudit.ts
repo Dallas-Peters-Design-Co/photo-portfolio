@@ -112,10 +112,29 @@ export function useReviewAudit({
       return null;
     }
     const url = HAS_SCHEME.test(typed) ? typed : `https://${typed}`;
+    const signIn = await prompt({
+      confirmLabel: "Start",
+      defaultValue: url,
+      description:
+        "The test account's password is only ever typed on this site. Leave it as the app's address if the app shows its sign-in page there.",
+      placeholder: "https://app.example.com/login",
+      title: "Where is the sign-in page?",
+    });
+    const signInTyped = signIn?.trim() ?? "";
+    if (!signInTyped) {
+      return null;
+    }
+    const loginUrl = HAS_SCHEME.test(signInTyped)
+      ? signInTyped
+      : `https://${signInTyped}`;
     const { slug } = latest.current;
     setPhase("exploring");
     setAgentStatus("Starting the browser…");
-    const { session } = await reviewsApi.captureWithLogin({ slug, url });
+    const { session } = await reviewsApi.captureWithLogin({
+      loginUrl,
+      slug,
+      url,
+    });
     const startedAt = Date.now();
     // One check at a time: each waits, asks, and either finishes or schedules
     // the next, so a slow answer never overlaps the one after it.

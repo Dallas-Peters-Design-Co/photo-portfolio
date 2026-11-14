@@ -3,6 +3,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 
 import { BROWSER_SESSION } from "../lib/browser-session";
+import { loginTarget, parseLoginUrl } from "../lib/login-target";
 
 // Selectors tried in order when LOGIN_USER_SELECTOR is not set.
 const USER_SELECTORS = [
@@ -51,34 +52,34 @@ export default defineTool({
       .string()
       .url()
       .optional()
-      .describe("The app's sign-in page. Omit it to use the server's LOGIN_URL setting."),
+      .describe("The app's sign-in page. Omit it to use the login page the request named."),
   }),
   async execute({ loginUrl }, ctx) {
     const username = process.env.LOGIN_USER;
     const password = process.env.LOGIN_PASS;
-    const url = loginUrl ?? process.env.LOGIN_URL;
+    // The trusted login page: from the caller's request (set by the channel,
+    // never by the model), else the server's LOGIN_URL.
+    const session = loginTarget.get();
+    const trusted =
+      (session.origin && session.url ? { origin: session.origin, url: session.url } : null) ??
+      parseLoginUrl(process.env.LOGIN_URL);
+    const url = loginUrl ?? trusted?.url;
     if (!username || !password) {
       return { ok: false, reason: "LOGIN_USER and LOGIN_PASS are not set on the agent server." };
     }
-    if (!url) {
-      return { ok: false, reason: "No login URL. Pass loginUrl, or set LOGIN_URL on the agent server." };
+    if (!trusted || !url) {
+      return {
+        ok: false,
+        reason: "No login page was given for this audit. Ask for the login URL in the request.",
+      };
     }
 
-    // Only server configuration can authorize where the stored account is used.
-    const isTrustedLoginUrl = (candidate: string): boolean => {
-      try {
-        const trusted = new URL(process.env.LOGIN_URL ?? "");
-        const target = new URL(candidate);
-        return (
-          (trusted.protocol === "https:" || trusted.protocol === "http:") &&
-          target.origin === trusted.origin
-        );
-      } catch {
-        return false;
-      }
-    };
+    // Only the caller's request or server configuration can authorize where the
+    // stored account is used — never a URL the model picked up from a page.
+    const isTrustedLoginUrl = (candidate: string): boolean =>
+      parseLoginUrl(candidate)?.origin === trusted.origin;
     if (!isTrustedLoginUrl(url)) {
-      return { ok: false, reason: "The login URL must match the server's configured LOGIN_URL origin." };
+      return { ok: false, reason: `The login page must be on ${trusted.origin}.` };
     }
 
     const sandbox = await ctx.getSandbox();
