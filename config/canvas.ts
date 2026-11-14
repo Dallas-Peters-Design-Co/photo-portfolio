@@ -52,6 +52,17 @@ export const START_VIEW_HEIGHT = 3000;
 /** Small enough to sit alongside others, large enough to still grab. */
 export const MIN_ITEM_SIZE = 40;
 
+/**
+ * The smallest side a save keeps.
+ *
+ * Not MIN_ITEM_SIZE: that's how small a drag on the board may make something,
+ * and the frame editor draws far finer layers (a 12-unit rule, a 20-unit bar
+ * along a banner's foot). Saves once raised those to 40, which grew a bar
+ * downwards on every reload until its centre left the frame: it then fell out
+ * of the design, unclipped, and hung below it. This only refuses nonsense.
+ */
+export const MIN_STORED_SIDE = 1;
+
 /** Zoom bounds. Below the floor items are unreadable; above it, unusable. */
 export const MIN_SCALE = 0.05;
 export const MAX_SCALE = 3;

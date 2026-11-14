@@ -187,3 +187,21 @@
   border-radius: var(--radius-pill);
   box-shadow: var(--shadow);
 }
+
+/* Nor its outline. A layer in a design is part of the picture: the board's
+   hairline and rounded corners drew a grey ring round every image and shape
+   in it, and a frame nested in the design kept its dashed border and name. */
+.board-item.board-item--in-frame {
+  outline: 0;
+  border-radius: 0;
+}
+
+.board-item--in-frame .frame-body {
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+
+.board-item--in-frame .frame-body__row {
+  display: none;
+}

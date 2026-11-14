@@ -3,7 +3,7 @@ import {
   MAX_FONT_SIZE,
   MAX_ITEM_SIDE,
   MIN_FONT_SIZE,
-  MIN_ITEM_SIZE,
+  MIN_STORED_SIDE,
 } from "../../config/canvas.js";
 import { cleanBrowserConfig } from "../../config/nodes/browser.js";
 import { isNodeTypeId } from "../../config/nodeTypes.js";
@@ -261,8 +261,8 @@ export const parseIncomingItem = (raw: unknown): IncomingItem | null => {
     return null;
   }
 
-  const width = clamp(num(o.width, 320), MIN_ITEM_SIZE, MAX_ITEM_SIDE);
-  const height = clamp(num(o.height, 240), MIN_ITEM_SIZE, MAX_ITEM_SIDE);
+  const width = clamp(num(o.width, 320), MIN_STORED_SIDE, MAX_ITEM_SIDE);
+  const height = clamp(num(o.height, 240), MIN_STORED_SIDE, MAX_ITEM_SIDE);
 
   // Clamped rather than trusted: the size is dragged from a control, and a NaN
   // or an absurd value would render text that cannot be read or selected.

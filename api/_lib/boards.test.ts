@@ -126,6 +126,16 @@ describe("where an item is", () => {
     const tall = parseIncomingItem(incoming({ height: 10_800, width: 7200 }));
     expect([tall?.width, tall?.height]).toEqual([7200, 10_800]);
   });
+
+  it("keeps a design's thin layers their size", () => {
+    // A 20-unit bar along a banner's foot was saved 40 tall, so each reload
+    // pushed its centre past the frame and it dropped out of the design.
+    const bar = parseIncomingItem(incoming({ height: 20, width: 1584 }));
+    expect([bar?.width, bar?.height]).toEqual([1584, 20]);
+    const rule = parseIncomingItem(incoming({ height: 2.5, width: 12 }));
+    expect([rule?.width, rule?.height]).toEqual([12, 2.5]);
+    expect(parseIncomingItem(incoming({ height: 0 }))?.height).toBe(1);
+  });
 });
 
 describe("a text item's size", () => {
