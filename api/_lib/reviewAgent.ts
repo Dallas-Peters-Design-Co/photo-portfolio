@@ -105,6 +105,10 @@ export const startCapture = async (input: {
 }): Promise<string> => {
   const res = await fetch(`${agentUrl()}/eve/v1/session`, {
     body: JSON.stringify({
+      // The login page goes as client context: the agent's channel stores it
+      // before the model runs and never shows it to the model, so its log_in
+      // tool types credentials on that origin only, whatever a page says.
+      clientContext: { loginUrl: input.loginUrl ?? input.url },
       message: captureMessage(input),
       outputSchema: CAPTURE_SCHEMA,
     }),
