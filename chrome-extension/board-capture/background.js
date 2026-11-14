@@ -170,13 +170,42 @@ const stitch = async (tab, whole) => {
   return { data: btoa(binary), height: canvas.height, width: canvas.width };
 };
 
-/** The debugger's picture when Chrome allows it, the stitched one when not. */
+/** Just what's on screen, with no script run in the page at all. */
+const visible = async (tab) => {
+  // Clear of any capture the scrolling way just made (two a second).
+  await wait(BETWEEN_SHOTS_MS);
+  const shot = await chrome.tabs.captureVisibleTab(tab.windowId, {
+    format: "jpeg",
+    quality: 88,
+  });
+  const bitmap = await createImageBitmap(await (await fetch(shot)).blob());
+  const size = { height: bitmap.height, width: bitmap.width };
+  bitmap.close();
+  return { data: shot.slice(shot.indexOf(",") + 1), ...size };
+};
+
+/**
+ * The best picture Chrome will allow of this tab: the debugger's, else the
+ * stitched one, else just what's on screen. Each way's failure is kept, so
+ * if all three fail the message says why for each.
+ */
 const shoot = async (tab, whole) => {
-  try {
-    return await capture(tab, whole);
-  } catch {
-    return await stitch(tab, whole);
+  const ways = [
+    ["debugger", () => capture(tab, whole)],
+    ["scrolling", () => stitch(tab, whole)],
+    ["screen", () => visible(tab)],
+  ];
+  const failures = [];
+  for (const [name, take] of ways) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const shot = await take();
+      return { ...shot, way: name };
+    } catch (e) {
+      failures.push(`${name}: ${e?.message ?? e}`);
+    }
   }
+  throw new Error(failures.join(" · "));
 };
 
 const ask = (tabId, message) =>
@@ -214,13 +243,19 @@ const captureToBoard = async ({ boardTabId, whole }) => {
   } catch (e) {
     return { ok: false, error: `Couldn't capture this page: ${e?.message ?? e}` };
   }
+  const { way: _way, ...picture } = shot;
   const answer = await ask(board.tabId, {
-    ...shot,
+    ...picture,
     title: tab.title ?? "",
     type: "capture",
     url: tab.url,
   });
-  return answer?.ok ? { ok: true, board: board.name } : answer;
+  if (!answer?.ok) {
+    return answer;
+  }
+  // Only what was on screen could be taken, when the whole page was asked for.
+  const partial = whole && shot.way === "screen";
+  return { board: board.name, ok: true, partial };
 };
 
 chrome.runtime.onMessage.addListener((message, _sender, respond) => {

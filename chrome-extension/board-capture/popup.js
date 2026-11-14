@@ -44,12 +44,20 @@ const run = async (whole) => {
     whole,
   });
   enable(true);
+  if (!result?.ok) {
+    say(result?.error ?? "That didn't work.", true);
+    return;
+  }
   say(
-    result?.ok ? `Added to ${result.board}.` : (result?.error ?? "That didn't work."),
-    !result?.ok
+    result.partial
+      ? `Added to ${result.board}: only what's on screen (this page can't be scrolled by the extension).`
+      : `Added to ${result.board}.`
   );
 };
 
 buttons[0].addEventListener("click", () => run(true));
 buttons[1].addEventListener("click", () => run(false));
 loadBoards();
+
+document.getElementById("version").textContent =
+  `v${chrome.runtime.getManifest().version}`;
