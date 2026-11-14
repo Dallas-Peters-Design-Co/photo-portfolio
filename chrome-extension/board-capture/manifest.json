@@ -1,11 +1,20 @@
 {
   "manifest_version": 3,
   "name": "Board Capture",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Screenshots the page you're on, whole, and puts it on your open board as a Browser node to mark up.",
-  "action": { "default_popup": "popup.html", "default_title": "Capture to board" },
-  "background": { "service_worker": "background.js" },
-  "permissions": ["activeTab", "debugger", "tabs", "scripting"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Capture to board"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "scripting"
+  ],
   "host_permissions": [
     "https://www.dallaspeters.com/*",
     "https://dallaspeters.com/*",
@@ -20,13 +29,17 @@
         "https://app.dallaspeters.com/*",
         "http://localhost/*"
       ],
-      "js": ["bridge.js"],
+      "js": [
+        "bridge.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "commands": {
     "capture-full": {
-      "suggested_key": { "default": "Alt+Shift+S" },
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
       "description": "Capture the whole page to the board"
     }
   }

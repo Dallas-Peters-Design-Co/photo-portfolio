@@ -2,10 +2,8 @@
  * Board Capture: screenshots the active tab and hands the picture to a board
  * open in another tab (see bridge.js for how it gets in).
  *
- * The whole page is captured through the DevTools protocol, which is why
- * Chrome shows its "is debugging this browser" bar for a moment: it's the
- * only way to get a page taller than the window in one picture. Signed-in
- * pages work because it's your own tab, as you see it.
+ * Pictures are taken with Chrome's own "capture visible tab", of your tab as
+ * you see it, so signed-in pages work and nothing is debugged.
  */
 const BOARD_HOSTS = [
   "https://www.dallaspeters.com/*",
@@ -17,36 +15,6 @@ const BOARD_HOSTS = [
 const MAX_HEIGHT = 12_000;
 /** The largest side Chromium hands back in one picture. */
 const MAX_PIXELS = 16_000;
-
-const send = (target, method, params) =>
-  chrome.debugger.sendCommand(target, method, params);
-
-/** A JPEG of the tab: the whole page, or just what's in view. */
-const capture = async (tab, whole) => {
-  const target = { tabId: tab.id };
-  await chrome.debugger.attach(target, "1.3");
-  try {
-    const metrics = await send(target, "Page.getLayoutMetrics");
-    const box = whole ? metrics.cssContentSize : metrics.cssVisualViewport;
-    const width = Math.max(1, Math.ceil(box.width ?? box.clientWidth));
-    const height = Math.min(
-      MAX_HEIGHT,
-      Math.max(1, Math.ceil(box.height ?? box.clientHeight))
-    );
-    const top = whole ? 0 : (metrics.cssVisualViewport.pageY ?? 0);
-    // Twice the size for a sharp picture, when the page is short enough.
-    const scale = Math.max(width, height) * 2 <= MAX_PIXELS ? 2 : 1;
-    const { data } = await send(target, "Page.captureScreenshot", {
-      captureBeyondViewport: true,
-      clip: { height, scale, width, x: 0, y: top },
-      format: "jpeg",
-      quality: 88,
-    });
-    return { data, height: height * scale, width: width * scale };
-  } finally {
-    await chrome.debugger.detach(target).catch(() => undefined);
-  }
-};
 
 const wait = (ms) => new Promise((done) => setTimeout(done, ms));
 
@@ -64,14 +32,16 @@ const inPage = async (tabId, func, args = []) => {
 const BETWEEN_SHOTS_MS = 550;
 
 /**
- * The same picture without the DevTools protocol: scroll the page a screen
- * at a time, photograph each, and join them.
+ * The whole page: scroll it a screen at a time, photograph each, and join
+ * them.
  *
- * Chrome refuses to debug a tab that another extension has put a frame in (a
- * password manager's, say): "Cannot access a chrome-extension:// URL of
- * different extension". This way needs nothing from the debugger. After the
- * first screen, anything fixed or sticky is hidden, so a header appears once
- * at the top and not on every screen; it's put back when the capture ends.
+ * Chrome's own "capture beyond the viewport" isn't used. On a Retina screen
+ * it repeated the top of the page in tiles down the picture, and Chrome
+ * refuses it outright on a tab another extension has put a frame in. Joining
+ * screens is slower and you see the page scroll, but the picture is the page.
+ * After the first screen, anything fixed or sticky is hidden, so a header
+ * appears once at the top and not on every screen; it's put back when the
+ * capture ends.
  */
 const stitch = async (tab, whole) => {
   const page = await inPage(tab.id, () => ({
@@ -96,8 +66,10 @@ const stitch = async (tab, whole) => {
     Math.round(height * scale)
   );
   const ctx = canvas.getContext("2d");
+  // How much of the page, in its own pixels, has been joined on.
+  let done = 0;
   try {
-    for (let done = 0; done < height; ) {
+    for (; done < height; ) {
       const wanted = first + done;
       // The page may not scroll that far (the last screen): ask where it got.
       // eslint-disable-next-line no-await-in-loop
@@ -130,6 +102,12 @@ const stitch = async (tab, whole) => {
       // How far into this screen the next unpainted row is.
       const skip = wanted - at;
       const rows = Math.min(page.viewH - skip, height - done);
+      if (rows <= 0) {
+        // The page won't scroll that far (it scrolls inside a panel, or it
+        // shrank): what's been joined so far is the picture.
+        bitmap.close();
+        break;
+      }
       const k = bitmap.width / page.innerW;
       ctx.drawImage(
         bitmap,
@@ -160,14 +138,20 @@ const stitch = async (tab, whole) => {
       [page.left, page.top]
     ).catch(() => undefined);
   }
-  const blob = await canvas.convertToBlob({ quality: 0.88, type: "image/jpeg" });
+  // Shorter than planned (the page stopped scrolling): keep what was joined.
+  let out = canvas;
+  if (done > 0 && done < height) {
+    out = new OffscreenCanvas(canvas.width, Math.round(done * scale));
+    out.getContext("2d").drawImage(canvas, 0, 0);
+  }
+  const blob = await out.convertToBlob({ quality: 0.88, type: "image/jpeg" });
   const bytes = new Uint8Array(await blob.arrayBuffer());
   let binary = "";
   const CHUNK = 0x80_00;
   for (let i = 0; i < bytes.length; i += CHUNK) {
     binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
   }
-  return { data: btoa(binary), height: canvas.height, width: canvas.width };
+  return { data: btoa(binary), height: out.height, width: out.width };
 };
 
 /** Just what's on screen, with no script run in the page at all. */
@@ -185,27 +169,25 @@ const visible = async (tab) => {
 };
 
 /**
- * The best picture Chrome will allow of this tab: the debugger's, else the
- * stitched one, else just what's on screen. Each way's failure is kept, so
- * if all three fail the message says why for each.
+ * The picture asked for: the whole page joined from its screens, or what's
+ * on screen. If the page can't be scrolled by the extension, the whole page
+ * falls back to what's on screen, and says so.
  */
 const shoot = async (tab, whole) => {
-  const ways = [
-    ["debugger", () => capture(tab, whole)],
-    ["scrolling", () => stitch(tab, whole)],
-    ["screen", () => visible(tab)],
-  ];
-  const failures = [];
-  for (const [name, take] of ways) {
+  if (!whole) {
+    return { ...(await visible(tab)), way: "screen" };
+  }
+  try {
+    return { ...(await stitch(tab, true)), way: "scrolling" };
+  } catch (scrolling) {
     try {
-      // eslint-disable-next-line no-await-in-loop
-      const shot = await take();
-      return { ...shot, way: name };
-    } catch (e) {
-      failures.push(`${name}: ${e?.message ?? e}`);
+      return { ...(await visible(tab)), way: "screen" };
+    } catch (screen) {
+      throw new Error(
+        `scrolling: ${scrolling?.message ?? scrolling} · screen: ${screen?.message ?? screen}`
+      );
     }
   }
-  throw new Error(failures.join(" · "));
 };
 
 const ask = (tabId, message) =>

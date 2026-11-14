@@ -20,13 +20,10 @@ The picture lands near the middle of what the board is showing.
 
 ## How it works
 
-- The capture uses Chrome's DevTools protocol, so Chrome shows a "debugging
-  this browser" bar for a moment. That's what allows a page taller than the
-  window in one picture (up to 12,000 px).
-- Chrome won't debug a tab another extension has put a frame in (a password
-  manager's, for one). The extension then scrolls the page a screen at a
-  time and joins the pictures instead; it takes a few seconds longer, and you
-  see the page scroll.
+- **Whole page** scrolls the page a screen at a time and joins the pictures
+  (up to 12,000 px), so you'll see it scroll for a few seconds. A fixed
+  header appears once at the top. A page that scrolls inside a panel, not the
+  window, captures as far as the window scrolls.
 - The picture is handed to the board tab, which uploads it signed in as it
   already is. The extension never sees or stores a login, and talks only to
   the board's own site.

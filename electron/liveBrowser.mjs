@@ -76,20 +76,28 @@ const capture = async (guest) => {
       MAX_HEIGHT,
       Math.max(1, Math.ceil(cssContentSize.height))
     );
-    // Twice the size for a sharp picture, when the page is short enough.
-    const scale = Math.max(width, height) * 2 <= MAX_PIXELS ? 2 : 1;
+    // The picture comes out at the screen's own density times `scale`. On a
+    // Retina screen that's already twice the page's size; asking for twice
+    // again makes a surface too big to draw, which repeats the page in
+    // tiles. So: at most two picture pixels per page pixel, and no side
+    // longer than Chromium will draw in one piece.
+    const { result } = await dbg.sendCommand("Runtime.evaluate", {
+      expression: "window.devicePixelRatio",
+    });
+    const dpr = Number(result?.value) > 0 ? Number(result.value) : 1;
+    const density = Math.min(2, dpr, MAX_PIXELS / Math.max(width, height));
     const { data } = await dbg.sendCommand("Page.captureScreenshot", {
       captureBeyondViewport: true,
-      clip: { height, scale, width, x: 0, y: 0 },
+      clip: { height, scale: density / dpr, width, x: 0, y: 0 },
       format: "jpeg",
       quality: 88,
     });
     return {
       data,
-      height: height * scale,
+      height: Math.round(height * density),
       title: guest.getTitle(),
       url: guest.getURL(),
-      width: width * scale,
+      width: Math.round(width * density),
     };
   } finally {
     if (attachedHere) {
