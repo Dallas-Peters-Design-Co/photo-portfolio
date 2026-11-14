@@ -75,3 +75,28 @@ export const wirePath = (from: Point, to: Point): string => {
   const reach = Math.max(48, Math.abs(to.x - from.x) * 0.5);
   return `M ${from.x} ${from.y} C ${from.x + reach} ${from.y}, ${to.x - reach} ${to.y}, ${to.x} ${to.y}`;
 };
+
+/**
+ * The input port closest to a point, in canvas units.
+ *
+ * Squared distances: the ordering is the same as with real distances and the
+ * square roots would be work done once per pointer move for nothing.
+ */
+export const nearestInput = (
+  item: BoardItem,
+  px: number,
+  py: number
+): string | null => {
+  let nearest: string | null = null;
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  for (const [key, point] of inputPoints(item)) {
+    const dx = point.x - px;
+    const dy = point.y - py;
+    const distance = dx * dx + dy * dy;
+    if (distance < nearestDistance) {
+      nearestDistance = distance;
+      nearest = key;
+    }
+  }
+  return nearest;
+};

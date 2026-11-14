@@ -116,6 +116,7 @@ it("hugs a line without wrapping its last word", async () => {
   for (const phrase of phrases) {
     act(() => root?.unmount());
     host?.remove();
+    // biome-ignore lint/performance/noAwaitInLoops: each render replaces the last on one shared root, so they must run in turn
     const t = await render([frame, text("both", phrase)]);
     const area = host?.querySelector("textarea") as HTMLTextAreaElement;
     expect(t.height).toBe(singleLine.height);
@@ -148,7 +149,7 @@ it("lets the text box being edited take its own clicks", async () => {
   await act(async () => await new Promise((r) => setTimeout(r, 30)));
   expect(press.defaultPrevented).toBe(false);
   expect(
-    (host?.querySelector("textarea") as HTMLTextAreaElement).readOnly
+    (host?.querySelector("textarea") as HTMLTextAreaElement | null)?.readOnly
   ).toBe(false);
   expect(getComputedStyle(area).userSelect).toBe("text");
 });

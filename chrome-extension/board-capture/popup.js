@@ -1,5 +1,8 @@
 const boardSelect = document.getElementById("board");
-const buttons = [document.getElementById("whole"), document.getElementById("view")];
+const buttons = [
+  document.getElementById("whole"),
+  document.getElementById("view"),
+];
 const status = document.getElementById("status");
 
 const say = (text, bad = false) => {

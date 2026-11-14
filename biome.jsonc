@@ -47,5 +47,12 @@
         "noVoid": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      // A Chrome extension: `chrome` is the extension API, a global there.
+      "includes": ["chrome-extension/**"],
+      "javascript": { "globals": ["chrome"] }
+    }
+  ]
 }

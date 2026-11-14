@@ -6,7 +6,7 @@ import { BoardTextTools } from "./BoardTextTools";
 import { BoardToolBar } from "./BoardToolBar";
 import { opacityCss } from "./creative/layerOpacity";
 import type { ResizeHandle } from "./geometry/alignmentGuides";
-import { inputPoints } from "./geometry/portGeometry";
+import { nearestInput } from "./geometry/portGeometry";
 import { fitsContent, useAutoHeight } from "./hooks/useAutoHeight";
 import { INV_SCALE_VAR } from "./hooks/useCanvasViewport";
 import { itemBoxClassName } from "./itemBodies";
@@ -26,31 +26,6 @@ import "./BoardItemView.css";
 const CHROME_STACK = 9998;
 
 const CHROME_SCALE = { transform: `scale(var(${INV_SCALE_VAR}, 1))` };
-
-/**
- * The input port closest to a point, in canvas units.
- *
- * Squared distances: the ordering is the same as with real distances and the
- * square roots would be work done once per pointer move for nothing.
- */
-const nearestInput = (
-  item: BoardItem,
-  px: number,
-  py: number
-): string | null => {
-  let nearest: string | null = null;
-  let nearestDistance = Number.POSITIVE_INFINITY;
-  for (const [key, point] of inputPoints(item)) {
-    const dx = point.x - px;
-    const dy = point.y - py;
-    const distance = dx * dx + dy * dy;
-    if (distance < nearestDistance) {
-      nearestDistance = distance;
-      nearest = key;
-    }
-  }
-  return nearest;
-};
 
 /**
  * Everything the item needs to take part in a wire drag.

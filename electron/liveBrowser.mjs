@@ -117,8 +117,7 @@ export const registerLiveBrowser = (isInsideSite) => {
     }
     const guest = typeof id === "number" ? webContents.fromId(id) : null;
     if (
-      !guest ||
-      guest.getType() !== "webview" ||
+      guest?.getType() !== "webview" ||
       guest.hostWebContents !== event.sender
     ) {
       throw new Error("That page isn't open in this window.");
