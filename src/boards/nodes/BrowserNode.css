@@ -289,3 +289,8 @@
   height: 100%;
   background: #fff;
 }
+
+/* The Edit tool: marks are picked and dragged, not drawn. */
+.browser-node__surface--select {
+  cursor: default;
+}

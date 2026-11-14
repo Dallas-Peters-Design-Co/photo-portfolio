@@ -10,7 +10,6 @@ import {
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
 import type {
-  ReviewMark,
   ReviewPin,
   ReviewScreen,
   RichText,
@@ -18,6 +17,7 @@ import type {
 import { PageEditor } from "../../cms/PageEditor";
 import { portfolioService } from "../../services/portfolioService";
 import { reviewsApi } from "../../services/reviewService";
+import { MarkEditLayer } from "../review/MarkEditLayer";
 import { ReviewMarks, reviewPinClass } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -41,10 +41,10 @@ import {
   RECAPTURE_HINT,
   replaceScreenImage,
   toEditorDoc,
-  touchScreen,
   useMarkupHistory,
 } from "./reviewEditing";
 import "./ReviewScreenEditor.css";
+import { useReviewMarkup } from "./useReviewMarkup";
 
 const VIEWPORT_ITEMS = [
   { label: "Desktop (1440)", value: "desktop" },
@@ -91,7 +91,6 @@ export function ReviewScreenEditor({
   const dragging = useRef<{ id: string | null }>({ id: null });
   const fileInput = useRef<HTMLInputElement>(null);
   const [tool, setTool] = useState<ReviewTool>("pin");
-  const [draft, setDraft] = useState<ReviewMark | null>(null);
   const { marks, pins } = screen;
   // The screen now, for a capture that lands long after this render.
   const live = useRef(screen);
@@ -104,10 +103,10 @@ export function ReviewScreenEditor({
 
   // Undo restores what is on the picture and where; a note keeps the words
   // typed since, because text edits are not steps in this history.
-  const history = useMarkupHistory({ marks, pins }, (markup) =>
+  const history = useMarkupHistory({ marks, pins }, (restored) =>
     patch({
-      marks: markup.marks,
-      pins: markup.pins.map((p) => {
+      marks: restored.marks,
+      pins: restored.pins.map((p) => {
         const now = pins.find((c) => c.id === p.id);
         return now ? { ...now, x: p.x, y: p.y } : p;
       }),
@@ -194,6 +193,11 @@ export function ReviewScreenEditor({
   };
 
   const addPin = (e: MouseEvent) => {
+    // With the Edit tool, a click off every mark lets go of the selection.
+    if (tool === "select") {
+      markup.setSelectedMark(null);
+      return;
+    }
     if (dragging.current.id !== null || tool !== "pin") {
       return;
     }
@@ -242,62 +246,14 @@ export function ReviewScreenEditor({
     patch(next);
   };
 
-  const eraseMark = (id: string) =>
-    step({ marks: marks.filter((m) => m.id !== id) });
-
-  const clearMarks = () => step({ marks: [] });
-
-  // Markup: press to start a mark, drag to shape it, release to keep it.
-  const startMark = (e: PointerEvent<HTMLDivElement>) => {
-    touchScreen(screen.id);
-    if (tool === "pin" || tool === "erase" || e.button !== 0) {
-      return;
-    }
-    const pos = at(e);
-    if (!pos) {
-      return;
-    }
-    e.currentTarget.setPointerCapture(e.pointerId);
-    setDraft({
-      id: newItemId(),
-      kind: tool,
-      points: [
-        [pos.x, pos.y],
-        [pos.x, pos.y],
-      ],
-    });
-  };
-
-  const shapeMark = (e: PointerEvent<HTMLDivElement>) => {
-    const pos = at(e);
-    if (!(draft && pos)) {
-      return;
-    }
-    const point: [number, number] = [pos.x, pos.y];
-    if (draft.kind === "pen") {
-      const last = draft.points.at(-1) ?? point;
-      // Skip sub-pixel jitter so a stroke stays a manageable size.
-      if (Math.hypot(point[0] - last[0], point[1] - last[1]) > 0.002) {
-        setDraft({ ...draft, points: [...draft.points, point] });
-      }
-      return;
-    }
-    setDraft({ ...draft, points: [draft.points[0] ?? point, point] });
-  };
-
-  const finishMark = () => {
-    if (!draft) {
-      return;
-    }
-    const [a, b] = [draft.points[0], draft.points.at(-1)];
-    const span = a && b ? Math.hypot(b[0] - a[0], b[1] - a[1]) : 0;
-    // A click without a drag is not a mark.
-    if (span > 0.01 && draft.points.length >= 2) {
-      history.record();
-      patch({ marks: [...marks, draft] });
-    }
-    setDraft(null);
-  };
+  const markup = useReviewMarkup({
+    at,
+    marks,
+    record: history.record,
+    screenId: screen.id,
+    setMarks: (next) => patch({ marks: next }),
+    tool,
+  });
 
   return (
     <div className="space-y-4 rounded-md border border-white/10 p-4">
@@ -413,7 +369,7 @@ export function ReviewScreenEditor({
               canClear={marks.length > 0}
               canRedo={history.canRedo}
               canUndo={history.canUndo}
-              onClear={clearMarks}
+              onClear={markup.clearMarks}
               onRedo={history.redo}
               onTool={setTool}
               onUndo={history.undo}
@@ -433,7 +389,7 @@ export function ReviewScreenEditor({
               // they stay on what they mark.
               className={`relative touch-none select-none overflow-hidden rounded-md border border-white/10 ${
                 screen.viewport === "mobile" ? "max-w-phone" : ""
-              } ${tool === "erase" ? "cursor-cell" : "cursor-crosshair"}`}
+              } ${markup.cursor}`}
               data-review-canvas=""
               onClick={addPin}
               onMouseLeave={() => {
@@ -446,9 +402,9 @@ export function ReviewScreenEditor({
                   dragging.current.id = null;
                 }, 0);
               }}
-              onPointerDown={startMark}
-              onPointerMove={shapeMark}
-              onPointerUp={finishMark}
+              onPointerDown={markup.startMark}
+              onPointerMove={markup.shapeMark}
+              onPointerUp={markup.finishMark}
               ref={imageRef}
             >
               <img
@@ -460,12 +416,23 @@ export function ReviewScreenEditor({
                 width={screen.image.width}
               />
               <ReviewMarks
-                draft={draft}
+                draft={markup.draft}
                 height={screen.image.height}
-                marks={marks}
-                onSelect={tool === "erase" ? eraseMark : undefined}
+                marks={markup.shown}
+                onSelect={markup.onMarkClick}
+                selected={markup.selectedMark}
                 width={screen.image.width}
               />
+              {markup.editing ? (
+                <MarkEditLayer
+                  height={screen.image.height}
+                  mark={markup.editing}
+                  onChange={markup.setPreview}
+                  onCommit={markup.commitEdit}
+                  surface={imageRef}
+                  width={screen.image.width}
+                />
+              ) : null}
               {pins.map((pin, i) => (
                 <button
                   aria-label={`Note ${firstNumber + i}`}

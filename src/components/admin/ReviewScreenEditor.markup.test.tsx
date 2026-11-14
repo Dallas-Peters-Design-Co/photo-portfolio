@@ -194,6 +194,76 @@ describe("review markup tools", () => {
     expect(current.marks).toHaveLength(0);
   });
 
+  it("reshapes an arrow by its tip with the Edit tool, as one undo step", async () => {
+    const ARROW: ReviewMark = {
+      id: "a1",
+      kind: "arrow",
+      points: [
+        [0.1, 0.1],
+        [0.4, 0.4],
+      ],
+    };
+    await mount({ ...start, marks: [ARROW] });
+    await act(() => button("Edit")?.click());
+    const mark = document.querySelector<SVGGElement>(".review-markup__mark");
+    await act(() =>
+      mark?.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    );
+    const handles = document.querySelectorAll<SVGCircleElement>(
+      ".review-mark-edit__handle"
+    );
+    expect(handles).toHaveLength(2);
+    const el = canvas() as HTMLDivElement;
+    const at = (type: string, target: Element, fx: number, fy: number) => {
+      const box = el.getBoundingClientRect();
+      target.dispatchEvent(
+        new PointerEvent(type, {
+          bubbles: true,
+          button: 0,
+          clientX: box.left + box.width * fx,
+          clientY: box.top + box.height * fy,
+          pointerId: 1,
+        })
+      );
+    };
+    const tip = handles[1] as SVGCircleElement;
+    await act(() => at("pointerdown", tip, 0.4, 0.4));
+    await act(() => at("pointermove", tip, 0.7, 0.2));
+    await act(() => at("pointerup", tip, 0.7, 0.2));
+    const [[x1, y1], [x2, y2]] = current.marks[0]?.points ?? [];
+    expect([x1, y1]).toEqual([0.1, 0.1]);
+    expect(x2).toBeCloseTo(0.7, 1);
+    expect(y2).toBeCloseTo(0.2, 1);
+
+    // Dragging the arrow itself moves it whole.
+    const body = document.querySelector(".review-mark-edit__body line");
+    expect(body).not.toBeNull();
+    await act(() => at("pointerdown", body as Element, 0.4, 0.15));
+    await act(() => at("pointermove", body as Element, 0.5, 0.35));
+    await act(() => at("pointerup", body as Element, 0.5, 0.35));
+    const [[mx1, my1]] = current.marks[0]?.points ?? [];
+    expect(mx1).toBeCloseTo(0.2, 1);
+    expect(my1).toBeCloseTo(0.3, 1);
+
+    // Each drag is one step back.
+    await act(() => button("Undo")?.click());
+    await act(() => button("Undo")?.click());
+    expect(current.marks[0]?.points).toEqual(ARROW.points);
+  });
+
+  it("removes the selected mark with Delete", async () => {
+    await mount({ ...start, marks: [BOX, { ...BOX, id: "m2" }] });
+    await act(() => button("Edit")?.click());
+    const mark = document.querySelector<SVGGElement>(".review-markup__mark");
+    await act(() =>
+      mark?.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+    );
+    await act(() =>
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Delete" }))
+    );
+    expect(current.marks.map((m) => m.id)).toEqual(["m2"]);
+  });
+
   it("keeps pins added while a capture is still running", async () => {
     await mount({ ...start, image: null, sourceUrl: "https://example.com" });
     const url = document.querySelector<HTMLInputElement>('input[type="url"]');

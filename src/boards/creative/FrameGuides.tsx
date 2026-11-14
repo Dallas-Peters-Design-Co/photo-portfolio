@@ -17,7 +17,7 @@ import {
   isOffFrame,
   settleGuide,
   withGuides,
-} from "./frameGuides";
+} from "./frameGuideLines";
 import "./FrameGuides.css";
 
 /**

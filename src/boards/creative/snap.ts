@@ -1,5 +1,5 @@
 import type { Box } from "./creativeModel";
-import { guideLines } from "./frameGuides";
+import { guideLines } from "./frameGuideLines";
 import { type Insets, shrink } from "./visibleEdges";
 
 /**
@@ -90,7 +90,7 @@ export const snapMove = (
   inset: Insets | null = null
 ): { box: Box; guides: Guides } => {
   const inner = shrink(box, inset);
-  // The frame's own guides (frameGuides.ts) are lines to snap to as well.
+  // The frame's own guides (frameGuideLines.ts) are lines to snap to as well.
   const targetsX = [frame, ...others]
     .flatMap((b) => linesOf(b, "x"))
     .concat(guideLines(frame, "x"));

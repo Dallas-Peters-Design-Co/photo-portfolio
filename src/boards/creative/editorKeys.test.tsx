@@ -201,10 +201,11 @@ describe("frame editor shortcuts", () => {
   it("opens the Studio for the frame and sets a background behind everything", async () => {
     render([frame, rect("a", 40, 1)]);
     press("S", { shiftKey: true });
-    const sizes = document.querySelector<HTMLSelectElement>(
-      ".studio__field select"
+    // The frame's own size is offered first, and chosen.
+    const sizes = document.querySelector(
+      ".studio [data-slot='select-trigger'][aria-label='Size'] [data-slot='select-value']"
     );
-    expect(sizes?.options[0]?.textContent).toBe("This frame 1080×1080");
+    expect(sizes?.textContent).toBe("This frame 1080×1080");
     const bg = [...document.querySelectorAll("button")].find((b) =>
       b.textContent?.includes("Set as background")
     );
@@ -292,10 +293,10 @@ describe("frame editor shortcuts", () => {
       document.querySelector('.studio [aria-pressed="true"]')?.textContent
     ).toBe("Mosaic");
     // Its own settings came back with it.
-    const tile = [...document.querySelectorAll(".studio select")].find((s) =>
-      [...(s as HTMLSelectElement).options].some((o) => o.value === "circle")
-    ) as HTMLSelectElement;
-    expect(tile.value).toBe("circle");
+    const tile = document.querySelector(
+      ".studio [data-slot='select-trigger'][aria-label='Tile'] [data-slot='select-value']"
+    );
+    expect(tile?.textContent).toBe("Circles");
     const update = [...document.querySelectorAll("button")].find((b) =>
       b.textContent?.includes("Update the layer")
     );

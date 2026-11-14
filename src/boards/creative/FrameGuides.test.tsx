@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { AD_SIZES, sizeOfTitle, sizeTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
 import { FrameGuides } from "./FrameGuides";
-import { guidesOf } from "./frameGuides";
+import { guidesOf } from "./frameGuideLines";
 import { snapMove } from "./snap";
 
 let host: HTMLDivElement | null = null;

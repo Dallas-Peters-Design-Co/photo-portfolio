@@ -101,3 +101,37 @@
   color: #111;
   background: color-mix(in oklch, var(--review-accent) 30%, #fff);
 }
+
+/*
+ * The selected mark's handles (MarkEditLayer): the mark itself, invisible and
+ * wide, to drag it whole, and a dot on each end to reshape it.
+ */
+.review-mark-edit {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.review-mark-edit__body * {
+  pointer-events: all;
+  cursor: move;
+  mix-blend-mode: normal;
+  fill: transparent;
+  stroke: transparent;
+  stroke-width: var(--review-hit);
+  marker-end: none;
+}
+
+.review-mark-edit__handle {
+  pointer-events: all;
+  cursor: grab;
+  fill: #fff;
+  stroke: var(--review-accent);
+}
+
+.review-mark-edit__handle:active {
+  cursor: grabbing;
+}

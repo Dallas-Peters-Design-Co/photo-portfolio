@@ -3,6 +3,7 @@ import {
   Eraser,
   Highlighter,
   MapPin,
+  MousePointer2,
   PenLine,
   Redo2,
   Square,
@@ -12,7 +13,7 @@ import {
 import type { MarkKind } from "../../../config/review.js";
 
 /** What a click or drag on the screenshot does. */
-export type ReviewTool = "pin" | "erase" | MarkKind;
+export type ReviewTool = "pin" | "select" | "erase" | MarkKind;
 
 const TOOLS: { hint: string; icon: typeof MapPin; id: ReviewTool }[] = [
   { hint: "Note — click to pin a numbered note", icon: MapPin, id: "pin" },
@@ -24,6 +25,11 @@ const TOOLS: { hint: string; icon: typeof MapPin; id: ReviewTool }[] = [
   },
   { hint: "Arrow — drag from tail to tip", icon: ArrowUpRight, id: "arrow" },
   { hint: "Pen — draw freehand", icon: PenLine, id: "pen" },
+  {
+    hint: "Edit — click a mark, drag it or its ends, Delete removes it",
+    icon: MousePointer2,
+    id: "select",
+  },
   {
     hint: "Eraser — click a mark or note to remove it",
     icon: Eraser,

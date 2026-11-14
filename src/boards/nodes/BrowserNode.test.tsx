@@ -217,4 +217,56 @@ describe("BrowserNode", () => {
       document.querySelector('button[aria-label="Note 1"]')
     ).not.toBeNull();
   });
+
+  it("reshapes an arrow with the Edit tool", () => {
+    const { current } = mount({
+      captureHeight: 1000,
+      captureUrl: "https://blob.example.com/shot.png",
+      captureWidth: 1000,
+      marks: [
+        {
+          id: "a1",
+          kind: "arrow",
+          points: [
+            [0.1, 0.1],
+            [0.3, 0.3],
+          ],
+        },
+      ],
+      pageUrl: "https://app.example.com/home",
+    });
+    const edit = host?.querySelector<HTMLButtonElement>(
+      'button[aria-label^="Edit:"]'
+    );
+    act(() => edit?.click());
+    const mark = host?.querySelector(".review-markup__mark");
+    act(() => {
+      mark?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const tip = host?.querySelectorAll(".review-mark-edit__handle")[1];
+    expect(tip).toBeDefined();
+    const surface = host?.querySelector(
+      ".browser-node__surface"
+    ) as HTMLElement;
+    const box = surface.getBoundingClientRect();
+    const send = (type: string, fx: number, fy: number) =>
+      act(() => {
+        tip?.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            button: 0,
+            clientX: box.left + box.width * fx,
+            clientY: box.top + box.height * fy,
+            pointerId: 1,
+          })
+        );
+      });
+    send("pointerdown", 0.3, 0.3);
+    send("pointermove", 0.8, 0.6);
+    send("pointerup", 0.8, 0.6);
+    const [arrow] = current().marks as { points: [number, number][] }[];
+    expect(arrow?.points[0]).toEqual([0.1, 0.1]);
+    expect(arrow?.points[1]?.[0]).toBeCloseTo(0.8, 1);
+    expect(arrow?.points[1]?.[1]).toBeCloseTo(0.6, 1);
+  });
 });

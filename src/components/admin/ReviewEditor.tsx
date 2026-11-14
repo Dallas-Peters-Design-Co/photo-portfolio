@@ -1,8 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
-import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
-import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
 import { KeyRound, Plus, ScanSearch } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -32,8 +29,8 @@ import {
 import { AdminCard, AdminFrame } from "./AdminFrame";
 import { BackButton } from "./BackButton";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
-import { ReviewBoardSync } from "./ReviewBoardSync";
 import { ReviewClientPanel } from "./ReviewClientPanel";
+import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
@@ -42,15 +39,6 @@ import { type AuditPhase, useReviewAudit } from "./useReviewAudit";
 
 /** How long typing pauses before the draft saves itself. */
 const AUTOSAVE_MS = 1200;
-
-type SaveState = "saved" | "saving" | "unsaved" | "failed";
-
-const SAVE_LABELS: Record<SaveState, string> = {
-  failed: "Couldn't save — try Save",
-  saved: "All changes saved",
-  saving: "Saving…",
-  unsaved: "Unsaved changes",
-};
 
 /**
  * What autosave writes: everything but the address and the status. Renaming
@@ -241,7 +229,7 @@ export function ReviewEditor({
     n += screen.pins.length;
   }
 
-  const isPublished = draft.status === "published";
+  const _isPublished = draft.status === "published";
 
   return (
     <AdminFrame>
@@ -460,67 +448,17 @@ export function ReviewEditor({
             review={draft}
           />
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              disabled={isSaving}
-              onClick={() => void save()}
-              type="button"
-              variant="outline"
-            >
-              <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
-              {isSaving ? "Saving…" : "Save"}
-            </Button>
-            <Button
-              disabled={isSaving}
-              onClick={() =>
-                void save({ status: isPublished ? "draft" : "published" })
-              }
-              type="button"
-              variant="ghost"
-            >
-              <HugeiconsIcon
-                icon={isPublished ? EyeIcon : ViewOffIcon}
-                size={14}
-              />
-              {isPublished ? "Unpublish" : "Publish"}
-            </Button>
-            <ReviewBoardSync
-              boardId={draft.doc.boardId}
-              latest={latest}
-              onLinked={(boardId) => setDoc({ boardId })}
-            />
-            <span
-              className={`text-micro-xs uppercase tracking-micro-wide ${
-                isPublished ? "text-emerald-400/70" : "text-amber-400/70"
-              }`}
-            >
-              {draft.status}
-            </span>
-            <span
-              aria-live="polite"
-              className={`text-micro-sm ${
-                saveState === "failed" ? "text-red-300" : "text-white/55"
-              }`}
-            >
-              {SAVE_LABELS[saveState]}
-            </span>
-            <button
-              className="ml-auto text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
-              disabled={isSaving}
-              onClick={() => void openPreview()}
-              type="button"
-            >
-              Preview
-            </button>
-            <button
-              className="text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
-              disabled={isPrinting || isSaving}
-              onClick={() => void printPdf()}
-              type="button"
-            >
-              {isPrinting ? "Preparing PDF…" : "PDF"}
-            </button>
-          </div>
+          <ReviewEditorActions
+            draft={draft}
+            isPrinting={isPrinting}
+            isSaving={isSaving}
+            latest={latest}
+            onLinkBoard={(boardId) => setDoc({ boardId })}
+            onPreview={() => void openPreview()}
+            onPrint={() => void printPdf()}
+            onSave={(overrides) => void save(overrides)}
+            saveState={saveState}
+          />
         </CardContent>
       </AdminCard>
     </AdminFrame>

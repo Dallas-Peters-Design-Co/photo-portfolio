@@ -49,7 +49,8 @@ const rectOf = ([a, b]: [number, number][], width: number, height: number) => {
   };
 };
 
-function Shape({
+/** One mark, drawn in the picture's own pixels. */
+export function Shape({
   height,
   mark,
   stroke,
@@ -103,6 +104,13 @@ function Shape({
   );
 }
 
+/**
+ * A mark's line width, proportional to the picture, so a stroke reads the same
+ * on a phone capture and a desktop one.
+ */
+export const markStroke = (width: number): number =>
+  Math.max(2, width * 0.0035);
+
 export function ReviewMarks({
   draft,
   height,
@@ -126,9 +134,7 @@ export function ReviewMarks({
   if (marks.length === 0 && !draft) {
     return null;
   }
-  // Proportional to the picture, so a stroke reads the same on a phone
-  // capture and a desktop one.
-  const stroke = Math.max(2, width * 0.0035);
+  const stroke = markStroke(width);
   const shown = draft ? [...marks, draft] : marks;
   return (
     <svg

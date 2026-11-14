@@ -3,6 +3,7 @@ import {
   Eraser,
   Highlighter,
   MapPin,
+  MousePointer2,
   PenLine,
   Square,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import {
   type ReviewMark,
   type ReviewPin,
 } from "../../../config/review.js";
+import { MarkEditLayer } from "../../components/review/MarkEditLayer";
 import {
   ReviewMarks,
   reviewPinClass,
@@ -44,7 +46,7 @@ const KIND_ITEMS = PIN_KINDS.map((kind) => ({
  * right, numbered to match their pins; each is edited in place.
  */
 
-export type MarkupTool = "pin" | "erase" | MarkKind;
+export type MarkupTool = "pin" | "select" | "erase" | MarkKind;
 
 export const MARKUP_TOOLS: {
   hint: string;
@@ -60,6 +62,11 @@ export const MARKUP_TOOLS: {
   },
   { hint: "Arrow: drag from tail to tip", icon: ArrowUpRight, id: "arrow" },
   { hint: "Pen: draw freehand", icon: PenLine, id: "pen" },
+  {
+    hint: "Edit: click a mark, then drag it or its ends",
+    icon: MousePointer2,
+    id: "select",
+  },
   {
     hint: "Eraser: click a mark or note to remove it",
     icon: Eraser,
@@ -128,6 +135,16 @@ export function BrowserMarkup({
 }) {
   const surface = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<ReviewMark | null>(null);
+  // The Edit tool's selected mark, and where it is mid-drag.
+  const [selectedMark, setSelectedMark] = useState<string | null>(null);
+  const [preview, setPreview] = useState<ReviewMark | null>(null);
+  const editing =
+    tool === "select" && !readOnly
+      ? (preview ?? marks.find((m) => m.id === selectedMark) ?? null)
+      : null;
+  const shown = preview
+    ? marks.map((m) => (m.id === preview.id ? preview : m))
+    : marks;
   const moving = useRef<string | null>(null);
   const moved = useRef<boolean>(false);
 
@@ -162,6 +179,11 @@ export function BrowserMarkup({
       };
       onChange({ notes: [...notes, pin] });
       onSelectNote(pin.id);
+      return;
+    }
+    if (tool === "select") {
+      // A press off every mark lets go of the selection.
+      setSelectedMark(null);
       return;
     }
     if (tool === "erase") {
@@ -222,6 +244,13 @@ export function BrowserMarkup({
   const erase = (id: string) =>
     onChange({ marks: marks.filter((m) => m.id !== id) });
 
+  let onMarkClick: ((id: string) => void) | undefined;
+  if (!readOnly && tool === "erase") {
+    onMarkClick = erase;
+  } else if (!readOnly && tool === "select") {
+    onMarkClick = setSelectedMark;
+  }
+
   return (
     <div
       className={`browser-node__surface browser-node__surface--${tool}`}
@@ -241,10 +270,26 @@ export function BrowserMarkup({
       <ReviewMarks
         draft={draft}
         height={capture.height}
-        marks={marks}
-        onSelect={tool === "erase" && !readOnly ? erase : undefined}
+        marks={shown}
+        onSelect={onMarkClick}
+        selected={editing ? editing.id : null}
         width={capture.width}
       />
+      {editing ? (
+        <MarkEditLayer
+          height={capture.height}
+          mark={editing}
+          onChange={setPreview}
+          onCommit={(mark) => {
+            setPreview(null);
+            onChange({
+              marks: marks.map((m) => (m.id === mark.id ? mark : m)),
+            });
+          }}
+          surface={surface}
+          width={capture.width}
+        />
+      ) : null}
       {notes.map((note, i) => (
         <button
           aria-label={`Note ${i + 1}`}

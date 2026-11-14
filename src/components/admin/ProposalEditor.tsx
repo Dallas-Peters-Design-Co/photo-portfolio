@@ -10,7 +10,6 @@ import {
   newItemId,
   type ProposalDoc,
   type ProposalSection,
-  type ProposalStep,
   type RichText,
 } from "../../../config/proposal.js";
 import { PageEditor } from "../../cms/PageEditor";
@@ -36,6 +35,7 @@ import { ProposalActivity } from "./ProposalActivity";
 import { ProposalContract } from "./ProposalContract";
 import { ProposalInvoices } from "./ProposalInvoices";
 import { ProposalPackagesEditor } from "./ProposalPackagesEditor";
+import { ProposalProcessEditor } from "./ProposalProcessEditor";
 import { ProposalSendPanel } from "./ProposalSendPanel";
 import {
   proposalInputClass,
@@ -146,13 +146,6 @@ export function ProposalEditor({
   const updateSection = (id: string, patch: Partial<ProposalSection>) =>
     setDoc({
       sections: draft.doc.sections.map((s) =>
-        s.id === id ? { ...s, ...patch } : s
-      ),
-    });
-
-  const updateStep = (id: string, patch: Partial<ProposalStep>) =>
-    setDoc({
-      process: draft.doc.process.map((s) =>
         s.id === id ? { ...s, ...patch } : s
       ),
     });
@@ -356,63 +349,11 @@ export function ProposalEditor({
           <ProposalPackagesEditor doc={draft.doc} onChange={setDoc} />
 
           {/* Process */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={fieldsetTitleClass}>What happens next</h3>
-              <Button
-                onClick={() =>
-                  setDoc({
-                    process: [
-                      ...draft.doc.process,
-                      { body: "", id: newItemId(), title: "" },
-                    ],
-                  })
-                }
-                type="button"
-                variant="ghost"
-              >
-                <Plus size={14} /> Add step
-              </Button>
-            </div>
-            {draft.doc.process.map((step, index) => (
-              <div
-                className="flex flex-col gap-3 rounded-md border border-white/10 p-4 sm:flex-row sm:items-start"
-                key={step.id}
-              >
-                <Input
-                  aria-label={`Step ${index + 1} title`}
-                  className={`${proposalInputClass} sm:flex-1`}
-                  onChange={(e) =>
-                    updateStep(step.id, { title: e.target.value })
-                  }
-                  placeholder={`Step ${index + 1}`}
-                  value={step.title}
-                />
-                <textarea
-                  aria-label={`Step ${index + 1} detail`}
-                  className={`${proposalTextareaClass} min-h-11 sm:flex-2`}
-                  onChange={(e) =>
-                    updateStep(step.id, { body: e.target.value })
-                  }
-                  value={step.body}
-                />
-                <Button
-                  aria-label="Remove step"
-                  onClick={() =>
-                    setDoc({
-                      process: draft.doc.process.filter(
-                        (s) => s.id !== step.id
-                      ),
-                    })
-                  }
-                  type="button"
-                  variant="ghost"
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </div>
-            ))}
-          </section>
+          <ProposalProcessEditor
+            doc={draft.doc}
+            onChange={setDoc}
+            titleClass={fieldsetTitleClass}
+          />
 
           {/* Terms and closing */}
           <section className="space-y-4">
