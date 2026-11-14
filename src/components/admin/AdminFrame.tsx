@@ -22,14 +22,21 @@ export function AdminFrame({
   );
 }
 
-/** A card on an admin page: the thin rule and faint fill they all share. */
+/**
+ * A card on an admin page: the thin rule and faint fill they all share.
+ * Clipped with overflow: clip, not hidden: it clips the same, but it is not a
+ * scroll container, so a sticky child (a review's screenshot) still sticks.
+ */
 export function AdminCard({
   className,
   ...props
 }: React.ComponentProps<typeof Card>) {
   return (
     <Card
-      className={cn("w-full border-white/10 bg-white/2", className)}
+      className={cn(
+        "w-full overflow-clip border-white/10 bg-white/2",
+        className
+      )}
       data-slot="admin-card"
       {...props}
     />

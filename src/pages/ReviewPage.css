@@ -272,6 +272,21 @@
   max-width: var(--container-phone);
 }
 
+/*
+ * Beside its notes, the screenshot stays in view. A full-page capture is
+ * often taller than the window, so it is held to the window's height and
+ * scrolls on its own; the pins scroll with it. Print undoes this below.
+ */
+@media (min-width: 60rem) {
+  .review-page__screen .review-page__figure {
+    position: sticky;
+    top: calc(var(--spacing) * 4);
+    max-height: calc(100dvh - var(--spacing) * 8);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
 .review-page__image {
   display: block;
   width: 100%;
@@ -464,6 +479,13 @@
     max-width: max(50%, min(100%, calc(8.5in * var(--shot-ratio, 1))));
     margin-inline: auto;
     break-inside: avoid;
+  }
+
+  /* The whole picture on paper, not a scrolling pane. */
+  .review-page__screen .review-page__figure {
+    position: relative;
+    max-height: none;
+    overflow: hidden;
   }
 
   /* A phone capture sits beside its notes, as on a wide screen. */

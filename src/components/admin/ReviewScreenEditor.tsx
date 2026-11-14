@@ -408,7 +408,7 @@ export function ReviewScreenEditor({
 
       {screen.image ? (
         <div className="review-screen-editor__body">
-          <div>
+          <div className="review-screen-editor__shot">
             <ReviewMarkupToolbar
               canClear={marks.length > 0}
               canRedo={history.canRedo}
