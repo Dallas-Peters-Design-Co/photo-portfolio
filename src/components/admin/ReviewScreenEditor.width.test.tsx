@@ -113,3 +113,50 @@ it("keeps the screenshot in view beside a long list of notes", async () => {
   expect(top).toBeLessThan(40);
   window.scrollTo(0, 0);
 });
+
+it("stops below the admin's fixed bar", async () => {
+  await page.viewport(1400, 800);
+  document.documentElement.style.setProperty("--admin-bar-height", "150px");
+  const tall: ReviewScreen = {
+    ...screen("desktop"),
+    image: {
+      height: 6000,
+      url: "data:image/gif;base64,R0lGODlhAQABAAAAACw=",
+      width: 1440,
+    },
+    pins: Array.from({ length: 30 }, (_, i) => ({
+      body: "A note long enough to take some room in the list.",
+      id: `p${i}`,
+      kind: "issue" as const,
+      title: `Note ${i + 1}`,
+      x: 0.5,
+      y: i / 30,
+    })),
+  };
+  host = document.createElement("div");
+  document.body.append(host);
+  root = createRoot(host);
+  await act(() =>
+    root?.render(
+      <AdminCard>
+        <ReviewScreenEditor
+          firstNumber={1}
+          onChange={() => undefined}
+          onRemove={() => undefined}
+          screen={tall}
+          slug="t"
+        />
+      </AdminCard>
+    )
+  );
+  const shot = host.querySelector<HTMLElement>(".review-screen-editor__shot");
+  window.scrollTo(0, 1200);
+  await new Promise((r) => requestAnimationFrame(r));
+  const box = shot?.getBoundingClientRect();
+  expect(box?.top ?? 0).toBeGreaterThanOrEqual(150);
+  expect(box?.top ?? 0).toBeLessThan(190);
+  // It fits in the window below the bar.
+  expect(box?.bottom ?? 900).toBeLessThanOrEqual(800);
+  window.scrollTo(0, 0);
+  document.documentElement.style.removeProperty("--admin-bar-height");
+});

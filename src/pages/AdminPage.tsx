@@ -31,6 +31,28 @@ import { authApi, authStorage } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 
 /**
+ * Publishes the fixed bar's height as --admin-bar-height, so anything that
+ * sticks to the top of the window (a review's screenshot) stops below the
+ * bar rather than under it. Measured, not a constant: the bar grows with the
+ * notch inset and when its section links wrap.
+ */
+const measureBar = (bar: HTMLElement | null) => {
+  if (!bar) {
+    return;
+  }
+  const root = document.documentElement;
+  const publish = () =>
+    root.style.setProperty("--admin-bar-height", `${bar.offsetHeight}px`);
+  publish();
+  const observer = new ResizeObserver(publish);
+  observer.observe(bar);
+  return () => {
+    observer.disconnect();
+    root.style.removeProperty("--admin-bar-height");
+  };
+};
+
+/**
  * The admin's sections, each at its own address.
  *
  * They used to be stacked on one page under the photo library, so organising
@@ -124,7 +146,7 @@ export function AdminPage() {
   return (
     <div className="page admin-page">
       <Toaster position="top-center" theme="dark" />
-      <nav className="hairline admin-page__bar">
+      <nav className="hairline admin-page__bar" ref={measureBar}>
         <div className="row admin-page__bar-inner row--between">
           <h1 className="admin-page__title">{settings.shortName} Admin</h1>
           <div className="row admin-page__bar-actions">
