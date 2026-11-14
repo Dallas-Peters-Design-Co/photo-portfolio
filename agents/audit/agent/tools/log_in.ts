@@ -3,7 +3,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 
 import { BROWSER_SESSION } from "../lib/browser-session";
-import { loginTarget, parseLoginUrl } from "../lib/login-target";
+import { LOGIN_URL_ATTRIBUTE, parseLoginUrl } from "../lib/login-target";
 
 // Selectors tried in order when LOGIN_USER_SELECTOR is not set.
 const USER_SELECTORS = [
@@ -57,11 +57,11 @@ export default defineTool({
   async execute({ loginUrl }, ctx) {
     const username = process.env.LOGIN_USER;
     const password = process.env.LOGIN_PASS;
-    // The trusted login page: from the caller's request (set by the channel,
-    // never by the model), else the server's LOGIN_URL.
-    const session = loginTarget.get();
+    // The trusted login page: from the caller's request (stored on the session's
+    // auth by the channel, never by the model), else the server's LOGIN_URL.
+    const fromRequest = ctx.session.auth?.current?.attributes?.[LOGIN_URL_ATTRIBUTE];
     const trusted =
-      (session.origin && session.url ? { origin: session.origin, url: session.url } : null) ??
+      parseLoginUrl(typeof fromRequest === "string" ? fromRequest : undefined) ??
       parseLoginUrl(process.env.LOGIN_URL);
     const url = loginUrl ?? trusted?.url;
     if (!username || !password) {
