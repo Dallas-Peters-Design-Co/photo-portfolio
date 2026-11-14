@@ -1,0 +1,37 @@
+# UX patterns
+
+- Edit and change settings on the page, with details in view. A modal is not the main editing surface.
+- Use breadcrumbs from the section root, not ad-hoc Back buttons. Label each link with where it goes.
+- Prefer a real interactive UI (block editor, kanban, quadrants) over raw markdown editing.
+- Prefer a UI with preview and direct editing over terminal commands for design tools.
+- Make photo lightboxes large. Let people move through the whole collection with arrows, keys, and swipe, with a position indicator.
+- Give AI features a disclaimer, an AI-generated label, and feedback on each response.
+- Walk people through a multi-section flow with a stepper. After completion, show all sections as accordions, one open at a time.
+- Always design and check the empty state. Tell "nothing yet" apart from "no matches", and give each one a way out.
+- Show a control only where it applies. Leave empty areas blank, with one action to add content.
+- Make resizable or draggable UI obvious, with a visible handle.
+- Do not rely on right-click. Give panels a visible toolbar.
+- Wait for data before showing UI that depends on it, then fade it in.
+- Keep critical mobile actions in view, layered over the content.
+- Open contextual tools (like AI chat) where the user triggered them.
+- Move low-priority helpers (tour, help) to the footer or settings.
+- Do not ask people for values the system can compute.
+- Replace unworkable inputs (comma lists for data) with visual editors, plus CSV or JSON paste.
+- Keep finished work visible, grouped by day.
+- Batch pending actions into a count, with one send button that says what happens next.
+- Make intake forms feel like Typeform, with a live readout of results.
+- Show changes for review as git-style diffs, not a table.
+- Use rich generative UI in AI chat responses, with varied components.
+- Validate form fields inline, without refreshing the whole page. (A full page refresh on error makes the user re-enter or re-select every field.)
+- Give data tables text size, filter, and column controls. (Users need to adjust density, narrow rows, and choose visible columns.)
+- Use a navbar dropdown, not tabs, to switch between top-level views.
+- Do not repeat information that is already shown on the screen. (Repeated text adds clutter without adding value.)
+- Show the standard empty state when a list has no items. (One empty state keeps the product consistent.)
+- Create new records inline at the top of their list, not in a modal. (Inline creation keeps the user in context.)
+- Autofocus the name field of a new record and save the record when the field loses focus. (Users can type right away and need no separate save step.)
+- Edit records in place instead of opening a modal. (In-place editing is faster and keeps context.)
+- Make ask or search bars suggest context the user needs now, such as upcoming items or client facts. (Generic prompts do not help the user act.)
+- Use generative UI in AI responses. Render charts and cards inline from the response. (Dallas wants more than one chart type in AI chat. He pointed to the AI SDK generative UI docs.)
+- Check other pages for key stats before adding them to a dashboard. Do not repeat stats already shown. (Repeated stats waste space and the dashboard should show new information.)
+- Show a visible grip or handle on resizable panels so users know they can resize. (Users did not see that the toolbar could be resized.)
+- Move removed optional controls into user settings with a toggle so users can turn them back on. (Some users prefer a control in its old place, so they need a way to restore it.)

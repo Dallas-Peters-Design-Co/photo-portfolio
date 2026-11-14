@@ -1,0 +1,37 @@
+# Components
+
+- Use one border radius on all buttons. No pill buttons. Keep card radii modest.
+- Use at most 3 button styles in an app, and keep all button styling in one stylesheet.
+- Use icon-only button groups for secondary tool actions (filter, columns, expand, export) when space is tight.
+- Style tabs as plain text, with a box-shadow underline on the active tab. No pills, radius, or full fills.
+- Make sidebar nav items square. Show a left box-shadow on hover. Mark the active item with a left border flush to the edge.
+- Make every table in an app look the same, with the same cell spacing.
+- Give table columns a minimum width and let the table scroll sideways. Keep the first column sticky.
+- Show status as a chip in its own table column.
+- Avoid decoration with no meaning (unexplained bars, lines above tabs, an eyebrow on every hero, grid overlays).
+- At tablet width, collapse a crowded row of header links into one dropdown. Links never wrap or stack.
+- Video players need a poster image, a CC button with captions off by default, and clear controls.
+- Make responsive navbars collapse item by item into a menu as space runs out.
+- Keep paired action buttons the same size and style. A toggle changes only its text and action.
+- Filled buttons have no border.
+- Standard button height is 44px.
+- Put secondary actions like Import in the page header, not as primary buttons.
+- Keep the sidebar neutral. Style the active nav item with color only, no background fill.
+- Mark the current page in dropdown menus with a clear active background.
+- Put account settings, sign out, and the theme switcher in an avatar menu in the app bar.
+- In cards, make only the button the link, not the whole card.
+- Do not put a separate white box around form elements. Let them sit on the surface.
+- Tables inside cards get no extra rounded corners or double borders.
+- Show notices like "columns don't fit" as an alert above the table, not a separate card.
+- Fix modal backdrops to the viewport.
+- Build custom dropdowns when lists are long or need richer behavior. Native menus truncate.
+- Do not put icons inside inputs where they get in the way.
+- Use icon-only buttons on mobile when a label will not fit. Make search bars full width on small screens.
+- Color pickers use OKLCH, stay expanded, support gradients, and can be cleared.
+- Show a layout warning as an alert above the table, not as a card. (A notice about columns fits better as an alert over the data it describes.)
+- Keep undo toasts visible for at least 60 seconds and let users dismiss them. (Users need time to notice and undo an action.)
+- Show undo toasts in a dark style in the lower-right corner.
+- Remove small caption lines that sit above tab bars. (The extra line added clutter above the tabs.)
+- Style media entry buttons like video thumbnails. Use a linear gradient background, a play icon, and a short label such as "Play brief". (Dallas preferred this earlier thumbnail button over the plain video button.)
+- Place filters and search on the left of data grids and pagination on the right. (This is the layout Dallas wants for the events grid.)
+- Let navigation dropdown text use free space before it truncates. (The page title dropdown truncated on tablets even though the navbar had room.)
