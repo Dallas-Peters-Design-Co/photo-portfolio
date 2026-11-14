@@ -26,6 +26,13 @@ beforeAll(async () => {
       res.writeHead(200, { "content-type": "text/html", ...headers });
       res.end(page(html));
     };
+    // A page that won't load at all once a stale cookie is carried in.
+    if (url.pathname === "/fragile") {
+      if ((req.headers.cookie ?? "").includes("stale=1")) {
+        return req.socket.destroy();
+      }
+      return send("<h1>Fragile page</h1>");
+    }
     if (url.pathname === "/login") {
       return send(
         '<form method="get" action="/password"><input type="email" name="email"><button>Next</button></form>'
@@ -117,5 +124,35 @@ describe("browse", () => {
       width: 800,
     }).catch((e: Error) => e);
     expect(blocked).toBeInstanceOf(Error);
+  }, 60_000);
+
+  it("opens a page without the session when it won't open with it", async () => {
+    const { hostname } = new URL(base);
+    const session = {
+      cookies: [
+        {
+          domain: hostname,
+          expires: -1,
+          httpOnly: false,
+          name: "stale",
+          path: "/",
+          sameSite: "Lax" as const,
+          secure: false,
+          value: "1",
+        },
+      ],
+      origins: [],
+    };
+    const out = await browse({
+      allowHost: anyHost,
+      login: null,
+      session,
+      url: `${base}/fragile`,
+      width: 800,
+    });
+    expect(out.url).toBe(`${base}/fragile`);
+    expect(out.preview).toContain("data:image/jpeg");
+    // The session it ended with is the one that worked: the cookie is gone.
+    expect(out.session.cookies.some((c) => c.name === "stale")).toBe(false);
   }, 60_000);
 });

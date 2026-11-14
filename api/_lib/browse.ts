@@ -1,4 +1,4 @@
-import type { BrowserContext, Page } from "playwright-core";
+import type { Browser, BrowserContext, Page } from "playwright-core";
 import { resolvePublicUrl } from "./publicHost.js";
 import { type CaptureResult, captureFullPage, launch } from "./screenshot.js";
 
@@ -114,9 +114,7 @@ const asksToSignIn = async (page: Page): Promise<boolean> => {
     return true;
   }
   const path = new URL(page.url()).pathname;
-  return (
-    SIGN_IN_PATH.test(path) && (await page.locator(USERNAME).count()) > 0
-  );
+  return SIGN_IN_PATH.test(path) && (await page.locator(USERNAME).count()) > 0;
 };
 
 /**
@@ -168,16 +166,29 @@ const trimSession = (session: Session): Session =>
     ? session
     : { cookies: session.cookies, origins: [] };
 
-export const browse = async (input: BrowseInput): Promise<BrowseResult> => {
-  const allowHost = input.allowHost ?? publicHost;
-  const browser = await launch();
+/** The open tab: a link that opens a new one carries on there. */
+interface Tab {
+  context: BrowserContext;
+  page: Page;
+}
+
+/**
+ * A context carrying the session, opened on the page asked for (signing in
+ * on the way when there's a login and the site wants one).
+ */
+const openSite = async (
+  browser: Browser,
+  input: BrowseInput,
+  session: Session | null,
+  allowHost: (host: string) => Promise<boolean>
+): Promise<Tab> => {
+  const context = await browser.newContext({
+    bypassCSP: true,
+    deviceScaleFactor: input.capturePrefix ? 2 : 1,
+    storageState: session ?? undefined,
+    viewport: { height: Math.round(input.width * 0.66), width: input.width },
+  });
   try {
-    const context = await browser.newContext({
-      bypassCSP: true,
-      deviceScaleFactor: input.capturePrefix ? 2 : 1,
-      storageState: input.session ?? undefined,
-      viewport: { height: Math.round(input.width * 0.66), width: input.width },
-    });
     const checked = new Map<string, Promise<boolean>>();
     await context.route("**/*", async (route) => {
       const { hostname, protocol } = new URL(route.request().url());
@@ -192,30 +203,90 @@ export const browse = async (input: BrowseInput): Promise<BrowseResult> => {
       }
       return (await checked.get(hostname)) ? route.continue() : route.abort();
     });
-    let page = await context.newPage();
+    const tab: Tab = { context, page: await context.newPage() };
     // A link that opens a new tab carries on there, as it would for a person.
     context.on("page", (opened) => {
-      page = opened;
+      tab.page = opened;
     });
 
     const { login } = input;
-    if (login && !input.session && login.loginUrl) {
-      await open(page, login.loginUrl);
-      await logIn(page, login);
+    if (login && !session && login.loginUrl) {
+      await open(tab.page, login.loginUrl);
+      await logIn(tab.page, login);
     }
-    await open(page, input.url);
-    if (login && (await asksToSignIn(page))) {
+    await open(tab.page, input.url);
+    if (login && (await asksToSignIn(tab.page))) {
       // Signed out, or the session ran out: sign in, then back to the page.
       const wanted = input.url;
-      await logIn(page, login);
-      if (page.url() !== wanted && !(await asksToSignIn(page))) {
-        await open(page, wanted);
+      await logIn(tab.page, login);
+      if (tab.page.url() !== wanted && !(await asksToSignIn(tab.page))) {
+        await open(tab.page, wanted);
       }
     }
+    return tab;
+  } catch (e) {
+    await context.close().catch(() => undefined);
+    throw e;
+  }
+};
+
+/**
+ * The sessions to try, fullest first: as kept, then its cookies alone, then
+ * none.
+ *
+ * A session that a site's own page left behind can stop the next visit from
+ * loading at all (Chromium gave up on pretext.viask.ai/login with
+ * ERR_INSUFFICIENT_RESOURCES once a session was carried in, three times
+ * running). Being signed out and asked to sign in again is a page; an error
+ * is nothing. So a page that won't open with the session is tried with less.
+ */
+const sessionsToTry = (session: Session | null): (Session | null)[] => {
+  if (!session) {
+    return [null];
+  }
+  const cookiesOnly: Session = { cookies: session.cookies, origins: [] };
+  return session.origins.length > 0
+    ? [session, cookiesOnly, null]
+    : [session, null];
+};
+
+const openWithFallback = async (
+  browser: Browser,
+  input: BrowseInput,
+  allowHost: (host: string) => Promise<boolean>
+): Promise<Tab> => {
+  const tries = sessionsToTry(input.session);
+  let failure: unknown = null;
+  for (const [i, session] of tries.entries()) {
+    try {
+      // biome-ignore lint/performance/noAwaitInLoops: one attempt at a time, each only if the last failed
+      const tab = await openSite(browser, input, session, allowHost);
+      if (i > 0) {
+        console.warn(
+          `[browser node] opened ${new URL(input.url).hostname} on try ${i + 1} of ${tries.length} (less of the session)`
+        );
+      }
+      return tab;
+    } catch (e) {
+      failure = e;
+    }
+  }
+  throw failure;
+};
+
+export const browse = async (input: BrowseInput): Promise<BrowseResult> => {
+  const allowHost = input.allowHost ?? publicHost;
+  const browser = await launch();
+  try {
+    const tab = await openWithFallback(browser, input, allowHost);
+    const { context } = tab;
+    let { page } = tab;
 
     if (input.click) {
       await clickAt(page, input.click);
       await page.waitForTimeout(400);
+      // The click may have opened a new tab: carry on there.
+      ({ page } = tab);
       await settle(page);
     }
     if (input.text) {
@@ -223,6 +294,7 @@ export const browse = async (input: BrowseInput): Promise<BrowseResult> => {
     }
     if (input.pressEnter) {
       await page.keyboard.press("Enter");
+      ({ page } = tab);
       await settle(page);
     }
 
