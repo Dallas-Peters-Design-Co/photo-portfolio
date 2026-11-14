@@ -1,13 +1,16 @@
-import { ArrowRight, Dices, Plus, RotateCcw, X } from "lucide-react";
+import { ArrowRight, Dices, RotateCcw, X } from "lucide-react";
 import { ColorWell } from "../ColorWell";
+import { ColorsField } from "./ColorsField";
 import { colorsOf } from "./chosenColors";
 import { replacementsOf } from "./generators/recolour";
-import { ImagePick } from "./ImagePick";
+import { type FromFrame, ImagePick } from "./ImagePick";
+import { LettersField } from "./LettersField";
 import { newSeed } from "./rng";
 import type { StudioParam, StudioValues } from "./types";
 
 /** One control per setting, drawn from the tool's schema. */
 export function StudioControls({
+  fromFrame,
   image,
   onChange,
   onImage,
@@ -16,10 +19,12 @@ export function StudioControls({
   sources = [],
   values,
 }: {
+  /** The frame editor's selection, offered as a picture (ImagePick). */
+  fromFrame?: FromFrame;
   image: string | null;
   onChange: (key: string, value: boolean | number | string) => void;
   /** A local URL for the picture chosen, and where it came from (ImagePick). */
-  onImage: (url: string, source?: string) => void;
+  onImage: (url: string, source?: string, inPlace?: boolean) => void;
   palette: string[];
   params: StudioParam[];
   /** The colours a "remap" setting lists (the tool's `sources`). */
@@ -102,6 +107,40 @@ export function StudioControls({
             );
           case "tiles":
             return null;
+          case "text":
+            return (
+              // biome-ignore lint/a11y/noLabelWithoutControl: the control is inside, a field or a text box
+              <label className="studio__field" key={p.key}>
+                <span>{p.label}</span>
+                {p.multiline ? (
+                  <textarea
+                    className="studio__input studio__input--lines"
+                    maxLength={200}
+                    onChange={(e) => onChange(p.key, e.target.value)}
+                    rows={Math.min(5, String(v ?? "").split("\n").length + 1)}
+                    value={String(v ?? "")}
+                  />
+                ) : (
+                  <input
+                    className="studio__input"
+                    maxLength={24}
+                    onChange={(e) => onChange(p.key, e.target.value)}
+                    type="text"
+                    value={String(v ?? "")}
+                  />
+                )}
+              </label>
+            );
+          case "letters":
+            return (
+              <LettersField
+                key={p.key}
+                label={p.label}
+                onChange={(next) => onChange(p.key, next)}
+                text={String(values[p.of] ?? "")}
+                value={String(v ?? "")}
+              />
+            );
           case "checkbox":
             return (
               <label className="studio__check" key={p.key}>
@@ -138,6 +177,7 @@ export function StudioControls({
             return (
               <ImagePick
                 current={image}
+                fromFrame={fromFrame}
                 key={p.key}
                 label={p.label}
                 onPick={onImage}
@@ -145,69 +185,6 @@ export function StudioControls({
             );
         }
       })}
-    </div>
-  );
-}
-
-/** A row of colour wells, one per colour the tool draws with. */
-function ColorsField({
-  label,
-  max,
-  onChange,
-  palette,
-  value,
-}: {
-  label: string;
-  max: number;
-  /** The colours, comma-joined. */
-  onChange: (next: string) => void;
-  palette: string[];
-  value: string[];
-}) {
-  const save = (next: string[]) => onChange(next.join(","));
-  return (
-    <div className="studio__field studio-colors">
-      <span>{label}</span>
-      <div className="studio-colors__row">
-        {value.map((c, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: a colour's place is its identity; two can be the same colour
-          <span className="studio-colors__well" key={i}>
-            <ColorWell
-              label={`${label} ${i + 1}`}
-              onChange={(next) =>
-                save(value.map((was, j) => (j === i ? next : was)))
-              }
-              value={c}
-            />
-            {value.length > 2 ? (
-              <button
-                aria-label={`Remove colour ${i + 1}`}
-                className="studio-colors__remove"
-                onClick={() => save(value.filter((_, j) => j !== i))}
-                type="button"
-              >
-                <X size={10} />
-              </button>
-            ) : null}
-          </span>
-        ))}
-        {value.length < max ? (
-          <button
-            aria-label="Add a colour"
-            className="studio__icon"
-            onClick={() =>
-              save([
-                ...value,
-                palette[value.length % palette.length] ?? "#000000",
-              ])
-            }
-            title="Add a colour"
-            type="button"
-          >
-            <Plus size={14} />
-          </button>
-        ) : null}
-      </div>
     </div>
   );
 }

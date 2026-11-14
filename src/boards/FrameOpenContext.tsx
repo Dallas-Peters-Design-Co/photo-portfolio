@@ -38,6 +38,8 @@ interface FrameActions {
   linkFor?: (frameId: string) => string | null;
   /** Opens the frame as its own view. */
   open?: (frameId: string) => void;
+  /** Scales a frame and its contents to the standard size for its name. */
+  resetScale?: (frameId: string) => void;
   /**
    * Packs the frame's pictures into a dataset for fal's LoRA trainer.
    *
@@ -60,6 +62,7 @@ export function FrameOpenProvider({
   linkFor,
   onOpenFrame,
   onTrainOnFrame,
+  resetScale,
 }: {
   children: ReactNode;
   designFrame?: FrameActions["designFrame"];
@@ -68,6 +71,7 @@ export function FrameOpenProvider({
   linkFor?: (frameId: string) => string | null;
   onOpenFrame?: (frameId: string) => void;
   onTrainOnFrame?: (frameId: string) => void;
+  resetScale?: FrameActions["resetScale"];
 }) {
   return (
     <FrameContext.Provider
@@ -77,6 +81,7 @@ export function FrameOpenProvider({
         fitFrame,
         linkFor,
         open: onOpenFrame,
+        resetScale,
         trainOnFrame: onTrainOnFrame,
       }}
     >

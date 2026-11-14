@@ -281,6 +281,8 @@ export interface BoardSource {
 }
 
 export interface Board {
+  /** Named colours kept on the board (src/boards/colorVars); admin only. */
+  colorVars?: { id: string; name: string; value: string }[];
   /** The components its instances place (detail responses only). */
   components?: BrandComponent[];
   coverUrl: string | null;
@@ -431,4 +433,11 @@ export interface AiModelInput {
   output?: "image" | "video";
   sortOrder?: number;
   vector?: boolean;
+}
+
+/** Where frames are being copied: an existing board, or a new one named. */
+export interface CopyTarget {
+  /** Absent for a new board. */
+  id?: string;
+  title: string;
 }

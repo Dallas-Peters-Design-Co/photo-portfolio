@@ -1,9 +1,11 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { reviewPassKey } from "../../../config/reviewFeedback.js";
 import { getBearerUser } from "../../_lib/auth.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
 import { ADMIN_TOKEN_KEY, allowedPageOrigin } from "../../_lib/pageOrigin.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
+import { accessOf, passOf, passValid } from "../../_lib/reviewAccess.js";
 import { renderPagePdf } from "../../_lib/screenshot.js";
 
 /**
@@ -12,7 +14,9 @@ import { renderPagePdf } from "../../_lib/screenshot.js";
  *
  * Same arrangement as the proposal PDF: one rendering, the page's own print
  * stylesheet. A published review prints for anyone with the link; a draft
- * only for an admin, whose token is handed to the headless browser.
+ * only for an admin, whose token is handed to the headless browser. One with
+ * a password prints for someone holding its pass, which goes to the headless
+ * browser the same way.
  *
  * The browser needs the page's address; see allowedPageOrigin for which
  * origins it may be.
@@ -45,15 +49,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const sql = getSql();
     const rows = (await sql`
-      SELECT status FROM reviews WHERE slug = ${slug} LIMIT 1
-    `) as { status: string }[];
+      SELECT id, status, doc FROM reviews WHERE slug = ${slug} LIMIT 1
+    `) as { doc?: unknown; id?: string; status: string }[];
     const [row] = rows;
     if (!row || (row.status !== "published" && !admin)) {
       return res.status(404).json({ error: "Review not found" });
     }
+    const access = accessOf(row.doc);
+    const pass =
+      passOf(req) ?? (typeof body.pass === "string" ? body.pass : null);
+    if (access && !admin && !passValid(pass, row.id ?? "", access)) {
+      return res
+        .status(401)
+        .json({ error: "Enter the review's password first" });
+    }
     const token = admin && auth ? auth.slice("Bearer ".length) : null;
+    const storage: Record<string, string> = {};
+    if (token) {
+      storage[ADMIN_TOKEN_KEY] = token;
+    } else if (access && pass) {
+      storage[reviewPassKey(slug)] = pass;
+    }
     const pdf = await renderPagePdf({
-      localStorage: token ? { [ADMIN_TOKEN_KEY]: token } : undefined,
+      localStorage: Object.keys(storage).length > 0 ? storage : undefined,
       url: `${origin}/review/${encodeURIComponent(slug)}`,
       waitFor: ".review-page__sheet",
     });

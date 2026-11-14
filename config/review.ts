@@ -159,7 +159,7 @@ const cleanImage = (v: unknown): ReviewImage | null => {
     : null;
 };
 
-const cleanPin = (v: unknown): ReviewPin => {
+export const cleanPin = (v: unknown): ReviewPin => {
   const raw = (v ?? {}) as Partial<ReviewPin>;
   const kind = PIN_KINDS.includes(raw.kind as PinKind)
     ? (raw.kind as PinKind)

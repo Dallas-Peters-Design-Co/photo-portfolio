@@ -17,10 +17,20 @@ import {
   ReviewMarks,
   reviewAccentStyle,
 } from "../components/review/ReviewMarkup";
-import { type ReviewRecord, reviewsApi } from "../services/reviewService";
+import {
+  ReviewLockedError,
+  type ReviewRecord,
+  reviewsApi,
+} from "../services/reviewService";
 import { siteConfig } from "../site";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import { formatDate } from "./ProposalAcceptance";
+import {
+  ClientLayer,
+  FeedbackProvider,
+  ScreenComments,
+} from "./ReviewFeedback";
+import { ReviewLock } from "./ReviewLock";
 import { ReviewPdfButton } from "./ReviewPdfButton";
 import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 
@@ -34,10 +44,15 @@ export function ReviewPage() {
   const { slug = "" } = useParams();
   const { settings } = useSiteSettings();
   const [review, setReview] = useState<ReviewRecord | null>(null);
-  const [state, setState] = useState<"loading" | "ready" | "missing">(
-    "loading"
-  );
+  const [state, setState] = useState<
+    "loading" | "ready" | "missing" | "locked"
+  >("loading");
+  const [lockedTitle, setLockedTitle] = useState("");
+  // Bumped when the password is right, to load the review it unlocked.
+  const [opened, setOpened] = useState(0);
 
+  // `opened` is the reload once the password has been entered.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: opened is a reload trigger, not read
   useEffect(() => {
     let cancelled = false;
     setState("loading");
@@ -48,16 +63,17 @@ export function ReviewPage() {
           setReview(record);
           setState("ready");
         }
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          setState("missing");
+          setLockedTitle(err instanceof ReviewLockedError ? err.title : "");
+          setState(err instanceof ReviewLockedError ? "locked" : "missing");
         }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, opened]);
 
   useEffect(() => {
     if (review) {
@@ -105,8 +121,17 @@ export function ReviewPage() {
             </p>
           </div>
         )}
+        {state === "locked" && (
+          <ReviewLock
+            onUnlocked={() => setOpened((n) => n + 1)}
+            slug={slug}
+            title={lockedTitle}
+          />
+        )}
         {state === "ready" && review && (
-          <ReviewSheet ownerName={settings.ownerName} review={review} />
+          <FeedbackProvider initial={review.feedback} slug={review.slug}>
+            <ReviewSheet ownerName={settings.ownerName} review={review} />
+          </FeedbackProvider>
         )}
       </main>
 
@@ -236,6 +261,10 @@ function ReviewSheet({
           <Prose text={doc.closing} />
         </section>
       )}
+      <section className="review-page__section review-page__section--last">
+        <h2 className="review-page__section-title">Comments</h2>
+        <ScreenComments screenId="" />
+      </section>
     </article>
   );
 }
@@ -292,6 +321,11 @@ function Screen({
             marks={screen.marks}
             width={image.width}
           />
+          <ClientLayer
+            height={image.height}
+            screenId={screen.id}
+            width={image.width}
+          />
           {screen.pins.map((pin, i) => (
             <span
               className={`review-page__pin review-page__pin--${pin.kind}`}
@@ -325,6 +359,7 @@ function Screen({
           ))}
         </ol>
       </div>
+      <ScreenComments screenId={screen.id} />
     </section>
   );
 }

@@ -5,10 +5,13 @@ import { createPortal } from "react-dom";
 
 /** The picker's own size, used only to keep it on screen. */
 const PICKER_WIDTH = 240;
-const PICKER_HEIGHT = 340;
+const PICKER_HEIGHT = 420;
 
 import { OklchPicker } from "../components/ui/OklchPicker";
 import { useBrandSwatches } from "./brand/ActiveBrand";
+import { ColorVarsRow } from "./colorVars/ColorVarsRow";
+import { varFor } from "./colorVars/colorVars";
+import { useColorVars } from "./colorVars/useColorVars";
 import { isTransparent } from "./drawing/drawing";
 import "./ColorWell.css";
 
@@ -31,6 +34,8 @@ interface ColorWellProps {
   /** Offer alpha; false for values stored as plain six-digit hex. */
   alpha?: boolean;
   label: string;
+  /** Leave out the board's colour variables (a variable's own well). */
+  noVars?: boolean;
   onChange: (color: string) => void;
   value: string;
 }
@@ -47,9 +52,12 @@ export const pickerSeed = (value: string): string =>
 export function ColorWell({
   alpha = true,
   label,
+  noVars = false,
   onChange,
   value,
 }: ColorWellProps) {
+  const vars = useColorVars();
+  const linked = noVars || !vars ? null : varFor(value, vars.vars);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   // The board's brand colours replace the picker's stock presets, so the
   // palette is one click away wherever a colour is chosen.
@@ -121,9 +129,10 @@ export function ColorWell({
       <button
         aria-label={label}
         className="color-well__swatch"
+        data-var={linked ? "" : undefined}
         onClick={open}
         onPointerDown={(e) => e.stopPropagation()}
-        title={label}
+        title={linked ? `${label} · ${linked.name}` : label}
         type="button"
       >
         {/* A chequerboard under the swatch, so a transparent or translucent
@@ -168,6 +177,9 @@ export function ColorWell({
                     image just generated. Absent rather than disabled where the
                     browser has no sampler: a control that cannot work is worse
                     than one that is not offered. */}
+                {noVars ? null : (
+                  <ColorVarsRow onChange={onChange} value={value} />
+                )}
                 {canSample ? (
                   <button
                     className="color-well__sample"

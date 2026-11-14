@@ -12,6 +12,12 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("photosDesktop", {
+  /**
+   * A full-page screenshot of one of the page's own <webview>s (the Browser
+   * node's live page), by its web contents id: `{ data, width, height, title,
+   * url }`, the picture as base64 JPEG. See liveBrowser.mjs.
+   */
+  captureWebview: (id) => ipcRenderer.invoke("browser:capture", id),
   /** Drops the stored Google tokens so the next request asks for consent. */
   forgetGoogleToken: () => ipcRenderer.invoke("google:forget"),
   /**

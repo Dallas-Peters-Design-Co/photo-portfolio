@@ -38,7 +38,7 @@ import { getSite } from "../_lib/site.js";
  *   GET  /api/contracts/for?proposal=<slug>  admin: the proposal's agreement
  *   POST /api/contracts/new  {action:"create", proposal}       admin
  *   POST /api/contracts/<id> {action:"update", doc, title, …}  admin, draft only
- *   POST /api/contracts/<id> {action:"send", note?}             admin
+ *   POST /api/contracts/<id> {action:"send", note?, sign?}      admin
  *   POST /api/contracts/<id> {action:"sign", name, title?, agree} the client
  *   POST /api/contracts/<id> {action:"countersign"}              admin
  *   POST /api/contracts/<id> {action:"reopen"}                  admin, unsigned
@@ -66,6 +66,28 @@ const proposalBySlug = async (sql: Sql, slug: string) => {
 const fresh = async (sql: Sql, id: string): Promise<ContractDto> =>
   rowToContract((await loadContract(sql, id)) as ContractRow);
 
+/**
+ * Who the Designer is on a new agreement: as written on the last one, since
+ * that is where the owner has set their full name and business. The site's
+ * wordmark stands in for the very first.
+ */
+const ownerParties = async (sql: Sql) => {
+  const rows = (await sql`
+    SELECT doc->'parties'->>'ownerName' AS name,
+      doc->'parties'->>'ownerBusiness' AS business
+    FROM contracts WHERE coalesce(doc->'parties'->>'ownerName', '') <> ''
+    ORDER BY updated_at DESC LIMIT 1
+  `) as { business: string | null; name: string }[];
+  return {
+    ownerBusiness: rows[0]?.business ?? "",
+    ownerName: rows[0]?.name ?? getSite().heroTitle,
+  };
+};
+
+/** The name the Designer signs with: the one the agreement gives them. */
+const ownerNameOf = (row: ContractRow): string =>
+  sanitizeContractDoc(row.doc).parties.ownerName || getSite().heroTitle;
+
 const create = async (sql: Sql, res: Res, body: Record<string, unknown>) => {
   const slug = field(body.proposal, 200).toLowerCase();
   const proposal = slug ? await proposalBySlug(sql, slug) : null;
@@ -77,14 +99,12 @@ const create = async (sql: Sql, res: Res, body: Record<string, unknown>) => {
     return res.status(200).json(rowToContract(existing));
   }
   const dto = rowToDto(proposal);
-  const site = getSite();
   const doc = draftContractFromProposal({
+    ...(await ownerParties(sql)),
     clientCompany: dto.brand?.name ?? "",
     clientName: proposal.accepted_name || proposal.client_name,
     doc: sanitizeProposalDoc(proposal.doc),
     option: proposal.accepted_option ?? null,
-    ownerBusiness: site.tagline,
-    ownerName: site.name,
   });
   const rows = (await sql`
     INSERT INTO contracts (proposal_id, title, client_name, client_email, doc)
@@ -144,8 +164,14 @@ const send = async (
   if (!row.client_email) {
     return res.status(400).json({ error: "Add the client's email first." });
   }
+  // Signing as it goes out: the owner's signature is on it when the client
+  // opens it, and the client's signature completes it.
+  const signAs = body.sign === true ? ownerNameOf(row) : null;
   await sql`
-    UPDATE contracts SET status = 'sent', sent_at = now(), updated_at = now()
+    UPDATE contracts SET status = 'sent', sent_at = now(), updated_at = now(),
+      owner_signed_at = CASE WHEN ${signAs}::text IS NULL THEN owner_signed_at
+        ELSE now() END,
+      owner_signed_name = coalesce(${signAs}::text, owner_signed_name)
     WHERE id = ${row.id}
   `;
   const dto = await fresh(sql, row.id);
@@ -190,14 +216,17 @@ const sign = async (
   if (body.agree !== true) {
     return res.status(400).json({ error: "Tick the box to agree first." });
   }
+  // Already signed by the owner, the client's signature completes it.
   const signed = (await sql`
-    UPDATE contracts SET status = 'signed', client_signed_at = now(),
+    UPDATE contracts SET client_signed_at = now(),
+      status = CASE WHEN owner_signed_at IS NULL THEN 'signed'
+        ELSE 'countersigned' END,
       client_signed_name = ${name},
       client_signed_title = ${field(body.title, MAX_CLIENT_NAME) || null},
       client_signed_ip = ${clientIp(req)}, updated_at = now()
     WHERE id = ${row.id} AND status = 'sent'
-    RETURNING id
-  `) as { id: string }[];
+    RETURNING id, status
+  `) as { id: string; status: string }[];
   if (signed.length === 0) {
     const current = await fresh(sql, row.id);
     return res.status(409).json({
@@ -207,6 +236,9 @@ const sign = async (
           ? "This agreement isn't open for signing."
           : "This agreement is already signed.",
     });
+  }
+  if (signed[0]?.status === "countersigned") {
+    return res.status(200).json(await executed(sql, row));
   }
   await notify(sql, {
     body: "Countersign it in the admin to complete it.",
@@ -223,19 +255,9 @@ const sign = async (
   return res.status(200).json(await fresh(sql, row.id));
 };
 
-const countersign = async (sql: Sql, res: Res, row: ContractRow) => {
+/** Both have signed: send everyone the executed copy. */
+const executed = async (sql: Sql, row: ContractRow) => {
   const site = getSite();
-  const done = (await sql`
-    UPDATE contracts SET status = 'countersigned', owner_signed_at = now(),
-      owner_signed_name = ${site.name}, updated_at = now()
-    WHERE id = ${row.id} AND status = 'signed'
-    RETURNING id
-  `) as { id: string }[];
-  if (done.length === 0) {
-    return res.status(409).json({
-      error: "Only an agreement the client has signed can be countersigned.",
-    });
-  }
   const dto = await fresh(sql, row.id);
   const email = contractExecutedEmail(dto);
   await Promise.all([
@@ -256,7 +278,22 @@ const countersign = async (sql: Sql, res: Res, row: ContractRow) => {
       ? `/admin/proposals/${row.proposal_slug}`
       : "/admin/proposals",
   });
-  return res.status(200).json(dto);
+  return dto;
+};
+
+const countersign = async (sql: Sql, res: Res, row: ContractRow) => {
+  const done = (await sql`
+    UPDATE contracts SET status = 'countersigned', owner_signed_at = now(),
+      owner_signed_name = ${ownerNameOf(row)}, updated_at = now()
+    WHERE id = ${row.id} AND status = 'signed'
+    RETURNING id
+  `) as { id: string }[];
+  if (done.length === 0) {
+    return res.status(409).json({
+      error: "Only an agreement the client has signed can be countersigned.",
+    });
+  }
+  return res.status(200).json(await executed(sql, row));
 };
 
 const adminAction = (
@@ -280,7 +317,8 @@ const adminAction = (
           .json({ error: "Only an unsigned agreement can be reopened." });
       }
       return sql`
-        UPDATE contracts SET status = 'draft', updated_at = now()
+        UPDATE contracts SET status = 'draft', owner_signed_at = NULL,
+          owner_signed_name = NULL, updated_at = now()
         WHERE id = ${row.id} AND status = 'sent'
       `.then(async () => res.status(200).json(await fresh(sql, row.id)));
     default:

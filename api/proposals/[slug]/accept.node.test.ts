@@ -427,4 +427,32 @@ describe("signing drafts the first invoice", () => {
       false
     );
   });
+
+  it("lets the owner record an acceptance given by email, quietly", async () => {
+    getBearerUser.mockReturnValue({ email: "d@x.com", userId: "u1" });
+    const reply = await call(
+      {
+        name: "Vin Gokhale",
+        offline: true,
+        option: "pkg-audit",
+        title: "By email",
+      },
+      { authorization: "Bearer t" }
+    );
+    expect(reply.status).toBe(200);
+    expect(stored?.accepted_option).toBe("pkg-audit");
+    // No signed copy, no notice: the owner is the one recording it.
+    expect(sendEmail).not.toHaveBeenCalled();
+    // The first invoice is still drafted from the option (paid up front).
+    const draft = queries.find((q) => q.text.includes("INSERT INTO invoices"));
+    expect(draft?.values).toEqual(
+      expect.arrayContaining(["Pretext launch: Audit", 250_000])
+    );
+  });
+
+  it("refuses a recorded acceptance from anyone but the owner", async () => {
+    const reply = await call({ name: "Someone", offline: true });
+    expect(reply.status).toBe(401);
+    expect(stored?.accepted_at).toBeNull();
+  });
 });

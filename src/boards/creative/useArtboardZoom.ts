@@ -12,8 +12,10 @@ import type { Box } from "./creativeModel";
  * Zooming the frame editor's artboard.
  *
  * The artboard opens fitted to the stage. Zoom multiplies that fit, so "Fit"
- * is always 1 and works whatever the window size; past the fit, the stage
- * scrolls. Pinch on a trackpad (which the browser reports as a wheel with
+ * is always 1 and works whatever the window size. The stage scrolls at every
+ * zoom: the artboard has room round it (nearly a stage's worth each way), so
+ * it can be panned off to any side whether it's zoomed in, fitted or zoomed
+ * right out. Pinch on a trackpad (which the browser reports as a wheel with
  * Ctrl held) or ⌘/Ctrl + wheel zooms about the pointer, so what's under it
  * stays under it; ⌘+ and ⌘− zoom about the middle, ⌘0 fits again.
  */
@@ -23,6 +25,11 @@ const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 16;
 const STEP = 1.25;
 
+/** How much of the artboard's edge stays in view when panned right away. */
+const KEEP = 160;
+/** The least room round the artboard, so its handles clear the stage's sides. */
+const LEAST_ROOM = 96;
+
 const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
 
 export const useArtboardZoom = (
@@ -31,6 +38,12 @@ export const useArtboardZoom = (
 ) => {
   const [fitScale, setFitScale] = useState(1);
   const [zoom, setZoom] = useState(1);
+  // The room round the artboard, each way: what makes the stage scroll.
+  const [room, setRoom] = useState({ x: LEAST_ROOM, y: LEAST_ROOM });
+  // Centre the artboard after the next layout: on opening and on Fit, and
+  // when the stage changes size before the view has been panned.
+  const centreNext = useRef<boolean>(true);
+  const centredAt = useRef<{ left: number; top: number } | null>(null);
   // The point (in canvas units) to keep under a screen spot through a zoom.
   const pin = useRef<{ cx: number; cy: number; sx: number; sy: number } | null>(
     null
@@ -42,18 +55,46 @@ export const useArtboardZoom = (
     if (!el) {
       return;
     }
-    const fit = () =>
+    const fit = () => {
       setFitScale(
         Math.min(
           (el.clientWidth - PAD) / frame.width,
           (el.clientHeight - PAD) / frame.height
         )
       );
+      setRoom({
+        x: Math.max(LEAST_ROOM, el.clientWidth - KEEP),
+        y: Math.max(LEAST_ROOM, el.clientHeight - KEEP),
+      });
+      // Still where it was last centred: keep it centred in the new size.
+      const at = centredAt.current;
+      if (!at || (at.left === el.scrollLeft && at.top === el.scrollTop)) {
+        centreNext.current = true;
+      }
+    };
     fit();
     const observer = new ResizeObserver(fit);
     observer.observe(el);
     return () => observer.disconnect();
   }, [stageRef, frame.height, frame.width]);
+
+  /** Scrolls the stage so the artboard sits in its middle. */
+  const centre = useCallback(() => {
+    const el = stageRef.current;
+    if (el) {
+      el.scrollLeft = (el.scrollWidth - el.clientWidth) / 2;
+      el.scrollTop = (el.scrollHeight - el.clientHeight) / 2;
+      centredAt.current = { left: el.scrollLeft, top: el.scrollTop };
+    }
+  }, [stageRef]);
+
+  /** Back to the fit, centred. */
+  const fitNow = useCallback(() => {
+    centreNext.current = true;
+    setZoom(1);
+    // Already at the fit, nothing re-renders: centre it here as well.
+    centre();
+  }, [centre]);
 
   /** Zooms to `next`, keeping the canvas point at screen spot (sx, sy) put. */
   const zoomAt = useCallback(
@@ -87,7 +128,15 @@ export const useArtboardZoom = (
     const board = el?.querySelector<HTMLElement>(".creative__board");
     const p = pin.current;
     pin.current = null;
-    if (!(el && board && p)) {
+    if (!(el && board)) {
+      return;
+    }
+    if (!p) {
+      const due = centreNext.current;
+      centreNext.current = false;
+      if (due) {
+        centre();
+      }
       return;
     }
     const rect = el.getBoundingClientRect();
@@ -96,7 +145,7 @@ export const useArtboardZoom = (
     const nowY = b.top - rect.top + p.cy * scale;
     el.scrollLeft += nowX - p.sx;
     el.scrollTop += nowY - p.sy;
-  }, [scale]);
+  }, [scale, room.x, room.y]);
 
   // Pinch and ⌘/Ctrl + wheel.
   useEffect(() => {
@@ -129,16 +178,22 @@ export const useArtboardZoom = (
         zoomAt(zoom / STEP);
       } else if (e.key === "0") {
         e.preventDefault();
-        setZoom(1);
+        fitNow();
       }
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () =>
       window.removeEventListener("keydown", onKey, { capture: true });
-  }, [zoom, zoomAt]);
+  }, [fitNow, zoom, zoomAt]);
 
   return {
-    fit: () => setZoom(1),
+    fit: fitNow,
+    /** The artboard's box on the stage: its scaled size, and the room round it. */
+    fitStyle: {
+      height: frame.height * scale,
+      margin: `${room.y}px ${room.x}px`,
+      width: frame.width * scale,
+    },
     scale,
     zoomed: zoom !== 1,
     zoomIn: () => zoomAt(zoom * STEP),

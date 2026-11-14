@@ -2,8 +2,9 @@ import { normalizeTextStyle } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
 import { ColorWell } from "../ColorWell";
 import { isDrawingConfig } from "../drawing/drawing";
-import { ShapeControls, TextControls } from "./ContextBar";
+import { TextControls } from "./ContextBar";
 import { layerKind } from "./creativeModel";
+import { ShapeControls } from "./ShapeControls";
 import { sharedPatch } from "./sharedPatch";
 
 /**

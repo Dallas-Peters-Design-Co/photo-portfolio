@@ -27,6 +27,19 @@ export type StudioParam = (
   | { default: string; key: string; label: string; type: "color" }
   | { default: boolean; key: string; label: string; type: "checkbox" }
   | { key: string; label: string; type: "seed" }
+  | {
+      default: string;
+      key: string;
+      label: string;
+      /** More than one line (a text box rather than a field). */
+      multiline?: boolean;
+      type: "text";
+    }
+  /**
+   * A colour for each letter of a text setting (`of`): a comma list in step
+   * with the text, empty where a letter keeps the tool's own colours.
+   */
+  | { key: string; label: string; of: string; type: "letters" }
   | { key: string; label: string; type: "image" }
   /**
    * The colours a tool draws with, picked one by one. Stored comma-joined;
@@ -93,8 +106,23 @@ export interface ImageTool {
   blurb: string;
   /** Plain-text CSS for the result, for tools where that is meaningful. */
   css?: (values: StudioValues, ctx: RenderContext) => string | null;
+  /**
+   * The same picture drawn straight onto a canvas, filling it whatever its
+   * pixel size (the preview's on-screen size, not the full size), for a live preview without building and decoding an SVG on
+   * every change. Optional; tools without it preview their SVG.
+   */
+  draw?: (
+    g: CanvasRenderingContext2D,
+    values: StudioValues,
+    ctx: RenderContext
+  ) => void;
   id: string;
   kind: "image";
+  /**
+   * Ready-made starting points, listed with the saved settings: each is the
+   * tool's defaults with these values on top, so it looks the same each time.
+   */
+  looks?: { name: string; values: StudioValues }[];
   name: string;
   params: StudioParam[];
   /** An SVG document for the size asked. Deterministic for a given seed. */

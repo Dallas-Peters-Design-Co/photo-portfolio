@@ -14,13 +14,12 @@ import type { EditorUi } from "./useEditorCommands";
  * all read. The operations behind them live in useEditorCommands.ts.
  */
 
-/** Layers copied with ⌘C, kept for ⌘V across frames while the page is open. */
-let clipboard: BoardItem[] = [];
-
 export interface EditorOps {
   align: (to: AlignTo) => void;
   background: BoardItem | null;
   chosen: BoardItem[];
+  /** ⌘C (or ⌘X, cut) onto the clipboard the board shares. */
+  copyLayers: (cut: boolean) => void;
   copyMany: (group: BoardItem[]) => void;
   cycle: (step: 1 | -1) => void;
   each: (fn: (l: BoardItem) => Partial<BoardItem>) => void;
@@ -28,6 +27,8 @@ export interface EditorOps {
   nudge: (dx: number, dy: number) => void;
   one: BoardItem | null;
   order: (id: string, how: Reorder) => void;
+  /** ⌘V: what was copied, in a frame or on the board, into this frame. */
+  pasteLayers: () => void;
   patchMany: (patches: Map<string, Partial<BoardItem>>) => void;
   removeMany: (ids: string[]) => void;
   resizeText: (factor: number) => void;
@@ -45,11 +46,13 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
   const {
     background,
     chosen,
+    copyLayers,
     copyMany,
     cycle,
     each,
     layers,
     one,
+    pasteLayers,
     removeMany,
     selection,
     setEditingId,
@@ -166,11 +169,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       label: "Paste layers",
       // Checked when run: copying doesn't re-render, so a render-time
       // `enabled` would still be false straight after ⌘C.
-      run: () => {
-        if (clipboard.length > 0) {
-          copyMany(clipboard);
-        }
-      },
+      run: pasteLayers,
     },
     // Select
     {
@@ -230,9 +229,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       id: "copy",
       keys: ["mod+c"],
       label: "Copy",
-      run: () => {
-        clipboard = chosen;
-      },
+      run: () => copyLayers(false),
     },
     {
       enabled: some,
@@ -240,10 +237,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       id: "cut",
       keys: ["mod+x"],
       label: "Cut",
-      run: () => {
-        clipboard = chosen;
-        removeMany(chosen.map((l) => l.id));
-      },
+      run: () => copyLayers(true),
     },
     {
       enabled: some,

@@ -1,17 +1,37 @@
 import { blobsTool } from "./generators/blobs";
+import { ditherTool } from "./generators/dither";
+import { flowTool } from "./generators/flow";
 import { gradientTool } from "./generators/gradient";
+import { gridBoxesTool } from "./generators/gridBoxes";
+import { halftoneTool } from "./generators/halftone";
+import { isoBlocksTool } from "./generators/isoBlocks";
+import { lineWavesTool } from "./generators/lineWaves";
+import { liquidTool } from "./generators/liquid";
 import { meshTool } from "./generators/mesh";
 import { mosaicTool } from "./generators/mosaic";
 import { patternTool } from "./generators/pattern";
+import { pixelFieldTool } from "./generators/pixelField";
+import { radialTool } from "./generators/radial";
+import { typeEchoTool } from "./generators/typeEcho";
 import type { ImageTool, StudioParam, StudioValues } from "./types";
 
 /** Every image tool in the Studio, in the order the panel lists them. */
 export const IMAGE_TOOLS: ImageTool[] = [
   meshTool,
+  liquidTool,
   patternTool,
   blobsTool,
   gradientTool,
   mosaicTool,
+  flowTool,
+  ditherTool,
+  gridBoxesTool,
+  pixelFieldTool,
+  halftoneTool,
+  typeEchoTool,
+  radialTool,
+  lineWavesTool,
+  isoBlocksTool,
 ];
 
 /** Neutral colours for when no brand is chosen. */
@@ -36,6 +56,13 @@ export const STUDIO_TOOLS: StudioToolInfo[] = [
     group: "Colour",
     id: "palette",
     name: "Palette Generator",
+  },
+  {
+    blurb:
+      "A palette grown from one colour in OKLCH: balanced, companion, sequential or diverging, with neutrals and a colour-vision check.",
+    group: "Colour",
+    id: "scheme",
+    name: "Palette Builder",
   },
   {
     blurb:
@@ -70,7 +97,12 @@ export const defaultsOf = (params: StudioParam[]): StudioValues =>
       if (p.type === "image") {
         return [p.key, null];
       }
-      if (p.type === "colors" || p.type === "remap" || p.type === "tiles") {
+      if (
+        p.type === "colors" ||
+        p.type === "remap" ||
+        p.type === "tiles" ||
+        p.type === "letters"
+      ) {
         return [p.key, ""];
       }
       return [p.key, p.default];

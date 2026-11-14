@@ -84,6 +84,39 @@ describe("parseDrawingConfig", () => {
       })?.points
     ).toHaveLength(2);
   });
+
+  it("keeps a border's sides and a Studio picture fill", () => {
+    const kept = parseDrawingConfig({
+      borderSides: ["bottom", "sideways", "top"],
+      fillImage: "https://blob.example/fill.png",
+      stroke: "#2f7cf6",
+      strokeWidth: 24,
+      studio: {
+        size: { h: 396, w: 1584 },
+        tool: "gradient",
+        values: { angle: 90 },
+      },
+      tool: "rect",
+    });
+    expect(kept).toMatchObject({
+      borderSides: ["top", "bottom"],
+      fillImage: "https://blob.example/fill.png",
+      studio: { tool: "gradient" },
+    });
+    // No border sides at all is kept (the border is off), and a fill that
+    // isn't an https address is dropped with its recipe.
+    const bare = parseDrawingConfig({
+      borderSides: [],
+      fillImage: "javascript:alert(1)",
+      stroke: "#000",
+      strokeWidth: 2,
+      studio: { size: { h: 1, w: 1 }, tool: "gradient", values: {} },
+      tool: "rect",
+    });
+    expect(bare?.borderSides).toEqual([]);
+    expect(bare?.fillImage).toBeUndefined();
+    expect(bare?.studio).toBeUndefined();
+  });
 });
 
 describe("parseImageConfig", () => {

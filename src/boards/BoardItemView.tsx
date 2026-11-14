@@ -8,6 +8,7 @@ import { opacityCss } from "./creative/layerOpacity";
 import type { ResizeHandle } from "./geometry/alignmentGuides";
 import { inputPoints } from "./geometry/portGeometry";
 import { fitsContent, useAutoHeight } from "./hooks/useAutoHeight";
+import { INV_SCALE_VAR } from "./hooks/useCanvasViewport";
 import { itemBoxClassName } from "./itemBodies";
 import { ItemContent } from "./nodes/ItemContent";
 import { PortHandles } from "./PortHandles";
@@ -23,6 +24,8 @@ import "./BoardItemView.css";
  * and should stay visible over a selected item.
  */
 const CHROME_STACK = 9998;
+
+const CHROME_SCALE = { transform: `scale(var(${INV_SCALE_VAR}, 1))` };
 
 /**
  * The input port closest to a point, in canvas units.
@@ -77,8 +80,11 @@ interface BoardItemViewProps {
   /** A picture wired into this item's image input, if it has one. */
   imageUrl?: string | null;
   index: number;
-  /** Set when it sits in a design frame: drawn clipped to it (frameLock.ts). */
-  inFrame?: { clipPath: string | null; open?: () => void };
+  /**
+   * Set when it sits in a design frame: drawn clipped to it (frameLock.ts).
+   * The design frame itself gets one too (isFrame), only for the double-click.
+   */
+  inFrame?: { clipPath: string | null; isFrame?: boolean; open?: () => void };
   /** True while this item's text is being typed into. */
   isEditing: boolean;
   isSelected: boolean;
@@ -275,6 +281,10 @@ function itemPointerDown({
   };
 }
 
+/** Content of a design frame is styled as such; the frame itself is not. */
+const inFrameClass = (inFrame: BoardItemViewProps["inFrame"]): string =>
+  inFrame && !inFrame.isFrame ? "board-item--in-frame" : "";
+
 /** One item on the board. */
 export function BoardItemView({
   hasWiredPrompt = false,
@@ -329,7 +339,10 @@ export function BoardItemView({
   // shrink with the zoom — unusably small when zoomed out to see the whole
   // board, absurd when zoomed in. Cancelling the scale keeps them thumb-sized
   // at every zoom level.
-  const chromeScale = { transform: `scale(${1 / scale})` };
+  // From the layer's own variable, not this render's zoom: the view moves
+  // without a render mid-gesture (useCanvasViewport's glide), and the chrome
+  // has to keep its size while it does.
+  const chromeScale = CHROME_SCALE;
 
   // Handed to the text panel, which reads this box's position off the DOM to
   // decide whether it fits above the item. The canvas viewport lives in a ref
@@ -354,7 +367,7 @@ export function BoardItemView({
       // class before it and switched off every in-frame style.
       className={[
         itemBoxClassName(item, isSelected),
-        inFrame ? "board-item--in-frame" : "",
+        inFrameClass(inFrame),
       ].join(" ")}
       onClick={
         onCommentTarget
@@ -455,6 +468,7 @@ export function BoardItemView({
           item={item}
           onEditManually={onEditManually}
           onOpenInEditor={onOpenInEditor}
+          onPatch={onPatch}
           onRun={(tool, prompt, config) =>
             tools.run(item, tool, prompt, config)
           }

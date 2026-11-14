@@ -14,7 +14,7 @@ import { type RefObject, useEffect, useRef } from "react";
  * view doesn't re-render the board twice a gesture.
  */
 const SETTLE_MS = 180;
-const MOVING = "board-canvas__layer--moving";
+export const MOVING = "board-canvas__layer--moving";
 
 export const useMovingLayer = (
   layerRef: RefObject<HTMLElement | null>,

@@ -1,14 +1,28 @@
-import { GripVertical, X } from "lucide-react";
+import {
+  GripVertical,
+  PanelLeft,
+  PanelRight,
+  PictureInPicture2,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import type { TypeScale } from "../../../config/typeScale.js";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { PaletteTool } from "./color/PaletteTool";
 import { RampTool } from "./color/RampTool";
-import { ImageToolView } from "./ImageToolView";
-import { DEFAULT_PALETTE, IMAGE_TOOLS, STUDIO_TOOLS } from "./tools";
+import { SchemeTool } from "./color/SchemeTool";
+import { ImageToolView, type StudioEditing } from "./ImageToolView";
+import { lastValues, rememberValues } from "./presets";
+import {
+  DEFAULT_PALETTE,
+  defaultsOf,
+  IMAGE_TOOLS,
+  STUDIO_TOOLS,
+} from "./tools";
 import { TypeScaleTool } from "./type/TypeScaleTool";
-import type { StudioRecipe, StudioValues } from "./types";
+import type { StudioParam, StudioRecipe, StudioValues } from "./types";
+import { type Dock, useStudioDock } from "./useStudioDock";
 import { useStudioSize } from "./useStudioSize";
 import "./Studio.css";
 
@@ -21,6 +35,12 @@ import "./Studio.css";
 
 const GROUPS = ["Images", "Colour", "Type"] as const;
 
+const DOCKS: { Icon: typeof PanelLeft; id: Dock; label: string }[] = [
+  { Icon: PanelLeft, id: "left", label: "Dock on the left" },
+  { Icon: PictureInPicture2, id: "float", label: "Float" },
+  { Icon: PanelRight, id: "right", label: "Dock on the right" },
+];
+
 /**
  * The frame the Studio is working for, when it's opened from the frame
  * editor: its size comes first among the sizes, "Add to board" becomes "Add
@@ -31,8 +51,43 @@ export interface StudioFrame {
   name: string;
   onApplyType: (scale: TypeScale) => void;
   onBackground: (file: File, recipe: StudioRecipe) => void;
+  /** Over the whole frame, on top: for a picture made from the selection in place. */
+  onOver?: (file: File, recipe: StudioRecipe) => void;
+  /** How many layers are selected in the frame (0: the whole design). */
+  selectionCount?: number;
   size: { h: number; w: number } | null;
+  /** The frame's selection (or whole design) drawn as a picture. */
+  snapshot?: () => Promise<Blob>;
+  /** The selection where it sits in the frame, the rest left clear. */
+  snapshotInPlace?: () => Promise<Blob>;
 }
+
+/**
+ * A tool's settings as it was last left in this browser, on top of its
+ * defaults (so a setting added since still has a value): the Studio opens
+ * where it was, frame after frame.
+ */
+const lastOf = (tool: string, params: StudioParam[]) => {
+  const last = lastValues(tool);
+  return last ? { ...defaultsOf(params), ...last } : undefined;
+};
+
+/**
+ * What a tool is working on: a shape's fill whichever tool fills it (with
+ * the recipe only for the tool that made it), a placed picture only in the
+ * tool that made it.
+ */
+const editingFor = (
+  editing: StudioEditing | undefined,
+  tool: string
+): StudioEditing | undefined => {
+  if (editing?.fill) {
+    return editing.recipe?.tool === tool
+      ? editing
+      : { ...editing, recipe: null };
+  }
+  return editing?.recipe?.tool === tool ? editing : undefined;
+};
 
 export function StudioPanel({
   editing,
@@ -41,11 +96,8 @@ export function StudioPanel({
   onAdd,
   onClose,
 }: {
-  /** A placed Studio picture opened to be changed (its layer's recipe). */
-  editing?: {
-    onReplace: (file: File, recipe: StudioRecipe) => void;
-    recipe: StudioRecipe;
-  };
+  /** A placed Studio picture opened to be changed, or a shape to fill. */
+  editing?: StudioEditing;
   frame?: StudioFrame;
   initialTool: string;
   /**
@@ -59,11 +111,15 @@ export function StudioPanel({
   const entries = brand?.kit?.resolvedDoc.palette ?? [];
   const palette =
     entries.length > 0 ? entries.map((p) => p.value) : DEFAULT_PALETTE;
-  const drag = useDraggablePanel("board-studio:position");
+  const dock = useStudioDock();
+  const drag = useDraggablePanel("board-studio:position", (at) =>
+    dock.dropAt(at.x)
+  );
+  const docked = dock.dock !== "float";
   const size = useStudioSize(drag.pin);
   const [toolId, setToolId] = useState(initialTool);
   const [byTool, setByTool] = useState<Record<string, StudioValues>>(() =>
-    editing ? { [editing.recipe.tool]: editing.recipe.values } : {}
+    editing?.recipe ? { [editing.recipe.tool]: editing.recipe.values } : {}
   );
   useEffect(() => setToolId(initialTool), [initialTool]);
 
@@ -73,6 +129,9 @@ export function StudioPanel({
   const view = () => {
     if (toolId === "palette") {
       return <PaletteTool onAdd={onAdd} />;
+    }
+    if (toolId === "scheme") {
+      return <SchemeTool onAdd={onAdd} />;
     }
     if (toolId === "type-scale") {
       return <TypeScaleTool onAdd={onAdd} onApply={frame?.onApplyType} />;
@@ -92,18 +151,19 @@ export function StudioPanel({
     const tool = imageTool ?? IMAGE_TOOLS[0];
     return tool ? (
       <ImageToolView
-        editing={editing?.recipe.tool === tool.id ? editing : undefined}
+        editing={editingFor(editing, tool.id)}
         frame={frame}
         key={tool.id}
         onAdd={onAdd}
         onResize={size.startResize}
         onResizeReset={size.reset}
-        onValues={(values) =>
-          setByTool((was) => ({ ...was, [tool.id]: values }))
-        }
+        onValues={(values) => {
+          rememberValues(tool.id, values);
+          setByTool((was) => ({ ...was, [tool.id]: values }));
+        }}
         palette={palette}
         tool={tool}
-        values={byTool[tool.id]}
+        values={byTool[tool.id] ?? lastOf(tool.id, tool.params)}
       />
     ) : null;
   };
@@ -111,10 +171,23 @@ export function StudioPanel({
   return (
     <aside
       aria-label="Studio"
-      className={drag.dragging ? "studio studio--dragging" : "studio"}
-      style={{ ...drag.style, ...size.style }}
+      className={[
+        "studio",
+        drag.dragging ? "studio--dragging" : "",
+        docked ? `studio--docked studio--docked-${dock.dock}` : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-dock={dock.dock}
+      // Docked, the side and full height come from the stylesheet and only
+      // the width is the panel's own; floating, it sits where it was dragged.
+      style={
+        docked
+          ? { ...size.style, ...dock.style }
+          : { ...drag.style, ...size.style }
+      }
     >
-      <header className="studio__head" {...drag.handleProps}>
+      <header className="studio__head" {...(docked ? {} : drag.handleProps)}>
         <GripVertical aria-hidden className="studio__grip" size={14} />
         <strong>Studio</strong>
         <span className="studio__brand">
@@ -123,6 +196,19 @@ export function StudioPanel({
           {brand?.kit ? `in ${brand.kit.name}` : ""}
           {frame || brand?.kit ? "" : "no brand chosen"}
         </span>
+        {DOCKS.map(({ Icon, id, label }) => (
+          <button
+            aria-label={label}
+            className="studio__icon"
+            data-active={dock.dock === id ? "" : undefined}
+            key={id}
+            onClick={() => dock.set(id)}
+            title={label}
+            type="button"
+          >
+            <Icon size={15} />
+          </button>
+        ))}
         <button
           aria-label="Close the Studio"
           className="studio__icon"
@@ -153,6 +239,14 @@ export function StudioPanel({
         </nav>
         <section className="studio__main">{view()}</section>
       </div>
+      {docked ? (
+        <span
+          aria-hidden
+          className="studio__edge"
+          onPointerDown={dock.startResize}
+          title="Drag to set the width"
+        />
+      ) : null}
       {/* biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the panel works at its default size */}
       <span
         aria-hidden

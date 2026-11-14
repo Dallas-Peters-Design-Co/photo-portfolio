@@ -226,7 +226,7 @@ describe("StudioPanel", () => {
     expect(await file.text()).toContain("<svg");
   });
 
-  it("adds the chosen tool's image to the board as a PNG at the size picked", async () => {
+  const addFrom = async (tool: string): Promise<File> => {
     const onAdd = vi.fn();
     host = document.createElement("div");
     document.body.append(host);
@@ -234,14 +234,11 @@ describe("StudioPanel", () => {
     act(() =>
       root?.render(
         <StudioPanel
-          initialTool="pattern"
+          initialTool={tool}
           onAdd={onAdd}
           onClose={() => undefined}
         />
       )
-    );
-    expect(host.querySelector('[aria-pressed="true"]')?.textContent).toBe(
-      "Pattern Studio"
     );
     const add = [...host.querySelectorAll("button")].find((b) =>
       b.textContent?.includes("Add to board")
@@ -250,9 +247,29 @@ describe("StudioPanel", () => {
       add?.click();
       await vi.waitFor(() => expect(onAdd).toHaveBeenCalled());
     });
-    const file = onAdd.mock.calls[0]?.[0] as File;
+    return onAdd.mock.calls[0]?.[0] as File;
+  };
+
+  it("adds a vector tool's image to the board as an SVG at the size picked", async () => {
+    const file = await addFrom("pattern");
+    expect(host?.querySelector('[aria-pressed="true"]')?.textContent).toBe(
+      "Pattern Studio"
+    );
+    expect(file.type).toBe("image/svg+xml");
+    expect(file.name).toBe("pattern-1080x1080.svg");
+    const svg = new DOMParser().parseFromString(
+      await file.text(),
+      "image/svg+xml"
+    );
+    expect(svg.querySelector("parsererror")).toBeNull();
+    expect(svg.documentElement.getAttribute("width")).toBe("1080");
+    act(() => root?.unmount());
+    host?.remove();
+  });
+
+  it("adds a tool that only rasterises well as a PNG at the size picked", async () => {
+    const file = await addFrom("gradient");
     expect(file.type).toBe("image/png");
-    expect(file.name).toBe("pattern-1080x1080.png");
     const bitmap = await createImageBitmap(file);
     expect([bitmap.width, bitmap.height]).toEqual([1080, 1080]);
   });

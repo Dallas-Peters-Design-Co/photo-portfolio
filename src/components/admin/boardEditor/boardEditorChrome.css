@@ -57,6 +57,14 @@
   border-radius: var(--radius-xs);
 }
 
+/* The name opens the switcher: pointer, and a small caret after it. */
+.board-status__switch {
+  display: inline-flex;
+  gap: var(--spacing);
+  align-items: center;
+  cursor: pointer;
+}
+
 .board-status__rename:hover,
 .board-status__rename:focus-visible {
   color: var(--color-board-ink);

@@ -449,6 +449,12 @@ export const outputsOf = (
     const single = singleOutputOf(row, rows, wires);
     return single ? [single] : [];
   }
+  // A designed frame is handed over flattened: the browser draws it before
+  // the run (src/boards/io/frameRender.ts) and keeps it on the frame.
+  const render = asObject(row.config).renderUrl;
+  if (typeof render === "string" && render) {
+    return [render];
+  }
   // Resolved from geometry, exactly as the canvas resolves it — see
   // containedBy for why membership is computed rather than stored.
   return containedBy(toBox(row), rows.map(toBox))

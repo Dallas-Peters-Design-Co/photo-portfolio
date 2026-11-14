@@ -71,6 +71,14 @@ export interface ShaderLayer {
    */
   children?: ShaderLayer[];
   /**
+   * Switched off, but kept.
+   *
+   * Absent means on. An effect that is off is skipped at render time and its
+   * contents drawn in its place, so a stack can be tried with and without a
+   * step while keeping the step's settings. A source that is off draws nothing.
+   */
+  enabled?: boolean;
+  /**
    * Stable identity for a layer.
    *
    * Its position is not its identity: the same effect may appear twice in a
@@ -82,7 +90,12 @@ export interface ShaderLayer {
   props: Record<string, unknown>;
 }
 
+/** How a wired picture fills the item: whole and letterboxed, or filling. */
+export type ImageFit = "contain" | "cover";
+
 export interface ShaderConfig {
+  /** For the picture wired in; an ImageTexture layer has its own setting. */
+  imageFit?: ImageFit;
   layers: ShaderLayer[];
 }
 
@@ -238,12 +251,14 @@ const categoriesOf = (shaders: ShaderMeta[]): string[] => [
 export const SOURCE_CATEGORIES: string[] = categoriesOf(SOURCE_SHADERS);
 export const EFFECT_CATEGORIES: string[] = categoriesOf(EFFECT_SHADERS);
 
-export const newLayer = (name: string): ShaderLayer => {
+export const newLayer = (name: string, seedSource = true): ShaderLayer => {
   const layer: ShaderLayer = { id: newLayerId(), name, props: {} };
   // An effect with nothing inside it renders an empty box, which reads as a
   // broken shader rather than an unfinished one. It arrives holding something,
-  // and the source can be swapped or removed afterwards.
-  if (isEffect(name)) {
+  // and the source can be swapped or removed afterwards. Not when a picture is
+  // wired in: then the picture is what it holds, and a seeded source would sit
+  // beside the picture and take the effect instead of it.
+  if (seedSource && isEffect(name)) {
     layer.children = [{ id: newLayerId(), name: DEFAULT_SOURCE, props: {} }];
   }
   return layer;
@@ -315,7 +330,8 @@ export const bindImage = (layers: ShaderLayer[], url: string): ShaderLayer[] =>
  */
 export const insertImage = (
   layers: ShaderLayer[],
-  url: string
+  url: string,
+  fit: ImageFit = "contain"
 ): ShaderLayer[] => {
   const last = layers.at(-1);
   const image = {
@@ -332,14 +348,14 @@ export const insertImage = (
      * should arrive whole, and silently cropping a third of it is the worse of
      * the two failures.
      */
-    props: { objectFit: "contain", url },
+    props: { objectFit: fit, url },
   };
   if (!(last && isEffect(last.name))) {
     return [...layers, image];
   }
   return [
     ...layers.slice(0, -1),
-    { ...last, children: insertImage(last.children ?? [], url) },
+    { ...last, children: insertImage(last.children ?? [], url, fit) },
   ];
 };
 
@@ -353,12 +369,13 @@ export const insertImage = (
  */
 export const withImage = (
   layers: ShaderLayer[],
-  imageUrl: string | null | undefined
+  imageUrl: string | null | undefined,
+  fit: ImageFit = "contain"
 ): ShaderLayer[] => {
   if (!imageUrl) {
     return layers;
   }
   return hasImageLayer(layers)
     ? bindImage(layers, imageUrl)
-    : insertImage(layers, imageUrl);
+    : insertImage(layers, imageUrl, fit);
 };

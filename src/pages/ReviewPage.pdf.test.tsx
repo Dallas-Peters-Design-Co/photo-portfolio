@@ -24,6 +24,8 @@ const REVIEW: ReviewRecord = {
   clientName: "Back Acres",
   createdAt: "2026-10-16T00:00:00.000Z",
   doc: DEFAULT_REVIEW_DOC,
+  feedback: [],
+  hasPassword: false,
   id: "r1",
   sent: null,
   slug: "back-acres",
@@ -33,6 +35,7 @@ const REVIEW: ReviewRecord = {
 };
 
 vi.mock("../services/reviewService", () => ({
+  ReviewLockedError: class extends Error {},
   reviewsApi: { get: () => Promise.resolve(REVIEW) },
 }));
 vi.mock("../theme/SiteSettingsProvider", () => ({

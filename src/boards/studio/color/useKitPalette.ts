@@ -37,17 +37,21 @@ export const useKitPalette = () => {
     }
   };
 
-  const save = (values: string[]) =>
+  /**
+   * Saves a palette over the kit's. A colour already in the palette keeps
+   * its name and role. With `byPlace` (the entries the values were loaded
+   * from, in order), an edited colour keeps the name and role of the one
+   * that was in its place, so changing a brand colour doesn't unname it.
+   */
+  const save = (values: string[], byPlace?: PaletteEntry[] | null) =>
     update(
       {
-        palette: values.map(
-          (value) =>
-            entries.find((e) => e.value === value.toLowerCase()) ?? {
-              name: "",
-              role: "",
-              value: value.toLowerCase(),
-            }
-        ),
+        palette: values.map((raw, i) => {
+          const value = raw.toLowerCase();
+          const was =
+            byPlace?.[i] ?? entries.find((e) => e.value === value) ?? null;
+          return { name: was?.name ?? "", role: was?.role ?? "", value };
+        }),
       },
       "palette"
     );

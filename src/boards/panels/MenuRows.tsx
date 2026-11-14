@@ -2,15 +2,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
 import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
 import ArrowUp01Icon from "@hugeicons-pro/core-stroke-standard/ArrowUp01Icon";
-import CopyIcon from "@hugeicons-pro/core-stroke-standard/CopyIcon";
 import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
-import GridIcon from "@hugeicons-pro/core-stroke-standard/GridIcon";
 import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
-import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon";
 import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
 import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
-import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { isSvgUrl } from "../io/affinity";
@@ -19,7 +15,14 @@ import { downloadImage } from "../io/downloadImage";
 import { saveTargetOf } from "../io/saveTarget";
 import { outputImageOf, outputImagesOf } from "../itemOutput";
 import type { CanvasMenuTarget } from "./CanvasMenu";
-import { CollectionRow, hasTools, ToolsRow } from "./CanvasMenuPanels";
+import {
+  CollectionRow,
+  hasTools,
+  SendToBoardRow,
+  ToolsRow,
+} from "./CanvasMenuPanels";
+import { FrameRows, framesToCopy } from "./FrameRows";
+import { PictureToolRows } from "./PictureToolRows";
 import { PrintRow } from "./PrintRow";
 import "../boardChrome.css";
 import { useVectorEditorName } from "../hooks/useVectorEditorName";
@@ -118,15 +121,6 @@ function SaveRow({ noun, onSave }: { noun: string; onSave: () => void }) {
   );
 }
 
-function VectorizeRow({ onVectorize }: { onVectorize: () => void }) {
-  return (
-    <button className={rowClass} onClick={onVectorize} type="button">
-      <HugeiconsIcon aria-hidden icon={MagicWand01Icon} size={14} />
-      <span>Vectorize</span>
-    </button>
-  );
-}
-
 /** The two ends of the stack, for an item buried (or lost) in the middle. */
 function StackRows({
   onBringToFront,
@@ -168,6 +162,7 @@ function CanvaRow({ onSend }: { onSend: () => void }) {
  */
 function SingleItemRows({
   items,
+  onAddEffects,
   onBringToFront,
   onExport,
   onOpenInAffinity,
@@ -178,6 +173,8 @@ function SingleItemRows({
   onlyPicked,
 }: {
   items: BoardItem[];
+  /** Wires a new Shader item to this picture, for effects over it. */
+  onAddEffects?: (itemId: string) => void;
   onBringToFront: (itemId: string) => void;
   onExport: (itemId: string) => void;
   onOpenInAffinity?: (itemId: string) => void;
@@ -232,9 +229,13 @@ function SingleItemRows({
         <ProofRow onProof={() => onProofMark(onlyPicked.id)} />
       ) : null}
 
-      {onlyPicked && placedImage && onVectorize ? (
-        <VectorizeRow onVectorize={() => onVectorize(onlyPicked.id)} />
-      ) : null}
+      <PictureToolRows
+        canVectorize={Boolean(placedImage)}
+        hasPicture={pickedImage}
+        onAddEffects={onAddEffects}
+        onVectorize={onVectorize}
+        picked={onlyPicked}
+      />
 
       {onlyPicked && onSendToCanva && outputImageOf(onlyPicked, items) ? (
         <CanvaRow onSend={() => onSendToCanva(onlyPicked)} />
@@ -268,69 +269,6 @@ function GroupRows({ count, onGroup }: { count: number; onGroup: () => void }) {
   );
 }
 
-/** The things a frame under the pointer can do. */
-function FrameRows({
-  canArrange,
-  canGroup,
-  count,
-  onArrange,
-  onCopy,
-  onExport,
-  onTrain,
-}: {
-  canArrange: boolean;
-  canGroup: boolean;
-  count: number;
-  onArrange: () => void;
-  onCopy: () => void;
-  onExport: () => void;
-  /** Absent on a board that cannot hand the frame to a trainer. */
-  onTrain?: () => void;
-}) {
-  return (
-    <>
-      {canArrange ? (
-        <button
-          className={`${rowClass} ${canGroup ? "panel-row--divided" : ""}`}
-          onClick={onArrange}
-          type="button"
-        >
-          <HugeiconsIcon aria-hidden icon={GridIcon} size={14} />
-          <span>Arrange {count} into a grid</span>
-        </button>
-      ) : null}
-      <button
-        className={`${rowClass} ${canGroup || canArrange ? "panel-row--divided" : ""}`}
-        onClick={onExport}
-        type="button"
-      >
-        <HugeiconsIcon aria-hidden icon={Download01Icon} size={14} />
-        <span>Download {count === 1 ? "it" : `all ${count}`}</span>
-      </button>
-      <button
-        className={`${rowClass} panel-row--divided`}
-        onClick={onCopy}
-        type="button"
-      >
-        <HugeiconsIcon aria-hidden icon={CopyIcon} size={14} />
-        <span>Copy frame to new board</span>
-      </button>
-      {/* Last, and divided: it is the only row here that hands work to a
-          third party, so it should not sit next to the local ones. */}
-      {onTrain ? (
-        <button
-          className={`${rowClass} panel-row--divided`}
-          onClick={onTrain}
-          type="button"
-        >
-          <HugeiconsIcon aria-hidden icon={SparklesIcon} size={14} />
-          <span>Train a model on this frame</span>
-        </button>
-      ) : null}
-    </>
-  );
-}
-
 /* The shared menu row — see .panel-row in boardChrome.css. Kept as a constant
    because fifteen call sites here pass it down as a prop. */
 const rowClass = "panel-row";
@@ -348,6 +286,7 @@ export function MenuRows({
   onGroup,
   onSaveElement,
   onSaveRecipe,
+  onAddEffects,
   onOpenInAffinity,
   onProofMark,
   onSendToCanva,
@@ -358,11 +297,13 @@ export function MenuRows({
 }: {
   items: BoardItem[];
   menu: CanvasMenuTarget;
+  onAddEffects?: (itemId: string) => void;
   onArrange: (itemId: string) => void;
   onBringToFront: (itemId: string) => void;
   /** Opens the collection panel on the pictures the selection can hand over. */
   onCollect: (urls: string[], into: "collection" | "board") => void;
-  onCopy: (frame: BoardItem) => void;
+  /** Copies frames to another board: the selected ones, or this one. */
+  onCopy: (frames: BoardItem[]) => void;
   /** Closes the menu, for a row whose work outlives it. */
   onDismiss: () => void;
   onExport: (itemId: string) => void;
@@ -385,6 +326,7 @@ export function MenuRows({
   const { trainOnFrame } = useFrameActions();
   const canGroup = selection.length > 0;
   const summary = frame ? frameSummary(frame, items, wires) : null;
+  const copies = framesToCopy(frame, selection);
 
   // A single selected node that has produced something can hand over the whole
   // batch. More than one selected is a grouping gesture, not an export one.
@@ -412,6 +354,7 @@ export function MenuRows({
 
       <SingleItemRows
         items={items}
+        onAddEffects={onAddEffects}
         onBringToFront={onBringToFront}
         onExport={onExport}
         onlyPicked={onlyPicked}
@@ -470,13 +413,22 @@ export function MenuRows({
         />
       ) : null}
 
+      {selection.length > 0 ? (
+        <SendToBoardRow
+          className={rowClass}
+          items={selection}
+          onSend={() => onCopy(selection)}
+        />
+      ) : null}
+
       {frame ? (
         <FrameRows
           canArrange={(summary?.count ?? 0) > 1}
           canGroup={canGroup}
+          copies={copies.length}
           count={summary?.count ?? 0}
           onArrange={() => onArrange(frame.id)}
-          onCopy={() => onCopy(frame)}
+          onCopy={() => onCopy(copies)}
           onExport={() => onExport(frame.id)}
           onTrain={
             trainOnFrame

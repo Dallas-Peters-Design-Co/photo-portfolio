@@ -14,11 +14,15 @@ import {
 import type { BoardItem } from "../../../types";
 import { ColorWell } from "../../ColorWell";
 import {
+  alikeOf,
   type BrandComponent,
+  type ComponentProp,
   FIELDS_OF,
   instanceOf,
   layerLabel,
   propValue,
+  sets,
+  targetsOf,
 } from "../../components/model";
 import { editLinkOf, type useComponents } from "./useComponents";
 import "./Components.css";
@@ -243,6 +247,11 @@ function EditingSection({
                     )
                   )
                 }
+                title={
+                  targetsOf(prop).length > 1
+                    ? `Sets ${targetsOf(prop).length} layers`
+                    : undefined
+                }
                 value={prop.name}
               />
               <button
@@ -263,20 +272,27 @@ function EditingSection({
         <div className="components__expose">
           <p className="creative__label">Expose from this layer</p>
           {fields.map((f) => {
-            const on = editing.props.some(
-              (p) => p.lid === link.l && p.field === f.field
-            );
+            const on = editing.props.some((p) => sets(p, link.l, f.field));
             return (
-              <button
-                aria-pressed={on}
-                className="creative__add"
-                disabled={on}
-                key={f.field}
-                onClick={() => comps.expose(only, f.field, f.label, f.type)}
-                type="button"
-              >
-                {on ? <Check size={14} /> : <Plus size={14} />} {f.label}
-              </button>
+              <div className="components__expose-row" key={f.field}>
+                <button
+                  aria-pressed={on}
+                  className="creative__add"
+                  disabled={on}
+                  onClick={() => comps.expose(only, f.field, f.label, f.type)}
+                  title="A new property; layers with the same value share it"
+                  type="button"
+                >
+                  {on ? <Check size={14} /> : <Plus size={14} />} {f.label}
+                </button>
+                {on ? null : (
+                  <JoinSelect
+                    onJoin={(id) => comps.share(only, f.field, id)}
+                    props={editing.props}
+                    type={f.type}
+                  />
+                )}
+              </div>
             );
           })}
         </div>
@@ -307,15 +323,21 @@ function AddProperty({
   comps: ReturnType<typeof useComponents>;
   component: BrandComponent;
 }) {
+  // Each field not set by a property yet, with the layers like it folded in:
+  // six tiles the same colour are one choice, not six.
+  const seen = new Set<string>();
   const options = component.layers.flatMap((layer) =>
     (FIELDS_OF[layer.kind] ?? [])
-      .filter(
-        (f) =>
-          !component.props.some(
-            (p) => p.lid === layer.lid && p.field === f.field
-          )
-      )
-      .map((f) => ({ ...f, layer }))
+      .filter((f) => !component.props.some((p) => sets(p, layer.lid, f.field)))
+      .filter((f) => !seen.has(`${layer.lid}:${f.field}`))
+      .map((f) => {
+        const alike =
+          f.type === "color" ? alikeOf(component, layer.lid, f.field) : [];
+        for (const t of alike) {
+          seen.add(`${t.lid}:${t.field}`);
+        }
+        return { ...f, count: alike.length + 1, layer };
+      })
   );
   if (options.length === 0) {
     return null;
@@ -326,7 +348,7 @@ function AddProperty({
         <Plus size={13} /> Add a property
       </summary>
       <ul className="components__list">
-        {options.map(({ field, label, layer, type }) => (
+        {options.map(({ count, field, label, layer, type }) => (
           <li className="components__row" key={`${layer.lid}-${field}`}>
             <button
               className="components__insert"
@@ -337,20 +359,72 @@ function AddProperty({
                   name:
                     type === "text"
                       ? layerLabel(layer)
-                      : `${layerLabel(layer)} ${label.toLowerCase()}`,
+                      : `${count > 1 ? "Mark" : layerLabel(layer)} ${label.toLowerCase()}`,
                   type,
                 })
+              }
+              title={
+                count > 1
+                  ? `${count} layers share this ${label.toLowerCase()}; one property sets them all`
+                  : undefined
               }
               type="button"
             >
               {type === "text" ? <Type size={13} /> : <Palette size={13} />}
               <span>
                 {layerLabel(layer)} · {label}
+                {count > 1 ? ` · ${count} layers` : ""}
               </span>
             </button>
+            <JoinSelect
+              onJoin={(id) =>
+                void comps.joinProp(component, id, { field, lid: layer.lid })
+              }
+              props={component.props}
+              type={type}
+            />
           </li>
         ))}
       </ul>
     </details>
+  );
+}
+
+/**
+ * Sharing an existing property instead of making a new one: the mark's
+ * colour set by the same Colour as the label.
+ */
+function JoinSelect({
+  onJoin,
+  props,
+  type,
+}: {
+  onJoin: (propId: string) => void;
+  props: ComponentProp[];
+  type: ComponentProp["type"];
+}) {
+  const same = props.filter((p) => p.type === type);
+  if (same.length === 0) {
+    return null;
+  }
+  return (
+    <select
+      aria-label="Share a property"
+      className="creative__input components__join"
+      onChange={(e) => {
+        if (e.target.value) {
+          onJoin(e.target.value);
+        }
+      }}
+      title="Set this by a property that's already there"
+      value=""
+    >
+      <option value="">Share…</option>
+      {same.map((p) => (
+        <option key={p.id} value={p.id}>
+          {p.name}
+        </option>
+      ))}
+    </select>
   );
 }

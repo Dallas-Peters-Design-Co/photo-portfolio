@@ -2,16 +2,23 @@ import { useState } from "react";
 import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
-import { frameBoardTitle, frameSummary } from "../io/copyToBoard";
+import { scaleResetOf } from "../io/adFrames";
+import {
+  type CopyTarget,
+  frameBoardTitle,
+  frameSummary,
+} from "../io/copyToBoard";
 import type { Tool } from "../tools/types";
 import {
   AdSizesPanel,
   AdSizesRow,
   DesignRow,
   DuplicateFrameRow,
+  ResetScaleRow,
 } from "./AdSizesPanel";
-import { type CollectTarget, NamePanel, ToolsPanel } from "./CanvasMenuPanels";
+import { type CollectTarget, ToolsPanel } from "./CanvasMenuPanels";
 import { CollectionPanel } from "./CollectionPanel";
+import { CopyFramesPanel } from "./CopyFramesPanel";
 import { MenuRows } from "./MenuRows";
 import { RecipeNamePanel } from "./RecipeNamePanel";
 import { SendToBoardPanel } from "./SendToBoardPanel";
@@ -46,16 +53,17 @@ export interface CanvasMenuTarget {
 interface CanvasMenuProps {
   items: BoardItem[];
   menu: CanvasMenuTarget | null;
+  /** Opens a node's SVG in Affinity, and syncs its edits back. */
+  onAddEffects?: (itemId: string) => void;
   /** Lays the frame's contents out in a grid, keeping their order. */
   onArrange: (itemId: string) => void;
   /** Brings one item to the very front of the stack. */
   onBringToFront: (itemId: string) => void;
-  onCopyFrame: (frame: BoardItem, title: string) => void;
+  onCopyFrame: (frames: BoardItem[], to: CopyTarget) => void;
   onDismiss: () => void;
   /** Downloads everything the frame holds, as one archive. */
   onExport: (itemId: string) => void;
   onGroup: (items: BoardItem[]) => void;
-  /** Opens a node's SVG in Affinity, and syncs its edits back. */
   onOpenInAffinity?: (itemId: string) => void;
   /** Places a proof sheet for a Brand node's mark on this board. */
   onProofMark?: (itemId: string) => void;
@@ -88,6 +96,7 @@ export function CanvasMenu({
   onCopyFrame,
   onDismiss,
   onExport,
+  onAddEffects,
   onGroup,
   onOpenInAffinity,
   onProofMark,
@@ -101,8 +110,8 @@ export function CanvasMenu({
 }: CanvasMenuProps) {
   const { ref, style } = useAnchoredPanel(menu?.point ?? { x: 0, y: 0 });
   /**
-   * Null until "Copy frame to new board" is chosen; then the frame being
-   * copied and the name typed for it.
+   * Null until "Copy to another board" is chosen; then the frames being
+   * copied.
    *
    * Tagged with the menu it belongs to rather than reset by an effect: opening
    * a second frame's menu makes the stored name stale, and comparing is both
@@ -121,8 +130,7 @@ export function CanvasMenu({
 
   const [naming, setNaming] = useState<{
     for: CanvasMenuTarget;
-    frame: BoardItem;
-    title: string;
+    frames: BoardItem[];
   } | null>(null);
 
   /** Null until "Save as recipe" is chosen; then the selection being named. */
@@ -146,7 +154,8 @@ export function CanvasMenu({
     for: CanvasMenuTarget;
     frame: BoardItem;
   } | null>(null);
-  const { designFrame, duplicateFrame, fitFrame } = useFrameActions();
+  const { designFrame, duplicateFrame, fitFrame, resetScale } =
+    useFrameActions();
 
   if (!menu) {
     return null;
@@ -195,13 +204,17 @@ export function CanvasMenu({
     }
     if (typing) {
       return (
-        <NamePanel
-          frame={typing.frame}
+        <CopyFramesPanel
+          everything={items}
+          frames={typing.frames}
           onCancel={onDismiss}
           onConfirm={onCopyFrame}
-          onType={(title) => setNaming({ ...typing, title })}
-          summary={frameSummary(typing.frame, items, wires)}
-          title={typing.title}
+          summaryOf={(of) => frameSummary(of, items, wires)}
+          title={
+            typing.frames.length === 1 && typing.frames[0]
+              ? frameBoardTitle(typing.frames[0])
+              : "Copied frames"
+          }
         />
       );
     }
@@ -250,16 +263,11 @@ export function CanvasMenu({
       <MenuRows
         items={items}
         menu={menu}
+        onAddEffects={onAddEffects}
         onArrange={onArrange}
         onBringToFront={onBringToFront}
         onCollect={(urls, into) => setCollecting({ for: menu, into, urls })}
-        onCopy={(frameToCopy) =>
-          setNaming({
-            for: menu,
-            frame: frameToCopy,
-            title: frameBoardTitle(frameToCopy),
-          })
-        }
+        onCopy={(frames) => setNaming({ for: menu, frames })}
         onDismiss={onDismiss}
         onExport={onExport}
         onGroup={onGroup}
@@ -292,6 +300,14 @@ export function CanvasMenu({
         <DuplicateFrameRow
           onDuplicate={() => {
             duplicateFrame(frame.id);
+            onDismiss();
+          }}
+        />
+      ) : null}
+      {frame && resetScale && scaleResetOf(frame) ? (
+        <ResetScaleRow
+          onReset={() => {
+            resetScale(frame.id);
             onDismiss();
           }}
         />

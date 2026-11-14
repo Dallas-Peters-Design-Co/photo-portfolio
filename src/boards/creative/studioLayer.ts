@@ -19,6 +19,11 @@ const aspectOfFile = (file: File): Promise<number> =>
     img.src = url;
   });
 
+/** A Studio picture uploaded to the board's storage: its address. */
+export const uploadStudioFile = async (file: File): Promise<string> =>
+  (await portfolioService.uploadImageFile(file, undefined, "boards/uploads"))
+    .url;
+
 /**
  * A picture from the Studio, uploaded and made a layer of the frame: fitted
  * inside it, or (as a background) filling it, below every other layer.

@@ -63,7 +63,13 @@ export const proposalsApi = {
   /** The client's acceptance: public, once, published proposals only. */
   accept: async (
     slug: string,
-    input: { name: string; title?: string; option?: string }
+    input: {
+      name: string;
+      title?: string;
+      option?: string;
+      /** The owner recording a yes given elsewhere (signed in; no emails). */
+      offline?: boolean;
+    }
   ): Promise<
     ProposalRecord & { emailed: { client: boolean; owner: boolean } }
   > => {

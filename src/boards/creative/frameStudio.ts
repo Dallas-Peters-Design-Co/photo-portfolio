@@ -1,8 +1,14 @@
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
 import { recipeOf, type StudioRecipe } from "../studio/types";
-import { replaceStudioLayer, studioLayer } from "./studioLayer";
+import { exportWidthFor, renderCreative } from "./exportPng";
+import {
+  replaceStudioLayer,
+  studioLayer,
+  uploadStudioFile,
+} from "./studioLayer";
 
 /**
  * The Studio as the frame editor uses it: which tool is open, and the placed
@@ -27,12 +33,87 @@ export const useFrameStudio = () => {
       setEditId(layer.id);
     }
   };
+  /** The Studio, opened to fill a shape (or change its fill). */
+  const fillWithStudio = (shape: BoardItem) => {
+    setStudio(recipeOf(shape.config)?.tool ?? "gradient");
+    setEditId(shape.id);
+  };
   /** The layer being edited became a new one (replaceStudioLayer). */
   const retarget = (id: string) => setEditId(id);
   /** "Edit in Studio" for a layer, when it was made in the Studio. */
   const studioEditorFor = (layer: BoardItem) =>
     recipeOf(layer.config) ? () => editInStudio(layer) : undefined;
-  return { editId, retarget, setStudio, studio, studioEditorFor };
+  return {
+    editId,
+    fillWithStudio,
+    retarget,
+    setStudio,
+    studio,
+    studioEditorFor,
+  };
+};
+
+/** A frame's size in pixels when its name gives none: its export size. */
+export const frameSizeOf = (frame: BoardItem): { h: number; w: number } => {
+  const w = exportWidthFor(frame);
+  return { h: Math.round((w * frame.height) / frame.width), w };
+};
+
+/** The box around some layers (their unrotated boxes). */
+const boundsOf = (layers: BoardItem[]) => {
+  const x = Math.min(...layers.map((l) => l.x));
+  const y = Math.min(...layers.map((l) => l.y));
+  const right = Math.max(...layers.map((l) => l.x + l.width));
+  const bottom = Math.max(...layers.map((l) => l.y + l.height));
+  return {
+    height: Math.max(1, bottom - y),
+    width: Math.max(1, right - x),
+    x,
+    y,
+  };
+};
+
+/**
+ * What the Studio works on when opened on a layer: a shape's fill (made at
+ * the shape's own size in the frame's pixels), or a placed Studio picture to
+ * swap for a new one.
+ */
+const editingOf = (
+  target: BoardItem,
+  recipe: StudioRecipe | null,
+  frame: BoardItem,
+  size: { h: number; w: number } | null,
+  fillShape: (id: string, url: string, recipe: StudioRecipe) => void,
+  swap: (oldId: string, next: BoardItem) => void
+) => {
+  if (target.kind === "drawing") {
+    const k = (size?.w ?? frame.width) / frame.width;
+    return {
+      fill: true,
+      layerId: target.id,
+      onReplace: (file: File, next: StudioRecipe) =>
+        void uploadStudioFile(file)
+          .then((url) => fillShape(target.id, url, next))
+          .catch((e: unknown) =>
+            toast.error(
+              e instanceof Error ? e.message : "Couldn't fill the shape"
+            )
+          ),
+      recipe,
+      size: {
+        h: Math.max(1, Math.round(target.height * k)),
+        w: Math.max(1, Math.round(target.width * k)),
+      },
+    };
+  }
+  return recipe
+    ? {
+        layerId: target.id,
+        onReplace: (file: File, next: StudioRecipe) =>
+          void replaceStudioLayer(file, next, target, swap),
+        recipe,
+      }
+    : undefined;
 };
 
 /** What EditorOverlays needs to show the Studio for this frame. */
@@ -40,58 +121,92 @@ export const frameStudioProps = ({
   add,
   applyType,
   editId,
+  fillShape,
   frame,
   items,
   layers,
   name,
+  selected,
   size,
   studio,
   swap,
+  textElementFor,
 }: {
   add: (item: BoardItem) => void;
   applyType: (scale: TypeScale) => void;
   editId: string | null;
+  /** Fills a shape with an uploaded Studio picture, and how it was made. */
+  fillShape: (id: string, url: string, recipe: StudioRecipe) => void;
   frame: BoardItem;
   items: BoardItem[];
   layers: BoardItem[];
   name: string;
+  /** The layers selected in the editor. */
+  selected: string[];
   size: { h: number; w: number } | null;
   studio: string | null;
   /** Puts a new layer in an old one's place. */
   swap: (oldId: string, next: BoardItem) => void;
+  textElementFor: (id: string) => HTMLElement | null;
 }) => {
   if (!studio) {
     return null;
   }
-  /** A Studio picture placed in the frame: as a layer, or behind everything. */
+  /**
+   * A Studio picture placed in the frame: as a layer, behind everything, or
+   * (made from the selection in place) over the whole frame, on top, so its
+   * tiles land exactly where the selection is.
+   */
   const place = async (
     file: File,
-    asBackground: boolean,
+    how: "background" | "fit" | "over",
     made?: StudioRecipe
   ) => {
-    const layer = await studioLayer(file, frame, items, layers, asBackground);
-    add(made ? { ...layer, config: { studio: made } } : layer);
+    const covers = how !== "fit";
+    const layer = await studioLayer(file, frame, items, layers, covers);
+    const z =
+      how === "over" ? Math.max(0, ...layers.map((l) => l.z)) + 1 : layer.z;
+    add({ ...layer, z, ...(made ? { config: { studio: made } } : {}) });
   };
   const target = layers.find((l) => l.id === editId) ?? null;
   const recipe = target ? recipeOf(target.config) : null;
+  /**
+   * The frame as a picture, for a Studio tool to work from (a mosaic of the
+   * selection): the selected layers, or the whole design when nothing is,
+   * never the picture being edited itself.
+   */
+  const picked = layers.filter(
+    (l) => selected.includes(l.id) && l.id !== editId
+  );
+  const from =
+    picked.length > 0 ? picked : layers.filter((l) => l.id !== editId);
+  // A selection is drawn cropped to its own edges, so it fills the picture
+  // (and the mosaic made from it); nothing selected is the whole frame.
+  const box = picked.length > 0 ? boundsOf(picked) : frame;
+  const width = Math.min(2400, Math.max(800, size?.w ?? 1600));
+  const snapshot = () => renderCreative(box, from, width, textElementFor);
+  /** The selection where it sits, the rest of the frame left clear. */
+  const snapshotInPlace =
+    picked.length > 0
+      ? () => renderCreative(frame, picked, width, textElementFor)
+      : undefined;
   return {
-    editing:
-      target && recipe
-        ? {
-            layerId: target.id,
-            onReplace: (file: File, next: StudioRecipe) =>
-              void replaceStudioLayer(file, next, target, swap),
-            recipe,
-          }
-        : undefined,
+    editing: target
+      ? editingOf(target, recipe, frame, size, fillShape, swap)
+      : undefined,
     frame: {
       name,
       onApplyType: applyType,
       onBackground: (file: File, next: StudioRecipe) =>
-        void place(file, true, next),
+        void place(file, "background", next),
+      onOver: (file: File, next: StudioRecipe) =>
+        void place(file, "over", next),
+      selectionCount: picked.length,
       size,
+      snapshot,
+      snapshotInPlace,
     },
-    onAdd: (file: File, next?: StudioRecipe) => void place(file, false, next),
+    onAdd: (file: File, next?: StudioRecipe) => void place(file, "fit", next),
     tool: studio,
   };
 };

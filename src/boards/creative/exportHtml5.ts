@@ -7,18 +7,22 @@ import { type ZipFile, zip } from "../../lib/zip";
 import type { BoardItem } from "../../types";
 import { expandAll } from "../components/model";
 import { componentById } from "../components/store";
-import {
-  type DrawingConfig,
-  isDrawingConfig,
-  isTransparent,
-} from "../drawing/drawing";
-import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
+import { isDrawingConfig } from "../drawing/drawing";
+import { fillImageOf } from "../drawing/shapePaint";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { type Fit, fitOf, objectPositionOf } from "./imageAnchor";
+import { escapeHtml, px, styleOf } from "./htmlBits";
+import {
+  type Fit,
+  fitOf,
+  objectPositionOf,
+  tintCss,
+  tintOf,
+} from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { opacityCss } from "./layerOpacity";
 import { rotationOf } from "./rotate";
+import { shapeHtml } from "./shapeHtml";
 import { effectRules, lookOf, scaled, type TextLook } from "./textLook";
 
 /**
@@ -35,41 +39,6 @@ import { effectRules, lookOf, scaled, type TextLook } from "./textLook";
 /** The size most networks cap an HTML5 upload at (Google Ads: 150 KB). */
 export const AD_WEIGHT_LIMIT = 150 * 1024;
 
-export const escapeHtml = (s: string): string =>
-  s
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-
-const px = (n: number) => `${Math.round(n * 100) / 100}px`;
-
-const styleOf = (rules: Record<string, string | null | undefined>): string =>
-  Object.entries(rules)
-    .filter(([, v]) => v !== null && v !== undefined && v !== "")
-    .map(([k, v]) => `${k}:${v}`)
-    .join(";");
-
-/** A triangle, polygon, star, squircle or line (drawing/shapes.ts) as SVG. */
-const pathShapeHtml = (
-  shape: ShapeGeometry,
-  config: DrawingConfig,
-  place: Record<string, string | null>,
-  stroke: number
-): string => {
-  const w = Number.parseFloat(place.width ?? "0");
-  const h = Number.parseFloat(place.height ?? "0");
-  const fill =
-    shape.closed && config.fill && !isTransparent(config.fill)
-      ? escapeHtml(config.fill)
-      : "none";
-  const line = stroke > 0 ? escapeHtml(config.stroke) : "none";
-  const head = shape.head
-    ? `<path d="${shape.head}" fill="${escapeHtml(config.stroke)}"/>`
-    : "";
-  return `<svg style="${styleOf({ ...place, overflow: "visible" })}" viewBox="0 0 ${w} ${h}"><path d="${shape.d}" fill="${fill}" stroke="${line}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round"/>${head}</svg>`;
-};
-
 /** Where a layer sits inside the ad, in the ad's pixels. */
 export const placeOf = (item: Box, frame: Box, scale: number) => ({
   height: px(item.height * scale),
@@ -78,49 +47,6 @@ export const placeOf = (item: Box, frame: Box, scale: number) => ({
   top: px((item.y - frame.y) * scale),
   width: px(item.width * scale),
 });
-
-export const shapeHtml = (
-  config: DrawingConfig,
-  place: Record<string, string>,
-  scale: number
-): string => {
-  const opacity =
-    typeof config.opacity === "number" && config.opacity < 1
-      ? `${config.opacity}`
-      : null;
-  const stroke = Math.max(0, config.strokeWidth) * scale;
-  const shape = shapeGeometry(
-    config,
-    Number.parseFloat(place.width),
-    Number.parseFloat(place.height),
-    stroke
-  );
-  if (shape) {
-    return pathShapeHtml(shape, config, { ...place, opacity }, stroke);
-  }
-  if (config.points && config.points.length > 0) {
-    // Freehand: unit-space points stretched across the box, as on the board.
-    const points = config.points.map((p) => `${p.x},${p.y}`).join(" ");
-    return `<svg style="${styleOf({ ...place, opacity, overflow: "visible" })}" viewBox="0 0 1 1" preserveAspectRatio="none"><polyline points="${points}" fill="none" stroke="${escapeHtml(config.stroke)}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
-  }
-  const fallback = config.tool === "rounded" ? 18 : 0;
-  const radius =
-    config.tool === "ellipse"
-      ? "50%"
-      : px(
-          (typeof config.radius === "number" ? config.radius : fallback) * scale
-        );
-  const visibleStroke = stroke > 0 && !isTransparent(config.stroke);
-  return `<div style="${styleOf({
-    ...place,
-    background: config.fill && !isTransparent(config.fill) ? config.fill : null,
-    "border-radius": radius === "0px" ? null : radius,
-    "box-shadow": visibleStroke
-      ? `inset 0 0 0 ${px(stroke)} ${config.stroke}`
-      : null,
-    opacity,
-  })}"></div>`;
-};
 
 /** The computed style a text layer was drawn with, at the ad's scale. */
 export const textHtml = (
@@ -158,9 +84,13 @@ export const imageHtml = (
   place: Record<string, string>,
   radius = 0,
   position?: string,
-  fit: Fit = "cover"
+  fit: Fit = "cover",
+  /** One colour, cut to the picture's shape (imageAnchor.tintOf). */
+  tint: string | null = null
 ): string =>
-  `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": fit, "object-position": position })}">`;
+  tint
+    ? `<div aria-hidden="true" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, ...tintCss(src, tint, fit, position ?? "center") })}"></div>`
+    : `<img alt="" src="${escapeHtml(src)}" style="${styleOf({ ...place, "border-radius": radius > 0 ? px(radius) : null, "object-fit": fit, "object-position": position })}">`;
 
 export interface AdPage {
   body: string[];
@@ -266,7 +196,7 @@ export const fetchBytes = async (
   }
 };
 
-const extOf = (url: string, type: string, fallback: string) =>
+export const extOf = (url: string, type: string, fallback: string) =>
   EXT[type] ??
   new URL(url, location.href).pathname.split(".").pop()?.toLowerCase() ??
   fallback;
@@ -301,7 +231,7 @@ export const fontFaceRules = (families: Set<string>): string[] =>
  * Self-hosted fonts in use, their files copied into the zip and the rules
  * pointed at the copies.
  */
-const selfHostedFonts = async (
+export const selfHostedFonts = async (
   families: Set<string>,
   files: ZipFile[]
 ): Promise<string> => {
@@ -339,17 +269,22 @@ const selfHostedFonts = async (
 };
 
 /** Every picture the layers use, copied in where the host allows it. */
-const copyImages = async (
+/** The picture a layer shows: its own, or a shape's Studio fill. */
+const pictureOf = (l: BoardItem): string | null => {
+  if (l.kind === "drawing") {
+    return fillImageOf(l.config);
+  }
+  return l.kind === "text" || l.kind === "note" ? null : currentImageUrl(l);
+};
+
+export const copyImages = async (
   layers: BoardItem[],
   files: ZipFile[]
 ): Promise<Map<string, string>> => {
   const urls = [
     ...new Set(
       layers
-        .filter(
-          (l) => l.kind !== "drawing" && l.kind !== "text" && l.kind !== "note"
-        )
-        .map((l) => currentImageUrl(l))
+        .map((l) => pictureOf(l))
         .filter((url): url is string => Boolean(url))
     ),
   ];
@@ -384,7 +319,7 @@ export const layerHtml = (
   text: (id: string) => TextLook | null
 ): string | null => {
   if (item.kind === "drawing" && isDrawingConfig(item.config)) {
-    return shapeHtml(item.config, place, scale);
+    return shapeHtml(item.config, place, scale, images);
   }
   const faded = { ...place, opacity: opacityCss(item)?.toString() ?? "" };
   if (item.kind === "text" || item.kind === "note") {
@@ -398,7 +333,8 @@ export const layerHtml = (
         faded,
         imageRadius(item) * scale,
         objectPositionOf(item),
-        fitOf(item)
+        fitOf(item),
+        tintOf(item)
       )
     : null;
 };

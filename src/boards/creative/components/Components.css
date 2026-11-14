@@ -164,3 +164,16 @@
     display: none;
   }
 }
+
+/* A field to expose, and sharing a property that's already there instead. */
+.components__expose-row {
+  display: flex;
+  gap: var(--spacing);
+  align-items: center;
+}
+
+.components__join {
+  flex: none;
+  width: auto;
+  max-width: 9rem;
+}

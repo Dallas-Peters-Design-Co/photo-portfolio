@@ -1,0 +1,88 @@
+import { expect, it, vi } from "vitest";
+import type { BoardItem } from "../../types";
+
+/**
+ * A selection offered to the Studio is drawn cropped to its own edges, so a
+ * mosaic made from it fills the space; with nothing selected, the frame.
+ */
+const drawn: { height: number; width: number; x: number; y: number }[] = [];
+vi.mock("./exportPng", () => ({
+  exportWidthFor: (f: { width: number }) => Math.round(f.width * 2),
+  renderCreative: (box: {
+    height: number;
+    width: number;
+    x: number;
+    y: number;
+  }) => {
+    drawn.push(box);
+    return Promise.resolve(new Blob());
+  },
+}));
+const { frameStudioProps } = await import("./frameStudio");
+
+const item = (id: string, x: number, y: number, w: number, h: number) =>
+  ({ height: h, id, kind: "text", width: w, x, y, z: 1 }) as BoardItem;
+const frame = { ...item("f", 0, 0, 1000, 1500), kind: "frame" } as BoardItem;
+const layers = [item("a", 100, 200, 300, 400), item("b", 500, 900, 200, 100)];
+
+const propsWith = (
+  selected: string[],
+  more: Partial<Parameters<typeof frameStudioProps>[0]> = {}
+) =>
+  frameStudioProps({
+    add: () => undefined,
+    applyType: () => undefined,
+    editId: null,
+    fillShape: () => undefined,
+    frame,
+    items: [frame, ...layers],
+    layers,
+    name: "F",
+    selected,
+    size: { h: 1500, w: 1000 },
+    studio: "mosaic",
+    swap: () => undefined,
+    textElementFor: () => null,
+    ...more,
+  });
+
+it("draws a selection cropped to its edges, and the frame without one", async () => {
+  await propsWith(["a", "b"])?.frame.snapshot?.();
+  expect(drawn.at(-1)).toEqual({ height: 800, width: 600, x: 100, y: 200 });
+  await propsWith([])?.frame.snapshot?.();
+  expect(drawn.at(-1)).toMatchObject({ height: 1500, width: 1000, x: 0, y: 0 });
+});
+
+it("draws a selection in place: the whole frame, only the selection on it", async () => {
+  await propsWith(["a"])?.frame.snapshotInPlace?.();
+  expect(drawn.at(-1)).toMatchObject({ height: 1500, width: 1000, x: 0, y: 0 });
+  // Nothing selected: nothing to take in place.
+  expect(propsWith([])?.frame.snapshotInPlace).toBeUndefined();
+});
+
+it("gives a frame without an ad size its own shape at export width", async () => {
+  const { frameSizeOf } = await import("./frameStudio");
+  // 1000 × 1500 canvas units, exported at twice the width.
+  expect(frameSizeOf(frame)).toEqual({ h: 3000, w: 2000 });
+});
+
+it("fills a shape at its own size from any tool, without a recipe yet", () => {
+  const bar = {
+    ...item("bar", 0, 1400, 1000, 100),
+    config: { fill: "#000", stroke: "#fff", strokeWidth: 0, tool: "rect" },
+    kind: "drawing",
+  } as BoardItem;
+  const props = propsWith([], {
+    editId: "bar",
+    items: [frame, ...layers, bar],
+    layers: [...layers, bar],
+    // The frame exports at twice its canvas size.
+    size: { h: 3000, w: 2000 },
+  });
+  expect(props?.editing).toMatchObject({
+    fill: true,
+    layerId: "bar",
+    recipe: null,
+    size: { h: 200, w: 2000 },
+  });
+});

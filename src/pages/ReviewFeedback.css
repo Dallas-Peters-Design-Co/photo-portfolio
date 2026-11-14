@@ -1,0 +1,190 @@
+/*
+ * The client's comments and markup on a review (ReviewFeedback.tsx), and the
+ * password screen (ReviewLock.tsx). The client's ink is a blue of its own,
+ * set as --review-accent on their markup only, so nothing of theirs reads
+ * as the designer's.
+ */
+
+.review-feedback {
+  --client-ink: #2f6fd6;
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  margin-block-start: calc(var(--spacing) * 4);
+}
+
+.review-feedback__ink {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.review-feedback__surface {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  touch-action: none;
+  cursor: crosshair;
+  outline: 2px dashed #2f6fd6;
+  outline-offset: -2px;
+}
+
+.review-feedback__pin {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--spacing) * 7);
+  height: calc(var(--spacing) * 7);
+  font-size: var(--text-xs-ui);
+  font-weight: 600;
+  color: #fff;
+  background: #2f6fd6;
+  border: 2px solid #fff;
+  border-radius: 999px 999px 999px 2px;
+  box-shadow: 0 1px 4px oklch(0 0 0 / 35%);
+  transform: translate(-50%, -50%);
+}
+
+.review-feedback__pin[data-resolved] {
+  opacity: 0.45;
+}
+
+.review-feedback__pin--draft {
+  outline: 2px solid #2f6fd6;
+  outline-offset: 2px;
+}
+
+.review-feedback__list {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.review-feedback__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: calc(var(--spacing) * 3);
+  align-items: start;
+}
+
+.review-feedback__item[data-resolved] {
+  opacity: 0.6;
+}
+
+.review-feedback__badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--spacing) * 6);
+  height: calc(var(--spacing) * 6);
+  font-size: var(--text-xs-ui);
+  font-weight: 600;
+  color: #fff;
+  background: #2f6fd6;
+  border-radius: 999px 999px 999px 2px;
+}
+
+.review-feedback__meta {
+  margin: 0;
+  font-size: var(--text-xs-ui);
+  font-weight: 600;
+}
+
+.review-feedback__body {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.review-feedback__open,
+.review-feedback__tool,
+.review-feedback__cancel,
+.review-feedback__post,
+.review-lock__button {
+  justify-self: start;
+  min-height: calc(var(--spacing) * 9);
+  padding-inline: calc(var(--spacing) * 4);
+  font: inherit;
+  font-size: var(--text-xs-ui);
+  color: var(--foreground);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid color-mix(in oklch, var(--foreground) 30%, transparent);
+  border-radius: 999px;
+}
+
+.review-feedback__tool[aria-pressed="true"],
+.review-feedback__post,
+.review-lock__button {
+  color: #fff;
+  background: #2f6fd6;
+  border-color: #2f6fd6;
+}
+
+.review-feedback__open:disabled,
+.review-feedback__post:disabled,
+.review-lock__button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.review-feedback__composer {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid color-mix(in oklch, #2f6fd6 50%, transparent);
+  border-radius: calc(var(--spacing) * 2);
+}
+
+.review-feedback__tools,
+.review-feedback__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-feedback__hint {
+  margin: 0;
+  font-size: var(--text-xs-ui);
+  opacity: 0.75;
+}
+
+.review-feedback__text,
+.review-feedback__name,
+.review-lock__input {
+  width: 100%;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid color-mix(in oklch, var(--foreground) 25%, transparent);
+  border-radius: calc(var(--spacing) * 1);
+}
+
+.review-feedback__error,
+.review-lock__error {
+  margin: 0;
+  color: oklch(52% 0.19 28);
+}
+
+/* The password screen. */
+.review-lock {
+  max-width: 28rem;
+  margin-block: calc(var(--spacing) * 16);
+}
+
+.review-lock__field {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+}
+
+/* On paper, the comments stay; the controls to add one don't. */
+@media print {
+  .review-feedback__open,
+  .review-feedback__composer,
+  .review-feedback__surface {
+    display: none;
+  }
+}

@@ -8,7 +8,7 @@ import {
 import { findOutputPort, withWire } from "../../config/graph.js";
 import type { PortType } from "../../config/nodeTypes.js";
 import type { BoardComment } from "../services/comments";
-import type { BoardItem, BoardWire } from "../types";
+import type { BoardItem, BoardWire, CopyTarget } from "../types";
 import { BoardItemView } from "./BoardItemView";
 import { CanvasChrome } from "./canvas/CanvasChrome";
 import { markFromStroke } from "./canvas/markFromStroke";
@@ -57,8 +57,9 @@ import {
   type Box as SnapBox,
   type SnapIndex,
 } from "./geometry/snapIndex";
+import { useBoardClipboard } from "./hooks/useBoardClipboard";
 import { useCanvasMenu } from "./hooks/useCanvasMenu";
-import { useCanvasViewport } from "./hooks/useCanvasViewport";
+import { INV_SCALE_VAR, useCanvasViewport } from "./hooks/useCanvasViewport";
 import { useDeleteKey } from "./hooks/useDeleteKey";
 import { useMovingLayer } from "./hooks/useMovingLayer";
 import { usePanModifier } from "./hooks/usePanModifier";
@@ -92,9 +93,6 @@ export interface Box {
   y: number;
 }
 
-/** A pasted address worth treating as an image. No whitespace: one URL, not prose. */
-const HTTP_URL = /^https?:\/\/\S+$/i;
-
 interface BoardCanvasProps {
   /** Item to open for typing as soon as it appears — a just-placed note. */
   autoEditId?: string | null;
@@ -114,6 +112,8 @@ interface BoardCanvasProps {
   items: BoardItem[];
   /** Stable per-item React key. */
   keyOf: (item: BoardItem) => string;
+  /** Wires a new Shader item to a picture, ready for effects. */
+  onAddEffects?: (itemId: string) => void;
   /**
    * A stroke painted onto an image with the mask brush. The canvas owns the
    * gesture and knows which picture it landed on; the editor owns the config.
@@ -139,7 +139,7 @@ interface BoardCanvasProps {
    * Same division as onCreateFromPort: the canvas knows which frame was asked
    * for, and the editor is the only thing that can talk to the API.
    */
-  onCopyFrame?: (frame: BoardItem, title: string) => void;
+  onCopyFrame?: (frames: BoardItem[], to: CopyTarget) => void;
   /**
    * Creates the thing a clicked port should feed, already wired to it.
    *
@@ -317,6 +317,7 @@ export function BoardCanvas({
   onSendVersions,
   comments,
   commentMode,
+  onAddEffects,
   onCommentItem,
   onVectorize,
   onWiresChange,
@@ -540,53 +541,6 @@ export function BoardCanvas({
   // interaction, before effects from a later render have run.
   viewCentreRef.current = viewCentre;
 
-  /**
-   * Pasting an image onto the board: the same act as dropping a file, down the
-   * same path. Listens on the window rather than an element because paste is
-   * not delivered to something merely hovered — it goes to whatever has focus,
-   * which on a board you are looking at is the document.
-   */
-  useEffect(() => {
-    if (readOnly || !(onDropFiles || onDropImage)) {
-      return;
-    }
-    const onPaste = (e: ClipboardEvent) => {
-      // A paste aimed at a note, a prompt or any other field belongs to that
-      // field. Only a paste with nowhere else to go lands on the board.
-      const active = document.activeElement;
-      if (
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement ||
-        (active instanceof HTMLElement && active.isContentEditable)
-      ) {
-        return;
-      }
-      const files = [...(e.clipboardData?.files ?? [])].filter((file) =>
-        isBoardDrop(file)
-      );
-      if (files.length > 0 && onDropFiles) {
-        e.preventDefault();
-        onDropFiles(files, viewCentre());
-        return;
-      }
-
-      // No bitmap, but an address is the other way an image gets copied —
-      // "copy image address" from a browser puts only text on the clipboard.
-      // Any http(s) URL is accepted rather than only ones ending in .jpg:
-      // plenty of image URLs carry no extension at all, and a link pasted onto
-      // a board with nothing focused can only mean "put this here". A URL that
-      // turns out not to be an image shows as a broken item and can be deleted,
-      // which is a smaller cost than silently ignoring a valid one.
-      const text = e.clipboardData?.getData("text/plain")?.trim();
-      if (text && onDropImage && HTTP_URL.test(text)) {
-        e.preventDefault();
-        onDropImage({ url: text }, viewCentre());
-      }
-    };
-    window.addEventListener("paste", onPaste);
-    return () => window.removeEventListener("paste", onPaste);
-  }, [onDropFiles, onDropImage, readOnly, viewCentre]);
-
   const topZ = items.reduce((max, i) => Math.max(max, i.z), 0);
 
   /**
@@ -666,6 +620,20 @@ export function BoardCanvas({
   // Not while a visitor is looking at a published board, and not while a node
   // is being edited — the node's own fields handle their own keys.
   useDeleteKey(removeSelected, !(readOnly || editingId));
+  // ⌘C, ⌘X and ⌘V for items, and pasting a picture or an image address.
+  useBoardClipboard({
+    enabled: !(readOnly || editingId),
+    items,
+    onChange,
+    onDropFiles,
+    onDropImage,
+    onWiresChange,
+    removeIds,
+    selection,
+    setSelection,
+    viewCentre,
+    wires,
+  });
 
   // Frames the arrangement the first time the board has one: a published board
   // arrives long after the canvas is laid out, so nothing else tells the
@@ -907,11 +875,16 @@ export function BoardCanvas({
         return;
       }
 
+      // A component scales as one thing from a corner, so its type and marks
+      // keep their shape (Shift stretches it); everything else the other way
+      // round. A side always stretches.
+      const isInstance = items[g.index]?.kind === "component";
       const dragged = resizeBox({
         dx,
         dy,
         handle: g.handle,
-        lockAspect: e.shiftKey,
+        lockAspect:
+          isInstance && g.handle.length === 2 ? !e.shiftKey : e.shiftKey,
         minSize: MIN_ITEM_SIZE,
         origin: g.origin,
       });
@@ -1144,6 +1117,7 @@ export function BoardCanvas({
             height: CANVAS_HEIGHT,
             transform: `translate(${view.viewport.tx}px, ${view.viewport.ty}px) scale(${view.viewport.scale})`,
             width: CANVAS_WIDTH,
+            [INV_SCALE_VAR as string]: 1 / view.viewport.scale,
           }}
         >
           {guides.vertical.map((guide) => (
@@ -1301,10 +1275,11 @@ export function BoardCanvas({
       <CanvasMenu
         items={items}
         menu={menu}
+        onAddEffects={closing(onAddEffects)}
         onArrange={closing(onArrangeFrame)}
         onBringToFront={closing(onBringToFront)}
-        onCopyFrame={(frame, title) => {
-          onCopyFrame?.(frame, title);
+        onCopyFrame={(frames, to) => {
+          onCopyFrame?.(frames, to);
           setMenu(null);
         }}
         onDismiss={() => setMenu(null)}

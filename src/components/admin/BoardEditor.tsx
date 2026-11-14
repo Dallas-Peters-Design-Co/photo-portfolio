@@ -9,6 +9,7 @@ import {
 import { BoardCanvas } from "../../boards/BoardCanvas";
 import { BoardProviders } from "../../boards/BoardProviders";
 import { FloatingTools } from "../../boards/canvas/FloatingTools";
+import { useColorVarsDoc } from "../../boards/colorVars/ColorVarsContext";
 import type { DrawStyle } from "../../boards/drawing/DrawToolbar";
 import {
   DEFAULT_STROKE,
@@ -49,16 +50,15 @@ import { useBoardUploads } from "./boardEditor/useBoardUploads";
 import { useBoardVectorTools } from "./boardEditor/useBoardVectorTools";
 import { useDropPoint } from "./boardEditor/useDropPoint";
 import { useFrameDesign } from "./boardEditor/useFrameDesign";
+import { useLiveFrameRenders } from "./boardEditor/useLiveFrameRenders";
 import { useProofMark } from "./boardEditor/useProofMark";
 import { useRecipes } from "./boardEditor/useRecipes";
 import { useSelectedItem } from "./boardEditor/useSelectedItem";
 
 /**
- * Full-screen board editor.
- *
- * Saves on a debounce rather than behind a button: the canvas is edited by
- * dragging, and a drag has no natural moment where a person would think to
- * press save. The unsaved marker is what makes that honest.
+ * Full-screen board editor. Saves on a debounce rather than behind a button:
+ * a drag has no natural moment where a person would think to press save. The
+ * unsaved marker is what makes that honest.
  */
 export function BoardEditor({
   boardId,
@@ -92,22 +92,16 @@ export function BoardEditor({
   const [showComments, setShowComments] = useState(false);
   const [isInserting, setIsInserting] = useState(false);
   /**
-   * The selection waiting to be named, or null when nothing is being saved.
-   *
-   * Held here rather than in the modal because it is gathered from the board —
-   * once the panel is open the selection may have moved on, and what is being
-   * saved should be what was chosen when it was chosen.
+   * The selection waiting to be named, or null. Held here, not in the modal:
+   * what is saved should be what was chosen when it was chosen.
    */
   const [elementDraft, setElementDraft] = useState<{
     description: string;
     images: string[];
   } | null>(null);
   /**
-   * Which tab the insert panel opens on, or undefined for its own default.
-   *
-   * Decided by whoever opens it. Naming an element ends on the library it was
-   * just added to, so the thing that was named can be placed without hunting
-   * for it; the toolbar opens where it always did.
+   * Which tab the insert panel opens on (undefined: its own default). Naming
+   * an element ends on its library, so it can be placed without hunting.
    */
   const [pickAt, setPickAt] = useState<"elements" | undefined>();
   const history = useBoardHistory();
@@ -135,6 +129,7 @@ export function BoardEditor({
     publish,
     rename,
     save,
+    saveColorVars,
   } = useBoardDocument({
     board,
     boardId,
@@ -247,8 +242,7 @@ export function BoardEditor({
 
   const {
     bringToFront,
-    downloadShader,
-    exportShader,
+    shaderActions,
     canvaTarget,
     openSendToCanva,
     resolveComment,
@@ -265,20 +259,26 @@ export function BoardEditor({
     wires,
   });
 
-  const { editorNode, openEditor, openItemInAffinity, vectorizeItem } =
-    useBoardVectorTools({
-      boardId,
-      graphRun,
-      items,
-      pending,
-      save,
-      setIsDirty,
-      setItems,
-      setWires,
-    });
+  const { editorNode, itemTools, openEditor } = useBoardVectorTools({
+    boardId,
+    graphRun,
+    items,
+    pending,
+    save,
+    setIsDirty,
+    setItems,
+    setWires,
+  });
+  useLiveFrameRenders({ items, pending, save, setItems, wires });
 
+  const colours = useColorVarsDoc(
+    board?.colorVars,
+    pending,
+    change,
+    saveColorVars
+  );
   return (
-    <BoardProviders boardId={boardId}>
+    <BoardProviders boardId={boardId} colours={colours}>
       {/* `text-board-ink` establishes the board's own writing color for
           everything inside. Without it the subtree inherits the *site's*
           foreground — the branded near-white that SiteSettingsProvider pins to
@@ -299,14 +299,15 @@ export function BoardEditor({
           isDirty={isDirty}
           isSaving={isSaving}
           onRename={() => void rename()}
+          onSwitch={(to) => void close(() => navigate(to))}
           title={board?.title ?? "Board"}
         />
 
         <BoardHeaderPanel>
           <BoardHeaderActions
+            board={board}
             commentCount={comments.length}
             hasNodes={items.some((item) => item.kind === "op")}
-            isPublic={board?.isPublic ?? false}
             isPublishing={isPublishing}
             isRunning={graphRun.isRunning}
             items={items}
@@ -328,12 +329,11 @@ export function BoardEditor({
             drawTool={drawTool}
             items={items}
             onConfigChange={changeConfig}
-            onDownloadShader={downloadShader}
-            onExportShader={exportShader}
             onMaskChange={changeMask}
             onStyle={setDrawStyle}
             onTool={setDrawTool}
             selected={selection.item}
+            shaderActions={shaderActions}
             wires={wires}
           />
 
@@ -352,6 +352,7 @@ export function BoardEditor({
             fitFrame={frameDesign.fitFrame}
             linkFor={(id) => frameLink(publicUrl, items, id)}
             onTrainOnFrame={(id) => void trainOnFrame(id)}
+            resetScale={frameDesign.resetScale}
           >
             <BoardCanvas
               autoEditId={autoEditId}
@@ -361,14 +362,13 @@ export function BoardEditor({
               drawTool={drawTool}
               items={items}
               keyOf={keyOf}
+              onAddEffects={itemTools.addEffects}
               onArrangeFrame={autoArrange}
               onBringToFront={bringToFront}
               onCancel={graphRun.cancel}
               onChange={change}
               onConfigChange={changeConfig}
-              onCopyFrame={(frame, title) =>
-                void copyFrameToBoard(frame, title)
-              }
+              onCopyFrame={(frames, to) => void copyFrameToBoard(frames, to)}
               onCreateFromPort={createFromPort}
               onDraw={addDrawing}
               onDrawTool={setDrawTool}
@@ -378,7 +378,7 @@ export function BoardEditor({
               onExportItem={(itemId) => void exportItem(itemId)}
               onGroupIntoFrame={groupIntoFrame}
               onMaskStroke={addMaskStroke}
-              onOpenInAffinity={(id) => void openItemInAffinity(id)}
+              onOpenInAffinity={itemTools.openInAffinity}
               onProofMark={(id) => void proofMark(id)}
               onRemoveVersion={(itemId, index) =>
                 void removeVersion(itemId, index)
@@ -390,7 +390,7 @@ export function BoardEditor({
               onSendToBack={sendToBack}
               onSendToCanva={openSendToCanva}
               onSendVersions={sendVersions}
-              onVectorize={(itemId) => void vectorizeItem(itemId)}
+              onVectorize={itemTools.vectorize}
               onWiresChange={changeWires}
               recipeUses={uses}
               viewCentreRef={viewCentreRef}

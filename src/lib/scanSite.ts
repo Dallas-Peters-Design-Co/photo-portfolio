@@ -1,6 +1,8 @@
 import { type SiteScan, sanitizeScans } from "../../config/siteScan.js";
+import { scanColors, scanLogo } from "../../scripts/scanBrand.mjs";
 import { scanPage } from "../../scripts/scanPage.mjs";
 import { brandKitsApi } from "../services/brandKitService";
+import type { ScannedColor, ScannedLogo } from "./scanTheme";
 
 /**
  * A website's design, read in this browser: no command line, no extension.
@@ -11,9 +13,19 @@ import { brandKitsApi } from "../services/brandKitService";
  * its address, and the same scanner the command-line scan uses reads what
  * the browser drew. Nothing from the scanned site runs.
  *
+ * Alongside the components it reads the site's colour theme (its CSS
+ * variables, including those in linked stylesheets the server fetched) and
+ * its logo (scripts/scanBrand.mjs), for the kit's palette and logos.
+ *
  * A site that only draws itself with JavaScript shows little this way; the
  * command-line scan (pnpm design-md:scan) renders those fully.
  */
+
+export interface SiteFindings {
+  colors: ScannedColor[];
+  logo: ScannedLogo | null;
+  scan: SiteScan;
+}
 
 const WIDTH = 1440;
 const HEIGHT = 900;
@@ -36,7 +48,7 @@ const loaded = (frame: HTMLIFrameElement): Promise<void> =>
     setTimeout(done, LOAD_TIMEOUT_MS);
   });
 
-export const scanSite = async (raw: string): Promise<SiteScan> => {
+export const scanSite = async (raw: string): Promise<SiteFindings> => {
   const page = await brandKitsApi.sitePage(raw);
   const frame = document.createElement("iframe");
   // Same origin so this page can read the drawn result; no allow-scripts,
@@ -63,7 +75,11 @@ export const scanSite = async (raw: string): Promise<SiteScan> => {
     if (!scan) {
       throw new Error("Nothing usable came back from that page.");
     }
-    return scan;
+    return {
+      colors: scanColors(win, page.css) as ScannedColor[],
+      logo: scanLogo(win) as ScannedLogo | null,
+      scan,
+    };
   } finally {
     frame.remove();
   }

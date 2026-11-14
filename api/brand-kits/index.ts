@@ -25,7 +25,13 @@ import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
 import { deleteLook, listLooks, saveLook } from "../_lib/savedLooks.js";
+import { adoptSiteLogo } from "../_lib/siteLogo.js";
 import { fetchSitePage } from "../_lib/sitePage.js";
+import {
+  deletePreset,
+  listPresets,
+  savePreset,
+} from "../_lib/studioPresets.js";
 
 /**
  * The brand kits: what exists, and making a new one.
@@ -57,6 +63,10 @@ async function handleGet(
   if (req.query.looks) {
     return res.status(200).json(await listLooks(sql));
   }
+  // Saved Studio settings ride here too (see _lib/studioPresets.ts).
+  if (req.query.presets) {
+    return res.status(200).json(await listPresets(sql));
+  }
   // A kit's components ride here too (see _lib/brandComponents.ts).
   if (typeof req.query.components === "string") {
     return res
@@ -81,7 +91,7 @@ async function handleGet(
   if (typeof req.query.page === "string") {
     const page = await fetchSitePage(req.query.page);
     return page.ok
-      ? res.status(200).json({ html: page.html, url: page.url })
+      ? res.status(200).json({ css: page.css, html: page.html, url: page.url })
       : res.status(422).json({ error: page.error });
   }
   // A kit as DESIGN.md, for the guide's download (see _lib/mcpBrandTools.ts).
@@ -110,6 +120,21 @@ async function handleLookAction(
   const out = await saveLook(sql, body);
   return out.ok
     ? res.status(out.status).json(out.look)
+    : res.status(out.status).json({ error: out.error });
+}
+
+async function handlePresetAction(
+  sql: Sql,
+  body: Record<string, unknown>,
+  res: VercelResponse
+) {
+  if (body.action === "deletePreset") {
+    await deletePreset(sql, body.id);
+    return res.status(204).end();
+  }
+  const out = await savePreset(sql, body);
+  return out.ok
+    ? res.status(out.status).json(out.preset)
     : res.status(out.status).json({ error: out.error });
 }
 
@@ -166,6 +191,39 @@ async function handleCopy(
   }
 }
 
+/**
+ * The actions that work from a kit rather than create one: ad copy and
+ * pictures for the creative editor, and keeping a logo a site scan found.
+ * True when one of them answered.
+ */
+async function handleKitAction(
+  sql: Sql,
+  body: Record<string, unknown>,
+  res: VercelResponse
+): Promise<boolean> {
+  // Ad copy in a kit's voice, for the creative editor (_lib/creativeCopy.ts).
+  if (body.action === "copy") {
+    await handleCopy(sql, body, res);
+    return true;
+  }
+  // A picture from the kit, for the creative editor (_lib/creativeImage.ts).
+  if (body.action === "image") {
+    await handleImage(sql, body, res);
+    return true;
+  }
+  // A logo the site scan found, kept as our own file (_lib/siteLogo.ts).
+  if (body.action === "siteLogo") {
+    const logo = await adoptSiteLogo(body);
+    if (logo.ok) {
+      res.status(200).json({ url: logo.url });
+    } else {
+      res.status(422).json({ error: logo.error });
+    }
+    return true;
+  }
+  return false;
+}
+
 async function handlePost(
   sql: Sql,
   user: User,
@@ -179,6 +237,9 @@ async function handlePost(
   if (body.action === "saveLook" || body.action === "deleteLook") {
     return await handleLookAction(sql, body, res);
   }
+  if (body.action === "savePreset" || body.action === "deletePreset") {
+    return await handlePresetAction(sql, body, res);
+  }
   if (body.action === "deleteComponent") {
     await deleteComponent(sql, body.id);
     return res.status(204).end();
@@ -189,13 +250,8 @@ async function handlePost(
       ? res.status(out.status).json(out.component)
       : res.status(out.status).json({ error: out.error });
   }
-  // Ad copy in a kit's voice, for the creative editor (_lib/creativeCopy.ts).
-  if (body.action === "copy") {
-    return await handleCopy(sql, body, res);
-  }
-  // A picture from the kit, for the creative editor (_lib/creativeImage.ts).
-  if (body.action === "image") {
-    return await handleImage(sql, body, res);
+  if (await handleKitAction(sql, body, res)) {
+    return;
   }
   const name = sanitizeText(String(body.name ?? "")).slice(0, MAX_KIT_NAME);
   if (!name) {

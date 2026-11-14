@@ -8,16 +8,20 @@ import {
   type ComponentProp,
   draftFrom,
   expandInstance,
+  fieldValue,
   instanceOf,
   newInstance,
   type PropField,
+  type PropTarget,
   placeIn,
   resolvedLayers,
+  sets,
   startingProps,
 } from "../../components/model";
 import { rememberComponents, useComponentDefs } from "../../components/store";
 import { newItemId } from "../../io/newItemId";
 import { componentsApi } from "./componentsApi";
+import { useComponentProps } from "./useComponentProps";
 
 /**
  * The frame editor's brand components (components/model.ts).
@@ -311,10 +315,47 @@ export const useComponents = ({
     if (!(editing && link)) {
       return;
     }
+    // The open layers like this one (same field, same value) share it.
+    const value = fieldValue(layer, field)?.toLowerCase();
+    const more: PropTarget[] =
+      field === "body" || value === undefined
+        ? []
+        : latest.current
+            .map((i) => ({ i, l: editLinkOf(i) }))
+            .filter(
+              ({ i, l }) =>
+                l?.i === editing.instance.id &&
+                l.l !== link.l &&
+                fieldValue(i, field)?.toLowerCase() === value &&
+                !editing.props.some((p) => sets(p, l.l, field))
+            )
+            .map(({ l }) => ({ field, lid: l?.l ?? "" }));
     setProps([
       ...editing.props,
-      { field, id: shortId(), lid: link.l, name: label, type },
+      {
+        field,
+        id: shortId(),
+        lid: link.l,
+        name: label,
+        type,
+        ...(more.length > 0 ? { more } : {}),
+      },
     ]);
+  };
+
+  /** While editing: a layer's field joins a property that's already there. */
+  const share = (layer: BoardItem, field: PropField, propId: string) => {
+    const link = editLinkOf(layer);
+    if (!(editing && link)) {
+      return;
+    }
+    setProps(
+      editing.props.map((p) =>
+        p.id === propId
+          ? { ...p, more: [...(p.more ?? []), { field, lid: link.l }] }
+          : p
+      )
+    );
   };
 
   /** A layer of the frame taken into the component being edited. */
@@ -355,7 +396,12 @@ export const useComponents = ({
               open,
               frame,
               component.name,
-              editing.props.filter((p) => lids.has(p.lid)),
+              editing.props
+                .map((p) => ({
+                  ...p,
+                  more: p.more?.filter((t) => lids.has(t.lid)),
+                }))
+                .filter((p) => lids.has(p.lid)),
               (l) => editLinkOf(l)?.l ?? null
             ),
             id: component.id,
@@ -414,23 +460,7 @@ export const useComponents = ({
     [confirm]
   );
 
-  /** A property added straight from an instance, without opening it. */
-  const addProp = useCallback(
-    async (component: BrandComponent, prop: Omit<ComponentProp, "id">) => {
-      try {
-        const { id, kitId: _kit, updatedAt: _at, ...draft } = component;
-        const saved = await componentsApi.save({
-          ...draft,
-          id,
-          props: [...component.props, { ...prop, id: shortId() }],
-        });
-        keep([saved]);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : "Couldn't add it");
-      }
-    },
-    [keep]
-  );
+  const { addProp, joinProp } = useComponentProps(keep);
 
   return {
     addProp,
@@ -441,6 +471,7 @@ export const useComponents = ({
     expose,
     finishEdit,
     insert,
+    joinProp,
     kitName: kit?.name ?? null,
     lookup,
     make,
@@ -448,6 +479,7 @@ export const useComponents = ({
     resetProps,
     setProp,
     setProps,
+    share,
     startEdit,
   };
 };

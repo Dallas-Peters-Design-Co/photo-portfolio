@@ -29,16 +29,48 @@ export interface ComponentLayer {
   y: number;
 }
 
-export type PropField = "background" | "body" | "color" | "fill" | "stroke";
+export type PropField =
+  | "background"
+  | "body"
+  | "color"
+  | "fill"
+  | "stroke"
+  | "tint";
 
-/** Something an instance may set: one layer's text or one of its colours. */
+/** One layer's text or colour that a property sets. */
+export interface PropTarget {
+  field: PropField;
+  lid: string;
+}
+
+/**
+ * Something an instance may set: a layer's text or one of its colours, and
+ * any number of others that share it (`more`): one Colour that recolours the
+ * mark, the rule and the label together.
+ */
 export interface ComponentProp {
   field: PropField;
   id: string;
   lid: string;
+  /** Other layers' fields set by the same value. */
+  more?: PropTarget[];
   name: string;
   type: "color" | "text";
 }
+
+/** Every layer field a property sets. */
+export const targetsOf = (prop: ComponentProp): PropTarget[] => [
+  { field: prop.field, lid: prop.lid },
+  ...(prop.more ?? []),
+];
+
+/** Whether a property already sets this field of this layer. */
+export const sets = (prop: ComponentProp, lid: string, field: PropField) =>
+  targetsOf(prop).some((t) => t.lid === lid && t.field === field);
+
+/** The type of value a field holds. */
+export const typeOfField = (field: PropField): ComponentProp["type"] =>
+  field === "body" ? "text" : "color";
 
 export interface BrandComponent {
   height: number;
@@ -103,6 +135,9 @@ export const FIELDS_OF: Record<
     { field: "color", label: "Text colour", type: "color" },
     { field: "background", label: "Box colour", type: "color" },
   ],
+  // A picture recoloured to one colour, its shape kept (imageAnchor.tintOf).
+  photo: [{ field: "tint", label: "Colour", type: "color" }],
+  reference: [{ field: "tint", label: "Colour", type: "color" }],
   text: [
     { field: "body", label: "Text", type: "text" },
     { field: "color", label: "Text colour", type: "color" },
@@ -165,16 +200,57 @@ export const resolvedLayers = (
 ): ComponentLayer[] =>
   component.layers.map((layer) =>
     component.props
-      .filter((p) => p.lid === layer.lid && values[p.id] !== undefined)
-      .reduce((l, p) => withField(l, p.field, values[p.id] as string), layer)
+      .filter((p) => values[p.id] !== undefined)
+      .flatMap((p) =>
+        targetsOf(p)
+          .filter((t) => t.lid === layer.lid)
+          .map((t) => ({ field: t.field, value: values[p.id] as string }))
+      )
+      .reduce((l, t) => withField(l, t.field, t.value), layer)
   );
 
+/**
+ * The layers like this one: the same field, set to the same value, not yet
+ * set by any property. Exposing a colour on one tile of a mark takes in
+ * every tile the same colour, so the mark changes colour as one.
+ */
+export const alikeOf = (
+  component: Pick<BrandComponent, "layers" | "props">,
+  lid: string,
+  field: PropField
+): PropTarget[] => {
+  const layer = component.layers.find((l) => l.lid === lid);
+  const value = layer ? fieldValue(layer, field) : undefined;
+  if (value === undefined || field === "body") {
+    return [];
+  }
+  return component.layers
+    .filter(
+      (l) =>
+        l.lid !== lid &&
+        (FIELDS_OF[l.kind] ?? []).some((f) => f.field === field) &&
+        fieldValue(l, field)?.toLowerCase() === value.toLowerCase() &&
+        !component.props.some((p) => sets(p, l.lid, field))
+    )
+    .map((l) => ({ field, lid: l.lid }));
+};
+
 /** How much an instance's box scales its component: uniformly, to fit. */
+/**
+ * How an instance's box stretches the component: each axis on its own, so
+ * the layers fill the box the way it's been resized (a wider tag is a wider
+ * tag, not the same tag with space beside it). Type, outlines and corners
+ * grow only as much as both axes do, so stretching one way doesn't blow the
+ * text up or squash it.
+ */
 export const scaleOf = (
   item: Pick<BoardItem, "height" | "width">,
   component: BrandComponent
-) =>
-  Math.min(item.width / component.width, item.height / component.height) || 1;
+) => {
+  const sx = item.width / component.width || 1;
+  const sy = item.height / component.height || 1;
+  return { k: Math.min(sx, sy), sx, sy };
+};
 
 const scaledConfig = (
   config: Record<string, unknown> | null,
@@ -202,7 +278,7 @@ export const innerId = (instanceId: string, lid: string) =>
 
 /**
  * An instance as the board items it draws: the component's layers, its
- * property values applied, scaled into its box. Used by every renderer and
+ * property values applied, stretched to fill its box (scaleOf). Used by every renderer and
  * export, so an instance looks the same everywhere.
  */
 export const expandInstance = (
@@ -210,14 +286,14 @@ export const expandInstance = (
   component: BrandComponent
 ): BoardItem[] => {
   const instance = instanceOf(item);
-  const k = scaleOf(item, component);
+  const { k, sx, sy } = scaleOf(item, component);
   return resolvedLayers(component, instance?.props ?? {}).map((layer) => ({
     body: layer.body,
     config: scaledConfig(layer.config, k, instance?.opacity),
     creditName: null,
     creditUrl: null,
     fontSize: layer.fontSize === null ? null : layer.fontSize * k,
-    height: layer.height * k,
+    height: layer.height * sy,
     id: innerId(item.id, layer.lid),
     imageUrl: layer.imageUrl,
     kind: layer.kind,
@@ -229,9 +305,9 @@ export const expandInstance = (
     runState: null,
     textStyle: layer.textStyle ?? null,
     thumbUrl: layer.thumbUrl,
-    width: layer.width * k,
-    x: item.x + layer.x * k,
-    y: item.y + layer.y * k,
+    width: layer.width * sx,
+    x: item.x + layer.x * sx,
+    y: item.y + layer.y * sy,
     z: item.z,
   }));
 };
@@ -279,6 +355,45 @@ export const startingProps = (draft: Draft): ComponentProp[] =>
       type: "text" as const,
     }));
 
+/**
+ * A component whose layers each have their own id. A layer duplicated while
+ * the component was open kept the original's id, so two layers answered to
+ * one name: their copies on the board collided, drawing a stray box over
+ * every instance. Each repeat gets an id of its own, and every property that
+ * set the original sets the copy too (copies of the same thing share it).
+ */
+export const withUniqueLids = <
+  C extends { layers: ComponentLayer[]; props: ComponentProp[] },
+>(
+  component: C
+): C => {
+  const seen = new Map<string, number>();
+  const added: { from: string; lid: string }[] = [];
+  const layers = component.layers.map((layer) => {
+    const n = seen.get(layer.lid) ?? 0;
+    seen.set(layer.lid, n + 1);
+    if (n === 0) {
+      return layer;
+    }
+    const lid = `${layer.lid.slice(0, 58)}-${n + 1}`;
+    added.push({ from: layer.lid, lid });
+    return { ...layer, lid };
+  });
+  if (added.length === 0) {
+    return component;
+  }
+  const props = component.props.map((p) => {
+    const more = [...(p.more ?? [])];
+    for (const t of targetsOf(p)) {
+      for (const a of added.filter((x) => x.from === t.lid)) {
+        more.push({ field: t.field, lid: a.lid });
+      }
+    }
+    return more.length > 0 ? { ...p, more } : p;
+  });
+  return { ...component, layers, props };
+};
+
 /** A component from layers in a frame, back to front. */
 export const draftFrom = (
   layers: BoardItem[],
@@ -292,7 +407,7 @@ export const draftFrom = (
   const width = Math.max(...layers.map((l) => l.x + l.width)) - x;
   const height = Math.max(...layers.map((l) => l.y + l.height)) - y;
   const ordered = [...layers].sort((a, b) => a.z - b.z);
-  return {
+  return withUniqueLids({
     height,
     layers: ordered.map((item) => {
       const { component: _link, ...config } = item.config ?? {};
@@ -321,7 +436,7 @@ export const draftFrom = (
     },
     props,
     width,
-  };
+  });
 };
 
 /** A new instance at a place, on top of everything in `items`. */

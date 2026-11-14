@@ -364,4 +364,44 @@ describe("BoardCanvas — a designed frame", () => {
     expect(looseBox?.querySelector(".board-item__port")).not.toBeNull();
     expect(hidden(looseBox as Element, ".board-item__port")).toBe(false);
   });
+
+  it("draws its images and nested frames without an outline", async () => {
+    const frame = item({
+      config: { designed: true },
+      height: 500,
+      id: "f",
+      imageUrl: null,
+      kind: "frame",
+      width: 500,
+      x: 100,
+      y: 100,
+      z: 0,
+    });
+    const logo = item({ height: 80, id: "logo", width: 160, x: 400, y: 480 });
+    const group = item({
+      body: "Logo",
+      height: 120,
+      id: "g",
+      imageUrl: null,
+      kind: "frame",
+      width: 220,
+      x: 370,
+      y: 460,
+    });
+    const { box } = await render([frame, group, logo]);
+    const inside = [
+      ...box.querySelectorAll<HTMLElement>(".board-item--in-frame"),
+    ];
+    expect(inside).toHaveLength(2);
+    for (const el of inside) {
+      expect(getComputedStyle(el).outlineStyle).toBe("none");
+    }
+    const nested = inside.find((el) => el.querySelector(".frame-body"));
+    const body = nested?.querySelector(".frame-body") as HTMLElement;
+    expect(getComputedStyle(body).borderTopStyle).toBe("none");
+    expect(
+      getComputedStyle(body.querySelector(".frame-body__row") as HTMLElement)
+        .display
+    ).toBe("none");
+  });
 });

@@ -9,14 +9,20 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { BrandKitDoc } from "../../../config/brandKit.js";
+import type { BrandKitDoc, LogoEntry } from "../../../config/brandKit.js";
 import { designMd } from "../../../config/designMd.js";
 import {
   MAX_WEBSITES,
   type SiteScan,
   sanitizeWebsites,
 } from "../../../config/siteScan.js";
-import { scanSite } from "../../lib/scanSite";
+import { type SiteFindings, scanSite } from "../../lib/scanSite";
+import {
+  logosWithScan,
+  paletteWithScan,
+  scannedLogoLabel,
+} from "../../lib/scanTheme";
+import { brandKitsApi } from "../../services/brandKitService";
 import { facesFor } from "../typeScale/faces";
 import { TypeScaleEditor } from "../typeScale/TypeScaleEditor";
 import { Button } from "../ui/button";
@@ -37,6 +43,50 @@ const date = (iso: string) => iso.slice(0, 10);
 
 const scanFor = (doc: BrandKitDoc, url: string) =>
   doc.scans.find((s) => s.url === url || s.url.startsWith(url));
+
+const plural = (n: number, one: string) => `${n} ${one}${n === 1 ? "" : "s"}`;
+
+/** What a scan added, for the toast. */
+const findingsNote = (components: number, colours: number, logos: number) => {
+  const parts = [plural(components, "component")];
+  if (colours > 0) {
+    parts.push(`${plural(colours, "new colour")} for the palette`);
+  }
+  if (logos > 0) {
+    parts.push(logos === 1 ? "the logo" : plural(logos, "logo"));
+  }
+  return `Found ${parts.join(", ")}. Save the kit to keep them.`;
+};
+
+/**
+ * The kit's logos with each scanned site's logo kept as our own file and
+ * added, once per site (a rescan finds it by its label). One that can't be
+ * kept is reported and skipped; the rest of the scan still lands.
+ */
+const keptLogos = async (
+  logos: LogoEntry[],
+  found: SiteFindings[]
+): Promise<LogoEntry[]> => {
+  let out = logos;
+  for (const f of found) {
+    const label = scannedLogoLabel(f.scan.url);
+    if (!f.logo || out.some((l) => l.label === label)) {
+      continue;
+    }
+    try {
+      // biome-ignore lint/performance/noAwaitInLoops: a handful of sites, kept in order
+      const url = await brandKitsApi.siteLogo(
+        f.logo.kind === "svg" ? { svg: f.logo.svg } : { src: f.logo.src }
+      );
+      out = logosWithScan(out, label, url);
+    } catch (e) {
+      toast.error(
+        `${label}: ${e instanceof Error ? e.message : "couldn't keep it"}`
+      );
+    }
+  }
+  return out;
+};
 
 function WebsiteRow({
   busy,
@@ -118,10 +168,14 @@ export function WebsitesEditor({
       websites: doc.websites.filter((w) => w !== url),
     });
 
-  /** Scans the sites, one at a time, then puts every result on the kit. */
+  /**
+   * Scans the sites, one at a time, then puts every result on the kit: the
+   * components for the DESIGN.md, the colour variables added to the palette
+   * and the logo added to the logos (each once, never replacing).
+   */
   const scan = async (urls: string[]) => {
     setBusy(new Set(urls));
-    const found: SiteScan[] = [];
+    const found: SiteFindings[] = [];
     for (const url of urls) {
       try {
         // biome-ignore lint/performance/noAwaitInLoops: one hidden frame at a time
@@ -136,13 +190,28 @@ export function WebsitesEditor({
     if (found.length === 0) {
       return;
     }
+    const logos = await keptLogos(doc.logos, found);
+    const palette = found.reduce(
+      (p, f) => paletteWithScan(p, f.colors),
+      doc.palette
+    );
     const replaced = new Set(urls.map((u) => scanFor(doc, u)));
     onChange({
       ...doc,
-      scans: [...found, ...doc.scans.filter((s) => !replaced.has(s))],
+      logos,
+      palette,
+      scans: [
+        ...found.map((f) => f.scan),
+        ...doc.scans.filter((s) => !replaced.has(s)),
+      ],
     });
-    const count = found.reduce((n, s) => n + s.components.length, 0);
-    toast.success(`Found ${count} components. Save the kit to keep them.`);
+    toast.success(
+      findingsNote(
+        found.reduce((n, f) => n + f.scan.components.length, 0),
+        palette.length - doc.palette.length,
+        logos.length - doc.logos.length
+      )
+    );
   };
 
   return (
@@ -191,7 +260,9 @@ export function WebsitesEditor({
       </div>
       <p className="brand-kit__hint">
         Scanning reads the buttons, links, inputs, cards, nav, type, corner
-        radii and spacing each site draws, for the DESIGN.md below.
+        radii and spacing each site draws, for the DESIGN.md below. It also adds
+        the site's colour variables to the palette and its logo to the logos,
+        without replacing what's there.
       </p>
     </div>
   );

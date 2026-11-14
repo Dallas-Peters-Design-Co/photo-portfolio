@@ -1,5 +1,17 @@
 import { esc, pick, r2, svgDoc } from "../rng";
 import type { ImageTool, RenderContext, StudioValues } from "../types";
+import { edgeFadeOf, FADE_PARAMS, fadeCell } from "./edgeFade";
+import {
+  drawGrid,
+  GRID_PARAMS,
+  gridFrom,
+  gridSvg,
+  linesLook,
+} from "./gridLines";
+import { FEATHER_PARAM, faded, featherOf, tileNoise } from "./mosaicFeather";
+import { drawPixels } from "./mosaicPixels";
+import { paintOf, shape } from "./mosaicSvg";
+
 import { paintedOf, tileKey } from "./paintedTiles";
 import {
   hex,
@@ -89,7 +101,8 @@ const sample = (
   cols: number,
   rows: number,
   w: number,
-  h: number
+  h: number,
+  whole: boolean
 ): Uint8ClampedArray | null => {
   const canvas = document.createElement("canvas");
   canvas.width = cols;
@@ -98,77 +111,37 @@ const sample = (
   if (!ctx) {
     return null;
   }
-  // object-fit: cover onto the grid.
-  const scale = Math.max(w / image.width, h / image.height);
-  const sw = w / scale;
-  const sh = h / scale;
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(
-    image,
-    (image.width - sw) / 2,
-    (image.height - sh) / 2,
-    sw,
-    sh,
-    0,
-    0,
-    cols,
-    rows
-  );
+  if (whole) {
+    // object-fit: contain: all of the picture, centred; the rest is clear,
+    // and clear cells get no tile.
+    const k = Math.min(cols / image.width, rows / image.height);
+    const dw = image.width * k;
+    const dh = image.height * k;
+    ctx.drawImage(image, (cols - dw) / 2, (rows - dh) / 2, dw, dh);
+  } else {
+    // object-fit: cover onto the grid.
+    const scale = Math.max(w / image.width, h / image.height);
+    const sw = w / scale;
+    const sh = h / scale;
+    ctx.drawImage(
+      image,
+      (image.width - sw) / 2,
+      (image.height - sh) / 2,
+      sw,
+      sh,
+      0,
+      0,
+      cols,
+      rows
+    );
+  }
   return ctx.getImageData(0, 0, cols, rows).data;
 };
 
-/**
- * A tile's fill as SVG attributes, or null for a tile that's fully clear.
- *
- * A colour with transparency (#rrggbbaa, from the pickers) is written as a
- * plain fill and a fill-opacity, which every SVG reader understands (Canva and
- * Illustrator included), rather than the eight-digit hex browsers accept. A
- * clear tile is left out of the file altogether.
- */
-export const paintOf = (colour: string): string | null => {
-  if (colour.length === 9) {
-    const alpha = Number.parseInt(colour.slice(7, 9), 16) / 255;
-    if (alpha <= 0.002) {
-      return null;
-    }
-    const base = `fill="${colour.slice(0, 7)}"`;
-    return alpha >= 0.998 ? base : `${base} fill-opacity="${r2(alpha)}"`;
-  }
-  return `fill="${colour}"`;
-};
-
-const shape = (
-  kind: string,
-  x: number,
-  y: number,
-  s: number,
-  /** The fill attributes (paintOf). */
-  fill: string,
-  flip: boolean
-) => {
-  const c = s / 2;
-  switch (kind) {
-    case "circle":
-      return `<circle cx="${r2(x + c)}" cy="${r2(y + c)}" r="${r2(c)}" ${fill}/>`;
-    case "diamond":
-      return `<path d="M${r2(x + c)} ${r2(y)}L${r2(x + s)} ${r2(y + c)}L${r2(x + c)} ${r2(y + s)}L${r2(x)} ${r2(y + c)}Z" ${fill}/>`;
-    case "triangle":
-      return flip
-        ? `<path d="M${r2(x)} ${r2(y + s)}L${r2(x + c)} ${r2(y)}L${r2(x + s)} ${r2(y + s)}Z" ${fill}/>`
-        : `<path d="M${r2(x)} ${r2(y)}L${r2(x + s)} ${r2(y)}L${r2(x + c)} ${r2(y + s)}Z" ${fill}/>`;
-    case "hex": {
-      const pts = Array.from({ length: 6 }, (_, i) => {
-        const a = (Math.PI / 3) * i + Math.PI / 6;
-        return `${r2(x + c + Math.cos(a) * c)} ${r2(y + c + Math.sin(a) * c)}`;
-      });
-      return `<path d="M${pts.join("L")}Z" ${fill}/>`;
-    }
-    default:
-      return `<rect x="${r2(x)}" y="${r2(y)}" width="${r2(s)}" height="${r2(s)}" ${fill}/>`;
-  }
-};
-
 /** The picture averaged onto the mosaic's grid, or null without one. */
+const columnsOf = (v: StudioValues) => Math.max(2, Number(v.columns) || 48);
+
 const gridOf = (
   v: StudioValues,
   { height: h, image, width: w }: RenderContext
@@ -176,7 +149,7 @@ const gridOf = (
   if (!image) {
     return null;
   }
-  const cols = Math.max(2, Number(v.columns) || 48);
+  const cols = columnsOf(v);
   const cell = w / cols;
   const rows = Math.max(1, Math.round(h / cell));
   // Sampled once per picture and grid: every repaint (a painted tile, a
@@ -184,7 +157,8 @@ const gridOf = (
   const byImage =
     samples.get(image) ?? new Map<string, Uint8ClampedArray | null>();
   samples.set(image, byImage);
-  const key = `${cols}x${rows}@${w}x${h}`;
+  const whole = v.fit === "contain";
+  const key = `${cols}x${rows}@${w}x${h}${whole ? "c" : ""}`;
   if (!byImage.has(key)) {
     byImage.set(
       key,
@@ -193,7 +167,8 @@ const gridOf = (
         cols,
         rows,
         w,
-        h
+        h,
+        whole
       )
     );
   }
@@ -220,9 +195,129 @@ const mainColoursOf = (data: Uint8ClampedArray, count: number) => {
 const countOf = (v: StudioValues) =>
   Math.max(2, Math.min(12, Number(v.count) || 5));
 
+/**
+ * Each tile's colour before any painting, worked out once per picture and
+ * colour settings: dragging the gap or changing the tile shape redraws
+ * without colouring tens of thousands of tiles again.
+ */
+const fillsCache = new WeakMap<Uint8ClampedArray, Map<string, string[]>>();
+const fillsOf = (
+  v: StudioValues,
+  ctx: RenderContext,
+  data: Uint8ClampedArray,
+  n: number
+): string[] => {
+  const mode = modeOf(v);
+  const key = [
+    mode,
+    ctx.palette.join(),
+    Boolean(v.invert),
+    mode === "remap" ? `${String(v.remap)}#${countOf(v)}` : "",
+  ].join("|");
+  const byKey = fillsCache.get(data) ?? new Map<string, string[]>();
+  fillsCache.set(data, byKey);
+  const kept = byKey.get(key);
+  if (kept) {
+    return kept;
+  }
+  const colour =
+    mode === "remap"
+      ? remapper(
+          mainColoursOf(data, countOf(v)),
+          replacementsOf(v.remap, countOf(v))
+        )
+      : colourer(mode, ctx.palette, Boolean(v.invert));
+  const out = new Array<string>(n);
+  for (let t = 0; t < n; t += 1) {
+    const i = t * 4;
+    out[t] = colour(data[i] ?? 0, data[i + 1] ?? 0, data[i + 2] ?? 0);
+  }
+  if (byKey.size > 8) {
+    byKey.clear();
+  }
+  byKey.set(key, out);
+  return out;
+};
+
+/**
+ * Every tile of the mosaic, in order: its shape, box and colour. Shared by the
+ * SVG (what goes on the board) and the preview, which draws the same tiles
+ * straight onto a canvas instead of building and decoding an SVG each time.
+ */
+const eachTile = (
+  v: StudioValues,
+  ctx: RenderContext,
+  emit: (
+    kind: string,
+    x: number,
+    y: number,
+    s: number,
+    colour: string,
+    flip: boolean
+  ) => void
+) => {
+  const grid = ctx.image ? gridOf(v, ctx) : null;
+  if (!grid) {
+    return;
+  }
+  const { cell, cols, data, rows } = grid;
+  const fills = fillsOf(v, ctx, data, cols * rows);
+  // Grid lines take the gap's place: the tiles meet under them.
+  const inset = v.lines === true ? 0 : cell * ((Number(v.gap) || 0) / 100);
+  const s = cell - inset * 2;
+  const painted = paintedOf(v.painted);
+  const kind = String(v.tile);
+  const fade = featherOf(data, cols, rows, Number(v.feather) || 0);
+  const toEdge = edgeFadeOf(v, cols, rows);
+  /**
+   * A tile's colour, or null for none: where the picture is see-through (a
+   * selection drawn from the frame, a cut-out) there's no tile unless one's
+   * been painted, and feathered edges have fewer and fainter ones.
+   */
+  const colourAt = (col: number, row: number): string | null => {
+    const at = row * cols + col;
+    const mine = painted.size > 0 ? painted.get(tileKey(col, row)) : undefined;
+    if (mine) {
+      return mine;
+    }
+    const t = fade?.[at] ?? 1;
+    if ((data[at * 4 + 3] ?? 255) < 64 || (t < 1 && tileNoise(col, row) > t)) {
+      return null;
+    }
+    return fadeCell(
+      toEdge,
+      col,
+      row,
+      faded(fills[at] ?? "#000000", 0.35 + 0.65 * t)
+    );
+  };
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < cols; col += 1) {
+      const colour = colourAt(col, row);
+      if (colour) {
+        const flip = (col + row) % 2 === 0;
+        emit(kind, col * cell + inset, row * cell + inset, s, colour, flip);
+      }
+    }
+  }
+};
+
 export const mosaicTool: ImageTool = {
   blurb:
     "A picture rebuilt from tiles: in its own colours, snapped to yours, or recoloured by brightness. Goes in as an SVG.",
+  draw: (g, v, ctx) => {
+    drawPixels(
+      g,
+      ctx,
+      v.fill || ctx.image === null
+        ? String(v.bg || pick(ctx.palette, ctx.palette.length - 1))
+        : null,
+      (emit) => eachTile(v, ctx, emit)
+    );
+    if (ctx.image) {
+      drawGrid(g, gridFrom(columnsOf(v), ctx), linesLook(v), ctx);
+    }
+  },
   id: "mosaic",
   kind: "image",
   name: "Mosaic",
@@ -242,6 +337,16 @@ export const mosaicTool: ImageTool = {
       type: "select",
     },
     {
+      default: "cover",
+      key: "fit",
+      label: "Fit",
+      options: [
+        { label: "Fill the space (crop the edges)", value: "cover" },
+        { label: "Fit it all in", value: "contain" },
+      ],
+      type: "select",
+    },
+    {
       default: 48,
       key: "columns",
       label: "Tiles across",
@@ -249,7 +354,18 @@ export const mosaicTool: ImageTool = {
       min: 6,
       type: "range",
     },
-    { default: 8, key: "gap", label: "Gap", max: 40, min: 0, type: "range" },
+    {
+      default: 8,
+      key: "gap",
+      label: "Gap",
+      max: 40,
+      min: 0,
+      type: "range",
+      when: (v) => v.lines !== true,
+    },
+    FEATHER_PARAM,
+    ...FADE_PARAMS,
+    ...GRID_PARAMS,
     {
       default: "photo",
       key: "colour",
@@ -308,57 +424,29 @@ export const mosaicTool: ImageTool = {
       when: (v) => Boolean(v.fill),
     },
   ],
-  render: (v, { height: h, image, palette, width: w }) => {
+  render: (v, ctx) => {
+    const { height: h, palette, width: w } = ctx;
     const ground = esc(String(v.bg || pick(palette, palette.length - 1)));
     const groundPaint = v.fill ? paintOf(ground) : null;
     const groundRect = groundPaint
       ? `<rect width="${w}" height="${h}" ${groundPaint}/>`
       : "";
-    if (!image) {
+    if (!ctx.image) {
       return svgDoc(
         w,
         h,
         `<rect width="${w}" height="${h}" fill="${ground}"/><text x="50%" y="50%" text-anchor="middle" font-family="sans-serif" font-size="${r2(w / 24)}" fill="${esc(pick(palette, 0))}">Choose a picture</text>`
       );
     }
-    const grid = gridOf(v, { height: h, image, palette, width: w });
-    if (!grid) {
-      return svgDoc(w, h, "");
-    }
-    const { cell, cols, data, rows } = grid;
-    const mode = modeOf(v);
-    const colour =
-      mode === "remap"
-        ? remapper(
-            mainColoursOf(data, countOf(v)),
-            replacementsOf(v.remap, countOf(v))
-          )
-        : colourer(mode, palette, Boolean(v.invert));
-    const inset = cell * ((Number(v.gap) || 0) / 100);
-    const s = cell - inset * 2;
-    const painted = paintedOf(v.painted);
     const tiles: string[] = [];
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        const i = (row * cols + col) * 4;
-        const [r = 0, g = 0, b = 0] = [data[i], data[i + 1], data[i + 2]];
-        const fill = paintOf(painted.get(tileKey(col, row)) ?? colour(r, g, b));
-        if (!fill) {
-          continue;
-        }
-        tiles.push(
-          shape(
-            String(v.tile),
-            col * cell + inset,
-            row * cell + inset,
-            s,
-            fill,
-            (col + row) % 2 === 0
-          )
-        );
+    eachTile(v, ctx, (kind, x, y, s, colour, flip) => {
+      const fill = paintOf(colour);
+      if (fill) {
+        tiles.push(shape(kind, x, y, s, fill, flip));
       }
-    }
-    return svgDoc(w, h, `${groundRect}${tiles.join("")}`);
+    });
+    const lines = gridSvg(gridFrom(columnsOf(v), ctx), linesLook(v), ctx);
+    return svgDoc(w, h, `${groundRect}${tiles.join("")}${lines}`);
   },
   /** The picture's main colours, dark to light, for the Swap list. */
   sources: (v, ctx) => {

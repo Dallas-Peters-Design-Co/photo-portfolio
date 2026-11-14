@@ -6,7 +6,7 @@ import type { DrawTool } from "../drawing/drawing";
 import { MaskControls } from "../drawing/MaskControls";
 import type { MaskConfig } from "../drawing/mask";
 import { NodeSettingsPanel } from "../panels/NodeSettingsPanel";
-import { ShaderPanel } from "../shaders/ShaderPanel";
+import { type ShaderActions, ShaderPanel } from "../shaders/ShaderPanel";
 import { wiredImageFor } from "./wiredPreviews";
 import "./FloatingTools.css";
 
@@ -33,12 +33,11 @@ export interface FloatingToolsProps {
   drawTool: DrawTool | null;
   items: BoardItem[];
   onConfigChange: (itemId: string, config: Record<string, unknown>) => void;
-  onDownloadShader?: (item: BoardItem) => Promise<void>;
-  onExportShader: (item: BoardItem) => Promise<void>;
   onMaskChange: (itemId: string, next: MaskConfig | null) => void;
   onStyle: (style: DrawStyle) => void;
   onTool: (tool: DrawTool | null) => void;
   selected: BoardItem | null;
+  shaderActions: ShaderActions;
   wires: BoardWire[];
 }
 
@@ -47,8 +46,7 @@ export function FloatingTools({
   drawTool,
   items,
   onConfigChange,
-  onDownloadShader,
-  onExportShader,
+  shaderActions,
   onMaskChange,
   onStyle,
   onTool,
@@ -88,8 +86,9 @@ export function FloatingTools({
             selected ? wiredImageFor(selected.id, { items, wires }) : null
           }
           onConfigChange={onConfigChange}
-          onDownload={onDownloadShader}
-          onExport={onExportShader}
+          onCopyReact={shaderActions.copyReact}
+          onDownload={shaderActions.download}
+          onExport={shaderActions.export}
           selected={selected}
         />
       </div>

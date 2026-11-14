@@ -8,7 +8,14 @@ import {
   zoomAt as zoomAtPoint,
   zoomByAtCentre,
 } from "../geometry/viewportModel";
+import { MOVING } from "./useMovingLayer";
 import { useWheelGesture } from "./useWheelGesture";
+
+/** How long after the last wheel event a gesture counts as over. */
+const GLIDE_REST_MS = 140;
+
+/** 1 / zoom, on the canvas layer: what item chrome counter-scales by. */
+export const INV_SCALE_VAR = "--board-inv-scale";
 
 export interface Viewport {
   /** Canvas units per CSS pixel. */
@@ -159,16 +166,52 @@ export const useCanvasViewport = (
   /** Writes the viewport to the DOM without telling React. */
   const applyDirect = useCallback((next: Viewport) => {
     viewportRef.current = next;
-    layerRef.current?.style.setProperty(
+    const layer = layerRef.current;
+    layer?.style.setProperty(
       "transform",
       `translate(${next.tx}px, ${next.ty}px) scale(${next.scale})`
     );
+    // What the selected item's handles and buttons counter-scale by, so they
+    // stay one size mid-zoom without a render (BoardItemView.tsx).
+    layer?.style.setProperty(INV_SCALE_VAR, String(1 / next.scale));
   }, []);
 
   /** Puts React state back in step with the ref, once. */
   const commitViewport = useCallback(() => {
     setViewport(viewportRef.current);
   }, []);
+
+  /**
+   * A wheel or trackpad gesture: the view moved on the element itself, and
+   * React told once it rests.
+   *
+   * Two-finger panning and pinch-zooming used to set state on every wheel
+   * event, which re-rendered the canvas and every item on it sixty times a
+   * second: the board dragged behind the fingers, worse the more it held.
+   */
+  const glideTimer = useRef<number | null>(null);
+  const glide = useCallback(
+    (next: (v: Viewport) => Viewport) => {
+      applyDirect(next(viewportRef.current));
+      layerRef.current?.classList.add(MOVING);
+      if (glideTimer.current !== null) {
+        window.clearTimeout(glideTimer.current);
+      }
+      glideTimer.current = window.setTimeout(() => {
+        glideTimer.current = null;
+        commitViewport();
+      }, GLIDE_REST_MS);
+    },
+    [applyDirect, commitViewport]
+  );
+  useEffect(
+    () => () => {
+      if (glideTimer.current !== null) {
+        window.clearTimeout(glideTimer.current);
+      }
+    },
+    []
+  );
 
   // Live pointer positions, keyed by pointerId. Two of them means a pinch.
   const pointers = useRef(new Map<number, { x: number; y: number }>());
@@ -325,7 +368,10 @@ export const useCanvasViewport = (
         return;
       }
       const rect = el.getBoundingClientRect();
-      setViewport((v) => zoomAtPoint(v, nextScaleRaw, screenX, screenY, rect));
+      // From the ref: mid-gesture, state is behind where the view really is.
+      setViewport(
+        zoomAtPoint(viewportRef.current, nextScaleRaw, screenX, screenY, rect)
+      );
     },
     [containerRef]
   );
@@ -338,14 +384,14 @@ export const useCanvasViewport = (
       }
       markUserMoved();
       const rect = el.getBoundingClientRect();
-      setViewport((v) => zoomByAtCentre(v, factor, rect));
+      setViewport(zoomByAtCentre(viewportRef.current, factor, rect));
     },
     [containerRef, markUserMoved]
   );
 
   // Panning and zooming with the wheel, including deciding whether a gesture
   // over a scrollable panel belongs to the canvas at all. See useWheelGesture.
-  useWheelGesture(containerRef, markUserMoved, setViewport);
+  useWheelGesture(containerRef, markUserMoved, glide);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {

@@ -29,8 +29,9 @@ vi.mock("../_lib/site.js", () => ({
   getSite: () => ({
     defaultAdminEmail: "dallaspeters@gmail.com",
     domain: "dallaspeters.com",
+    heroTitle: "Dallas Peters",
     key: "dallas-images",
-    name: "Dallas Peters",
+    name: "Dallas' Images",
     origins: ["https://dallaspeters.com"],
     ownerName: "Dallas",
     tagline: "Product Designer",
@@ -63,15 +64,15 @@ const sql = Object.assign(
         return Promise.resolve([]);
       }
       row = { ...row, ...patch };
-      return Promise.resolve([{ id: row.id }]);
+      return Promise.resolve([{ id: row.id, status: row.status }]);
     };
-    if (text.includes("SET status = 'signed'")) {
+    if (text.includes("SET client_signed_at = now()")) {
       return guarded("sent", {
         client_signed_at: new Date().toISOString(),
         client_signed_ip: values[2] as string,
         client_signed_name: values[0] as string,
         client_signed_title: values[1] as string | null,
-        status: "signed",
+        status: row.owner_signed_at ? "countersigned" : "signed",
       });
     }
     if (text.includes("SET status = 'countersigned'")) {
@@ -82,7 +83,18 @@ const sql = Object.assign(
       });
     }
     if (text.includes("SET status = 'sent'")) {
-      row = { ...row, sent_at: new Date().toISOString(), status: "sent" };
+      const signAs = values[0] as string | null;
+      row = {
+        ...row,
+        ...(signAs
+          ? {
+              owner_signed_at: new Date().toISOString(),
+              owner_signed_name: signAs,
+            }
+          : {}),
+        sent_at: new Date().toISOString(),
+        status: "sent",
+      };
       return Promise.resolve([]);
     }
     return Promise.resolve([row]);
@@ -229,6 +241,36 @@ describe("contract signing", () => {
     });
     // Both parties get the signed copy.
     expect(sendEmail).toHaveBeenCalledTimes(2);
+  });
+
+  it("signs as it sends, and the client's signature completes it", async () => {
+    getBearerUser.mockReturnValue({ email: "d@x", userId: "u" });
+    row = {
+      ...row,
+      doc: { parties: { ownerName: "Dallas Peters" } },
+    } as ContractRow;
+    expect((await call("POST", { action: "send", sign: true })).status).toBe(
+      200
+    );
+    expect(row).toMatchObject({
+      owner_signed_name: "Dallas Peters",
+      status: "sent",
+    });
+    getBearerUser.mockReturnValue(null);
+    sendEmail.mockClear();
+    const signed = await call("POST", {
+      action: "sign",
+      agree: true,
+      name: "Vin Gokhale",
+    });
+    expect(signed.status).toBe(200);
+    expect(row.status).toBe("countersigned");
+    // Both parties get the signed copy; nothing is left to countersign.
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+    expect(notify).toHaveBeenCalledWith(
+      sql,
+      expect.objectContaining({ kind: "contract.countersigned" })
+    );
   });
 
   it("won't let a signed agreement be edited or deleted", async () => {

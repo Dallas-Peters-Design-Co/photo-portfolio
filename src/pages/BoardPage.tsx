@@ -46,7 +46,12 @@ export function BoardPage() {
   return (
     <ConfirmProvider>
       <Toaster position="top-center" theme="dark" />
-      <BoardEditor boardId={boardId} onClose={() => navigate("/admin")} />
+      {/* Keyed, so jumping to another board starts it fresh. */}
+      <BoardEditor
+        boardId={boardId}
+        key={boardId}
+        onClose={() => navigate("/admin")}
+      />
     </ConfirmProvider>
   );
 }

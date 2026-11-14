@@ -3,7 +3,7 @@ import type { BoardItem, BoardWire } from "../../types";
 import { newItemId } from "./newItemId";
 
 /**
- * A frame and its contents, ready to be written to a board of their own.
+ * Frames and their contents, ready to be written to another board.
  *
  * Ids are reminted rather than carried across. Item ids are owned by the
  * client, and the upsert in api/boards/[id].ts is guarded by `board_id` — so an
@@ -24,6 +24,21 @@ export interface FrameCopy {
   wires: BoardWire[];
 }
 
+export type { CopyTarget } from "../../types";
+
+/** The frames and everything on them, each once (a frame may sit in another). */
+const insideAll = (frames: BoardItem[], items: BoardItem[]): BoardItem[] => {
+  const seen = new Set<string>();
+  const out: BoardItem[] = [];
+  for (const item of frames.flatMap((f) => [f, ...containedBy(f, items)])) {
+    if (!seen.has(item.id)) {
+      seen.add(item.id);
+      out.push(item);
+    }
+  }
+  return out;
+};
+
 /**
  * What a copy would take, without doing it.
  *
@@ -32,14 +47,13 @@ export interface FrameCopy {
  * being read off a discarded copy.
  */
 export const frameSummary = (
-  frame: BoardItem,
+  frame: BoardItem | BoardItem[],
   items: BoardItem[],
   wires: BoardWire[]
 ): { count: number; severed: number } => {
-  const inside = new Set([
-    frame.id,
-    ...containedBy(frame, items).map((i) => i.id),
-  ]);
+  const inside = new Set(
+    insideAll(Array.isArray(frame) ? frame : [frame], items).map((i) => i.id)
+  );
   return {
     count: inside.size,
     severed: wires.filter(
@@ -48,22 +62,36 @@ export const frameSummary = (
   };
 };
 
-export const copyOfFrame = (
-  frame: BoardItem,
-  items: BoardItem[],
-  wires: BoardWire[]
-): FrameCopy => {
-  const inside = [frame, ...containedBy(frame, items)];
+const MARGIN = 200;
 
+/**
+ * Where copies land on a board: clear to the right of what's already there,
+ * level with its top, or near the origin on an empty one.
+ */
+export const landingOn = (existing: BoardItem[]): { x: number; y: number } =>
+  existing.length === 0
+    ? { x: MARGIN, y: MARGIN }
+    : {
+        x: Math.max(...existing.map((i) => i.x + i.width)) + MARGIN * 2,
+        y: Math.min(...existing.map((i) => i.y)),
+      };
+
+/**
+ * Frames and their contents as new items, laid out as they were relative to
+ * each other, with the group's top-left corner at `at`.
+ */
+export const copyOfFrames = (
+  frames: BoardItem[],
+  items: BoardItem[],
+  wires: BoardWire[],
+  at: { x: number; y: number } = { x: MARGIN, y: MARGIN }
+): FrameCopy => {
+  const inside = insideAll(frames, items);
   const idMap = new Map(inside.map((item) => [item.id, newItemId()]));
 
-  // Moved to the origin so the copy opens where the new board is looking
-  // rather than wherever on the old canvas it happened to sit. The offset is
-  // the frame's own corner, less a margin, so the arrangement is preserved
-  // exactly — only its position changes.
-  const MARGIN = 200;
-  const dx = frame.x - MARGIN;
-  const dy = frame.y - MARGIN;
+  // Moved as one, so the arrangement is kept exactly; only its place changes.
+  const dx = Math.min(...frames.map((f) => f.x)) - at.x;
+  const dy = Math.min(...frames.map((f) => f.y)) - at.y;
 
   const copiedItems = inside.map((item) => ({
     ...item,
@@ -90,10 +118,17 @@ export const copyOfFrame = (
 
   return {
     items: copiedItems,
-    severed: frameSummary(frame, items, wires).severed,
+    severed: frameSummary(frames, items, wires).severed,
     wires: copiedWires,
   };
 };
+
+/** One frame and its contents, near the origin of a new board. */
+export const copyOfFrame = (
+  frame: BoardItem,
+  items: BoardItem[],
+  wires: BoardWire[]
+): FrameCopy => copyOfFrames([frame], items, wires);
 
 /** The name a copied frame suggests for its board. */
 export const frameBoardTitle = (frame: BoardItem): string =>

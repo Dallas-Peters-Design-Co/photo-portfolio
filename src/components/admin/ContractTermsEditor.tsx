@@ -1,8 +1,9 @@
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
-import type {
-  ContractClause,
-  ContractDoc,
-  ContractScope,
+import { ArrowDown, ArrowUp, Plus, RotateCcw, Trash2 } from "lucide-react";
+import {
+  type ContractClause,
+  type ContractDoc,
+  type ContractScope,
+  defaultClauses,
 } from "../../../config/contract.js";
 import { newItemId } from "../../../config/proposal.js";
 import { Button } from "../ui/button";
@@ -142,21 +143,31 @@ export function ContractTermsEditor({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h4 className={proposalLabelClass}>Terms</h4>
-          <Button
-            onClick={() =>
-              onChange({
-                ...doc,
-                clauses: [
-                  ...doc.clauses,
-                  { body: "", heading: "New clause", id: newItemId() },
-                ],
-              })
-            }
-            type="button"
-            variant="ghost"
-          >
-            <Plus size={14} /> Add clause
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              onClick={() => onChange({ ...doc, clauses: defaultClauses() })}
+              title="Replace the clauses below with the current standard ones"
+              type="button"
+              variant="ghost"
+            >
+              <RotateCcw size={14} /> Standard clauses
+            </Button>
+            <Button
+              onClick={() =>
+                onChange({
+                  ...doc,
+                  clauses: [
+                    ...doc.clauses,
+                    { body: "", heading: "New clause", id: newItemId() },
+                  ],
+                })
+              }
+              type="button"
+              variant="ghost"
+            >
+              <Plus size={14} /> Add clause
+            </Button>
+          </div>
         </div>
         {doc.clauses.map((clause, i) => (
           <div

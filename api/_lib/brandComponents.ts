@@ -27,10 +27,14 @@ const LAYER_ID = /^[a-zA-Z0-9_-]{1,64}$/;
 const KINDS = new Set(["text", "note", "reference", "photo", "drawing"]);
 
 /** A property an instance may set: a layer's text or one of its colours. */
+type Field = "background" | "body" | "color" | "fill" | "stroke" | "tint";
+
 export interface ComponentPropDto {
-  field: "background" | "body" | "color" | "fill" | "stroke";
+  field: Field;
   id: string;
   lid: string;
+  /** Other layers' fields the same value sets. */
+  more?: { field: Field; lid: string }[];
   name: string;
   type: "color" | "text";
 }
@@ -134,7 +138,31 @@ export const cleanComponentLayers = (
 };
 
 const PROP_ID = /^[a-zA-Z0-9_-]{1,40}$/;
-const FIELDS = new Set(["background", "body", "color", "fill", "stroke"]);
+const FIELDS = new Set([
+  "background",
+  "body",
+  "color",
+  "fill",
+  "stroke",
+  "tint",
+]);
+
+/** A property's shared targets: well-formed ones only, a few hundred at most. */
+const moreOf = (value: unknown): { more?: { field: Field; lid: string }[] } => {
+  const more = (Array.isArray(value) ? value : [])
+    .slice(0, 300)
+    .map(bagOf)
+    .filter(
+      (o): o is Record<string, unknown> =>
+        o !== null &&
+        typeof o.lid === "string" &&
+        LAYER_ID.test(o.lid) &&
+        typeof o.field === "string" &&
+        FIELDS.has(o.field)
+    )
+    .map((o) => ({ field: o.field as Field, lid: o.lid as string }));
+  return more.length > 0 ? { more } : {};
+};
 
 /** The properties, keeping only well-formed ones. */
 export const cleanProps = (value: unknown): ComponentPropDto[] =>
@@ -153,9 +181,10 @@ export const cleanProps = (value: unknown): ComponentPropDto[] =>
         (o.type === "text" || o.type === "color")
     )
     .map((o) => ({
-      field: o.field as ComponentPropDto["field"],
+      field: o.field as Field,
       id: o.id as string,
       lid: o.lid as string,
+      ...moreOf(o.more),
       name:
         (typeof o.name === "string" ? sanitizeText(o.name) : "").slice(0, 40) ||
         "Property",

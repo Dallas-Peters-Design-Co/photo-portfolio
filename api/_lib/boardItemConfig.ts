@@ -5,7 +5,7 @@ import {
 } from "../../config/nodes/bundle.js";
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
 import { UUID_RE } from "./boardItemParse.js";
-import { componentOf } from "./layerConfig.js";
+import { componentOf, parseStudioRecipe } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
 
 /**
@@ -336,12 +336,47 @@ export const parseLayers = (raw: unknown, depth: number): ShaderLayerDto[] => {
  * A frame's settings: only whether it has been designed in the frame editor,
  * which is what makes it one clipped object on the canvas (frameLock.ts).
  */
+/** More guides than this on one frame is a mistake, not a layout. */
+const MAX_GUIDES = 40;
+
+const guideFractions = (raw: unknown): number[] =>
+  Array.isArray(raw)
+    ? raw
+        .filter(
+          (n): n is number =>
+            typeof n === "number" && Number.isFinite(n) && n >= 0 && n <= 1
+        )
+        .slice(0, MAX_GUIDES)
+    : [];
+
+/**
+ * A frame's own settings: whether it has been opened as a design, and the
+ * guides dragged onto it (src/boards/creative/frameGuides.ts) as fractions of
+ * the frame, with its safe zone switched off or not.
+ */
 export const parseFrameConfig = (
   raw: unknown
-): Record<string, unknown> | null =>
-  (raw as { designed?: unknown } | null)?.designed === true
-    ? { designed: true }
-    : null;
+): Record<string, unknown> | null => {
+  const source = (raw ?? {}) as { designed?: unknown; guides?: unknown };
+  const config: Record<string, unknown> = {};
+  if (source.designed === true) {
+    config.designed = true;
+  }
+  const guides = (source.guides ?? null) as {
+    hideSafe?: unknown;
+    x?: unknown;
+    y?: unknown;
+  } | null;
+  if (guides && typeof guides === "object") {
+    const x = guideFractions(guides.x);
+    const y = guideFractions(guides.y);
+    const hideSafe = guides.hideSafe === true;
+    if (x.length > 0 || y.length > 0 || hideSafe) {
+      config.guides = { hideSafe, x, y };
+    }
+  }
+  return Object.keys(config).length > 0 ? config : null;
+};
 
 /** The tools a drawing may claim to be, mirroring DRAW_TOOLS on the client. */
 export const DRAW_TOOLS = new Set([
@@ -373,6 +408,8 @@ export const MAX_DRAW_POINTS = 4000;
  * is chosen by whoever is drawing, and an unbounded array of coordinates is an
  * unbounded row.
  */
+const BORDER_SIDES = ["top", "right", "bottom", "left"];
+
 export const parseDrawingConfig = (
   raw: unknown
 ): Record<string, unknown> | null => {
@@ -406,6 +443,22 @@ export const parseDrawingConfig = (
   }
   if (typeof o.innerRatio === "number" && Number.isFinite(o.innerRatio)) {
     config.innerRatio = clamp(o.innerRatio, 0.1, 0.95);
+  }
+
+  // A box's border on only some sides, and a Studio picture as the fill with
+  // how it was made (src/boards/drawing/shapePaint.ts).
+  if (Array.isArray(o.borderSides)) {
+    config.borderSides = BORDER_SIDES.filter((s) =>
+      (o.borderSides as unknown[]).includes(s)
+    );
+  }
+  const fillImage = text(o.fillImage, 2000);
+  if (fillImage?.startsWith("https://")) {
+    config.fillImage = fillImage;
+    const studio = parseStudioRecipe(o.studio);
+    if (studio) {
+      config.studio = studio;
+    }
   }
 
   Object.assign(config, componentOf(o));

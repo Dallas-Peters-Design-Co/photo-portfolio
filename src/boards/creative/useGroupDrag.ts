@@ -5,6 +5,8 @@ import {
 } from "react";
 import type { BoardItem } from "../../types";
 import type { Box } from "./creativeModel";
+import { resized } from "./resize";
+import type { Handle } from "./SelectionBox";
 import { overlaps, unionOf } from "./selection";
 import { type Guides, skipsSnap, snapMove } from "./snap";
 
@@ -22,6 +24,14 @@ type GroupDrag =
   | {
       ids: string[];
       kind: "group";
+      startX: number;
+      startY: number;
+      union: Box;
+    }
+  | {
+      handle: Handle;
+      ids: string[];
+      kind: "scale";
       startX: number;
       startY: number;
       union: Box;
@@ -49,6 +59,18 @@ const boxOf = (item: BoardItem): Box => ({
  * another app), so the drag would otherwise stay stuck to the pointer when it
  * came back. Mouse only; a pen or finger has no buttons to read.
  */
+/** A layer's box carried from one group box to another, in proportion. */
+const mapBox = (b: Box, from: Box, to: Box): Box => {
+  const sx = to.width / from.width;
+  const sy = to.height / from.height;
+  return {
+    height: b.height * sy,
+    width: b.width * sx,
+    x: to.x + (b.x - from.x) * sx,
+    y: to.y + (b.y - from.y) * sy,
+  };
+};
+
 export const released = (e: { buttons: number; pointerType: string }) =>
   e.pointerType === "mouse" && e.buttons === 0;
 
@@ -80,6 +102,8 @@ export const useGroupDrag = ({
   const [drag, setDrag] = useState<GroupDrag | null>(null);
   const [offset, setOffset] = useState<{ dx: number; dy: number } | null>(null);
   const [marquee, setMarquee] = useState<Box | null>(null);
+  /** The group's box mid-resize. */
+  const [scaled, setScaled] = useState<Box | null>(null);
   const [guides, setGuides] = useState<Guides>({ x: [], y: [] });
 
   /** A pointer position in canvas units. */
@@ -108,6 +132,28 @@ export const useGroupDrag = ({
     setDrag({
       ids: chosen.map((l) => l.id),
       kind: "group",
+      startX: e.clientX,
+      startY: e.clientY,
+      union,
+    });
+  };
+
+  /**
+   * A press on a handle of the box around a multiple selection: the whole
+   * group resizes, every layer in proportion. Corners keep the group's shape
+   * (Shift frees it); sides stretch one way.
+   */
+  const startScale = (e: ReactPointerEvent, handle: Handle) => {
+    const chosen = layers.filter((l) => selectedIds.includes(l.id));
+    const union = unionOf(chosen.map(boxOf));
+    if (!union) {
+      return;
+    }
+    capture(e);
+    setDrag({
+      handle,
+      ids: chosen.map((l) => l.id),
+      kind: "scale",
       startX: e.clientX,
       startY: e.clientY,
       union,
@@ -158,6 +204,10 @@ export const useGroupDrag = ({
     }
     const dx = (e.clientX - drag.startX) / scale;
     const dy = (e.clientY - drag.startY) / scale;
+    if (drag.kind === "scale") {
+      setScaled(resized(drag.union, drag.handle, dx, dy, !e.shiftKey));
+      return true;
+    }
     const moved = { ...drag.union, x: drag.union.x + dx, y: drag.union.y + dy };
     const others = layers.filter((l) => !drag.ids.includes(l.id)).map(boxOf);
     const snapped = skipsSnap(e)
@@ -222,6 +272,42 @@ export const useGroupDrag = ({
     );
   };
 
+  const finishScale = (d: Extract<GroupDrag, { kind: "scale" }>) => {
+    if (!scaled) {
+      return;
+    }
+    const corner = d.handle.length === 2;
+    const k = Math.min(
+      scaled.width / d.union.width,
+      scaled.height / d.union.height
+    );
+    onCommitMany(
+      new Map(
+        layers
+          .filter((l) => d.ids.includes(l.id))
+          .map((l) => {
+            const b = mapBox(boxOf(l), d.union, scaled);
+            const font =
+              corner && l.fontSize !== null && l.fontSize !== undefined
+                ? {
+                    fontSize: Math.max(1, Math.round(l.fontSize * k * 10) / 10),
+                  }
+                : {};
+            return [
+              l.id,
+              {
+                height: Math.round(b.height),
+                width: Math.round(b.width),
+                x: Math.round(b.x),
+                y: Math.round(b.y),
+                ...font,
+              },
+            ];
+          })
+      )
+    );
+  };
+
   /** True when the release ended the group's or the marquee's drag. */
   const end = (e: ReactPointerEvent): boolean => {
     if (!drag) {
@@ -229,21 +315,28 @@ export const useGroupDrag = ({
     }
     if (drag.kind === "marquee") {
       finishMarquee(e, drag);
+    } else if (drag.kind === "scale") {
+      finishScale(drag);
     } else {
       finishGroup(e, drag);
     }
     setDrag(null);
     setOffset(null);
+    setScaled(null);
     setMarquee(null);
     setGuides({ x: [], y: [] });
     return true;
   };
 
   /** Where a layer is drawn mid-drag. */
-  const shownBox = (item: BoardItem): Box | null =>
-    drag?.kind === "group" && offset && drag.ids.includes(item.id)
+  const shownBox = (item: BoardItem): Box | null => {
+    if (drag?.kind === "scale" && scaled && drag.ids.includes(item.id)) {
+      return mapBox(boxOf(item), drag.union, scaled);
+    }
+    return drag?.kind === "group" && offset && drag.ids.includes(item.id)
       ? { ...boxOf(item), x: item.x + offset.dx, y: item.y + offset.dy }
       : null;
+  };
 
   return {
     dragging: drag !== null,
@@ -254,5 +347,6 @@ export const useGroupDrag = ({
     shownBox,
     startGroup,
     startMarquee,
+    startScale,
   };
 };

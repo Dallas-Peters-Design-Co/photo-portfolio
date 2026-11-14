@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { AD_SIZES, sizeTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
-import { copyFrameAtSizes, duplicateFrame, resizeFrame } from "./adFrames";
+import {
+  copyFrameAtSizes,
+  duplicateFrame,
+  resetFrameScale,
+  resizeFrame,
+  scaleResetOf,
+} from "./adFrames";
 
 const item = (patch: Partial<BoardItem>): BoardItem =>
   ({
@@ -137,5 +143,83 @@ describe("duplicateFrame next to other frames", () => {
     const copy = out?.added.find((i) => i.kind === "frame");
     expect(copy?.x).toBeGreaterThanOrEqual(c.x + c.width);
     expect(copy?.y).toBe(0);
+  });
+});
+
+describe("resetting a frame's scale", () => {
+  // A 1080 square drawn at 810 units, 1.5x the standard 540.
+  const big = item({ ...frame, height: 810, width: 810 });
+  const words = item({
+    config: { radius: 12 },
+    fontSize: 72,
+    height: 150,
+    id: "w",
+    kind: "text",
+    width: 300,
+    x: 1150,
+    y: 1300,
+  });
+
+  it("knows a frame drawn at another scale, and one that isn't", () => {
+    expect(scaleResetOf(big)).toBeCloseTo(540 / 810);
+    expect(scaleResetOf(frame)).toBeNull();
+  });
+
+  it("scales the frame and its contents together about its corner", () => {
+    const out = resetFrameScale([big, words], "f");
+    const f = out?.find((i) => i.id === "f");
+    const w = out?.find((i) => i.id === "w");
+    expect(f).toMatchObject({ height: 540, width: 540, x: 1000, y: 1000 });
+    expect(w).toMatchObject({
+      fontSize: 48,
+      height: 100,
+      width: 200,
+      x: 1100,
+      y: 1200,
+    });
+    expect(w?.config).toEqual({ radius: 8 });
+  });
+});
+
+describe("copyFrameAtSizes keeps the stacking", () => {
+  it("stacks each copy's layers front to back as the original's, whatever order the board lists them in", () => {
+    // The board's list isn't the stacking order: a background sent to the
+    // back keeps its place in the list and only its z changes.
+    const text = item({
+      fontSize: 48,
+      height: 100,
+      id: "t",
+      kind: "text",
+      width: 400,
+      x: 1100,
+      y: 1100,
+      z: 9,
+    });
+    const background = item({
+      height: 540,
+      id: "bg",
+      width: 540,
+      x: 1000,
+      y: 1000,
+      z: 2,
+    });
+    const logo = item({
+      height: 60,
+      id: "logo",
+      width: 120,
+      x: 1020,
+      y: 1020,
+      z: 5,
+    });
+    const out = copyFrameAtSizes([frame, text, logo, background], "f", [
+      size("ig-story"),
+    ]);
+    const copies = (out?.added ?? []).filter((i) => i.kind !== "frame");
+    const z = (match: (i: BoardItem) => boolean) => copies.find(match)?.z ?? -1;
+    const bg = z((i) => i.width >= 540 && i.kind === "photo");
+    const lg = z((i) => i.kind === "photo" && i.width < 540);
+    const tx = z((i) => i.kind === "text");
+    expect(bg).toBeLessThan(lg);
+    expect(lg).toBeLessThan(tx);
   });
 });

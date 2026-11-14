@@ -3,6 +3,7 @@ import { AD_SIZES } from "../../../../config/adLayout";
 import {
   copyFrameAtSizes,
   duplicateFrame as duplicated,
+  resetFrameScale,
   resizeFrame,
 } from "../../../boards/io/adFrames";
 import type { FitMode } from "../../../boards/panels/AdSizesPanel";
@@ -45,5 +46,12 @@ export const useAdFrames = (
       toast.success("Frame duplicated");
     }
   };
-  return { duplicateFrame, fitFrame };
+  const resetScale = (frameId: string) => {
+    const next = resetFrameScale(items, frameId);
+    if (next) {
+      change(next);
+      toast.success("Scale reset: prints the same, sized like its siblings");
+    }
+  };
+  return { duplicateFrame, fitFrame, resetScale };
 };

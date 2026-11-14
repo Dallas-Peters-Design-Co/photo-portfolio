@@ -432,12 +432,18 @@ export function ProposalEditor({
           proposal={draft}
         />
         <ProposalContract
+          onAccepted={async (next) => {
+            setDraft((d) => ({ ...d, acceptance: next.acceptance }));
+            setActivityKey((k) => k + 1);
+            await onSaved(next);
+          }}
           onActivity={() => setActivityKey((k) => k + 1)}
           proposal={draft}
         />
         <ProposalInvoices
           onActivity={() => setActivityKey((k) => k + 1)}
           proposal={draft}
+          refreshKey={activityKey}
         />
         <ProposalActivity proposalId={draft.id} refreshKey={activityKey} />
 

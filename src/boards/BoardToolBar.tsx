@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { BoardItem } from "../types";
+import { tintOf } from "./creative/imageAnchor";
 import { useFrameActions } from "./FrameOpenContext";
 import { PANEL_GAP } from "./geometry/panelPlacement";
 import {
@@ -12,6 +13,8 @@ import {
 import { downloadImage } from "./io/downloadImage";
 import { isVideoUrl } from "./io/isVideo";
 import { saveTargetOf } from "./io/saveTarget";
+import { isSvgUrl } from "./io/svgRaster";
+import { SvgColours } from "./panels/SvgColours";
 import { ToolPicker } from "./panels/ToolPicker";
 import { ToolPrompt } from "./panels/ToolPrompt";
 import { useAnchoredPanel } from "./panels/useAnchoredPanel";
@@ -63,6 +66,8 @@ interface BoardToolBarProps {
   onEditManually?: () => void;
   /** Hands the picture to the desktop vector editor. See useAffinityBridge. */
   onOpenInEditor?: (itemId: string) => void;
+  /** Changes the item (a picture's tint, from its Colours panel). */
+  onPatch?: (patch: Partial<BoardItem>) => void;
   /** Runs the tool. The words come from the picker when the tool needs them. */
   onRun: (
     tool: Tool,
@@ -109,6 +114,62 @@ function EditorButton({
   );
 }
 
+/**
+ * An SVG's own colours, changed on the item rather than in a vector app.
+ * Answers "should I exist" itself (only for an SVG), and hangs its panel off
+ * the bar on the bar's side, as the tool picker does.
+ */
+function SvgColoursTool({
+  above,
+  item,
+  onPatch,
+}: {
+  above: boolean;
+  item: BoardItem;
+  onPatch?: (patch: Partial<BoardItem>) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const url = imageOf(item);
+  if (!(url && isSvgUrl(url))) {
+    return null;
+  }
+  return (
+    <>
+      <Button
+        aria-expanded={open}
+        onClick={() => setOpen((was) => !was)}
+        size="xs"
+        title="Change the colours this SVG is drawn in"
+        variant="ghost"
+      >
+        Colours
+      </Button>
+      {open ? (
+        <div
+          className={`board-toolbar__panel ${
+            above
+              ? "board-toolbar__panel--above"
+              : "board-toolbar__panel--below"
+          }`}
+        >
+          <SvgColours
+            itemId={item.id}
+            onClose={() => setOpen(false)}
+            onTint={
+              onPatch
+                ? (tint) =>
+                    onPatch({ config: { ...(item.config ?? {}), tint } })
+                : undefined
+            }
+            tint={tintOf(item)}
+            url={url}
+          />
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 export function BoardToolBar({
   anchor,
   chromeScale,
@@ -116,6 +177,7 @@ export function BoardToolBar({
   item,
   onEditManually,
   onOpenInEditor,
+  onPatch,
   onRun,
 }: BoardToolBarProps) {
   const [picking, setPicking] = useState(false);
@@ -182,7 +244,12 @@ export function BoardToolBar({
     onRun(tool);
   };
 
-  if (applicable.length === 0) {
+  // A node gets no bar: it is a recipe, and a generating one saves its results
+  // from its own gallery. A Clip node is the exception. It holds a file and
+  // has no download of its own, so without the bar its only way off the board
+  // was a right-click nobody knew to try.
+  const clipOnly = item.nodeType === "clip" && shown !== null;
+  if (applicable.length === 0 && !clipOnly) {
     return null;
   }
 
@@ -313,19 +380,25 @@ export function BoardToolBar({
             Edit by hand
           </Button>
         ) : null}
-        <EditorButton itemId={item.id} onOpen={onOpenInEditor} />
-        <Button
-          aria-expanded={picking || pending !== null}
-          onClick={() => {
-            setPending(null);
-            setPicking((open) => !open);
-          }}
-          size="xs"
-          title="Every tool for this item"
-          variant="ghost"
-        >
-          Tools…
-        </Button>
+        {/* A vector editor has nothing to do with an mp4. */}
+        {shown?.noun === "clip" ? null : (
+          <EditorButton itemId={item.id} onOpen={onOpenInEditor} />
+        )}
+        <SvgColoursTool above={above} item={item} onPatch={onPatch} />
+        {applicable.length > 0 ? (
+          <Button
+            aria-expanded={picking || pending !== null}
+            onClick={() => {
+              setPending(null);
+              setPicking((open) => !open);
+            }}
+            size="xs"
+            title="Every tool for this item"
+            variant="ghost"
+          >
+            Tools…
+          </Button>
+        ) : null}
       </div>
 
       {/* Hung directly off the bar, on whichever side the bar itself is on, so

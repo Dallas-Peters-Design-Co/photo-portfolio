@@ -24,6 +24,7 @@ import type {
 } from "../_lib/boards.js";
 import { saveRefusal } from "../_lib/boardVersion.js";
 import { componentsUsedBy } from "../_lib/brandComponents.js";
+import { parseColorVars } from "../_lib/colorVars.js";
 import { handleCors } from "../_lib/cors.js";
 import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
@@ -89,7 +90,8 @@ async function handleGet(
   // The admin addresses a board by id; a published link addresses it by slug.
   // UUIDs and slugs cannot collide, so one lookup serves both.
   const rows = (await sql`
-    SELECT id, title, cover_url, is_public, slug, created_at, updated_at
+    SELECT id, title, cover_url, is_public, slug, created_at, updated_at,
+           color_vars
     FROM boards
     WHERE id::text = ${id} OR slug = ${id}
     LIMIT 1
@@ -211,16 +213,9 @@ async function replaceWires(sql: Sql, boardId: string, wires: IncomingWire[]) {
   // before the old row had gone.
   await sql`DELETE FROM board_wires WHERE board_id = ${boardId}`;
 
-  // Deduplicated by id, because the rows above are already gone: a collision
-  // here can only be the same wire twice in one payload, and the insert would
-  // fail on the primary key and take the whole save with it — losing the
-  // arrangement, not just the extra wire.
-  //
-  // The canvas can produce one. A wire is appended to the list on drop, and a
-  // handler that runs twice for one gesture — a re-render mid-drag, or React's
-  // double-invocation in development — appends the same object twice. Fixing
-  // that at the source is right too, but the save is where it costs the board,
-  // so it is also refused here.
+  // Deduplicated by id: a collision here can only be the same wire twice in
+  // one payload (a drop handler that ran twice for one gesture), and the
+  // insert would fail on the primary key and take the whole save with it.
   const seen = new Set<string>();
   const unique = wires.filter((wire) => {
     if (seen.has(wire.id)) {
@@ -430,6 +425,8 @@ async function handlePatch(
       : null;
 
   const slug = isPublic === true ? await mintSlug(sql, id, title) : null;
+  const colorVars = parseColorVars(body.colorVars);
+  const colorVarsJson = colorVars ? JSON.stringify(colorVars) : null;
 
   const rows = (await sql`
     UPDATE boards
@@ -437,9 +434,11 @@ async function handlePatch(
         slug = COALESCE(${slug}, slug),
         is_public = COALESCE(${isPublic}, is_public),
         cover_url = COALESCE(${coverUrl}, cover_url),
+        color_vars = COALESCE(${colorVarsJson}::jsonb, color_vars),
         updated_at = now()
     WHERE id::text = ${id}
-    RETURNING id, title, cover_url, is_public, slug, created_at, updated_at
+    RETURNING id, title, cover_url, is_public, slug, created_at, updated_at,
+              color_vars
   `) as BoardRow[];
 
   const [items, wires, sources] = await Promise.all([

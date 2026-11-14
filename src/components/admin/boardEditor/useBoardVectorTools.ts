@@ -1,8 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import {
   DEFAULT_NODE_HEIGHT,
   DEFAULT_NODE_WIDTH,
+  DEFAULT_SHADER_HEIGHT,
+  DEFAULT_SHADER_WIDTH,
 } from "../../../../config/canvas.js";
 import { OUTPUT_PORT_KEY } from "../../../../config/ports.js";
 import { useAffinityBridge } from "../../../boards/hooks/useAffinityBridge";
@@ -12,7 +14,9 @@ import type { AffinityWriteback } from "../../../boards/io/affinity";
 import { bridgeAppName, isSvgUrl } from "../../../boards/io/affinity";
 import { measureRaster } from "../../../boards/io/measureRaster";
 import { newItemId } from "../../../boards/io/newItemId";
+import { onSvgEdit } from "../../../boards/io/svgEditEvents";
 import { outputImageOf } from "../../../boards/itemOutput";
+import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardItemResult, BoardWire } from "../../../types";
 import { BLANK_ITEM, PORT_SPAWN_GAP } from "./placement";
 
@@ -107,6 +111,18 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
   );
 
   const { openInAffinity } = useAffinityBridge(boardId, applyEditedSvg);
+  // An SVG recoloured on its item (panels/SvgColours.tsx): kept the same way
+  // an edit from the vector app is.
+  useEffect(
+    () =>
+      onSvgEdit(async (itemId, svg) => {
+        applyEditedSvg(
+          itemId,
+          await boardsApi.writebackSvg(boardId, itemId, svg)
+        );
+      }),
+    [applyEditedSvg, boardId]
+  );
   const { editorNode, openEditor } = useBoardImageEditor(
     boardId,
     applyEditedSvg
@@ -218,5 +234,71 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
     }
   };
 
-  return { editorNode, openEditor, openItemInAffinity, vectorizeItem };
+  /**
+   * Puts effects on a picture, in one gesture.
+   *
+   * A Shader item wired to the picture, with no effects yet: it shows the
+   * picture as it is, and the panel beside it offers the stack to add glass,
+   * halftone, grain and the rest over it. Placed beside the source, like a
+   * vectorize, so the wire is short.
+   *
+   * Nothing is run and nothing is spent: a shader draws live in the browser.
+   */
+  const addEffectsTo = async (itemId: string) => {
+    const source = pending.current.items.find((item) => item.id === itemId);
+    if (!(source && outputImageOf(source, pending.current.items))) {
+      toast.error("That item has no picture to put effects on");
+      return;
+    }
+    // The item takes the picture's shape, so the picture fills it rather
+    // than sitting letterboxed in a default box.
+    const k = Math.min(
+      DEFAULT_SHADER_WIDTH / source.width,
+      DEFAULT_SHADER_HEIGHT / source.height,
+      1
+    );
+    const width = Math.max(120, Math.round(source.width * k));
+    const height = Math.max(120, Math.round(source.height * k));
+    const shader: BoardItem = {
+      ...BLANK_ITEM,
+      config: { imageFit: "cover", layers: [] },
+      height,
+      id: newItemId(),
+      kind: "shader",
+      width,
+      x: source.x + source.width + PORT_SPAWN_GAP,
+      y: source.y + source.height / 2 - height / 2,
+      z: pending.current.items.length + 1,
+    };
+    const wire: BoardWire = {
+      id: newItemId(),
+      sourceItemId: source.id,
+      sourcePort: OUTPUT_PORT_KEY,
+      targetItemId: shader.id,
+      targetPort: "image",
+    };
+    const nextItems = [...pending.current.items, shader];
+    const nextWires = [...pending.current.wires, wire];
+    setItems(nextItems);
+    setWires(nextWires);
+    setIsDirty(true);
+    try {
+      await save({ items: nextItems, wires: nextWires });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not add the effects"
+      );
+    }
+  };
+
+  return {
+    editorNode,
+    /** The right-click tools on one item, each by its id. */
+    itemTools: {
+      addEffects: (id: string) => void addEffectsTo(id),
+      openInAffinity: (id: string) => void openItemInAffinity(id),
+      vectorize: (id: string) => void vectorizeItem(id),
+    },
+    openEditor,
+  };
 };

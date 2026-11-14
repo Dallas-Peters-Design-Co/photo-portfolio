@@ -3,6 +3,7 @@ import {
   Copy,
   Download,
   ImageIcon,
+  PaintBucket,
   Plus,
   RefreshCw,
   Shuffle,
@@ -10,10 +11,12 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { paletteFor } from "./chosenColors";
+import { PresetBar } from "./PresetBar";
 import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
 import { StudioControls } from "./StudioControls";
 import type { StudioFrame } from "./StudioPanel";
+import { StudioPreview } from "./StudioPreview";
 import { recipeFor, sizeIndexFor, sizesWith } from "./studioRecipe";
 import { usePaintTiles } from "./TilePaint";
 import { defaultsOf } from "./tools";
@@ -30,8 +33,14 @@ export const SIZES = [
   { h: 1350, label: "Portrait 1080×1350", w: 1080 },
   { h: 1920, label: "Story 1080×1920", w: 1080 },
   { h: 1080, label: "Wide 1920×1080", w: 1920 },
-  { h: 500, label: "Banner 1500×500", w: 1500 },
   { h: 2048, label: "Large square 2048", w: 2048 },
+  // The profile and page banners (config/socialSizes.ts has the rest).
+  { h: 396, label: "LinkedIn profile banner 1584×396", w: 1584 },
+  { h: 256, label: "LinkedIn company cover 1512×256", w: 1512 },
+  { h: 500, label: "X header 1500×500", w: 1500 },
+  { h: 315, label: "Facebook cover 851×315", w: 851 },
+  { h: 1440, label: "YouTube banner 2560×1440", w: 2560 },
+  { h: 400, label: "ChatGPT cover 1200×400", w: 1200 },
 ] as const;
 
 const loadImage = (url: string): Promise<HTMLImageElement> =>
@@ -41,6 +50,60 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
     img.onerror = () => reject(new Error("That picture couldn't be read"));
     img.src = url;
   });
+
+/**
+ * What the Studio is working on in place of adding a picture: a placed
+ * Studio picture being changed, or a shape being filled (fill), which may
+ * not have a recipe yet and takes a picture from any tool.
+ */
+export interface StudioEditing {
+  /** A shape's fill: every tool fills it, and there's no background button. */
+  fill?: boolean;
+  onReplace: (file: File, recipe: StudioRecipe) => void;
+  recipe: StudioRecipe | null;
+  /** Offered first among the sizes: the shape's own, in the frame's pixels. */
+  size?: { h: number; w: number };
+}
+
+/** The sizes on offer: the shape's own and the frame's first, when there. */
+const offeredSizes = (
+  editing: StudioEditing | undefined,
+  frame: StudioFrame | undefined
+) => {
+  const own = (label: string, at?: { h: number; w: number } | null) =>
+    at ? [{ h: at.h, label: `${label} ${at.w}×${at.h}`, w: at.w }] : [];
+  return [
+    ...own("This shape", editing?.size),
+    ...own("This frame", frame?.size),
+    ...SIZES,
+  ];
+};
+
+/** What the main button says. */
+function PrimaryLabel({
+  editing,
+  where,
+}: {
+  editing?: StudioEditing;
+  where: string;
+}) {
+  if (editing?.fill) {
+    return (
+      <>
+        <PaintBucket size={14} /> Fill the shape
+      </>
+    );
+  }
+  return editing ? (
+    <>
+      <RefreshCw size={14} /> Update the layer
+    </>
+  ) : (
+    <>
+      <Plus size={14} /> Add to {where}
+    </>
+  );
+}
 
 export function ImageToolView({
   editing,
@@ -54,10 +117,7 @@ export function ImageToolView({
   values: stored,
 }: {
   /** A placed picture being changed: its settings, and where the result goes. */
-  editing?: {
-    onReplace: (file: File, recipe: StudioRecipe) => void;
-    recipe: StudioRecipe;
-  };
+  editing?: StudioEditing;
   /** Working for a frame in the editor: its size first, and a background button. */
   frame?: StudioFrame;
   onAdd: (file: File, recipe: StudioRecipe) => void;
@@ -69,32 +129,26 @@ export function ImageToolView({
   values: StudioValues | undefined;
 }) {
   const values = stored ?? defaultsOf(tool.params);
-  const offered = frame?.size
-    ? [
-        {
-          h: frame.size.h,
-          label: `This frame ${frame.size.w}×${frame.size.h}`,
-          w: frame.size.w,
-        },
-        ...SIZES,
-      ]
-    : SIZES;
-  const sizes = sizesWith(offered, editing?.recipe);
+  const offered = offeredSizes(editing, frame);
+  const recipeNow = editing?.recipe ?? undefined;
+  const sizes = sizesWith(offered, recipeNow);
   const [sizeIndex, setSizeIndex] = useState(() =>
-    sizeIndexFor(sizes, editing?.recipe)
+    sizeIndexFor(sizes, recipeNow)
   );
   const size = sizes[sizeIndex] ?? SIZES[0];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   // Where the picture came from, so the placed layer can be edited later.
   const [source, setSource] = useState<string | null>(
-    editing?.recipe.image ?? null
+    editing?.recipe?.image ?? null
   );
   const [image, setImage] = useState<HTMLImageElement | null>(null);
+  // Picked as the selection in place: it goes back over the frame exactly.
+  const [inPlace, setInPlace] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Editing: the picture it was made from, fetched to a local copy so its
   // pixels can be read (ImagePick does the same).
-  const startImage = editing?.recipe.image;
+  const startImage = editing?.recipe?.image;
   useEffect(() => {
     if (!startImage) {
       return;
@@ -145,11 +199,9 @@ export function ImageToolView({
     }),
     [size, image, paletteKey]
   );
-  const svg = useMemo(() => tool.render(values, ctx), [tool, values, ctx]);
-  const preview = useMemo(
-    () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
-    [svg]
-  );
+  // Built when it's wanted (the board, a download), not on every change:
+  // the preview draws itself (StudioPreview).
+  const svgNow = () => tool.render(values, ctx);
   const sources = useMemo(
     () => tool.sources?.(values, ctx) ?? [],
     [tool, values, ctx]
@@ -164,8 +216,35 @@ export function ImageToolView({
   };
 
   const where = frame ? "frame" : "board";
+  /** Where a made picture goes, and saying so. */
+  const place = (file: File, recipe: StudioRecipe, asBackground: boolean) => {
+    if (editing && !asBackground) {
+      editing.onReplace(file, recipe);
+      toast.success(
+        editing.fill ? `${tool.name} fills the shape` : `${tool.name} updated`
+      );
+      return;
+    }
+    if (asBackground && frame) {
+      frame.onBackground(file, recipe);
+      toast.success(`${tool.name} set as the frame's background`);
+      return;
+    }
+    // Made at the frame's size (or from the selection in place): it goes
+    // over the whole frame, exactly, rather than fitted inside it.
+    const frameSized = frame?.size?.w === size.w && frame?.size?.h === size.h;
+    if ((inPlace || frameSized) && frame?.onOver) {
+      frame.onOver(file, recipe);
+      toast.success(`${tool.name} placed over the whole frame`);
+      return;
+    }
+    onAdd(file, recipe);
+    toast.success(`${tool.name} added to the ${where}`);
+  };
+
   const add = async (asBackground = false) => {
     try {
+      const svg = svgNow();
       const file = tool.vector
         ? new File([svg], `${fileName}.svg`, { type: "image/svg+xml" })
         : new File(
@@ -176,21 +255,15 @@ export function ImageToolView({
             }
           );
       const recipe = await recipeFor(tool.id, values, size, {
-        local: tool.params.some((p) => p.type === "image") ? imageUrl : null,
+        // Only when the picture is in use (Systems Flow can work from text).
+        local: tool.params.some(
+          (p) => p.type === "image" && (!p.when || p.when(values))
+        )
+          ? imageUrl
+          : null,
         source,
       });
-      if (editing && !asBackground) {
-        editing.onReplace(file, recipe);
-        toast.success(`${tool.name} updated`);
-        return;
-      }
-      if (asBackground && frame) {
-        frame.onBackground(file, recipe);
-        toast.success(`${tool.name} set as the frame's background`);
-        return;
-      }
-      onAdd(file, recipe);
-      toast.success(`${tool.name} added to the ${where}`);
+      place(file, recipe, asBackground);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't add it");
     }
@@ -199,12 +272,7 @@ export function ImageToolView({
   return (
     <>
       <div {...paint.previewProps}>
-        <img
-          alt={`${tool.name} preview`}
-          height={size.h}
-          src={preview}
-          width={size.w}
-        />
+        <StudioPreview ctx={ctx} tool={tool} values={values} />
         {paint.overlay}
         {onResize ? (
           // biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the preview works at its default size
@@ -233,12 +301,38 @@ export function ImageToolView({
           ))}
         </select>
       </label>
+      <PresetBar
+        defaults={defaultsOf(tool.params)}
+        looks={tool.looks}
+        onLoad={onValues}
+        tool={tool.id}
+        values={values}
+      />
       <StudioControls
+        fromFrame={
+          frame?.snapshot
+            ? {
+                label: frame.selectionCount
+                  ? `Selection (${frame.selectionCount})`
+                  : "Whole frame",
+                take: frame.snapshot,
+                takeInPlace: frame.snapshotInPlace,
+              }
+            : undefined
+        }
         image={imageUrl}
         onChange={set}
-        onImage={(url, from) => {
+        onImage={(url, from, taken) => {
           setImageUrl(url);
           setSource(from ?? null);
+          setInPlace(Boolean(taken));
+          // In place: made at the frame's own size, so it lines up exactly.
+          if (taken && frame?.size) {
+            const at = sizes.findIndex(
+              (o) => o.w === frame.size?.w && o.h === frame.size?.h
+            );
+            setSizeIndex(Math.max(0, at));
+          }
         }}
         palette={palette}
         params={tool.params}
@@ -251,17 +345,9 @@ export function ImageToolView({
           onClick={() => void add()}
           type="button"
         >
-          {editing ? (
-            <>
-              <RefreshCw size={14} /> Update the layer
-            </>
-          ) : (
-            <>
-              <Plus size={14} /> Add to {where}
-            </>
-          )}
+          <PrimaryLabel editing={editing} where={where} />
         </button>
-        {frame ? (
+        {frame && !editing?.fill ? (
           <button
             className="studio__button"
             onClick={() => void add(true)}
@@ -279,7 +365,7 @@ export function ImageToolView({
         <button
           className="studio__button"
           onClick={() =>
-            void svgToPngBlob(svg, size.w, size.h).then((b) =>
+            void svgToPngBlob(svgNow(), size.w, size.h).then((b) =>
               saveBlob(b, `${fileName}.png`)
             )
           }
@@ -291,7 +377,7 @@ export function ImageToolView({
           className="studio__button"
           onClick={() =>
             saveBlob(
-              new Blob([svg], { type: "image/svg+xml" }),
+              new Blob([svgNow()], { type: "image/svg+xml" }),
               `${fileName}.svg`
             )
           }

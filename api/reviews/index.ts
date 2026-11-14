@@ -11,6 +11,7 @@ import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { cleanEmail, normalizeProposalSlug } from "../_lib/proposals.js";
+import { keepPrivate, passwordProblem } from "../_lib/reviewAccess.js";
 import {
   isReviewStatus,
   REVIEW_SELECT,
@@ -82,7 +83,15 @@ async function create(
       : "";
   const clientEmail = cleanEmail(body.clientEmail);
   const status = isReviewStatus(body.status) ? body.status : "draft";
-  const doc = sanitizeReviewDoc(body.doc ?? DEFAULT_REVIEW_DOC);
+  const password = typeof body.password === "string" ? body.password : "";
+  const weak = password ? passwordProblem(password) : null;
+  if (weak) {
+    return res.status(400).json({ error: weak });
+  }
+  const doc = {
+    ...sanitizeReviewDoc(body.doc ?? DEFAULT_REVIEW_DOC),
+    ...keepPrivate(null, password),
+  };
   const brandKitId =
     typeof body.brandKitId === "string" && body.brandKitId
       ? body.brandKitId

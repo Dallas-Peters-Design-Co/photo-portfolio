@@ -22,6 +22,10 @@ import {
   compositeSources,
   renderComposite,
 } from "../../../boards/io/composite";
+import {
+  framesToRender,
+  withFrameRenders,
+} from "../../../boards/io/frameRender";
 import { newItemId } from "../../../boards/io/newItemId";
 import type { PortTarget } from "../../../boards/panels/PortMenu";
 import { portfolioService } from "../../../services/portfolioService";
@@ -118,6 +122,18 @@ const renderEach = async (
   }
   return { failures, urls };
 };
+
+/** Uploads a rendered picture, returning its address. */
+const upload =
+  (file: string, folder: string) =>
+  async (png: Blob): Promise<string> =>
+    (
+      await portfolioService.uploadImageFile(
+        new File([png], file, { type: "image/png" }),
+        undefined,
+        folder
+      )
+    ).url;
 
 export const useBoardRun = (deps: BoardRunDeps) => {
   const { items, pending, save, setIsDirty, setItems, setWires, wires } = deps;
@@ -410,8 +426,17 @@ export const useBoardRun = (deps: BoardRunDeps) => {
      * map rather than kept as an array because the array is about to be laid
      * over a *different* list.
      */
+    // Designed frames wired into a node go as one flattened picture, drawn
+    // here when missing or out of date (see boards/io/frameRenderKey.ts).
+    const framed = await withFrameRenders(
+      framesToRender(covered, pending.current.wires),
+      covered,
+      upload("frame.png", "boards/frames"),
+      (message) => toast.error(message)
+    );
+
     const flushed = new Map<string, BoardItem["config"]>();
-    covered.forEach((item, i) => {
+    framed.forEach((item, i) => {
       if (item !== started[i]) {
         flushed.set(item.id, item.config);
       }

@@ -1,6 +1,7 @@
 import { CommandPalette } from "../shortcuts/CommandPalette";
 import type { Command } from "../shortcuts/keys";
 import { ShortcutSheet } from "../shortcuts/ShortcutSheet";
+import type { StudioEditing } from "../studio/ImageToolView";
 import { type StudioFrame, StudioPanel } from "../studio/StudioPanel";
 import type { StudioRecipe } from "../studio/types";
 
@@ -20,12 +21,8 @@ export function EditorOverlays({
   onCloseStudio: () => void;
   overlay: "palette" | "shortcuts" | null;
   studio: {
-    /** A placed Studio picture being changed. */
-    editing?: {
-      layerId: string;
-      onReplace: (file: File, recipe: StudioRecipe) => void;
-      recipe: StudioRecipe;
-    };
+    /** A placed Studio picture being changed, or a shape being filled. */
+    editing?: StudioEditing & { layerId: string };
     frame: StudioFrame;
     onAdd: (file: File, recipe?: StudioRecipe) => void;
     tool: string;

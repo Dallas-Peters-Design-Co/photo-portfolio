@@ -20,8 +20,11 @@ const MAX_SETTINGS = 40;
 const MAX_SETTING_TEXT = 500;
 /** A mosaic's hand-painted tiles: a few thousand short entries. */
 const LONG_SETTINGS: Record<string, number> = { painted: 80_000 };
-const MAX_SIDE = 10_000;
+// A 24×36 poster at print size is 7200×10800.
+const MAX_SIDE = 16_000;
 const TOOL_ID = /^[a-z][a-z0-9-]{0,39}$/;
+/** A picture recoloured to one colour (imageAnchor.tintOf). */
+const TINT = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i;
 const KEY = /^[a-zA-Z][a-zA-Z0-9_-]{0,39}$/;
 
 type Bag = Record<string, unknown>;
@@ -35,7 +38,7 @@ const finite = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
 /** A Studio tool's settings: short, flat, and only plain values. */
-const settingsOf = (raw: unknown): Bag => {
+export const settingsOf = (raw: unknown): Bag => {
   const out: Bag = {};
   for (const [key, value] of Object.entries(bagOf(raw) ?? {}).slice(
     0,
@@ -187,6 +190,9 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
     ...(finite(radius) && radius > 0 ? { radius: clamp(radius, 0, 5000) } : {}),
     ...(POSITIONS.has(position) ? { position } : {}),
     ...(o?.fit === "contain" ? { fit: "contain" } : {}),
+    ...(typeof o?.tint === "string" && TINT.test(o.tint)
+      ? { tint: o.tint }
+      : {}),
     ...opacityOf(o),
     ...(studio ? { studio } : {}),
     ...componentOf(o),
@@ -195,5 +201,12 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
 
 export const parseTextConfig = (raw: unknown): Bag | null => {
   const o = bagOf(raw);
-  return orNull({ ...opacityOf(o), ...componentOf(o) });
+  // A box that fits its words (textFit.ts): its height, or both ways.
+  const autosize =
+    o?.autosize === "height" || o?.autosize === "both" ? o.autosize : null;
+  return orNull({
+    ...opacityOf(o),
+    ...componentOf(o),
+    ...(autosize ? { autosize } : {}),
+  });
 };

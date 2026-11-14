@@ -2,15 +2,12 @@ import { sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
 import { expandAll } from "../components/model";
 import { componentById } from "../components/store";
-import {
-  type DrawingConfig,
-  isDrawingConfig,
-  isTransparent,
-} from "../drawing/drawing";
-import { type ShapeGeometry, shapeGeometry } from "../drawing/shapes";
+import { isDrawingConfig } from "../drawing/drawing";
+import { fillImageOf } from "../drawing/shapePaint";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
-import { anchorFractions, anchorOf, type Fit, fitOf } from "./imageAnchor";
+import { drawCover, drawShape, drawTinted } from "./exportPaint";
+import { anchorFractions, anchorOf, fitOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { layerOpacity } from "./layerOpacity";
 import { rotationOf } from "./rotate";
@@ -36,126 +33,6 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
     img.onerror = () => reject(new Error(`Couldn't load ${url}`));
     img.src = url;
   });
-
-/** A triangle, polygon, star, squircle or line (drawing/shapes.ts). */
-const drawPathShape = (
-  ctx: CanvasRenderingContext2D,
-  shape: ShapeGeometry,
-  config: DrawingConfig,
-  stroke: number
-) => {
-  const outline = new Path2D(shape.d);
-  if (shape.closed && config.fill && !isTransparent(config.fill)) {
-    ctx.fillStyle = config.fill;
-    ctx.fill(outline);
-  }
-  if (stroke > 0 && !isTransparent(config.stroke)) {
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = stroke;
-    ctx.strokeStyle = config.stroke;
-    ctx.stroke(outline);
-  }
-  if (shape.head) {
-    ctx.fillStyle = config.stroke;
-    ctx.fill(new Path2D(shape.head));
-  }
-};
-
-/** object-fit cover or contain, as the board draws pictures. */
-const drawCover = (
-  ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement,
-  w: number,
-  h: number,
-  /** Where the crop is pinned, 0 to 1 across and down (imageAnchor.ts). */
-  at = { x: 0.5, y: 0.5 },
-  fit: Fit = "cover"
-) => {
-  if (fit === "contain") {
-    const k = Math.min(w / img.naturalWidth, h / img.naturalHeight);
-    const dw = img.naturalWidth * k;
-    const dh = img.naturalHeight * k;
-    ctx.drawImage(img, (w - dw) * at.x, (h - dh) * at.y, dw, dh);
-    return;
-  }
-  const scale = Math.max(w / img.naturalWidth, h / img.naturalHeight);
-  const sw = w / scale;
-  const sh = h / scale;
-  ctx.drawImage(
-    img,
-    (img.naturalWidth - sw) * at.x,
-    (img.naturalHeight - sh) * at.y,
-    sw,
-    sh,
-    0,
-    0,
-    w,
-    h
-  );
-};
-
-const drawShape = (
-  ctx: CanvasRenderingContext2D,
-  config: DrawingConfig,
-  w: number,
-  h: number,
-  scale: number
-) => {
-  ctx.globalAlpha = typeof config.opacity === "number" ? config.opacity : 1;
-  const stroke = Math.max(0, config.strokeWidth) * scale;
-  const shape = shapeGeometry(config, w, h, stroke);
-  if (shape) {
-    drawPathShape(ctx, shape, config, stroke);
-    return;
-  }
-  const path = new Path2D();
-  if (config.points && config.points.length > 0) {
-    const [first, ...rest] = config.points;
-    path.moveTo((first?.x ?? 0) * w, (first?.y ?? 0) * h);
-    for (const p of rest) {
-      path.lineTo(p.x * w, p.y * h);
-    }
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.lineWidth = stroke;
-    ctx.strokeStyle = config.stroke;
-    ctx.stroke(path);
-    return;
-  }
-  const inset = stroke / 2;
-  if (config.tool === "ellipse") {
-    path.ellipse(
-      w / 2,
-      h / 2,
-      Math.max(w / 2 - inset, 0),
-      Math.max(h / 2 - inset, 0),
-      0,
-      0,
-      Math.PI * 2
-    );
-  } else {
-    const fallback = config.tool === "rounded" ? 18 : 0;
-    const radius =
-      (typeof config.radius === "number" ? config.radius : fallback) * scale;
-    path.roundRect(
-      inset,
-      inset,
-      Math.max(w - stroke, 0),
-      Math.max(h - stroke, 0),
-      Math.min(radius, w / 2, h / 2)
-    );
-  }
-  if (!isTransparent(config.fill) && config.fill) {
-    ctx.fillStyle = config.fill;
-    ctx.fill(path);
-  }
-  if (stroke > 0 && !isTransparent(config.stroke)) {
-    ctx.lineWidth = stroke;
-    ctx.strokeStyle = config.stroke;
-    ctx.stroke(path);
-  }
-};
 
 const SPACES = /(\s+)/;
 
@@ -341,7 +218,14 @@ const drawLayer = (
   }
   ctx.globalAlpha = layerOpacity(item);
   if (item.kind === "drawing" && isDrawingConfig(item.config)) {
-    drawShape(ctx, item.config, w, h, scale);
+    drawShape(
+      ctx,
+      item.config,
+      w,
+      h,
+      scale,
+      pictures.get(fillImageOf(item.config) ?? "")
+    );
   } else if (item.kind === "text" || item.kind === "note") {
     drawText(ctx, item, textElementFor(item.id), w, h, scale);
   } else {
@@ -353,14 +237,19 @@ const drawLayer = (
         clip.roundRect(0, 0, w, h, Math.min(radius, w / 2, h / 2));
         ctx.clip(clip);
       }
-      drawCover(
-        ctx,
-        picture,
-        w,
-        h,
-        anchorFractions(anchorOf(item)),
-        fitOf(item)
-      );
+      const tint = tintOf(item);
+      if (tint) {
+        drawTinted(ctx, picture, w, h, item, tint);
+      } else {
+        drawCover(
+          ctx,
+          picture,
+          w,
+          h,
+          anchorFractions(anchorOf(item)),
+          fitOf(item)
+        );
+      }
     }
   }
 };
@@ -390,7 +279,7 @@ export const renderCreative = async (
   const pictures = new Map(
     await Promise.all(
       layers
-        .map((item) => currentImageUrl(item))
+        .map((item) => currentImageUrl(item) ?? fillImageOf(item.config))
         .filter((url): url is string => Boolean(url))
         .map(async (url) => [url, await loadImage(url)] as const)
     )

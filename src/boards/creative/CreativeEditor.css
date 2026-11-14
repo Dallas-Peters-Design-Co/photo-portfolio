@@ -7,6 +7,9 @@
 .creative {
   position: fixed;
   inset: 0;
+  /* Beside a docked Studio, not under it (studio/useStudioDock.ts). */
+  right: var(--studio-dock-right, 0);
+  left: var(--studio-dock-left, 0);
   /* Over the board's floating panels, which are also hidden below. */
   z-index: calc(var(--z-board-panel) + 1);
   display: grid;
@@ -303,6 +306,12 @@
   position: relative;
 }
 
+/*
+ * The artboard keeps room round it at every zoom (set on the element by
+ * useArtboardZoom), so the stage always scrolls and the artboard can be
+ * panned off to any side. (A grid item's margin counts towards what scrolls.)
+ */
+
 /* The artboard in canvas units, scaled to fit. Clipped like an ad is. */
 .creative__board {
   position: absolute;
@@ -331,6 +340,12 @@
 .creative__text {
   display: block;
   overflow: hidden;
+}
+
+/* Being typed in: selectable, whatever the layer around it says. */
+.creative__text:not([readonly]) {
+  cursor: text;
+  user-select: text;
 }
 
 .creative__image {
@@ -476,7 +491,10 @@
   display: grid;
   gap: var(--spacing);
   width: 18rem;
+  max-width: calc(100vw - var(--spacing) * 4);
+  max-height: calc(100vh - 6rem);
   padding: var(--spacing);
+  overflow-y: auto;
   background: var(--color-board-surface);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
@@ -519,13 +537,56 @@ button.creative-export__item:hover:not(:disabled) {
 
 .creative-export__checks {
   display: flex;
-  gap: calc(var(--spacing) * 3);
+  flex-wrap: wrap;
+  gap: var(--spacing) calc(var(--spacing) * 3);
   font-size: 0.75rem;
 
   & label {
     display: flex;
     gap: calc(var(--spacing) * 1.5);
     align-items: center;
+  }
+}
+
+/* Quiet text actions under a button: change folder, download instead. */
+.creative-export__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  font-size: 0.75rem;
+
+  & button {
+    padding: 0;
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    opacity: 0.75;
+  }
+
+  & button:hover:not(:disabled) {
+    opacity: 1;
+  }
+}
+
+/* Two settings side by side, each label above its select, inside the menu. */
+.creative-export__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+
+  & label {
+    display: grid;
+    gap: calc(var(--spacing) * 0.5);
+    min-width: 0;
+  }
+
+  & select {
+    width: 100%;
+    min-width: 0;
   }
 }
 
@@ -680,6 +741,12 @@ button.creative-export__item:hover:not(:disabled) {
   outline: calc(1.5px / var(--s, 1)) dashed oklch(65% 0.2 255);
 }
 
+/* The group's own handles: the box lets presses through to the layers, its
+   handles take them. */
+.creative__group-handle {
+  pointer-events: auto;
+}
+
 .creative__marquee {
   position: absolute;
   z-index: 9999;
@@ -825,4 +892,16 @@ button.creative-export__item:hover:not(:disabled) {
   min-width: 3.5em;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+/* A panel opened from the bar, placed on the window under its button (the
+   bar scrolls sideways and would clip it). */
+.creative__popover {
+  position: fixed;
+  z-index: calc(var(--z-board-panel) + 3);
+  background: var(--color-board-panel);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
 }

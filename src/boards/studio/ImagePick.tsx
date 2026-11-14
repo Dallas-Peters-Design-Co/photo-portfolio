@@ -1,7 +1,7 @@
-import { ImageUp } from "lucide-react";
+import { Crosshair, Frame, ImageUp, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useImageShelf } from "./imageShelf";
+import { hideFromShelf, restoreShelf, useShelf } from "./imageShelf";
 
 /**
  * Choosing a picture for a Studio tool: one just generated, one on the board,
@@ -10,6 +10,15 @@ import { useImageShelf } from "./imageShelf";
  */
 
 const SHOWN = 12;
+
+/** The frame editor's layers, drawn as a picture on demand. */
+export interface FromFrame {
+  /** "Selection (3)" or "Whole frame". */
+  label: string;
+  take: () => Promise<Blob>;
+  /** The selection where it sits in the frame (the picture is the frame's size). */
+  takeInPlace?: () => Promise<Blob>;
+}
 
 const toLocal = async (url: string): Promise<string> => {
   if (url.startsWith("blob:") || url.startsWith("data:")) {
@@ -24,9 +33,11 @@ const toLocal = async (url: string): Promise<string> => {
 
 export function ImagePick({
   current,
+  fromFrame,
   label,
   onPick,
 }: {
+  fromFrame?: FromFrame;
   /** The picture in use, shown first and marked. */
   current?: string | null;
   label: string;
@@ -34,12 +45,30 @@ export function ImagePick({
    * A local URL for the chosen picture, and the address it came from when it
    * has one that lasts (a board picture; not an upload from this computer).
    */
-  onPick: (url: string, source?: string) => void;
+  onPick: (url: string, source?: string, inPlace?: boolean) => void;
 }) {
-  const shelf = useImageShelf();
+  const { hidden, urls: shelf } = useShelf();
   const [more, setMore] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const shown = more ? shelf : shelf.slice(0, SHOWN);
+
+  /**
+   * The selection in the frame, as it is right now: draw it, pick it. Taken
+   * again each time it's pressed, so it follows whatever is selected.
+   */
+  const takeFrame = async (inPlace = false) => {
+    const take = inPlace ? fromFrame?.takeInPlace : fromFrame?.take;
+    if (!take) {
+      return;
+    }
+    try {
+      const blob = await take();
+      setChosen(inPlace ? "in-place" : "frame");
+      onPick(URL.createObjectURL(blob), undefined, inPlace);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't draw the frame");
+    }
+  };
 
   const pick = async (url: string) => {
     try {
@@ -74,17 +103,53 @@ export function ImagePick({
             type="file"
           />
         </label>
-        {shown.map((url) => (
+        {fromFrame ? (
           <button
-            aria-label="Use this picture"
-            aria-pressed={chosen === url}
-            className="studio-pick__item"
-            key={url}
-            onClick={() => void pick(url)}
+            aria-label={`Use the frame: ${fromFrame.label}`}
+            aria-pressed={chosen === "frame"}
+            className="studio-pick__item studio-pick__frame"
+            onClick={() => void takeFrame()}
+            title={`${fromFrame.label}: draws it now and uses it. Press again after changing the selection.`}
             type="button"
           >
-            <img alt="" height={48} loading="lazy" src={url} width={48} />
+            <Frame aria-hidden size={16} />
+            <small>{fromFrame.label}</small>
           </button>
+        ) : null}
+        {fromFrame?.takeInPlace ? (
+          <button
+            aria-label="Use the selection where it sits in the frame"
+            aria-pressed={chosen === "in-place"}
+            className="studio-pick__item studio-pick__frame"
+            onClick={() => void takeFrame(true)}
+            title="The selection where it sits in the frame: the picture is the frame's size, and it goes back over the frame in exactly that place."
+            type="button"
+          >
+            <Crosshair aria-hidden size={16} />
+            <small>In place</small>
+          </button>
+        ) : null}
+        {shown.map((url) => (
+          <span className="studio-pick__slot" key={url}>
+            <button
+              aria-label="Use this picture"
+              aria-pressed={chosen === url}
+              className="studio-pick__item"
+              onClick={() => void pick(url)}
+              type="button"
+            >
+              <img alt="" height={48} loading="lazy" src={url} width={48} />
+            </button>
+            <button
+              aria-label="Take this picture off the list"
+              className="studio-pick__remove"
+              onClick={() => hideFromShelf(url)}
+              title="Take it off this list (nothing is deleted)"
+              type="button"
+            >
+              <X aria-hidden size={10} />
+            </button>
+          </span>
         ))}
       </div>
       {shelf.length > SHOWN ? (
@@ -94,6 +159,16 @@ export function ImagePick({
           type="button"
         >
           {more ? "Fewer" : `All ${shelf.length}`}
+        </button>
+      ) : null}
+      {hidden > 0 ? (
+        <button
+          className="studio-pick__more"
+          onClick={restoreShelf}
+          title="Put back the pictures taken off this list"
+          type="button"
+        >
+          Show {hidden} hidden
         </button>
       ) : null}
       {shelf.length === 0 ? (

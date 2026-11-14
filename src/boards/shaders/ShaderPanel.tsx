@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import CodeIcon from "@hugeicons-pro/core-stroke-standard/CodeIcon";
 import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import FileExportIcon from "@hugeicons-pro/core-stroke-standard/FileExportIcon";
 import { useState } from "react";
@@ -26,10 +27,19 @@ import "./ShaderPanel.css";
  * decides they are happy with one, which is exactly when they want to keep it.
  */
 
+/** What the panel can do with a stack: all take the selected item. */
+export interface ShaderActions {
+  copyReact?: (item: BoardItem) => Promise<void>;
+  download?: (item: BoardItem) => Promise<void>;
+  export: (item: BoardItem) => Promise<void>;
+}
+
 export interface ShaderPanelProps {
   /** The picture wired in, so an effect fed by one stops calling itself empty. */
   imageUrl?: string | null;
   onConfigChange: (itemId: string, config: Record<string, unknown>) => void;
+  /** Writes the stack as a React component to the clipboard. */
+  onCopyReact?: (item: BoardItem) => Promise<void>;
   /** Renders it and saves it to the machine, without touching the board. */
   onDownload?: (item: BoardItem) => Promise<void>;
   /** Renders the stack to a file and puts it on the board. */
@@ -40,6 +50,7 @@ export interface ShaderPanelProps {
 export function ShaderPanel({
   imageUrl,
   onConfigChange,
+  onCopyReact,
   onDownload,
   onExport,
   selected,
@@ -71,6 +82,18 @@ export function ShaderPanel({
               picture on the board so the rest of the graph can wire out of it;
               Save puts it on the machine, which is what you want when the board
               is not where it is going next. */}
+          {onCopyReact && !isHalftone ? (
+            <button
+              className="shader-panel__action"
+              onClick={() => void onCopyReact(selected)}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Copy the stack as a React component (needs the shaders package)"
+              type="button"
+            >
+              <HugeiconsIcon icon={CodeIcon} size={13} />
+              React
+            </button>
+          ) : null}
           {onDownload ? (
             <button
               className="shader-panel__action"

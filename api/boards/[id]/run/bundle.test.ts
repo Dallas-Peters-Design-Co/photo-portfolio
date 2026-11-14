@@ -99,3 +99,33 @@ describe("outputsOf on a Bundle", () => {
     );
   });
 });
+
+describe("outputsOf on a designed frame", () => {
+  const frameRows = [
+    row("f", { height: 100, kind: "frame", width: 100 }),
+    row("p", {
+      height: 20,
+      image_url: A,
+      kind: "reference",
+      width: 20,
+      x: 10,
+      y: 10,
+    }),
+  ];
+
+  it("hands over every picture on a plain frame", () => {
+    expect(outputsOf(frameRows[0] as BoardItemRow, frameRows, [])).toEqual([A]);
+  });
+
+  it("hands over the flattened design once the browser has drawn it", () => {
+    const drawn = row("f", {
+      config: { designed: true, renderKey: "k", renderUrl: HELD },
+      height: 100,
+      kind: "frame",
+      width: 100,
+    });
+    expect(outputsOf(drawn, [drawn, ...frameRows.slice(1)], [])).toEqual([
+      HELD,
+    ]);
+  });
+});

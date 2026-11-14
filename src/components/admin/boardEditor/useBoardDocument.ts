@@ -386,6 +386,21 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
     }
   };
 
+  /**
+   * The board's colour variables: shown at once, written as a detail (like a
+   * rename) so it never waits on the canvas save.
+   */
+  const saveColorVars = async (colorVars: NonNullable<Board["colorVars"]>) => {
+    setBoard((b) => (b ? { ...b, colorVars } : b));
+    try {
+      await updateDetails({ colorVars });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't save the colours"
+      );
+    }
+  };
+
   const publicUrl =
     board?.isPublic && board.slug
       ? `${window.location.origin}/board/${board.slug}`
@@ -424,5 +439,6 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
     publish,
     rename,
     save,
+    saveColorVars,
   };
 };

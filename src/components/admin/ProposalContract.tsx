@@ -9,6 +9,7 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { ContractStatus } from "../../../config/contract.js";
 import { downloadPagePdf } from "../../pages/pagePdf";
+import { invoicesApi } from "../../services/activityService";
 import {
   type ContractRecord,
   contractPdfFilename,
@@ -25,15 +26,26 @@ import {
   proposalLabelClass,
   proposalTextareaClass,
 } from "./proposalStyles";
+import { RecordAcceptance } from "./RecordAcceptance";
 
 /**
  * The services agreement for this proposal.
  *
  * Drafted from the proposal in one click (the chosen option's scope and
- * price, plus the standard clauses), edited here, then sent: the client signs
- * at its own link and the owner countersigns here. Once the client has signed
+ * price, plus the standard clauses), edited here, then signed and sent: the
+ * client's signature at its own link completes it. One sent unsigned is
+ * countersigned here after the client signs. Once the client has signed
  * the text is frozen, so what was signed is what stays on file.
  */
+
+/** Every invoice still a draft on this proposal, sent through Stripe. */
+const sendDraftInvoices = async (slug: string) => {
+  const { invoices } = await invoicesApi.list(slug);
+  for (const invoice of invoices.filter((i) => i.status === "draft")) {
+    // biome-ignore lint/performance/noAwaitInLoops: one at a time, so a failure stops before the next
+    await invoicesApi.send(invoice.id);
+  }
+};
 
 const STATUS: Record<ContractStatus, { cls: string; label: string }> = {
   countersigned: { cls: "text-emerald-300/90", label: "Signed by both" },
@@ -44,8 +56,11 @@ const STATUS: Record<ContractStatus, { cls: string; label: string }> = {
 
 export function ProposalContract({
   proposal,
+  onAccepted,
   onActivity,
 }: {
+  /** An acceptance recorded here (a client who said yes by email). */
+  onAccepted: (next: ProposalRecord) => Promise<void>;
   onActivity: () => void;
   proposal: ProposalRecord;
 }) {
@@ -55,6 +70,8 @@ export function ProposalContract({
   const [busy, setBusy] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [note, setNote] = useState("");
+  // Sending the agreement sends the drafted invoice(s) with it, by default.
+  const [withInvoice, setWithInvoice] = useState(true);
 
   const load = useCallback(async () => {
     try {
@@ -110,24 +127,31 @@ export function ProposalContract({
       toast.error("Add the client's email first.");
       return;
     }
+    const signer = c.doc.parties.ownerName || "you";
     const ok = await confirm({
-      confirmLabel: "Send",
-      description: `${c.clientEmail} gets a link to read and sign it.`,
-      title: "Send the agreement for signature?",
+      confirmLabel: "Sign and send",
+      description: `You sign it as ${signer}, then ${c.clientEmail} gets a link to read and sign it${withInvoice ? ", and Stripe emails the drafted invoice with a link to pay" : ""}. Their signature completes it, and you both get the signed copy.`,
+      title: "Sign and send the agreement?",
     });
     if (ok) {
-      await run(async () => {
-        if (dirty) {
-          await save(c);
-        }
-        const sent = await contractsApi.send(c.id, note);
-        if (!sent.emailed) {
-          toast.warning(
-            "Saved as sent, but the email didn't go out. Share the link yourself."
-          );
-        }
-        return sent;
-      }, "Agreement sent");
+      await run(
+        async () => {
+          if (dirty) {
+            await save(c);
+          }
+          const sent = await contractsApi.send(c.id, note, true);
+          if (!sent.emailed) {
+            toast.warning(
+              "Saved as sent, but the email didn't go out. Share the link yourself."
+            );
+          }
+          if (withInvoice) {
+            await sendDraftInvoices(proposal.slug);
+          }
+          return sent;
+        },
+        withInvoice ? "Agreement and invoice sent" : "Agreement sent"
+      );
     }
   };
 
@@ -166,12 +190,30 @@ export function ProposalContract({
         ) : null}
       </div>
 
-      {contract ? null : (
+      {contract || proposal.acceptance ? null : (
+        <RecordAcceptance
+          busy={busy}
+          onRecorded={async (next) => {
+            await onAccepted(next);
+            // Drafted from the option just recorded.
+            await run(
+              () => contractsApi.create(proposal.slug),
+              "Agreement and first invoice drafted. Check it, then send it for signature."
+            );
+          }}
+          proposal={proposal}
+        />
+      )}
+
+      {contract || !proposal.acceptance ? null : (
         <div className="flex flex-wrap items-center gap-3">
           <p className="text-sm text-white/60">
-            {proposal.acceptance
-              ? "The proposal is signed. Draft the agreement from it: scope, price and the standard terms, ready to edit."
-              : "Usually drafted once the client accepts, from the option they chose."}
+            The client chose{" "}
+            {proposal.doc.packages.find(
+              (p) => p.id === proposal.acceptance?.option
+            )?.name ?? "an option"}
+            . Draft the agreement from it: scope, price and the standard terms,
+            ready to edit and send for their signature.
           </p>
           <Button
             disabled={busy}
@@ -188,6 +230,17 @@ export function ProposalContract({
           </Button>
         </div>
       )}
+
+      {contract?.status === "draft" ? (
+        <label className="flex items-center gap-2 text-sm text-white/70">
+          <input
+            checked={withInvoice}
+            onChange={(e) => setWithInvoice(e.target.checked)}
+            type="checkbox"
+          />
+          Send the drafted invoice with it (Invoices, below)
+        </label>
+      ) : null}
 
       {contract?.status === "draft" ? (
         <DraftForm
@@ -318,7 +371,7 @@ function ContractActions({
             type="button"
             variant="outline"
           >
-            <Send size={14} /> Send for signature
+            <Send size={14} /> Sign and send
           </Button>
         </>
       ) : null}
@@ -385,19 +438,22 @@ function ContractActions({
 }
 
 function SignedLine({ contract }: { contract: ContractRecord }) {
-  if (!contract.clientSignature) {
+  const { clientSignature: client, ownerSignature: owner } = contract;
+  const day = (at: string) => new Date(at).toLocaleDateString();
+  const theirs = client
+    ? `signed by ${client.name}${client.title ? `, ${client.title}` : ""} on ${day(client.at)}`
+    : null;
+  const parts = [
+    owner ? `Signed by ${owner.name} on ${day(owner.at)}` : null,
+    theirs ?? (owner ? "waiting for the client's signature" : null),
+  ].filter(Boolean);
+  if (parts.length === 0) {
     return null;
   }
+  const line = parts.join("; ");
   return (
     <p className="text-sm text-white/60">
-      Signed by {contract.clientSignature.name}
-      {contract.clientSignature.title
-        ? `, ${contract.clientSignature.title}`
-        : ""}{" "}
-      on {new Date(contract.clientSignature.at).toLocaleDateString()}
-      {contract.ownerSignature
-        ? `; countersigned ${new Date(contract.ownerSignature.at).toLocaleDateString()}.`
-        : "."}
+      {line.charAt(0).toUpperCase() + line.slice(1)}.
     </p>
   );
 }

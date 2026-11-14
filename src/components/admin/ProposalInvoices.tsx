@@ -33,8 +33,11 @@ const STATUS: Record<Invoice["status"], { cls: string; label: string }> = {
 export function ProposalInvoices({
   proposal,
   onActivity,
+  refreshKey = 0,
 }: {
   proposal: ProposalRecord;
+  /** Bumped when something elsewhere may have drafted or sent one. */
+  refreshKey?: number;
   /** Called after anything that adds to the timeline. */
   onActivity: () => void;
 }) {
@@ -43,6 +46,7 @@ export function ProposalInvoices({
   const [stripe, setStripe] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reloads when the refresh key moves
   const load = useCallback(async () => {
     try {
       const next = await invoicesApi.list(proposal.slug);
@@ -52,7 +56,7 @@ export function ProposalInvoices({
       toast.error(e instanceof Error ? e.message : "Could not load invoices");
       setInvoices([]);
     }
-  }, [proposal.slug]);
+  }, [proposal.slug, refreshKey]);
 
   useEffect(() => {
     void load();

@@ -1,4 +1,6 @@
 import type { Box } from "./creativeModel";
+import { guideLines } from "./frameGuides";
+import { type Insets, shrink } from "./visibleEdges";
 
 /**
  * Snapping a moving box to the artboard and to the other layers.
@@ -76,17 +78,27 @@ export const keepOnFrame = (
 export const skipsSnap = (e: { ctrlKey: boolean; metaKey: boolean }) =>
   e.metaKey || e.ctrlKey;
 
-/** Where a dragged box should land, and which guide lines it touched. */
+/**
+ * Where a dragged box should land, and which guide lines it touched. With
+ * `inset`, what's drawn inside the box is what lines up (visibleEdges.ts).
+ */
 export const snapMove = (
   box: Box,
   frame: Box,
   others: Box[],
-  threshold: number
+  threshold: number,
+  inset: Insets | null = null
 ): { box: Box; guides: Guides } => {
-  const targetsX = [frame, ...others].flatMap((b) => linesOf(b, "x"));
-  const targetsY = [frame, ...others].flatMap((b) => linesOf(b, "y"));
-  const sx = bestShift(linesOf(box, "x"), targetsX, threshold);
-  const sy = bestShift(linesOf(box, "y"), targetsY, threshold);
+  const inner = shrink(box, inset);
+  // The frame's own guides (frameGuides.ts) are lines to snap to as well.
+  const targetsX = [frame, ...others]
+    .flatMap((b) => linesOf(b, "x"))
+    .concat(guideLines(frame, "x"));
+  const targetsY = [frame, ...others]
+    .flatMap((b) => linesOf(b, "y"))
+    .concat(guideLines(frame, "y"));
+  const sx = bestShift(linesOf(inner, "x"), targetsX, threshold);
+  const sy = bestShift(linesOf(inner, "y"), targetsY, threshold);
   return {
     box: { ...box, x: box.x + sx.shift, y: box.y + sy.shift },
     guides: {
@@ -107,7 +119,9 @@ export const snapEdge = (
   others: Box[],
   threshold: number
 ): { line: number | null; value: number } => {
-  const targets = [frame, ...others].flatMap((b) => linesOf(b, axis));
+  const targets = [frame, ...others]
+    .flatMap((b) => linesOf(b, axis))
+    .concat(guideLines(frame, axis));
   const { line, shift } = bestShift([value], targets, threshold);
   return { line, value: value + shift };
 };

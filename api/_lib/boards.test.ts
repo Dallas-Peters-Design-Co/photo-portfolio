@@ -126,6 +126,16 @@ describe("where an item is", () => {
     const tall = parseIncomingItem(incoming({ height: 10_800, width: 7200 }));
     expect([tall?.width, tall?.height]).toEqual([7200, 10_800]);
   });
+
+  it("keeps a design's thin layers their size", () => {
+    // A 20-unit bar along a banner's foot was saved 40 tall, so each reload
+    // pushed its centre past the frame and it dropped out of the design.
+    const bar = parseIncomingItem(incoming({ height: 20, width: 1584 }));
+    expect([bar?.width, bar?.height]).toEqual([1584, 20]);
+    const rule = parseIncomingItem(incoming({ height: 2.5, width: 12 }));
+    expect([rule?.width, rule?.height]).toEqual([12, 2.5]);
+    expect(parseIncomingItem(incoming({ height: 0 }))?.height).toBe(1);
+  });
 });
 
 describe("a text item's size", () => {
@@ -147,5 +157,60 @@ describe("a frame's settings", () => {
     expect(frame({ designed: true, junk: 1 })).toEqual({ designed: true });
     expect(frame({ designed: "yes" })).toBeNull();
     expect(frame(null)).toBeNull();
+  });
+
+  it("keeps the guides dragged onto it, and nothing off the frame", () => {
+    const frame = (config: unknown) =>
+      parseIncomingItem(incoming({ body: "Post", config, kind: "frame" }))
+        ?.config;
+    expect(
+      frame({ guides: { hideSafe: true, x: [0.25, 2, "a"], y: [0.5] } })
+    ).toEqual({ guides: { hideSafe: true, x: [0.25], y: [0.5] } });
+    expect(frame({ guides: { x: [], y: [] } })).toBeNull();
+  });
+});
+
+describe("a browser node's settings", () => {
+  it("keeps where it is, its sealed login and session, its screenshot, and clean notes", () => {
+    const config = parseIncomingItem(
+      incoming({
+        config: {
+          captureHeight: 900,
+          captureUrl: "https://blob.example.com/a.png",
+          captureWidth: 1440,
+          junk: "x",
+          loginUser: "dallas@example.com",
+          marks: [
+            {
+              id: "m",
+              kind: "box",
+              points: [
+                [0.1, 0.1],
+                [0.4, 0.3],
+              ],
+            },
+            { kind: "nope" },
+          ],
+          notes: [
+            { body: "b", id: "n", kind: "issue", title: "t", x: 2, y: 0.5 },
+          ],
+          pageUrl: "https://app.example.com/home",
+          sealedLogin: "v1.a.b.c",
+          session: "v1.d.e.f",
+          url: "javascript:alert(1)",
+          viewport: "mobile",
+        },
+        kind: "op",
+        nodeType: "browser",
+      })
+    )?.config as Record<string, unknown>;
+    expect(config.junk).toBeUndefined();
+    expect(config.url).toBe("");
+    expect(config.pageUrl).toBe("https://app.example.com/home");
+    expect(config.sealedLogin).toBe("v1.a.b.c");
+    expect(config.captureUrl).toBe("https://blob.example.com/a.png");
+    expect(config.marks).toHaveLength(1);
+    expect((config.notes as { x: number }[])[0]?.x).toBe(1);
+    expect(config.viewport).toBe("mobile");
   });
 });
