@@ -4,6 +4,7 @@ import type { BoardItem } from "../../types";
 import { isSvgUrl } from "../io/svgRaster";
 import { currentImageUrl } from "../itemOutput";
 import { SvgColours } from "../panels/SvgColours";
+import { tintOf } from "./imageAnchor";
 
 /**
  * "Colours" for a picture layer that's an SVG: the colours it's drawn in,
@@ -13,7 +14,13 @@ import { SvgColours } from "../panels/SvgColours";
  * The panel is placed on the window, under the button: the bar scrolls
  * sideways and would clip anything hung inside it.
  */
-export function SvgColoursButton({ item }: { item: BoardItem }) {
+export function SvgColoursButton({
+  item,
+  onPatch,
+}: {
+  item: BoardItem;
+  onPatch: (patch: Partial<BoardItem>) => void;
+}) {
   const button = useRef<HTMLButtonElement>(null);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   const url = currentImageUrl(item);
@@ -40,7 +47,15 @@ export function SvgColoursButton({ item }: { item: BoardItem }) {
       </button>
       {at ? (
         <div className="creative__popover" style={at}>
-          <SvgColours itemId={item.id} onClose={() => setAt(null)} url={url} />
+          <SvgColours
+            itemId={item.id}
+            onClose={() => setAt(null)}
+            onTint={(tint) =>
+              onPatch({ config: { ...(item.config ?? {}), tint } })
+            }
+            tint={tintOf(item)}
+            url={url}
+          />
         </div>
       ) : null}
     </>

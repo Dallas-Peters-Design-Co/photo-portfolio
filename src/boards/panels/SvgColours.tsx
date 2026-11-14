@@ -14,10 +14,19 @@ import "./SvgColours.css";
 export function SvgColours({
   itemId,
   onClose,
+  onTint,
+  tint,
   url,
 }: {
   itemId: string;
   onClose: () => void;
+  /** Sets the picture's tint, or takes it off (null). */
+  onTint?: (tint: string | null) => void;
+  /**
+   * The one colour the picture is drawn in instead of its own (set in the
+   * frame editor). While it's on, the SVG's own colours don't show.
+   */
+  tint?: string | null;
   url: string;
 }) {
   const [svg, setSvg] = useState<string | null>(null);
@@ -63,6 +72,31 @@ export function SvgColours({
     }
   };
 
+  // Tinted: the picture is one colour over its shape, so that colour is the
+  // one to change, and its own colours wait underneath.
+  if (tint && onTint) {
+    return (
+      <div className="svg-colours">
+        <div className="svg-colours__row">
+          <ColorWell label="Tint" noVars onChange={onTint} value={tint} />
+          <span className="svg-colours__hex">{tint.toUpperCase()}</span>
+          <span className="svg-colours__count">whole picture</span>
+        </div>
+        <p className="svg-colours__hint">
+          This picture is drawn in one colour (a tint). Take the tint off to see
+          and change the SVG's own colours.
+        </p>
+        <div className="svg-colours__actions">
+          <Button onClick={onClose} size="xs" variant="ghost">
+            Done
+          </Button>
+          <Button onClick={() => onTint(null)} size="xs">
+            Use its own colours
+          </Button>
+        </div>
+      </div>
+    );
+  }
   if (failed) {
     return <p className="svg-colours__note">The SVG couldn't be read.</p>;
   }

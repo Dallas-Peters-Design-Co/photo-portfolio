@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { BoardItem } from "../types";
+import { tintOf } from "./creative/imageAnchor";
 import { useFrameActions } from "./FrameOpenContext";
 import { PANEL_GAP } from "./geometry/panelPlacement";
 import {
@@ -65,6 +66,8 @@ interface BoardToolBarProps {
   onEditManually?: () => void;
   /** Hands the picture to the desktop vector editor. See useAffinityBridge. */
   onOpenInEditor?: (itemId: string) => void;
+  /** Changes the item (a picture's tint, from its Colours panel). */
+  onPatch?: (patch: Partial<BoardItem>) => void;
   /** Runs the tool. The words come from the picker when the tool needs them. */
   onRun: (
     tool: Tool,
@@ -116,7 +119,15 @@ function EditorButton({
  * Answers "should I exist" itself (only for an SVG), and hangs its panel off
  * the bar on the bar's side, as the tool picker does.
  */
-function SvgColoursTool({ above, item }: { above: boolean; item: BoardItem }) {
+function SvgColoursTool({
+  above,
+  item,
+  onPatch,
+}: {
+  above: boolean;
+  item: BoardItem;
+  onPatch?: (patch: Partial<BoardItem>) => void;
+}) {
   const [open, setOpen] = useState(false);
   const url = imageOf(item);
   if (!(url && isSvgUrl(url))) {
@@ -144,6 +155,13 @@ function SvgColoursTool({ above, item }: { above: boolean; item: BoardItem }) {
           <SvgColours
             itemId={item.id}
             onClose={() => setOpen(false)}
+            onTint={
+              onPatch
+                ? (tint) =>
+                    onPatch({ config: { ...(item.config ?? {}), tint } })
+                : undefined
+            }
+            tint={tintOf(item)}
             url={url}
           />
         </div>
@@ -159,6 +177,7 @@ export function BoardToolBar({
   item,
   onEditManually,
   onOpenInEditor,
+  onPatch,
   onRun,
 }: BoardToolBarProps) {
   const [picking, setPicking] = useState(false);
@@ -365,7 +384,7 @@ export function BoardToolBar({
         {shown?.noun === "clip" ? null : (
           <EditorButton itemId={item.id} onOpen={onOpenInEditor} />
         )}
-        <SvgColoursTool above={above} item={item} />
+        <SvgColoursTool above={above} item={item} onPatch={onPatch} />
         {applicable.length > 0 ? (
           <Button
             aria-expanded={picking || pending !== null}

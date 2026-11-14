@@ -468,6 +468,7 @@ export function BoardItemView({
           item={item}
           onEditManually={onEditManually}
           onOpenInEditor={onOpenInEditor}
+          onPatch={onPatch}
           onRun={(tool, prompt, config) =>
             tools.run(item, tool, prompt, config)
           }

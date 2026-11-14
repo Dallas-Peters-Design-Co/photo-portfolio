@@ -14,10 +14,21 @@ it("offers Colours for an SVG layer only, and lists its colours", async () => {
   const host = document.createElement("div");
   document.body.append(host);
   const root = createRoot(host);
-  act(() => root.render(<SvgColoursButton item={layer("https://b/a.png")} />));
+  act(() =>
+    root.render(
+      <SvgColoursButton
+        item={layer("https://b/a.png")}
+        onPatch={() => undefined}
+      />
+    )
+  );
   expect(host.querySelector("button")).toBeNull();
 
-  act(() => root.render(<SvgColoursButton item={layer(SVG)} />));
+  act(() =>
+    root.render(
+      <SvgColoursButton item={layer(SVG)} onPatch={() => undefined} />
+    )
+  );
   const button = host.querySelector("button") as HTMLElement;
   expect(button.textContent).toContain("Colours");
   await act(async () => {
@@ -27,6 +38,36 @@ it("offers Colours for an SVG layer only, and lists its colours", async () => {
   expect(host.querySelector(".creative__popover")?.textContent).toContain(
     "#FF0000"
   );
+  act(() => root.unmount());
+  host.remove();
+});
+
+it("edits the tint when the picture has one, and can take it off", async () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  const patches: Partial<BoardItem>[] = [];
+  const tinted = { ...layer(SVG), config: { tint: "#2f7cf6" } } as BoardItem;
+  act(() =>
+    root.render(
+      <SvgColoursButton item={tinted} onPatch={(p) => patches.push(p)} />
+    )
+  );
+  await act(async () => {
+    (host.querySelector("button") as HTMLElement).click();
+    await new Promise((r) => setTimeout(r, 50));
+  });
+  const panel = host.querySelector(".creative__popover") as HTMLElement;
+  expect(panel.textContent).toContain("#2F7CF6");
+  expect(panel.textContent).toContain("tint");
+  act(() =>
+    (
+      [...panel.querySelectorAll("button")].find((b) =>
+        b.textContent?.includes("Use its own colours")
+      ) as HTMLElement
+    ).click()
+  );
+  expect(patches.at(-1)?.config).toEqual({ tint: null });
   act(() => root.unmount());
   host.remove();
 });

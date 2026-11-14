@@ -43,3 +43,10 @@
   font-size: 0.75rem;
   color: var(--color-board-ink);
 }
+
+.svg-colours__hint {
+  max-width: 16rem;
+  font-size: 0.6875rem;
+  color: color-mix(in oklch, var(--color-board-ink) 60%, transparent);
+  white-space: normal;
+}

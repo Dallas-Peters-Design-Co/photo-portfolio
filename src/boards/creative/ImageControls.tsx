@@ -34,7 +34,7 @@ export function ImageControls({
     onPatch({ config: { ...(item.config ?? {}), ...next } });
   return (
     <>
-      <SvgColoursButton item={item} />
+      <SvgColoursButton item={item} onPatch={onPatch} />
       {/* biome-ignore lint/a11y/noLabelWithoutControl: the control is inside */}
       <label className="creative__field">
         <span>Corners</span>
