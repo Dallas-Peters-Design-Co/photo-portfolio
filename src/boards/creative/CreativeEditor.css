@@ -7,6 +7,9 @@
 .creative {
   position: fixed;
   inset: 0;
+  /* Beside a docked Studio, not under it (studio/useStudioDock.ts). */
+  right: var(--studio-dock-right, 0);
+  left: var(--studio-dock-left, 0);
   /* Over the board's floating panels, which are also hidden below. */
   z-index: calc(var(--z-board-panel) + 1);
   display: grid;
@@ -304,13 +307,10 @@
 }
 
 /*
- * Zoomed, the artboard keeps room round it, so its edges, corners and their
- * handles can be scrolled clear of the stage's sides rather than sitting
- * flush against them. (A grid item's margin counts towards what scrolls.)
+ * The artboard keeps room round it at every zoom (set on the element by
+ * useArtboardZoom), so the stage always scrolls and the artboard can be
+ * panned off to any side. (A grid item's margin counts towards what scrolls.)
  */
-.creative__stage[data-zoomed] .creative__fit {
-  margin: max(96px, 12vmin);
-}
 
 /* The artboard in canvas units, scaled to fit. Clipped like an ad is. */
 .creative__board {

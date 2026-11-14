@@ -1,4 +1,10 @@
-import { GripVertical, X } from "lucide-react";
+import {
+  GripVertical,
+  PanelLeft,
+  PanelRight,
+  PictureInPicture2,
+  X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import type { TypeScale } from "../../../config/typeScale.js";
 import { useActiveBrand } from "../brand/ActiveBrand";
@@ -15,6 +21,7 @@ import {
 } from "./tools";
 import { TypeScaleTool } from "./type/TypeScaleTool";
 import type { StudioParam, StudioRecipe, StudioValues } from "./types";
+import { type Dock, useStudioDock } from "./useStudioDock";
 import { useStudioSize } from "./useStudioSize";
 import "./Studio.css";
 
@@ -26,6 +33,12 @@ import "./Studio.css";
  */
 
 const GROUPS = ["Images", "Colour", "Type"] as const;
+
+const DOCKS: { Icon: typeof PanelLeft; id: Dock; label: string }[] = [
+  { Icon: PanelLeft, id: "left", label: "Dock on the left" },
+  { Icon: PictureInPicture2, id: "float", label: "Float" },
+  { Icon: PanelRight, id: "right", label: "Dock on the right" },
+];
 
 /**
  * The frame the Studio is working for, when it's opened from the frame
@@ -97,7 +110,11 @@ export function StudioPanel({
   const entries = brand?.kit?.resolvedDoc.palette ?? [];
   const palette =
     entries.length > 0 ? entries.map((p) => p.value) : DEFAULT_PALETTE;
-  const drag = useDraggablePanel("board-studio:position");
+  const dock = useStudioDock();
+  const drag = useDraggablePanel("board-studio:position", (at) =>
+    dock.dropAt(at.x)
+  );
+  const docked = dock.dock !== "float";
   const size = useStudioSize(drag.pin);
   const [toolId, setToolId] = useState(initialTool);
   const [byTool, setByTool] = useState<Record<string, StudioValues>>(() =>
@@ -150,10 +167,23 @@ export function StudioPanel({
   return (
     <aside
       aria-label="Studio"
-      className={drag.dragging ? "studio studio--dragging" : "studio"}
-      style={{ ...drag.style, ...size.style }}
+      className={[
+        "studio",
+        drag.dragging ? "studio--dragging" : "",
+        docked ? `studio--docked studio--docked-${dock.dock}` : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      data-dock={dock.dock}
+      // Docked, the side and full height come from the stylesheet and only
+      // the width is the panel's own; floating, it sits where it was dragged.
+      style={
+        docked
+          ? { ...size.style, ...dock.style }
+          : { ...drag.style, ...size.style }
+      }
     >
-      <header className="studio__head" {...drag.handleProps}>
+      <header className="studio__head" {...(docked ? {} : drag.handleProps)}>
         <GripVertical aria-hidden className="studio__grip" size={14} />
         <strong>Studio</strong>
         <span className="studio__brand">
@@ -162,6 +192,19 @@ export function StudioPanel({
           {brand?.kit ? `in ${brand.kit.name}` : ""}
           {frame || brand?.kit ? "" : "no brand chosen"}
         </span>
+        {DOCKS.map(({ Icon, id, label }) => (
+          <button
+            aria-label={label}
+            data-active={dock.dock === id ? "" : undefined}
+            className="studio__icon"
+            key={id}
+            onClick={() => dock.set(id)}
+            title={label}
+            type="button"
+          >
+            <Icon size={15} />
+          </button>
+        ))}
         <button
           aria-label="Close the Studio"
           className="studio__icon"
@@ -192,6 +235,14 @@ export function StudioPanel({
         </nav>
         <section className="studio__main">{view()}</section>
       </div>
+      {docked ? (
+        <span
+          aria-hidden
+          className="studio__edge"
+          onPointerDown={dock.startResize}
+          title="Drag to set the width"
+        />
+      ) : null}
       {/* biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the panel works at its default size */}
       <span
         aria-hidden

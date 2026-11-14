@@ -56,7 +56,11 @@ const clamp = (point: Point, el: HTMLElement): Point => {
   };
 };
 
-export const useDraggablePanel = (storageKey: string) => {
+export const useDraggablePanel = (
+  storageKey: string,
+  /** Told where the pointer was when a drag was let go. */
+  onDrop?: (pointer: { x: number; y: number }) => void
+) => {
   const [position, setPosition] = useState<Point | null>(() =>
     read(storageKey)
   );
@@ -87,12 +91,15 @@ export const useDraggablePanel = (storageKey: string) => {
       last = clamp({ x: e.clientX - offset.x, y: e.clientY - offset.y }, panel);
       setPosition(last);
     };
-    const up = () => {
+    const up = (e: PointerEvent) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       window.removeEventListener("pointercancel", up);
       setDragging(false);
       write(storageKey, last);
+      if (e.type === "pointerup") {
+        onDrop?.({ x: e.clientX, y: e.clientY });
+      }
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);

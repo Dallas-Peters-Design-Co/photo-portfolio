@@ -345,7 +345,6 @@ export function Artboard({
       {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: same */}
       <div
         className="creative__stage"
-        data-zoomed={view.zoomed ? "" : undefined}
         onDragOver={(e) => {
           if (onDropFiles && e.dataTransfer.types.includes("Files")) {
             e.preventDefault();
@@ -370,10 +369,7 @@ export function Artboard({
         }}
         ref={stageRef}
       >
-        <div
-          className="creative__fit"
-          style={{ height: frame.height * scale, width: frame.width * scale }}
-        >
+        <div className="creative__fit" style={view.fitStyle}>
           <div
             className="creative__board"
             onPointerCancel={end}

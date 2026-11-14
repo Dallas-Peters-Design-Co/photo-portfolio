@@ -232,6 +232,11 @@
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
   }
+
+  /* Where the panel is now (floating, or docked on a side). */
+  &[data-active] {
+    background: color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+  }
 }
 
 .studio__actions {
@@ -654,4 +659,65 @@
   color: var(--color-board-surface);
   background: var(--color-board-ink);
   border-radius: 50%;
+}
+
+/*
+ * Docked down a side of the window (useStudioDock.ts): full height, flush to
+ * the edge, its width its own. The corner grip is for the floating panel;
+ * docked, the inner edge drags instead.
+ */
+.studio--docked {
+  top: 0;
+  bottom: 0;
+  max-height: none;
+  border-block: 0;
+  border-radius: 0;
+  box-shadow: none;
+
+  & .studio__head {
+    cursor: default;
+  }
+
+  & .studio__grip,
+  & > .studio__corner {
+    display: none;
+  }
+
+  & .studio__body {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.studio--docked-left {
+  right: auto;
+  left: 0;
+  border-left: 0;
+}
+
+.studio--docked-right {
+  right: 0;
+  left: auto;
+  border-right: 0;
+}
+
+.studio__edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  touch-action: none;
+  cursor: ew-resize;
+
+  &:hover {
+    background: color-mix(in oklch, var(--color-selection) 50%, transparent);
+  }
+}
+
+.studio--docked-left .studio__edge {
+  right: 0;
+}
+
+.studio--docked-right .studio__edge {
+  left: 0;
 }
