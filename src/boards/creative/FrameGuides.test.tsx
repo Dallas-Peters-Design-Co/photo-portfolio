@@ -180,3 +180,12 @@ describe("snapping to guides", () => {
     expect(plain.box.x).toBe(88);
   });
 });
+
+describe("renamed sizes", () => {
+  it("still finds the size of a frame made before its label changed", () => {
+    expect(sizeOfTitle("LinkedIn · Banner · 1584×396")?.id).toBe("li-banner");
+    expect(
+      sizeOfTitle("LinkedIn · Profile banner · 1584×396")?.safe
+    ).toBeTruthy();
+  });
+});

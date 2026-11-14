@@ -41,6 +41,27 @@ describe("inferPin", () => {
     expect(inferPin(headline, frame)).toEqual({ h: "center", v: "center" });
     expect(inferPin(cta, frame)).toEqual({ h: "right", v: "bottom" });
   });
+
+  it("keeps a left-aligned column on the left, however wide each line is", () => {
+    // Logo, a wide headline and a button, all 40 in from the left edge.
+    const column = [
+      item("logo", 40, 40, 80, 40),
+      item("headline", 40, 200, 380, 90, 48),
+      item("button", 40, 440, 140, 50, 20),
+    ];
+    expect(column.map((i) => inferPin(i, frame).h)).toEqual([
+      "left",
+      "left",
+      "left",
+    ]);
+    const story = { height: 960, width: 540, x: 2000, y: 1000 };
+    const wide = { height: 283, width: 540, x: 2000, y: 1000 };
+    for (const next of [story, wide]) {
+      const placed = relayout(frame, next, column);
+      const lefts = new Set(placed.map((i) => i.x));
+      expect(lefts.size).toBe(1);
+    }
+  });
 });
 
 describe("relayout", () => {

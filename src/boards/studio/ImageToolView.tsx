@@ -32,8 +32,14 @@ export const SIZES = [
   { h: 1350, label: "Portrait 1080×1350", w: 1080 },
   { h: 1920, label: "Story 1080×1920", w: 1080 },
   { h: 1080, label: "Wide 1920×1080", w: 1920 },
-  { h: 500, label: "Banner 1500×500", w: 1500 },
   { h: 2048, label: "Large square 2048", w: 2048 },
+  // The profile and page banners (config/socialSizes.ts has the rest).
+  { h: 396, label: "LinkedIn profile banner 1584×396", w: 1584 },
+  { h: 256, label: "LinkedIn company cover 1512×256", w: 1512 },
+  { h: 500, label: "X header 1500×500", w: 1500 },
+  { h: 315, label: "Facebook cover 851×315", w: 851 },
+  { h: 1440, label: "YouTube banner 2560×1440", w: 2560 },
+  { h: 400, label: "ChatGPT cover 1200×400", w: 1200 },
 ] as const;
 
 const loadImage = (url: string): Promise<HTMLImageElement> =>

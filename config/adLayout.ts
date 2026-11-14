@@ -189,9 +189,28 @@ export interface LayoutItem extends Box {
 export const sizeTitle = (size: AdSize): string =>
   `${size.group} · ${size.label} · ${size.w}×${size.h}`;
 
-/** The size a frame was made at, found by its title, with its safe zone. */
-export const sizeOfTitle = (title: string | null | undefined): AdSize | null =>
-  AD_SIZES.find((s) => sizeTitle(s) === (title ?? "").trim()) ?? null;
+/**
+ * The size a frame was made at, found by its title, with its safe zone.
+ *
+ * By the exact title first; then by platform and pixel size, so a frame
+ * made before a size was renamed ("LinkedIn · Banner · 1584×396", now
+ * "Profile banner") still finds it.
+ */
+export const sizeOfTitle = (
+  title: string | null | undefined
+): AdSize | null => {
+  const text = (title ?? "").trim();
+  const exact = AD_SIZES.find((s) => sizeTitle(s) === text);
+  if (exact) {
+    return exact;
+  }
+  const px = sizeFromTitle(text);
+  return px
+    ? (AD_SIZES.find(
+        (s) => text.startsWith(`${s.group} · `) && s.w === px.w && s.h === px.h
+      ) ?? null)
+    : null;
+};
 
 const SIZE_IN_TITLE = /(\d{2,5})\s*[×x]\s*(\d{2,5})\s*$/;
 
@@ -229,9 +248,19 @@ export const frameBoxFor = (
 };
 
 const FILL = 0.9;
-const EDGE_THIRD = 1 / 3;
+/** Margins this close (as a share of the frame) count as centred. */
+const CENTRED = 0.08;
 
-/** Where an item is pinned, from where it sits in its frame. */
+/**
+ * Where an item is pinned, from where it sits in its frame.
+ *
+ * By its margins, the way a design tool reads constraints: an item that
+ * fills the frame stretches, one with even margins is centred, and anything
+ * else is pinned to the edge it's nearer. Reading it from which third the
+ * item's centre fell in split a left-aligned column apart: a wide headline's
+ * centre sat in the middle third and got centred, while the logo and button
+ * above and below it stayed on the left.
+ */
 export const inferPin = (item: Box, frame: Box): Pin => {
   const axis = (
     start: number,
@@ -242,14 +271,12 @@ export const inferPin = (item: Box, frame: Box): Pin => {
     if (size >= frameSize * FILL) {
       return "stretch";
     }
-    const centre = (start + size / 2 - frameStart) / frameSize;
-    if (centre < EDGE_THIRD) {
-      return "start";
+    const before = start - frameStart;
+    const after = frameStart + frameSize - (start + size);
+    if (Math.abs(before - after) <= frameSize * CENTRED) {
+      return "center";
     }
-    if (centre > 1 - EDGE_THIRD) {
-      return "end";
-    }
-    return "center";
+    return before < after ? "start" : "end";
   };
   const h = axis(item.x, item.width, frame.x, frame.width);
   const v = axis(item.y, item.height, frame.y, frame.height);

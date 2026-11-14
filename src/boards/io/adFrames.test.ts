@@ -180,3 +180,46 @@ describe("resetting a frame's scale", () => {
     expect(w?.config).toEqual({ radius: 8 });
   });
 });
+
+describe("copyFrameAtSizes keeps the stacking", () => {
+  it("stacks each copy's layers front to back as the original's, whatever order the board lists them in", () => {
+    // The board's list isn't the stacking order: a background sent to the
+    // back keeps its place in the list and only its z changes.
+    const text = item({
+      fontSize: 48,
+      height: 100,
+      id: "t",
+      kind: "text",
+      width: 400,
+      x: 1100,
+      y: 1100,
+      z: 9,
+    });
+    const background = item({
+      height: 540,
+      id: "bg",
+      width: 540,
+      x: 1000,
+      y: 1000,
+      z: 2,
+    });
+    const logo = item({
+      height: 60,
+      id: "logo",
+      width: 120,
+      x: 1020,
+      y: 1020,
+      z: 5,
+    });
+    const out = copyFrameAtSizes([frame, text, logo, background], "f", [
+      size("ig-story"),
+    ]);
+    const copies = (out?.added ?? []).filter((i) => i.kind !== "frame");
+    const z = (match: (i: BoardItem) => boolean) => copies.find(match)?.z ?? -1;
+    const bg = z((i) => i.width >= 540 && i.kind === "photo");
+    const lg = z((i) => i.kind === "photo" && i.width < 540);
+    const tx = z((i) => i.kind === "text");
+    expect(bg).toBeLessThan(lg);
+    expect(lg).toBeLessThan(tx);
+  });
+});

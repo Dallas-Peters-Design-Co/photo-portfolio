@@ -74,7 +74,13 @@ export const copyFrameAtSizes = (
   if (frame?.kind !== "frame" || sizes.length === 0) {
     return null;
   }
-  const inside = containedBy(frame, items);
+  // Back to front: the copies are given fresh z values in this order, and
+  // the board's list isn't the stacking order (sending a background to the
+  // back changes its z, not its place in the list), so going by the list put
+  // backgrounds over the type.
+  const inside = [...containedBy(frame, items)].sort(
+    (a, b) => (a.z ?? 0) - (b.z ?? 0)
+  );
   const top = Math.max(0, ...items.map((item) => item.z ?? 0)) + 1;
   const added: BoardItem[] = [];
   const frameIds: string[] = [];

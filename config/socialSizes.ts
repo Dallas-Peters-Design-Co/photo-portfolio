@@ -193,7 +193,7 @@ export const SOCIAL_SIZES: SocialSize[] = [
     group: "LinkedIn",
     h: 396,
     id: "li-banner",
-    label: "Banner",
+    label: "Profile banner",
     safe: {
       covers: [
         { h: 304, label: "Profile photo", round: true, w: 304, x: 56, y: 212 },
