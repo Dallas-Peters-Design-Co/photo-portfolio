@@ -96,6 +96,56 @@ export const captureScreenshot = async ({
  * lazy sections walked into view, fixed headers put back at the top, and the
  * height capped. Shared by the review capture and the board's browser node.
  */
+/** Shorter pictures to fall back to, in turn, when a tall one can't be taken. */
+const SHORTER = [4000, 1600];
+
+/**
+ * A picture of the page from its top, as tall as asked if the browser can
+ * manage it and shorter if it can't.
+ *
+ * The serverless browser draws without a graphics card, and on a heavy page
+ * (canvas or WebGL backgrounds, big animated sections) a tall capture fails
+ * outright with "Unable to capture screenshot". That left the Browser node
+ * with an error and no page at all. A shorter picture of the top of the page
+ * is still something to click on and mark up, so the height steps down, and
+ * the last try is just what's in view.
+ */
+export const shootPage = async (
+  page: Page,
+  {
+    height,
+    quality,
+    type,
+    width,
+  }: { height: number; quality?: number; type: "jpeg" | "png"; width: number }
+): Promise<{ bytes: Buffer; height: number }> => {
+  const heights = [height, ...SHORTER.filter((h) => h < height)];
+  let failure: unknown = null;
+  for (const tall of heights) {
+    try {
+      // biome-ignore lint/performance/noAwaitInLoops: one attempt at a time, each only if the last failed
+      const bytes = await page.screenshot({
+        clip: { height: tall, width, x: 0, y: 0 },
+        fullPage: true,
+        quality,
+        type,
+      });
+      return { bytes, height: tall };
+    } catch (e) {
+      failure = e;
+      await page.waitForTimeout(300).catch(() => undefined);
+    }
+  }
+  // What's in view, from the top: the cheapest picture there is.
+  await page.evaluate(() => window.scrollTo(0, 0)).catch(() => undefined);
+  const inView = await page.screenshot({ quality, type }).catch(() => null);
+  if (!inView) {
+    throw failure;
+  }
+  const view = page.viewportSize();
+  return { bytes: inView, height: view?.height ?? Math.round(width * 0.66) };
+};
+
 export const captureFullPage = async (
   page: Page,
   width: number,
@@ -167,11 +217,10 @@ export const captureFullPage = async (
   const fullHeight = await page.evaluate(
     () => document.documentElement.scrollHeight
   );
-  const height = Math.min(fullHeight, MAX_HEIGHT);
-  const png = await page.screenshot({
-    clip: { height, width, x: 0, y: 0 },
-    fullPage: true,
+  const { bytes: png, height } = await shootPage(page, {
+    height: Math.min(fullHeight, MAX_HEIGHT),
     type: "png",
+    width,
   });
   const blob = await put(`${prefix}/${crypto.randomUUID()}.png`, png, {
     access: "public",

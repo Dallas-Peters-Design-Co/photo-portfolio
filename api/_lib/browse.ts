@@ -1,6 +1,11 @@
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import { resolvePublicUrl } from "./publicHost.js";
-import { type CaptureResult, captureFullPage, launch } from "./screenshot.js";
+import {
+  type CaptureResult,
+  captureFullPage,
+  launch,
+  shootPage,
+} from "./screenshot.js";
 
 /**
  * One step of a board browser node: open a page (logged in when the node has
@@ -319,13 +324,12 @@ export const browse = async (input: BrowseInput): Promise<BrowseResult> => {
     const fullHeight = await page.evaluate(
       () => document.documentElement.scrollHeight
     );
-    const previewHeight = Math.min(fullHeight, PREVIEW_MAX_HEIGHT);
     await page.evaluate(() => window.scrollTo(0, 0));
-    const jpeg = await page.screenshot({
-      clip: { height: previewHeight, width: input.width, x: 0, y: 0 },
-      fullPage: true,
+    const { bytes: jpeg, height: previewHeight } = await shootPage(page, {
+      height: Math.min(fullHeight, PREVIEW_MAX_HEIGHT),
       quality: 62,
       type: "jpeg",
+      width: input.width,
     });
     return {
       image: null,
