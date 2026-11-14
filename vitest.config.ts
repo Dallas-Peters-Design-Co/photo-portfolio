@@ -27,10 +27,26 @@ export default defineConfig({
    * any test does; it only stops the ground moving under them.
    */
   optimizeDeps: {
+    // Everything a test pulls in, named up front. A dependency Vite only
+    // discovers mid-run makes it re-bundle and reload the browser, and the
+    // tests loading at that moment fail with "Failed to fetch dynamically
+    // imported module" — a different file each run.
     include: [
+      "@hugeicons-pro/core-stroke-standard/ExternalLinkIcon",
+      "@hugeicons-pro/core-stroke-standard/Facebook01Icon",
+      "@hugeicons-pro/core-stroke-standard/InstagramIcon",
+      "@hugeicons-pro/core-stroke-standard/NewTwitterIcon",
+      "@hugeicons-pro/core-stroke-standard/PinterestIcon",
+      "@hugeicons-pro/core-stroke-standard/Share01Icon",
+      "@neondatabase/serverless",
       "@vercel/analytics/react",
+      "@vercel/blob",
       "bcryptjs",
       "dotenv",
+      "drizzle-orm",
+      "drizzle-orm/neon-http",
+      "drizzle-orm/pg-core",
+      "drizzle-orm/relations",
       "jsonwebtoken",
       "posthog-js",
       "react-router-dom",

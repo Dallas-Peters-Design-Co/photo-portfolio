@@ -42,10 +42,11 @@ vi.mock("../../services/portfolioService", async (original) => ({
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-const settle = (): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, 50);
-  });
+const trigger = (el: HTMLElement) =>
+  // The chevron is a text glyph inside the trigger; only the label matters.
+  (el.querySelector(".setting-field__trigger")?.textContent ?? "")
+    .replace("▼", "")
+    .trim();
 
 const render = async (video: boolean, value?: string) => {
   host = document.createElement("div");
@@ -67,20 +68,24 @@ const render = async (video: boolean, value?: string) => {
       />
     </ModelsProvider>
   );
-  await settle();
-  return host;
+  // Wait for the models list to load and the trigger to name one, rather
+  // than a fixed pause: a slow CI runner took longer than any fixed pause.
+  const el = host;
+  await vi.waitFor(
+    () => {
+      if (!trigger(el)) {
+        throw new Error("The model trigger is still empty");
+      }
+    },
+    { interval: 20, timeout: 5000 }
+  );
+  return el;
 };
 
 afterEach(() => {
   root?.unmount();
   host?.remove();
 });
-
-const trigger = (el: HTMLElement) =>
-  // The chevron is a text glyph inside the trigger; only the label matters.
-  (el.querySelector(".setting-field__trigger")?.textContent ?? "")
-    .replace("▼", "")
-    .trim();
 
 describe("ModelSetting", () => {
   it("shows the default for a node whose model was never set", async () => {
