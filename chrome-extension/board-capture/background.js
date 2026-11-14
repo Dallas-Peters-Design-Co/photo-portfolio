@@ -173,7 +173,7 @@ const stitch = async (tab, whole) => {
 /** Just what's on screen, with no script run in the page at all. */
 const visible = async (tab) => {
   // Clear of any capture the scrolling way just made (two a second).
-  await wait(BETWEEN_SHOTS_MS);
+  await wait(BETWEEN_SHOTS_MS * 2);
   const shot = await chrome.tabs.captureVisibleTab(tab.windowId, {
     format: "jpeg",
     quality: 88,
