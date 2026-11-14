@@ -6,6 +6,7 @@ directories:
 files:
   - electron/main.mjs
   - electron/googleAuth.mjs
+  - electron/liveBrowser.mjs
   - electron/preload.cjs
   - scripts/affinity-bridge.mjs
   - package.json

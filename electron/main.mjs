@@ -37,6 +37,7 @@ import {
   systemPreferences,
 } from "electron";
 import { forgetGoogleToken, requestGoogleToken } from "./googleAuth.mjs";
+import { guardWebviews, registerLiveBrowser } from "./liveBrowser.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -336,9 +337,12 @@ const createWindow = () => {
       nodeIntegration: false,
       preload: path.join(here, "preload.cjs"),
       sandbox: true,
+      // The Browser node's live page (liveBrowser.mjs), locked down there.
+      webviewTag: true,
     },
     width: 1440,
   });
+  guardWebviews(win);
 
   // Show once painted so there is no white flash before the site arrives.
   win.once("ready-to-show", () => win.show());
@@ -445,6 +449,7 @@ app.whenReady().then(() => {
   registerGoogleAuth();
   registerNotifications();
   registerTitleBar();
+  registerLiveBrowser(isInsideSite);
   bridge = startBridge();
   createWindow();
   app.on("activate", () => {

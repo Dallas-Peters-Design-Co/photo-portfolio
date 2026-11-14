@@ -18,6 +18,7 @@ import {
   type MarkupTool,
   MarkupTools,
 } from "./BrowserMarkup";
+import { canBrowseLive, LiveBrowser } from "./LiveBrowser";
 import { type BrowserSession, useBrowserSession } from "./useBrowserSession";
 import "../../components/review/reviewMarkup.css";
 import "./BrowserNode.css";
@@ -73,6 +74,22 @@ export function BrowserNode({
   }, []);
 
   const showMarkup = !browsing && cfg.capture !== null;
+
+  // In the desktop app the page is a real browser in the node (LiveBrowser).
+  if (!(showMarkup || readOnly) && canBrowseLive()) {
+    return (
+      <div
+        className="browser-node"
+        style={reviewAccentStyle(settings.theme.accent)}
+      >
+        <LiveBrowser
+          cfg={cfg}
+          onCaptured={() => setBrowsing(false)}
+          update={session.update}
+        />
+      </div>
+    );
+  }
 
   return (
     <div
