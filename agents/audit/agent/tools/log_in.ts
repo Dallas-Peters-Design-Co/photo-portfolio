@@ -64,6 +64,23 @@ export default defineTool({
       return { ok: false, reason: "No login URL. Pass loginUrl, or set LOGIN_URL on the agent server." };
     }
 
+    // Only server configuration can authorize where the stored account is used.
+    const isTrustedLoginUrl = (candidate: string): boolean => {
+      try {
+        const trusted = new URL(process.env.LOGIN_URL ?? "");
+        const target = new URL(candidate);
+        return (
+          (trusted.protocol === "https:" || trusted.protocol === "http:") &&
+          target.origin === trusted.origin
+        );
+      } catch {
+        return false;
+      }
+    };
+    if (!isTrustedLoginUrl(url)) {
+      return { ok: false, reason: "The login URL must match the server's configured LOGIN_URL origin." };
+    }
+
     const sandbox = await ctx.getSandbox();
     const signal = ctx.abortSignal;
 
@@ -79,8 +96,18 @@ export default defineTool({
       ),
       AB_SUBMIT: process.env.LOGIN_SUBMIT_SELECTOR ?? "",
     };
-    const ab = (args: string) =>
-      sandbox.run({ command: `agent-browser --session ${BROWSER_SESSION} ${args}`, env, signal });
+    const ab = async (args: string) => {
+      // Recheck the active page after navigation and username-step redirects.
+      if (args.startsWith("fill ") || args.startsWith("click ") || args.startsWith("press ")) {
+        const current = await sandbox.run({
+          command: `agent-browser --session ${BROWSER_SESSION} get url`, env, signal,
+        });
+        if (current.exitCode !== 0 || !isTrustedLoginUrl(current.stdout.trim())) {
+          return { exitCode: 1, stdout: "", stderr: "The login page left the trusted origin." };
+        }
+      }
+      return sandbox.run({ command: `agent-browser --session ${BROWSER_SESSION} ${args}`, env, signal });
+    };
 
     const tagFields = async () => {
       const result = await ab('eval "$AB_TAG_JS"');
