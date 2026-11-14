@@ -65,3 +65,8 @@ db/0*.sql
 
 # logo-creator skill output
 .skill-archive/
+
+# Scratch output from AI sessions (mock-ups, snapshots, draft SQL); not source.
+/Claude outputs/
+# Skills that agent tools install locally.
+/skills/

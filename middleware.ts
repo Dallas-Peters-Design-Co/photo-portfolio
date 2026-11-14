@@ -12,9 +12,12 @@ import { next, rewrite } from "@vercel/edge";
  * static file from the CDN with nothing added to the critical path.
  */
 export const config = {
-  // Skip assets and the API outright — matching them would put an edge
+  // Skip assets and the API outright — matching them would put a middleware
   // invocation in front of every image request.
   matcher: ["/((?!api/|assets/|sites/|_vercel/|.*\\.[a-zA-Z0-9]+$).*)"],
+  // Node.js rather than the deprecated edge runtime. next() and rewrite() from
+  // @vercel/edge only set x-middleware-* headers, so they work the same here.
+  runtime: "nodejs",
 };
 
 const CRAWLER =
