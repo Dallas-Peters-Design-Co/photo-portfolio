@@ -12,6 +12,7 @@ import { sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { cleanEmail, normalizeProposalSlug } from "../_lib/proposals.js";
 import { keepPrivate, passwordProblem } from "../_lib/reviewAccess.js";
+import { signDoc, unsignDoc } from "../_lib/reviewImages.js";
 import {
   isReviewStatus,
   REVIEW_SELECT,
@@ -89,7 +90,7 @@ async function create(
     return res.status(400).json({ error: weak });
   }
   const doc = {
-    ...sanitizeReviewDoc(body.doc ?? DEFAULT_REVIEW_DOC),
+    ...(await unsignDoc(sanitizeReviewDoc(body.doc ?? DEFAULT_REVIEW_DOC))),
     ...keepPrivate(null, password),
   };
   const brandKitId =
@@ -112,5 +113,5 @@ async function create(
     SELECT ${sql.unsafe(REVIEW_SELECT)}
     WHERE r.id = ${inserted[0]?.id ?? ""}
   `) as ReviewRow[];
-  return res.status(201).json(row ? rowToReviewDto(row) : null);
+  return res.status(201).json(row ? await signDoc(rowToReviewDto(row)) : null);
 }

@@ -13,9 +13,15 @@ this folder with `npx eve deploy` (it uploads only this folder, never the site's
 ## How it connects to the site
 
 - `api/reviews/explore.ts` starts a capture and polls it (`api/_lib/reviewAgent.ts`).
-- The agent never gets write access to the site. It stores screenshots in its own
-  **private** Blob store and returns one-hour, read-only links to single files.
-  The site checks each link, downloads the PNG, and stores it with its own key.
+- Screenshots go to the **private** Blob store `audit-agent-screens`. It is
+  connected to `dallas-images` with the env prefix `REVIEW_BLOB`; this project
+  has the same token set as `REVIEW_BLOB_READ_WRITE_TOKEN`, and the tool reads
+  only that name. The site
+  checks each picture is a PNG in that store and keeps its plain address; it
+  hands out short-lived signed links only to the admin and to visitors who hold
+  the review's pass (`api/_lib/reviewImages.ts`).
+- Doppler holds the login account and API keys. Its `BLOB_READ_WRITE_TOKEN`
+  is not used.
 
 ## Files
 

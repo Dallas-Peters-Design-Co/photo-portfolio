@@ -5,6 +5,7 @@ import { handleCors } from "../_lib/cors.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
+import { AUDIT_LIFETIME_MS, signScreens } from "../_lib/reviewImages.js";
 import {
   isClaudeAuditConfigured,
   runUxAudit,
@@ -32,7 +33,12 @@ const serve = async (req: VercelRequest, res: VercelResponse) => {
   }
 
   const body = parseJsonBody(req.body);
-  const { screens } = sanitizeReviewDoc({ screens: body.screens });
+  // Links from the editor may have expired; private pictures are signed
+  // fresh for the time the audit takes to read them.
+  const screens = await signScreens(
+    sanitizeReviewDoc({ screens: body.screens }).screens,
+    AUDIT_LIFETIME_MS
+  );
   if (sourcesFromScreens(screens).length === 0) {
     return res.status(400).json({
       error: "Capture or upload at least one screen before running an audit.",

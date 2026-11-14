@@ -2,10 +2,15 @@ import { describe, expect, it, vi } from "vitest";
 import {
   captureMessage,
   captureState,
-  isAgentImageUrl,
   parseFacts,
   startCapture,
 } from "./reviewAgent.js";
+import {
+  isPrivateBlobUrl,
+  isReviewImageUrl,
+  plainImageUrl,
+  reviewStoreHost,
+} from "./reviewImages.js";
 
 const line = (...facts: unknown[]) =>
   JSON.stringify({ at: "2026-11-14T00:00:00.000Z", facts });
@@ -105,22 +110,41 @@ describe("captureState", () => {
   });
 });
 
-describe("isAgentImageUrl", () => {
-  it("accepts only signed links into a private Blob store", () => {
-    expect(isAgentImageUrl(SIGNED)).toBe(true);
+describe("review images", () => {
+  const host = reviewStoreHost("vercel_blob_rw_veJIxF4ghhDvejm5_secret");
+  const PLAIN = SIGNED.split("?")[0] ?? "";
+
+  it("reads the private store's host from its token", () => {
+    expect(host).toBe("vejixf4ghhdvejm5.private.blob.vercel-storage.com");
+    expect(reviewStoreHost("not a token")).toBeNull();
+    expect(reviewStoreHost(undefined)).toBeNull();
+  });
+
+  it("accepts only https pictures in that one store", () => {
+    expect(isReviewImageUrl(SIGNED, host)).toBe(true);
+    expect(isReviewImageUrl(PLAIN, host)).toBe(true);
     expect(
-      isAgentImageUrl(
-        "https://abc.public.blob.vercel-storage.com/a.png?vercel-blob-signature=y"
+      isReviewImageUrl(
+        "https://other.private.blob.vercel-storage.com/a.png",
+        host
       )
     ).toBe(false);
-    expect(isAgentImageUrl(SIGNED.replace("vercel-blob-signature=y", ""))).toBe(
+    expect(isReviewImageUrl("https://evil.example.com/a.png", host)).toBe(
       false
     );
-    expect(
-      isAgentImageUrl("https://evil.example.com/a.png?vercel-blob-signature=y")
-    ).toBe(false);
-    expect(isAgentImageUrl(SIGNED.replace("https:", "http:"))).toBe(false);
-    expect(isAgentImageUrl("not a url")).toBe(false);
+    expect(isReviewImageUrl(SIGNED.replace("https:", "http:"), host)).toBe(
+      false
+    );
+    expect(isReviewImageUrl("not a url", host)).toBe(false);
+    expect(isReviewImageUrl(SIGNED, null)).toBe(false);
+  });
+
+  it("strips signatures from private pictures only", () => {
+    expect(plainImageUrl(SIGNED)).toBe(PLAIN);
+    const pub = "https://abc.public.blob.vercel-storage.com/a.png?v=1";
+    expect(plainImageUrl(pub)).toBe(pub);
+    expect(isPrivateBlobUrl(SIGNED)).toBe(true);
+    expect(isPrivateBlobUrl(pub)).toBe(false);
   });
 });
 

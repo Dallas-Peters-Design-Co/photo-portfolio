@@ -1,7 +1,6 @@
-import { put } from "@vercel/blob";
 import { newItemId } from "../../config/proposal.js";
 import type { ReviewImage, ReviewScreen } from "../../config/review.js";
-import { blobToken } from "./blobToken.js";
+import { confirmAgentImage } from "./reviewImages.js";
 
 /**
  * The eve audit agent, as the Reviews feature uses it: it signs in to an app
@@ -13,9 +12,10 @@ import { blobToken } from "./blobToken.js";
  * eve dependency. A capture
  * takes minutes, so it is started and then polled rather than awaited.
  *
- * The agent never gets write access to this site. It stores each screenshot in
- * its own private Blob store and hands back a short-lived read-only link; this
- * site downloads the picture and stores it with its own credentials.
+ * The agent never gets write access to this site's database or its public
+ * photo store. It saves each screenshot to the private review store it shares
+ * with this site (_lib/reviewImages.ts) and hands back a signed link; this
+ * site checks the picture is there and keeps its plain address.
  */
 
 const TRAILING_SLASHES = /\/+$/;
@@ -242,64 +242,26 @@ export const endCapture = async (sessionId: string): Promise<void> => {
   ).catch(() => undefined);
 };
 
-const PRIVATE_BLOB_HOST = /^[a-z0-9]+\.private\.blob\.vercel-storage\.com$/;
-const MAX_IMAGE_BYTES = 25 * 1024 * 1024;
-const PNG_MAGIC = [0x89, 0x50, 0x4e, 0x47];
+const positive = (v: unknown): number =>
+  typeof v === "number" && Number.isFinite(v) && v > 0 ? Math.round(v) : 0;
 
-/**
- * Only a signed link into a private Vercel Blob store is fetched. The link
- * comes back through the model's answer, so anything else — another host, a
- * plain address — is refused rather than requested.
- */
-export const isAgentImageUrl = (value: string): boolean => {
-  try {
-    const url = new URL(value);
-    return (
-      url.protocol === "https:" &&
-      PRIVATE_BLOB_HOST.test(url.host) &&
-      url.searchParams.has("vercel-blob-signature")
-    );
-  } catch {
-    return false;
-  }
-};
-
-const copyImage = async (
-  image: ReviewImage,
-  prefix: string
+const confirmImage = async (
+  image: ReviewImage
 ): Promise<ReviewImage | null> => {
-  if (!isAgentImageUrl(image.url)) {
-    return null;
-  }
-  const res = await fetch(image.url, { redirect: "error" });
-  if (!res.ok) {
-    return null;
-  }
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  const isPng = PNG_MAGIC.every((b, i) => bytes[i] === b);
-  if (!isPng || bytes.byteLength > MAX_IMAGE_BYTES) {
-    return null;
-  }
-  const blob = await put(
-    `${prefix}/${crypto.randomUUID()}.png`,
-    Buffer.from(bytes),
-    {
-      access: "public",
-      contentType: "image/png",
-      token: blobToken(),
-    }
-  );
-  return { height: image.height, url: blob.url, width: image.width };
+  const width = positive(image.width);
+  const height = positive(image.height);
+  const url =
+    typeof image.url === "string" ? await confirmAgentImage(image.url) : null;
+  return url && width && height ? { height, url, width } : null;
 };
 
-/** The agent's screens as review screens, with pictures in this site's store. */
+/** The agent's screens as review screens, each picture confirmed in the store. */
 export const storeScreens = async (
-  screens: AgentScreen[],
-  prefix: string
+  screens: AgentScreen[]
 ): Promise<ReviewScreen[]> => {
   const stored = await Promise.all(
     screens.slice(0, 20).map(async (s): Promise<ReviewScreen | null> => {
-      const image = s?.image ? await copyImage(s.image, prefix) : null;
+      const image = s?.image ? await confirmImage(s.image) : null;
       if (!image) {
         return null;
       }

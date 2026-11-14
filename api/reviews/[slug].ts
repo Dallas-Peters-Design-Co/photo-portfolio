@@ -16,6 +16,7 @@ import {
   passwordMatches,
   passwordProblem,
 } from "../_lib/reviewAccess.js";
+import { signDoc, unsignDoc } from "../_lib/reviewImages.js";
 import {
   isReviewStatus,
   REVIEW_SELECT,
@@ -102,7 +103,7 @@ const unlock = (
 type Viewer = ReturnType<typeof getBearerUser>;
 
 /** GET the review, or POST its password for a pass. */
-const read = (
+const read = async (
   req: VercelRequest,
   res: VercelResponse,
   row: ReviewRow | null,
@@ -120,7 +121,7 @@ const read = (
   if (access && !user && !passValid(passOf(req), row.id, access)) {
     return res.status(401).json({ locked: true, title: row.title });
   }
-  return res.status(200).json(rowToReviewDto(row));
+  return res.status(200).json(await signDoc(rowToReviewDto(row)));
 };
 
 const save = async (
@@ -144,7 +145,10 @@ const save = async (
   }
   // The doc arrives without the password or the client's comments, which
   // are never sent out; carry both over from what's stored.
-  const doc = { ...patch.doc, ...keepPrivate(row.doc, body.password) };
+  const doc = {
+    ...(await unsignDoc(patch.doc)),
+    ...keepPrivate(row.doc, body.password),
+  };
   if (patch.slug !== row.slug) {
     const taken = await loadBySlug(sql, patch.slug);
     if (taken) {
@@ -165,7 +169,9 @@ const save = async (
     WHERE id = ${row.id}
   `;
   const fresh = await loadBySlug(sql, patch.slug);
-  return res.status(200).json(fresh ? rowToReviewDto(fresh) : null);
+  return res
+    .status(200)
+    .json(fresh ? await signDoc(rowToReviewDto(fresh)) : null);
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -183,7 +189,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const sql = getSql();
     const row = await loadBySlug(sql, slug);
     if (req.method === "GET" || req.method === "POST") {
-      return read(req, res, row, user);
+      return await read(req, res, row, user);
     }
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });

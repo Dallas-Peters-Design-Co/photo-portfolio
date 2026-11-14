@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { installAgentBrowser } from "@eve/agent-browser/sandbox";
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 
@@ -13,6 +14,11 @@ const VIEWPORTS = {
 // Same cap as the site's capture: an endless feed stops here.
 const MAX_HEIGHT = 6000;
 const LINK_LIFETIME_MS = 60 * 60 * 1000;
+// Absolute: the browser daemon writes the file, and its working directory is
+// not the one this tool reads from. A relative path lands somewhere else.
+const SHOTS_DIR = "/tmp/eve-shots";
+const START_ATTEMPTS = 4;
+const START_RETRY_MS = 3000;
 
 // Prepares the page the way the site's own capture does: cut animations, walk
 // the page so lazy content loads, pin fixed and sticky elements where a reader
@@ -71,11 +77,28 @@ export default defineTool({
     const ab = (args: string) =>
       sandbox.run({ command: `agent-browser --session ${BROWSER_SESSION} ${args}`, env, signal });
 
-    const sized = await ab(`set viewport ${frame.width} ${frame.height}`);
-    if (sized.exitCode !== 0) return { ok: false, reason: "Could not set the browser size." };
+    const why = (r: { stderr: string; stdout: string }) =>
+      (r.stderr.trim() || r.stdout.trim()).slice(0, 300);
+
+    // The browser extension installs agent-browser on its first call, which
+    // may not have happened yet when this tool runs first.
+    const probe = await sandbox.run({ command: "command -v agent-browser", signal });
+    if (probe.exitCode !== 0) await installAgentBrowser(sandbox, { abortSignal: signal });
+
+    // The first command in a fresh sandbox starts the browser daemon, and a
+    // cold Chrome can outlast the CLI's startup wait. The daemon keeps
+    // starting in the background, so a later try finds it.
+    let sized = await ab(`set viewport ${frame.width} ${frame.height}`);
+    for (let attempt = 1; sized.exitCode !== 0 && attempt < START_ATTEMPTS; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, START_RETRY_MS));
+      sized = await ab(`set viewport ${frame.width} ${frame.height}`);
+    }
+    if (sized.exitCode !== 0) {
+      return { ok: false, reason: `Could not set the browser size: ${why(sized)}` };
+    }
     if (url) {
       const opened = await ab('open "$AB_URL"');
-      if (opened.exitCode !== 0) return { ok: false, reason: `Could not open ${url}.` };
+      if (opened.exitCode !== 0) return { ok: false, reason: `Could not open ${url}: ${why(opened)}` };
     } else {
       // The new width can change the layout; reload so it settles.
       await ab("reload");
@@ -85,20 +108,26 @@ export default defineTool({
     await ab('eval "$AB_JS"');
     await ab("wait 1200");
 
-    const file = `.eve/shots/${randomUUID()}.png`;
-    await sandbox.run({ command: "mkdir -p .eve/shots", signal });
+    const file = `${SHOTS_DIR}/${randomUUID()}.png`;
+    await sandbox.run({ command: `mkdir -p ${SHOTS_DIR}`, signal });
     const shot = await ab(`screenshot --full ${file}`);
-    if (shot.exitCode !== 0) return { ok: false, reason: "The screenshot failed." };
+    if (shot.exitCode !== 0) return { ok: false, reason: `The screenshot failed: ${why(shot)}` };
     const bytes = await sandbox.readBinaryFile({ path: file });
-    if (!bytes || bytes.byteLength < 24) return { ok: false, reason: "The screenshot file is empty." };
+    if (!bytes || bytes.byteLength < 24) {
+      return { ok: false, reason: `The screenshot file is empty: ${why(shot)}` };
+    }
     const sourceUrl = (await ab("get url")).stdout.trim() || url || "";
 
     // Store privately; hand back only a short-lived, read-only link to this one file.
+    // The private review store, shared with the site under the same name.
+    // Named explicitly so a stray BLOB_READ_WRITE_TOKEN can never redirect it.
+    const token = process.env.REVIEW_BLOB_READ_WRITE_TOKEN?.trim();
+    if (!token) return { ok: false, reason: "REVIEW_BLOB_READ_WRITE_TOKEN is not set." };
     const { issueSignedToken, presignUrl, put } = await import("@vercel/blob");
     const pathname = `screens/${randomUUID()}.png`;
-    await put(pathname, Buffer.from(bytes), { access: "private", contentType: "image/png" });
+    await put(pathname, Buffer.from(bytes), { access: "private", contentType: "image/png", token });
     const validUntil = Date.now() + LINK_LIFETIME_MS;
-    const signed = await issueSignedToken({ operations: ["get"], pathname, validUntil });
+    const signed = await issueSignedToken({ operations: ["get"], pathname, token, validUntil });
     const { presignedUrl } = await presignUrl(signed, {
       access: "private",
       operation: "get",

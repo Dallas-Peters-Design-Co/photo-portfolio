@@ -6,6 +6,7 @@ import {
   P,
   SOFT,
 } from "./emailLayout.js";
+import { isPrivateBlobUrl } from "./reviewImages.js";
 import type { ReviewDto } from "./reviews.js";
 
 /**
@@ -42,7 +43,11 @@ export const reviewLinkEmail = ({
   // The first captured screen, so the client sees the work before clicking
   // through. Plain screenshot: pins and markup live on the page, where they
   // can sit beside their notes.
-  const lead = review.doc.screens.find((s) => s.image);
+  // Private pictures stay out: an email lasts, a signed link does not, and
+  // the review behind its password is where they belong.
+  const lead = review.doc.screens.find(
+    (s) => s.image && !isPrivateBlobUrl(s.image.url)
+  );
   const preview = lead?.image
     ? `<p style="margin:0 0 20px"><a href="${escapeHtml(url)}"><img alt="${escapeHtml(lead.title || review.title)}" src="${escapeHtml(lead.image.url)}" style="display:block;width:100%;max-width:560px;height:auto;border:1px solid #e5e5e5;border-radius:6px" width="560"></a></p>`
     : "";

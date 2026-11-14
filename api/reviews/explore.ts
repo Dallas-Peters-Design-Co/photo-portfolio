@@ -10,6 +10,7 @@ import {
   startCapture,
   storeScreens,
 } from "../_lib/reviewAgent.js";
+import { signScreens } from "../_lib/reviewImages.js";
 
 /**
  * Screens captured by the eve audit agent, for apps behind a login.
@@ -28,9 +29,6 @@ export const config = { maxDuration: 120 };
 
 const SESSION_ID = /^[A-Za-z0-9_-]{1,128}$/;
 const MAX_PAGES = 6;
-
-const slugOf = (value: unknown): string =>
-  typeof value === "string" ? value.replace(/[^a-z0-9-]/g, "") : "";
 
 const start = async (req: VercelRequest, res: VercelResponse) => {
   const body = parseJsonBody(req.body);
@@ -68,9 +66,12 @@ const status = async (req: VercelRequest, res: VercelResponse) => {
   if (capture.state === "failed") {
     return res.status(200).json(capture);
   }
-  const prefix = `reviews/${slugOf(req.query.slug) || "untitled"}`;
-  const screens = await storeScreens(capture.screens, prefix);
-  return res.status(200).json({ note: capture.note, screens, state: "done" });
+  const screens = await signScreens(await storeScreens(capture.screens));
+  const note =
+    screens.length === capture.screens.length
+      ? capture.note
+      : `${capture.note} ${capture.screens.length - screens.length} of ${capture.screens.length} pictures could not be found in the review store.`.trim();
+  return res.status(200).json({ note, screens, state: "done" });
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

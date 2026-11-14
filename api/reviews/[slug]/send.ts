@@ -6,6 +6,7 @@ import { EmailNotConfiguredError, sendEmail } from "../../_lib/email.js";
 import { sanitizeText } from "../../_lib/httpUrl.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
 import { reviewLinkEmail } from "../../_lib/reviewEmail.js";
+import { signDoc } from "../../_lib/reviewImages.js";
 import {
   REVIEW_SELECT,
   type ReviewRow,
@@ -103,12 +104,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `) as ReviewRow[];
     const [current] = fresh;
     return res.status(200).json(
-      current
-        ? rowToReviewDto(current)
-        : {
-            ...rowToReviewDto(row),
-            sent: { at: new Date().toISOString(), to },
-          }
+      await signDoc(
+        current
+          ? rowToReviewDto(current)
+          : {
+              ...rowToReviewDto(row),
+              sent: { at: new Date().toISOString(), to },
+            }
+      )
     );
   } catch (e) {
     console.error(e);
