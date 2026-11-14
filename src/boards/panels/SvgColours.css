@@ -1,0 +1,45 @@
+/* The colours of an SVG, in the panel that hangs off the item's tool bar. */
+.svg-colours {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  min-width: 15rem;
+  padding: calc(var(--spacing) * 3);
+  color: var(--color-board-ink);
+}
+
+.svg-colours__list {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.svg-colours__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.svg-colours__hex {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+.svg-colours__count {
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+}
+
+.svg-colours__actions {
+  display: flex;
+  gap: var(--spacing);
+  justify-content: flex-end;
+}
+
+.svg-colours__note {
+  max-width: 16rem;
+  padding: calc(var(--spacing) * 3);
+  font-size: 0.75rem;
+  color: var(--color-board-ink);
+}

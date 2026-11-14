@@ -12,6 +12,8 @@ import {
 import { downloadImage } from "./io/downloadImage";
 import { isVideoUrl } from "./io/isVideo";
 import { saveTargetOf } from "./io/saveTarget";
+import { isSvgUrl } from "./io/svgRaster";
+import { SvgColours } from "./panels/SvgColours";
 import { ToolPicker } from "./panels/ToolPicker";
 import { ToolPrompt } from "./panels/ToolPrompt";
 import { useAnchoredPanel } from "./panels/useAnchoredPanel";
@@ -106,6 +108,47 @@ function EditorButton({
     >
       {label}
     </Button>
+  );
+}
+
+/**
+ * An SVG's own colours, changed on the item rather than in a vector app.
+ * Answers "should I exist" itself (only for an SVG), and hangs its panel off
+ * the bar on the bar's side, as the tool picker does.
+ */
+function SvgColoursTool({ above, item }: { above: boolean; item: BoardItem }) {
+  const [open, setOpen] = useState(false);
+  const url = imageOf(item);
+  if (!(url && isSvgUrl(url))) {
+    return null;
+  }
+  return (
+    <>
+      <Button
+        aria-expanded={open}
+        onClick={() => setOpen((was) => !was)}
+        size="xs"
+        title="Change the colours this SVG is drawn in"
+        variant="ghost"
+      >
+        Colours
+      </Button>
+      {open ? (
+        <div
+          className={`board-toolbar__panel ${
+            above
+              ? "board-toolbar__panel--above"
+              : "board-toolbar__panel--below"
+          }`}
+        >
+          <SvgColours
+            itemId={item.id}
+            onClose={() => setOpen(false)}
+            url={url}
+          />
+        </div>
+      ) : null}
+    </>
   );
 }
 
@@ -322,6 +365,7 @@ export function BoardToolBar({
         {shown?.noun === "clip" ? null : (
           <EditorButton itemId={item.id} onOpen={onOpenInEditor} />
         )}
+        <SvgColoursTool above={above} item={item} />
         {applicable.length > 0 ? (
           <Button
             aria-expanded={picking || pending !== null}

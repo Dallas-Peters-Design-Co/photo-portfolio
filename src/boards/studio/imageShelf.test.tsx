@@ -6,11 +6,17 @@ import type { BoardItem } from "../../types";
 import {
   BoardImagesContext,
   boardImages,
+  hideFromShelf,
   rememberMade,
+  restoreShelf,
   useImageShelf,
+  useShelf,
 } from "./imageShelf";
 
-const clear = () => localStorage.removeItem("studio:made-images");
+const clear = () => {
+  localStorage.removeItem("studio:made-images");
+  localStorage.removeItem("studio:hidden-images");
+};
 beforeEach(clear);
 afterEach(clear);
 
@@ -55,6 +61,35 @@ describe("imageShelf", () => {
     ]);
     act(() => rememberMade("https://b/new.png"));
     expect(shelf[0]).toBe("https://b/new.png");
+    act(() => root.unmount());
+  });
+
+  it("takes a picture off the list, made or on the board, and puts them back", () => {
+    rememberMade("https://b/made.png");
+    let shelf = { hidden: 0, urls: [] as string[] };
+    function Probe() {
+      shelf = useShelf();
+      return null;
+    }
+    const host = document.createElement("div");
+    const root = createRoot(host);
+    act(() =>
+      root.render(
+        <BoardImagesContext.Provider value={["https://b/on-board.png"]}>
+          <Probe />
+        </BoardImagesContext.Provider>
+      )
+    );
+    expect(shelf.urls).toEqual([
+      "https://b/made.png",
+      "https://b/on-board.png",
+    ]);
+    act(() => hideFromShelf("https://b/on-board.png"));
+    act(() => hideFromShelf("https://b/made.png"));
+    expect(shelf).toEqual({ hidden: 1, urls: [] });
+    // The made one is forgotten outright; the board's is only hidden.
+    act(() => restoreShelf());
+    expect(shelf).toEqual({ hidden: 0, urls: ["https://b/on-board.png"] });
     act(() => root.unmount());
   });
 });

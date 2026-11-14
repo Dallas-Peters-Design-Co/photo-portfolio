@@ -960,3 +960,31 @@
 .studio-scheme__switch {
   margin-left: auto;
 }
+
+/* A picture on the shelf, with the x that takes it off (ImagePick.tsx). */
+.studio-pick__slot {
+  position: relative;
+  display: grid;
+}
+
+.studio-pick__remove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: grid;
+  place-items: center;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-board-panel);
+  background: var(--color-board-ink);
+  border-radius: 50%;
+  opacity: 0;
+
+  &:focus-visible {
+    opacity: 1;
+  }
+}
+
+.studio-pick__slot:hover .studio-pick__remove {
+  opacity: 1;
+}

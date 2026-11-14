@@ -1,7 +1,7 @@
-import { Crosshair, Frame, ImageUp } from "lucide-react";
+import { Crosshair, Frame, ImageUp, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useImageShelf } from "./imageShelf";
+import { hideFromShelf, restoreShelf, useShelf } from "./imageShelf";
 
 /**
  * Choosing a picture for a Studio tool: one just generated, one on the board,
@@ -47,7 +47,7 @@ export function ImagePick({
    */
   onPick: (url: string, source?: string, inPlace?: boolean) => void;
 }) {
-  const shelf = useImageShelf();
+  const { hidden, urls: shelf } = useShelf();
   const [more, setMore] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const shown = more ? shelf : shelf.slice(0, SHOWN);
@@ -130,16 +130,26 @@ export function ImagePick({
           </button>
         ) : null}
         {shown.map((url) => (
-          <button
-            aria-label="Use this picture"
-            aria-pressed={chosen === url}
-            className="studio-pick__item"
-            key={url}
-            onClick={() => void pick(url)}
-            type="button"
-          >
-            <img alt="" height={48} loading="lazy" src={url} width={48} />
-          </button>
+          <span className="studio-pick__slot" key={url}>
+            <button
+              aria-label="Use this picture"
+              aria-pressed={chosen === url}
+              className="studio-pick__item"
+              onClick={() => void pick(url)}
+              type="button"
+            >
+              <img alt="" height={48} loading="lazy" src={url} width={48} />
+            </button>
+            <button
+              aria-label="Take this picture off the list"
+              className="studio-pick__remove"
+              onClick={() => hideFromShelf(url)}
+              title="Take it off this list (nothing is deleted)"
+              type="button"
+            >
+              <X aria-hidden size={10} />
+            </button>
+          </span>
         ))}
       </div>
       {shelf.length > SHOWN ? (
@@ -149,6 +159,16 @@ export function ImagePick({
           type="button"
         >
           {more ? "Fewer" : `All ${shelf.length}`}
+        </button>
+      ) : null}
+      {hidden > 0 ? (
+        <button
+          className="studio-pick__more"
+          onClick={restoreShelf}
+          title="Put back the pictures taken off this list"
+          type="button"
+        >
+          Show {hidden} hidden
         </button>
       ) : null}
       {shelf.length === 0 ? (

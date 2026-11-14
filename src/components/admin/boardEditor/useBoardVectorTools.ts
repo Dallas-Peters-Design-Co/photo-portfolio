@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import {
   DEFAULT_NODE_HEIGHT,
@@ -14,7 +14,9 @@ import type { AffinityWriteback } from "../../../boards/io/affinity";
 import { bridgeAppName, isSvgUrl } from "../../../boards/io/affinity";
 import { measureRaster } from "../../../boards/io/measureRaster";
 import { newItemId } from "../../../boards/io/newItemId";
+import { onSvgEdit } from "../../../boards/io/svgEditEvents";
 import { outputImageOf } from "../../../boards/itemOutput";
+import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardItemResult, BoardWire } from "../../../types";
 import { BLANK_ITEM, PORT_SPAWN_GAP } from "./placement";
 
@@ -109,6 +111,18 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
   );
 
   const { openInAffinity } = useAffinityBridge(boardId, applyEditedSvg);
+  // An SVG recoloured on its item (panels/SvgColours.tsx): kept the same way
+  // an edit from the vector app is.
+  useEffect(
+    () =>
+      onSvgEdit(async (itemId, svg) => {
+        applyEditedSvg(
+          itemId,
+          await boardsApi.writebackSvg(boardId, itemId, svg)
+        );
+      }),
+    [applyEditedSvg, boardId]
+  );
   const { editorNode, openEditor } = useBoardImageEditor(
     boardId,
     applyEditedSvg
