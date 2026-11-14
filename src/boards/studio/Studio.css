@@ -816,7 +816,8 @@
   }
 }
 
-.studio-scheme__anchor {
+.studio-scheme__anchor,
+.studio-scheme__by-hand {
   font-size: 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -907,4 +908,55 @@
     outline: 2px solid var(--color-board-ink);
     outline-offset: 2px;
   }
+}
+
+/* Palette Builder: picking a colour to set by hand. */
+.studio-palette__pick {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: -4px;
+  }
+}
+
+/* The tools and hex sit over the pick area. */
+.studio-palette__pick ~ * {
+  position: relative;
+}
+
+/* The picked colour: a bar along its top, in its own ink. */
+.studio-palette__swatch[data-selected]::after {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 5px;
+  content: "";
+  background: currentColor;
+}
+
+.studio-scheme__picked {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.studio-scheme__well {
+  width: 2rem;
+  height: 1.5rem;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.studio-scheme__switch {
+  margin-left: auto;
 }

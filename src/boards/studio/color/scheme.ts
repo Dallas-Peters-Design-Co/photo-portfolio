@@ -87,14 +87,14 @@ export interface SchemeOptions {
   anchor: string;
   /** 2–9 colours, the anchor included. */
   count: number;
-  /**
-   * Hues set by hand (dragged on the hue wheel), by position: that colour
-   * takes this hue whatever the hue settings say. Not used by the ramps.
-   */
-  hueAt?: (number | null)[];
   hues: HueMode;
   /** Colours kept as they are, by position; the anchor is position 0. */
   locked?: (string | null)[];
+  /**
+   * Colours set by hand, by position: whichever of lightness, chroma and hue
+   * is given replaces what the settings would make. The anchor has none.
+   */
+  manual?: (Manual | null)[];
   /** Brings every colour that isn't locked down to the least vivid one. */
   matchChroma: boolean;
   model: SchemeModel;
@@ -102,6 +102,12 @@ export interface SchemeOptions {
   neutrals: number;
   /** 0–360°: how far round the wheel the hues reach. */
   spread: number;
+}
+
+export interface Manual {
+  c?: number;
+  h?: number;
+  l?: number;
 }
 
 export const SCHEME_DEFAULTS: Omit<SchemeOptions, "anchor"> = {
@@ -271,7 +277,7 @@ export const buildScheme = (options: SchemeOptions): string[] => {
         : companion(
             base,
             options.model,
-            turn(options.hueAt?.[i] ?? base.h + offset),
+            turn(options.manual?.[i]?.h ?? base.h + offset),
             i - 1,
             count - 1
           )
@@ -282,16 +288,32 @@ export const buildScheme = (options: SchemeOptions): string[] => {
     ? 0
     : Math.round(clamp(options.neutrals, 0, Math.min(3, count - 1)));
   const isNeutral = (i: number) => i >= count - neutrals;
-  colours = colours.map((c, i) =>
-    isNeutral(i) ? neutral(base, i - (count - neutrals)) : toSrgbGamut(c)
+  // A colour set by hand takes its own numbers over the model's (and over
+  // being a neutral); the anchor is never set this way.
+  const hands = colours.map((c, i) =>
+    c === base ? null : (options.manual?.[i] ?? null)
   );
+  colours = colours.map((c, i) => {
+    const hand = hands[i];
+    const made = isNeutral(i) ? neutral(base, i - (count - neutrals)) : c;
+    if (hand) {
+      return toSrgbGamut({ ...made, ...hand, h: turn(hand.h ?? made.h) });
+    }
+    return isNeutral(i) ? made : toSrgbGamut(c);
+  });
 
   const kept = (i: number) => options.locked?.[i] ?? null;
   if (options.matchChroma) {
-    const free = colours.filter((_, i) => !(isNeutral(i) || kept(i)));
+    // A chroma set by hand stays as set.
+    const free = colours.filter(
+      (_, i) => !(isNeutral(i) || kept(i) || typeof hands[i]?.c === "number")
+    );
     const lowest = Math.min(...free.map((c) => c.c));
     colours = colours.map((c, i) =>
-      isNeutral(i) || kept(i) || !Number.isFinite(lowest)
+      isNeutral(i) ||
+      kept(i) ||
+      typeof hands[i]?.c === "number" ||
+      !Number.isFinite(lowest)
         ? c
         : toSrgbGamut({ ...c, c: lowest })
     );

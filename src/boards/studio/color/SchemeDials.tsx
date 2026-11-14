@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react";
 
 /**
- * The anchor as three dials: lightness, chroma and hue, each on a track
+ * The selected colour as three dials: lightness, chroma and hue, each on a track
  * painted with what moving along it gives, the other two held where they
  * are. Kept as numbers, not read back from the hex, so a grey remembers its
  * hue and turning the chroma back up brings the same colour back.
@@ -56,9 +56,12 @@ const DIALS = [
 ] as const;
 
 export function SchemeDials({
+  name,
   onChange,
   value,
 }: {
+  /** Whose dials these are: "Anchor", "Colour 3". */
+  name: string;
   onChange: (next: Lch) => void;
   value: Lch;
 }) {
@@ -73,7 +76,7 @@ export function SchemeDials({
             </span>
             <output>{shown.toFixed(dial.places)}</output>
             <input
-              aria-label={`Anchor ${dial.label.toLowerCase()}`}
+              aria-label={`${name} ${dial.label.toLowerCase()}`}
               className="studio-dials__track"
               max={dial.max}
               min={0}

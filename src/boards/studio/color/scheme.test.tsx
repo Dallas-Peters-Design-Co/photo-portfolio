@@ -100,7 +100,7 @@ describe("buildScheme", () => {
 
   it("takes a hue set by hand for one colour and leaves the rest", () => {
     const plain = make();
-    const moved = make({ hueAt: [null, null, 40] });
+    const moved = make({ manual: [null, null, { h: 40 }] });
     expect(hueGap(lch(moved[2] ?? "").h, 40)).toBeLessThan(8);
     expect(moved[1]).toBe(plain[1]);
     expect(moved[3]).toBe(plain[3]);
@@ -237,21 +237,23 @@ describe("dialling a palette in", () => {
     done();
   });
 
+  const dial = (host: HTMLElement) => (label: string, value: string) => {
+    const input = host.querySelector(
+      `[aria-label="${label}"]`
+    ) as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value"
+    )?.set;
+    act(() => {
+      setter?.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  };
+
   it("sets the anchor's lightness, chroma and hue from the dials", async () => {
     const { done, hexes, host } = await mount();
-    const set = (label: string, value: string) => {
-      const input = host.querySelector(
-        `[aria-label="${label}"]`
-      ) as HTMLInputElement;
-      const setter = Object.getOwnPropertyDescriptor(
-        HTMLInputElement.prototype,
-        "value"
-      )?.set;
-      act(() => {
-        setter?.call(input, value);
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-      });
-    };
+    const set = dial(host);
     set("Anchor lightness", "45");
     set("Anchor chroma", "0.1");
     set("Anchor hue", "180");
@@ -262,6 +264,47 @@ describe("dialling a palette in", () => {
     set("Anchor chroma", "0");
     set("Anchor chroma", "0.1");
     expect(hueGap(lch(hexes()[0] ?? "").h, 180)).toBeLessThan(6);
+    done();
+  });
+
+  it("sets one colour by hand, syncs it back, and switches them all off", async () => {
+    const { done, hexes, host } = await mount();
+    const press = (label: string) =>
+      act(() =>
+        (host.querySelector(`[aria-label="${label}"]`) as HTMLElement).click()
+      );
+    const before = hexes();
+    press("Edit colour 2");
+    const set = dial(host);
+    set("Colour 2 lightness", "30");
+    set("Colour 2 chroma", "0.05");
+    const mine = lch(hexes()[1] ?? "");
+    expect(mine.l).toBeCloseTo(0.3, 1);
+    expect(mine.c).toBeLessThan(0.07);
+    expect([hexes()[0], hexes()[2], hexes()[3]]).toEqual([
+      before[0],
+      before[2],
+      before[3],
+    ]);
+    const byHand = hexes();
+    // Individual colours off: everything follows the anchor again...
+    const toggle = host.querySelector(
+      ".studio-scheme__switch input"
+    ) as HTMLElement;
+    act(() => toggle.click());
+    expect(hexes()).toEqual(before);
+    // ...and on again brings the hand-set colour back.
+    act(() => toggle.click());
+    expect(hexes()).toEqual(byHand);
+    // Sync to anchor lets go of just that one for good.
+    act(() =>
+      (
+        [...host.querySelectorAll("button")].find((b) =>
+          b.textContent?.includes("Sync to anchor")
+        ) as HTMLElement
+      ).click()
+    );
+    expect(hexes()).toEqual(before);
     done();
   });
 });

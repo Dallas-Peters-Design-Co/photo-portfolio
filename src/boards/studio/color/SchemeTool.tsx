@@ -1,43 +1,32 @@
-import { Copy, Download, Lock, LockOpen, Plus, Save } from "lucide-react";
-import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import {
-  formatOklch,
-  hexToOklch,
-  oklchToHex,
-  toSrgbGamut,
-} from "../../../lib/oklch";
+  Copy,
+  Download,
+  Link2,
+  Lock,
+  LockOpen,
+  Plus,
+  Save,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { formatOklch, hexToOklch } from "../../../lib/oklch";
 import { saveBlob, svgToPngBlob } from "../render";
 import { inkOn } from "./harmony";
 import { SchemeControls } from "./SchemeControls";
-import { type Lch, SchemeDials } from "./SchemeDials";
+import { SchemeDials } from "./SchemeDials";
 import { HueMap } from "./SchemeHueMap";
-import {
-  buildScheme,
-  SCHEME_DEFAULTS,
-  type SchemeOptions,
-  simulate,
-  type Vision,
-} from "./scheme";
+import { simulate, type Vision } from "./scheme";
 import { swatchesSvg } from "./swatches";
 import { useKitPalette } from "./useKitPalette";
+import { lchOf, useScheme } from "./useScheme";
 
 /**
  * Palette Builder: a palette grown from one colour. Pick the anchor, say what
  * the palette is for (the model), where its other hues sit and how many of
- * them are neutrals; lock any colour worth keeping and change the rest
- * around it. Save it as the brand's palette, put it on the board, or copy it
+ * them are neutrals. Click any colour to set it by hand with the dials or
+ * the hue wheel, sync it back to the anchor, or lock it as it is. Save it as the brand's palette, put it on the board, or copy it
  * out as hex, OKLCH or CSS.
  */
-
-type Settings = Omit<SchemeOptions, "anchor" | "locked">;
-
-const START = "#2f7cf6";
-
-const lchOf = (hex: string): Lch => {
-  const c = hexToOklch(hex) ?? hexToOklch(START);
-  return { c: c?.c ?? 0, h: c?.h ?? 0, l: c?.l ?? 0.6 };
-};
 
 const oklchOf = (hex: string) => {
   const c = hexToOklch(hex);
@@ -51,56 +40,11 @@ const cssOf = (colors: string[]) =>
 
 export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
   const { entries, kit, save, saving } = useKitPalette();
-  // The anchor as lightness, chroma and hue: the dials and the wheel set
-  // these, and the hex every colour is made from follows.
-  const [lch, setLch] = useState<Lch>(() => lchOf(entries[0]?.value ?? ""));
-  const anchor = useMemo(
-    () => oklchToHex(toSrgbGamut({ a: 1, ...lch })),
-    [lch]
-  );
-  const setAnchor = (hex: string) => setLch(lchOf(hex));
-  const [settings, setSettings] = useState<Settings>(SCHEME_DEFAULTS);
-  // Colours held as they are, by position (the anchor is never in here).
-  const [locked, setLocked] = useState<(string | null)[]>([]);
+  const scheme = useScheme(entries[0]?.value);
+  const { anchorAt, colors, locked, selected, settings } = scheme;
   const [vision, setVision] = useState<Vision>("none");
-  // Hues dragged on the wheel, by position: held until double-clicked back.
-  const [hueAt, setHueAt] = useState<(number | null)[]>([]);
 
-  const colors = useMemo(
-    () => buildScheme({ ...settings, anchor, hueAt, locked }),
-    [anchor, hueAt, locked, settings]
-  );
-
-  // Where the anchor sits: first, except in a ramp, where it takes the step
-  // nearest its own lightness.
-  const anchorAt = Math.max(0, colors.indexOf(anchor.toLowerCase()));
-
-  const toggleLock = (i: number) =>
-    setLocked((was) => {
-      const next = [...was];
-      next[i] = next[i] ? null : (colors[i] ?? null);
-      return next;
-    });
-
-  const isRamp =
-    settings.model === "sequential" || settings.model === "diverging";
-  const neutralFrom = isRamp
-    ? colors.length
-    : colors.length - Math.min(settings.neutrals, colors.length - 1);
-  /** A handle dragged on the wheel: the anchor turns, another colour holds. */
-  const setHue = (i: number, hue: number) => {
-    if (i === anchorAt) {
-      setLch((was) => ({ ...was, h: ((hue % 360) + 360) % 360 }));
-      return;
-    }
-    setHueAt((was) => {
-      const next = [...was];
-      next[i] = ((hue % 360) + 360) % 360;
-      return next;
-    });
-  };
-  const releaseHue = (i: number) =>
-    setHueAt((was) => was.map((h, k) => (k === i ? null : h)));
+  const nameOf = (i: number) => (i === anchorAt ? "Anchor" : `Colour ${i + 1}`);
 
   const copy = (text: string, what: string) => {
     void navigator.clipboard?.writeText(text);
@@ -122,25 +66,26 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
           return (
             <div
               className="studio-palette__swatch"
+              data-selected={i === selected ? "" : undefined}
               // biome-ignore lint/suspicious/noArrayIndexKey: a slot is its position
               key={i}
               style={{ background: shown, color: inkOn(shown) }}
             >
-              {i === anchorAt ? (
-                <input
-                  aria-label="Anchor colour"
-                  className="studio-palette__well"
-                  onChange={(e) => setAnchor(e.target.value)}
-                  title="The anchor: every other colour is made from it"
-                  type="color"
-                  value={anchor}
-                />
-              ) : (
+              <button
+                aria-label={`Edit ${nameOf(i).toLowerCase()}`}
+                aria-pressed={i === selected}
+                className="studio-palette__pick"
+                disabled={!scheme.individual && i !== anchorAt}
+                onClick={() => scheme.select(i)}
+                title={`${nameOf(i)}: click to set it with the dials`}
+                type="button"
+              />
+              {i === anchorAt ? null : (
                 <button
                   aria-label={locked[i] ? `Unlock ${c}` : `Lock ${c}`}
                   aria-pressed={Boolean(locked[i])}
                   className="studio-palette__tool"
-                  onClick={() => toggleLock(i)}
+                  onClick={() => scheme.toggleLock(i)}
                   type="button"
                 >
                   {locked[i] ? <Lock size={15} /> : <LockOpen size={15} />}
@@ -157,15 +102,53 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
               {i === anchorAt ? (
                 <span className="studio-scheme__anchor">Anchor</span>
               ) : null}
+              {scheme.held(i) ? (
+                <span className="studio-scheme__by-hand">By hand</span>
+              ) : null}
             </div>
           );
         })}
       </div>
       <div className="studio-scheme">
         <div className="studio__controls">
-          <SchemeDials onChange={setLch} value={lch} />
+          <div className="studio-scheme__picked">
+            <strong>{nameOf(selected)}</strong>
+            <input
+              aria-label={`${nameOf(selected)} colour`}
+              className="studio-scheme__well"
+              onChange={(e) => {
+                const { c, h, l } = lchOf(e.target.value);
+                scheme.setColour(selected, { c, h, l });
+              }}
+              type="color"
+              value={colors[selected] ?? scheme.anchor}
+            />
+            {scheme.held(selected) ? (
+              <button
+                className="studio__button"
+                onClick={() => scheme.release(selected)}
+                title="This colour follows the anchor and the settings again"
+                type="button"
+              >
+                <Link2 size={14} /> Sync to anchor
+              </button>
+            ) : null}
+            <label className="studio__check studio-scheme__switch">
+              <input
+                checked={scheme.individual}
+                onChange={(e) => scheme.setIndividual(e.target.checked)}
+                type="checkbox"
+              />
+              Individual colours
+            </label>
+          </div>
+          <SchemeDials
+            name={nameOf(selected)}
+            onChange={(next) => scheme.setColour(selected, next)}
+            value={scheme.selectedLch}
+          />
           <SchemeControls
-            onChange={(next) => setSettings((was) => ({ ...was, ...next }))}
+            onChange={scheme.setSettings}
             onVision={setVision}
             settings={settings}
             vision={vision}
@@ -173,16 +156,18 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
         </div>
         <HueMap
           handles={colors.map((hex, i) => ({
-            // A ramp's steps follow the anchor; neutrals and locks stay put.
-            fixed:
-              i !== anchorAt &&
-              (isRamp || i >= neutralFrom || Boolean(locked[i])),
-            held: i !== anchorAt && typeof hueAt[i] === "number",
+            // The anchor always turns. Another colour moves when single
+            // colours are on and it isn't locked.
+            fixed: i !== anchorAt && (!scheme.individual || Boolean(locked[i])),
+            held: scheme.held(i),
             hex,
             isAnchor: i === anchorAt,
           }))}
-          onHue={setHue}
-          onRelease={releaseHue}
+          onHue={(i, h) => {
+            scheme.select(i);
+            scheme.setColour(i, { h });
+          }}
+          onRelease={scheme.release}
         />
       </div>
       <div className="studio__actions">
@@ -242,7 +227,7 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
         {locked.some(Boolean) ? (
           <button
             className="studio__button"
-            onClick={() => setLocked([])}
+            onClick={scheme.unlockAll}
             type="button"
           >
             Unlock all
