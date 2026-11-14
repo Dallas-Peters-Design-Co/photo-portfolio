@@ -116,11 +116,11 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(17.3% 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+  --card: oklch(23.3% 0 0);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.269 0 0);
+  --popover: oklch(17.3% 0 0);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
@@ -164,46 +164,28 @@
 .board-fixed {
   --board-ink: oklch(1 0 0);
   --board-surface: oklch(0 0 0);
-  --board-panel: oklch(0.205 0 0);
-  --board-ground: oklch(0.145 0 0);
+  --board-panel: oklch(21.3% 0 0);
+  --board-ground: oklch(17.3% 0 0);
   /* The board's own near-black, faintly green. Kept exactly as it was rather
      than swapped for --board-ground: this is what the canvas has always looked
      like, and it is not a neutral grey. */
   --dot-bg: oklch(8.8% 0.08 142.17);
-  --dot-color: rgb(52 48 48);
+  --dot-color: oklch(27.3% 0 0);
 }
 
-/*
- * What a button is painted with, per surface.
- *
- * Every button in the app reads these; none names a colour. Buttons sit on two
- * surfaces — the dark admin chrome and the board's inverting paper — and before
- * this the only way to say "I am on the board" was for the call site to
- * hand-write `border-board-ink/20`. Sixty of them did their own version and
- * quietly disagreed about the details.
- */
 :root {
-  /* The admin chrome is dark whatever the machine prefers, so these are literal
-     whites rather than --foreground, which follows the light/dark switch. */
   --btn-fg: rgb(255 255 255 / 0.9);
   --btn-fg-strong: rgb(255 255 255);
   --btn-border: rgb(255 255 255 / 0.2);
   --btn-hover-bg: rgb(255 255 255);
   --btn-hover-fg: rgb(0 0 0);
   --btn-ghost-hover-bg: rgb(255 255 255 / 0.1);
-
-  /* Was `pink` — a placeholder that shipped. The blue is the one the board's
-     own solid buttons already use, so the two surfaces now agree. */
-  --btn-solid-bg: oklch(44.262% 0.25243 267.827);
+  --btn-solid-bg: oklch(57% 0.236 265);
   --btn-solid-fg: rgb(255 255 255);
-  --btn-solid-hover-bg: oklch(49.147% 0.24653 263.893);
-
+  --btn-solid-hover-bg: oklch(57% 0.236 265);
   --btn-selected-border: rgb(255 255 255 / 0.3);
   --btn-selected-bg: rgb(255 255 255 / 0.1);
-
-  /* The "on" colour for an accent toggle — amber, as the star has always been. */
   --btn-accent-fg: oklch(0.828 0.189 84.429);
-
   --btn-danger-fg: oklch(0.704 0.191 22.216);
   --btn-danger-border: rgb(239 68 68 / 0.4);
   --btn-danger-hover-border: rgb(239 68 68 / 0.6);
@@ -213,50 +195,13 @@
   --btn-danger-solid-fg: rgb(255 255 255);
   --btn-danger-solid-hover-bg: oklch(0.577 0.245 27.325);
 
-  /*
-   * The ground a modal sits on, on that same fixed dark chrome.
-   *
-   * One use today — the comment dialog, which had it as a bare `#181818` at the
-   * call site. Named rather than left there because it is a surface colour, and
-   * a surface the next dialog will want too. Literal for the same reason the
-   * buttons above are: this chrome does not follow the light/dark switch, and a
-   * token that inverted would turn the dialog inside out.
-   */
-  /* Kept as the hex it was, not converted: this is a straight rename, and a
-     hand-converted oklch would be a colour change dressed as a refactor. */
-  --color-admin-panel: #181818;
-
-  /*
-   * What "selected" is drawn in, on the canvas.
-   *
-   * blue-500, which the resize grips, the selection ring and the wire being
-   * drawn all used independently as a bare `blue-500`. One name, because they
-   * are one idea: this is the colour of the thing you are pointing at.
-   */
+  --color-admin-panel: oklch(17.3% 0 0);
   --color-selection: oklch(62.3% 0.214 259.815);
-  /* The same idea a shade brighter, for marks drawn *over* the board rather
-     than around an item: alignment guides and the marquee. sky-400 and
-     sky-300, which were bare utilities at five call sites. */
   --color-selection-bright: oklch(74.6% 0.16 232.661);
   --color-selection-soft: oklch(82.8% 0.111 230.318);
 }
 
-/*
- * The board editor's paper. `--board-ink` already inverts, so pointing the
- * button variables at it is all that is needed: a board button is the same
- * `<Button variant="outline">` as an admin one.
- */
 [data-surface="board"] {
-  /*
-   * The shadcn set, re-pointed at the board's palette.
-   *
-   * A `Select` or an `Input` reads `--foreground`, `--input` and
-   * `--muted-foreground`, which describe the admin's chrome. Dropped on the
-   * board they went on painting with it, so the Seconds picker showed a value
-   * in the admin's near-white on the board's near-white paper. Every one of
-   * these is the board's own colour expressed in the name the component
-   * already asks for, so no component had to learn where it is.
-   */
   --foreground: var(--board-ink);
   --muted-foreground: color-mix(
     in oklch,
@@ -273,7 +218,6 @@
   --border: color-mix(in oklch, var(--board-ink) 15%, transparent);
   --input: color-mix(in oklch, var(--board-ink) 15%, transparent);
   --ring: color-mix(in oklch, var(--board-ink) 40%, transparent);
-
   --btn-fg: color-mix(in oklch, var(--board-ink) 80%, transparent);
   --btn-fg-strong: var(--board-ink);
   --btn-border: color-mix(in oklch, var(--board-ink) 20%, transparent);
@@ -291,12 +235,6 @@
   --btn-selected-bg: color-mix(in oklch, var(--board-ink) 10%, transparent);
 }
 
-/*
- * Names for Tailwind. `inline` means the value is substituted into each
- * utility rather than emitted as another variable, so `bg-background` compiles
- * to `background-color: var(--background)` — one hop, and the light/dark
- * switch above is the only thing that decides it.
- */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
