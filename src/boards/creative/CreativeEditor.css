@@ -893,3 +893,15 @@ button.creative-export__item:hover:not(:disabled) {
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
+
+/* A panel opened from the bar, placed on the window under its button (the
+   bar scrolls sideways and would clip it). */
+.creative__popover {
+  position: fixed;
+  z-index: calc(var(--z-board-panel) + 3);
+  background: var(--color-board-panel);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+}

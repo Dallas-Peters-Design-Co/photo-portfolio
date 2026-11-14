@@ -2,6 +2,7 @@ import type { BoardItem } from "../../types";
 import { ColorWell } from "../ColorWell";
 import { ANCHORS, type Anchor, anchorOf, fitOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
+import { SvgColoursButton } from "./SvgColoursButton";
 
 /**
  * A picture layer's own settings in the bar: rounded corners, cover or
@@ -33,6 +34,7 @@ export function ImageControls({
     onPatch({ config: { ...(item.config ?? {}), ...next } });
   return (
     <>
+      <SvgColoursButton item={item} />
       {/* biome-ignore lint/a11y/noLabelWithoutControl: the control is inside */}
       <label className="creative__field">
         <span>Corners</span>
