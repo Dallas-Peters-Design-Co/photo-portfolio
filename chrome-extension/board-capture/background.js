@@ -48,6 +48,137 @@ const capture = async (tab, whole) => {
   }
 };
 
+const wait = (ms) => new Promise((done) => setTimeout(done, ms));
+
+/** Runs a function in the page and returns what it returns. */
+const inPage = async (tabId, func, args = []) => {
+  const [result] = await chrome.scripting.executeScript({
+    args,
+    func,
+    target: { tabId },
+  });
+  return result?.result;
+};
+
+/** Chrome allows two visible-tab captures a second. */
+const BETWEEN_SHOTS_MS = 550;
+
+/**
+ * The same picture without the DevTools protocol: scroll the page a screen
+ * at a time, photograph each, and join them.
+ *
+ * Chrome refuses to debug a tab that another extension has put a frame in (a
+ * password manager's, say): "Cannot access a chrome-extension:// URL of
+ * different extension". This way needs nothing from the debugger. After the
+ * first screen, anything fixed or sticky is hidden, so a header appears once
+ * at the top and not on every screen; it's put back when the capture ends.
+ */
+const stitch = async (tab, whole) => {
+  const page = await inPage(tab.id, () => ({
+    dpr: window.devicePixelRatio || 1,
+    full: Math.max(
+      document.documentElement.scrollHeight,
+      document.body?.scrollHeight ?? 0
+    ),
+    left: window.scrollX,
+    top: window.scrollY,
+    // The photograph is of the whole window, scrollbar included.
+    innerW: window.innerWidth,
+    viewH: window.innerHeight,
+    viewW: document.documentElement.clientWidth,
+  }));
+  const height = whole ? Math.min(page.full, MAX_HEIGHT) : page.viewH;
+  const first = whole ? 0 : page.top;
+  // Small enough for one canvas, and never more than the screen gives.
+  const scale = Math.min(page.dpr, MAX_PIXELS / Math.max(height, page.viewW));
+  const canvas = new OffscreenCanvas(
+    Math.round(page.viewW * scale),
+    Math.round(height * scale)
+  );
+  const ctx = canvas.getContext("2d");
+  try {
+    for (let done = 0; done < height; ) {
+      const wanted = first + done;
+      // The page may not scroll that far (the last screen): ask where it got.
+      // eslint-disable-next-line no-await-in-loop
+      const at = await inPage(
+        tab.id,
+        (y, hide) => {
+          if (hide) {
+            for (const el of document.querySelectorAll("body *")) {
+              const position = getComputedStyle(el).position;
+              // Once each: a second pass would save "hidden" as its own.
+              if (
+                (position === "fixed" || position === "sticky") &&
+                el.dataset.boardCaptureHidden === undefined
+              ) {
+                el.dataset.boardCaptureHidden = el.style.visibility;
+                el.style.setProperty("visibility", "hidden", "important");
+              }
+            }
+          }
+          window.scrollTo({ behavior: "instant", left: 0, top: y });
+          return window.scrollY;
+        },
+        [wanted, whole && done > 0]
+      );
+      await wait(done === 0 ? 150 : BETWEEN_SHOTS_MS);
+      const shot = await chrome.tabs.captureVisibleTab(tab.windowId, {
+        format: "png",
+      });
+      const bitmap = await createImageBitmap(await (await fetch(shot)).blob());
+      // How far into this screen the next unpainted row is.
+      const skip = wanted - at;
+      const rows = Math.min(page.viewH - skip, height - done);
+      const k = bitmap.width / page.innerW;
+      ctx.drawImage(
+        bitmap,
+        0,
+        skip * k,
+        page.viewW * k,
+        rows * k,
+        0,
+        done * scale,
+        page.viewW * scale,
+        rows * scale
+      );
+      bitmap.close();
+      done += rows;
+    }
+  } finally {
+    await inPage(
+      tab.id,
+      (left, top) => {
+        for (const el of document.querySelectorAll(
+          "[data-board-capture-hidden]"
+        )) {
+          el.style.visibility = el.dataset.boardCaptureHidden;
+          delete el.dataset.boardCaptureHidden;
+        }
+        window.scrollTo({ behavior: "instant", left, top });
+      },
+      [page.left, page.top]
+    ).catch(() => undefined);
+  }
+  const blob = await canvas.convertToBlob({ quality: 0.88, type: "image/jpeg" });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = "";
+  const CHUNK = 0x80_00;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+  }
+  return { data: btoa(binary), height: canvas.height, width: canvas.width };
+};
+
+/** The debugger's picture when Chrome allows it, the stitched one when not. */
+const shoot = async (tab, whole) => {
+  try {
+    return await capture(tab, whole);
+  } catch {
+    return await stitch(tab, whole);
+  }
+};
+
 const ask = (tabId, message) =>
   chrome.tabs
     .sendMessage(tabId, { ...message, to: "board" })
@@ -79,7 +210,7 @@ const captureToBoard = async ({ boardTabId, whole }) => {
   }
   let shot;
   try {
-    shot = await capture(tab, whole);
+    shot = await shoot(tab, whole);
   } catch (e) {
     return { ok: false, error: `Couldn't capture this page: ${e?.message ?? e}` };
   }
