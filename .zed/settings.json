@@ -10,6 +10,13 @@
         "source.organizeImports.biome": true
       }
     },
+    "CSS": {
+      "code_actions_on_format": {
+        "source.action.useSortedProperties.biome": true,
+        "source.fixAll.biome": true,
+        "source.organizeImports.biome": true
+      }
+    },
     "TypeScript": {
       "code_actions_on_format": {
         "source.fixAll.biome": true,
