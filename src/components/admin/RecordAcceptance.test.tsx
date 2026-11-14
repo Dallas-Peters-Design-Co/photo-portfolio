@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import type { ProposalRecord } from "../../services/proposalService";
 import { RecordAcceptance } from "./RecordAcceptance";
 
@@ -52,14 +53,23 @@ it("records the chosen option, by whom and how, without emailing anyone", async 
       />
     )
   );
-  const select = host.querySelector("select") as HTMLSelectElement;
+  const trigger = host.querySelector<HTMLButtonElement>("#ra-option");
   // The recommended option first; the client chose the Audit.
-  expect(select.value).toBe("launch");
-  await act(() => {
-    select.value = "audit";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-    return Promise.resolve();
+  expect(trigger?.textContent).toContain("Launch · $3,000");
+  if (!trigger) {
+    throw new Error("no option menu");
+  }
+  await userEvent.click(trigger);
+  const option = await vi.waitFor(() => {
+    const found = [...document.querySelectorAll("[role='option']")].find((o) =>
+      o.textContent?.includes("Audit")
+    );
+    if (!found) {
+      throw new Error("menu not open");
+    }
+    return found as HTMLElement;
   });
+  await userEvent.click(option);
   const button = [...host.querySelectorAll("button")].find((b) =>
     b.textContent?.includes("Draft agreement and invoice")
   );

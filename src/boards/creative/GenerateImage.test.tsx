@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
 import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
 import type { BoardItem } from "../../types";
@@ -28,6 +29,9 @@ vi.mock("../brand/ActiveBrand", () => ({
     setKitId: () => undefined,
   }),
 }));
+
+/** The automatic choice is listed by its description, not its "auto" id. */
+const AUTO_LABEL = /^Auto\b/;
 
 const model = (id: string, input: string, output = "image") => ({
   id,
@@ -157,19 +161,32 @@ describe("GenerateImage", () => {
         )
       );
     render();
-    const select = host.querySelector(
-      'select[aria-label="Model"]'
-    ) as HTMLSelectElement;
-    expect([...select.options].map((o) => o.value)).toEqual([
-      "auto",
+    const trigger = host.querySelector(
+      'button[aria-label="Model"]'
+    ) as HTMLButtonElement;
+    expect(trigger.textContent).toContain("fal-ai/nano-banana-pro");
+    await userEvent.click(trigger);
+    const options = await vi.waitFor(() => {
+      const found = [...document.querySelectorAll("[role='option']")];
+      if (found.length === 0) {
+        throw new Error("menu not open");
+      }
+      return found as HTMLElement[];
+    });
+    expect(options.map((o) => o.textContent?.trim())).toEqual([
+      expect.stringMatching(AUTO_LABEL),
       "fal-ai/nano-banana-pro",
       "openai/gpt-image-2",
     ]);
-    expect(select.value).toBe("fal-ai/nano-banana-pro");
-    act(() => {
-      select.value = "openai/gpt-image-2";
-      select.dispatchEvent(new Event("change", { bubbles: true }));
-    });
+    const pick = options.find(
+      (o) => o.textContent?.trim() === "openai/gpt-image-2"
+    );
+    if (pick) {
+      await userEvent.click(pick);
+    }
+    await vi.waitFor(() =>
+      expect(trigger.textContent).toContain("openai/gpt-image-2")
+    );
     act(() => root?.unmount());
     root = createRoot(host);
     render();

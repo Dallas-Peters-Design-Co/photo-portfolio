@@ -10,6 +10,13 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type {
   BrowserNodeConfig,
   BrowserViewport,
@@ -68,6 +75,11 @@ export const canBrowseLive = (): boolean =>
   typeof window.photosDesktop?.captureWebview === "function";
 
 const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
+
+const VIEWPORT_ITEMS = [
+  { label: "Desktop", value: "desktop" },
+  { label: "Phone", value: "mobile" },
+];
 
 export function LiveBrowser({
   cfg,
@@ -230,18 +242,33 @@ export function LiveBrowser({
             value={address}
           />
         </form>
-        <select
-          aria-label="Width"
-          className="browser-node__viewport"
-          onChange={(e) =>
-            latest.current({ viewport: e.target.value as BrowserViewport })
-          }
-          onPointerDown={stop}
+        <Select
+          items={VIEWPORT_ITEMS}
+          onValueChange={(next) => {
+            if (next !== null) {
+              latest.current({ viewport: next as BrowserViewport });
+            }
+          }}
           value={cfg.viewport}
         >
-          <option value="desktop">Desktop</option>
-          <option value="mobile">Phone</option>
-        </select>
+          <SelectTrigger
+            aria-label="Width"
+            className="browser-node__viewport"
+            onPointerDown={stop}
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          {/* Portalled, but React still bubbles its events up this tree to
+              the node; stopped here as the trigger is. */}
+          <SelectContent onPointerDown={stop}>
+            {VIEWPORT_ITEMS.map((v) => (
+              <SelectItem key={v.value} value={v.value}>
+                {v.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <button
           className="browser-node__button browser-node__button--primary"
           disabled={busy || !src}

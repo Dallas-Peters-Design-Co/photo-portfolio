@@ -22,6 +22,13 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { BackButton } from "./BackButton";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewClientPanel } from "./ReviewClientPanel";
@@ -88,6 +95,14 @@ export function ReviewEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
   const { kits } = useBrandKits();
+  // "" is the "no kit" choice, as it was on the native select.
+  const kitItems = [
+    { label: "None (site accent)", value: "" },
+    ...kits.map((kit) => ({
+      label: kit.parentName ? `${kit.parentName} / ${kit.name}` : kit.name,
+      value: kit.id,
+    })),
+  ];
   const [saveState, setSaveState] = useState<SaveState>("saved");
   // What the server last confirmed, and the draft as it is right now, for
   // the timers and the unmount flush, which outlive the render they start in.
@@ -228,7 +243,7 @@ export function ReviewEditor({
 
   return (
     <Card
-      className="w-full max-w-7xl border-white/10 bg-white/2"
+      className="w-full max-w-9xl border-white/10 bg-white/2"
       style={reviewAccentStyle(settings.theme.accent)}
     >
       <CardHeader className="flex flex-col items-start gap-2">
@@ -285,23 +300,29 @@ export function ReviewEditor({
             <Label className={proposalLabelClass} htmlFor="review-kit">
               Brand kit
             </Label>
-            <select
-              className={`${proposalInputClass} w-full rounded-md border px-3`}
-              id="review-kit"
-              onChange={(e) =>
-                setDraft({ ...draft, brandKitId: e.target.value || null })
-              }
+            <Select
+              items={kitItems}
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setDraft({ ...draft, brandKitId: value || null });
+                }
+              }}
               value={draft.brandKitId ?? ""}
             >
-              <option value="">None (site accent)</option>
-              {kits.map((kit) => (
-                <option key={kit.id} value={kit.id}>
-                  {kit.parentName
-                    ? `${kit.parentName} / ${kit.name}`
-                    : kit.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                className={`${proposalInputClass} w-full rounded-md border px-3`}
+                id="review-kit"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {kitItems.map((kit) => (
+                  <SelectItem key={kit.value} value={kit.value}>
+                    {kit.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label className={proposalLabelClass} htmlFor="review-slug">

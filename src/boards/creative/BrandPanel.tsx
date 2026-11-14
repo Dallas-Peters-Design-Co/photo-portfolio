@@ -7,6 +7,13 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { AD_SIZES, sizeFromTitle } from "../../../config/adLayout";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { brandKitsApi } from "../../services/brandKitService";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
@@ -163,39 +170,63 @@ export function BrandPanel({
 
   return (
     <aside className="brand-panel">
-      <label className="brand-panel__row">
+      <div className="brand-panel__row">
         <span className="brand-panel__label">Brand</span>
-        <select
-          className="creative__input"
-          onChange={(e) => brand.setKitId(e.target.value || null)}
-          value={kit?.id ?? ""}
+        <Select
+          items={[
+            { label: "Choose a brand…", value: null },
+            ...brand.kits.map((k) => ({ label: k.name, value: k.id })),
+          ]}
+          onValueChange={(value) => brand.setKitId(value || null)}
+          value={kit?.id ?? null}
         >
-          <option value="">Choose a brand…</option>
-          {brand.kits.map((k) => (
-            <option key={k.id} value={k.id}>
-              {k.name}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger
+            aria-label="Brand"
+            className="creative__input brand-panel__select"
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>Choose a brand…</SelectItem>
+            {brand.kits.map((k) => (
+              <SelectItem key={k.id} value={k.id}>
+                {k.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       <section className="brand-panel__section">
         <h3 className="brand-panel__label">
           <LayoutTemplate size={13} /> Layout
         </h3>
         <div className="brand-panel__row">
-          <select
-            aria-label="Layout"
-            className="creative__input"
-            onChange={(e) => setLayout(e.target.value as LayoutId)}
+          <Select
+            items={LAYOUTS.map((l) => ({ label: l.label, value: l.id }))}
+            onValueChange={(value) => {
+              if (value !== null) {
+                setLayout(value as LayoutId);
+              }
+            }}
             value={layout}
           >
-            {LAYOUTS.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              aria-label="Layout"
+              className="creative__input brand-panel__select"
+              size="sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LAYOUTS.map((l) => (
+                <SelectItem key={l.id} value={l.id}>
+                  {l.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <button
             className="creative__button"
             onClick={applyLayout}

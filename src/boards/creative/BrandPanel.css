@@ -25,7 +25,7 @@
   gap: calc(var(--spacing) * 2);
   align-items: center;
 
-  & select {
+  & .brand-panel__select {
     flex: 1;
     min-width: 0;
   }

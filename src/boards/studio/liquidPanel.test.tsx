@@ -2,7 +2,7 @@ import "../../index.css";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { recipeOf } from "./types";
 
 vi.mock("../brand/ActiveBrand", () => ({
@@ -55,18 +55,23 @@ describe("Liquid Gradients in the Studio panel", () => {
     await vi.waitFor(() => expect(coloursIn(canvas)).toBeGreaterThan(20));
     const silk = signature(canvas);
 
-    const look = [...host.querySelectorAll("select")].find((s) =>
-      [...s.options].some((o) => o.value === "marble")
-    ) as HTMLSelectElement;
-    await act(async () => {
-      const set = Object.getOwnPropertyDescriptor(
-        HTMLSelectElement.prototype,
-        "value"
-      )?.set;
-      set?.call(look, "marble");
-      look.dispatchEvent(new Event("change", { bubbles: true }));
-      await vi.waitFor(() => expect(signature(canvas)).not.toBe(silk));
+    // The Look menu is the shared Select: open it, then pick Marble.
+    const look = host.querySelector<HTMLElement>(
+      "[data-slot='select-trigger'][aria-label='Look']"
+    );
+    expect(look).not.toBeNull();
+    await userEvent.click(look as HTMLElement);
+    const marble = await vi.waitFor(() => {
+      const found = [...document.querySelectorAll("[role='option']")].find(
+        (o) => o.textContent?.startsWith("Marble")
+      );
+      if (!found) {
+        throw new Error("Look menu not open");
+      }
+      return found as HTMLElement;
     });
+    await userEvent.click(marble);
+    await vi.waitFor(() => expect(signature(canvas)).not.toBe(silk));
 
     const add = [...host.querySelectorAll("button")].find((b) =>
       b.textContent?.includes("Add to board")

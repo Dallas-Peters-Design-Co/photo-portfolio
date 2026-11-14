@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import type { ReviewPin } from "../../../config/review.js";
 import { ReviewPinList } from "./ReviewPinList";
 
@@ -32,14 +33,17 @@ const PINS = [
 let root: Root | null = null;
 let host: HTMLDivElement | null = null;
 const onReorder = vi.fn();
+const onUpdate = vi.fn();
 
 const handles = () =>
   [
-    ...(host?.querySelectorAll("li button[aria-label^='Note']") ?? []),
+    // The number handles only, not the kind menus that share the "Note" label.
+    ...(host?.querySelectorAll("li button[aria-label$='to move it']") ?? []),
   ] as HTMLButtonElement[];
 
 beforeEach(async () => {
   onReorder.mockClear();
+  onUpdate.mockClear();
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -51,7 +55,7 @@ beforeEach(async () => {
         onRemove={() => undefined}
         onReorder={onReorder}
         onSelect={() => undefined}
-        onUpdate={() => undefined}
+        onUpdate={onUpdate}
         pins={PINS}
         selected={null}
       />
@@ -114,5 +118,29 @@ describe("ReviewPinList reordering", () => {
       button?.click();
     });
     expect(onReorder).toHaveBeenCalledWith(["high", "mid", "low"]);
+  });
+});
+
+describe("ReviewPinList kind menu", () => {
+  it("shows the kind's label and changes it from the menu", async () => {
+    const trigger = host?.querySelector<HTMLButtonElement>(
+      "button[aria-label='Note 1 kind']"
+    );
+    expect(trigger?.textContent).toContain("Issue");
+    if (!trigger) {
+      return;
+    }
+    await userEvent.click(trigger);
+    const option = await vi.waitFor(() => {
+      const found = [...document.querySelectorAll("[role='option']")].find(
+        (o) => o.textContent?.includes("Works well")
+      );
+      if (!found) {
+        throw new Error("menu not open");
+      }
+      return found as HTMLElement;
+    });
+    await userEvent.click(option);
+    expect(onUpdate).toHaveBeenCalledWith("low", { kind: "praise" });
   });
 });

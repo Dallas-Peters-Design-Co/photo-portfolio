@@ -11,6 +11,13 @@ import {
 import { portfolioService } from "../../services/portfolioService";
 import type { Category } from "../../types";
 import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { ConnectionState } from "./LightroomConnectionState";
 import { LightroomSetup } from "./LightroomSetup";
 import { LightroomThumb } from "./LightroomThumb";
@@ -401,19 +408,35 @@ function AlbumAssets({ album }: { album: LightroomAlbum }) {
       ) : null}
 
       <div className="row lightroom__actions row--between">
-        <label className="row row--snug">
+        <label className="row row--snug" htmlFor="lightroom-category">
           <span className="admin-note">Into</span>
-          <select
-            className="lightroom__category"
-            onChange={(e) => setCategoryId(e.target.value)}
+          <Select
+            items={categories.map((category) => ({
+              label: category.label,
+              value: category.id,
+            }))}
+            onValueChange={(value) => {
+              if (value !== null) {
+                setCategoryId(value);
+              }
+            }}
             value={categoryId}
           >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className="lightroom__category"
+              id="lightroom-category"
+              size="sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
         <Button
           disabled={busy || chosen.size === 0 || !categoryId}

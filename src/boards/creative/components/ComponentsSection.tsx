@@ -11,6 +11,13 @@ import {
   Unlink,
   X,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../../components/ui/select";
 import type { BoardItem } from "../../../types";
 import { ColorWell } from "../../ColorWell";
 import {
@@ -408,23 +415,30 @@ function JoinSelect({
     return null;
   }
   return (
-    <select
-      aria-label="Share a property"
-      className="creative__input components__join"
-      onChange={(e) => {
-        if (e.target.value) {
-          onJoin(e.target.value);
+    <Select
+      items={same.map((p) => ({ label: p.name, value: p.id }))}
+      onValueChange={(value) => {
+        if (value) {
+          onJoin(value);
         }
       }}
-      title="Set this by a property that's already there"
-      value=""
+      value={null}
     >
-      <option value="">Share…</option>
-      {same.map((p) => (
-        <option key={p.id} value={p.id}>
-          {p.name}
-        </option>
-      ))}
-    </select>
+      <SelectTrigger
+        aria-label="Share a property"
+        className="creative__input components__join"
+        size="sm"
+        title="Set this by a property that's already there"
+      >
+        <SelectValue placeholder="Share…" />
+      </SelectTrigger>
+      <SelectContent>
+        {same.map((p) => (
+          <SelectItem key={p.id} value={p.id}>
+            {p.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }

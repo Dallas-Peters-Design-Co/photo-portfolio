@@ -1,6 +1,13 @@
 import { GripVertical, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
@@ -123,19 +130,31 @@ export function BrandDock({
       {/* Drag the header (anywhere but its controls) to move the panel. */}
       <header className="brand-dock__head" {...drag.handleProps}>
         <GripVertical aria-hidden className="brand-dock__grip" size={14} />
-        <select
-          aria-label="Brand"
-          className="brand-dock__select"
-          onChange={(e) => brand.setKitId(e.target.value || null)}
-          value={brand.kit?.id ?? ""}
+        <Select
+          items={[
+            { label: "Choose a brand…", value: null },
+            ...brand.kits.map((k) => ({ label: k.name, value: k.id })),
+          ]}
+          // null is "Choose a brand…", which clears the brand as it always did.
+          onValueChange={(next: string | null) => brand.setKitId(next || null)}
+          value={brand.kit?.id ?? null}
         >
-          <option value="">Choose a brand…</option>
-          {brand.kits.map((k) => (
-            <option key={k.id} value={k.id}>
-              {k.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            aria-label="Brand"
+            className="brand-dock__select"
+            size="sm"
+          >
+            <SelectValue placeholder="Choose a brand…" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>Choose a brand…</SelectItem>
+            {brand.kits.map((k) => (
+              <SelectItem key={k.id} value={k.id}>
+                {k.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <button
           aria-label="Close brand panel"
           className="brand-dock__close"

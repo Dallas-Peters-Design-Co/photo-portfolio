@@ -150,10 +150,6 @@
   opacity: 0.6;
 }
 
-.brand-dock__select option {
-  color: initial;
-}
-
 .brand-dock--dragging,
 .brand-dock--dragging .brand-dock__head {
   cursor: grabbing;

@@ -1,4 +1,11 @@
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   HUE_MODES,
   MODELS,
   type SchemeOptions,
@@ -141,20 +148,33 @@ export function SchemeControls({
         />
         Match lowest chroma: every unlocked colour as quiet as the quietest
       </label>
-      <label className="studio__field">
+      <div className="studio__field">
         <span>Colour vision</span>
-        <select
-          className="studio__input"
-          onChange={(e) => onVision(e.target.value as Vision)}
+        <Select
+          items={VISIONS.map((v) => ({ label: v.label, value: v.id }))}
+          onValueChange={(next) => {
+            if (next !== null) {
+              onVision(next as Vision);
+            }
+          }}
           value={vision}
         >
-          {VISIONS.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger
+            aria-label="Colour vision"
+            className="studio__input studio__input--select"
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {VISIONS.map((v) => (
+              <SelectItem key={v.id} value={v.id}>
+                {v.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }

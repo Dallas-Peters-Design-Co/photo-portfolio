@@ -13,8 +13,9 @@ import {
   reviewsApi,
 } from "../../services/reviewService";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardFooter, CardHeader } from "../ui/card";
+import { CardContent, CardFooter, CardHeader } from "../ui/card";
 import { Input } from "../ui/input";
+import { AdminCard, AdminFrame } from "./AdminFrame";
 import { useConfirm } from "./ConfirmProvider";
 import { ReviewEditor } from "./ReviewEditor";
 
@@ -35,7 +36,7 @@ const listStatus = (review: ReviewSummary): string =>
 
 /** The status, coloured by how far along it is: draft, published, sent, accepted. */
 const statusClass = (review: ReviewSummary): string => {
-  const base = "shrink-0 text-sm uppercase tracking-[0.16em]";
+  const base = "shrink-0 text-sm uppercase tracking-micro-wide";
   if (review.sent) {
     return `${base} text-sky-400/90`;
   }
@@ -184,7 +185,7 @@ export function ReviewsPanel() {
   }
 
   return (
-    <div className="grid w-full max-w-7xl grid-cols-1 gap-4 border-white/10">
+    <AdminFrame>
       <div className="flex flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
           <HugeiconsIcon icon={SearchVisualIcon} size={16} />
@@ -205,7 +206,7 @@ export function ReviewsPanel() {
           className="flex flex-wrap items-end gap-3"
           onSubmit={(e) => void handleCreate(e)}
         >
-          <Card className="w-full border-white bg-white/2">
+          <AdminCard>
             <CardHeader className={labelClass}>New review</CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -248,74 +249,80 @@ export function ReviewsPanel() {
                 Create draft
               </Button>
             </CardFooter>
-          </Card>
+          </AdminCard>
         </form>
       ) : null}
 
       {reviews.length === 0 ? (
-        <p className="text-sm text-white/80 uppercase tracking-[0.15em]">
+        <p className="text-sm text-white/80 uppercase tracking-micro">
           No reviews yet. Make one, capture or upload the screens, pin the
           notes, and send the link.
         </p>
       ) : (
-        <ul className="divide-y divide-white/10 overflow-hidden rounded-xl border border-white/10 bg-white/2">
-          {reviews.map((review) => (
-            <li
-              className="flex flex-wrap items-center gap-x-6 gap-y-3 px-6 py-5"
-              key={review.id}
-            >
-              <button
-                className="min-w-0 flex-1 text-left"
-                onClick={() => openReview(review.slug)}
-                type="button"
+        <AdminCard className="gap-0 py-0">
+          <ul className="divide-y divide-white/10">
+            {reviews.map((review) => (
+              <li
+                className="flex flex-wrap items-center gap-x-6 gap-y-3 px-6 py-5"
+                key={review.id}
               >
-                <span className="block truncate text-lg text-white leading-snug">
-                  {review.title}
-                </span>
-                <span className="mt-1 flex flex-wrap items-center gap-x-3 text-sm text-white/60">
-                  {review.clientName ? <span>{review.clientName}</span> : null}
-                  <span className="font-mono text-[13px]">
-                    /review/{review.slug}
-                  </span>
-                  <span>
-                    {review.counts.screens}{" "}
-                    {review.counts.screens === 1 ? "screen" : "screens"} ·{" "}
-                    {review.counts.notes}{" "}
-                    {review.counts.notes === 1 ? "note" : "notes"}
-                  </span>
-                </span>
-              </button>
-              <span className={statusClass(review)}>{listStatus(review)}</span>
-              <div className="flex items-center gap-1">
-                <a
-                  className="rounded-md px-3 py-2 text-sm text-white/90 uppercase tracking-[0.16em] transition-colors hover:bg-white/5 hover:text-white"
-                  href={`/review/${review.slug}`}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  View
-                </a>
                 <button
-                  aria-label={`Edit ${review.title}`}
-                  className="rounded-md p-2 text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                  className="min-w-0 flex-1 text-left"
                   onClick={() => openReview(review.slug)}
                   type="button"
                 >
-                  <HugeiconsIcon icon={Edit02Icon} size={18} />
+                  <span className="block truncate text-lg text-white leading-snug">
+                    {review.title}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-center gap-x-3 text-sm text-white/60">
+                    {review.clientName ? (
+                      <span>{review.clientName}</span>
+                    ) : null}
+                    <span className="font-mono text-micro-lg">
+                      /review/{review.slug}
+                    </span>
+                    <span>
+                      {review.counts.screens}{" "}
+                      {review.counts.screens === 1 ? "screen" : "screens"} ·{" "}
+                      {review.counts.notes}{" "}
+                      {review.counts.notes === 1 ? "note" : "notes"}
+                    </span>
+                  </span>
                 </button>
-                <button
-                  aria-label={`Delete ${review.title}`}
-                  className="rounded-md p-2 text-white/80 transition-colors hover:bg-white/5 hover:text-red-400"
-                  onClick={() => void handleDelete(review)}
-                  type="button"
-                >
-                  <HugeiconsIcon icon={Delete02Icon} size={18} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+                <span className={statusClass(review)}>
+                  {listStatus(review)}
+                </span>
+                <div className="flex items-center gap-1">
+                  <a
+                    className="rounded-md px-3 py-2 text-sm text-white/90 uppercase tracking-micro-wide transition-colors hover:bg-white/5 hover:text-white"
+                    href={`/review/${review.slug}`}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    View
+                  </a>
+                  <button
+                    aria-label={`Edit ${review.title}`}
+                    className="rounded-md p-2 text-white/80 transition-colors hover:bg-white/5 hover:text-white"
+                    onClick={() => openReview(review.slug)}
+                    type="button"
+                  >
+                    <HugeiconsIcon icon={Edit02Icon} size={18} />
+                  </button>
+                  <button
+                    aria-label={`Delete ${review.title}`}
+                    className="rounded-md p-2 text-white/80 transition-colors hover:bg-white/5 hover:text-red-400"
+                    onClick={() => void handleDelete(review)}
+                    type="button"
+                  >
+                    <HugeiconsIcon icon={Delete02Icon} size={18} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </AdminCard>
       )}
-    </div>
+    </AdminFrame>
   );
 }

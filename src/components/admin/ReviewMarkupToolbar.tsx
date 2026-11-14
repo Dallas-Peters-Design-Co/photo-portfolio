@@ -104,12 +104,12 @@ export function ReviewMarkupToolbar({
           <Redo2 size={15} />
         </button>
       </div>
-      <span className="ml-2 text-sm text-white/60 uppercase tracking-[0.16em]">
+      <span className="ml-2 text-sm text-white/60 uppercase">
         {active?.hint}
       </span>
       {canClear ? (
         <button
-          className="ml-auto flex items-center gap-1 rounded-md border border-white/15 px-2 py-1 text-[12px] text-white/80 hover:border-red-400 hover:text-red-300"
+          className="ml-auto flex items-center gap-1 rounded-md border border-white/15 px-2 py-1 text-md text-white/80 hover:border-red-400 hover:text-red-300"
           onClick={onClear}
           type="button"
         >

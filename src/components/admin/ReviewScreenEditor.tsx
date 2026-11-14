@@ -22,6 +22,13 @@ import { ReviewMarks, reviewPinClass } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
 import { ReviewPinList } from "./ReviewPinList";
@@ -37,6 +44,11 @@ import {
   touchScreen,
   useMarkupHistory,
 } from "./reviewEditing";
+
+const VIEWPORT_ITEMS = [
+  { label: "Desktop (1440)", value: "desktop" },
+  { label: "Mobile (390)", value: "mobile" },
+];
 
 /** A change to a screen, applied to whatever the screen is by then. */
 export type ScreenUpdate = (
@@ -311,19 +323,29 @@ export function ReviewScreenEditor({
           >
             Viewport
           </Label>
-          <select
-            className={`${proposalInputClass} rounded-md border px-3`}
-            id={`screen-viewport-${screen.id}`}
-            onChange={(e) =>
-              patch({
-                viewport: e.target.value === "mobile" ? "mobile" : "desktop",
-              })
-            }
+          <Select
+            items={VIEWPORT_ITEMS}
+            onValueChange={(value) => {
+              if (value !== null) {
+                patch({ viewport: value === "mobile" ? "mobile" : "desktop" });
+              }
+            }}
             value={screen.viewport}
           >
-            <option value="desktop">Desktop (1440)</option>
-            <option value="mobile">Mobile (390)</option>
-          </select>
+            <SelectTrigger
+              className={`${proposalInputClass} w-full rounded-md border px-3`}
+              id={`screen-viewport-${screen.id}`}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {VIEWPORT_ITEMS.map((v) => (
+                <SelectItem key={v.value} value={v.value}>
+                  {v.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-end">
           <Button

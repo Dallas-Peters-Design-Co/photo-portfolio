@@ -10,6 +10,13 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { isTyping } from "../../hooks/isTyping";
 import { ImagePick } from "../ImagePick";
 import { svgToPngBlob } from "../render";
@@ -96,7 +103,13 @@ export function PaletteTool({
         e.code === "Space" &&
         !e.repeat &&
         root.current?.contains(document.activeElement) &&
-        !isTyping(e.target)
+        !isTyping(e.target) &&
+        // The Harmony menu's trigger is a button now, not a <select>; Space
+        // on it opens the menu, as it did before.
+        !(
+          e.target instanceof HTMLElement &&
+          e.target.closest("[data-slot='select-trigger']")
+        )
       ) {
         e.preventDefault();
         e.stopPropagation();
@@ -206,20 +219,33 @@ export function PaletteTool({
         turns around the first of them.
       </p>
       <div className="studio__controls">
-        <label className="studio__field">
+        <div className="studio__field">
           <span>Harmony</span>
-          <select
-            className="studio__input"
-            onChange={(e) => setHarmony(e.target.value as Harmony)}
+          <Select
+            items={HARMONIES}
+            onValueChange={(next) => {
+              if (next !== null) {
+                setHarmony(next as Harmony);
+              }
+            }}
             value={harmony}
           >
-            {HARMONIES.map((h) => (
-              <option key={h.value} value={h.value}>
-                {h.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger
+              aria-label="Harmony"
+              className="studio__input studio__input--select"
+              size="sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {HARMONIES.map((h) => (
+                <SelectItem key={h.value} value={h.value}>
+                  {h.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <ImagePick
           label="From a picture"
           onPick={(url) => void fromPhoto(url)}

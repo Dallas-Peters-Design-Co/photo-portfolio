@@ -9,11 +9,21 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
   proposalInputClass,
   proposalLabelClass,
   proposalTextareaClass,
 } from "./proposalStyles";
 import { readingOrder } from "./reviewEditing";
+
+/** The note kinds with their labels, so the closed menu shows "Issue", not "issue". */
+const KIND_ITEMS = PIN_KINDS.map((k) => ({ label: PIN_LABELS[k], value: k }));
 
 const moved = (ids: string[], id: string, to: number): string[] => {
   const next = ids.filter((other) => other !== id);
@@ -176,22 +186,29 @@ export function ReviewPinList({
                 placeholder="What's here"
                 value={pin.title}
               />
-              <select
-                aria-label={`Note ${firstNumber + i} kind`}
-                className={`${proposalInputClass} rounded-md border px-2`}
-                onChange={(e) =>
-                  onUpdate(pin.id, {
-                    kind: e.target.value as ReviewPin["kind"],
-                  })
-                }
+              <Select
+                items={KIND_ITEMS}
+                onValueChange={(value) => {
+                  if (value !== null) {
+                    onUpdate(pin.id, { kind: value as ReviewPin["kind"] });
+                  }
+                }}
                 value={pin.kind}
               >
-                {PIN_KINDS.map((k) => (
-                  <option key={k} value={k}>
-                    {PIN_LABELS[k]}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  aria-label={`Note ${firstNumber + i} kind`}
+                  className={`${proposalInputClass} shrink-0 rounded-md pr-3`}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PIN_KINDS.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {PIN_LABELS[k]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 aria-label={`Remove note ${firstNumber + i}`}
                 onClick={() => onRemove(pin.id)}

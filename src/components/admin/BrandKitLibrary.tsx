@@ -10,6 +10,13 @@ import { newItemId } from "../../../config/proposal.js";
 import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { useCollections } from "../../hooks/useCollections";
 import { Button } from "../ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { BrandImagesEditor } from "./BrandImagesEditor";
 
 /**
@@ -20,6 +27,13 @@ import { BrandImagesEditor } from "./BrandImagesEditor";
  */
 
 const today = (): string => new Date().toISOString().slice(0, 10);
+
+/** A collection as the library menu shows it, with its size when known. */
+const libraryLabel = (c: {
+  itemCount?: number | null;
+  name: string;
+}): string =>
+  typeof c.itemCount === "number" ? `${c.name} (${c.itemCount})` : c.name;
 
 export function LibraryPicker({
   doc,
@@ -32,23 +46,38 @@ export function LibraryPicker({
   const linked = collections.find((c) => c.id === doc.libraryCollectionId);
   return (
     <div className="stack stack--snug">
-      <select
-        aria-label="Image library"
-        className="admin-control"
+      <Select
         disabled={isLoading}
-        onChange={(e) =>
-          onChange({ ...doc, libraryCollectionId: e.target.value || null })
-        }
+        items={[
+          { label: "No library", value: "" },
+          ...collections.map((c) => ({
+            label: libraryLabel(c),
+            value: c.id,
+          })),
+        ]}
+        onValueChange={(value) => {
+          if (value !== null) {
+            onChange({ ...doc, libraryCollectionId: value || null });
+          }
+        }}
         value={doc.libraryCollectionId ?? ""}
       >
-        <option value="">No library</option>
-        {collections.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-            {typeof c.itemCount === "number" ? ` (${c.itemCount})` : ""}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger
+          aria-label="Image library"
+          className="admin-control w-full"
+          disabled={isLoading}
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="">No library</SelectItem>
+          {collections.map((c) => (
+            <SelectItem key={c.id} value={c.id}>
+              {libraryLabel(c)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <p className="brand-kit__hint">
         {linked
           ? "Its images appear in the Brand panel on every board, ready to drop in."

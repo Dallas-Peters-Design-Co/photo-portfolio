@@ -22,6 +22,13 @@ import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { OklchPicker } from "../ui/OklchPicker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
@@ -292,22 +299,32 @@ export function SiteSettingsPanel() {
                   <Label className={labelClass} htmlFor={`font-${key}`}>
                     {label}
                   </Label>
-                  <select
-                    className="min-h-11 w-full rounded-md border border-white/10 bg-black/40 px-3 text-base text-white transition-colors focus:border-white/40"
-                    id={`font-${key}`}
-                    onChange={(e) => setTheme(key, e.target.value as FontId)}
+                  <Select
+                    items={options.map((font) => ({
+                      label: font.label,
+                      value: font.id,
+                    }))}
+                    onValueChange={(value) => {
+                      if (value !== null) {
+                        setTheme(key, value as FontId);
+                      }
+                    }}
                     value={draft.theme[key]}
                   >
-                    {options.map((font) => (
-                      <option
-                        className="bg-black"
-                        key={font.id}
-                        value={font.id}
-                      >
-                        {font.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      className="min-h-11 w-full rounded-md border border-white/10 bg-black/40 px-3 text-base text-white transition-colors focus:border-white/40"
+                      id={`font-${key}`}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options.map((font) => (
+                        <SelectItem key={font.id} value={font.id}>
+                          {font.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               ))}
             </div>

@@ -7,6 +7,13 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 
 /**
@@ -62,18 +69,32 @@ export function RecordAcceptance({
           <Label className={proposalLabelClass} htmlFor="ra-option">
             Option they chose
           </Label>
-          <select
-            className={`${proposalInputClass} w-full rounded-md border px-3`}
-            id="ra-option"
-            onChange={(e) => setOption(e.target.value)}
+          <Select
+            items={packages.map((p) => ({
+              label: `${p.name} · ${p.price}`,
+              value: p.id,
+            }))}
+            onValueChange={(value) => {
+              if (value !== null) {
+                setOption(value);
+              }
+            }}
             value={option}
           >
-            {packages.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} · {p.price}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className={`${proposalInputClass} w-full rounded-md border px-3`}
+              id="ra-option"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {packages.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name} · {p.price}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label className={proposalLabelClass} htmlFor="ra-name">

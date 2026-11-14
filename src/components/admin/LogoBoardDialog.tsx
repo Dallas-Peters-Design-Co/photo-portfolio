@@ -27,6 +27,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { LogoColorPicker } from "./LogoColorPicker";
 import "./LogoBoardDialog.css";
 
@@ -172,20 +179,31 @@ export function LogoBoardDialog({
 
           <label className="logo-board-dialog__field" htmlFor="logo-kit">
             <span className="admin-label admin-label--quiet">Brand kit</span>
-            <select
-              className="admin-field"
-              id="logo-kit"
+            <Select
+              items={[
+                { label: "None — pick colours below", value: "" },
+                ...kits.map((kit) => ({ label: kit.name, value: kit.id })),
+              ]}
               name="brandKitId"
-              onChange={(e) => setBrandKitId(e.target.value)}
+              onValueChange={(value) => {
+                if (value !== null) {
+                  setBrandKitId(value);
+                }
+              }}
               value={brandKitId}
             >
-              <option value="">None — pick colours below</option>
-              {kits.map((kit) => (
-                <option key={kit.id} value={kit.id}>
-                  {kit.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="admin-field" id="logo-kit">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None — pick colours below</SelectItem>
+                {kits.map((kit) => (
+                  <SelectItem key={kit.id} value={kit.id}>
+                    {kit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </label>
 
           <div className="logo-board-dialog__field">

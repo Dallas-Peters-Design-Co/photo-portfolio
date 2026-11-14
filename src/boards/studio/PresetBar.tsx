@@ -1,5 +1,14 @@
 import { Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useConfirm } from "../../components/admin/ConfirmProvider";
 import { lookOf, presetsApi, usePresets } from "./presets";
 import type { StudioValues } from "./types";
@@ -27,6 +36,11 @@ export function PresetBar({
   const { drop, keep, presets } = usePresets(tool);
   const now = JSON.stringify(lookOf(values));
   const current = presets.find((p) => JSON.stringify(lookOf(p.values)) === now);
+  // The closed trigger shows the label, not the raw id or "look:N".
+  const items = [
+    ...looks.map((l, i) => ({ label: l.name, value: `look:${i}` })),
+    ...presets.map((p) => ({ label: p.name, value: p.id })),
+  ];
 
   const saveAs = async () => {
     const name = (
@@ -75,12 +89,14 @@ export function PresetBar({
     <div className="studio__field studio-presets">
       <span>Saved settings</span>
       <div className="studio-presets__row">
-        <select
-          aria-label="Saved settings"
-          className="studio__input"
-          onChange={(e) => {
-            const look = looks[Number(e.target.value.replace("look:", ""))];
-            if (e.target.value.startsWith("look:") && look) {
+        <Select
+          items={items}
+          onValueChange={(picked) => {
+            if (picked === null) {
+              return;
+            }
+            const look = looks[Number(picked.replace("look:", ""))];
+            if (picked.startsWith("look:") && look) {
               // The look exactly: defaults under it, this picture's own
               // settings (its painted tiles) kept.
               const own = Object.fromEntries(
@@ -89,36 +105,48 @@ export function PresetBar({
               onLoad({ ...defaults, ...look.values, ...own });
               return;
             }
-            const p = presets.find((x) => x.id === e.target.value);
+            const p = presets.find((x) => x.id === picked);
             if (p) {
               // Settings that belong to this picture (its painted tiles) stay.
               onLoad({ ...values, ...lookOf(p.values) });
             }
           }}
-          value={current?.id ?? ""}
+          value={current?.id ?? null}
         >
-          <option value="">
-            {presets.length + looks.length > 0 ? "Choose…" : "None saved yet"}
-          </option>
-          {looks.length > 0 ? (
-            <optgroup label="Looks">
-              {looks.map((l, i) => (
-                <option key={l.name} value={`look:${i}`}>
-                  {l.name}
-                </option>
-              ))}
-            </optgroup>
-          ) : null}
-          {presets.length > 0 ? (
-            <optgroup label="Saved">
-              {presets.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </optgroup>
-          ) : null}
-        </select>
+          <SelectTrigger
+            aria-label="Saved settings"
+            className="studio__input studio__input--select"
+            size="sm"
+          >
+            <SelectValue
+              placeholder={
+                presets.length + looks.length > 0 ? "Choose…" : "None saved yet"
+              }
+            />
+          </SelectTrigger>
+          <SelectContent>
+            {looks.length > 0 ? (
+              <SelectGroup>
+                <SelectLabel>Looks</SelectLabel>
+                {looks.map((l, i) => (
+                  <SelectItem key={l.name} value={`look:${i}`}>
+                    {l.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
+            {presets.length > 0 ? (
+              <SelectGroup>
+                <SelectLabel>Saved</SelectLabel>
+                {presets.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
+          </SelectContent>
+        </Select>
         <button
           className="studio__button"
           onClick={() => void saveAs()}

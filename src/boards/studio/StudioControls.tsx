@@ -1,4 +1,11 @@
 import { ArrowRight, Dices, RotateCcw, X } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ColorWell } from "../ColorWell";
 import { ColorsField } from "./ColorsField";
 import { colorsOf } from "./chosenColors";
@@ -54,20 +61,33 @@ export function StudioControls({
             );
           case "select":
             return (
-              <label className="studio__field" key={p.key}>
+              <div className="studio__field" key={p.key}>
                 <span>{p.label}</span>
-                <select
-                  className="studio__input"
-                  onChange={(e) => onChange(p.key, e.target.value)}
+                <Select
+                  items={p.options}
+                  onValueChange={(next) => {
+                    if (next !== null) {
+                      onChange(p.key, next);
+                    }
+                  }}
                   value={String(v)}
                 >
-                  {p.options.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  <SelectTrigger
+                    aria-label={p.label}
+                    className="studio__input studio__input--select"
+                    size="sm"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {p.options.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             );
           case "color":
             return (

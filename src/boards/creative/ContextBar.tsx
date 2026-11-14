@@ -24,6 +24,15 @@ import {
   WEIGHT_CHOICES,
 } from "../../../config/textStyle";
 import { DISPLAY_FONTS } from "../../../config/theme";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ColorWell } from "../ColorWell";
@@ -89,6 +98,9 @@ const ALIGN_ICON = {
   right: <AlignEndVertical size={15} />,
 };
 
+const faceLabel = (face: { name: string; role?: string | null }): string =>
+  face.role ? `${face.name} · ${face.role}` : face.name;
+
 export function TextControls({
   item,
   onPatch,
@@ -103,33 +115,48 @@ export function TextControls({
   const kit = useActiveBrand()?.kit?.resolvedDoc;
   const faces = (kit?.typefaces ?? []).filter((f) => f.ref);
   const accent = kit?.palette[0]?.value ?? "#111111";
+  const fontItems = [
+    { label: "Board default", value: null },
+    ...faces.map((f) => ({ label: faceLabel(f), value: f.ref ?? null })),
+    ...DISPLAY_FONTS.map((f) => ({ label: f.label, value: f.id })),
+  ];
   return (
     <>
       <Field label="Font">
-        <select
-          className="creative__input creative__input--font"
-          onChange={(e) => set({ family: e.target.value || null })}
-          value={style?.family ?? ""}
+        <Select
+          items={fontItems}
+          onValueChange={(value) => set({ family: value || null })}
+          value={style?.family ?? null}
         >
-          <option value="">Board default</option>
-          {faces.length > 0 ? (
-            <optgroup label="Brand">
-              {faces.map((f) => (
-                <option key={f.ref} value={f.ref ?? ""}>
-                  {f.name}
-                  {f.role ? ` · ${f.role}` : ""}
-                </option>
+          <SelectTrigger
+            aria-label="Font"
+            className="creative__input creative__input--font"
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={null}>Board default</SelectItem>
+            {faces.length > 0 ? (
+              <SelectGroup>
+                <SelectLabel>Brand</SelectLabel>
+                {faces.map((f) => (
+                  <SelectItem key={f.ref} value={f.ref ?? null}>
+                    {faceLabel(f)}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            ) : null}
+            <SelectGroup>
+              <SelectLabel>Site fonts</SelectLabel>
+              {DISPLAY_FONTS.map((f) => (
+                <SelectItem key={f.id} value={f.id}>
+                  {f.label}
+                </SelectItem>
               ))}
-            </optgroup>
-          ) : null}
-          <optgroup label="Site fonts">
-            {DISPLAY_FONTS.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.label}
-              </option>
-            ))}
-          </optgroup>
-        </select>
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </Field>
       <Field label="Size">
         <input
@@ -149,17 +176,30 @@ export function TextControls({
         />
       </Field>
       <Field label="Weight">
-        <select
-          className="creative__input"
-          onChange={(e) => set({ weight: Number(e.target.value) })}
+        <Select
+          items={WEIGHT_CHOICES}
+          onValueChange={(value) => {
+            if (value !== null) {
+              set({ weight: Number(value) });
+            }
+          }}
           value={Math.round(css.fontWeight / 100) * 100}
         >
-          {WEIGHT_CHOICES.map((w) => (
-            <option key={w.value} value={w.value}>
-              {w.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            aria-label="Weight"
+            className="creative__input"
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {WEIGHT_CHOICES.map((w) => (
+              <SelectItem key={w.value} value={w.value}>
+                {w.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </Field>
       <ColorWell
         label="Text colour"

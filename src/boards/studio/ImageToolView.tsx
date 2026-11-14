@@ -10,6 +10,13 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { paletteFor } from "./chosenColors";
 import { PresetBar } from "./PresetBar";
 import { saveBlob, svgToPngBlob } from "./render";
@@ -287,20 +294,33 @@ export function ImageToolView({
       </div>
       {paint.bar}
       <p className="studio__blurb">{tool.blurb}</p>
-      <label className="studio__field">
+      <div className="studio__field">
         <span>Size</span>
-        <select
-          className="studio__input"
-          onChange={(e) => setSizeIndex(Number(e.target.value))}
-          value={sizeIndex}
+        <Select
+          items={sizes.map((s, i) => ({ label: s.label, value: String(i) }))}
+          onValueChange={(next) => {
+            if (next !== null) {
+              setSizeIndex(Number(next));
+            }
+          }}
+          value={String(sizeIndex)}
         >
-          {sizes.map((s, i) => (
-            <option key={s.label} value={i}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger
+            aria-label="Size"
+            className="studio__input studio__input--select"
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {sizes.map((s, i) => (
+              <SelectItem key={s.label} value={String(i)}>
+                {s.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <PresetBar
         defaults={defaultsOf(tool.params)}
         looks={tool.looks}

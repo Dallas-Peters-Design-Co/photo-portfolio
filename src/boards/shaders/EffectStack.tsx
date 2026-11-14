@@ -4,6 +4,13 @@ import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Ic
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import DragDropVerticalIcon from "@hugeicons-pro/core-stroke-standard/DragDropVerticalIcon";
 import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { Control } from "./Control";
 import {
   groupProps,
@@ -36,6 +43,11 @@ interface RowProps {
 }
 
 const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
+
+const FIT_ITEMS: { label: string; value: ImageFit }[] = [
+  { label: "Contain (whole picture)", value: "contain" },
+  { label: "Cover (fill the item)", value: "cover" },
+];
 /** "GlassTiles" reads as "Glass Tiles". */
 const CAMEL_SEAM = /(?<lower>[a-z])(?<upper>[A-Z])/g;
 
@@ -272,18 +284,34 @@ export function EffectStack({
                 The picture wired into this item. Unplug it to draw something
                 else.
               </p>
-              <label className="effect-stack__fit">
+              <div className="effect-stack__fit">
                 <span>Fit</span>
-                <select
-                  className="effect-stack__fit-select"
-                  onChange={(e) => onFitChange(e.target.value as ImageFit)}
-                  onPointerDown={stop}
+                <Select
+                  items={FIT_ITEMS}
+                  onValueChange={(value) => {
+                    if (value !== null) {
+                      onFitChange(value as ImageFit);
+                    }
+                  }}
                   value={fit}
                 >
-                  <option value="contain">Contain (whole picture)</option>
-                  <option value="cover">Cover (fill the item)</option>
-                </select>
-              </label>
+                  <SelectTrigger
+                    aria-label="Fit"
+                    className="effect-stack__fit-select"
+                    onPointerDown={stop}
+                    size="sm"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent onPointerDown={stop}>
+                    {FIT_ITEMS.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           ) : (
             <>

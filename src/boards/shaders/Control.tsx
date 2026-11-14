@@ -1,4 +1,11 @@
 import type { JSX } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { ColorWell } from "../ColorWell";
 import type { ControlType, ShaderProp } from "./shaderConfig";
 import "./Control.css";
@@ -75,21 +82,34 @@ function ColorControl({ onChange, prop, current }: ResolvedControlProps) {
 
 function SelectControl({ onChange, prop, current }: ResolvedControlProps) {
   return (
-    <label className="control--stacked">
+    <div className="control--stacked">
       <span className="control__label">{prop.label}</span>
-      <select
-        className="control__field"
-        onChange={(e) => onChange(e.target.value)}
-        onPointerDown={(e) => e.stopPropagation()}
+      <Select
+        items={prop.options}
+        onValueChange={(value) => {
+          if (value !== null) {
+            onChange(value);
+          }
+        }}
         value={typeof current === "string" ? current : ""}
       >
-        {prop.options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </label>
+        <SelectTrigger
+          aria-label={prop.label}
+          className="control__field"
+          onPointerDown={(e) => e.stopPropagation()}
+          size="sm"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+          {prop.options.map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
 
@@ -149,21 +169,33 @@ function OriginControl({ onChange, prop, current }: ResolvedControlProps) {
       "bottom-right",
     ];
     return (
-      <label className="control--stacked">
+      <div className="control--stacked">
         <span className="control__label">{prop.label}</span>
-        <select
-          className="control__field"
-          onChange={(e) => onChange(e.target.value)}
-          onPointerDown={(e) => e.stopPropagation()}
+        <Select
+          onValueChange={(value) => {
+            if (value !== null) {
+              onChange(value);
+            }
+          }}
           value={typeof current === "string" ? current : "center"}
         >
-          {ORIGINS.map((origin) => (
-            <option key={origin} value={origin}>
-              {origin}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger
+            aria-label={prop.label}
+            className="control__field"
+            onPointerDown={(e) => e.stopPropagation()}
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent onPointerDown={(e) => e.stopPropagation()}>
+            {ORIGINS.map((origin) => (
+              <SelectItem key={origin} value={origin}>
+                {origin}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     );
   }
 }

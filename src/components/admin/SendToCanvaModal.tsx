@@ -2,6 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import posthog from "../../lib/posthog";
 import { type CanvaTemplate, canvaApi } from "../../services/canva";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 interface SendToCanvaModalProps {
   imageUrl: string;
@@ -79,22 +86,37 @@ function TemplatePicker({
       </div>
 
       {fields.length > 1 ? (
-        <label className="mt-4 block">
+        <div className="mt-4">
           <span className="mb-1 block text-board-ink/35 text-sm uppercase">
             Image field
           </span>
-          <select
-            className="w-full rounded border border-board-ink/15 bg-board-surface/30 px-2 py-1.5 text-[12px] text-board-ink outline-none focus:border-board-ink/45"
-            onChange={(e) => onField(e.target.value)}
+          <Select
+            items={fields.map((fieldName) => ({
+              label: fieldName,
+              value: fieldName,
+            }))}
+            onValueChange={(value) => {
+              if (value !== null) {
+                onField(value);
+              }
+            }}
             value={field}
           >
-            {fields.map((fieldName) => (
-              <option key={fieldName} value={fieldName}>
-                {fieldName}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger
+              aria-label="Image field"
+              className="h-auto w-full rounded border border-board-ink/15 bg-board-surface/30 px-2 py-1.5 text-[12px] text-board-ink outline-none focus:border-board-ink/45"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {fields.map((fieldName) => (
+                <SelectItem key={fieldName} value={fieldName}>
+                  {fieldName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       ) : null}
 
       {chosen && fieldsStatus === "empty" ? (

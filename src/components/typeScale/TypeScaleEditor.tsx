@@ -15,6 +15,13 @@ import {
   type TypeStyle,
 } from "../../../config/typeScale.js";
 import { loadFontRef } from "../../theme/remoteFonts";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { type Faces, familyFor } from "./faces";
 import "./TypeScaleEditor.css";
 
@@ -35,6 +42,22 @@ const CASE_LABELS: Record<TextCase, string> = {
 };
 
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
+const FACE_ITEMS: { label: string; value: TypeStyle["face"] }[] = [
+  { label: "Headline", value: "headline" },
+  { label: "Body", value: "body" },
+];
+const CASE_ITEMS = CASES.map((c) => ({ label: CASE_LABELS[c], value: c }));
+const RATIO_ITEMS = RATIOS.map((r) => ({ label: r.label, value: r.value }));
+const weightItems = (weights: number[]) =>
+  weights.map((w) => ({ label: String(w), value: w }));
+const HEAD_WEIGHT_ITEMS = weightItems(WEIGHTS);
+
+/**
+ * The look `.type-scale select` gave the native controls: compact, tinted from
+ * the current colour, so the triggers sit level with the number inputs.
+ */
+const triggerClass =
+  "h-7 rounded-[6px] border-[color-mix(in_oklch,currentColor_16%,transparent)] bg-[color-mix(in_oklch,currentColor_5%,transparent)] py-0 pr-1 pl-[calc(var(--spacing)*1.25)] text-inherit [font:inherit]";
 const SAMPLES: Record<string, string> = {
   body: "Body copy sets the pace for everything else on the page, so it should read without effort at length.",
   label: "Section label",
@@ -94,6 +117,7 @@ function StyleRow({
 }) {
   const set = <K extends keyof TypeStyle>(key: K, v: TypeStyle[K]) =>
     onChange({ ...s, [key]: v });
+  const styleWeights = weightItems([...new Set([...WEIGHTS, s.weight])]);
   return (
     <div className="type-scale__style">
       <div className="type-scale__specs">
@@ -103,14 +127,26 @@ function StyleRow({
           onChange={(e) => set("name", styleName(e.target.value) || s.name)}
           value={s.name}
         />
-        <select
-          aria-label={`${s.name} face`}
-          onChange={(e) => set("face", e.target.value as TypeStyle["face"])}
+        <Select
+          items={FACE_ITEMS}
+          onValueChange={(value) => {
+            if (value !== null) {
+              set("face", value);
+            }
+          }}
           value={s.face}
         >
-          <option value="headline">Headline</option>
-          <option value="body">Body</option>
-        </select>
+          <SelectTrigger aria-label={`${s.name} face`} className={triggerClass}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FACE_ITEMS.map((f) => (
+              <SelectItem key={f.value} value={f.value}>
+                {f.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <NumberField
           label={`${s.name} size in pixels`}
           max={400}
@@ -119,17 +155,29 @@ function StyleRow({
           step={1}
           value={s.size}
         />
-        <select
-          aria-label={`${s.name} weight`}
-          onChange={(e) => set("weight", Number(e.target.value))}
+        <Select
+          items={styleWeights}
+          onValueChange={(value) => {
+            if (value !== null) {
+              set("weight", value);
+            }
+          }}
           value={s.weight}
         >
-          {[...new Set([...WEIGHTS, s.weight])].map((w) => (
-            <option key={w} value={w}>
-              {w}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            aria-label={`${s.name} weight`}
+            className={triggerClass}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {styleWeights.map((w) => (
+              <SelectItem key={w.value} value={w.value}>
+                {w.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <NumberField
           label={`${s.name} line height`}
           max={3}
@@ -146,17 +194,26 @@ function StyleRow({
           step={0.005}
           value={s.tracking}
         />
-        <select
-          aria-label={`${s.name} case`}
-          onChange={(e) => set("case", e.target.value as TextCase)}
+        <Select
+          items={CASE_ITEMS}
+          onValueChange={(value) => {
+            if (value !== null) {
+              set("case", value);
+            }
+          }}
           value={s.case}
         >
-          {CASES.map((c) => (
-            <option key={c} value={c}>
-              {CASE_LABELS[c]}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger aria-label={`${s.name} case`} className={triggerClass}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CASE_ITEMS.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <button
           aria-label={`Remove ${s.name}`}
           className="type-scale__icon"
@@ -235,32 +292,52 @@ export function TypeScaleEditor({
             value={base}
           />
         </div>
-        <label>
+        <div className="type-scale__field">
           <span>Ratio</span>
-          <select
-            onChange={(e) => setRatio(Number(e.target.value))}
+          <Select
+            items={RATIO_ITEMS}
+            onValueChange={(next) => {
+              if (next !== null) {
+                setRatio(next);
+              }
+            }}
             value={ratio}
           >
-            {RATIOS.map((r) => (
-              <option key={r.label} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
+            <SelectTrigger aria-label="Ratio" className={triggerClass}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {RATIO_ITEMS.map((r) => (
+                <SelectItem key={r.label} value={r.value}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="type-scale__field">
           <span>Heading weight</span>
-          <select
-            onChange={(e) => setHeadWeight(Number(e.target.value))}
+          <Select
+            items={HEAD_WEIGHT_ITEMS}
+            onValueChange={(next) => {
+              if (next !== null) {
+                setHeadWeight(next);
+              }
+            }}
             value={headWeight}
           >
-            {WEIGHTS.map((w) => (
-              <option key={w} value={w}>
-                {w}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger aria-label="Heading weight" className={triggerClass}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {HEAD_WEIGHT_ITEMS.map((w) => (
+                <SelectItem key={w.value} value={w.value}>
+                  {w.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <button
           className="type-scale__button"
           onClick={() => setStyles(modularScale({ base, headWeight, ratio }))}

@@ -1,6 +1,7 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import type { StudioPreset } from "./presets";
 import type { StudioValues } from "./types";
 
@@ -51,6 +52,25 @@ function Harness({ start }: { start: StudioValues }) {
 const settle = () =>
   act(async () => await new Promise((r) => setTimeout(r, 20)));
 
+const trigger = (host: HTMLElement) =>
+  host.querySelector<HTMLButtonElement>(
+    "button[aria-label='Saved settings']"
+  ) as HTMLButtonElement;
+
+/** Opens the menu (Base UI opens on pointer events) and lists its options. */
+const openMenu = async (host: HTMLElement) => {
+  await userEvent.click(trigger(host));
+  return await vi.waitFor(() => {
+    const found = [
+      ...document.querySelectorAll<HTMLElement>("[role='option']"),
+    ];
+    if (found.length === 0) {
+      throw new Error("menu not open");
+    }
+    return found;
+  });
+};
+
 it("saves settings by name and loads them back, keeping painted tiles", async () => {
   const host = document.createElement("div");
   document.body.append(host);
@@ -77,19 +97,14 @@ it("saves settings by name and loads them back, keeping painted tiles", async ()
     )
   );
   await settle();
-  const select = host.querySelector("select") as HTMLSelectElement;
-  expect([...select.options].map((o) => o.textContent).join("|")).toBe(
-    "Choose…|Yellow flow"
-  );
-  act(() => {
-    select.value = state.stored[0]?.id ?? "";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+  expect(trigger(host).textContent).toContain("Choose…");
+  const options = await openMenu(host);
+  expect(options.map((o) => o.textContent).join("|")).toBe("Yellow flow");
+  await userEvent.click(options[0] as HTMLElement);
+  await settle();
   expect(latest).toEqual({ gap: 30, painted: "2.2#00ff00", text: "2" });
   // Loaded: it shows as the one picked.
-  expect((host.querySelector("select") as HTMLSelectElement).value).toBe(
-    state.stored[0]?.id
-  );
+  expect(trigger(host).textContent).toContain("Yellow flow");
   act(() => root2.unmount());
   host.remove();
 });
@@ -113,11 +128,10 @@ it("loads a ready-made look exactly: the defaults under it, painted tiles kept",
     )
   );
   await settle();
-  const select = host.querySelector("select") as HTMLSelectElement;
-  act(() => {
-    select.value = "look:0";
-    select.dispatchEvent(new Event("change", { bubbles: true }));
-  });
+  const fade = (await openMenu(host)).find((o) =>
+    o.textContent?.includes("Fade")
+  ) as HTMLElement;
+  await userEvent.click(fade);
   expect(got).toEqual({
     columns: 72,
     gap: 0,

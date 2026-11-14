@@ -369,6 +369,11 @@
  * switchable variable — there is nothing for a later block to override.
  */
 @theme {
+  /*
+   * One step past Tailwind's widest container (7xl, 80rem): \`max-w-8xl\`,
+   * for admin pages that hold wide work such as a review's screens.
+   */
+  --container-8xl: 96rem;
   --color-a: oklch(50.07% 0.1634 31.33);
   --color-b: oklch(62.67% 0.1766 32.76);
   --color-c: oklch(81.46% 0.1738 111.52);
@@ -544,6 +549,10 @@
      over a scrim of its own. This was the `z-61` that made the ladder
      unreadable. */
   --z-color-picker: 61;
+  /* A menu that portals out of its control (the shared Select) opens above
+     anything it can sit in: the board's panels and the wires over them. At
+     --z-popover it opened behind every board panel, out of reach. */
+  --z-menu: 1100;
 }
 
 /* Register --gradient-angle as a typed property so browsers can interpolate it */

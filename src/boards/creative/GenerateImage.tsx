@@ -2,6 +2,13 @@ import { Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { sizeFromTitle } from "../../../config/adLayout";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { LOOKS } from "../../editor/presets";
 import { brandKitsApi } from "../../services/brandKitService";
 import type { BoardItem } from "../../types";
@@ -152,21 +159,33 @@ export function GenerateImage({
         placeholder="What should it show? e.g. a roofer on a ridge at golden hour"
         value={ask}
       />
-      <label className="creative-generate__model">
+      <div className="creative-generate__model">
         <span>Model</span>
-        <select
-          aria-label="Model"
-          className="creative__input"
-          onChange={(e) => setModel(e.target.value)}
+        <Select
+          items={choices.map((m) => ({ label: m.label, value: m.id }))}
+          onValueChange={(value) => {
+            if (value !== null) {
+              setModel(value);
+            }
+          }}
           value={model}
         >
-          {choices.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.label}
-            </option>
-          ))}
-        </select>
-      </label>
+          <SelectTrigger
+            aria-label="Model"
+            className="creative__input creative-generate__model-select"
+            size="sm"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {choices.map((m) => (
+              <SelectItem key={m.id} value={m.id}>
+                {m.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="creative-generate__segments">
         {(["background", "picture"] as const).map((p) => (
           <button

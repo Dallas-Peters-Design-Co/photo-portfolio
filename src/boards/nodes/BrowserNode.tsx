@@ -22,6 +22,13 @@ import { canBrowseLive, LiveBrowser } from "./LiveBrowser";
 import { type BrowserSession, useBrowserSession } from "./useBrowserSession";
 import "../../components/review/reviewMarkup.css";
 import "./BrowserNode.css";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 /**
  * A browser on the board (config/nodes/browser.ts).
@@ -40,6 +47,11 @@ import "./BrowserNode.css";
  */
 
 const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
+
+const VIEWPORT_ITEMS = [
+  { label: "Desktop", value: "desktop" },
+  { label: "Phone", value: "mobile" },
+];
 
 export function BrowserNode({
   item,
@@ -245,17 +257,35 @@ function BrowseBar({
           value={session.address}
         />
       </form>
-      <select
-        aria-label="Width"
-        className="browser-node__viewport"
+      <Select
         disabled={readOnly || busy}
-        onChange={(e) => session.setViewport(e.target.value as BrowserViewport)}
-        onPointerDown={stop}
+        items={VIEWPORT_ITEMS}
+        onValueChange={(next) => {
+          if (next !== null) {
+            session.setViewport(next as BrowserViewport);
+          }
+        }}
         value={cfg.viewport}
       >
-        <option value="desktop">Desktop</option>
-        <option value="mobile">Phone</option>
-      </select>
+        <SelectTrigger
+          aria-label="Width"
+          className="browser-node__viewport"
+          disabled={readOnly || busy}
+          onPointerDown={stop}
+          size="sm"
+        >
+          <SelectValue />
+        </SelectTrigger>
+        {/* Portalled, but React still bubbles its events up this tree to the
+            node; stopped here as the trigger is. */}
+        <SelectContent onPointerDown={stop}>
+          {VIEWPORT_ITEMS.map((v) => (
+            <SelectItem key={v.value} value={v.value}>
+              {v.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <button
         aria-expanded={loginOpen}
         aria-label={who}

@@ -7,6 +7,13 @@ import {
   Square,
 } from "lucide-react";
 import { type PointerEvent, useRef, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { BrowserCapture } from "../../../config/nodes/browser.js";
 import { newItemId } from "../../../config/proposal.js";
 import {
@@ -21,6 +28,12 @@ import {
   ReviewMarks,
   reviewPinClass,
 } from "../../components/review/ReviewMarkup";
+
+/** The note kinds with their labels, so the closed menu shows "Issue", not "issue". */
+const KIND_ITEMS = PIN_KINDS.map((kind) => ({
+  label: PIN_LABELS[kind],
+  value: kind,
+}));
 
 /**
  * Markup on a browser node's screenshot, and its numbered notes.
@@ -299,21 +312,32 @@ export function BrowserNotes({
         >
           <div className="browser-node__note-head">
             <span className={reviewPinClass(note.kind)}>{i + 1}</span>
-            <select
-              aria-label={`Kind of note ${i + 1}`}
-              className="browser-node__note-kind"
+            <Select
               disabled={readOnly}
-              onChange={(e) =>
-                update(note.id, { kind: e.target.value as PinKind })
-              }
+              items={KIND_ITEMS}
+              onValueChange={(next) => {
+                if (next !== null) {
+                  update(note.id, { kind: next as PinKind });
+                }
+              }}
               value={note.kind}
             >
-              {PIN_KINDS.map((kind) => (
-                <option key={kind} value={kind}>
-                  {PIN_LABELS[kind]}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                aria-label={`Kind of note ${i + 1}`}
+                className="browser-node__note-kind"
+                disabled={readOnly}
+                size="sm"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PIN_KINDS.map((kind) => (
+                  <SelectItem key={kind} value={kind}>
+                    {PIN_LABELS[kind]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {readOnly ? null : (
               <button
                 aria-label={`Remove note ${i + 1}`}

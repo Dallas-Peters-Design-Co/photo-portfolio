@@ -12,6 +12,13 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import {
   proposalInputClass,
   proposalLabelClass,
   proposalTextareaClass,
@@ -137,19 +144,33 @@ export function InvoiceComposer({
           <Label className={proposalLabelClass} htmlFor="inv-template">
             Start from
           </Label>
-          <select
-            className={`${proposalInputClass} w-full rounded-md border px-3`}
-            id="inv-template"
-            onChange={(e) => applyTemplate(e.target.value)}
+          <Select
+            items={[
+              { label: "Blank invoice", value: "" },
+              ...templates.map((t) => ({ label: t.name, value: t.id })),
+            ]}
+            onValueChange={(value) => {
+              if (value !== null) {
+                applyTemplate(value);
+              }
+            }}
             value={templateId}
           >
-            <option value="">Blank invoice</option>
-            {templates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className={`${proposalInputClass} w-full rounded-md border px-3`}
+              id="inv-template"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Blank invoice</SelectItem>
+              {templates.map((t) => (
+                <SelectItem key={t.id} value={t.id}>
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label className={proposalLabelClass} htmlFor="inv-name">

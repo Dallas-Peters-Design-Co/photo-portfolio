@@ -266,6 +266,12 @@
   border-radius: calc(var(--spacing) * 1);
 }
 
+/* A phone capture is drawn no wider than a large phone (420px), not
+   stretched to the column; print sets its own size below. */
+.review-page__screen--mobile .review-page__figure {
+  max-width: 26.25rem;
+}
+
 .review-page__image {
   display: block;
   width: 100%;

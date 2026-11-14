@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import type {
@@ -18,6 +25,7 @@ import { downloadBlob } from "./exportPng";
  */
 
 const LENGTHS = [6, 8, 10, 15];
+const LENGTH_ITEMS = LENGTHS.map((s) => ({ label: `${s} s`, value: s }));
 const SIZES = [
   { label: "HD · 1920", value: 1920 },
   { label: "4K · 3840", value: 3840 },
@@ -201,34 +209,64 @@ export function VideoExport({
         </label>
       </span>
       <span className="creative-export__pair">
-        <label>
+        <div className="creative-export__option">
           Length
-          <select
-            className="creative__input"
-            onChange={(e) => set({ duration: Number(e.target.value) })}
+          <Select
+            items={LENGTH_ITEMS}
+            onValueChange={(value) => {
+              if (value !== null) {
+                set({ duration: Number(value) });
+              }
+            }}
             value={options.duration}
           >
-            {LENGTHS.map((s) => (
-              <option key={s} value={s}>
-                {s} s
-              </option>
-            ))}
-          </select>
-        </label>
-        <label title="The video's longer side, in pixels">
+            <SelectTrigger
+              aria-label="Length"
+              className="creative__input creative-export__select"
+              size="sm"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LENGTH_ITEMS.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div
+          className="creative-export__option"
+          title="The video's longer side, in pixels"
+        >
           Size
-          <select
-            className="creative__input"
-            onChange={(e) => set({ longEdge: Number(e.target.value) })}
+          <Select
+            items={SIZES}
+            onValueChange={(value) => {
+              if (value !== null) {
+                set({ longEdge: Number(value) });
+              }
+            }}
             value={options.longEdge}
           >
-            {SIZES.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            <SelectTrigger
+              aria-label="Size"
+              className="creative__input creative-export__select"
+              size="sm"
+              title="The video's longer side, in pixels"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SIZES.map((s) => (
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </span>
       <ExportButtons
         busy={busy}

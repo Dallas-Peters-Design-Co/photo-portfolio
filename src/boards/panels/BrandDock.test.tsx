@@ -2,6 +2,7 @@ import "../../index.css";
 import type { ReactElement } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
 import type { BrandKit } from "../../services/brandKitService";
 
@@ -99,6 +100,11 @@ const flush = (): Promise<void> =>
 
 const render = async (ui: ReactElement): Promise<HTMLElement> => {
   host = document.createElement("div");
+  // The board's own stacking context, as `.board` makes one in the app: the
+  // dock's z-index then ranks inside it, and the brand menu, portalled to the
+  // body, opens over the dock rather than under it.
+  host.style.position = "relative";
+  host.style.zIndex = "0";
   document.body.append(host);
   root = createRoot(host);
   root.render(ui);
@@ -119,14 +125,22 @@ function Swatches() {
   return <output>{swatches?.map((s) => s.color).join(",") ?? "none"}</output>;
 }
 
-const choose = async (el: HTMLElement, id: string) => {
-  const select = el.querySelector("select") as HTMLSelectElement;
-  const setter = Object.getOwnPropertyDescriptor(
-    HTMLSelectElement.prototype,
-    "value"
-  )?.set;
-  setter?.call(select, id);
-  select.dispatchEvent(new Event("change", { bubbles: true }));
+/** Picks a brand from the header's menu, by name, as a pointer would. */
+const choose = async (el: HTMLElement, name: string) => {
+  const trigger = el.querySelector(
+    "button[aria-label='Brand']"
+  ) as HTMLButtonElement;
+  await userEvent.click(trigger);
+  const option = await vi.waitFor(() => {
+    const found = [...document.querySelectorAll("[role='option']")].find((o) =>
+      o.textContent?.includes(name)
+    );
+    if (!found) {
+      throw new Error("menu not open");
+    }
+    return found as HTMLElement;
+  });
+  await userEvent.click(option);
   await flush();
 };
 
@@ -138,7 +152,7 @@ describe("BrandDock", () => {
       </ActiveBrandProvider>
     );
     expect(el.textContent).toContain("Pick a brand");
-    await choose(el, "kit-1");
+    await choose(el, "Bird Creek");
     expect(el.querySelectorAll(".brand-dock__swatch")).toHaveLength(2);
     expect(el.textContent).toContain("CTA colour");
     await flush();
@@ -170,7 +184,7 @@ describe("BrandDock", () => {
       </ActiveBrandProvider>
     );
     expect(el.querySelector("output")?.textContent).toBe("none");
-    await choose(el, "kit-1");
+    await choose(el, "Bird Creek");
     expect(el.querySelector("output")?.textContent).toBe("#1f4d3a,#c8e86b");
     expect(localStorage.getItem("board-brand:b3")).toBe("kit-1");
   });
