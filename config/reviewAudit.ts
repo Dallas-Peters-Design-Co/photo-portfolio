@@ -68,6 +68,10 @@ export interface UxAudit {
 
 const MAX_TEXT = 2000;
 const MAX_ITEMS = 24;
+/** Up to fifteen findings a screen across a long review. */
+const MAX_FINDINGS = 200;
+/** One entry per law in the Laws of UX reference, with room to spare. */
+const MAX_PRINCIPLES = 40;
 
 const str = (v: unknown, max = MAX_TEXT): string =>
   typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -77,9 +81,9 @@ const fraction = (v: unknown): number =>
     ? Math.min(1, Math.max(0, v))
     : 0.5;
 
-const list = (v: unknown): Record<string, unknown>[] =>
+const list = (v: unknown, max = MAX_ITEMS): Record<string, unknown>[] =>
   (Array.isArray(v) ? v : [])
-    .slice(0, MAX_ITEMS)
+    .slice(0, max)
     .filter(
       (x): x is Record<string, unknown> => typeof x === "object" && x !== null
     );
@@ -103,7 +107,7 @@ export const sanitizeUxAudit = (
   const raw = (value ?? {}) as Record<string, unknown>;
   return {
     execSummary: str(raw.execSummary),
-    findings: list(raw.findings)
+    findings: list(raw.findings, MAX_FINDINGS)
       .map((f) => {
         const screenId = str(f.screenId, 64);
         return {
@@ -120,7 +124,7 @@ export const sanitizeUxAudit = (
       })
       .filter((f) => f.headline || f.detail),
     nowFraming: str(raw.nowFraming),
-    principles: list(raw.principles)
+    principles: list(raw.principles, MAX_PRINCIPLES)
       .map((p) => ({
         detail: str(p.detail),
         name: str(p.name, 160),
@@ -206,6 +210,10 @@ const section = (title: string, content: Node[]): ReviewSection => ({
   title,
 });
 
+/** The rich-text builders, for other folds into a review (reviewChecks.ts). */
+export const rich = { bulletList, labelled, paragraph, section, text };
+export { PRINCIPLE_LABELS };
+
 const findingPin = (f: AuditFinding): ReviewPin => ({
   body: f.detail,
   id: newItemId(),
@@ -237,7 +245,7 @@ const sectionsOf = (audit: UxAudit): ReviewSection[] => {
     const order: PrincipleStatus[] = ["attention", "opportunity", "pass"];
     out.push(
       section(
-        "Principles",
+        "Laws of UX",
         order.flatMap((status) => {
           const items = audit.principles.filter((p) => p.status === status);
           return items.length === 0

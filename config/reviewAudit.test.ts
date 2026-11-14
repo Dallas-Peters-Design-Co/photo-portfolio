@@ -83,7 +83,7 @@ describe("mergeAudit", () => {
   it("writes one editable section per list, plus the unplaced findings", () => {
     expect(merged.sections.map((s) => s.title)).toEqual([
       "Strengths",
-      "Principles",
+      "Laws of UX",
       "Recommendations",
       "Further findings",
     ]);

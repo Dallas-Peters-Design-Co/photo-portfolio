@@ -34,8 +34,11 @@ export interface Tile {
 /** Wide enough to read a 14px body line at desktop; half that for a phone. */
 const WIDTHS = { desktop: 1000, mobile: 500 } as const;
 const TILE_HEIGHT = 1300;
-/** Twenty-four tiles is a long site; past it the cost outruns the insight. */
-export const MAX_TILES = 24;
+/**
+ * Forty-eight tiles: about six per screen for four pages at two widths, so a
+ * long page is read to its foot. Each screen's own call sees only its tiles.
+ */
+export const MAX_TILES = 48;
 const FETCH_TIMEOUT_MS = 30_000;
 
 /** Only pictures this app stored: the server will not fetch anywhere else. */

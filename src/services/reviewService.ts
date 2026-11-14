@@ -5,6 +5,7 @@ import type {
   ReviewStatus,
 } from "../../config/review.js";
 import type { UxAudit } from "../../config/reviewAudit.js";
+import type { ReferenceCheck } from "../../config/reviewChecks.js";
 import type { ReviewFeedback } from "../../config/reviewFeedback.js";
 import { apiBase, jsonHeaders, readPageError } from "./portfolioService";
 import type { ProposalBrand, ProposalSent } from "./proposalService";
@@ -111,7 +112,12 @@ export const reviewsApi = {
     slug: string
   ): Promise<
     | { state: "running"; phase: string }
-    | { state: "done"; note: string; screens: ReviewScreen[] }
+    | {
+        checks: ReferenceCheck[];
+        note: string;
+        screens: ReviewScreen[];
+        state: "done";
+      }
     | { state: "failed"; error: string }
   > =>
     json(

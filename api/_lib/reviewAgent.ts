@@ -1,5 +1,11 @@
 import { newItemId } from "../../config/proposal.js";
 import type { ReviewImage, ReviewScreen } from "../../config/review.js";
+import {
+  REFERENCE_NAMES,
+  type ReferenceCheck,
+  SEVERITIES,
+  sanitizeChecks,
+} from "../../config/reviewChecks.js";
 import { confirmAgentImage } from "./reviewImages.js";
 
 /**
@@ -51,9 +57,49 @@ const IMAGE_SCHEMA = {
   type: "object",
 };
 
+const CHECK_SCHEMA = {
+  additionalProperties: false,
+  properties: {
+    observations: {
+      items: {
+        additionalProperties: false,
+        properties: {
+          detail: {
+            description:
+              "What you saw, where, and what it means for the people using it.",
+            type: "string",
+          },
+          screen: {
+            description: "The title of the captured screen it was seen on.",
+            type: "string",
+          },
+          severity: { enum: [...SEVERITIES], type: "string" },
+        },
+        required: ["detail", "screen", "severity"],
+        type: "object",
+      },
+      type: "array",
+    },
+    reference: { enum: REFERENCE_NAMES, type: "string" },
+    status: { enum: ["pass", "opportunity", "attention"], type: "string" },
+    summary: {
+      description: "2-3 sentences: how the app measures up to this reference.",
+      type: "string",
+    },
+  },
+  required: ["observations", "reference", "status", "summary"],
+  type: "object",
+};
+
 export const CAPTURE_SCHEMA = {
   additionalProperties: false,
   properties: {
+    checks: {
+      description:
+        "One entry per reference, every reference, in the order given in the request.",
+      items: CHECK_SCHEMA,
+      type: "array",
+    },
     note: {
       description: "One sentence on what was captured, or why it failed.",
       type: "string",
@@ -73,7 +119,7 @@ export const CAPTURE_SCHEMA = {
       type: "array",
     },
   },
-  required: ["note", "screens"],
+  required: ["checks", "note", "screens"],
   type: "object",
 };
 
@@ -87,7 +133,7 @@ export const captureMessage = ({
   url: string;
 }): string =>
   [
-    "Capture screens for a client review. Do not write an audit.",
+    "Capture screens for a client review, then validate the app against every audit reference in your instructions.",
     "",
     `Start URL: ${url}`,
     loginUrl
@@ -95,6 +141,10 @@ export const captureMessage = ({
       : "If the app asks you to sign in, call log_in with the sign-in page's URL.",
     `Capture the start page and up to ${pages - 1} more key pages, each at desktop and mobile width.`,
     "Look, never change anything in the app.",
+    "",
+    "Then validate, one reference at a time, and return one `checks` entry for each of these, in this order:",
+    ...REFERENCE_NAMES.map((name) => `- ${name}`),
+    "For each, apply that reference's checklist to the pages you visited: use the live browser (snapshots, open menus, hover and focus states, the flow between pages) as well as the screenshots. Give observations naming the screen and the element, with a severity from the Severity Model; use Pass for what clearly meets the reference. A reference that does not apply to this app still gets an entry that says why.",
   ].join("\n");
 
 /** Starts a capture. Resolves with the agent session's id. */
@@ -155,7 +205,12 @@ export const parseFacts = (ndjson: string): Fact[] =>
 
 export type CaptureState =
   | { state: "running"; phase: string }
-  | { state: "done"; note: string; screens: AgentScreen[] }
+  | {
+      checks: ReferenceCheck[];
+      note: string;
+      screens: AgentScreen[];
+      state: "done";
+    }
   | { state: "failed"; error: string };
 
 const describeCall = (name = "", url = ""): string | null => {
@@ -190,8 +245,13 @@ const settled = (
       state: "failed",
     };
   }
-  const value = (result ?? {}) as { note?: unknown; screens?: unknown };
+  const value = (result ?? {}) as {
+    checks?: unknown;
+    note?: unknown;
+    screens?: unknown;
+  };
   return {
+    checks: sanitizeChecks(value.checks),
     note: typeof value.note === "string" ? value.note : "",
     screens: Array.isArray(value.screens)
       ? (value.screens as AgentScreen[])

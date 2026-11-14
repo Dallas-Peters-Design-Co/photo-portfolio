@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
 import type { ReviewScreen } from "../../../config/review.js";
 import { mergeAudit } from "../../../config/reviewAudit.js";
+import {
+  mergeChecks,
+  type ReferenceCheck,
+} from "../../../config/reviewChecks.js";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useConfirm } from "./ConfirmProvider";
 
@@ -138,7 +142,10 @@ export function useReviewAudit({
     const startedAt = Date.now();
     // One check at a time: each waits, asks, and either finishes or schedules
     // the next, so a slow answer never overlaps the one after it.
-    const poll = async (): Promise<ReviewScreen[]> => {
+    const poll = async (): Promise<{
+      checks: ReferenceCheck[];
+      screens: ReviewScreen[];
+    }> => {
       if (Date.now() - startedAt > CAPTURE_LIMIT_MS) {
         throw new Error("The capture took longer than 30 minutes.");
       }
@@ -154,13 +161,21 @@ export function useReviewAudit({
       if (status.screens.length === 0) {
         throw new Error(status.note || "The agent captured no screens.");
       }
-      return status.screens;
+      return status;
     };
-    const screens = await poll();
+    const { checks, screens } = await poll();
+    // The agent's reference-by-reference validation joins the review with
+    // its screens; the screen audit that follows adds its pins after.
     setDraft((d) => ({
       ...d,
-      doc: { ...d.doc, screens: [...d.doc.screens, ...screens] },
+      doc: mergeChecks(
+        { ...d.doc, screens: [...d.doc.screens, ...screens] },
+        checks
+      ),
     }));
+    if (checks.length > 0) {
+      setAuditKey((k) => k + 1);
+    }
     return screens;
   };
 

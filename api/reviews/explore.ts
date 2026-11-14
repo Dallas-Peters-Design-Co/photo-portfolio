@@ -71,7 +71,9 @@ const status = async (req: VercelRequest, res: VercelResponse) => {
     screens.length === capture.screens.length
       ? capture.note
       : `${capture.note} ${capture.screens.length - screens.length} of ${capture.screens.length} pictures could not be found in the review store.`.trim();
-  return res.status(200).json({ note, screens, state: "done" });
+  return res
+    .status(200)
+    .json({ checks: capture.checks, note, screens, state: "done" });
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

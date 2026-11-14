@@ -72,12 +72,44 @@ describe("captureState", () => {
     ];
     const state = captureState([
       {
-        data: { kind: "result", value: { note: "One page.", screens } },
+        data: {
+          kind: "result",
+          value: {
+            checks: [
+              {
+                observations: [],
+                reference: "Fitts's Law",
+                status: "pass",
+                summary: "Big targets.",
+              },
+              {
+                observations: [],
+                reference: "Not a law",
+                status: "pass",
+                summary: "x",
+              },
+            ],
+            note: "One page.",
+            screens,
+          },
+        },
         type: "content.completed",
       },
       { data: { outcome: "completed" }, type: "turn.settled" },
     ]);
-    expect(state).toEqual({ note: "One page.", screens, state: "done" });
+    expect(state).toEqual({
+      checks: [
+        {
+          observations: [],
+          reference: "Fitts's Law",
+          status: "pass",
+          summary: "Big targets.",
+        },
+      ],
+      note: "One page.",
+      screens,
+      state: "done",
+    });
   });
 
   it("fails with the session's error, even when it is recorded after the turn", () => {
@@ -149,13 +181,17 @@ describe("review images", () => {
 });
 
 describe("captureMessage", () => {
-  it("names the login page when one is given, and never asks for an audit", () => {
+  it("names the login page and asks for every reference, in order", () => {
     const text = captureMessage({
       loginUrl: "https://app.example.com/login",
       pages: 4,
       url: "https://app.example.com",
     });
-    expect(text).toContain("Do not write an audit.");
+    expect(text).toContain("validate the app against every audit reference");
+    expect(text.indexOf("- Section 1: First Impressions")).toBeLessThan(
+      text.indexOf("- Zeigarnik Effect")
+    );
+    expect(text).toContain("- UX patterns");
     expect(text).toContain("https://app.example.com/login");
     expect(text).toContain("up to 3 more key pages");
   });
