@@ -1,0 +1,28 @@
+/*
+ * The review screen editor's two grids: the address row (field, capture,
+ * upload) and the picture beside its notes. Named here because neither
+ * column template has a Tailwind token. Breakpoints match --breakpoint-sm
+ * (568px) and --breakpoint-lg (1024px).
+ */
+
+.review-screen-editor__address {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+}
+
+.review-screen-editor__body {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+
+@media (min-width: 568px) {
+  .review-screen-editor__address {
+    grid-template-columns: 1fr auto auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .review-screen-editor__body {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+}

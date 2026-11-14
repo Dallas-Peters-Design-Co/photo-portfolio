@@ -374,6 +374,9 @@
    * for admin pages that hold wide work such as a review's screens.
    */
   --container-8xl: 96rem;
+  /* The widest a phone screenshot is drawn (420px), in the review editor
+     and on the review page: \`max-w-phone\`. */
+  --container-phone: 26.25rem;
   --color-a: oklch(50.07% 0.1634 31.33);
   --color-b: oklch(62.67% 0.1766 32.76);
   --color-c: oklch(81.46% 0.1738 111.52);

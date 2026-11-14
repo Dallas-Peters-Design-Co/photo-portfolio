@@ -269,7 +269,7 @@
 /* A phone capture is drawn no wider than a large phone (420px), not
    stretched to the column; print sets its own size below. */
 .review-page__screen--mobile .review-page__figure {
-  max-width: 26.25rem;
+  max-width: var(--container-phone);
 }
 
 .review-page__image {

@@ -44,6 +44,7 @@ import {
   touchScreen,
   useMarkupHistory,
 } from "./reviewEditing";
+import "./ReviewScreenEditor.css";
 
 const VIEWPORT_ITEMS = [
   { label: "Desktop (1440)", value: "desktop" },
@@ -300,7 +301,7 @@ export function ReviewScreenEditor({
 
   return (
     <div className="space-y-4 rounded-md border border-white/10 p-4">
-      <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+      <div className="review-screen-editor__address">
         <div className="space-y-2">
           <Label
             className={proposalLabelClass}
@@ -406,7 +407,7 @@ export function ReviewScreenEditor({
       </div>
 
       {screen.image ? (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+        <div className="review-screen-editor__body">
           <div>
             <ReviewMarkupToolbar
               canClear={marks.length > 0}
@@ -427,9 +428,12 @@ export function ReviewScreenEditor({
             {/* biome-ignore lint/a11y/useKeyWithClickEvents: pointer canvas */}
             {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer canvas */}
             <div
+              // A phone capture is drawn no wider than a large phone (420px),
+              // as on the review page; pins are fractions of this box, so
+              // they stay on what they mark.
               className={`relative touch-none select-none overflow-hidden rounded-md border border-white/10 ${
-                tool === "erase" ? "cursor-cell" : "cursor-crosshair"
-              }`}
+                screen.viewport === "mobile" ? "max-w-phone" : ""
+              } ${tool === "erase" ? "cursor-cell" : "cursor-crosshair"}`}
               data-review-canvas=""
               onClick={addPin}
               onMouseLeave={() => {

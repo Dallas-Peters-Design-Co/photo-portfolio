@@ -19,7 +19,7 @@ import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useSiteSettings } from "../../theme/SiteSettingsProvider";
 import { reviewAccentStyle } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import {
@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { AdminCard, AdminFrame } from "./AdminFrame";
 import { BackButton } from "./BackButton";
 import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 import { ReviewClientPanel } from "./ReviewClientPanel";
@@ -242,279 +243,280 @@ export function ReviewEditor({
   const isPublished = draft.status === "published";
 
   return (
-    <Card
-      className="w-full max-w-9xl border-white/10 bg-white/2"
-      style={reviewAccentStyle(settings.theme.accent)}
-    >
-      <CardHeader className="flex flex-col items-start gap-2">
-        <BackButton label="Reviews" onClick={onClose} />
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
-          <HugeiconsIcon aria-hidden icon={SearchVisualIcon} size={16} />
-          {draft.title}
-        </CardTitle>
-      </CardHeader>
+    <AdminFrame>
+      <AdminCard style={reviewAccentStyle(settings.theme.accent)}>
+        <CardHeader className="flex flex-col items-start gap-2">
+          <BackButton label="Reviews" onClick={onClose} />
+          <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
+            <HugeiconsIcon aria-hidden icon={SearchVisualIcon} size={16} />
+            {draft.title}
+          </CardTitle>
+        </CardHeader>
 
-      <CardContent className="space-y-10">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          <div className="space-y-2">
-            <Label className={proposalLabelClass} htmlFor="review-title">
-              Title
-            </Label>
-            <Input
-              className={proposalInputClass}
-              id="review-title"
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              value={draft.title}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className={proposalLabelClass} htmlFor="review-client">
-              Client label
-            </Label>
-            <Input
-              className={proposalInputClass}
-              id="review-client"
-              onChange={(e) =>
-                setDraft({ ...draft, clientName: e.target.value })
-              }
-              placeholder="Vin at Viaskai"
-              value={draft.clientName}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className={proposalLabelClass} htmlFor="review-email">
-              Client email
-            </Label>
-            <Input
-              className={proposalInputClass}
-              id="review-email"
-              onChange={(e) =>
-                setDraft({ ...draft, clientEmail: e.target.value || null })
-              }
-              placeholder="Gets the link"
-              type="email"
-              value={draft.clientEmail ?? ""}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className={proposalLabelClass} htmlFor="review-kit">
-              Brand kit
-            </Label>
-            <Select
-              items={kitItems}
-              onValueChange={(value) => {
-                if (value !== null) {
-                  setDraft({ ...draft, brandKitId: value || null });
+        <CardContent className="space-y-10">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="space-y-2">
+              <Label className={proposalLabelClass} htmlFor="review-title">
+                Title
+              </Label>
+              <Input
+                className={proposalInputClass}
+                id="review-title"
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                value={draft.title}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className={proposalLabelClass} htmlFor="review-client">
+                Client label
+              </Label>
+              <Input
+                className={proposalInputClass}
+                id="review-client"
+                onChange={(e) =>
+                  setDraft({ ...draft, clientName: e.target.value })
                 }
-              }}
-              value={draft.brandKitId ?? ""}
-            >
-              <SelectTrigger
-                className={`${proposalInputClass} w-full rounded-md border px-3`}
-                id="review-kit"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {kitItems.map((kit) => (
-                  <SelectItem key={kit.value} value={kit.value}>
-                    {kit.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label className={proposalLabelClass} htmlFor="review-slug">
-              Address
-            </Label>
-            <Input
-              className={`${proposalInputClass} font-mono`}
-              id="review-slug"
-              onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
-              value={draft.slug}
-            />
-            <p className="font-mono text-micro-xs text-white/60">
-              /review/{draft.slug}
-            </p>
-          </div>
-        </div>
-
-        <section className="space-y-4">
-          <h3 className={fieldsetTitleClass}>Opening</h3>
-          <div className="space-y-2">
-            <Label className={proposalLabelClass}>Intro</Label>
-            <PageEditor
-              onChange={(intro) => setDoc({ intro: intro as RichText })}
-              value={toEditorDoc(draft.doc.intro)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label className={proposalLabelClass}>Headline findings</Label>
-            <PageEditor
-              key={auditKey}
-              onChange={(summary) => setDoc({ summary: summary as RichText })}
-              value={toEditorDoc(draft.doc.summary)}
-            />
-          </div>
-        </section>
-
-        <ReviewSectionsEditor
-          onChange={(update) =>
-            setDraft((d) => ({
-              ...d,
-              doc: { ...d.doc, sections: update(d.doc.sections) },
-            }))
-          }
-          sections={draft.doc.sections}
-        />
-
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className={fieldsetTitleClass}>Screens</h3>
-            <div className="flex items-center gap-2">
-              <Button
-                disabled={phase !== "idle"}
-                onClick={() => void runAudit()}
-                title="Audit the screens with pictures, or capture a page first, and add findings, sections and pins"
-                type="button"
-                variant="outline"
-              >
-                <ScanSearch size={14} />
-                {AUDIT_LABELS[phase]}
-              </Button>
-              <Button
-                disabled={phase !== "idle"}
-                onClick={() => void runLoginAudit()}
-                title="The audit agent signs in with the stored test account, captures the key pages, then runs the UX audit"
-                type="button"
-                variant="outline"
-              >
-                <KeyRound size={14} />
-                {phase === "exploring"
-                  ? agentStatus || AUDIT_LABELS.exploring
-                  : "Capture behind login"}
-              </Button>
-              <Button
-                onClick={() =>
-                  setDoc({
-                    screens: [
-                      ...draft.doc.screens,
-                      {
-                        id: newItemId(),
-                        image: null,
-                        marks: [],
-                        note: "",
-                        pins: [],
-                        sourceUrl: "",
-                        title: "",
-                        viewport: "desktop",
-                      },
-                    ],
-                  })
+                placeholder="Vin at Viaskai"
+                value={draft.clientName}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className={proposalLabelClass} htmlFor="review-email">
+                Client email
+              </Label>
+              <Input
+                className={proposalInputClass}
+                id="review-email"
+                onChange={(e) =>
+                  setDraft({ ...draft, clientEmail: e.target.value || null })
                 }
-                type="button"
-                variant="ghost"
+                placeholder="Gets the link"
+                type="email"
+                value={draft.clientEmail ?? ""}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className={proposalLabelClass} htmlFor="review-kit">
+                Brand kit
+              </Label>
+              <Select
+                items={kitItems}
+                onValueChange={(value) => {
+                  if (value !== null) {
+                    setDraft({ ...draft, brandKitId: value || null });
+                  }
+                }}
+                value={draft.brandKitId ?? ""}
               >
-                <Plus size={14} /> Add screen
-              </Button>
+                <SelectTrigger
+                  className={`${proposalInputClass} w-full rounded-md border px-3`}
+                  id="review-kit"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {kitItems.map((kit) => (
+                    <SelectItem key={kit.value} value={kit.value}>
+                      {kit.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className={proposalLabelClass} htmlFor="review-slug">
+                Address
+              </Label>
+              <Input
+                className={`${proposalInputClass} font-mono`}
+                id="review-slug"
+                onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
+                value={draft.slug}
+              />
+              <p className="font-mono text-micro-xs text-white/60">
+                /review/{draft.slug}
+              </p>
             </div>
           </div>
-          {draft.doc.screens.map((screen, i) => (
-            <ReviewScreenEditor
-              firstNumber={firstNumbers[i] ?? 1}
-              key={screen.id}
-              onChange={(update) => updateScreen(screen.id, update)}
-              onRemove={() =>
-                setDoc({
-                  screens: draft.doc.screens.filter((s) => s.id !== screen.id),
-                })
-              }
-              screen={screen}
-              slug={draft.slug}
-            />
-          ))}
-        </section>
 
-        <section className="space-y-2">
-          <Label className={proposalLabelClass}>Closing</Label>
-          <PageEditor
-            onChange={(closing) => setDoc({ closing: closing as RichText })}
-            value={toEditorDoc(draft.doc.closing)}
-          />
-        </section>
+          <section className="space-y-4">
+            <h3 className={fieldsetTitleClass}>Opening</h3>
+            <div className="space-y-2">
+              <Label className={proposalLabelClass}>Intro</Label>
+              <PageEditor
+                onChange={(intro) => setDoc({ intro: intro as RichText })}
+                value={toEditorDoc(draft.doc.intro)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className={proposalLabelClass}>Headline findings</Label>
+              <PageEditor
+                key={auditKey}
+                onChange={(summary) => setDoc({ summary: summary as RichText })}
+                value={toEditorDoc(draft.doc.summary)}
+              />
+            </div>
+          </section>
 
-        <ReviewClientPanel
-          onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
-          review={draft}
-        />
-
-        <ReviewSendPanel
-          busy={isSaving}
-          onChange={(next) => {
-            setDraft((d) => ({ ...d, sent: next.sent }));
-            void onSaved(next);
-          }}
-          review={draft}
-        />
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            disabled={isSaving}
-            onClick={() => void save()}
-            type="button"
-            variant="outline"
-          >
-            <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
-            {isSaving ? "Saving…" : "Save"}
-          </Button>
-          <Button
-            disabled={isSaving}
-            onClick={() =>
-              void save({ status: isPublished ? "draft" : "published" })
+          <ReviewSectionsEditor
+            onChange={(update) =>
+              setDraft((d) => ({
+                ...d,
+                doc: { ...d.doc, sections: update(d.doc.sections) },
+              }))
             }
-            type="button"
-            variant="ghost"
-          >
-            <HugeiconsIcon
-              icon={isPublished ? EyeIcon : ViewOffIcon}
-              size={14}
+            sections={draft.doc.sections}
+          />
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className={fieldsetTitleClass}>Screens</h3>
+              <div className="flex items-center gap-2">
+                <Button
+                  disabled={phase !== "idle"}
+                  onClick={() => void runAudit()}
+                  title="Audit the screens with pictures, or capture a page first, and add findings, sections and pins"
+                  type="button"
+                  variant="outline"
+                >
+                  <ScanSearch size={14} />
+                  {AUDIT_LABELS[phase]}
+                </Button>
+                <Button
+                  disabled={phase !== "idle"}
+                  onClick={() => void runLoginAudit()}
+                  title="The audit agent signs in with the stored test account, captures the key pages, then runs the UX audit"
+                  type="button"
+                  variant="outline"
+                >
+                  <KeyRound size={14} />
+                  {phase === "exploring"
+                    ? agentStatus || AUDIT_LABELS.exploring
+                    : "Capture behind login"}
+                </Button>
+                <Button
+                  onClick={() =>
+                    setDoc({
+                      screens: [
+                        ...draft.doc.screens,
+                        {
+                          id: newItemId(),
+                          image: null,
+                          marks: [],
+                          note: "",
+                          pins: [],
+                          sourceUrl: "",
+                          title: "",
+                          viewport: "desktop",
+                        },
+                      ],
+                    })
+                  }
+                  type="button"
+                  variant="ghost"
+                >
+                  <Plus size={14} /> Add screen
+                </Button>
+              </div>
+            </div>
+            {draft.doc.screens.map((screen, i) => (
+              <ReviewScreenEditor
+                firstNumber={firstNumbers[i] ?? 1}
+                key={screen.id}
+                onChange={(update) => updateScreen(screen.id, update)}
+                onRemove={() =>
+                  setDoc({
+                    screens: draft.doc.screens.filter(
+                      (s) => s.id !== screen.id
+                    ),
+                  })
+                }
+                screen={screen}
+                slug={draft.slug}
+              />
+            ))}
+          </section>
+
+          <section className="space-y-2">
+            <Label className={proposalLabelClass}>Closing</Label>
+            <PageEditor
+              onChange={(closing) => setDoc({ closing: closing as RichText })}
+              value={toEditorDoc(draft.doc.closing)}
             />
-            {isPublished ? "Unpublish" : "Publish"}
-          </Button>
-          <span
-            className={`text-micro-xs uppercase tracking-micro-wide ${
-              isPublished ? "text-emerald-400/70" : "text-amber-400/70"
-            }`}
-          >
-            {draft.status}
-          </span>
-          <span
-            aria-live="polite"
-            className={`text-micro-sm ${
-              saveState === "failed" ? "text-red-300" : "text-white/55"
-            }`}
-          >
-            {SAVE_LABELS[saveState]}
-          </span>
-          <button
-            className="ml-auto text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
-            disabled={isSaving}
-            onClick={() => void openPreview()}
-            type="button"
-          >
-            Preview
-          </button>
-          <button
-            className="text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
-            disabled={isPrinting || isSaving}
-            onClick={() => void printPdf()}
-            type="button"
-          >
-            {isPrinting ? "Preparing PDF…" : "PDF"}
-          </button>
-        </div>
-      </CardContent>
-    </Card>
+          </section>
+
+          <ReviewClientPanel
+            onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
+            review={draft}
+          />
+
+          <ReviewSendPanel
+            busy={isSaving}
+            onChange={(next) => {
+              setDraft((d) => ({ ...d, sent: next.sent }));
+              void onSaved(next);
+            }}
+            review={draft}
+          />
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              disabled={isSaving}
+              onClick={() => void save()}
+              type="button"
+              variant="outline"
+            >
+              <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+              {isSaving ? "Saving…" : "Save"}
+            </Button>
+            <Button
+              disabled={isSaving}
+              onClick={() =>
+                void save({ status: isPublished ? "draft" : "published" })
+              }
+              type="button"
+              variant="ghost"
+            >
+              <HugeiconsIcon
+                icon={isPublished ? EyeIcon : ViewOffIcon}
+                size={14}
+              />
+              {isPublished ? "Unpublish" : "Publish"}
+            </Button>
+            <span
+              className={`text-micro-xs uppercase tracking-micro-wide ${
+                isPublished ? "text-emerald-400/70" : "text-amber-400/70"
+              }`}
+            >
+              {draft.status}
+            </span>
+            <span
+              aria-live="polite"
+              className={`text-micro-sm ${
+                saveState === "failed" ? "text-red-300" : "text-white/55"
+              }`}
+            >
+              {SAVE_LABELS[saveState]}
+            </span>
+            <button
+              className="ml-auto text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
+              disabled={isSaving}
+              onClick={() => void openPreview()}
+              type="button"
+            >
+              Preview
+            </button>
+            <button
+              className="text-micro-xs text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white disabled:cursor-progress disabled:text-white/50"
+              disabled={isPrinting || isSaving}
+              onClick={() => void printPdf()}
+              type="button"
+            >
+              {isPrinting ? "Preparing PDF…" : "PDF"}
+            </button>
+          </div>
+        </CardContent>
+      </AdminCard>
+    </AdminFrame>
   );
 }
