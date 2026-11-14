@@ -6,7 +6,9 @@ phone width. The site copies the pictures into the review, then runs its own UX
 audit on them (`api/reviews/audit.ts`).
 
 It is its own package (npm, not part of the pnpm install) and deploys as its own
-Vercel project, `audit-agent`, with Root Directory `agents/audit`.
+Vercel project, `audit-agent`. Git deploys are off for that project; deploy from
+this folder with `npx eve deploy` (it uploads only this folder, never the site's
+`.env` files). Production: https://audit-agent-vert.vercel.app
 
 ## How it connects to the site
 
