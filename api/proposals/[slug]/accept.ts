@@ -145,6 +145,26 @@ const sendEmails = async (
   return { client, owner };
 };
 
+/** The answer when recording fails; a missing column means an unmigrated database. */
+const failure = (res: VercelResponse, e: unknown) => {
+  console.error(e);
+  const msg = e instanceof Error ? e.message : "";
+  if (msg.includes("accepted_")) {
+    return res.status(503).json({
+      error:
+        "Database schema is out of date. Run pnpm db:migrate against this deployment.",
+    });
+  }
+  return res.status(500).json({ error: "Could not record the acceptance" });
+};
+
+/** The proposal address from the route, lower-cased, or "" when absent. */
+const slugFrom = (req: VercelRequest): string => {
+  const raw =
+    typeof req.query.slug === "string" ? req.query.slug : req.query.slug?.[0];
+  return raw?.trim().toLowerCase() ?? "";
+};
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
     return;
@@ -154,9 +174,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const raw =
-    typeof req.query.slug === "string" ? req.query.slug : req.query.slug?.[0];
-  const slug = raw?.trim().toLowerCase();
+  const slug = slugFrom(req);
   if (!slug) {
     return res.status(400).json({ error: "Missing proposal address" });
   }
@@ -240,14 +258,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     return res.status(200).json({ ...(fresh ? rowToDto(fresh) : {}), emailed });
   } catch (e) {
-    console.error(e);
-    const msg = e instanceof Error ? e.message : "";
-    if (msg.includes("accepted_")) {
-      return res.status(503).json({
-        error:
-          "Database schema is out of date. Run pnpm db:migrate against this deployment.",
-      });
-    }
-    return res.status(500).json({ error: "Could not record the acceptance" });
+    return failure(res, e);
   }
 }

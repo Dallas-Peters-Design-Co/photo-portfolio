@@ -1517,6 +1517,100 @@
         "x-undocumented": true
       }
     },
+    "/api/boards/{id}/run/bundle.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_boards__id__run_bundle.test",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/boards/{id}/run/bundle.test",
+        "tags": [
+          "boards"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/boards/{id}/run/bundle": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_boards__id__run_bundle",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/boards/{id}/run/bundle",
+        "tags": [
+          "boards"
+        ],
+        "x-undocumented": true
+      }
+    },
     "/api/boards/{id}/run/capabilities": {
       "get": {
         "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
@@ -2506,6 +2600,80 @@
         ]
       }
     },
+    "/api/boards/print-pdf": {
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_boards_print-pdf",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/boards/print-pdf",
+        "tags": [
+          "boards"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/boards/printPdf.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_boards_printPdf.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/boards/printPdf.node.test",
+        "tags": [
+          "boards"
+        ],
+        "x-undocumented": true
+      }
+    },
     "/api/brand-kits/{id}": {
       "get": {
         "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
@@ -2643,6 +2811,80 @@
         "x-undocumented": true
       }
     },
+    "/api/brand-kits/creativeCopy.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_brand-kits_creativeCopy.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/brand-kits/creativeCopy.node.test",
+        "tags": [
+          "brand-kits"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/brand-kits/fontCatalog.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_brand-kits_fontCatalog.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/brand-kits/fontCatalog.node.test",
+        "tags": [
+          "brand-kits"
+        ],
+        "x-undocumented": true
+      }
+    },
     "/api/brand-kits": {
       "get": {
         "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
@@ -2709,6 +2951,43 @@
         },
         "security": [],
         "summary": "POST /api/brand-kits",
+        "tags": [
+          "brand-kits"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/brand-kits/savedLooks.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_brand-kits_savedLooks.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/brand-kits/savedLooks.node.test",
         "tags": [
           "brand-kits"
         ],
@@ -3513,6 +3792,227 @@
         "summary": "POST /api/collections",
         "tags": [
           "collections"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/contracts/{id}": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_contracts__id_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/contracts/{id}",
+        "tags": [
+          "contracts"
+        ],
+        "x-undocumented": true
+      },
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_contracts__id_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/contracts/{id}",
+        "tags": [
+          "contracts"
+        ],
+        "x-undocumented": true
+      },
+      "delete": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "delete_api_contracts__id_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "DELETE /api/contracts/{id}",
+        "tags": [
+          "contracts"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/contracts/{id}/pdf": {
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_contracts__id__pdf",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/contracts/{id}/pdf",
+        "tags": [
+          "contracts"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/contracts/contracts.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_contracts_contracts.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/contracts/contracts.node.test",
+        "tags": [
+          "contracts"
         ],
         "x-undocumented": true
       }
@@ -4534,6 +5034,78 @@
         "x-undocumented": true
       }
     },
+    "/api/invoices": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_invoices",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/invoices",
+        "tags": [
+          "invoices"
+        ],
+        "x-undocumented": true
+      },
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_invoices",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/invoices",
+        "tags": [
+          "invoices"
+        ],
+        "x-undocumented": true
+      }
+    },
     "/api/lightroom/albums": {
       "get": {
         "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
@@ -4970,6 +5542,217 @@
         "tags": [
           "manifest"
         ]
+      }
+    },
+    "/api/mcp/{key}": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_mcp__key_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/mcp/{key}",
+        "tags": [
+          "mcp"
+        ],
+        "x-undocumented": true
+      },
+      "delete": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "delete_api_mcp__key_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "DELETE /api/mcp/{key}",
+        "tags": [
+          "mcp"
+        ],
+        "x-undocumented": true
+      },
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_mcp__key_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/mcp/{key}",
+        "tags": [
+          "mcp"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/mcp/brandTools.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_mcp_brandTools.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/mcp/brandTools.node.test",
+        "tags": [
+          "mcp"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/mcp/mcp.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_mcp_mcp.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/mcp/mcp.node.test",
+        "tags": [
+          "mcp"
+        ],
+        "x-undocumented": true
       }
     },
     "/api/models/{id}": {
@@ -7448,6 +8231,51 @@
       }
     },
     "/api/reviews/{slug}": {
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_reviews__slug_",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/reviews/{slug}",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      },
       "get": {
         "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
         "operationId": "get_api_reviews__slug_",
@@ -7578,6 +8406,143 @@
         },
         "security": [],
         "summary": "PATCH /api/reviews/{slug}",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/reviews/{slug}/feedback": {
+      "delete": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "delete_api_reviews__slug__feedback",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "DELETE /api/reviews/{slug}/feedback",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      },
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_reviews__slug__feedback",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/reviews/{slug}/feedback",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      },
+      "patch": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "patch_api_reviews__slug__feedback",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "PATCH /api/reviews/{slug}/feedback",
         "tags": [
           "reviews"
         ],
@@ -7725,6 +8690,80 @@
         "x-undocumented": true
       }
     },
+    "/api/reviews/audit": {
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_reviews_audit",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/reviews/audit",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/reviews/browse": {
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_reviews_browse",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/reviews/browse",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      }
+    },
     "/api/reviews/capture": {
       "post": {
         "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
@@ -7756,6 +8795,78 @@
         },
         "security": [],
         "summary": "POST /api/reviews/capture",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/reviews/explore": {
+      "post": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "post_api_reviews_explore",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "POST /api/reviews/explore",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      },
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_reviews_explore",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/reviews/explore",
         "tags": [
           "reviews"
         ],
@@ -7828,6 +8939,43 @@
         },
         "security": [],
         "summary": "POST /api/reviews",
+        "tags": [
+          "reviews"
+        ],
+        "x-undocumented": true
+      }
+    },
+    "/api/reviews/reviewAccess.node.test": {
+      "get": {
+        "description": "Not yet described in schemas/routes.ts — path and method were read from the handler.",
+        "operationId": "get_api_reviews_reviewAccess.node.test",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "4XX": {
+            "description": "Request rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "5XX": {
+            "description": "Server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "summary": "GET /api/reviews/reviewAccess.node.test",
         "tags": [
           "reviews"
         ],

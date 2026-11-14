@@ -170,6 +170,62 @@ function SvgColoursTool({
   );
 }
 
+/** A frame's public link, copied; nothing for other items or an unpublished board. */
+function FrameLinkButton({ href }: { href: string | null }) {
+  if (!href) {
+    return null;
+  }
+  return (
+    <Button
+      onClick={() => void copyFrameLink(href)}
+      size="xs"
+      title={href}
+      variant="ghost"
+    >
+      Copy link
+    </Button>
+  );
+}
+
+/** Saves the picture as it is on screen; nothing when the item has none. */
+function SaveImageButton({
+  shown,
+}: {
+  shown: ReturnType<typeof saveTargetOf>;
+}) {
+  if (!shown) {
+    return null;
+  }
+  return (
+    <Button
+      onClick={() => {
+        void downloadImage(shown.url, shown.label);
+      }}
+      size="xs"
+      title={`Save this ${shown.noun}`}
+      variant="ghost"
+    >
+      Save
+    </Button>
+  );
+}
+
+/**
+ * Whether a press should first ask for words rather than run.
+ *
+ * The area before the words, and both before the run. Asking what goes there
+ * and *then* discovering nothing has been painted would throw the typed answer
+ * away — the runner arms the brush and stops, so anything collected first would
+ * be collected twice. So a tool still missing its mask runs (to arm the brush).
+ */
+const needsWordsFirst = (
+  tool: Tool,
+  context: { hasMask: boolean; hasPrompt: boolean }
+): boolean =>
+  !(tool.needsMask && !context.hasMask) &&
+  Boolean(tool.needsPrompt) &&
+  !context.hasPrompt;
+
 export function BoardToolBar({
   anchor,
   chromeScale,
@@ -229,15 +285,7 @@ export function BoardToolBar({
 
   /** A press on the bar: run it, or take the next step towards running it. */
   const choose = (tool: Tool) => {
-    // The area before the words, and both before the run. Asking what goes
-    // there and *then* discovering nothing has been painted would throw the
-    // typed answer away — the runner arms the brush and stops, so anything
-    // collected first would be collected twice.
-    if (tool.needsMask && !context.hasMask) {
-      onRun(tool);
-      return;
-    }
-    if (tool.needsPrompt && !context.hasPrompt) {
+    if (needsWordsFirst(tool, context)) {
       setPending(tool);
       return;
     }
@@ -314,16 +362,7 @@ export function BoardToolBar({
          * that 404s is worse than no button. The context is read here rather
          * than threaded through the canvas; see FrameOpenContext.
          */}
-        {item.kind === "frame" && frameHref ? (
-          <Button
-            onClick={() => void copyFrameLink(frameHref)}
-            size="xs"
-            title={frameHref}
-            variant="ghost"
-          >
-            Copy link
-          </Button>
-        ) : null}
+        <FrameLinkButton href={frameHref} />
         {isRunning ? (
           <span className="board-toolbar__status">Working…</span>
         ) : (
@@ -355,18 +394,7 @@ export function BoardToolBar({
          * does not change the item, and the only one anybody needs when they
          * have finished rather than started.
          */}
-        {shown ? (
-          <Button
-            onClick={() => {
-              void downloadImage(shown.url, shown.label);
-            }}
-            size="xs"
-            title={`Save this ${shown.noun}`}
-            variant="ghost"
-          >
-            Save
-          </Button>
-        ) : null}
+        <SaveImageButton shown={shown} />
         {/* Beside the AI tools rather than buried in the picker: the choice
             between describing a change and making it by hand is the first one,
             not one of thirty. Only for items that have a picture to open. */}

@@ -10,11 +10,7 @@
   "background": {
     "service_worker": "background.js"
   },
-  "permissions": [
-    "activeTab",
-    "tabs",
-    "scripting"
-  ],
+  "permissions": ["activeTab", "tabs", "scripting"],
   "host_permissions": [
     "https://www.dallaspeters.com/*",
     "https://dallaspeters.com/*",
@@ -29,9 +25,7 @@
         "https://app.dallaspeters.com/*",
         "http://localhost/*"
       ],
-      "js": [
-        "bridge.js"
-      ],
+      "js": ["bridge.js"],
       "run_at": "document_idle"
     }
   ],

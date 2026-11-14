@@ -11,10 +11,16 @@ import { mergeAudit } from "../../../config/reviewAudit.js";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useConfirm } from "./ConfirmProvider";
 
-export type AuditPhase = "idle" | "capturing" | "auditing";
+export type AuditPhase = "idle" | "capturing" | "exploring" | "auditing";
 
 const HAS_SCHEME = /^https?:\/\//i;
 const VIEWPORTS = ["desktop", "mobile"] as const;
+/** How often the editor asks the agent how a capture is going. */
+const POLL_MS = 5000;
+/** A capture still running after this long is given up on. */
+const CAPTURE_LIMIT_MS = 30 * 60 * 1000;
+
+const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
 const hostOf = (url: string): string => {
   try {
@@ -43,6 +49,8 @@ export function useReviewAudit({
 }) {
   const { prompt } = useConfirm();
   const [phase, setPhase] = useState<AuditPhase>("idle");
+  // The agent's latest step during a login capture, for the button label.
+  const [agentStatus, setAgentStatus] = useState("");
   // Bumped after an audit so the summary editor, which reads its value only
   // when it mounts, opens again on the merged text.
   const [auditKey, setAuditKey] = useState(0);
@@ -85,37 +93,101 @@ export function useReviewAudit({
     return shots;
   };
 
-  const runAudit = async () => {
-    try {
-      let screens = latest.current.doc.screens.filter((s) => s.image);
-      if (screens.length === 0) {
-        const shots = await captureReferences();
-        if (!shots) {
-          return;
-        }
-        screens = shots;
+  /**
+   * The eve audit agent signs in with the stored test account, finds the key
+   * pages and screenshots each at desktop and phone width. Its screens join
+   * the review, then the audit runs on them as it does on any capture.
+   */
+  const captureBehindLogin = async (): Promise<ReviewScreen[] | null> => {
+    const answer = await prompt({
+      confirmLabel: "Capture and audit",
+      defaultValue: "https://",
+      description:
+        "The agent signs in with the stored test account, looks at up to four key pages, and screenshots each at desktop and phone width. It looks but never changes anything. This takes a few minutes.",
+      placeholder: "https://app.example.com",
+      title: "Which app should the agent sign in to?",
+    });
+    const typed = answer?.trim() ?? "";
+    if (!typed || typed === "https://") {
+      return null;
+    }
+    const url = HAS_SCHEME.test(typed) ? typed : `https://${typed}`;
+    const { slug } = latest.current;
+    setPhase("exploring");
+    setAgentStatus("Starting the browser…");
+    const { session } = await reviewsApi.captureWithLogin({ slug, url });
+    const startedAt = Date.now();
+    // One check at a time: each waits, asks, and either finishes or schedules
+    // the next, so a slow answer never overlaps the one after it.
+    const poll = async (): Promise<ReviewScreen[]> => {
+      if (Date.now() - startedAt > CAPTURE_LIMIT_MS) {
+        throw new Error("The capture took longer than 30 minutes.");
       }
-      setPhase("auditing");
-      const { audit } = await reviewsApi.audit({
-        screens,
-        title: latest.current.title,
-      });
-      setDraft((d) => ({ ...d, doc: mergeAudit(d.doc, audit) }));
-      setAuditKey((k) => k + 1);
-      const placed = audit.findings.filter((f) => f.screenId !== null).length;
-      toast.success(
-        placed > 0
-          ? `Audit added (${placed} ${placed === 1 ? "pin" : "pins"} placed)`
-          : "Audit added to review"
-      );
+      await wait(POLL_MS);
+      const status = await reviewsApi.captureStatus(session, slug);
+      if (status.state === "running") {
+        setAgentStatus(status.phase);
+        return poll();
+      }
+      if (status.state === "failed") {
+        throw new Error(status.error);
+      }
+      if (status.screens.length === 0) {
+        throw new Error(status.note || "The agent captured no screens.");
+      }
+      return status.screens;
+    };
+    const screens = await poll();
+    setDraft((d) => ({
+      ...d,
+      doc: { ...d.doc, screens: [...d.doc.screens, ...screens] },
+    }));
+    return screens;
+  };
+
+  const auditThese = async (screens: ReviewScreen[]) => {
+    setPhase("auditing");
+    const { audit } = await reviewsApi.audit({
+      screens,
+      title: latest.current.title,
+    });
+    setDraft((d) => ({ ...d, doc: mergeAudit(d.doc, audit) }));
+    setAuditKey((k) => k + 1);
+    const placed = audit.findings.filter((f) => f.screenId !== null).length;
+    toast.success(
+      placed > 0
+        ? `Audit added (${placed} ${placed === 1 ? "pin" : "pins"} placed)`
+        : "Audit added to review"
+    );
+  };
+
+  const auditScreens = async (
+    capture: () => Promise<ReviewScreen[] | null>
+  ) => {
+    try {
+      const screens = await capture();
+      if (!screens) {
+        return;
+      }
+      await auditThese(screens);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Could not run the UX audit"
       );
     } finally {
       setPhase("idle");
+      setAgentStatus("");
     }
   };
 
-  return { auditKey, phase, runAudit };
+  const runAudit = async () => {
+    const withPictures = latest.current.doc.screens.filter((s) => s.image);
+    await auditScreens(async () =>
+      withPictures.length > 0 ? withPictures : await captureReferences()
+    );
+  };
+
+  const runLoginAudit = () => auditScreens(captureBehindLogin);
+
+  return { agentStatus, auditKey, phase, runAudit, runLoginAudit };
 }

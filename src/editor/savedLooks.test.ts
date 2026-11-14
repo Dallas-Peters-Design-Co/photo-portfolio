@@ -51,7 +51,7 @@ describe("saved looks", () => {
   });
 
   it("finds built-in and saved looks by id", () => {
-    const first = LOOKS[0];
+    const [first] = LOOKS;
     expect(findLook(first?.id ?? "", [])).toBe(first);
     expect(findLook("saved:abc", [saved])?.name).toBe("Bird Creek Warm");
     expect(findLook("saved:missing", [saved])).toBeNull();

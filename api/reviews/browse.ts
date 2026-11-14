@@ -92,11 +92,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     ? unseal<BrowserLogin>(body.sealedLogin)
     : null;
   if (body.sealedLogin && !login) {
-    return res
-      .status(409)
-      .json({
-        error: "The saved login can't be opened any more. Enter it again.",
-      });
+    return res.status(409).json({
+      error: "The saved login can't be opened any more. Enter it again.",
+    });
   }
   const session = unseal<Session>(body.session);
   const viewport = body.viewport === "mobile" ? "mobile" : "desktop";

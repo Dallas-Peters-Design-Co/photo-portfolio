@@ -73,9 +73,9 @@ describe("what Tailwind supplies rather than this file", () => {
   });
 
   it("keeps the custom type scale, which is not Tailwind's", () => {
-    // A perfect fourth, and much smaller than the default at the bottom end.
-    // This one has to stay declared or every size in the app changes.
-    expect(value("--text-xs")).toBe("0.528rem");
+    // A perfect fourth above the bottom step. These have to stay declared or
+    // every size in the app changes. The bottom step was raised to 0.75rem.
+    expect(value("--text-xs")).toBe("0.75rem");
     expect(value("--text-6xl")).toBe("6.011rem");
   });
 });

@@ -1,19 +1,20 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-  <style>
+  <head>
+    <meta charset="utf-8">
+    <style>
     :root {
       color-scheme: dark;
     }
 
     body {
-      background-color: oklch(17.764% 0.00002 271.152);
       width: 480px;
-      margin: 0;
       padding: 14px;
-      font: 13px/1.4 system-ui, sans-serif;
+      margin: 0;
+      font:
+        13px / 1.4 system-ui,
+        sans-serif;
+      background-color: oklch(17.764% 0.00002 271.152);
     }
 
     h1 {
@@ -31,35 +32,35 @@
 
     select,
     button {
-      width: 100%;
       box-sizing: border-box;
+      width: 100%;
       font: inherit;
     }
 
     select {
-      margin-bottom: 10px;
       padding: 5px;
+      margin-bottom: 10px;
     }
 
     button {
-      margin-top: 6px;
       padding: 8px;
+      margin-top: 6px;
+      color: inherit;
       cursor: pointer;
+      background: none;
       border: 1px solid currentColor;
       border-radius: 6px;
-      background: none;
-      color: inherit;
     }
 
     button.primary {
-      background: oklch(41.922% 0.27746 267.149);
       color: #fff;
+      background: oklch(41.922% 0.27746 267.149);
       border-color: oklch(43.684% 0.28628 265.1);
     }
 
     button:disabled {
-      opacity: 0.45;
       cursor: default;
+      opacity: 0.45;
     }
 
     #status {
@@ -71,17 +72,19 @@
     #status[data-bad] {
       color: #c0392b;
     }
-  </style>
-</head>
+    </style>
+  </head>
 
-<body>
-  <h1>Capture to board <small id="version" style="font-weight:400;opacity:.55"></small></h1>
-  <label for="board">Board</label>
-  <select id="board"></select>
-  <button class="primary" id="whole">Whole page</button>
-  <button id="view">What's on screen</button>
-  <p id="status" role="status"></p>
-  <script src="popup.js"></script>
-</body>
-
+  <body>
+    <h1>
+      Capture to board
+      <small id="version" style="font-weight:400;opacity:.55"></small>
+    </h1>
+    <label for="board">Board</label>
+    <select id="board"></select>
+    <button class="primary" id="whole" type="button">Whole page</button>
+    <button id="view" type="button">What's on screen</button>
+    <p id="status" role="status"></p>
+    <script defer src="popup.js"></script>
+  </body>
 </html>

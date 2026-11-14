@@ -35,6 +35,12 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      # The Hugeicons Pro registry token goes to pnpm's user config; pnpm will
+      # not read a token from the repository's own .npmrc.
+      - run: pnpm config set //npm.hugeicons.com/:_authToken "$HUGEICONS_TOKEN"
+        env:
+          HUGEICONS_TOKEN: ${{ secrets.HUGEICONS_TOKEN }}
+
       - run: pnpm install --frozen-lockfile
 
       # The suite runs in real Chromium rather than jsdom — the canvas and

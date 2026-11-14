@@ -15,10 +15,16 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
     return;
   }
   const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  const timer = setTimeout(() => {
-    window.removeEventListener("message", onAnswer);
-    respond({ ok: false, error: "The board didn't answer. Is a board open in this tab?" });
-  }, message.type === "ping" ? 1500 : ANSWER_MS);
+  const timer = setTimeout(
+    () => {
+      window.removeEventListener("message", onAnswer);
+      respond({
+        error: "The board didn't answer. Is a board open in this tab?",
+        ok: false,
+      });
+    },
+    message.type === "ping" ? 1500 : ANSWER_MS
+  );
   function onAnswer(event) {
     if (
       event.source !== window ||

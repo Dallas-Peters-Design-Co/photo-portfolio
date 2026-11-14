@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm config set //npm.hugeicons.com/:_authToken \"$HUGEICONS_TOKEN\" && pnpm install",
   "buildCommand": "{ [ \"$VERCEL_ENV\" != production ] || pnpm db:migrate; } && pnpm build",
   "headers": [
     {

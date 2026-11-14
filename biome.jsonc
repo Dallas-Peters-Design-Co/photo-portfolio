@@ -19,7 +19,9 @@
       "!openapi.json",
       "!openapi.yaml",
       "!bruno",
-      "!src/vendor"
+      "!src/vendor",
+      // The eve audit agent: its own package, install and lint (npm, not pnpm).
+      "!agents"
     ]
   },
   "linter": {
@@ -45,5 +47,12 @@
         "noVoid": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      // A Chrome extension: `chrome` is the extension API, a global there.
+      "includes": ["chrome-extension/**"],
+      "javascript": { "globals": ["chrome"] }
+    }
+  ]
 }

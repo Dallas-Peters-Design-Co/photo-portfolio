@@ -33,8 +33,8 @@ interface GoogleFamily {
 }
 
 export const trimGoogleCatalog = (raw: unknown): CatalogFont[] => {
-  const list = (raw as { familyMetadataList?: GoogleFamily[] })
-    ?.familyMetadataList;
+  const list = ((raw ?? {}) as { familyMetadataList?: GoogleFamily[] })
+    .familyMetadataList;
   if (!Array.isArray(list)) {
     return [];
   }
@@ -79,7 +79,7 @@ const variationWeight = (code: string): number | null => {
 
 export const trimAdobeKit = (raw: unknown): AdobeFamily[] => {
   const families = (
-    raw as {
+    (raw ?? {}) as {
       kit?: {
         families?: {
           css_names?: string[];
@@ -89,7 +89,7 @@ export const trimAdobeKit = (raw: unknown): AdobeFamily[] => {
         }[];
       };
     }
-  )?.kit?.families;
+  ).kit?.families;
   if (!Array.isArray(families)) {
     return [];
   }

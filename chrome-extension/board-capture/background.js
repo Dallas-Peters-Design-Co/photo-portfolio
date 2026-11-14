@@ -11,6 +11,8 @@ const BOARD_HOSTS = [
   "https://app.dallaspeters.com/*",
   "http://localhost/*",
 ];
+/** Pages a screenshot can be taken of. */
+const WEB_PAGE = /^https?:/;
 /** As tall a page as is captured: past this a screenshot is unusably long. */
 const MAX_HEIGHT = 12_000;
 /** The largest side Chromium hands back in one picture. */
@@ -50,10 +52,10 @@ const stitch = async (tab, whole) => {
       document.documentElement.scrollHeight,
       document.body?.scrollHeight ?? 0
     ),
-    left: window.scrollX,
-    top: window.scrollY,
     // The photograph is of the whole window, scrollbar included.
     innerW: window.innerWidth,
+    left: window.scrollX,
+    top: window.scrollY,
     viewH: window.innerHeight,
     viewW: document.documentElement.clientWidth,
   }));
@@ -69,16 +71,16 @@ const stitch = async (tab, whole) => {
   // How much of the page, in its own pixels, has been joined on.
   let done = 0;
   try {
-    for (; done < height; ) {
+    while (done < height) {
       const wanted = first + done;
       // The page may not scroll that far (the last screen): ask where it got.
-      // eslint-disable-next-line no-await-in-loop
+      // biome-ignore lint/performance/noAwaitInLoops: each screen is scrolled to, then shot, in order; the tab shows one at a time
       const at = await inPage(
         tab.id,
         (y, hide) => {
           if (hide) {
             for (const el of document.querySelectorAll("body *")) {
-              const position = getComputedStyle(el).position;
+              const { position } = getComputedStyle(el);
               // Once each: a second pass would save "hidden" as its own.
               if (
                 (position === "fixed" || position === "sticky") &&
@@ -184,46 +186,60 @@ const shoot = async (tab, whole) => {
       return { ...(await visible(tab)), way: "screen" };
     } catch (screen) {
       throw new Error(
-        `scrolling: ${scrolling?.message ?? scrolling} · screen: ${screen?.message ?? screen}`
+        `scrolling: ${scrolling?.message ?? scrolling} · screen: ${screen?.message ?? screen}`,
+        { cause: screen }
       );
     }
   }
 };
 
 const ask = (tabId, message) =>
-  chrome.tabs
-    .sendMessage(tabId, { ...message, to: "board" })
-    .catch(() => ({ ok: false, error: "Reload the board tab once, so it can hear the extension." }));
+  chrome.tabs.sendMessage(tabId, { ...message, to: "board" }).catch(() => ({
+    error: "Reload the board tab once, so it can hear the extension.",
+    ok: false,
+  }));
 
 /** Tabs with a board open and listening, each with the board's name. */
 const openBoards = async () => {
   const tabs = await chrome.tabs.query({ url: BOARD_HOSTS });
   const answers = await Promise.all(
-    tabs.map(async (tab) => ({ answer: await ask(tab.id, { type: "ping" }), tab }))
+    tabs.map(async (tab) => ({
+      answer: await ask(tab.id, { type: "ping" }),
+      tab,
+    }))
   );
   return answers
     .filter(({ answer }) => answer?.ok)
-    .map(({ answer, tab }) => ({ name: answer.board || tab.title, tabId: tab.id }));
+    .map(({ answer, tab }) => ({
+      name: answer.board || tab.title,
+      tabId: tab.id,
+    }));
 };
 
 const captureToBoard = async ({ boardTabId, whole }) => {
-  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  if (!tab?.id || !/^https?:/.test(tab.url ?? "")) {
-    return { ok: false, error: "This page can't be captured." };
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  if (!(tab?.id && WEB_PAGE.test(tab.url ?? ""))) {
+    return { error: "This page can't be captured.", ok: false };
   }
   const boards = await openBoards();
   const board = boards.find((b) => b.tabId === boardTabId) ?? boards[0];
   if (!board) {
-    return { ok: false, error: "Open a board in a tab first." };
+    return { error: "Open a board in a tab first.", ok: false };
   }
   if (board.tabId === tab.id) {
-    return { ok: false, error: "Switch to the page you want to capture." };
+    return { error: "Switch to the page you want to capture.", ok: false };
   }
   let shot;
   try {
     shot = await shoot(tab, whole);
   } catch (e) {
-    return { ok: false, error: `Couldn't capture this page: ${e?.message ?? e}` };
+    return {
+      error: `Couldn't capture this page: ${e?.message ?? e}`,
+      ok: false,
+    };
   }
   const { way: _way, ...picture } = shot;
   const answer = await ask(board.tabId, {
@@ -244,8 +260,11 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
   if (message?.to !== "background") {
     return;
   }
-  const work = message.type === "boards" ? openBoards() : captureToBoard(message);
-  work.then(respond, (e) => respond({ ok: false, error: String(e?.message ?? e) }));
+  const work =
+    message.type === "boards" ? openBoards() : captureToBoard(message);
+  work.then(respond, (e) =>
+    respond({ error: String(e?.message ?? e), ok: false })
+  );
   return true;
 });
 

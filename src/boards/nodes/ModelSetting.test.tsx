@@ -42,12 +42,13 @@ vi.mock("../../services/portfolioService", async (original) => ({
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-const settle = (): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, 50);
-  });
+const trigger = (el: HTMLElement) =>
+  // The chevron is a text glyph inside the trigger; only the label matters.
+  (el.querySelector(".setting-field__trigger")?.textContent ?? "")
+    .replace("▼", "")
+    .trim();
 
-const render = async (video: boolean, value?: string) => {
+const render = (video: boolean, value?: string) => {
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -67,8 +68,8 @@ const render = async (video: boolean, value?: string) => {
       />
     </ModelsProvider>
   );
-  await settle();
-  return host;
+  const el = host;
+  return el;
 };
 
 afterEach(() => {
@@ -76,22 +77,27 @@ afterEach(() => {
   host?.remove();
 });
 
-const trigger = (el: HTMLElement) =>
-  // The chevron is a text glyph inside the trigger; only the label matters.
-  (el.querySelector(".setting-field__trigger")?.textContent ?? "")
-    .replace("▼", "")
-    .trim();
+/**
+ * Waits for the trigger to settle on what the test expects. The models load
+ * asynchronously; before they arrive the trigger shows the raw value ("auto"),
+ * so a fixed pause, or waiting for any text, races a slow CI runner.
+ */
+const settlesOn = (el: HTMLElement, check: (label: string) => void) =>
+  vi.waitFor(() => check(trigger(el)), { interval: 20, timeout: 5000 });
 
 describe("ModelSetting", () => {
   it("shows the default for a node whose model was never set", async () => {
-    expect(trigger(await render(false))).toBe("Auto");
+    const el = render(false);
+    await settlesOn(el, (label) => expect(label).toBe("Auto"));
   });
 
   it("names Auto on a video node too, where no row is called auto", async () => {
-    expect(trigger(await render(true))).toContain("Auto");
+    const el = render(true);
+    await settlesOn(el, (label) => expect(label).toContain("Auto"));
   });
 
   it("shows the chosen model's label", async () => {
-    expect(trigger(await render(false, "img/3"))).toBe("Image 3");
+    const el = render(false, "img/3");
+    await settlesOn(el, (label) => expect(label).toBe("Image 3"));
   });
 });
