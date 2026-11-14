@@ -79,6 +79,39 @@ export const reviewsApi = {
       "Could not capture that page"
     ),
 
+  /** Where an agent capture stands; when done, its screens are stored. */
+  captureStatus: async (
+    session: string,
+    slug: string
+  ): Promise<
+    | { state: "running"; phase: string }
+    | { state: "done"; note: string; screens: ReviewScreen[] }
+    | { state: "failed"; error: string }
+  > =>
+    json(
+      await fetch(
+        `${reviewsPath()}/explore?session=${encodeURIComponent(session)}&slug=${encodeURIComponent(slug)}`,
+        { headers: jsonHeaders() }
+      ),
+      "Could not check the capture"
+    ),
+
+  /** Starts an agent capture of an app behind a login. Returns its session. */
+  captureWithLogin: async (input: {
+    loginUrl?: string;
+    pages?: number;
+    slug: string;
+    url: string;
+  }): Promise<{ session: string }> =>
+    json(
+      await fetch(`${reviewsPath()}/explore`, {
+        body: JSON.stringify(input),
+        headers: jsonHeaders(),
+        method: "POST",
+      }),
+      "Could not start the capture"
+    ),
+
   create: async (
     input: ReviewInput & { title: string; slug: string }
   ): Promise<ReviewRecord> =>

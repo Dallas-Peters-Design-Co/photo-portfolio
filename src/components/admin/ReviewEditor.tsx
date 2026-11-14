@@ -3,7 +3,7 @@ import EyeIcon from "@hugeicons-pro/core-stroke-standard/EyeIcon";
 import FloppyDiskIcon from "@hugeicons-pro/core-stroke-standard/FloppyDiskIcon";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
 import ViewOffIcon from "@hugeicons-pro/core-stroke-standard/ViewOffIcon";
-import { Plus, ScanSearch } from "lucide-react";
+import { KeyRound, Plus, ScanSearch } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
@@ -58,6 +58,7 @@ const autosaveFields = (r: ReviewRecord) => ({
 const AUDIT_LABELS: Record<AuditPhase, string> = {
   auditing: "Auditing… (1–3 min)",
   capturing: "Capturing screens…",
+  exploring: "Agent at work…",
   idle: "Run UX audit",
 };
 
@@ -92,7 +93,8 @@ export function ReviewEditor({
   const savedPrint = useRef(fingerprint(review));
   const latest = useRef(draft);
   latest.current = draft;
-  const { auditKey, phase, runAudit } = useReviewAudit({ latest, setDraft });
+  const { agentStatus, auditKey, phase, runAudit, runLoginAudit } =
+    useReviewAudit({ latest, setDraft });
 
   const setDoc = (patch: Partial<ReviewDoc>) =>
     setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } }));
@@ -358,6 +360,18 @@ export function ReviewEditor({
               >
                 <ScanSearch size={14} />
                 {AUDIT_LABELS[phase]}
+              </Button>
+              <Button
+                disabled={phase !== "idle"}
+                onClick={() => void runLoginAudit()}
+                title="The audit agent signs in with the stored test account, captures the key pages, then runs the UX audit"
+                type="button"
+                variant="outline"
+              >
+                <KeyRound size={14} />
+                {phase === "exploring"
+                  ? agentStatus || AUDIT_LABELS.exploring
+                  : "Capture behind login"}
               </Button>
               <Button
                 onClick={() =>
