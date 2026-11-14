@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root { color-scheme: light dark; }
+      body { width: 280px; margin: 0; padding: 14px; font: 13px/1.4 system-ui, sans-serif; }
+      h1 { margin: 0 0 10px; font-size: 13px; font-weight: 600; }
+      label { display: block; margin-bottom: 4px; font-size: 11px; opacity: 0.7; }
+      select, button { width: 100%; box-sizing: border-box; font: inherit; }
+      select { margin-bottom: 10px; padding: 5px; }
+      button { margin-top: 6px; padding: 8px; cursor: pointer; border: 1px solid currentColor; border-radius: 6px; background: none; color: inherit; }
+      button.primary { background: #111; color: #fff; border-color: #111; }
+      button:disabled { opacity: 0.45; cursor: default; }
+      #status { min-height: 1.4em; margin: 10px 0 0; font-size: 12px; }
+      #status[data-bad] { color: #c0392b; }
+    </style>
+  </head>
+  <body>
+    <h1>Capture to board</h1>
+    <label for="board">Board</label>
+    <select id="board"></select>
+    <button class="primary" id="whole">Whole page</button>
+    <button id="view">What's on screen</button>
+    <p id="status" role="status"></p>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -25,6 +25,7 @@ import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire, Element, Photo } from "../../../types";
 import type { ExternalImage } from "../BoardInsertPanel";
 import { BLANK_ITEM, dropOrigin } from "./placement";
+import { useExtensionCaptures } from "./useExtensionCaptures";
 
 /**
  * Everything that puts something new on the board.
@@ -145,6 +146,10 @@ export const useBoardInserts = (deps: BoardInsertDeps) => {
       },
     ]);
   };
+
+  // A page captured by the Chrome extension lands as a Browser node already
+  // holding its screenshot (useExtensionCaptures.ts).
+  useExtensionCaptures((page) => addNode("browser", { ...page }));
 
   /**
    * Places a saved style on the canvas.
