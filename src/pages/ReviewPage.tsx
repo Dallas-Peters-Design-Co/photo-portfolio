@@ -1,5 +1,5 @@
 import "./ReviewPage.css";
-import { type CSSProperties, useEffect, useState } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   isRichTextEmpty,
@@ -235,6 +235,26 @@ function ReviewSheet({
 
 const noteId = (pinId: string): string => `note-${pinId}`;
 
+/**
+ * A phone capture is shown in a phone: a dark body, the camera cut-out in a
+ * strip above the screen (so it never covers the capture) and a home bar
+ * below. The capture scrolls inside the screen, as the page would. A desktop
+ * capture is shown as it is.
+ */
+function Device({
+  children,
+  mobile,
+}: {
+  children: ReactNode;
+  mobile: boolean;
+}) {
+  return mobile ? (
+    <div className="review-page__phone">{children}</div>
+  ) : (
+    children
+  );
+}
+
 function Screen({
   screen,
   firstNumber,
@@ -278,44 +298,46 @@ function Screen({
       </div>
       {isRichTextEmpty(screen.note) ? null : <Prose text={screen.note} />}
       <div className={figureCls}>
-        <figure
-          className="review-page__figure"
-          style={
-            {
-              "--shot-ratio": image.width / Math.max(1, image.height),
-            } as CSSProperties
-          }
-        >
-          <img
-            alt={screen.title}
-            className="review-page__image"
-            height={image.height}
-            src={image.url}
-            width={image.width}
-          />
-          <ReviewMarks
-            height={image.height}
-            marks={screen.marks}
-            width={image.width}
-          />
-          <ClientLayer
-            height={image.height}
-            screenId={screen.id}
-            width={image.width}
-          />
-          {screen.pins.map((pin, i) => (
-            <button
-              aria-label={`Note ${firstNumber + i}: ${pin.title || "Note"}`}
-              className={`review-page__pin review-page__pin--${pin.kind}`}
-              key={pin.id}
-              onClick={() => showNote(pin.id)}
-              style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
-              type="button"
-            >
-              {firstNumber + i}
-            </button>
-          ))}
-        </figure>
+        <Device mobile={screen.viewport === "mobile"}>
+          <figure
+            className="review-page__figure"
+            style={
+              {
+                "--shot-ratio": image.width / Math.max(1, image.height),
+              } as CSSProperties
+            }
+          >
+            <img
+              alt={screen.title}
+              className="review-page__image"
+              height={image.height}
+              src={image.url}
+              width={image.width}
+            />
+            <ReviewMarks
+              height={image.height}
+              marks={screen.marks}
+              width={image.width}
+            />
+            <ClientLayer
+              height={image.height}
+              screenId={screen.id}
+              width={image.width}
+            />
+            {screen.pins.map((pin, i) => (
+              <button
+                aria-label={`Note ${firstNumber + i}: ${pin.title || "Note"}`}
+                className={`review-page__pin review-page__pin--${pin.kind}`}
+                key={pin.id}
+                onClick={() => showNote(pin.id)}
+                style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
+                type="button"
+              >
+                {firstNumber + i}
+              </button>
+            ))}
+          </figure>
+        </Device>
         <ol className="review-page__notes">
           {screen.pins.map((pin, i) => (
             <li

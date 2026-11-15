@@ -213,8 +213,57 @@
 }
 
 /* A phone capture is drawn no wider than a large phone (420px). */
-.review-page__screen--mobile .review-page__figure {
+/*
+ * The phone around a mobile capture. Its proportions follow a current
+ * phone (about 9 : 19.5); the bezel is a fixed width, the corners follow it.
+ */
+.review-page__phone {
+  --phone-bezel: calc(var(--spacing) * 3);
+  --phone-radius: 3rem;
+  position: relative;
   max-width: var(--container-phone);
+  padding: calc(var(--spacing) * 11) var(--phone-bezel) calc(var(--spacing) * 7);
+  background: oklch(0.16 0 0);
+  border-radius: var(--phone-radius);
+  box-shadow:
+    inset 0 0 0 2px oklch(0.32 0 0),
+    0 0 0 1px oklch(0 0 0 / 0.5),
+    0 18px 40px oklch(0 0 0 / 0.28);
+}
+
+/* The camera cut-out, in the strip above the screen. */
+.review-page__phone::before {
+  position: absolute;
+  top: calc(var(--spacing) * 3.5);
+  left: 50%;
+  width: 32%;
+  height: calc(var(--spacing) * 6.5);
+  content: "";
+  background: oklch(0 0 0);
+  border-radius: var(--radius-pill);
+  translate: -50% 0;
+}
+
+/* The home bar, below it. */
+.review-page__phone::after {
+  position: absolute;
+  bottom: calc(var(--spacing) * 2.5);
+  left: 50%;
+  width: 34%;
+  height: calc(var(--spacing) * 1.25);
+  content: "";
+  background: oklch(0.7 0 0);
+  border-radius: var(--radius-pill);
+  translate: -50% 0;
+}
+
+/* The screen: a phone's height of the capture, scrolling inside. */
+.review-page__phone .review-page__figure {
+  aspect-ratio: 9 / 17;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 0;
+  border-radius: calc(var(--phone-radius) - var(--phone-bezel));
 }
 
 /*
@@ -223,7 +272,19 @@
  * scrolls on its own; the pins scroll with it. Print undoes this below.
  */
 @media (min-width: 60rem) {
-  .review-page__screen .review-page__figure {
+  /* A phone stays in view whole; the capture scrolls in its screen. */
+  .review-page__phone {
+    position: sticky;
+    top: calc(var(--spacing) * 4);
+    /* Narrow enough that the whole phone fits the window: its screen is
+       9 : 17, and the bezel and strips add 26 spacing units of height. */
+    max-width: min(
+      var(--container-phone),
+      calc((100dvh - var(--spacing) * 26) * 9 / 17 + var(--spacing) * 6)
+    );
+  }
+
+  .review-page__screen .review-page__figure:not(.review-page__phone *) {
     position: sticky;
     top: calc(var(--spacing) * 4);
     max-height: calc(100dvh - var(--spacing) * 8);
@@ -471,6 +532,25 @@
 
   .review-page__screen--mobile .review-page__figure {
     max-width: none;
+  }
+
+  /* On paper the whole capture shows, without the phone around it. */
+  .review-page__phone {
+    max-width: none;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .review-page__phone::before,
+  .review-page__phone::after {
+    display: none;
+  }
+
+  .review-page__phone .review-page__figure {
+    aspect-ratio: auto;
+    border: 1px solid var(--sheet-rule);
+    border-radius: 0;
   }
 }
 
