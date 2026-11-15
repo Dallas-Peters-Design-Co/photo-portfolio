@@ -256,7 +256,7 @@ export function ReviewScreenEditor({
   });
 
   return (
-    <div className="space-y-4 rounded-md border border-white/10 p-4">
+    <div className="space-y-4">
       <div className="review-screen-editor__address">
         <div className="space-y-2">
           <Label

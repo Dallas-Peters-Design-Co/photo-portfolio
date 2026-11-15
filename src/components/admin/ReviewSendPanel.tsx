@@ -59,9 +59,8 @@ export function ReviewSendPanel({
   };
 
   return (
-    <section className="space-y-4 rounded-md border border-white/10 p-4">
+    <section className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-sm text-white/70 uppercase">Send to client</h3>
         <code className="truncate font-mono text-sm text-white/60">{url}</code>
         <Button onClick={() => void copy()} type="button" variant="ghost">
           <Copy size={14} /> Copy link

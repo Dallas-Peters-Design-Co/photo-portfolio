@@ -1,0 +1,129 @@
+/*
+ * The review editor's side panel (ReviewEditorPanel.tsx) and the layout it
+ * sits in: the panel on the left, the content beside it.
+ *
+ * On a wide window the panel sticks below the admin bar and scrolls on its
+ * own, so its controls stay in reach however far down the screens go. Closed,
+ * it is a narrow rail holding only the button that opens it. On a narrow
+ * window it sits above the content instead.
+ */
+
+.review-editor {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  width: 100%;
+  max-width: var(--container-8xl);
+}
+
+.review-editor-panel {
+  background: rgb(255 255 255 / 0.02);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--radius-lg, var(--radius-md));
+}
+
+.review-editor-panel__bar {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--spacing) * 2);
+}
+
+.review-editor-panel__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--spacing) * 9);
+  height: calc(var(--spacing) * 9);
+  margin-left: auto;
+  color: rgb(255 255 255 / 0.75);
+  border-radius: var(--radius-md);
+}
+
+.review-editor-panel__toggle:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.review-editor-panel__toggle:focus-visible {
+  outline: 2px solid var(--review-accent, #fff);
+  outline-offset: 1px;
+}
+
+.review-editor-panel--closed .review-editor-panel__toggle {
+  margin-inline: auto;
+}
+
+.review-editor-panel__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--spacing) * 5);
+  padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 5);
+}
+
+.review-editor-panel__title {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: var(--text-sm);
+  font-weight: 300;
+  color: rgb(255 255 255 / 0.9);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-widest);
+  overflow-wrap: anywhere;
+}
+
+.review-editor-panel__group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--spacing) * 3);
+  padding-top: calc(var(--spacing) * 4);
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.review-editor-panel__group-title {
+  font-size: var(--text-micro-sm, var(--text-sm));
+  color: rgb(255 255 255 / 0.7);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-widest);
+}
+
+.review-editor-panel__field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-editor-panel__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-editor__content {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .review-editor {
+    grid-template-columns: var(--container-panel) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .review-editor--panel-closed {
+    grid-template-columns: calc(var(--spacing) * 13) minmax(0, 1fr);
+  }
+
+  .review-editor-panel {
+    position: sticky;
+    top: calc(var(--admin-bar-height, 0px) + var(--spacing) * 4);
+    max-height: calc(
+      100dvh -
+      var(--admin-bar-height, 0px) -
+      var(--spacing) *
+      8
+    );
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}

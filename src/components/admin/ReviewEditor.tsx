@@ -1,6 +1,4 @@
-import { HugeiconsIcon } from "@hugeicons/react";
-import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
-import { KeyRound, Plus, ScanSearch } from "lucide-react";
+import { ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
@@ -10,31 +8,22 @@ import type {
   RichText,
 } from "../../../config/review.js";
 import { PageEditor } from "../../cms/PageEditor";
-import { useBrandKits } from "../../hooks/useBrandKits";
 import { downloadReviewPdf } from "../../pages/pagePdf";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useSiteSettings } from "../../theme/SiteSettingsProvider";
 import { reviewAccentStyle } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
-import { CardContent, CardHeader, CardTitle } from "../ui/card";
-import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { AdminCard, AdminFrame } from "./AdminFrame";
-import { BackButton } from "./BackButton";
-import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
+import { proposalLabelClass } from "./proposalStyles";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
+import { ReviewEditorPanel, usePanelOpen } from "./ReviewEditorPanel";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
 import { toEditorDoc } from "./reviewEditing";
+import { SortableList } from "./SortableList";
 import { type AuditPhase, useReviewAudit } from "./useReviewAudit";
 
 /** How long typing pauses before the draft saves itself. */
@@ -67,8 +56,11 @@ const fieldsetTitleClass =
   "text-micro-sm uppercase tracking-micro-widest text-white/70";
 
 /**
- * The review editor: who it is for, the opening, then the screens in the
- * order the page shows them, each with its picture and pins.
+ * The review editor: a side panel on the left with everything that is not
+ * content (saving, settings, the audit, client access, sending), and beside
+ * it the content in the order the page shows it — the opening, the sections,
+ * the screens, the closing — each folding away, sections and screens dragged
+ * into a new order by their handles.
  */
 export function ReviewEditor({
   review,
@@ -84,15 +76,6 @@ export function ReviewEditor({
   const { settings } = useSiteSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
-  const { kits } = useBrandKits();
-  // "" is the "no kit" choice, as it was on the native select.
-  const kitItems = [
-    { label: "None (site accent)", value: "" },
-    ...kits.map((kit) => ({
-      label: kit.parentName ? `${kit.parentName} / ${kit.name}` : kit.name,
-      value: kit.id,
-    })),
-  ];
   const [saveState, setSaveState] = useState<SaveState>("saved");
   // What the server last confirmed, and the draft as it is right now, for
   // the timers and the unmount flush, which outlive the render they start in.
@@ -229,107 +212,118 @@ export function ReviewEditor({
     n += screen.pins.length;
   }
 
-  const _isPublished = draft.status === "published";
+  const collapse = useCollapsedBlocks(`review-editor-folded:${review.id}`);
+  const panel = usePanelOpen();
+  const blockIds = [
+    "opening",
+    ...draft.doc.sections.map((x) => x.id),
+    ...draft.doc.screens.map((x) => x.id),
+    "closing",
+  ];
+  const allFolded = blockIds.every((id) => collapse.isCollapsed(id));
+
+  const addScreen = () =>
+    setDoc({
+      screens: [
+        ...draft.doc.screens,
+        {
+          id: newItemId(),
+          image: null,
+          marks: [],
+          note: "",
+          pins: [],
+          sourceUrl: "",
+          title: "",
+          viewport: "desktop",
+        },
+      ],
+    });
+
+  const reorderScreens = (ids: string[]) =>
+    setDraft((d) => ({
+      ...d,
+      doc: {
+        ...d.doc,
+        screens: ids.flatMap(
+          (id) => d.doc.screens.find((s) => s.id === id) ?? []
+        ),
+      },
+    }));
 
   return (
-    <AdminFrame>
-      <AdminCard style={reviewAccentStyle(settings.theme.accent)}>
-        <CardHeader className="flex flex-col items-start gap-2">
-          <BackButton label="Reviews" onClick={onClose} />
-          <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
-            <HugeiconsIcon aria-hidden icon={SearchVisualIcon} size={16} />
-            {draft.title}
-          </CardTitle>
-        </CardHeader>
+    <div
+      className={`review-editor ${panel.open ? "" : "review-editor--panel-closed"}`}
+      style={reviewAccentStyle(settings.theme.accent)}
+    >
+      <ReviewEditorPanel
+        actions={
+          <ReviewEditorActions
+            draft={draft}
+            isPrinting={isPrinting}
+            isSaving={isSaving}
+            latest={latest}
+            onLinkBoard={(boardId) => setDoc({ boardId })}
+            onPreview={() => void openPreview()}
+            onPrint={() => void printPdf()}
+            onSave={(overrides) => void save(overrides)}
+            saveState={saveState}
+          />
+        }
+        audit={{
+          label: AUDIT_LABELS[phase],
+          loginLabel:
+            phase === "exploring"
+              ? agentStatus || AUDIT_LABELS.exploring
+              : "Capture behind login",
+          onAudit: () => void runAudit(),
+          onLoginAudit: () => void runLoginAudit(),
+          running: phase !== "idle",
+        }}
+        clientAccess={
+          <ReviewClientPanel
+            onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
+            review={draft}
+          />
+        }
+        draft={draft}
+        onClose={onClose}
+        onToggle={panel.toggle}
+        open={panel.open}
+        send={
+          <ReviewSendPanel
+            busy={isSaving}
+            onChange={(next) => {
+              setDraft((d) => ({ ...d, sent: next.sent }));
+              void onSaved(next);
+            }}
+            review={draft}
+          />
+        }
+        setDraft={setDraft}
+      />
 
-        <CardContent className="space-y-10">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="review-title">
-                Title
-              </Label>
-              <Input
-                className={proposalInputClass}
-                id="review-title"
-                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-                value={draft.title}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="review-client">
-                Client label
-              </Label>
-              <Input
-                className={proposalInputClass}
-                id="review-client"
-                onChange={(e) =>
-                  setDraft({ ...draft, clientName: e.target.value })
-                }
-                placeholder="Vin at Viaskai"
-                value={draft.clientName}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="review-email">
-                Client email
-              </Label>
-              <Input
-                className={proposalInputClass}
-                id="review-email"
-                onChange={(e) =>
-                  setDraft({ ...draft, clientEmail: e.target.value || null })
-                }
-                placeholder="Gets the link"
-                type="email"
-                value={draft.clientEmail ?? ""}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="review-kit">
-                Brand kit
-              </Label>
-              <Select
-                items={kitItems}
-                onValueChange={(value) => {
-                  if (value !== null) {
-                    setDraft({ ...draft, brandKitId: value || null });
-                  }
-                }}
-                value={draft.brandKitId ?? ""}
-              >
-                <SelectTrigger
-                  className={`${proposalInputClass} w-full rounded-md border px-3`}
-                  id="review-kit"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {kitItems.map((kit) => (
-                    <SelectItem key={kit.value} value={kit.value}>
-                      {kit.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="review-slug">
-                Address
-              </Label>
-              <Input
-                className={`${proposalInputClass} font-mono`}
-                id="review-slug"
-                onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
-                value={draft.slug}
-              />
-              <p className="font-mono text-micro-xs text-white/60">
-                /review/{draft.slug}
-              </p>
-            </div>
-          </div>
+      <div className="review-editor__content space-y-8">
+        <div className="flex items-center justify-end">
+          <Button
+            onClick={() => collapse.setAll(blockIds, !allFolded)}
+            type="button"
+            variant="ghost"
+          >
+            {allFolded ? (
+              <ChevronsUpDown size={14} />
+            ) : (
+              <ChevronsDownUp size={14} />
+            )}
+            {allFolded ? "Expand all" : "Collapse all"}
+          </Button>
+        </div>
 
-          <section className="space-y-4">
-            <h3 className={fieldsetTitleClass}>Opening</h3>
+        <EditorBlock
+          collapsed={collapse.isCollapsed("opening")}
+          onToggle={() => collapse.toggle("opening")}
+          title="Opening"
+        >
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label className={proposalLabelClass}>Intro</Label>
               <PageEditor
@@ -345,122 +339,74 @@ export function ReviewEditor({
                 value={toEditorDoc(draft.doc.summary)}
               />
             </div>
-          </section>
+          </div>
+        </EditorBlock>
 
-          <ReviewSectionsEditor
-            onChange={(update) =>
-              setDraft((d) => ({
-                ...d,
-                doc: { ...d.doc, sections: update(d.doc.sections) },
-              }))
-            }
-            sections={draft.doc.sections}
-          />
+        <ReviewSectionsEditor
+          collapse={collapse}
+          onChange={(update) =>
+            setDraft((d) => ({
+              ...d,
+              doc: { ...d.doc, sections: update(d.doc.sections) },
+            }))
+          }
+          sections={draft.doc.sections}
+        />
 
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className={fieldsetTitleClass}>Screens</h3>
-              <div className="flex items-center gap-2">
-                <Button
-                  disabled={phase !== "idle"}
-                  onClick={() => void runAudit()}
-                  title="Audit the screens with pictures, or capture a page first, and add findings, sections and pins"
-                  type="button"
-                  variant="outline"
-                >
-                  <ScanSearch size={14} />
-                  {AUDIT_LABELS[phase]}
-                </Button>
-                <Button
-                  disabled={phase !== "idle"}
-                  onClick={() => void runLoginAudit()}
-                  title="The audit agent signs in with the stored test account, captures the key pages, then runs the UX audit"
-                  type="button"
-                  variant="outline"
-                >
-                  <KeyRound size={14} />
-                  {phase === "exploring"
-                    ? agentStatus || AUDIT_LABELS.exploring
-                    : "Capture behind login"}
-                </Button>
-                <Button
-                  onClick={() =>
-                    setDoc({
-                      screens: [
-                        ...draft.doc.screens,
-                        {
-                          id: newItemId(),
-                          image: null,
-                          marks: [],
-                          note: "",
-                          pins: [],
-                          sourceUrl: "",
-                          title: "",
-                          viewport: "desktop",
-                        },
-                      ],
-                    })
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className={fieldsetTitleClass}>Screens</h3>
+            <Button onClick={addScreen} type="button" variant="ghost">
+              <Plus size={14} /> Add screen
+            </Button>
+          </div>
+          <SortableList
+            itemLabel={(s) => s.title || "screen"}
+            items={draft.doc.screens}
+            onReorder={reorderScreens}
+          >
+            {(screen, { compact, handle }) => (
+              <EditorBlock
+                collapsed={compact || collapse.isCollapsed(screen.id)}
+                handle={handle}
+                onToggle={() => collapse.toggle(screen.id)}
+                title={screen.title || "Untitled screen"}
+              >
+                <ReviewScreenEditor
+                  firstNumber={
+                    firstNumbers[draft.doc.screens.indexOf(screen)] ?? 1
                   }
-                  type="button"
-                  variant="ghost"
-                >
-                  <Plus size={14} /> Add screen
-                </Button>
-              </div>
-            </div>
-            {draft.doc.screens.map((screen, i) => (
-              <ReviewScreenEditor
-                firstNumber={firstNumbers[i] ?? 1}
-                key={screen.id}
-                onChange={(update) => updateScreen(screen.id, update)}
-                onRemove={() =>
-                  setDoc({
-                    screens: draft.doc.screens.filter(
-                      (s) => s.id !== screen.id
-                    ),
-                  })
-                }
-                screen={screen}
-                slug={draft.slug}
-              />
-            ))}
-          </section>
+                  onChange={(update) => updateScreen(screen.id, update)}
+                  onRemove={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      doc: {
+                        ...d.doc,
+                        screens: d.doc.screens.filter(
+                          (s) => s.id !== screen.id
+                        ),
+                      },
+                    }))
+                  }
+                  screen={screen}
+                  slug={draft.slug}
+                />
+              </EditorBlock>
+            )}
+          </SortableList>
+        </section>
 
-          <section className="space-y-2">
-            <Label className={proposalLabelClass}>Closing</Label>
-            <PageEditor
-              onChange={(closing) => setDoc({ closing: closing as RichText })}
-              value={toEditorDoc(draft.doc.closing)}
-            />
-          </section>
-
-          <ReviewClientPanel
-            onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
-            review={draft}
+        <EditorBlock
+          collapsed={collapse.isCollapsed("closing")}
+          onToggle={() => collapse.toggle("closing")}
+          title="Closing"
+        >
+          <PageEditor
+            onChange={(closing) => setDoc({ closing: closing as RichText })}
+            value={toEditorDoc(draft.doc.closing)}
           />
-
-          <ReviewSendPanel
-            busy={isSaving}
-            onChange={(next) => {
-              setDraft((d) => ({ ...d, sent: next.sent }));
-              void onSaved(next);
-            }}
-            review={draft}
-          />
-
-          <ReviewEditorActions
-            draft={draft}
-            isPrinting={isPrinting}
-            isSaving={isSaving}
-            latest={latest}
-            onLinkBoard={(boardId) => setDoc({ boardId })}
-            onPreview={() => void openPreview()}
-            onPrint={() => void printPdf()}
-            onSave={(overrides) => void save(overrides)}
-            saveState={saveState}
-          />
-        </CardContent>
-      </AdminCard>
-    </AdminFrame>
+        </EditorBlock>
+      </div>
+    </div>
   );
 }

@@ -1,0 +1,69 @@
+/*
+ * A foldable part of a long editor (EditorBlock.tsx): a header row with the
+ * drag handle, the fold toggle and its title, and the actions at the end.
+ */
+
+.editor-block {
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: var(--radius-md);
+}
+
+.editor-block__header {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+  min-height: calc(var(--spacing) * 11);
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+.editor-block__toggle {
+  display: flex;
+  flex: 1;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  min-width: 0;
+  padding-block: calc(var(--spacing) * 2.5);
+  font-size: var(--text-sm);
+  color: rgb(255 255 255 / 0.85);
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-widest, 0.12em);
+}
+
+.editor-block__toggle:focus-visible {
+  outline: 2px solid var(--review-accent, #fff);
+  outline-offset: 2px;
+}
+
+.editor-block__chevron {
+  flex: none;
+  rotate: 90deg;
+  transition: rotate 120ms ease-out;
+}
+
+.editor-block--collapsed .editor-block__chevron {
+  rotate: 0deg;
+}
+
+.editor-block__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-block__actions {
+  display: flex;
+  flex: none;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+}
+
+.editor-block__body {
+  padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .editor-block__chevron {
+    transition: none;
+  }
+}

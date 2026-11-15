@@ -312,6 +312,8 @@
    * for admin pages that hold wide work such as a review's screens.
    */
   --container-8xl: 96rem;
+  /* The review editor's side panel, open. */
+  --container-panel: 22rem;
   /* The widest a phone screenshot is drawn (420px), in the review editor
      and on the review page: \`max-w-phone\`. */
   --container-phone: 26.25rem;

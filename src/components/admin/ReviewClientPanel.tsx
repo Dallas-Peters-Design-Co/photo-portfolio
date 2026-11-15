@@ -77,9 +77,8 @@ export function ReviewClientPanel({
       : "The review";
 
   return (
-    <section className="space-y-4 rounded-md border border-white/10 p-4">
+    <section className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-sm text-white/70 uppercase">Client access</h3>
         <span className="flex items-center gap-1 text-sm text-white/60">
           <Lock size={14} />
           {review.hasPassword ? "Password on" : "Anyone with the link"}

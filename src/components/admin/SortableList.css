@@ -1,0 +1,59 @@
+/*
+ * A list reordered by dragging (SortableList.tsx). The order on screen comes
+ * from CSS `order`, so the list is a flex column; the gap is the highlighted
+ * blank spot where the dragged item will land.
+ */
+
+.sortable {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);
+}
+
+.sortable__item--lifted {
+  position: fixed;
+  z-index: var(--z-menu);
+  pointer-events: none;
+  background: oklch(0.2 0.01 265);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.5);
+  opacity: 0.95;
+}
+
+.sortable__gap {
+  background: color-mix(in oklch, var(--review-accent, #fff) 18%, transparent);
+  border: 2px dashed var(--review-accent, rgb(255 255 255 / 0.6));
+  border-radius: var(--radius-md);
+}
+
+.sortable__handle {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--spacing) * 7);
+  height: calc(var(--spacing) * 8);
+  color: rgb(255 255 255 / 0.5);
+  touch-action: none;
+  cursor: grab;
+  border-radius: var(--radius-sm);
+}
+
+.sortable__handle:hover {
+  color: rgb(255 255 255 / 0.9);
+}
+
+.sortable__handle:focus-visible {
+  outline: 2px solid var(--review-accent, #fff);
+  outline-offset: 1px;
+}
+
+/* The handle keeps the pointer while the rest of the item ignores it. */
+.sortable__item--lifted .sortable__handle {
+  pointer-events: auto;
+  cursor: grabbing;
+}
+
+.sortable--dragging {
+  user-select: none;
+}
