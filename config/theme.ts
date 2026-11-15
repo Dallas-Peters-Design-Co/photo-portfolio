@@ -7,6 +7,7 @@
  */
 /** biome-ignore-all lint/suspicious/noUnnecessaryConditions: reasons */
 
+import { PIN_KINDS, type PinKind } from "./review.js";
 import { STATIC_FONTS } from "./staticFonts.js";
 
 export type FontId =
@@ -336,9 +337,26 @@ export interface SiteTheme {
    */
   displayFont: FontId;
   foreground: string;
+  /**
+   * The fill of each kind of review note. Its number and ring are drawn in
+   * black or white, whichever reads better on it (inkOn), so no choice here
+   * can make a number unreadable.
+   */
+  pinColors: Record<PinKind, string>;
   sansFont: FontId;
   serifFont: FontId;
 }
+
+/**
+ * Note colours a site starts with: a different hue per kind, so an issue
+ * and a compliment are told apart at a glance.
+ */
+export const DEFAULT_PIN_COLORS: Record<PinKind, string> = {
+  issue: "#dc2626",
+  praise: "#16a34a",
+  recommendation: "#2563eb",
+  suggestion: "#f59e0b",
+};
 
 export const DEFAULT_THEME: Record<string, SiteTheme> = {
   addison: {
@@ -346,6 +364,7 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
     background: "#000000",
     displayFont: "inter",
     foreground: "#ffffff",
+    pinColors: DEFAULT_PIN_COLORS,
     sansFont: "inter",
     serifFont: "cormorant-garamond",
   },
@@ -355,6 +374,7 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
     background: "#000000",
     displayFont: "inter",
     foreground: "#ffffff",
+    pinColors: DEFAULT_PIN_COLORS,
     sansFont: "inter",
     serifFont: "cormorant-garamond",
   },
@@ -390,6 +410,33 @@ export const contrastRatio = (a: string, b: string): number => {
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 };
 
+/**
+ * Black or white, whichever reads better on `fill`: the number and ring on a
+ * note, and any ink set on a coloured ground.
+ */
+export const inkOn = (fill: string): string =>
+  contrastRatio(fill, "#ffffff") >= contrastRatio(fill, "#111111")
+    ? "#ffffff"
+    : "#111111";
+
+const normalizePinColors = (
+  raw: unknown,
+  fallback: Record<PinKind, string> = DEFAULT_PIN_COLORS
+): Record<PinKind, string> => {
+  const given = (raw ?? {}) as Partial<Record<PinKind, unknown>>;
+  return Object.fromEntries(
+    PIN_KINDS.map((kind) => {
+      const value = given[kind];
+      return [
+        kind,
+        isHexColor(value)
+          ? value
+          : (fallback[kind] ?? DEFAULT_PIN_COLORS[kind]),
+      ];
+    })
+  ) as Record<PinKind, string>;
+};
+
 /** Discards unknown keys and invalid values, falling back to the site default. */
 export const normalizeTheme = (
   raw: unknown,
@@ -404,6 +451,7 @@ export const normalizeTheme = (
     displayFont:
       findFont(t.displayFont)?.id ?? fallback.displayFont ?? sansFont,
     foreground: isHexColor(t.foreground) ? t.foreground : fallback.foreground,
+    pinColors: normalizePinColors(t.pinColors, fallback.pinColors),
     sansFont,
     serifFont: findFont(t.serifFont)?.id ?? fallback.serifFont,
   };

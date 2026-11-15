@@ -253,7 +253,7 @@ export function ReviewEditor({
   return (
     <div
       className={`review-editor ${panel.open ? "" : "review-editor--panel-closed"}`}
-      style={reviewAccentStyle(settings.theme.accent)}
+      style={reviewAccentStyle(settings.theme)}
     >
       <ReviewEditorPanel
         actions={

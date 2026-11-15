@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { PinColorFields } from "./PinColorFields";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
 const inputClass =
@@ -280,6 +281,15 @@ export function SiteSettingsPanel() {
               </p>
             ) : null}
           </div>
+
+          <PinColorFields
+            colors={draft.theme.pinColors}
+            inputClass={inputClass}
+            labelClass={labelClass}
+            onChange={(pinColors) =>
+              setDraft((d) => ({ ...d, theme: { ...d.theme, pinColors } }))
+            }
+          />
 
           <div className="space-y-4">
             <h3 className={labelClass}>Fonts</h3>

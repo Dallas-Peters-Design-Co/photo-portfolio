@@ -1,6 +1,14 @@
 import type { CSSProperties, MouseEvent } from "react";
-import type { PinKind, ReviewMark } from "../../../config/review.js";
-import { contrastRatio, isHexColor } from "../../../config/theme.js";
+import {
+  PIN_KINDS,
+  type PinKind,
+  type ReviewMark,
+} from "../../../config/review.js";
+import {
+  DEFAULT_PIN_COLORS,
+  inkOn,
+  isHexColor,
+} from "../../../config/theme.js";
 import "./reviewMarkup.css";
 
 /**
@@ -14,24 +22,30 @@ import "./reviewMarkup.css";
  * than from a generic annotation tool.
  */
 
-/** Ink on the accent: whichever of black or white reads better against it. */
-const onAccent = (accent: string): string =>
-  contrastRatio(accent, "#ffffff") >= contrastRatio(accent, "#111111")
-    ? "#ffffff"
-    : "#111111";
-
 /**
  * The CSS variables every review surface reads its colours from.
  *
  * Set on the review's root element from the site settings, rather than relying
  * on the global --accent, which the admin chrome and the board both redefine.
+ * Each kind of note gets its fill from the settings and its ink — the number
+ * and the ring — in black or white, whichever reads on that fill.
  */
-export const reviewAccentStyle = (accent: string): CSSProperties => {
-  const colour = isHexColor(accent) ? accent : "#7c7f01";
-  return {
+export const reviewAccentStyle = (theme: {
+  accent: string;
+  pinColors?: Partial<Record<PinKind, string>>;
+}): CSSProperties => {
+  const colour = isHexColor(theme.accent) ? theme.accent : "#7c7f01";
+  const style: Record<string, string> = {
     "--review-accent": colour,
-    "--review-on-accent": onAccent(colour),
-  } as CSSProperties;
+    "--review-on-accent": inkOn(colour),
+  };
+  for (const kind of PIN_KINDS) {
+    const given = theme.pinColors?.[kind];
+    const fill = isHexColor(given) ? given : DEFAULT_PIN_COLORS[kind];
+    style[`--review-pin-${kind}`] = fill;
+    style[`--review-pin-${kind}-ink`] = inkOn(fill);
+  }
+  return style as CSSProperties;
 };
 
 /** The class a pin of this kind wears, on either surface. */

@@ -60,7 +60,10 @@
   filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 1px #000);
 }
 
-/* Pins: one accent, four treatments. */
+/*
+ * Pins: each kind its own fill, from the site settings (reviewAccentStyle),
+ * with its number and ring in black or white, whichever reads on that fill.
+ */
 .review-pin {
   position: absolute;
   display: flex;
@@ -72,34 +75,32 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  border: 2px solid var(--review-accent);
+  color: var(--pin-ink);
+  background: var(--pin-fill);
+  border: 2px solid var(--pin-ink);
   border-radius: 999px;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
   transform: translate(-50%, -50%);
 }
 
-/* Something wrong: the loudest — solid accent. */
 .review-pin--issue {
-  color: var(--review-on-accent);
-  background: var(--review-accent);
+  --pin-fill: var(--review-pin-issue, var(--review-accent));
+  --pin-ink: var(--review-pin-issue-ink, var(--review-on-accent));
 }
 
-/* What to do about it: dark, ringed in the accent. */
 .review-pin--recommendation {
-  color: #fff;
-  background: #111;
+  --pin-fill: var(--review-pin-recommendation, #111);
+  --pin-ink: var(--review-pin-recommendation-ink, #fff);
 }
 
-/* Worth considering: white, ringed. */
 .review-pin--suggestion {
-  color: #111;
-  background: #fff;
+  --pin-fill: var(--review-pin-suggestion, #fff);
+  --pin-ink: var(--review-pin-suggestion-ink, #111);
 }
 
-/* Keep doing this: a quiet tint. */
 .review-pin--praise {
-  color: #111;
-  background: color-mix(in oklch, var(--review-accent) 30%, #fff);
+  --pin-fill: var(--review-pin-praise, #fff);
+  --pin-ink: var(--review-pin-praise-ink, #111);
 }
 
 /*

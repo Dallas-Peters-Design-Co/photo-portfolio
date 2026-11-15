@@ -82,10 +82,7 @@ export function ReviewPage() {
   }, [review, settings.ownerName]);
 
   return (
-    <div
-      className="page review-page"
-      style={reviewAccentStyle(settings.theme.accent)}
-    >
+    <div className="page review-page" style={reviewAccentStyle(settings.theme)}>
       <header className="page__body review-page__masthead">
         <Link className="review-page__wordmark" to="/">
           <svg

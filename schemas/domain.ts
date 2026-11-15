@@ -148,6 +148,15 @@ export const SiteTheme = z.object({
   accent: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   background: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   foreground: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  /** The fill of each kind of review note; its number and ring contrast. */
+  pinColors: z
+    .object({
+      issue: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      praise: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      recommendation: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+      suggestion: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+    })
+    .optional(),
   sansFont: z.string(),
   serifFont: z.string(),
 });

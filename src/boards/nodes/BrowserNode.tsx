@@ -90,10 +90,7 @@ export function BrowserNode({
   // In the desktop app the page is a real browser in the node (LiveBrowser).
   if (!(showMarkup || readOnly) && canBrowseLive()) {
     return (
-      <div
-        className="browser-node"
-        style={reviewAccentStyle(settings.theme.accent)}
-      >
+      <div className="browser-node" style={reviewAccentStyle(settings.theme)}>
         <LiveBrowser
           cfg={cfg}
           onCaptured={() => setBrowsing(false)}
@@ -104,10 +101,7 @@ export function BrowserNode({
   }
 
   return (
-    <div
-      className="browser-node"
-      style={reviewAccentStyle(settings.theme.accent)}
-    >
+    <div className="browser-node" style={reviewAccentStyle(settings.theme)}>
       <div className="browser-node__bar">
         {showMarkup ? (
           <MarkupBar

@@ -51,6 +51,17 @@ const themeError = (themeInput: Record<string, unknown>): string | null => {
       return `${key} must be a hex color like #1a1a1a`;
     }
   }
+  const pins = themeInput.pinColors;
+  if (pins !== undefined && pins !== null) {
+    if (typeof pins !== "object") {
+      return "pinColors must be an object of hex colors";
+    }
+    for (const [kind, value] of Object.entries(pins)) {
+      if (!isHexColor(value)) {
+        return `pinColors.${kind} must be a hex color like #1a1a1a`;
+      }
+    }
+  }
   for (const key of FONT_KEYS) {
     const value = themeInput[key];
     if (value !== undefined && value !== null && !findFont(value as string)) {

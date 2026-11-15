@@ -68,7 +68,6 @@ export function ReviewMarkupToolbar({
   onUndo: () => void;
   tool: ReviewTool;
 }) {
-  const active = TOOLS.find((t) => t.id === tool);
   return (
     <div className="mb-2 flex flex-wrap items-center gap-1">
       <div aria-label="Markup tools" className="flex gap-1" role="toolbar">
@@ -110,9 +109,6 @@ export function ReviewMarkupToolbar({
           <Redo2 size={15} />
         </button>
       </div>
-      <span className="ml-2 text-sm text-white/60 uppercase">
-        {active?.hint}
-      </span>
       {canClear ? (
         <button
           className="ml-auto flex items-center gap-1 rounded-md border border-white/15 px-2 py-1 text-md text-white/80 hover:border-red-400 hover:text-red-300"
