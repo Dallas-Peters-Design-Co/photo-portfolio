@@ -8,6 +8,7 @@ import {
   type ShadowPreset,
 } from "../../../config/conceptShadow.js";
 import {
+  type ConceptIconSvg,
   conceptIconName,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
@@ -39,8 +40,15 @@ export function CardIconGroup({
       <ConceptField label="Icon" wide>
         <IconPicker
           label="Card icon"
-          onChange={(icon) => onChange({ iconName: icon ?? undefined })}
+          library="full"
+          onChange={(icon, svg) =>
+            onChange({
+              iconName: icon ?? undefined,
+              iconSvg: svg as ConceptIconSvg | undefined,
+            })
+          }
           size="sm"
+          svg={element.iconSvg}
           value={conceptIconName(element.iconName)}
         />
       </ConceptField>

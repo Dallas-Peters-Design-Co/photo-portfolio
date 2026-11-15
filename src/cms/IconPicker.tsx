@@ -1,13 +1,15 @@
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
 import UnavailableIcon from "@hugeicons-pro/core-stroke-standard/UnavailableIcon";
 import { useEffect, useRef, useState } from "react";
-import { ICON_GROUPS } from "./icons";
+import { type IconLibrary, useIconLibrary } from "./iconLibrary";
+import { ICON_GROUPS, type IconGroup } from "./icons";
 import { resolveIcon } from "./resolveIcon";
 
 /** Where a capital or a digit starts a new word. */
 const WORD_BREAK = /(?<=[a-z])(?=[A-Z0-9])/g;
 const ICON_SUFFIX = /Icon$/;
+const WHITESPACE = /\s+/;
 
 /**
  * "Camera01Icon" → "Camera 01".
@@ -25,16 +27,80 @@ interface IconPickerProps {
   id?: string;
   /** Names the trigger when no visible label points at it. */
   label?: string;
-  onChange: (icon: string | null) => void;
+  /**
+   * "full" searches the whole pack (~6,000 icons), loaded when the picker
+   * opens. Only for admin-only drawings: the page editor's icons ship to
+   * every visitor, so it keeps the curated set.
+   */
+  library?: "curated" | "full";
+  /** The chosen icon's drawing, passed along so it can be saved with it. */
+  onChange: (icon: string | null, svg?: IconSvgElement) => void;
   /** sm matches the other small controls in a dense form. */
   size?: "default" | "sm";
+  /** A drawing to show for `value` when it is not in the curated set. */
+  svg?: IconSvgElement | null;
   value: string | null;
 }
+
+/** Enough to scan; a longer list means the search should be narrower. */
+const MAX_RESULTS = 240;
 
 const TRIGGER_SIZES = {
   default: "min-h-11 px-3",
   sm: "h-7 px-2",
 } as const;
+
+interface IconSearch {
+  matches: IconGroup[];
+  status: string | null;
+}
+
+/**
+ * The groups to show for a query. The curated set matches on icon name or
+ * group label, so "nature" and "leaf" both land. With the full library
+ * (`full` loaded, or null while loading), a query searches every icon and
+ * every word must appear in the name.
+ */
+const searchIcons = (
+  query: string,
+  full: IconLibrary | null | undefined
+): IconSearch => {
+  const needle = query.trim().toLowerCase();
+  const words = needle.split(WHITESPACE).filter(Boolean);
+  if (full && words.length > 0) {
+    const found = full.names.filter((name) => {
+      const lower = name.toLowerCase();
+      return words.every((word) => lower.includes(word));
+    });
+    const label =
+      found.length > MAX_RESULTS
+        ? `${MAX_RESULTS} of ${found.length} — narrow the search`
+        : `All icons · ${found.length}`;
+    return {
+      matches: [{ icons: found.slice(0, MAX_RESULTS), label }],
+      status: null,
+    };
+  }
+  const curated = needle
+    ? ICON_GROUPS.map((group) =>
+        group.label.toLowerCase().includes(needle)
+          ? group
+          : {
+              ...group,
+              icons: group.icons.filter((name) =>
+                name.toLowerCase().includes(needle)
+              ),
+            }
+      ).filter((group) => group.icons.length > 0)
+    : ICON_GROUPS;
+  let status: string | null = null;
+  if (full === null) {
+    status = "Loading the full library…";
+  } else if (full) {
+    status = `Search all ${full.names.length.toLocaleString()} icons`;
+  }
+  return { matches: curated, status };
+};
 
 /**
  * Visual icon chooser for a page's nav link.
@@ -47,8 +113,10 @@ export function IconPicker({
   allowNone = true,
   id,
   label,
+  library = "curated",
   onChange,
   size = "default",
+  svg,
   value,
 }: IconPickerProps) {
   const [open, setOpen] = useState(false);
@@ -74,22 +142,19 @@ export function IconPicker({
     };
   }, [open]);
 
-  const Selected = resolveIcon(value);
+  const full = useIconLibrary(library === "full" && open);
+  const iconOf = (name: string | null) =>
+    (name && full?.icons[name]) || resolveIcon(name);
+  const Selected = iconOf(value) ?? svg ?? null;
+  const choose = (name: string | null) => {
+    onChange(name, iconOf(name) ?? undefined);
+    setOpen(false);
+  };
 
-  // Match on icon name or group label, so "nature" and "leaf" both land.
-  const needle = query.trim().toLowerCase();
-  const matches = needle
-    ? ICON_GROUPS.map((group) =>
-        group.label.toLowerCase().includes(needle)
-          ? group
-          : {
-              ...group,
-              icons: group.icons.filter((name) =>
-                name.toLowerCase().includes(needle)
-              ),
-            }
-      ).filter((group) => group.icons.length > 0)
-    : ICON_GROUPS;
+  const { matches, status } = searchIcons(
+    query,
+    library === "full" ? full : undefined
+  );
 
   return (
     <div className="relative" ref={containerRef}>
@@ -144,10 +209,7 @@ export function IconPicker({
               className={`flex w-full items-center gap-2 rounded-inner px-3 py-2.5 text-left text-sm uppercase transition-colors hover:bg-white/6 ${
                 value === null ? "text-white" : "text-white/90"
               }`}
-              onClick={() => {
-                onChange(null);
-                setOpen(false);
-              }}
+              onClick={() => choose(null)}
               role="option"
               type="button"
             >
@@ -156,7 +218,11 @@ export function IconPicker({
             </button>
           ) : null}
 
-          {matches.length === 0 ? (
+          {status ? (
+            <p className="px-3 py-2 text-white/50 text-xs">{status}</p>
+          ) : null}
+
+          {matches.every((group) => group.icons.length === 0) ? (
             <p className="px-3 py-3 text-sm text-white/50">
               Nothing matches “{query.trim()}”.
             </p>
@@ -169,7 +235,7 @@ export function IconPicker({
               </p>
               <div className="grid grid-cols-6 gap-px p-1">
                 {group.icons.map((name) => {
-                  const Icon = resolveIcon(name);
+                  const Icon = iconOf(name);
                   if (!Icon) {
                     return null;
                   }
@@ -182,10 +248,7 @@ export function IconPicker({
                           : "text-white/90 hover:bg-white/8 hover:text-white"
                       }`}
                       key={name}
-                      onClick={() => {
-                        onChange(name);
-                        setOpen(false);
-                      }}
+                      onClick={() => choose(name)}
                       role="option"
                       title={labelFor(name)}
                       type="button"

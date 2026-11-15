@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { shadowCss } from "../../../config/conceptShadow.js";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
+  type ConceptIconSvg,
   conceptIconName,
   type ReviewConceptElement,
   splitCardText,
@@ -40,12 +41,16 @@ function ConceptIcon({
   color,
   name,
   size,
+  svg,
 }: {
   color?: string;
   name?: string;
   size: number;
+  /** The saved drawing; without one (older concepts) the name is looked up. */
+  svg?: ConceptIconSvg;
 }) {
-  const Icon = iconFrom(useIconMap(Boolean(name)), conceptIconName(name));
+  const map = useIconMap(!svg && Boolean(name));
+  const Icon = svg ?? iconFrom(map, conceptIconName(name));
   return Icon ? (
     <HugeiconsIcon
       aria-hidden
@@ -81,6 +86,7 @@ function CardPreview({
           color={element.iconColor}
           name={element.iconName}
           size={element.iconSize ?? Math.round(element.fontSize * 1.5)}
+          svg={element.iconSvg}
         />
       ) : null}
       <strong>{card.title || "Card title"}</strong>
@@ -130,7 +136,11 @@ export function ReviewConceptElementView({
             lineHeight: 0,
           }}
         >
-          <ConceptIcon name={iconName} size={element.fontSize} />
+          <ConceptIcon
+            name={iconName}
+            size={element.fontSize}
+            svg={element.iconSvg}
+          />
         </span>
       );
     }

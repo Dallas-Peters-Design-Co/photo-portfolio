@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SHADOW_PRESETS, shadowCss } from "./conceptShadow.js";
 import {
   cleanConcept,
+  cleanIconSvg,
   conceptIconName,
   joinCardText,
   splitCardText,
@@ -120,5 +121,36 @@ describe("card shadow and icon settings", () => {
       elements: [{ iconColor: "#ff0000", iconSize: 200, kind: "card" }],
     }).elements;
     expect(card).toMatchObject({ iconColor: "#ff0000", iconSize: 96 });
+  });
+});
+
+describe("saved icon drawings", () => {
+  const rocket = [
+    ["path", { d: "M4 12h16", stroke: "currentColor", strokeWidth: 1.5 }],
+    ["circle", { cx: 12, cy: 12, r: 3 }],
+  ];
+
+  it("keeps plain shapes and drawing attributes", () => {
+    expect(cleanIconSvg(rocket)).toEqual(rocket);
+  });
+
+  it("drops a drawing with any other tag or attribute", () => {
+    expect(cleanIconSvg([["script", { d: "x" }]])).toBeUndefined();
+    expect(cleanIconSvg([["path", { onload: "alert(1)" }]])).toBeUndefined();
+    expect(cleanIconSvg([["path", { href: "javascript:x" }]])).toBeUndefined();
+    expect(cleanIconSvg("not a drawing")).toBeUndefined();
+  });
+
+  it("saves the drawing with an icon or card, never on its own", () => {
+    const [icon, card, button] = cleanConcept({
+      elements: [
+        { iconName: "Rocket01Icon", iconSvg: rocket, kind: "icon" },
+        { iconSvg: rocket, kind: "card" },
+        { iconName: "Rocket01Icon", iconSvg: rocket, kind: "button" },
+      ],
+    }).elements;
+    expect(icon?.iconSvg).toEqual(rocket);
+    expect(card?.iconSvg).toBeUndefined();
+    expect(button?.iconSvg).toBeUndefined();
   });
 });

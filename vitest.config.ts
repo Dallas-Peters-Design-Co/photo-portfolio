@@ -58,6 +58,8 @@ export default defineConfig({
       "posthog-js",
       "react-router-dom",
       "@hugeicons/react",
+      // The full library the concept icon picker searches.
+      "@hugeicons-pro/core-stroke-standard",
       // Every icon the site's picker offers, read from the map so the list
       // can never fall out of step with it.
       ...ICON_MAP_IMPORTS,

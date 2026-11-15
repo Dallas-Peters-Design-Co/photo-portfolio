@@ -136,6 +136,38 @@ describe("concept card", () => {
     ).toContain("Custom");
   });
 
+  it("finds an icon outside the curated set and draws it from the saved drawing", async () => {
+    await userEvent.click(
+      host?.querySelector('[aria-label="Card icon"]') as HTMLElement
+    );
+    const search = host?.querySelector(
+      'input[type="search"][placeholder="Search icons…"]'
+    );
+    await userEvent.type(search as HTMLElement, "rocket 01");
+    await expect
+      .poll(() => host?.querySelector('[role="option"][title="Rocket 01"]'), {
+        timeout: 15_000,
+      })
+      .not.toBeNull();
+    await userEvent.click(
+      host?.querySelector('[role="option"][title="Rocket 01"]') as HTMLElement
+    );
+    expect(card().querySelector("svg path")).not.toBeNull();
+  });
+
+  it("folds the element to its name and first line, and opens again", async () => {
+    const toggle = host?.querySelector(
+      ".review-concepts__element-toggle"
+    ) as HTMLElement;
+    await userEvent.click(toggle);
+    expect(toggle.getAttribute("aria-expanded")).toBe("false");
+    expect(host?.querySelector('[aria-label="Card title"]')).toBeNull();
+    expect(toggle.textContent).toContain("Card title");
+
+    await userEvent.click(toggle);
+    expect(host?.querySelector('[aria-label="Card title"]')).not.toBeNull();
+  });
+
   it("has a border and a shadow", () => {
     const style = getComputedStyle(card());
     expect(style.borderTopWidth).toBe("1px");

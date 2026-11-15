@@ -1,4 +1,5 @@
 import {
+  type ConceptIconSvg,
   conceptIconName,
   joinCardText,
   type ReviewConceptElement,
@@ -21,12 +22,17 @@ export function ReviewConceptContentField({
         <IconPicker
           allowNone={false}
           label="Icon"
-          onChange={(icon) => {
+          library="full"
+          onChange={(icon, svg) => {
             if (icon) {
-              onChange({ iconName: icon });
+              onChange({
+                iconName: icon,
+                iconSvg: svg as ConceptIconSvg | undefined,
+              });
             }
           }}
           size="sm"
+          svg={element.iconSvg}
           value={conceptIconName(element.iconName) ?? "StarIcon"}
         />
       </ConceptField>

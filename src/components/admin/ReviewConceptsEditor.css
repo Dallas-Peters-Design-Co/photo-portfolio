@@ -137,12 +137,50 @@
   margin: calc(var(--spacing) * -1) calc(var(--spacing) * -1) 0 0;
 }
 
-.review-concepts__element-bar > span {
-  margin-inline-end: auto;
+/* The whole name is the fold control: a wide target, not a small chevron. */
+.review-concepts__element-toggle {
+  display: flex;
+  flex: 1;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  min-width: 0;
+  min-height: calc(var(--spacing) * 8);
+  padding: 0;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.review-concepts__element-toggle > svg {
+  flex: none;
+  transition: transform 120ms ease-out;
+}
+
+.review-concepts__element-toggle[aria-expanded="false"] > svg {
+  transform: rotate(-90deg);
+}
+
+.review-concepts__element-toggle > span {
   font-size: var(--text-xs-ui);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro);
+}
+
+.review-concepts__element-toggle > small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 60%, transparent);
+  white-space: nowrap;
+}
+
+.review-concepts__element-body {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  min-width: 0;
 }
 
 /* A row name in a fixed column, so every row's fields start at one edge. */
@@ -274,12 +312,27 @@
   width: 58%;
 }
 
+/* The preview stays in view below the admin bar while the controls under
+   it scroll, so a change is judged where it is made. Opaque, so the controls
+   pass beneath it rather than through it; capped at half the window, so the
+   controls it rides over stay reachable. */
 .review-concepts__preview-wrap {
+  position: sticky;
+  top: var(--admin-bar-height, 0px);
+  z-index: 2;
   display: grid;
   gap: calc(var(--spacing) * 2);
   min-width: 0;
+  max-height: 50dvh;
   padding: calc(var(--spacing) * 3);
-  background: color-mix(in oklch, currentColor 4%, transparent);
+  overflow: auto;
+  overscroll-behavior: contain;
+  background-color: var(--background);
+  background-image: linear-gradient(
+    color-mix(in oklch, currentColor 4%, transparent),
+    color-mix(in oklch, currentColor 4%, transparent)
+  );
+  border-block-end: 1px solid color-mix(in oklch, currentColor 12%, transparent);
 }
 
 .review-concepts__preview-wrap > p {
