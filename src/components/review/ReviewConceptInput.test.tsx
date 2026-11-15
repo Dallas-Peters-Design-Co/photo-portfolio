@@ -207,3 +207,23 @@ it("draws tabs with their indicator, active and inactive colours and height", ()
       .height
   ).toBeGreaterThanOrEqual(48);
 });
+
+it("puts a tab element's side padding on each tab, not the row", () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{ ...createConceptElement("tabs"), paddingX: 20, paddingY: 6 }}
+      />
+    )
+  );
+  const row = getComputedStyle(
+    host.querySelector(".concept-tabs") as HTMLElement
+  );
+  const tab = getComputedStyle(
+    host.querySelector(".concept-tabs__tab") as HTMLElement
+  );
+  expect(row.paddingLeft).toBe("0px");
+  expect(row.paddingTop).toBe("6px");
+  expect(tab.paddingLeft).toBe("20px");
+  expect(tab.paddingRight).toBe("20px");
+});

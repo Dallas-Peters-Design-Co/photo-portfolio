@@ -3,7 +3,6 @@
    settings. */
 .concept-tabs {
   display: flex;
-  gap: calc(var(--spacing) * 4);
   align-items: stretch;
   min-height: var(--tab-height, auto);
   border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
@@ -13,6 +12,7 @@
   position: relative;
   display: flex;
   align-items: center;
+  padding-inline: var(--tab-padding-x, 0);
   color: var(--tab-inactive, currentColor);
 }
 

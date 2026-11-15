@@ -25,6 +25,10 @@ export function ConceptTabsPreview({
     "--tab-indicator-size": look?.indicatorSize
       ? `${look.indicatorSize}px`
       : undefined,
+    "--tab-padding-x": `${element.paddingX}px`,
+    // Side padding belongs to each tab (so the indicator spans it), not the
+    // row; the row keeps the top and bottom.
+    padding: `${element.paddingY}px 0`,
   } as CSSProperties;
   return (
     <nav aria-label="Preview tabs" className="concept-tabs" style={vars}>
