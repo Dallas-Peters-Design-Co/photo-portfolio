@@ -38,7 +38,9 @@ export default defineConfig({
     // tests loading at that moment fail with "Failed to fetch dynamically
     // imported module" — a different file each run.
     include: [
+      "@base-ui/react/menu",
       "@base-ui/react/popover",
+      "@base-ui/react/select",
       "@hugeicons-pro/core-stroke-standard/ExternalLinkIcon",
       "@hugeicons-pro/core-stroke-standard/Facebook01Icon",
       "@hugeicons-pro/core-stroke-standard/InstagramIcon",

@@ -1,4 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import { ChevronDown } from "lucide-react";
 import type { CSSProperties } from "react";
 import { shadowCss } from "../../../config/conceptShadow.js";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
@@ -11,6 +12,12 @@ import {
 } from "../../../config/reviewConcept.js";
 import { findFont } from "../../../config/theme.js";
 import { iconFrom, useIconMap } from "../../cms/useIconMap";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -193,6 +200,42 @@ function SelectPreview({
   );
 }
 
+/**
+ * A dropdown menu drawn with the project's DropdownMenu: a button in the
+ * element's own look that opens the menu of its options.
+ */
+function MenuPreview({
+  element,
+  style,
+  text,
+}: {
+  element: ReviewConceptElement;
+  style: CSSProperties;
+  text: string;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        style={{
+          ...style,
+          alignItems: "center",
+          cursor: "pointer",
+          display: "inline-flex",
+          gap: Math.round(element.fontSize * 0.4),
+        }}
+      >
+        {text}
+        <ChevronDown aria-hidden size={element.fontSize} />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        {(element.options ?? [text]).map((option) => (
+          <DropdownMenuItem key={option}>{option}</DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 /** The text field inside an input's box: no box of its own. */
 const BARE_FIELD: CSSProperties = {
   background: "transparent",
@@ -361,17 +404,7 @@ export function ReviewConceptElementView({
         </section>
       );
     case "menu":
-      return (
-        <ul
-          aria-label="Dropdown menu preview"
-          className="review-concepts__menu-preview"
-          style={style}
-        >
-          {(element.options ?? [text]).map((option) => (
-            <li key={option}>{option}</li>
-          ))}
-        </ul>
-      );
+      return <MenuPreview element={element} style={style} text={text} />;
     case "toast":
       return (
         <div

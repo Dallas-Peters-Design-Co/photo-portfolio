@@ -81,3 +81,25 @@ it("draws a select with the project Select: it opens, picks, and keeps the desig
   await userEvent.click(settings);
   await vi.waitFor(() => expect(trigger?.textContent).toContain("Settings"));
 });
+
+it("draws a dropdown menu with the project DropdownMenu, which opens on click", async () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("menu"),
+          options: ["Rename", "Delete"],
+        }}
+      />
+    )
+  );
+  const trigger = host.querySelector('[data-slot="dropdown-menu-trigger"]');
+  expect(trigger?.textContent).toContain("Actions");
+  await userEvent.click(trigger as HTMLElement);
+  await vi.waitFor(() => {
+    const items = [...document.querySelectorAll('[role="menuitem"]')].map(
+      (item) => item.textContent
+    );
+    expect(items).toEqual(["Rename", "Delete"]);
+  });
+});

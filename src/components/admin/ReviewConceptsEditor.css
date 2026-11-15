@@ -280,18 +280,6 @@
   justify-content: end;
 }
 
-.review-concepts__menu-preview {
-  display: grid;
-  gap: calc(var(--spacing) * 1);
-  width: fit-content;
-  margin: 0;
-  list-style: none;
-}
-
-.review-concepts__menu-preview li {
-  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
-}
-
 .review-concepts__toast-preview {
   width: fit-content;
   box-shadow: 0 6px 18px color-mix(in srgb, #000 16%, transparent);
