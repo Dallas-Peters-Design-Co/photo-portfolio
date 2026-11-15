@@ -158,3 +158,7 @@ it("moves a column with its drag handle's arrow keys, cells and all", async () =
       ?.textContent
   ).toBe("Acme Co.");
 });
+
+it("keeps what a table draws inside its own box", () => {
+  expect(getComputedStyle(preview()).contain).toBe("paint");
+});

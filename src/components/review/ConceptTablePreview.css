@@ -6,7 +6,14 @@
    where zoom or a clipping parent can drop it (the last row's line went
    missing that way). */
 .concept-table {
+  /* What a table draws stays inside it: a long chip row or a wide cell is
+     clipped at the table's edge rather than painting over its neighbours,
+     and the table repaints on its own. */
   width: 100%;
+  /* What a table draws stays inside it: a long chip row or a wide cell is
+     clipped at the table's edge rather than painting over its neighbours,
+     and the table repaints on its own. */
+  contain: paint;
   border-spacing: 0;
   border-collapse: separate;
 }
