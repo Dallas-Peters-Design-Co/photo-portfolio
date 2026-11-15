@@ -2,8 +2,13 @@ import { Plus, Trash2 } from "lucide-react";
 import { type CSSProperties, useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
+  type ConceptIconSvg,
+  conceptIconName,
+} from "../../../config/conceptIcon.js";
+import {
   addColumn,
   addRow,
+  type ButtonStyle,
   type ConceptCellKind,
   type ConceptTable,
   type ConceptTableColumn,
@@ -13,18 +18,22 @@ import {
   MAX_TABLE_ROWS,
   removeColumn,
   removeRow,
+  reorderColumns,
   setCell,
   setColumnKind,
+  setIconCell,
   type TableLines,
   tableOf,
   updateBorders,
   updateColumn,
+  updateHeader,
 } from "../../../config/conceptTable.js";
 import {
   joinCardText,
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { IconPicker } from "../../cms/IconPicker";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
@@ -36,12 +45,20 @@ import {
   optionsOf,
 } from "./ConceptControls";
 import { ConceptColorField } from "./ReviewConceptBrand";
+import { SortableList } from "./SortableList";
 
 const KIND_OPTIONS = optionsOf([
   ["text", "Text"],
   ["stacked", "Two lines"],
   ["tag", "Tag"],
   ["chips", "Chips"],
+  ["icon", "Icon"],
+  ["button", "Button"],
+]);
+
+const BUTTON_STYLES = optionsOf([
+  ["solid", "Solid"],
+  ["outline", "Outline"],
 ]);
 
 const LINE_OPTIONS = optionsOf([
@@ -50,20 +67,38 @@ const LINE_OPTIONS = optionsOf([
   ["grid", "Grid"],
 ]);
 
-const TINTED = new Set<ConceptCellKind>(["tag", "chips"]);
+const TINTED = new Set<ConceptCellKind>(["tag", "chips", "icon", "button"]);
 
 /** One cell's editor, shaped by its column: two boxes for two lines. */
 function CellInput({
   column,
+  icons,
   label,
   onChange,
+  onIcon,
   value,
 }: {
+  icons?: Record<string, ConceptIconSvg>;
+  onIcon: (name: string | null, svg: ConceptIconSvg | undefined) => void;
   column: ConceptTableColumn;
   label: string;
   onChange: (value: string) => void;
   value: string;
 }) {
+  if (column.kind === "icon") {
+    return (
+      <IconPicker
+        label={label}
+        library="full"
+        onChange={(name, svg) =>
+          onIcon(name, svg as ConceptIconSvg | undefined)
+        }
+        size="sm"
+        svg={icons?.[value]}
+        value={conceptIconName(value)}
+      />
+    );
+  }
   if (column.kind === "stacked") {
     const { body, title } = splitCardText(value);
     return (
@@ -122,56 +157,88 @@ export function ConceptTableFields({
     <>
       <ConceptGroup name="Columns">
         <div className="review-concepts__table-editor">
-          {table.columns.map((column, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
-            <div className="review-concepts__table-column" key={index}>
-              <ConceptField label="Name">
-                <Input
-                  aria-label={`Column ${index + 1} name`}
-                  onChange={(event) =>
-                    set(
-                      updateColumn(table, index, { label: event.target.value })
-                    )
-                  }
-                  size="sm"
-                  value={column.label}
-                />
-              </ConceptField>
-              <ConceptField label="Cells">
-                <ConceptSelect
-                  label={`Column ${index + 1} cells`}
-                  onChange={(kind) =>
-                    set(setColumnKind(table, index, kind as ConceptCellKind))
-                  }
-                  options={KIND_OPTIONS}
-                  value={column.kind}
-                />
-              </ConceptField>
-              {TINTED.has(column.kind) ? (
-                <ConceptColorField
-                  ariaLabel={`Column ${index + 1} color`}
-                  brandDoc={brandDoc}
-                  label="Color"
-                  onChange={(color) =>
-                    set(updateColumn(table, index, { color }))
-                  }
-                  value={column.color ?? element.color}
-                />
-              ) : (
-                <span />
-              )}
-              <Button
-                aria-label={`Remove column ${index + 1}`}
-                disabled={table.columns.length <= 1}
-                onClick={() => set(removeColumn(table, index))}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <Trash2 size={13} />
-              </Button>
-            </div>
-          ))}
+          {/* Dragged by the handle, or moved with its arrow keys; a column's
+              position is its id, so the ids are renumbered after each move. */}
+          <SortableList
+            itemLabel={({ column }) => `column ${column.label || "untitled"}`}
+            items={table.columns.map((column, index) => ({
+              column,
+              id: String(index),
+              index,
+            }))}
+            onReorder={(ids) => set(reorderColumns(table, ids.map(Number)))}
+          >
+            {({ column, index }, { handle }) => (
+              <div className="review-concepts__table-column">
+                {handle}
+                <ConceptField label="Name">
+                  <Input
+                    aria-label={`Column ${index + 1} name`}
+                    onChange={(event) =>
+                      set(
+                        updateColumn(table, index, {
+                          label: event.target.value,
+                        })
+                      )
+                    }
+                    size="sm"
+                    value={column.label}
+                  />
+                </ConceptField>
+                <ConceptField label="Cells">
+                  <ConceptSelect
+                    label={`Column ${index + 1} cells`}
+                    onChange={(kind) =>
+                      set(setColumnKind(table, index, kind as ConceptCellKind))
+                    }
+                    options={KIND_OPTIONS}
+                    value={column.kind}
+                  />
+                </ConceptField>
+                {TINTED.has(column.kind) ? (
+                  <div className="review-concepts__table-tint">
+                    <ConceptColorField
+                      ariaLabel={`Column ${index + 1} color`}
+                      brandDoc={brandDoc}
+                      label="Color"
+                      onChange={(color) =>
+                        set(updateColumn(table, index, { color }))
+                      }
+                      value={column.color ?? element.color}
+                    />
+                    {column.kind === "button" ? (
+                      <ConceptField label="Style">
+                        <ConceptSelect
+                          label={`Column ${index + 1} button style`}
+                          onChange={(style) =>
+                            set(
+                              updateColumn(table, index, {
+                                buttonStyle: style as ButtonStyle,
+                              })
+                            )
+                          }
+                          options={BUTTON_STYLES}
+                          value={column.buttonStyle ?? "solid"}
+                        />
+                      </ConceptField>
+                    ) : null}
+                  </div>
+                ) : (
+                  <span />
+                )}
+                <Button
+                  aria-label={`Remove column ${index + 1}`}
+                  disabled={table.columns.length <= 1}
+                  onClick={() => set(removeColumn(table, index))}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  <Trash2 size={13} />
+                </Button>
+              </div>
+            )}
+          </SortableList>
           <div>
             <Button
               disabled={table.columns.length >= MAX_TABLE_COLUMNS}
@@ -207,11 +274,15 @@ export function ConceptTableFields({
               {table.columns.map((column, index) => (
                 <CellInput
                   column={column}
+                  icons={table.icons}
                   // biome-ignore lint/suspicious/noArrayIndexKey: as above
                   key={index}
                   label={`Row ${rowIndex + 1}, ${column.label || `column ${index + 1}`}`}
                   onChange={(value) =>
                     set(setCell(table, rowIndex, index, value))
+                  }
+                  onIcon={(name, svg) =>
+                    set(setIconCell(table, rowIndex, index, name, svg))
                   }
                   value={row[index] ?? ""}
                 />
@@ -239,6 +310,25 @@ export function ConceptTableFields({
             </Button>
           </div>
         </div>
+      </ConceptGroup>
+
+      <ConceptGroup name="Header">
+        <ConceptColorField
+          allowNone
+          ariaLabel="Table header background"
+          brandDoc={brandDoc}
+          label="Background"
+          onChange={(background) => set(updateHeader(table, { background }))}
+          value={table.header?.background ?? "transparent"}
+        />
+        <ConceptColorField
+          allowNone
+          ariaLabel="Table header text color"
+          brandDoc={brandDoc}
+          label="Text"
+          onChange={(color) => set(updateHeader(table, { color }))}
+          value={table.header?.color ?? "transparent"}
+        />
       </ConceptGroup>
 
       <ConceptGroup name="Borders">

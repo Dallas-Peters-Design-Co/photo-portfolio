@@ -1,9 +1,14 @@
 /* A concept table, in the editor's preview and on the review page alike.
    Colours come from the element (currentColor) and, for tags and chips, from
    the column's tint. */
+/* Separate borders, spaced 0: every line is drawn inside its own cell.
+   Collapsed borders put half of each outer line outside the table's box,
+   where zoom or a clipping parent can drop it (the last row's line went
+   missing that way). */
 .concept-table {
   width: 100%;
-  border-collapse: collapse;
+  border-spacing: 0;
+  border-collapse: separate;
 }
 
 .concept-table th,
@@ -13,25 +18,40 @@
   text-align: start;
 }
 
+.concept-table th {
+  font-size: 0.85em;
+  font-weight: 600;
+  /* The header's own text colour when set, else a softer table ink. */
+  color: var(
+    --concept-head-ink,
+    color-mix(in srgb, currentColor 65%, transparent)
+  );
+}
+
 /* Lines: between rows, or around every cell; colour and width come from
    the table's settings through --concept-line and --concept-line-width. */
 .concept-table[data-lines="rows"] :is(th, td) {
   border-bottom: var(--concept-line-width) solid var(--concept-line);
 }
 
+/* Each cell draws its right and bottom edge; the first column and the
+   header add the left and top, so every shared edge is drawn once. */
 .concept-table[data-lines="grid"] :is(th, td) {
-  border: var(--concept-line-width) solid var(--concept-line);
+  border-block-end: var(--concept-line-width) solid var(--concept-line);
+  border-inline-end: var(--concept-line-width) solid var(--concept-line);
+}
+
+.concept-table[data-lines="grid"] :is(th, td):first-child {
+  border-inline-start: var(--concept-line-width) solid var(--concept-line);
+}
+
+.concept-table[data-lines="grid"] thead th {
+  border-block-start: var(--concept-line-width) solid var(--concept-line);
 }
 
 .concept-table[data-outline] {
   outline: var(--concept-line-width) solid var(--concept-line);
   outline-offset: calc(var(--concept-line-width) * -1);
-}
-
-.concept-table th {
-  font-size: 0.85em;
-  font-weight: 600;
-  color: color-mix(in srgb, currentColor 65%, transparent);
 }
 
 .concept-table__stack {
@@ -70,4 +90,31 @@
   display: inline-flex;
   flex-wrap: wrap;
   gap: 0.35em;
+}
+
+.concept-table__icon {
+  display: block;
+}
+
+/* A button in a cell: filled with the column's tint, or outlined in it. */
+.concept-table__button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35em 0.9em;
+  font-size: 0.85em;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  border: 1px solid var(--concept-tint);
+  border-radius: 0.4em;
+}
+
+.concept-table__button[data-style="solid"] {
+  color: #fff;
+  background: var(--concept-tint);
+}
+
+.concept-table__button[data-style="outline"] {
+  color: var(--concept-tint);
+  background: transparent;
 }

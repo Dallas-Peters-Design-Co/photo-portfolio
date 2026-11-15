@@ -1,5 +1,9 @@
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
+  type ConceptIconSvg,
+  conceptIconName,
+} from "../../../config/conceptIcon.js";
+import {
   type ConceptShadow,
   DEFAULT_SHADOW,
   presetOf,
@@ -8,8 +12,6 @@ import {
   type ShadowPreset,
 } from "../../../config/conceptShadow.js";
 import {
-  type ConceptIconSvg,
-  conceptIconName,
   iconSizeOf,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";

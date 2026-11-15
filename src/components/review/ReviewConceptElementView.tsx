@@ -1,11 +1,13 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChevronDown } from "lucide-react";
 import type { CSSProperties } from "react";
-import { shadowCss } from "../../../config/conceptShadow.js";
-import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
   type ConceptIconSvg,
   conceptIconName,
+} from "../../../config/conceptIcon.js";
+import { shadowCss } from "../../../config/conceptShadow.js";
+import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
+import {
   iconSizeOf,
   type ReviewConceptElement,
   splitCardText,

@@ -1,4 +1,6 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties } from "react";
+import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import {
   type ConceptTableColumn,
   chipsOf,
@@ -11,18 +13,25 @@ import {
 } from "../../../config/reviewConcept.js";
 import "./ConceptTablePreview.css";
 
+const ICON_SUFFIX = /Icon$/;
+
 /** Lines with no colour of their own: a faint tint of the text colour. */
 const DEFAULT_LINE = "color-mix(in srgb, currentColor 14%, transparent)";
 
-/** Tag and chip colour: the column's own, or the text colour. */
+/** A tinted column's colour (tag, chips, icon, button): its own, or the text's. */
+const tintOf = (column: ConceptTableColumn): string =>
+  column.color ?? "currentColor";
+
 const tint = (column: ConceptTableColumn): CSSProperties =>
-  ({ "--concept-tint": column.color ?? "currentColor" }) as CSSProperties;
+  ({ "--concept-tint": tintOf(column) }) as CSSProperties;
 
 function Cell({
   column,
+  icons,
   value,
 }: {
   column: ConceptTableColumn;
+  icons?: Record<string, ConceptIconSvg>;
   value: string;
 }) {
   switch (column.kind) {
@@ -53,6 +62,30 @@ function Cell({
           ))}
         </span>
       );
+    case "icon": {
+      const svg = icons?.[value];
+      return svg ? (
+        <HugeiconsIcon
+          aria-label={value.replace(ICON_SUFFIX, "")}
+          className="concept-table__icon"
+          color={tintOf(column)}
+          icon={svg}
+          role="img"
+          size="1.25em"
+          strokeWidth={2}
+        />
+      ) : null;
+    }
+    case "button":
+      return value ? (
+        <span
+          className="concept-table__button"
+          data-style={column.buttonStyle ?? "solid"}
+          style={tint(column)}
+        >
+          {value}
+        </span>
+      ) : null;
     default:
       return <>{value}</>;
   }
@@ -65,11 +98,24 @@ export function ConceptTablePreview({
   element: ReviewConceptElement;
   style: CSSProperties;
 }) {
-  const { borders = DEFAULT_BORDERS, columns, rows } = tableOf(element);
+  const {
+    borders = DEFAULT_BORDERS,
+    columns,
+    header,
+    icons,
+    rows,
+  } = tableOf(element);
+  const headerStyle = {
+    "--concept-head-ink": header?.color,
+    background: header?.background,
+  } as CSSProperties;
   const lineStyle = {
     ...style,
     "--concept-line": borders.color ?? DEFAULT_LINE,
     "--concept-line-width": `${borders.width}px`,
+    // The cells carry the spacing; the table's own padding would set the
+    // lines in from the outline.
+    padding: 0,
   } as CSSProperties;
   return (
     <table
@@ -78,7 +124,7 @@ export function ConceptTablePreview({
       data-outline={borders.outline || undefined}
       style={lineStyle}
     >
-      <thead>
+      <thead style={headerStyle}>
         <tr>
           {columns.map((column, index) => (
             // Labels can repeat, so position is the identity of a column.
@@ -94,7 +140,7 @@ export function ConceptTablePreview({
             {columns.map((column, index) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: as above
               <td key={index}>
-                <Cell column={column} value={row[index] ?? ""} />
+                <Cell column={column} icons={icons} value={row[index] ?? ""} />
               </td>
             ))}
           </tr>

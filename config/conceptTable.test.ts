@@ -8,11 +8,14 @@ import {
   MAX_TABLE_COLUMNS,
   removeColumn,
   removeRow,
+  reorderColumns,
   setCell,
   setColumnKind,
+  setIconCell,
   tableOf,
   updateBorders,
   updateColumn,
+  updateHeader,
 } from "./conceptTable.js";
 
 describe("cleaning a table", () => {
@@ -148,5 +151,79 @@ describe("review fixes", () => {
     expect(
       cleanTable(tableOf({ options: [long], text: "" }))?.columns[0]?.label
     ).toBe(long);
+  });
+});
+
+describe("icon and button cells, and header colours", () => {
+  const heart = [["path", { d: "M1 1h2" }]] as [
+    string,
+    Record<string, string>,
+  ][];
+  const base = {
+    columns: [
+      { color: "#ff0000", kind: "icon", label: "Icon" },
+      {
+        buttonStyle: "outline",
+        color: "#0000ff",
+        kind: "button",
+        label: "Act",
+      },
+      { buttonStyle: "outline", kind: "text", label: "Plain" },
+    ],
+    rows: [["FavouriteIcon", "Open", "x"]],
+  };
+
+  it("keeps a button column's style, and only on button columns", () => {
+    const table = cleanTable(base);
+    expect(table?.columns[1]?.buttonStyle).toBe("outline");
+    expect(table?.columns[2]?.buttonStyle).toBeUndefined();
+  });
+
+  it("keeps the drawing of each icon a cell names, and drops the rest", () => {
+    const table = cleanTable({
+      ...base,
+      icons: { Bad: [["script", {}]], FavouriteIcon: heart, StaleIcon: heart },
+    });
+    expect(table?.icons).toEqual({ FavouriteIcon: heart });
+  });
+
+  it("keeps header colours as hex only", () => {
+    expect(
+      cleanTable({ ...base, header: { background: "#f2f4f7", color: "nope" } })
+        ?.header
+    ).toEqual({ background: "#f2f4f7" });
+    expect(
+      cleanTable({ ...base, header: { background: "transparent" } })?.header
+    ).toBeUndefined();
+  });
+
+  it("sets an icon cell with its drawing", () => {
+    const table = setIconCell(DEFAULT_TABLE, 0, 0, "FavouriteIcon", heart);
+    expect(table.rows[0]?.[0]).toBe("FavouriteIcon");
+    expect(table.icons?.FavouriteIcon).toEqual(heart);
+    expect(updateHeader(table, { background: "#000000" }).header).toEqual({
+      background: "#000000",
+    });
+  });
+});
+
+describe("column order and header None", () => {
+  it("moves each column's cells with it", () => {
+    const moved = reorderColumns(DEFAULT_TABLE, [2, 0, 1]);
+    expect(moved.columns.map((column) => column.label)).toEqual([
+      "Tags",
+      "Project",
+      "Status",
+    ]);
+    expect(moved.rows[0]).toEqual([
+      "Design, Web",
+      "Website redesign\nAcme Co.",
+      "Active",
+    ]);
+  });
+
+  it("clears a header colour set to None, so the table's own shows", () => {
+    const red = updateHeader(DEFAULT_TABLE, { color: "#ff0000" });
+    expect(updateHeader(red, { color: "transparent" }).header).toEqual({});
   });
 });

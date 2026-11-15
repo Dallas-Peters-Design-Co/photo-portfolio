@@ -107,3 +107,54 @@ it("draws grid lines, an outline, or no lines, in the chosen width and colour", 
     getComputedStyle(host.querySelector("td") as HTMLElement).borderBottomStyle
   ).toBe("none");
 });
+
+it("draws icon and button cells and the header's colours", () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("table"),
+          table: {
+            columns: [
+              { color: "#ff0000", kind: "icon", label: "Icon" },
+              {
+                buttonStyle: "outline",
+                color: "#0000ff",
+                kind: "button",
+                label: "Act",
+              },
+            ],
+            header: { background: "#eeeeee", color: "#00aa00" },
+            icons: { FavouriteIcon: [["path", { d: "M1 1h2" }]] },
+            rows: [["FavouriteIcon", "Open"]],
+          },
+        }}
+      />
+    )
+  );
+  expect(host.querySelector("td svg")?.getAttribute("role")).toBe("img");
+  const button = host.querySelector(".concept-table__button") as HTMLElement;
+  expect(button.dataset.style).toBe("outline");
+  expect(getComputedStyle(button).color).toBe("rgb(0, 0, 255)");
+  const head = host.querySelector("th") as HTMLElement;
+  expect(
+    getComputedStyle(host.querySelector("thead") as HTMLElement).backgroundColor
+  ).toBe("rgb(238, 238, 238)");
+  expect(getComputedStyle(head).color).toBe("rgb(0, 170, 0)");
+});
+
+it("moves a column with its drag handle's arrow keys, cells and all", async () => {
+  const handle = host.querySelector(
+    '[aria-label="Move column Project (drag, or use the arrow keys)"]'
+  ) as HTMLElement;
+  handle.focus();
+  await userEvent.keyboard("{ArrowDown}");
+  const heads = [...preview().querySelectorAll("th")].map(
+    (th) => th.textContent
+  );
+  expect(heads).toEqual(["Status", "Project", "Tags"]);
+  expect(
+    preview().querySelector("tbody tr:first-child td:nth-child(2) small")
+      ?.textContent
+  ).toBe("Acme Co.");
+});

@@ -1,12 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { cleanIconSvg, conceptIconName } from "./conceptIcon.js";
 import { SHADOW_PRESETS, shadowCss } from "./conceptShadow.js";
-import {
-  cleanConcept,
-  cleanIconSvg,
-  conceptIconName,
-  joinCardText,
-  splitCardText,
-} from "./reviewConcept.js";
+import { cleanConcept, joinCardText, splitCardText } from "./reviewConcept.js";
 
 describe("card text", () => {
   it("splits the first line into the title and keeps the rest as the body", () => {

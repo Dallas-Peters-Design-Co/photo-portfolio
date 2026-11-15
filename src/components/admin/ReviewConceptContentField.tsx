@@ -1,6 +1,8 @@
 import {
   type ConceptIconSvg,
   conceptIconName,
+} from "../../../config/conceptIcon.js";
+import {
   joinCardText,
   type ReviewConceptElement,
   splitCardText,
