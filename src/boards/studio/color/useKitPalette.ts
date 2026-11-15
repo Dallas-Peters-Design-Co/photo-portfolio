@@ -15,7 +15,7 @@ import { useActiveBrand } from "../../brand/ActiveBrand";
  */
 export const useKitPalette = () => {
   const brand = useActiveBrand();
-  const { refresh } = useBrandKits();
+  const { kits = brand?.kits ?? [], refresh } = useBrandKits();
   const [saving, setSaving] = useState(false);
   const kit = brand?.kit ?? null;
   const entries: PaletteEntry[] = kit?.resolvedDoc.palette ?? [];
@@ -64,5 +64,54 @@ export const useKitPalette = () => {
       "palette"
     );
 
-  return { entries, kit, save, saving, update };
+  const saveTo = (
+    kitId: string,
+    values: string[],
+    roles: string[]
+  ): Promise<boolean> => {
+    const target = kits.find((candidate) => candidate.id === kitId);
+    if (!target) {
+      return Promise.resolve(false);
+    }
+    const targetEntries = target.resolvedDoc.palette;
+    return updateFor(
+      target,
+      {
+        palette: values.map((raw, i) => {
+          const value = raw.toLowerCase();
+          const was =
+            targetEntries.find((entry) => entry.value === value) ??
+            targetEntries[i] ??
+            null;
+          return {
+            name: was?.name ?? "",
+            role: roles[i] ?? was?.role ?? "",
+            value,
+          };
+        }),
+      },
+      "palette"
+    );
+  };
+
+  const updateFor = async (
+    target: NonNullable<typeof kit>,
+    patch: Partial<BrandKitDoc>,
+    what: string
+  ): Promise<boolean> => {
+    setSaving(true);
+    try {
+      await brandKitsApi.save(target.id, { ...target.doc, ...patch });
+      await refresh();
+      toast.success(`Saved as ${target.name}'s ${what}`);
+      return true;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : `Couldn't save the ${what}`);
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return { entries, kit, kits, save, saveTo, saving, update };
 };

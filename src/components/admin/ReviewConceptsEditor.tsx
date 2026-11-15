@@ -5,16 +5,15 @@ import type {
   ReviewConcept,
   ReviewConceptElement,
   ReviewConceptElementKind,
-} from "../../../config/review.js";
-import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
+} from "../../../config/reviewConcept.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { loadFontRef } from "../../theme/remoteFonts";
+import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
+import { ConceptFontField, conceptFontCss } from "./ConceptFontField";
 import {
   ConceptColorField,
-  conceptFamilyCss,
-  conceptFontPatch,
-  conceptFontSelection,
   createConcept,
   createConceptElement,
 } from "./ReviewConceptBrand";
@@ -88,7 +87,11 @@ function ConceptCard({
     color: concept.color,
     display: "flex",
     flexDirection: concept.direction,
-    fontFamily: conceptFamilyCss(concept.fontFamily, concept.fontRef),
+    fontFamily: conceptFontCss(
+      concept.fontFamily,
+      concept.fontRef,
+      concept.fontId
+    ),
     gap: concept.gap,
     padding: concept.padding,
   } as const;
@@ -121,25 +124,7 @@ function ConceptCard({
           <p>Live preview</p>
           <div className="review-concepts__preview" style={previewStyle}>
             {concept.elements.map((element) => (
-              <div
-                key={element.id}
-                style={{
-                  background: element.background,
-                  borderRadius: element.radius,
-                  color: element.color,
-                  fontFamily: conceptFamilyCss(
-                    element.fontFamily,
-                    element.fontRef
-                  ),
-                  fontSize: element.fontSize,
-                  fontWeight: element.fontWeight,
-                  lineHeight: element.lineHeight,
-                  padding: `${element.paddingY}px ${element.paddingX}px`,
-                }}
-              >
-                {element.text ||
-                  (element.kind === "button" ? "Button" : "Text")}
-              </div>
+              <ReviewConceptElementView element={element} key={element.id} />
             ))}
           </div>
         </div>
@@ -195,33 +180,13 @@ function ConceptCard({
               (radius) => onChange({ ...concept, radius }),
               64
             )}
-            <label className="review-concepts__field">
-              <span>Typeface</span>
-              <select
-                onChange={(event) =>
-                  onChange({
-                    ...concept,
-                    ...conceptFontPatch(event.target.value),
-                  })
-                }
-                value={conceptFontSelection(
-                  concept.fontFamily,
-                  concept.fontRef
-                )}
-              >
-                <option value="sans">Sans serif</option>
-                <option value="serif">Serif</option>
-                <option value="mono">Monospace</option>
-                {(brandDoc?.typefaces ?? [])
-                  .filter((face) => face.ref)
-                  .map((face) => (
-                    <option key={face.ref} value={`brand|${face.ref}`}>
-                      {face.name}
-                      {face.role ? ` · ${face.role}` : ""}
-                    </option>
-                  ))}
-              </select>
-            </label>
+            <ConceptFontField
+              brandDoc={brandDoc}
+              family={concept.fontFamily}
+              fontId={concept.fontId}
+              fontRef={concept.fontRef}
+              onChange={(patch) => onChange({ ...concept, ...patch })}
+            />
             <ConceptColorField
               ariaLabel="Concept background"
               brandDoc={brandDoc}
@@ -242,30 +207,52 @@ function ConceptCard({
             <div className="review-concepts__element-head">
               <Label>Elements</Label>
               <div className="review-concepts__add-actions">
-                <Button
-                  onClick={() => addElement("text")}
-                  size="sm"
-                  type="button"
-                  variant="outline"
+                <select
+                  aria-label="Add a component"
+                  className="review-concepts__add-select"
+                  onChange={(event) => {
+                    if (event.target.value) {
+                      addElement(
+                        event.target.value as ReviewConceptElementKind
+                      );
+                      event.target.value = "";
+                    }
+                  }}
+                  value=""
                 >
-                  <Plus size={13} /> Text
-                </Button>
-                <Button
-                  onClick={() => addElement("button")}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <Plus size={13} /> Button
-                </Button>
+                  <option disabled value="">
+                    + Add component
+                  </option>
+                  <option value="text">Text</option>
+                  <option value="button">Button</option>
+                  <option value="input">Input</option>
+                  <option value="textarea">Text area</option>
+                  <option value="select">Select</option>
+                  <option value="checkbox">Checkbox</option>
+                  <option value="card">Card</option>
+                  <option value="label">Label</option>
+                  <option value="badge">Badge</option>
+                  <option value="link">Link</option>
+                  <option value="divider">Divider</option>
+                  <option value="tabs">Tabs</option>
+                  <option value="table">Table</option>
+                  <option value="dialog">Dialog</option>
+                  <option value="menu">Dropdown menu</option>
+                  <option value="toast">Toast</option>
+                  <option value="skeleton">Skeleton loader</option>
+                </select>
               </div>
             </div>
             {concept.elements.map((element) => (
               <fieldset className="review-concepts__element" key={element.id}>
-                <legend>{element.kind === "button" ? "Button" : "Text"}</legend>
+                <legend>{element.kind}</legend>
                 <div className="review-concepts__element-grid">
                   <label className="review-concepts__field review-concepts__field--wide">
-                    <span>Content</span>
+                    <span>
+                      {element.kind === "input" || element.kind === "textarea"
+                        ? "Default value"
+                        : "Content"}
+                    </span>
                     <input
                       onChange={(event) =>
                         updateElement(element.id, { text: event.target.value })
@@ -273,6 +260,59 @@ function ConceptCard({
                       value={element.text}
                     />
                   </label>
+                  {element.kind === "input" || element.kind === "textarea" ? (
+                    <label className="review-concepts__field review-concepts__field--wide">
+                      <span>Placeholder</span>
+                      <input
+                        onChange={(event) =>
+                          updateElement(element.id, {
+                            placeholder: event.target.value,
+                          })
+                        }
+                        value={element.placeholder ?? ""}
+                      />
+                    </label>
+                  ) : null}
+                  {["select", "tabs", "table", "menu"].includes(
+                    element.kind
+                  ) ? (
+                    <label className="review-concepts__field review-concepts__field--wide">
+                      <span>Options, comma separated</span>
+                      <input
+                        onChange={(event) =>
+                          updateElement(element.id, {
+                            options: event.target.value
+                              .split(",")
+                              .map((item) => item.trim())
+                              .filter(Boolean)
+                              .slice(0, 8),
+                          })
+                        }
+                        value={(element.options ?? []).join(", ")}
+                      />
+                    </label>
+                  ) : null}
+                  {element.kind === "input" ? (
+                    <label className="review-concepts__field">
+                      <span>Input type</span>
+                      <select
+                        onChange={(event) =>
+                          updateElement(element.id, {
+                            inputType: event.target
+                              .value as ReviewConceptElement["inputType"],
+                          })
+                        }
+                        value={element.inputType ?? "text"}
+                      >
+                        <option value="text">Text</option>
+                        <option value="email">Email</option>
+                        <option value="search">Search</option>
+                        <option value="url">URL</option>
+                        <option value="tel">Phone</option>
+                        <option value="password">Password</option>
+                      </select>
+                    </label>
+                  ) : null}
                   <label className="review-concepts__field">
                     <span>Type size</span>
                     <input
@@ -305,33 +345,14 @@ function ConceptCard({
                       <option value={700}>Bold</option>
                     </select>
                   </label>
-                  <label className="review-concepts__field">
-                    <span>Typeface</span>
-                    <select
-                      onChange={(event) =>
-                        updateElement(
-                          element.id,
-                          conceptFontPatch(event.target.value)
-                        )
-                      }
-                      value={conceptFontSelection(
-                        element.fontFamily,
-                        element.fontRef
-                      )}
-                    >
-                      <option value="sans">Sans serif</option>
-                      <option value="serif">Serif</option>
-                      <option value="mono">Monospace</option>
-                      {(brandDoc?.typefaces ?? [])
-                        .filter((face) => face.ref)
-                        .map((face) => (
-                          <option key={face.ref} value={`brand|${face.ref}`}>
-                            {face.name}
-                            {face.role ? ` · ${face.role}` : ""}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
+                  <ConceptFontField
+                    brandDoc={brandDoc}
+                    family={element.fontFamily}
+                    fontId={element.fontId}
+                    fontRef={element.fontRef}
+                    label="Typeface"
+                    onChange={(patch) => updateElement(element.id, patch)}
+                  />
                   {numberInput(
                     "Line height",
                     element.lineHeight,
@@ -363,9 +384,9 @@ function ConceptCard({
                     onChange={(color) => updateElement(element.id, { color })}
                     value={element.color}
                   />
-                  {element.kind === "button" ? (
+                  {element.background === "transparent" ? null : (
                     <ConceptColorField
-                      ariaLabel="Button fill"
+                      ariaLabel={`${element.kind} background`}
                       brandDoc={brandDoc}
                       label="Fill"
                       onChange={(background) =>
@@ -373,6 +394,20 @@ function ConceptCard({
                       }
                       value={element.background}
                     />
+                  )}
+                  {element.kind === "checkbox" ? (
+                    <label className="review-concepts__field">
+                      <span>Checked</span>
+                      <input
+                        checked={element.checked ?? false}
+                        onChange={(event) =>
+                          updateElement(element.id, {
+                            checked: event.target.checked,
+                          })
+                        }
+                        type="checkbox"
+                      />
+                    </label>
                   ) : null}
                   <Button
                     aria-label={`Remove ${element.kind}`}

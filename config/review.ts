@@ -8,7 +8,6 @@
  * place whatever size the image is shown at.
  */
 
-import { isFontRef } from "./fontRef.js";
 import {
   type EditorDoc,
   isEditorDoc,
@@ -17,6 +16,11 @@ import {
   type RichText,
   trimEditorDoc,
 } from "./proposal.js";
+import {
+  cleanConcept,
+  MAX_REVIEW_CONCEPTS,
+  type ReviewConcept,
+} from "./reviewConcept.js";
 
 export type { RichText } from "./proposal.js";
 export const MAX_REVIEW_TITLE = MAX_PROPOSAL_TITLE;
@@ -103,40 +107,6 @@ export interface ReviewSection {
   title: string;
 }
 
-export type ReviewConceptElementKind = "text" | "button";
-
-export interface ReviewConceptElement {
-  background: string;
-  color: string;
-  fontFamily: "sans" | "serif" | "mono" | "brand";
-  fontRef?: string;
-  fontSize: number;
-  fontWeight: 400 | 500 | 600 | 700;
-  id: string;
-  kind: ReviewConceptElementKind;
-  lineHeight: number;
-  paddingX: number;
-  paddingY: number;
-  radius: number;
-  text: string;
-}
-
-/** A small auto-layout component, drawn live on the review page. */
-export interface ReviewConcept {
-  align: "start" | "center" | "end" | "stretch";
-  background: string;
-  color: string;
-  direction: "row" | "column";
-  elements: ReviewConceptElement[];
-  fontFamily: "sans" | "serif" | "mono" | "brand";
-  fontRef?: string;
-  gap: number;
-  id: string;
-  padding: number;
-  radius: number;
-  title: string;
-}
-
 export interface ReviewDoc {
   /**
    * The board this review is synced with, or null. Set by "Send to board" in
@@ -167,12 +137,10 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
 };
 
 export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
-export const MAX_REVIEW_CONCEPTS = 8;
 const MAX_SCREENS = 40;
 const BOARD_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_SECTIONS = 12;
-const MAX_CONCEPT_ELEMENTS = 20;
 const MAX_PINS = 60;
 const MAX_MARKS = 80;
 const MAX_PEN_POINTS = 400;
@@ -180,7 +148,6 @@ const MAX_TITLE = 160;
 const MAX_BODY = 4000;
 const MAX_URL = 2048;
 const MAX_DOC_BYTES = 400_000;
-const CONCEPT_HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
 
 const str = (v: unknown, max: number): string =>
   typeof v === "string" ? v.slice(0, max) : "";
@@ -283,106 +250,6 @@ const cleanSection = (v: unknown): ReviewSection => {
   return {
     body: cleanRich(raw.body, MAX_DOC_BYTES / 8),
     id: str(raw.id, 64) || newItemId(),
-    title: str(raw.title, MAX_TITLE),
-  };
-};
-
-const cleanConceptColor = (value: unknown, fallback: string): string => {
-  if (value === "transparent") {
-    return value;
-  }
-  return typeof value === "string" && CONCEPT_HEX_COLOR.test(value)
-    ? value
-    : fallback;
-};
-
-const cleanConceptElement = (v: unknown): ReviewConceptElement => {
-  const raw = (v ?? {}) as Partial<ReviewConceptElement>;
-  const fontWeight = [400, 500, 600, 700].includes(raw.fontWeight as number)
-    ? (raw.fontWeight as 400 | 500 | 600 | 700)
-    : 400;
-  const requestedFontFamily = ["sans", "serif", "mono", "brand"].includes(
-    raw.fontFamily as string
-  )
-    ? (raw.fontFamily as ReviewConceptElement["fontFamily"])
-    : "sans";
-  const fontRef = isFontRef(raw.fontRef) ? raw.fontRef : null;
-  let fontFamily = requestedFontFamily;
-  if (fontFamily === "brand" && !fontRef) {
-    fontFamily = "sans";
-  }
-  return {
-    background: cleanConceptColor(raw.background, "transparent"),
-    color: cleanConceptColor(raw.color, "#172033"),
-    fontFamily,
-    ...(fontFamily === "brand" && fontRef ? { fontRef } : {}),
-    fontSize:
-      typeof raw.fontSize === "number" && Number.isFinite(raw.fontSize)
-        ? Math.min(72, Math.max(10, raw.fontSize))
-        : 16,
-    fontWeight,
-    id: str(raw.id, 64) || newItemId(),
-    kind: raw.kind === "button" ? "button" : "text",
-    lineHeight:
-      typeof raw.lineHeight === "number" && Number.isFinite(raw.lineHeight)
-        ? Math.min(2.4, Math.max(1, raw.lineHeight))
-        : 1.4,
-    paddingX:
-      typeof raw.paddingX === "number" && Number.isFinite(raw.paddingX)
-        ? Math.min(48, Math.max(0, raw.paddingX))
-        : 16,
-    paddingY:
-      typeof raw.paddingY === "number" && Number.isFinite(raw.paddingY)
-        ? Math.min(32, Math.max(0, raw.paddingY))
-        : 10,
-    radius:
-      typeof raw.radius === "number" && Number.isFinite(raw.radius)
-        ? Math.min(48, Math.max(0, raw.radius))
-        : 4,
-    text: str(raw.text, 500),
-  };
-};
-
-const cleanConcept = (v: unknown): ReviewConcept => {
-  const raw = (v ?? {}) as Partial<ReviewConcept>;
-  const requestedFontFamily = ["sans", "serif", "mono", "brand"].includes(
-    raw.fontFamily as string
-  )
-    ? (raw.fontFamily as ReviewConcept["fontFamily"])
-    : "sans";
-  const fontRef = isFontRef(raw.fontRef) ? raw.fontRef : null;
-  let fontFamily = requestedFontFamily;
-  if (fontFamily === "brand" && !fontRef) {
-    fontFamily = "sans";
-  }
-  const align = ["start", "center", "end", "stretch"].includes(
-    raw.align as string
-  )
-    ? (raw.align as "start" | "center" | "end" | "stretch")
-    : "start";
-  return {
-    align,
-    background: cleanConceptColor(raw.background, "#f2f4f7"),
-    color: cleanConceptColor(raw.color, "#172033"),
-    direction: raw.direction === "row" ? "row" : "column",
-    elements: (Array.isArray(raw.elements) ? raw.elements : [])
-      .slice(0, MAX_CONCEPT_ELEMENTS)
-      .map(cleanConceptElement),
-    fontFamily,
-    ...(fontFamily === "brand" && fontRef ? { fontRef } : {}),
-    gap:
-      typeof raw.gap === "number" && Number.isFinite(raw.gap)
-        ? Math.min(64, Math.max(0, raw.gap))
-        : 12,
-    id: str(raw.id, 64) || newItemId(),
-    padding:
-      typeof raw.padding === "number" && Number.isFinite(raw.padding)
-        ? Math.min(96, Math.max(0, raw.padding))
-        : 24,
-    radius:
-      typeof raw.radius === "number" && Number.isFinite(raw.radius)
-        ? Math.min(64, Math.max(0, raw.radius))
-        : 12,
     title: str(raw.title, MAX_TITLE),
   };
 };

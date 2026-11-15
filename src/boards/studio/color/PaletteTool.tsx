@@ -38,6 +38,16 @@ import { useKitPalette } from "./useKitPalette";
 const MIN = 2;
 const MAX = 8;
 const START = 5;
+const PALETTE_ROLES = [
+  "background",
+  "ink",
+  "surface",
+  "accent",
+  "button",
+  "text",
+  "border",
+  "muted",
+] as const;
 
 const loadImage = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
@@ -57,19 +67,31 @@ export function PaletteTool({
   /** Injectable for tests. */
   rand?: () => number;
 }) {
-  const { entries, kit, save, saving } = useKitPalette();
+  const { entries, kit, kits, saveTo, saving } = useKitPalette();
   const [harmony, setHarmony] = useState<Harmony>("random");
   const [colors, setColors] = useState<string[]>(() =>
     entries.length > 0
       ? entries.slice(0, MAX).map((e) => e.value)
       : generatePalette(new Array(START).fill(null), "random", rand)
   );
+  const [roles, setRoles] = useState<string[]>(() =>
+    entries.slice(0, MAX).map((entry) => entry.role)
+  );
+  const [targetKitId, setTargetKitId] = useState(kit?.id ?? "");
+  const targetKit = kits.find((candidate) => candidate.id === targetKitId);
+  const targetEntries = targetKit?.resolvedDoc.palette ?? entries;
   const [locked, setLocked] = useState<boolean[]>(() =>
     new Array(MAX).fill(false)
   );
   const [history, setHistory] = useState<string[][]>([]);
   const root = useRef<HTMLDivElement>(null);
   const first = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!kits.some((candidate) => candidate.id === targetKitId)) {
+      setTargetKitId(kit?.id ?? kits[0]?.id ?? "");
+    }
+  }, [kit?.id, kits, targetKitId]);
 
   const replace = (next: string[]) => {
     setHistory((was) => [...was.slice(-30), colors]);
@@ -164,6 +186,7 @@ export function PaletteTool({
   const remove = (i: number) => {
     replace(colors.filter((_, k) => k !== i));
     setLocked((was) => [...was.filter((_, k) => k !== i), false]);
+    setRoles((was) => was.filter((_, k) => k !== i));
   };
 
   return (
@@ -206,6 +229,28 @@ export function PaletteTool({
               type="color"
               value={c}
             />
+            <select
+              aria-label={`Role for colour ${i + 1}`}
+              className="studio-palette__role"
+              onChange={(event) =>
+                setRoles((was) =>
+                  Array.from({ length: colors.length }, (_, index) =>
+                    index === i ? event.target.value : (was[index] ?? "")
+                  )
+                )
+              }
+              value={roles[i] ?? ""}
+            >
+              <option value="">Unassigned</option>
+              {[
+                ...new Set([...PALETTE_ROLES, ...(roles[i] ? [roles[i]] : [])]),
+              ].map((role) => (
+                <option key={role} value={role}>
+                  {role[0]?.toUpperCase()}
+                  {role.slice(1)}
+                </option>
+              ))}
+            </select>
             <button
               className="studio-palette__hex"
               onClick={() => {
@@ -236,6 +281,30 @@ export function PaletteTool({
         turns around the first of them.
       </p>
       <div className="studio__controls">
+        {kits.length > 0 ? (
+          <div className="studio__field">
+            <span>Brand kit</span>
+            <Select
+              onValueChange={(next) => {
+                if (next !== null) {
+                  setTargetKitId(next);
+                }
+              }}
+              value={targetKitId}
+            >
+              <SelectTrigger aria-label="Brand kit" size="sm" tone="board">
+                <SelectValue placeholder="Choose a brand kit" />
+              </SelectTrigger>
+              <SelectContent>
+                {kits.map((candidate) => (
+                  <SelectItem key={candidate.id} value={candidate.id}>
+                    {candidate.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
         <div className="studio__field">
           <span>Harmony</span>
           <Select
@@ -281,21 +350,25 @@ export function PaletteTool({
         >
           <Undo2 size={14} /> Back
         </button>
-        {kit ? (
+        {targetKit ? (
           <button
             className="studio__button"
             disabled={saving}
-            onClick={() => void save(colors)}
+            onClick={() => void saveTo(targetKit.id, colors, roles)}
             title="Saves a new version of the kit; the old palette stays in its history"
             type="button"
           >
-            <Save size={14} /> Save to {kit.name}
+            <Save size={14} /> Save to {targetKit.name}
           </button>
         ) : null}
-        {entries.length > 0 ? (
+        {targetEntries.length > 0 ? (
           <button
             className="studio__button"
-            onClick={() => replace(entries.slice(0, MAX).map((e) => e.value))}
+            onClick={() => {
+              const palette = targetEntries.slice(0, MAX);
+              replace(palette.map((entry) => entry.value));
+              setRoles(palette.map((entry) => entry.role));
+            }}
             type="button"
           >
             Brand palette

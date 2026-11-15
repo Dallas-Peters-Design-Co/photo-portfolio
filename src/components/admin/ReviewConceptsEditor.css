@@ -127,6 +127,95 @@
   grid-column: span 2;
 }
 
+.review-concepts__add-select {
+  min-height: calc(var(--spacing) * 8);
+  padding-inline: calc(var(--spacing) * 2);
+  font: inherit;
+  color: inherit;
+  background: color-mix(in oklch, currentColor 5%, transparent);
+  border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.review-concepts__checkbox-preview {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.review-concepts__tabs-preview {
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.review-concepts__tabs-preview [aria-current="page"] {
+  border-bottom: 2px solid currentColor;
+}
+
+.review-concepts__table-preview {
+  width: 100%;
+  text-align: start;
+  border-collapse: collapse;
+}
+
+.review-concepts__table-preview th,
+.review-concepts__table-preview td {
+  padding: calc(var(--spacing) * 2);
+  text-align: start;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.review-concepts__dialog-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  width: min(100%, 24rem);
+  box-shadow: 0 12px 32px color-mix(in srgb, #000 20%, transparent);
+}
+
+.review-concepts__dialog-preview p {
+  margin: 0;
+}
+
+.review-concepts__dialog-preview > div {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  justify-content: end;
+}
+
+.review-concepts__menu-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  width: fit-content;
+  margin: 0;
+  list-style: none;
+}
+
+.review-concepts__menu-preview li {
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+}
+
+.review-concepts__toast-preview {
+  width: fit-content;
+  box-shadow: 0 6px 18px color-mix(in srgb, #000 16%, transparent);
+}
+
+.review-concepts__skeleton-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  width: min(100%, 24rem);
+}
+
+.review-concepts__skeleton-preview span {
+  height: calc(var(--spacing) * 4);
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.review-concepts__skeleton-preview span:first-child {
+  width: 58%;
+}
+
 .review-concepts__preview-wrap {
   display: grid;
   gap: calc(var(--spacing) * 2);

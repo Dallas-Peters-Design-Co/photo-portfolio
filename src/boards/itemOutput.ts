@@ -3,9 +3,10 @@ import { bundleHeldImages } from "../../config/nodes/bundle.js";
 import { DEFAULT_PLACEHOLDER } from "../../config/nodes/iterate.js";
 import { HEX_COLOUR } from "../../config/nodes/palette.js";
 import { renderedUrlOf } from "../../config/nodes/rendered.js";
-import type { BoardItem, BoardItemVariation, BoardWire } from "../types";
+import type { BoardItem, BoardWire } from "../types";
 import { bundleWired } from "./bundleWires";
 import { currentFrameRender } from "./io/frameRenderKey";
+import { pickImages } from "./itemImages";
 import { parseItems } from "./listItems";
 
 /**
@@ -26,26 +27,6 @@ export const BOARD_IMAGE_TYPE = "application/x-board-image";
  * when it is written twice. It already did once: a node that read only the
  * newest shape stranded every result saved before that shape existed.
  */
-
-/**
- * Every image a node has to show, newest shape first.
- *
- * `history` is everything it has made. `variations` covers a run that finished
- * before history existed, and the bare `url` covers results saved before either
- * did — an image already paid for should never be stranded in the database
- * because the shape around it moved on.
- */
-export const pickImages = (
-  stored: BoardItem["result"]
-): BoardItemVariation[] => {
-  if (stored?.history?.length) {
-    return stored.history;
-  }
-  if (stored?.variations?.length) {
-    return stored.variations;
-  }
-  return stored?.url ? [stored as BoardItemVariation] : [];
-};
 
 /** Which stored version the node is showing; the first until one is picked. */
 export const selectedIndex = (config: Record<string, unknown>): number =>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { CreativeEditor } from "../../../boards/creative/CreativeEditor";
 import { markDesigned } from "../../../boards/geometry/frameLock";
-import { pickImages, selectedIndex } from "../../../boards/itemOutput";
+import { pickImages } from "../../../boards/itemImages";
+import { selectedIndex } from "../../../boards/itemOutput";
 import {
   BoardImagesContext,
   boardImages,

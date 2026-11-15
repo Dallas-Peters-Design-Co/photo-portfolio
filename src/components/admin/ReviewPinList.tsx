@@ -2,12 +2,12 @@ import { ArrowDownWideNarrow, Trash2 } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
-  MAX_REVIEW_CONCEPTS,
   PIN_KINDS,
   PIN_LABELS,
   type ReviewImage,
   type ReviewPin,
 } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {

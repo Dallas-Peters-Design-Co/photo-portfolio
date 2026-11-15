@@ -15,7 +15,7 @@ import type {
   ReviewScreen,
   RichText,
 } from "../../../config/review.js";
-import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { portfolioService } from "../../services/portfolioService";
 import { reviewsApi } from "../../services/reviewService";

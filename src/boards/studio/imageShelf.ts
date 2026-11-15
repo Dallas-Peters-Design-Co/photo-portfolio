@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { BoardItem } from "../../types";
+import { pickImages } from "../itemImages";
 
 /**
  * The pictures any image picker in the Studio offers besides an upload: what
@@ -80,18 +81,8 @@ export const boardImages = (items: readonly BoardItem[]): string[] => {
     if (item.imageUrl) {
       urls.push(item.imageUrl);
     }
-    if (item.result?.url) {
-      urls.push(item.result.url);
-    }
-    for (const v of item.result?.history ?? []) {
-      if (v.url) {
-        urls.push(v.url);
-      }
-    }
-    for (const v of item.result?.variations ?? []) {
-      if (v.url) {
-        urls.push(v.url);
-      }
+    for (const image of pickImages(item.result)) {
+      urls.push(image.url);
     }
   }
   return urls;

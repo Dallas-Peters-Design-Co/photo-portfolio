@@ -1,8 +1,11 @@
 import type { CSSProperties } from "react";
 import { useEffect } from "react";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
-import type { ReviewConcept } from "../../../config/review.js";
+import type { ReviewConcept } from "../../../config/reviewConcept.js";
+import { type FontId, findFont } from "../../../config/theme.js";
+import { loadFont } from "../../theme/fonts";
 import { loadFontRef } from "../../theme/remoteFonts";
+import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import "./ReviewConceptPreview.css";
 
 const CONCEPT_FONTS: Partial<Record<ReviewConcept["fontFamily"], string>> = {
@@ -34,9 +37,15 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     if (concept.fontRef) {
       loadFontRef(concept.fontRef);
     }
+    if (concept.fontId) {
+      void loadFont(concept.fontId as FontId);
+    }
     for (const element of concept.elements) {
       if (element.fontRef) {
         loadFontRef(element.fontRef);
+      }
+      if (element.fontId) {
+        void loadFont(element.fontId as FontId);
       }
     }
   }, [concept]);
@@ -48,7 +57,11 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     color: concept.color,
     display: "flex",
     flexDirection: concept.direction,
-    fontFamily: familyCss(concept.fontFamily, concept.fontRef),
+    fontFamily:
+      concept.fontFamily === "app" && concept.fontId
+        ? (findFont(concept.fontId)?.stack ??
+          "var(--font-sans, Arial, sans-serif)")
+        : familyCss(concept.fontFamily, concept.fontRef),
     gap: concept.gap,
     padding: concept.padding,
   };
@@ -66,21 +79,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
         style={style}
       >
         {concept.elements.map((element) => (
-          <div
-            key={element.id}
-            style={{
-              background: element.background,
-              borderRadius: element.radius,
-              color: element.color,
-              fontFamily: familyCss(element.fontFamily, element.fontRef),
-              fontSize: element.fontSize,
-              fontWeight: element.fontWeight,
-              lineHeight: element.lineHeight,
-              padding: `${element.paddingY}px ${element.paddingX}px`,
-            }}
-          >
-            {element.text}
-          </div>
+          <ReviewConceptElementView element={element} key={element.id} />
         ))}
       </div>
     </div>

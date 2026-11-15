@@ -10,7 +10,8 @@ import {
 } from "../../../config/socialPreview";
 import type { BoardItem, BoardItemVariation } from "../../types";
 import { HalftonePreview } from "../canvas/HalftonePreview";
-import { pickImages, selectedIndex } from "../itemOutput";
+import { pickImages } from "../itemImages";
+import { selectedIndex } from "../itemOutput";
 import { SocialPreview } from "../studio/SocialPreview";
 import { BrandPreview } from "./BrandPreview";
 import { ListRows } from "./ListRows";

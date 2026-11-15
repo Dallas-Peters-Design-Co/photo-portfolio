@@ -8,7 +8,7 @@ import type {
   ReviewScreen,
   RichText,
 } from "../../../config/review.js";
-import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { downloadReviewPdf } from "../../pages/pagePdf";

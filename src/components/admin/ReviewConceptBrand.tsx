@@ -1,17 +1,10 @@
 import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
-import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import { newItemId } from "../../../config/proposal.js";
 import type {
   ReviewConcept,
   ReviewConceptElement,
   ReviewConceptElementKind,
-} from "../../../config/review.js";
-
-const FONT_FAMILIES = {
-  mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
-  sans: "var(--font-sans, Arial, sans-serif)",
-  serif: "Georgia, serif",
-} as const;
+} from "../../../config/reviewConcept.js";
 
 const paletteColor = (
   doc: BrandKitDoc | null | undefined,
@@ -29,34 +22,129 @@ const brandTypeface = (
     (face) => face.ref && roles.includes(face.role.trim().toLowerCase())
   ) ?? doc?.typefaces.find((face) => face.ref);
 
+const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
+  "input",
+  "textarea",
+  "select",
+  "card",
+  "tabs",
+  "table",
+]);
+const PADDED_KINDS = new Set<ReviewConceptElementKind>([
+  "input",
+  "textarea",
+  "select",
+  "card",
+  "badge",
+  "tabs",
+  "table",
+]);
+const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
+  "button",
+  "input",
+  "textarea",
+  "select",
+  "card",
+  "badge",
+]);
+
+const elementText: Record<ReviewConceptElementKind, string> = {
+  badge: "New",
+  button: "Get started",
+  card: "Card title\nSupporting copy goes here.",
+  checkbox: "I agree to the terms",
+  dialog: "Confirm changes?",
+  divider: "",
+  input: "",
+  label: "Email address",
+  link: "Learn more",
+  menu: "Actions",
+  select: "Choose an option",
+  skeleton: "",
+  table: "Project name",
+  tabs: "Overview",
+  text: "A better way to work",
+  textarea: "",
+  toast: "Changes saved",
+};
+
+const elementOptions = (
+  kind: ReviewConceptElementKind
+): string[] | undefined => {
+  if (kind === "table") {
+    return ["Project", "Status"];
+  }
+  if (kind === "menu") {
+    return ["Rename", "Duplicate", "Delete"];
+  }
+  if (kind === "select" || kind === "tabs") {
+    return ["Overview", "Settings", "Activity"];
+  }
+};
+
 export const createConceptElement = (
   kind: ReviewConceptElementKind,
   brandDoc?: BrandKitDoc | null
 ): ReviewConceptElement => {
+  const isButton = kind === "button";
+  const isText = kind === "text";
+  const isPadded = PADDED_KINDS.has(kind);
   const face = brandTypeface(
     brandDoc,
-    kind === "text" ? ["headline", "heading", "display"] : ["body", "text"]
+    isText ? ["headline", "heading", "display"] : ["body", "text"]
   );
+  let background = "transparent";
+  if (isButton) {
+    background = paletteColor(
+      brandDoc,
+      ["button", "accent", "primary"],
+      "#172033"
+    );
+  } else if (SURFACE_KINDS.has(kind)) {
+    background = paletteColor(brandDoc, ["surface", "background"], "#ffffff");
+  }
+  let weight: ReviewConceptElement["fontWeight"] = 400;
+  if (isText) {
+    weight = 700;
+  } else if (isButton || kind === "label" || kind === "badge") {
+    weight = 600;
+  }
+  let paddingX = 0;
+  let paddingY = 0;
+  if (isButton) {
+    paddingX = 18;
+    paddingY = 11;
+  } else if (isPadded) {
+    paddingX = 12;
+    paddingY = 8;
+  }
+  const options = elementOptions(kind);
   return {
-    background:
-      kind === "button"
-        ? paletteColor(brandDoc, ["button", "accent", "primary"], "#172033")
-        : "transparent",
+    background,
     color:
       kind === "button"
         ? paletteColor(brandDoc, ["button ink", "on button"], "#ffffff")
         : paletteColor(brandDoc, ["ink", "text"], "#172033"),
     fontFamily: face?.ref ? "brand" : "sans",
     ...(face?.ref ? { fontRef: face.ref } : {}),
-    fontSize: kind === "button" ? 14 : 28,
-    fontWeight: kind === "button" ? 600 : 700,
+    fontSize: isText ? 28 : 14,
+    fontWeight: weight,
     id: newItemId(),
     kind,
     lineHeight: 1.25,
-    paddingX: kind === "button" ? 18 : 0,
-    paddingY: kind === "button" ? 11 : 0,
-    radius: kind === "button" ? 6 : 0,
-    text: kind === "button" ? "Get started" : "A better way to work",
+    paddingX,
+    paddingY,
+    radius: ROUNDED_KINDS.has(kind) ? 6 : 0,
+    text: elementText[kind],
+    ...(kind === "input" || kind === "textarea"
+      ? {
+          placeholder:
+            kind === "input" ? "Enter your email" : "Write a message…",
+        }
+      : {}),
+    ...(options ? { options } : {}),
+    ...(kind === "input" ? { inputType: "email" as const } : {}),
+    ...(kind === "checkbox" ? { checked: true } : {}),
   };
 };
 
@@ -85,27 +173,43 @@ export const createConcept = (brandDoc?: BrandKitDoc | null): ReviewConcept => {
   };
 };
 
-export const conceptFamilyCss = (family: string, fontRef?: string): string => {
-  const ref = fontRef ? parseFontRef(fontRef) : null;
-  if (family === "brand" && ref) {
-    return fontRefStack(ref);
-  }
-  return (
-    FONT_FAMILIES[family as keyof typeof FONT_FAMILIES] ?? FONT_FAMILIES.sans
-  );
-};
-
 export const conceptFontSelection = (
   family: string,
-  fontRef?: string
-): string => (family === "brand" && fontRef ? `brand|${fontRef}` : family);
+  fontRef?: string,
+  fontId?: string
+): string => {
+  if (family === "brand" && fontRef) {
+    return `brand|${fontRef}`;
+  }
+  if (family === "app" && fontId) {
+    return `app|${fontId}`;
+  }
+  return family;
+};
 
 export const conceptFontPatch = (
   value: string
-): Pick<ReviewConcept, "fontFamily" | "fontRef"> =>
-  value.startsWith("brand|")
-    ? { fontFamily: "brand", fontRef: value.slice("brand|".length) }
-    : { fontFamily: value as ReviewConcept["fontFamily"], fontRef: undefined };
+): Pick<ReviewConcept, "fontFamily" | "fontRef" | "fontId"> => {
+  if (value.startsWith("brand|")) {
+    return {
+      fontFamily: "brand",
+      fontId: undefined,
+      fontRef: value.slice("brand|".length),
+    };
+  }
+  if (value.startsWith("app|")) {
+    return {
+      fontFamily: "app",
+      fontId: value.slice("app|".length),
+      fontRef: undefined,
+    };
+  }
+  return {
+    fontFamily: value as ReviewConcept["fontFamily"],
+    fontId: undefined,
+    fontRef: undefined,
+  };
+};
 
 export function ConceptColorField({
   ariaLabel,

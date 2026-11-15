@@ -42,9 +42,17 @@ const CASE_LABELS: Record<TextCase, string> = {
 };
 
 const WEIGHTS = [100, 200, 300, 400, 500, 600, 700, 800, 900];
-const FACE_ITEMS: { label: string; value: TypeStyle["face"] }[] = [
-  { label: "Headline", value: "headline" },
-  { label: "Body", value: "body" },
+const faceItems = (faces: Faces) => [
+  {
+    label: faces.headline?.name
+      ? `Headline · ${faces.headline.name}`
+      : "Headline",
+    value: "headline" as const,
+  },
+  {
+    label: faces.body?.name ? `Body · ${faces.body.name}` : "Body",
+    value: "body" as const,
+  },
 ];
 const CASE_ITEMS = CASES.map((c) => ({ label: CASE_LABELS[c], value: c }));
 const RATIO_ITEMS = RATIOS.map((r) => ({ label: r.label, value: r.value }));
@@ -115,7 +123,14 @@ function StyleRow({
 }) {
   const set = <K extends keyof TypeStyle>(key: K, v: TypeStyle[K]) =>
     onChange({ ...s, [key]: v });
-  const styleWeights = weightItems([...new Set([...WEIGHTS, s.weight])]);
+  const selectedFace = s.face === "headline" ? faces.headline : faces.body;
+  const availableWeights = selectedFace?.weights.length
+    ? selectedFace.weights
+    : WEIGHTS;
+  const styleWeights = weightItems(
+    [...new Set([...availableWeights, s.weight])].sort((a, b) => a - b)
+  );
+  const availableFaces = faceItems(faces);
   return (
     <div className="type-scale__style">
       <div className="type-scale__specs">
@@ -126,7 +141,7 @@ function StyleRow({
           value={s.name}
         />
         <Select
-          items={FACE_ITEMS}
+          items={availableFaces}
           onValueChange={(value) => {
             if (value !== null) {
               set("face", value);
@@ -138,7 +153,7 @@ function StyleRow({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {FACE_ITEMS.map((f) => (
+            {availableFaces.map((f) => (
               <SelectItem key={f.value} value={f.value}>
                 {f.label}
               </SelectItem>
@@ -248,6 +263,12 @@ export function TypeScaleEditor({
     faces.headline?.weights.length ? Math.max(...faces.headline.weights) : 700
   );
   const [unit, setUnit] = useState(8);
+
+  useEffect(() => {
+    setHeadWeight(
+      faces.headline?.weights.length ? Math.max(...faces.headline.weights) : 700
+    );
+  }, [faces.headline?.weights]);
 
   useEffect(() => {
     loadFontRef(faces.headline?.ref);
