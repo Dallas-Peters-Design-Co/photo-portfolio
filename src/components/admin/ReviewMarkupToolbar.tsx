@@ -12,6 +12,7 @@ import {
   Undo2,
 } from "lucide-react";
 import type { MarkKind } from "../../../config/review.js";
+import { Button } from "../ui/button.js";
 
 /** What a click or drag on the screenshot does. */
 export type ReviewTool = "pin" | "select" | "erase" | MarkKind;
@@ -37,11 +38,6 @@ const TOOLS: { hint: string; icon: typeof MapPin; id: ReviewTool }[] = [
     id: "erase",
   },
 ];
-
-const iconButton =
-  "flex size-8 items-center justify-center rounded-md border transition-colors";
-const idle =
-  "border-white/15 text-white/70 hover:border-white/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/15 disabled:hover:text-white/70";
 
 /**
  * The markup tools above a review screenshot.
@@ -77,62 +73,55 @@ export function ReviewMarkupToolbar({
     <div className="mb-2 flex flex-wrap items-center gap-1">
       <div aria-label="Markup tools" className="flex gap-1" role="toolbar">
         {TOOLS.map(({ hint, icon: Icon, id }) => (
-          <button
+          <Button
             aria-label={hint}
             aria-pressed={tool === id}
-            className={`${iconButton} ${
-              tool === id ? "border-white bg-white text-black" : idle
-            }`}
             key={id}
             onClick={() => onTool(id)}
+            size="icon"
             title={hint}
             type="button"
           >
-            <Icon size={15} />
-          </button>
+            <Icon size={18} />
+          </Button>
         ))}
       </div>
-      <button
+      <Button
         aria-label="Reorder pins top to bottom, left to right"
-        className={`${iconButton} ${idle} gap-1 px-2 text-md`}
         disabled={!canOrderPins}
         onClick={onOrderPins}
+        size="icon"
         title="Number pins from top to bottom, left to right across nearby points"
         type="button"
       >
-        <ArrowDownWideNarrow size={14} />
-        Reorder pins
-      </button>
+        <ArrowDownWideNarrow size={18} />
+      </Button>
       <div className="ml-2 flex gap-1">
-        <button
+        <Button
           aria-label="Undo (⌘Z)"
-          className={`${iconButton} ${idle}`}
           disabled={!canUndo}
           onClick={onUndo}
+          size="icon"
           title="Undo (⌘Z)"
           type="button"
         >
-          <Undo2 size={15} />
-        </button>
-        <button
+          <Undo2 size={18} />
+        </Button>
+        <Button
           aria-label="Redo (⇧⌘Z)"
-          className={`${iconButton} ${idle}`}
           disabled={!canRedo}
           onClick={onRedo}
+          size="icon"
           title="Redo (⇧⌘Z)"
           type="button"
         >
-          <Redo2 size={15} />
-        </button>
+          <Redo2 size={18} />
+        </Button>
       </div>
       {canClear ? (
-        <button
-          className="ml-auto flex items-center gap-1 rounded-md border border-white/15 px-2 py-1 text-md text-white/80 hover:border-red-400 hover:text-red-300"
-          onClick={onClear}
-          type="button"
-        >
-          <Trash2 size={13} /> Clear markup
-        </button>
+        <Button onClick={onClear} size="icon" type="button">
+          <Trash2 size={18} />
+        </Button>
       ) : null}
     </div>
   );
