@@ -20,10 +20,21 @@ const labelFor = (name: string): string =>
   name.replace(ICON_SUFFIX, "").replace(WORD_BREAK, " ").trim();
 
 interface IconPickerProps {
+  /** False when something must always be chosen, as for an icon element. */
+  allowNone?: boolean;
   id?: string;
+  /** Names the trigger when no visible label points at it. */
+  label?: string;
   onChange: (icon: string | null) => void;
+  /** sm matches the other small controls in a dense form. */
+  size?: "default" | "sm";
   value: string | null;
 }
+
+const TRIGGER_SIZES = {
+  default: "min-h-11 px-3",
+  sm: "h-7 px-2",
+} as const;
 
 /**
  * Visual icon chooser for a page's nav link.
@@ -32,7 +43,14 @@ interface IconPickerProps {
  * name — every option here is picked from a verified set, so a selection always
  * renders.
  */
-export function IconPicker({ value, onChange, id }: IconPickerProps) {
+export function IconPicker({
+  allowNone = true,
+  id,
+  label,
+  onChange,
+  size = "default",
+  value,
+}: IconPickerProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -78,7 +96,8 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
       <button
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-control border border-white/10 bg-black/40 px-3 text-left transition-colors hover:border-white/25 focus:border-white/40 focus:outline-none"
+        aria-label={label}
+        className={`flex ${TRIGGER_SIZES[size]} w-full items-center justify-between gap-2 rounded-control border border-white/10 bg-black/40 text-left transition-colors hover:border-white/25 focus:border-white/40 focus:outline-none`}
         id={id}
         onClick={() => setOpen((v) => !v)}
         type="button"
@@ -119,21 +138,23 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
             />
           </div>
 
-          <button
-            aria-selected={value === null}
-            className={`flex w-full items-center gap-2 rounded-inner px-3 py-2.5 text-left text-sm uppercase transition-colors hover:bg-white/6 ${
-              value === null ? "text-white" : "text-white/90"
-            }`}
-            onClick={() => {
-              onChange(null);
-              setOpen(false);
-            }}
-            role="option"
-            type="button"
-          >
-            <HugeiconsIcon icon={UnavailableIcon} size={14} />
-            No icon
-          </button>
+          {allowNone ? (
+            <button
+              aria-selected={value === null}
+              className={`flex w-full items-center gap-2 rounded-inner px-3 py-2.5 text-left text-sm uppercase transition-colors hover:bg-white/6 ${
+                value === null ? "text-white" : "text-white/90"
+              }`}
+              onClick={() => {
+                onChange(null);
+                setOpen(false);
+              }}
+              role="option"
+              type="button"
+            >
+              <HugeiconsIcon icon={UnavailableIcon} size={14} />
+              No icon
+            </button>
+          ) : null}
 
           {matches.length === 0 ? (
             <p className="px-3 py-3 text-sm text-white/50">

@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { createConceptElement } from "../admin/ReviewConceptBrand";
-import { ReviewConceptContentField } from "../admin/ReviewConceptContentField";
+import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import "../admin/ReviewConceptsEditor.css";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
@@ -20,9 +20,11 @@ function CardHarness() {
   );
   return (
     <>
-      <ReviewConceptContentField
+      <ReviewConceptElementFields
         element={card}
         onChange={(patch) => setCard({ ...card, ...patch })}
+        onDuplicate={() => undefined}
+        onRemove={() => undefined}
       />
       <ReviewConceptElementView element={card} />
     </>
@@ -94,14 +96,24 @@ describe("concept card", () => {
       throw new Error("No card icon picker");
     }
     await userEvent.click(picker);
-    const heart = [...document.querySelectorAll('[role="option"]')].find(
-      (option) => option.textContent === "Heart"
-    );
+    const heart = host?.querySelector('[role="option"][title="Favourite"]');
     if (!(heart instanceof HTMLElement)) {
-      throw new Error("No Heart option");
+      throw new Error("No Favourite icon in the picker");
     }
     await userEvent.click(heart);
-    expect(card().querySelector("svg")).not.toBeNull();
+    // The icon map loads in its own chunk, so the drawing lands a tick later.
+    await expect.poll(() => card().querySelector("svg")).not.toBeNull();
+  });
+
+  it("sizes the title and the body separately", async () => {
+    await userEvent.clear(field("Title size"));
+    await userEvent.type(field("Title size"), "24");
+    await userEvent.clear(field("Body size"));
+    await userEvent.type(field("Body size"), "12");
+
+    expect(getComputedStyle(card()).fontSize).toBe("24px");
+    const body = card().querySelector("p");
+    expect(body && getComputedStyle(body).fontSize).toBe("12px");
   });
 
   it("has a border and a shadow", () => {

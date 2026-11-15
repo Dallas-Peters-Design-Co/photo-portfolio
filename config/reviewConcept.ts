@@ -65,45 +65,47 @@ export type ReviewConceptElementKind =
   | "toast"
   | "skeleton";
 
-export type ReviewConceptIcon =
-  | "arrow-right"
-  | "bell"
-  | "check"
-  | "chevron-down"
-  | "chevron-right"
-  | "heart"
-  | "home"
-  | "mail"
-  | "menu"
-  | "plus"
-  | "search"
-  | "settings"
-  | "shopping-bag"
-  | "star"
-  | "user"
-  | "x";
+/**
+ * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
+ * same set the page editor offers, e.g. "FavouriteIcon".
+ */
+export type ReviewConceptIcon = string;
 
-export const REVIEW_CONCEPT_ICONS: ReviewConceptIcon[] = [
-  "arrow-right",
-  "bell",
-  "check",
-  "chevron-down",
-  "chevron-right",
-  "heart",
-  "home",
-  "mail",
-  "menu",
-  "plus",
-  "search",
-  "settings",
-  "shopping-bag",
-  "star",
-  "user",
-  "x",
-];
+const ICON_NAME = /^[A-Z][A-Za-z0-9]{0,62}Icon$/;
+
+/** Concepts once used a short list of Lucide names; these are their matches. */
+const LEGACY_ICONS: Record<string, string> = {
+  "arrow-right": "ArrowRight01Icon",
+  bell: "Notification01Icon",
+  check: "Tick02Icon",
+  "chevron-down": "ArrowDown01Icon",
+  "chevron-right": "ArrowRight01Icon",
+  heart: "FavouriteIcon",
+  home: "Home01Icon",
+  mail: "Mail01Icon",
+  menu: "Menu01Icon",
+  plus: "Add01Icon",
+  search: "Search01Icon",
+  settings: "Settings01Icon",
+  "shopping-bag": "ShoppingBag01Icon",
+  star: "StarIcon",
+  user: "UserIcon",
+  x: "Cancel01Icon",
+};
+
+/** The Hugeicons name to draw, reading an old Lucide name as its match. */
+export const conceptIconName = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const name = LEGACY_ICONS[value] ?? value;
+  return ICON_NAME.test(name) ? name : null;
+};
 
 export interface ReviewConceptElement {
   background: string;
+  /** Cards only: the body's type size. The title uses `fontSize`. */
+  bodySize?: number;
   /** Cards only: the outline, and how far the card lifts off the page. */
   borderColor?: string;
   checked?: boolean;
@@ -168,7 +170,10 @@ export const CARD_SHADOWS: Record<CardShadow, string> = {
 
 const cleanCard = (
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "borderColor" | "shadow"> => ({
+): Pick<ReviewConceptElement, "bodySize" | "borderColor" | "shadow"> => ({
+  ...(typeof raw.bodySize === "number"
+    ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
+    : {}),
   ...(typeof raw.borderColor === "string" && HEX_COLOR.test(raw.borderColor)
     ? { borderColor: raw.borderColor }
     : {}),
@@ -226,11 +231,6 @@ const cleanKind = (value: unknown): ReviewConceptElementKind =>
     ? (value as ReviewConceptElementKind)
     : "text";
 
-const cleanIconName = (value: unknown): ReviewConceptIcon =>
-  REVIEW_CONCEPT_ICONS.includes(value as ReviewConceptIcon)
-    ? (value as ReviewConceptIcon)
-    : "star";
-
 const cleanOptions = (value: unknown): string[] | undefined => {
   if (!Array.isArray(value)) {
     return undefined;
@@ -251,6 +251,7 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     : 400;
   const options = cleanOptions(raw.options);
   const kind = cleanKind(raw.kind);
+  const iconName = conceptIconName(raw.iconName);
   return {
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
@@ -258,13 +259,10 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     fontSize: bounded(raw.fontSize, 10, 72, 16),
     fontWeight,
     id: str(raw.id, 64) || newItemId(),
-    ...(kind === "icon" ? { iconName: cleanIconName(raw.iconName) } : {}),
+    ...(kind === "icon" ? { iconName: iconName ?? "StarIcon" } : {}),
     // A card's icon is optional, so an unknown name drops it instead of
     // defaulting to a star.
-    ...(kind === "card" &&
-    REVIEW_CONCEPT_ICONS.includes(raw.iconName as ReviewConceptIcon)
-      ? { iconName: raw.iconName }
-      : {}),
+    ...(kind === "card" && iconName ? { iconName } : {}),
     kind,
     lineHeight: bounded(raw.lineHeight, 1, 2.4, 1.4),
     paddingX: bounded(raw.paddingX, 0, 48, 16),

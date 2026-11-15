@@ -24,6 +24,10 @@ const INPUT_TYPES = optionsOf([
   ["tel", "Phone"],
   ["password", "Password"],
 ]);
+const SIZE_LABELS: Partial<Record<ReviewConceptElement["kind"], string>> = {
+  card: "Title size",
+  icon: "Icon size",
+};
 const SHADOWS = optionsOf([
   ["none", "None"],
   ["soft", "Soft"],
@@ -190,11 +194,19 @@ export function ReviewConceptElementFields({
           onChange={onChange}
         />
         <NumberField
-          label={element.kind === "icon" ? "Icon size" : "Size"}
+          label={SIZE_LABELS[element.kind] ?? "Size"}
           max={72}
           onChange={(fontSize) => onChange({ fontSize })}
           value={element.fontSize}
         />
+        {element.kind === "card" ? (
+          <NumberField
+            label="Body size"
+            max={72}
+            onChange={(bodySize) => onChange({ bodySize })}
+            value={element.bodySize ?? element.fontSize}
+          />
+        ) : null}
         <ConceptField label="Weight">
           <ConceptSelect
             label="Weight"

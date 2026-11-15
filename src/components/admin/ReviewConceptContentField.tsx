@@ -1,22 +1,12 @@
 import {
+  conceptIconName,
   joinCardText,
-  REVIEW_CONCEPT_ICONS,
   type ReviewConceptElement,
-  type ReviewConceptIcon,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { IconPicker } from "../../cms/IconPicker";
 import { Input } from "../ui/input";
-import { ConceptField, ConceptSelect } from "./ConceptSelect";
-
-const ICON_OPTIONS = REVIEW_CONCEPT_ICONS.map((icon) => ({
-  label: icon
-    .split("-")
-    .map((part) => part[0]?.toUpperCase() + part.slice(1))
-    .join(" "),
-  value: icon,
-}));
-
-const NO_ICON = { label: "No icon", value: "none" };
+import { ConceptField } from "./ConceptSelect";
 
 export function ReviewConceptContentField({
   element,
@@ -28,11 +18,16 @@ export function ReviewConceptContentField({
   if (element.kind === "icon") {
     return (
       <ConceptField label="Icon" wide>
-        <ConceptSelect
+        <IconPicker
+          allowNone={false}
           label="Icon"
-          onChange={(icon) => onChange({ iconName: icon as ReviewConceptIcon })}
-          options={ICON_OPTIONS}
-          value={element.iconName ?? "star"}
+          onChange={(icon) => {
+            if (icon) {
+              onChange({ iconName: icon });
+            }
+          }}
+          size="sm"
+          value={conceptIconName(element.iconName) ?? "StarIcon"}
         />
       </ConceptField>
     );
@@ -53,18 +48,11 @@ export function ReviewConceptContentField({
           />
         </ConceptField>
         <ConceptField label="Card icon" wide>
-          <ConceptSelect
+          <IconPicker
             label="Card icon"
-            onChange={(icon) =>
-              onChange({
-                iconName:
-                  icon === NO_ICON.value
-                    ? undefined
-                    : (icon as ReviewConceptIcon),
-              })
-            }
-            options={[NO_ICON, ...ICON_OPTIONS]}
-            value={element.iconName ?? NO_ICON.value}
+            onChange={(icon) => onChange({ iconName: icon ?? undefined })}
+            size="sm"
+            value={conceptIconName(element.iconName)}
           />
         </ConceptField>
         <label className="review-concepts__field review-concepts__field--full">

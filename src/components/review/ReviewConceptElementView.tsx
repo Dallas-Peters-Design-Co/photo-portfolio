@@ -1,31 +1,16 @@
-import {
-  ArrowRight,
-  Bell,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Heart,
-  Home,
-  type LucideIcon,
-  Mail,
-  Menu,
-  Plus,
-  Search,
-  Settings,
-  ShoppingBag,
-  Star,
-  User,
-  X,
-} from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties } from "react";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
   CARD_SHADOWS,
+  conceptIconName,
   type ReviewConceptElement,
-  type ReviewConceptIcon,
   splitCardText,
 } from "../../../config/reviewConcept.js";
 import { findFont } from "../../../config/theme.js";
+import { iconFrom, useIconMap } from "../../cms/useIconMap";
+
+const ICON_SUFFIX = /Icon$/;
 
 const familyCss = (element: ReviewConceptElement): string => {
   if (element.fontFamily === "app" && element.fontId) {
@@ -46,24 +31,19 @@ const familyCss = (element: ReviewConceptElement): string => {
   return "var(--font-sans, Arial, sans-serif)";
 };
 
-const CONCEPT_ICONS: Record<ReviewConceptIcon, LucideIcon> = {
-  "arrow-right": ArrowRight,
-  bell: Bell,
-  check: Check,
-  "chevron-down": ChevronDown,
-  "chevron-right": ChevronRight,
-  heart: Heart,
-  home: Home,
-  mail: Mail,
-  menu: Menu,
-  plus: Plus,
-  search: Search,
-  settings: Settings,
-  "shopping-bag": ShoppingBag,
-  star: Star,
-  user: User,
-  x: X,
-};
+/**
+ * One icon from the site's Hugeicons set. The map loads in its own chunk, so
+ * the public review page does not carry it; until it arrives the icon's box
+ * holds its place.
+ */
+function ConceptIcon({ name, size }: { name?: string; size: number }) {
+  const Icon = iconFrom(useIconMap(Boolean(name)), conceptIconName(name));
+  return Icon ? (
+    <HugeiconsIcon aria-hidden icon={Icon} size={size} strokeWidth={2} />
+  ) : (
+    <span aria-hidden style={{ height: size, width: size }} />
+  );
+}
 
 function CardPreview({
   element,
@@ -73,7 +53,6 @@ function CardPreview({
   style: CSSProperties;
 }) {
   const card = splitCardText(element.text);
-  const CardIcon = element.iconName ? CONCEPT_ICONS[element.iconName] : null;
   return (
     <article
       className="review-concepts__card-preview"
@@ -83,15 +62,19 @@ function CardPreview({
         boxShadow: CARD_SHADOWS[element.shadow ?? "soft"],
       }}
     >
-      {CardIcon ? (
-        <CardIcon
-          aria-hidden
+      {element.iconName ? (
+        <ConceptIcon
+          name={element.iconName}
           size={Math.round(element.fontSize * 1.5)}
-          strokeWidth={2}
         />
       ) : null}
       <strong>{card.title || "Card title"}</strong>
-      {card.body ? <p>{card.body}</p> : null}
+      {card.body ? (
+        // Cards saved before bodySize existed keep one size for both.
+        <p style={{ fontSize: element.bodySize ?? element.fontSize }}>
+          {card.body}
+        </p>
+      ) : null}
     </article>
   );
 }
@@ -119,11 +102,10 @@ export function ReviewConceptElementView({
 
   switch (element.kind) {
     case "icon": {
-      const iconName = element.iconName ?? "star";
-      const Icon = CONCEPT_ICONS[iconName];
+      const iconName = element.iconName ?? "StarIcon";
       return (
         <span
-          aria-label={`${iconName} icon`}
+          aria-label={`${iconName.replace(ICON_SUFFIX, "")} icon`}
           role="img"
           style={{
             ...style,
@@ -133,7 +115,7 @@ export function ReviewConceptElementView({
             lineHeight: 0,
           }}
         >
-          <Icon aria-hidden size={element.fontSize} strokeWidth={2} />
+          <ConceptIcon name={iconName} size={element.fontSize} />
         </span>
       );
     }

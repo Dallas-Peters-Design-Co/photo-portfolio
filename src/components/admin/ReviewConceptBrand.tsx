@@ -23,6 +23,12 @@ const brandTypeface = (
     (face) => face.ref && roles.includes(face.role.trim().toLowerCase())
   ) ?? doc?.typefaces.find((face) => face.ref);
 
+/** A card's size is its title's; its body has its own (bodySize). */
+const TYPE_SIZES: Partial<Record<ReviewConceptElementKind, number>> = {
+  card: 18,
+  text: 28,
+};
+
 const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
   "input",
   "textarea",
@@ -90,7 +96,7 @@ const elementState = (
 ): Partial<ReviewConceptElement> => {
   switch (kind) {
     case "icon":
-      return { iconName: "star" };
+      return { iconName: "StarIcon" };
     case "input":
       return { inputType: "email", placeholder: "Enter your email" };
     case "textarea":
@@ -147,7 +153,7 @@ export const createConceptElement = (
         : paletteColor(brandDoc, ["ink", "text"], "#172033"),
     fontFamily: face?.ref ? "brand" : "sans",
     ...(face?.ref ? { fontRef: face.ref } : {}),
-    fontSize: isText ? 28 : 14,
+    fontSize: TYPE_SIZES[kind] ?? 14,
     fontWeight: weight,
     id: newItemId(),
     kind,
@@ -160,6 +166,7 @@ export const createConceptElement = (
     ...elementState(kind),
     ...(kind === "card"
       ? {
+          bodySize: 14,
           borderColor: paletteColor(
             brandDoc,
             ["border", "outline", "stroke"],
@@ -297,6 +304,7 @@ const STYLE_KEYS = [
   "radius",
   "borderColor",
   "shadow",
+  "bodySize",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 /**

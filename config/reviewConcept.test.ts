@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { cleanConcept, joinCardText, splitCardText } from "./reviewConcept.js";
+import {
+  cleanConcept,
+  conceptIconName,
+  joinCardText,
+  splitCardText,
+} from "./reviewConcept.js";
 
 describe("card text", () => {
   it("splits the first line into the title and keeps the rest as the body", () => {
@@ -45,5 +50,31 @@ describe("card border and shadow", () => {
     expect(card?.shadow).toBeUndefined();
     expect(button?.borderColor).toBeUndefined();
     expect(button?.shadow).toBeUndefined();
+  });
+});
+
+describe("concept icons", () => {
+  it("reads an old Lucide name as its Hugeicons match", () => {
+    expect(conceptIconName("heart")).toBe("FavouriteIcon");
+    expect(conceptIconName("shopping-bag")).toBe("ShoppingBag01Icon");
+  });
+
+  it("keeps a Hugeicons name and rejects anything else", () => {
+    expect(conceptIconName("Camera01Icon")).toBe("Camera01Icon");
+    expect(conceptIconName("<script>")).toBeNull();
+    expect(conceptIconName(42)).toBeNull();
+  });
+
+  it("migrates a saved icon and gives an icon element a star by default", () => {
+    const [icon, card, broken] = cleanConcept({
+      elements: [
+        { iconName: "bell", kind: "icon" },
+        { iconName: "nope", kind: "card" },
+        { iconName: "nope", kind: "icon" },
+      ],
+    }).elements;
+    expect(icon?.iconName).toBe("Notification01Icon");
+    expect(card?.iconName).toBeUndefined();
+    expect(broken?.iconName).toBe("StarIcon");
   });
 });

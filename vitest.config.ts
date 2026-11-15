@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import tailwindcss from "@tailwindcss/vite";
 import { playwright } from "@vitest/browser-playwright";
@@ -12,6 +13,11 @@ import { defineConfig } from "vitest/config";
  * worse than no test, so this uses the Playwright Chromium already installed
  * for the toolchain and asserts on real pixels.
  */
+const ICON_IMPORT = /from "(@hugeicons-pro\/[^"]+)"/g;
+const ICON_MAP_IMPORTS = [
+  ...readFileSync("src/cms/iconMap.ts", "utf8").matchAll(ICON_IMPORT),
+].map((match) => match[1] as string);
+
 export default defineConfig({
   /*
    * Pre-bundle the dependencies Vite would otherwise discover mid-run.
@@ -51,6 +57,10 @@ export default defineConfig({
       "jsonwebtoken",
       "posthog-js",
       "react-router-dom",
+      "@hugeicons/react",
+      // Every icon the site's picker offers, read from the map so the list
+      // can never fall out of step with it.
+      ...ICON_MAP_IMPORTS,
     ],
   },
   // Tailwind must run here too. A test that asks what sits under the pointer
