@@ -6,6 +6,8 @@ import { type FontId, findFont, isStaticFont } from "../../config/theme";
  * instead of all of them.
  */
 const VARIABLE_LOADERS: Partial<Record<FontId, () => Promise<unknown>>> = {
+  "climate-crisis": () =>
+    import("@fontsource-variable/climate-crisis/index.css"),
   "cormorant-garamond": () =>
     import("@fontsource-variable/cormorant-garamond/index.css"),
   "crimson-pro": () =>
@@ -23,6 +25,11 @@ const VARIABLE_LOADERS: Partial<Record<FontId, () => Promise<unknown>>> = {
       import("@fontsource-variable/eb-garamond/index.css"),
       import("@fontsource-variable/eb-garamond/wght-italic.css"),
     ]),
+  "familjen-grotesk": () =>
+    Promise.all([
+      import("@fontsource-variable/familjen-grotesk/index.css"),
+      import("@fontsource-variable/familjen-grotesk/wght-italic.css"),
+    ]),
   figtree: () => import("@fontsource-variable/figtree/index.css"),
   fraunces: () => import("@fontsource-variable/fraunces/index.css"),
   geist: () => import("@fontsource-variable/geist/index.css"),
@@ -35,6 +42,11 @@ const VARIABLE_LOADERS: Partial<Record<FontId, () => Promise<unknown>>> = {
     Promise.all([
       import("@fontsource-variable/ibm-plex-sans/index.css"),
       import("@fontsource-variable/ibm-plex-sans/wght-italic.css"),
+    ]),
+  "inclusive-sans": () =>
+    Promise.all([
+      import("@fontsource-variable/inclusive-sans/index.css"),
+      import("@fontsource-variable/inclusive-sans/wght-italic.css"),
     ]),
   // The text faces load their italic too: they set whole documents, where an
   // emphasised phrase drawn as slanted roman is the first thing that looks off.

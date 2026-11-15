@@ -11,6 +11,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@19.3.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@fontsource-variable/climate-crisis':
+        specifier: ^5.3.0
+        version: 5.3.0
       '@fontsource-variable/cormorant-garamond':
         specifier: ^5.3.0
         version: 5.3.0
@@ -22,6 +25,9 @@ importers:
         version: 5.3.0
       '@fontsource-variable/eb-garamond':
         specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource-variable/familjen-grotesk':
+        specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/figtree':
         specifier: ^5.3.0
@@ -37,6 +43,9 @@ importers:
         version: 5.3.0
       '@fontsource-variable/ibm-plex-sans':
         specifier: 5.3.0
+        version: 5.3.0
+      '@fontsource-variable/inclusive-sans':
+        specifier: ^5.3.0
         version: 5.3.0
       '@fontsource-variable/instrument-sans':
         specifier: 5.3.0
@@ -144,6 +153,9 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource/mulish':
+        specifier: ^5.3.0
+        version: 5.3.0
+      '@fontsource/open-sauce-sans':
         specifier: ^5.3.0
         version: 5.3.0
       '@fontsource/oswald':
@@ -1415,6 +1427,9 @@ packages:
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
 
+  '@fontsource-variable/climate-crisis@5.3.0':
+    resolution: {integrity: sha512-ICcCLKN+DfkUIRnPY/wKzv3kEVjB7es0kDV82YI6taHh0v8N9coMOXSyoVVlXi2h6tq87IQPuXRW447xp+Rkxg==}
+
   '@fontsource-variable/cormorant-garamond@5.3.0':
     resolution: {integrity: sha512-rgZJ/5w3hi60swAPnrOXpZf5wEH6NTrvm4H8D9Y4b1QIFUqlX14eM3QTMU/eAznjfh0eXpO1QUqsFhiy58aoMg==}
 
@@ -1426,6 +1441,9 @@ packages:
 
   '@fontsource-variable/eb-garamond@5.3.0':
     resolution: {integrity: sha512-656OJsA9Vv24yhqRZFEzXnzS2AYgKdEILLgHJYLzzXndgcWFKfSXFqzbRI5/6Yk1Yt7UfWrUeppE5nRQPQMwlQ==}
+
+  '@fontsource-variable/familjen-grotesk@5.3.0':
+    resolution: {integrity: sha512-R9W0xEZRIHUV658cuOGRMAIcqX1QJ8p5/W6Boooa6zAw1BAozU//mr8C0VNggSE26/VHPwj2XNyMAG6yUJmjxA==}
 
   '@fontsource-variable/figtree@5.3.0':
     resolution: {integrity: sha512-VRVodD7OiG7apQwE8/2fMjaqpY/a0qRJqL5HtYj8CKIVps+9amaFcdfKmDIf7iqYQx6iPLlArVXAfKeIZmVcNQ==}
@@ -1441,6 +1459,9 @@ packages:
 
   '@fontsource-variable/ibm-plex-sans@5.3.0':
     resolution: {integrity: sha512-agG8tXFEo0hD9+J7npa4vbbWult52eMLVaQ6WQRlhs/iCAojrMAoejru85W9HTVXHfyUj96KM7gp/KGAS87XaQ==}
+
+  '@fontsource-variable/inclusive-sans@5.3.0':
+    resolution: {integrity: sha512-e2b24zDvG6WMA+QVTc2ZoFU+wNA5NilcFfuhlzG44TbvpNrW3V9zLJmpFuEv0wJlYvWNH+goYDXY59lAiEU0Pg==}
 
   '@fontsource-variable/instrument-sans@5.3.0':
     resolution: {integrity: sha512-u4gKbDBTNFGkg997tfQn3eHOhHuquWUFTRT/rwzuKtrxX5P2ekfs2x+LgBPP4P32+cC+vUwF1Cr+IdRoPQbrGw==}
@@ -1549,6 +1570,9 @@ packages:
 
   '@fontsource/mulish@5.3.0':
     resolution: {integrity: sha512-Fru/fmJwg4ZlKUU4jELz6/guZhba6Lz1vraAROqooYnUbtj1iMi7BXFkQU7AkB6QP5swpvwRnO5chUp6mNh5mA==}
+
+  '@fontsource/open-sauce-sans@5.3.0':
+    resolution: {integrity: sha512-/t7LxukK2RDqjcv8npEt2uE/ACyoaqQIkSsXJYmQ1oK7Hkd9yLSn+fA4Z3k45JfjNXBDpTmnEXZXHe5Yfa/2eg==}
 
   '@fontsource/oswald@5.3.0':
     resolution: {integrity: sha512-16r2aHActe0pH+9FLdk/74/YxXM7HpGak05kAzx3RvSToiJwGvyhv6GvckPz+YuZmvL1nxWbEop2jAXRcXYPRg==}
@@ -8304,6 +8328,8 @@ snapshots:
 
   '@floating-ui/utils@0.2.12': {}
 
+  '@fontsource-variable/climate-crisis@5.3.0': {}
+
   '@fontsource-variable/cormorant-garamond@5.3.0': {}
 
   '@fontsource-variable/crimson-pro@5.3.0': {}
@@ -8311,6 +8337,8 @@ snapshots:
   '@fontsource-variable/dm-sans@5.3.0': {}
 
   '@fontsource-variable/eb-garamond@5.3.0': {}
+
+  '@fontsource-variable/familjen-grotesk@5.3.0': {}
 
   '@fontsource-variable/figtree@5.3.0': {}
 
@@ -8321,6 +8349,8 @@ snapshots:
   '@fontsource-variable/hanken-grotesk@5.3.0': {}
 
   '@fontsource-variable/ibm-plex-sans@5.3.0': {}
+
+  '@fontsource-variable/inclusive-sans@5.3.0': {}
 
   '@fontsource-variable/instrument-sans@5.3.0': {}
 
@@ -8393,6 +8423,8 @@ snapshots:
   '@fontsource/league-gothic@5.3.0': {}
 
   '@fontsource/mulish@5.3.0': {}
+
+  '@fontsource/open-sauce-sans@5.3.0': {}
 
   '@fontsource/oswald@5.3.0': {}
 

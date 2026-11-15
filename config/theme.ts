@@ -11,6 +11,7 @@ import { PIN_KINDS, type PinKind } from "./review.js";
 import { STATIC_FONTS } from "./staticFonts.js";
 
 export type FontId =
+  | "climate-crisis"
   | "geist"
   | "inter"
   | "space-grotesk"
@@ -21,6 +22,9 @@ export type FontId =
   | "playfair-display"
   | "fraunces"
   | "cormorant-garamond"
+  | "familjen-grotesk"
+  | "inclusive-sans"
+  | "open-sauce-sans"
   | "oswald"
   | "bebas-neue"
   | "anton"
@@ -107,6 +111,14 @@ export interface FontChoice {
  */
 export const FONT_CHOICES: FontChoice[] = [
   {
+    category: "display",
+    id: "climate-crisis",
+    italic: false,
+    label: "Climate Crisis",
+    stack: '"Climate Crisis Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 400, min: 400 },
+  },
+  {
     category: "sans",
     id: "figtree",
     italic: true,
@@ -184,6 +196,22 @@ export const FONT_CHOICES: FontChoice[] = [
     italic: true,
     label: "Cormorant Garamond",
     stack: '"Cormorant Garamond Variable", Georgia, serif',
+    weight: { max: 700, min: 300 },
+  },
+  {
+    category: "sans",
+    id: "familjen-grotesk",
+    italic: true,
+    label: "Familjen Grotesk",
+    stack: '"Familjen Grotesk Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 700, min: 400 },
+  },
+  {
+    category: "sans",
+    id: "inclusive-sans",
+    italic: true,
+    label: "Inclusive Sans",
+    stack: '"Inclusive Sans Variable", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 700, min: 300 },
   },
   /*

@@ -289,4 +289,13 @@ export const STATIC_FONTS: FontChoice[] = [
     true,
     "ui-sans-serif, system-ui, sans-serif"
   ),
+  staticFont(
+    "open-sauce-sans",
+    "Open Sauce Sans",
+    "Open Sauce Sans",
+    "sans",
+    [300, 400, 500, 600, 700, 800, 900],
+    true,
+    "ui-sans-serif, system-ui, sans-serif"
+  ),
 ];
