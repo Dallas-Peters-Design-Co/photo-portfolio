@@ -11,11 +11,8 @@ import {
   ReferenceSection,
   TypeSection,
 } from "../components/brandGuide/GuideSections";
-import {
-  brandFaces,
-  groupPalette,
-  paperAndInk,
-} from "../components/brandGuide/guideModel";
+import { brandFaces } from "../components/brandGuide/guideModel";
+import { guideTheme } from "../components/brandGuide/guideTheme";
 import { brandKitsApi } from "../services/brandKitService";
 import { authStorage } from "../services/portfolioService";
 import { loadFontRef } from "../theme/remoteFonts";
@@ -95,22 +92,29 @@ export function BrandGuidePage() {
     return <div className="guide guide--message">Loading…</div>;
   }
 
-  const groups = groupPalette(doc.palette);
   const stack = (ref: string | null | undefined) => {
     const parsed = parseFontRef(ref);
     return parsed ? `"${parsed.family}", var(--font-sans)` : undefined;
   };
   const theme = {
-    "--guide-accent": groups.brand[0]?.value ?? "#1e3dff",
-    "--guide-bg": paperAndInk(doc.palette).paper ?? "#f6f6f3",
+    ...guideTheme(doc.palette),
     "--guide-body-font": stack(body?.ref),
     "--guide-head-font": stack(headline?.ref),
-    "--guide-ink": paperAndInk(doc.palette).ink ?? "#0b0f1a",
   } as React.CSSProperties;
 
   return (
     <div className="doc-shell guide" style={theme}>
-      <Toaster position="top-center" />
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "var(--guide-surface)",
+            borderColor: "var(--guide-rule)",
+            color: "var(--guide-ink)",
+            fontFamily: "inherit",
+          },
+        }}
+      />
       <DocSidebar
         card={
           <>

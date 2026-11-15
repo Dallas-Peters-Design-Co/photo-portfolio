@@ -1,18 +1,18 @@
 /*
  * A brand guide, in the brand's own colours and type: --guide-bg and
- * --guide-ink from its lightest and darkest neutrals, --guide-accent from its
- * first brand colour, fonts from its first two typefaces.
+ * --guide-ink follow palette roles, with fallbacks for incomplete kits.
+ * Fonts follow the kit’s headline and body roles.
  */
 
 .guide {
-  --line: color-mix(in oklch, var(--guide-ink) 14%, transparent);
-  --muted: color-mix(in oklch, var(--guide-ink) 55%, transparent);
+  --line: var(--guide-rule);
+  --muted: var(--guide-muted);
   /* The document frame (docShell.css) reads these. */
   --doc-bg: var(--guide-bg);
   --doc-ink: var(--guide-ink);
   --doc-ink-soft: var(--muted);
   --doc-rule: var(--line);
-  --doc-accent: var(--guide-accent);
+  --doc-accent: var(--guide-accent-ink);
   --doc-head-font: var(
     --guide-head-font,
     var(--font-display, var(--font-sans))
@@ -45,7 +45,7 @@
 .guide-eyebrow {
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--guide-accent);
+  color: var(--guide-accent-ink);
   text-transform: uppercase;
   letter-spacing: 0.2em;
 }
@@ -123,14 +123,6 @@
 
 .guide-colour--large {
   min-height: 19rem;
-}
-
-.guide-colour--dark {
-  --on: #0b0f1a;
-}
-
-.guide-colour--light {
-  --on: #ffffff;
 }
 
 .guide-colour__head {
@@ -218,7 +210,7 @@
 .guide-type__specimen {
   font-size: clamp(5rem, 10vw, 9rem);
   line-height: 1;
-  color: var(--guide-accent);
+  color: var(--guide-accent-ink);
 }
 
 .guide-type__head {
@@ -321,7 +313,7 @@
   align-items: center;
   margin-left: auto;
   font-size: 0.875rem;
-  color: var(--guide-accent);
+  color: var(--guide-accent-ink);
 }
 
 .guide-logos__rules {
@@ -349,7 +341,7 @@
 }
 
 .guide-images--off img {
-  outline: 2px solid oklch(62% 0.21 25);
+  outline: 2px solid var(--guide-signal);
   outline-offset: -2px;
   opacity: 0.7;
   filter: saturate(0.6);
@@ -443,4 +435,39 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Scoped overrides keep other documents on their own theme. */
+.guide .doc-shell__card,
+.guide-type {
+  background: var(--guide-surface);
+}
+
+.guide .doc-shell__action {
+  color: var(--guide-button-ink);
+  background: var(--guide-button);
+  border-color: var(--guide-button);
+}
+
+.guide .doc-shell__action:hover:not(:disabled),
+.guide .doc-shell__action--quiet {
+  color: var(--guide-ink);
+  background: var(--guide-surface);
+  border-color: var(--guide-rule);
+}
+
+.guide .doc-shell__action--quiet:hover:not(:disabled) {
+  border-color: var(--guide-button);
+}
+
+.guide :is(a, button):focus-visible {
+  outline: 2px solid var(--guide-accent-ink);
+  outline-offset: 3px;
+}
+
+@media print {
+  .guide {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }

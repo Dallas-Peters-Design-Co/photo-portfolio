@@ -13,13 +13,8 @@ import { LOOKS } from "../../editor/presets";
 import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { loadFontRef } from "../../theme/remoteFonts";
 import { facesFor, familyFor } from "../typeScale/faces";
-import {
-  colourName,
-  groupPalette,
-  inkOn,
-  paperAndInk,
-  valuesOf,
-} from "./guideModel";
+import { colourName, groupPalette, inkOn, valuesOf } from "./guideModel";
+import { readableOn } from "./guideTheme";
 import { useLogoTone } from "./logoTone";
 
 /** The sections of a brand guide, each a function of the kit's document. */
@@ -45,16 +40,26 @@ function CopyValue({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ColourCard({ entry, large }: { entry: PaletteEntry; large: boolean }) {
+function ColourCard({
+  entry,
+  large,
+  palette,
+}: {
+  entry: PaletteEntry;
+  large: boolean;
+  palette: PaletteEntry[];
+}) {
   const v = valuesOf(entry.value);
   return (
     <article
-      className={[
-        "guide-colour",
-        `guide-colour--${inkOn(entry.value)}`,
-        large ? "guide-colour--large" : "",
-      ].join(" ")}
-      style={{ background: entry.value }}
+      className={["guide-colour", large ? "guide-colour--large" : ""].join(" ")}
+      style={{
+        background: entry.value,
+        ["--on" as string]: readableOn(
+          entry.value,
+          palette.map((p) => p.value)
+        ),
+      }}
     >
       <header className="guide-colour__head">
         <h3 className="guide-colour__name">{colourName(entry) || v.hex}</h3>
@@ -81,7 +86,12 @@ export function ColourSection({ doc }: { doc: BrandKitDoc }) {
       {groups.brand.length > 0 ? (
         <div className="guide-colours guide-colours--brand">
           {groups.brand.map((entry) => (
-            <ColourCard entry={entry} key={entry.value + entry.name} large />
+            <ColourCard
+              entry={entry}
+              key={entry.value + entry.name}
+              large
+              palette={doc.palette}
+            />
           ))}
         </div>
       ) : null}
@@ -94,6 +104,7 @@ export function ColourSection({ doc }: { doc: BrandKitDoc }) {
                 entry={entry}
                 key={entry.value + entry.name}
                 large={false}
+                palette={doc.palette}
               />
             ))}
           </div>
@@ -108,6 +119,7 @@ export function ColourSection({ doc }: { doc: BrandKitDoc }) {
                 entry={entry}
                 key={entry.value + entry.name}
                 large={false}
+                palette={doc.palette}
               />
             ))}
           </div>
@@ -245,8 +257,11 @@ export function LogoSection({ doc }: { doc: BrandKitDoc }) {
   if (doc.logos.length === 0) {
     return <p className="guide-empty">No logos in this kit yet.</p>;
   }
-  const { ink, paper } = paperAndInk(doc.palette);
-  const grounds = { dark: ink ?? "#0b0f1a", light: paper ?? "#ffffff" };
+  const colours = doc.palette.map((entry) => entry.value);
+  const grounds = {
+    dark: readableOn("#ffffff", colours),
+    light: readableOn("#000000", colours),
+  };
   return (
     <div className="guide-logos">
       {doc.logos.map((logo) => (
