@@ -1,7 +1,10 @@
 import { ChevronDown, Copy, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
-import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import {
+  type ReviewConceptElement,
+  takesIcon,
+} from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
@@ -14,7 +17,7 @@ import {
 } from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
 import { ConceptColorField } from "./ReviewConceptBrand";
-import { CardIconGroup, CardShadowGroup } from "./ReviewConceptCardFields";
+import { CardShadowGroup, ElementIconGroup } from "./ReviewConceptCardFields";
 import { ReviewConceptContentField } from "./ReviewConceptContentField";
 
 type Patch = Partial<ReviewConceptElement>;
@@ -167,8 +170,8 @@ export function ReviewConceptElementFields({
       {open ? (
         <div className="review-concepts__element-body" id={bodyId}>
           <ContentGroup element={element} onChange={onChange} />
-          {element.kind === "card" ? (
-            <CardIconGroup
+          {takesIcon(element.kind) ? (
+            <ElementIconGroup
               brandDoc={brandDoc}
               element={element}
               onChange={onChange}

@@ -246,22 +246,57 @@ const str = (value: unknown, max: number): string =>
 const isHex = (value: unknown): value is string =>
   typeof value === "string" && HEX_COLOR.test(value);
 
-const cleanCard = (
+/** Kinds that may carry an icon beside their text; an icon element always has one. */
+const OPTIONAL_ICON_KINDS = new Set<ReviewConceptElementKind>([
+  "card",
+  "input",
+]);
+
+export const takesIcon = (kind: ReviewConceptElementKind): boolean =>
+  OPTIONAL_ICON_KINDS.has(kind);
+
+/** A card's icon leads at 1.5× its title; an input's sits at text size. */
+export const iconSizeOf = (element: ReviewConceptElement): number =>
+  element.iconSize ??
+  (element.kind === "card"
+    ? Math.round(element.fontSize * 1.5)
+    : element.fontSize);
+
+const cleanIcon = (
+  kind: ReviewConceptElementKind,
   raw: Partial<ReviewConceptElement>
 ): Pick<
   ReviewConceptElement,
-  "bodySize" | "borderColor" | "iconColor" | "iconSize" | "shadow"
+  "iconColor" | "iconName" | "iconSize" | "iconSvg"
 > => {
+  // An optional icon with an unknown name is dropped, not made a star.
+  const iconName =
+    conceptIconName(raw.iconName) ?? (kind === "icon" ? "StarIcon" : null);
+  if (!(iconName && (kind === "icon" || takesIcon(kind)))) {
+    return {};
+  }
+  const iconSvg = cleanIconSvg(raw.iconSvg);
+  return {
+    iconName,
+    ...(iconSvg ? { iconSvg } : {}),
+    ...(takesIcon(kind) && isHex(raw.iconColor)
+      ? { iconColor: raw.iconColor }
+      : {}),
+    ...(takesIcon(kind) && typeof raw.iconSize === "number"
+      ? { iconSize: bounded(raw.iconSize, 8, 96, 24) }
+      : {}),
+  };
+};
+
+const cleanCard = (
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "bodySize" | "borderColor" | "shadow"> => {
   const shadow = cleanShadow(raw.shadow);
   return {
     ...(typeof raw.bodySize === "number"
       ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
       : {}),
     ...(isHex(raw.borderColor) ? { borderColor: raw.borderColor } : {}),
-    ...(isHex(raw.iconColor) ? { iconColor: raw.iconColor } : {}),
-    ...(typeof raw.iconSize === "number"
-      ? { iconSize: bounded(raw.iconSize, 8, 96, 24) }
-      : {}),
     ...(shadow ? { shadow } : {}),
   };
 };
@@ -337,8 +372,6 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     : 400;
   const options = cleanOptions(raw.options);
   const kind = cleanKind(raw.kind);
-  const iconName = conceptIconName(raw.iconName);
-  const iconSvg = cleanIconSvg(raw.iconSvg);
   return {
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
@@ -346,13 +379,7 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     fontSize: bounded(raw.fontSize, 10, 72, 16),
     fontWeight,
     id: str(raw.id, 64) || newItemId(),
-    ...(kind === "icon" ? { iconName: iconName ?? "StarIcon" } : {}),
-    // A card's icon is optional, so an unknown name drops it instead of
-    // defaulting to a star.
-    ...(kind === "card" && iconName ? { iconName } : {}),
-    ...((kind === "icon" || kind === "card") && iconName && iconSvg
-      ? { iconSvg }
-      : {}),
+    ...cleanIcon(kind, raw),
     kind,
     lineHeight: bounded(raw.lineHeight, 1, 2.4, 1.4),
     paddingX: bounded(raw.paddingX, 0, 48, 16),

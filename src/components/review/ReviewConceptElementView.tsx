@@ -5,6 +5,7 @@ import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
   type ConceptIconSvg,
   conceptIconName,
+  iconSizeOf,
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
@@ -85,7 +86,7 @@ function CardPreview({
         <ConceptIcon
           color={element.iconColor}
           name={element.iconName}
-          size={element.iconSize ?? Math.round(element.fontSize * 1.5)}
+          size={iconSizeOf(element)}
           svg={element.iconSvg}
         />
       ) : null}
@@ -99,6 +100,64 @@ function CardPreview({
     </article>
   );
 }
+
+/**
+ * An input, with its icon inside the field when it has one: the box carries
+ * the input's look, and the bare text field sits beside the icon within it.
+ */
+function InputPreview({
+  element,
+  style,
+  text,
+}: {
+  element: ReviewConceptElement;
+  style: CSSProperties;
+  text: string;
+}) {
+  const field = (
+    <input
+      aria-label={element.placeholder || text}
+      placeholder={element.placeholder}
+      readOnly
+      style={element.iconName ? BARE_FIELD : style}
+      type={element.inputType ?? "text"}
+      value={element.text}
+    />
+  );
+  if (!element.iconName) {
+    return field;
+  }
+  return (
+    <span
+      style={{
+        ...style,
+        alignItems: "center",
+        display: "inline-flex",
+        gap: Math.round(element.fontSize * 0.5),
+      }}
+    >
+      <ConceptIcon
+        color={element.iconColor}
+        name={element.iconName}
+        size={iconSizeOf(element)}
+        svg={element.iconSvg}
+      />
+      {field}
+    </span>
+  );
+}
+
+/** The text field inside an input's box: no box of its own. */
+const BARE_FIELD: CSSProperties = {
+  background: "transparent",
+  border: 0,
+  color: "inherit",
+  flex: 1,
+  font: "inherit",
+  minWidth: 0,
+  outline: "none",
+  padding: 0,
+};
 
 export function ReviewConceptElementView({
   element,
@@ -151,16 +210,7 @@ export function ReviewConceptElementView({
         </button>
       );
     case "input":
-      return (
-        <input
-          aria-label={element.placeholder || text}
-          placeholder={element.placeholder}
-          readOnly
-          style={style}
-          type={element.inputType ?? "text"}
-          value={element.text}
-        />
-      );
+      return <InputPreview element={element} style={style} text={text} />;
     case "textarea":
       return (
         <textarea

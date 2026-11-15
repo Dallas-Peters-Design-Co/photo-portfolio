@@ -10,6 +10,7 @@ import {
 import {
   type ConceptIconSvg,
   conceptIconName,
+  iconSizeOf,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
@@ -25,8 +26,8 @@ type Patch = Partial<ReviewConceptElement>;
 
 const CUSTOM = "custom";
 
-/** A card's icon: which one, how big, what colour. */
-export function CardIconGroup({
+/** The optional icon of a card or an input: which one, how big, what colour. */
+export function ElementIconGroup({
   brandDoc,
   element,
   onChange,
@@ -35,11 +36,12 @@ export function CardIconGroup({
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
 }) {
+  const kind = element.kind[0]?.toUpperCase() + element.kind.slice(1);
   return (
     <ConceptGroup name="Icon">
       <ConceptField label="Icon" wide>
         <IconPicker
-          label="Card icon"
+          label={`${kind} icon`}
           library="full"
           onChange={(icon, svg) =>
             onChange({
@@ -58,10 +60,10 @@ export function CardIconGroup({
             label="Icon size"
             max={96}
             onChange={(iconSize) => onChange({ iconSize })}
-            value={element.iconSize ?? Math.round(element.fontSize * 1.5)}
+            value={iconSizeOf(element)}
           />
           <ConceptColorField
-            ariaLabel="card icon color"
+            ariaLabel={`${element.kind} icon color`}
             brandDoc={brandDoc}
             label="Icon color"
             onChange={(iconColor) => onChange({ iconColor })}

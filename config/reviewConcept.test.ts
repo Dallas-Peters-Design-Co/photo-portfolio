@@ -118,7 +118,14 @@ describe("card shadow and icon settings", () => {
 
   it("keeps a card's icon size and color", () => {
     const [card] = cleanConcept({
-      elements: [{ iconColor: "#ff0000", iconSize: 200, kind: "card" }],
+      elements: [
+        {
+          iconColor: "#ff0000",
+          iconName: "StarIcon",
+          iconSize: 200,
+          kind: "card",
+        },
+      ],
     }).elements;
     expect(card).toMatchObject({ iconColor: "#ff0000", iconSize: 96 });
   });
@@ -152,5 +159,28 @@ describe("saved icon drawings", () => {
     expect(icon?.iconSvg).toEqual(rocket);
     expect(card?.iconSvg).toBeUndefined();
     expect(button?.iconSvg).toBeUndefined();
+  });
+});
+
+describe("icons on inputs", () => {
+  it("lets an input carry an icon with its size and color, and not a button", () => {
+    const [input, button] = cleanConcept({
+      elements: [
+        {
+          iconColor: "#667085",
+          iconName: "Search01Icon",
+          iconSize: 18,
+          kind: "input",
+        },
+        { iconColor: "#667085", iconName: "Search01Icon", kind: "button" },
+      ],
+    }).elements;
+    expect(input).toMatchObject({
+      iconColor: "#667085",
+      iconName: "Search01Icon",
+      iconSize: 18,
+    });
+    expect(button?.iconName).toBeUndefined();
+    expect(button?.iconColor).toBeUndefined();
   });
 });
