@@ -412,16 +412,17 @@ function ContractActions({
         PDF
       </button>
       {contract.status === "draft" || contract.status === "sent" ? (
-        <Button
-          aria-label="Delete agreement"
-          className="ml-auto"
-          disabled={busy}
-          onClick={onRemove}
-          type="button"
-          variant="ghost"
-        >
-          <Trash2 size={14} />
-        </Button>
+        <div className="ml-auto">
+          <Button
+            aria-label="Delete agreement"
+            disabled={busy}
+            onClick={onRemove}
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 size={14} />
+          </Button>
+        </div>
       ) : null}
     </div>
   );

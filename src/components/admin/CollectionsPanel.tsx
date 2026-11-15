@@ -54,16 +54,17 @@ function AssetTile({
           width={200}
         />
       )}
-      <Button
-        aria-label="Remove from collection"
-        className="absolute top-1 right-1 opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-        onClick={onRemove}
-        size="icon-xs"
-        tone="danger"
-        variant="ghost"
-      >
-        ×
-      </Button>
+      <div className="absolute top-1 right-1 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100">
+        <Button
+          aria-label="Remove from collection"
+          onClick={onRemove}
+          size="icon-xs"
+          tone="danger"
+          variant="ghost"
+        >
+          ×
+        </Button>
+      </div>
     </div>
   );
 }

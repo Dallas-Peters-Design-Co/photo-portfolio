@@ -76,13 +76,11 @@ export const DetailsDialog = ({
     }}
     open={details.detailsPhoto !== null}
   >
-    <DialogContent className="admin-dialog--form" showCloseButton>
+    <DialogContent layout="form" showCloseButton size="md">
       <form className="stack" onSubmit={(e) => void details.save(e)}>
         <DialogHeader>
-          <DialogTitle className="admin-dialog__heading">
-            Edit details
-          </DialogTitle>
-          <DialogDescription className="admin-dialog__subtitle">
+          <DialogTitle>Edit details</DialogTitle>
+          <DialogDescription variant="caption">
             Title, category, and sort order. Use the pencil to edit the image.
           </DialogDescription>
         </DialogHeader>
@@ -126,7 +124,7 @@ export const DetailsDialog = ({
           <div className="photo-details__check-row">
             <Checkbox
               checked={details.detailsShowChrome}
-              className="photo-details__check"
+              className="mt-0.5"
               id="details-show-chrome"
               onChange={(e) => details.setDetailsShowChrome(e.target.checked)}
             />

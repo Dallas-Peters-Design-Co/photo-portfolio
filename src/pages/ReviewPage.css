@@ -9,7 +9,7 @@
  */
 
 .review-page {
-  --review-sidebar: 17rem;
+  --review-sidebar: 25%;
   --sheet: var(--background);
   --sheet-ink: var(--foreground);
   --sheet-ink-soft: color-mix(in oklch, var(--foreground) 62%, transparent);
@@ -222,6 +222,7 @@
     width: var(--review-sidebar);
     padding: calc(var(--spacing) * 8) calc(var(--spacing) * 6);
     overflow-y: auto;
+    scrollbar-width: none;
     border-block-end: 0;
     border-inline-end: 1px solid var(--sheet-rule);
   }
@@ -344,7 +345,7 @@
 
 .review-page__section-title {
   font-family: var(--font-display, var(--font-sans));
-  font-size: clamp(1.75rem, 3vw, 2.75rem);
+  font-size: clamp(1.75rem, 5vw, 18.75rem);
   font-weight: 800;
   line-height: 1;
   text-transform: uppercase;

@@ -14,14 +14,11 @@ export function BackButton({
   onClick: () => void;
 }) {
   return (
-    <Button
-      className="-ml-3 self-start"
-      onClick={onClick}
-      type="button"
-      variant="ghost"
-    >
-      <ArrowLeft aria-hidden size={14} />
-      {label}
-    </Button>
+    <div className="-ml-3 self-start">
+      <Button onClick={onClick} type="button" variant="ghost">
+        <ArrowLeft aria-hidden size={14} />
+        {label}
+      </Button>
+    </div>
   );
 }

@@ -108,11 +108,6 @@
   border-radius: var(--radius-md);
 }
 
-.photo-card__checkbox {
-  width: calc(var(--spacing) * 5);
-  height: calc(var(--spacing) * 5);
-}
-
 /*
  * The card's own controls, stacked down its right edge.
  *

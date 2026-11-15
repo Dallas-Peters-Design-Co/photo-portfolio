@@ -538,15 +538,11 @@ const TodayJournalForm = ({
         ) : null}
       </p>
     </div>
-    <Button
-      className="sm:w-auto"
-      disabled={today.saving}
-      fullWidth
-      type="submit"
-      variant="outline"
-    >
-      {today.saving ? "Saving…" : "Save journal"}
-    </Button>
+    <div className="w-full sm:w-fit">
+      <Button disabled={today.saving} fullWidth type="submit" variant="outline">
+        {today.saving ? "Saving…" : "Save journal"}
+      </Button>
+    </div>
   </form>
 );
 

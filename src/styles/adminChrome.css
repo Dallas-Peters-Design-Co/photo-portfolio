@@ -574,33 +574,6 @@
 }
 
 /*
- * A dialog on the admin chrome, handed to shadcn's DialogContent.
- *
- * Black rather than `--color-admin-panel`: a dialog here sits over the panel
- * surface, and two greys a shade apart read as a rendering fault rather than as
- * depth.
- */
-.admin-dialog {
-  max-width: 24rem;
-  background: #000;
-  border-color: color-mix(in oklch, #fff 10%, transparent);
-}
-
-.admin-dialog__title {
-  font-size: var(--text-sm-ui);
-  font-weight: 300;
-  color: color-mix(in oklch, #fff 80%, transparent);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro-widest);
-}
-
-.admin-dialog__body {
-  font-size: var(--text-micro-md);
-  line-height: 1.625;
-  color: color-mix(in oklch, #fff 90%, transparent);
-}
-
-/*
  * A labelled rule — "or", between two ways of signing in.
  *
  * The rules grow and the word does not, so the word stays centred whatever the
@@ -658,61 +631,6 @@
 
 .admin-file:hover::file-selector-button {
   background: color-mix(in oklch, #fff 15%, transparent);
-}
-
-/*
- * A dialog with a list in it, rather than a sentence and two buttons.
- *
- * Capped against the viewport and scrolling inside, so a long list never pushes
- * its own footer off the screen — and inset from the edges on a phone, where
- * `max-width` alone leaves a dialog flush with the bezel.
- *
- * neutral-950, a shade off black: these sit over the admin panel, and the plain
- * black `.admin-dialog` uses would lose its own border against it.
- */
-.admin-dialog--wide {
-  width: calc(100vw - 1.5rem);
-  max-width: 28rem;
-  max-height: min(32rem, 85dvh);
-  overflow: hidden;
-  color: #fff;
-  background: oklch(14.5% 0 none);
-}
-
-@media (width >= 568px) {
-  .admin-dialog--wide {
-    width: 100%;
-  }
-}
-
-/* The same, for a form rather than a list: scrolls vertically, never sideways. */
-.admin-dialog--form {
-  max-height: 85dvh;
-  overflow-x: hidden;
-  overflow-y: auto;
-  color: #fff;
-  background: oklch(14.5% 0 none);
-  border-color: color-mix(in oklch, #fff 10%, transparent);
-}
-
-@media (width >= 568px) {
-  .admin-dialog--form {
-    max-width: 28rem;
-  }
-}
-
-.admin-dialog__heading {
-  font-weight: 300;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro-widest);
-}
-
-.admin-dialog__subtitle {
-  font-size: var(--text-xs-ui);
-  color: color-mix(in oklch, #fff 90%, transparent);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-widest);
 }
 
 /*

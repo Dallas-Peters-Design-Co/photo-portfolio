@@ -78,6 +78,8 @@ const buttonVariants = cva(
       },
       size: {
         default: "min-h-11 px-4 text-sm uppercase tracking-widest",
+        /** An icon in the board editor's header bar. */
+        header: "relative size-9 min-w-0 p-0",
         icon: "size-10 min-h-11 min-w-11",
         "icon-lg": "size-11 min-h-11 min-w-11",
         // Below the 40px dense-desktop minimum on their own, so the target is
@@ -115,12 +117,17 @@ const buttonVariants = cva(
         accent: "aria-pressed:text-[var(--btn-accent-fg)]",
         danger: "",
         default: "",
+        /** The board is published: its link and globe say so in green. */
+        live: "text-emerald-500 hover:text-emerald-400",
       },
       variant: {
         default:
           "bg-primary text-primary-foreground hover:bg-[var(--btn-solid-hover-bg)]",
         ghost:
           "text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
+        /** The board editor's header: ink on the paper, pressed when on. */
+        header:
+          "text-board-ink/70 hover:text-board-ink aria-pressed:bg-board-ink/10 aria-pressed:text-board-ink",
         link: "text-[var(--btn-fg)] underline-offset-4 hover:text-[var(--btn-fg-strong)] hover:underline",
         noborder:
           "text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",

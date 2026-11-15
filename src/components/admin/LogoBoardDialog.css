@@ -4,10 +4,6 @@
  * Wider than the stock admin dialog, which is sized for one question: this
  * holds a short form and a row of directions to tick.
  */
-.logo-board-dialog {
-  max-width: 34rem;
-}
-
 .logo-board-dialog__form {
   display: flex;
   flex-direction: column;

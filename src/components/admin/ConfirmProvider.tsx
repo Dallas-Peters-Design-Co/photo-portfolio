@@ -117,19 +117,15 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         }}
         open={options !== null}
       >
-        <DialogContent className="admin-dialog">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="admin-dialog__title">
-              {options?.title}
-            </DialogTitle>
+            <DialogTitle>{options?.title}</DialogTitle>
             {options?.description ? (
-              <DialogDescription className="admin-dialog__body">
-                {options.description}
-              </DialogDescription>
+              <DialogDescription>{options.description}</DialogDescription>
             ) : null}
           </DialogHeader>
 
-          <DialogFooter className="row row--tight">
+          <DialogFooter>
             <Button onClick={() => settle(false)} type="button" variant="ghost">
               {options?.cancelLabel ?? "Cancel"}
             </Button>
@@ -153,15 +149,11 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         }}
         open={promptOptions !== null}
       >
-        <DialogContent className="admin-dialog">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="admin-dialog__title">
-              {promptOptions?.title}
-            </DialogTitle>
+            <DialogTitle>{promptOptions?.title}</DialogTitle>
             {promptOptions?.description ? (
-              <DialogDescription className="admin-dialog__body">
-                {promptOptions.description}
-              </DialogDescription>
+              <DialogDescription>{promptOptions.description}</DialogDescription>
             ) : null}
           </DialogHeader>
 
@@ -179,7 +171,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             value={promptValue}
           />
 
-          <DialogFooter className="row row--tight">
+          <DialogFooter>
             <Button
               onClick={() => settlePrompt(null)}
               type="button"

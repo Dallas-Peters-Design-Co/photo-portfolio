@@ -104,7 +104,7 @@ export const PhotoCard = ({
           <Checkbox
             aria-label={`Select ${photo.title}`}
             checked={selected}
-            className="photo-card__checkbox"
+            className="size-5"
             id={`select-photo-${photo.id}`}
             onChange={() => selection.toggle(photo.id)}
           />

@@ -61,11 +61,11 @@ export default function ThemeToggle({
   return (
     <Button
       aria-label={`Theme: ${LABEL[choice]}. Switch to ${LABEL[next]}.`}
-      className={iconOnly ? "board-header-icon" : undefined}
       onClick={() => setChoice(next)}
+      size={iconOnly ? "header" : undefined}
       title={iconOnly ? `Theme: ${LABEL[choice]}` : undefined}
       type="button"
-      variant="ghost"
+      variant={iconOnly ? "header" : "ghost"}
     >
       <HugeiconsIcon aria-hidden icon={ICON[choice]} size={16} />
       {iconOnly ? null : LABEL[choice]}

@@ -158,15 +158,16 @@ export function ProposalInvoices({
             {formatMoney(billed)} billed
           </span>
         ) : null}
-        <Button
-          className="ml-auto"
-          disabled={busy !== null}
-          onClick={() => void addDraft()}
-          type="button"
-          variant="ghost"
-        >
-          <Plus size={14} /> New invoice
-        </Button>
+        <div className="ml-auto">
+          <Button
+            disabled={busy !== null}
+            onClick={() => void addDraft()}
+            type="button"
+            variant="ghost"
+          >
+            <Plus size={14} /> New invoice
+          </Button>
+        </div>
       </div>
 
       {stripe ? null : (

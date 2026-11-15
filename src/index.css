@@ -703,3 +703,15 @@
   margin: 2rem 0;
   border-color: rgba(255, 255, 255, 0.1);
 }
+
+/*
+ * How tall a dialog may grow: a form to most of the window, a list to a
+ * readable column or the window, whichever is less. Both scroll inside.
+ */
+@utility max-h-dialog {
+  max-height: 85dvh;
+}
+
+@utility max-h-dialog-list {
+  max-height: min(32rem, 85dvh);
+}

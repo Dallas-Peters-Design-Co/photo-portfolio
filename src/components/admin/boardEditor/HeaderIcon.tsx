@@ -6,18 +6,19 @@ import "./boardEditorChrome.css";
 /** One icon in the header: its name in the tooltip, and a count if it has one. */
 export function HeaderIcon({
   badge = 0,
-  className = "",
   disabled,
   icon,
   label,
+  live = false,
   onClick,
   pressed,
 }: {
   badge?: number;
-  className?: string;
   disabled?: boolean;
   icon: typeof PlayIcon;
   label: string;
+  /** The board is published. */
+  live?: boolean;
   onClick: () => void;
   pressed?: boolean;
 }) {
@@ -25,12 +26,13 @@ export function HeaderIcon({
     <Button
       aria-label={label}
       aria-pressed={pressed}
-      className={`board-header-icon ${className}`}
       disabled={disabled}
       onClick={onClick}
+      size="header"
       title={label}
+      tone={live ? "live" : "default"}
       type="button"
-      variant="ghost"
+      variant="header"
     >
       <HugeiconsIcon aria-hidden icon={icon} size={16} />
       {badge > 0 ? (

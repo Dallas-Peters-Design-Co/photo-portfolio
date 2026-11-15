@@ -72,9 +72,9 @@ export function BoardHeaderActions({
       />
       {publicUrl ? (
         <HeaderIcon
-          className="board-header-icon--live"
           icon={Link01Icon}
           label={`Copy the link: ${publicUrl.replace(SCHEME, "")}`}
+          live
           onClick={() => {
             void navigator.clipboard.writeText(publicUrl);
             toast.success("Link copied");
@@ -95,10 +95,10 @@ export function BoardHeaderActions({
           has been taken. */}
       <PublishReview board={board} items={items} />
       <HeaderIcon
-        className={isPublic ? "board-header-icon--live" : ""}
         disabled={isPublishing}
         icon={Globe02Icon}
         label={isPublic ? "Published · click to unpublish" : "Publish"}
+        live={isPublic}
         onClick={onPublish}
         pressed={isPublic}
       />

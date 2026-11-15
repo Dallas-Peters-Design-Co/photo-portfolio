@@ -127,12 +127,10 @@ export function LogoBoardDialog({
       }}
       open={open}
     >
-      <DialogContent className="admin-dialog logo-board-dialog">
+      <DialogContent size="lg">
         <DialogHeader>
-          <DialogTitle className="admin-dialog__title">
-            New logo board
-          </DialogTitle>
-          <DialogDescription className="admin-dialog__body">
+          <DialogTitle>New logo board</DialogTitle>
+          <DialogDescription>
             Your brief runs through an Iterate node, one line per direction,
             into a single Generate. One Run makes every direction; drag the
             keepers into Picks.
@@ -291,7 +289,7 @@ export function LogoBoardDialog({
             </span>
           </label>
 
-          <DialogFooter className="row row--tight">
+          <DialogFooter>
             <Button
               disabled={busy}
               onClick={onClose}

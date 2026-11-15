@@ -119,15 +119,10 @@ export const CategoriesManageDialog = ({
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent
-        className="admin-dialog admin-dialog--wide"
-        showCloseButton
-      >
+      <DialogContent layout="list" showCloseButton size="md">
         <DialogHeader>
-          <DialogTitle className="admin-dialog__heading">
-            Categories
-          </DialogTitle>
-          <DialogDescription className="admin-dialog__subtitle">
+          <DialogTitle>Categories</DialogTitle>
+          <DialogDescription variant="caption">
             Search, add a new name, or remove categories that have no photos.
           </DialogDescription>
         </DialogHeader>

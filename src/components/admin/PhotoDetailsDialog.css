@@ -23,9 +23,6 @@
 }
 
 /* Nudged down onto the label's baseline. */
-.photo-details__check {
-  margin-block-start: calc(var(--spacing) * 0.5);
-}
 
 /* A screen-reader-only legend: the fieldset needs a name, the sighted reader
    already has the heading below it. */
