@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CreativeEditor } from "../../../boards/creative/CreativeEditor";
 import { markDesigned } from "../../../boards/geometry/frameLock";
 import { pickImages } from "../../../boards/itemImages";
 import { selectedIndex } from "../../../boards/itemOutput";
+import {
+  compositionOnBoard,
+  type StudioComposition,
+} from "../../../boards/studio/composition";
 import {
   BoardImagesContext,
   boardImages,
@@ -34,11 +38,33 @@ export const useFrameDesign = (
   const [designing, setDesigning] = useState<string | null>(null);
   // The Studio, opened from the insert palette by event (studioEvents.ts).
   const [studio, setStudio] = useState<string | null>(null);
+  const live = useRef(items);
+  live.current = items;
+  const addComposition = (
+    composition: StudioComposition,
+    openFrame = false
+  ) => {
+    const { current } = live;
+    const point = dropPoint?.(
+      current,
+      composition.width,
+      composition.height
+    ) ?? { x: 0, y: 0 };
+    const group = compositionOnBoard(composition, point, current);
+    const next = [...current, ...group];
+    live.current = next;
+    change(next);
+    if (openFrame) {
+      setDesigning(group[0]?.id ?? null);
+    }
+  };
   useEffect(() => onOpenStudio((toolId) => setStudio(toolId)), []);
   const designer = designing ? (
     <CreativeEditor
       frameId={designing}
       items={items}
+      key={designing}
+      onAddComposition={(composition) => addComposition(composition, true)}
       // Any change made here makes it a designed frame: one clipped object
       // on the canvas from then on (frameLock.ts).
       onChange={(next) => change(markDesigned(next, designing))}
@@ -64,6 +90,7 @@ export const useFrameDesign = (
         const point = dropPoint?.(items, 480, 480) ?? { x: 0, y: 0 };
         void dropFiles([file], { x: point.x + 240, y: point.y + 240 });
       }}
+      onAddComposition={addComposition}
       onAddMany={(files) => {
         const point = dropPoint?.(items, 480, 480) ?? { x: 0, y: 0 };
         void dropFiles(files, { x: point.x + 240, y: point.y + 240 });

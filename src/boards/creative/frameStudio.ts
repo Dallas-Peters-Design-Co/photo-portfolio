@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
+import type { StudioComposition } from "../studio/composition";
 import { recipeOf, type StudioRecipe } from "../studio/types";
 import { exportWidthFor, renderCreative } from "./exportPng";
 import {
@@ -119,6 +120,7 @@ const editingOf = (
 /** What EditorOverlays needs to show the Studio for this frame. */
 export const frameStudioProps = ({
   add,
+  addComposition,
   applyType,
   editId,
   fillShape,
@@ -133,6 +135,7 @@ export const frameStudioProps = ({
   textElementFor,
 }: {
   add: (item: BoardItem) => void;
+  addComposition?: (composition: StudioComposition) => void;
   applyType: (scale: TypeScale) => void;
   editId: string | null;
   /** Fills a shape with an uploaded Studio picture, and how it was made. */
@@ -207,6 +210,7 @@ export const frameStudioProps = ({
       snapshotInPlace,
     },
     onAdd: (file: File, next?: StudioRecipe) => void place(file, "fit", next),
+    onAddComposition: addComposition,
     tool: studio,
   };
 };

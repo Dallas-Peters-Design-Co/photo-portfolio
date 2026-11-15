@@ -2,6 +2,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { TypeScale } from "../../../../config/typeScale.js";
+import type { StudioComposition } from "../composition";
 
 const save = vi.fn(async (_id: string, doc: unknown) => ({ doc }));
 const kit = {
@@ -28,6 +29,7 @@ vi.mock("../../../hooks/useBrandKits", () => ({
 }));
 vi.mock("../../../services/brandKitService", () => ({
   brandKitsApi: {
+    fontshareFonts: async () => [],
     googleFonts: async () => [
       {
         category: "serif",
@@ -61,7 +63,8 @@ describe("Type & Spacing Scale", () => {
       root?.render(
         <StudioPanel
           initialTool="type-scale"
-          onAdd={onAdd}
+          onAdd={() => undefined}
+          onAddComposition={onAdd}
           onClose={() => undefined}
         />
       )
@@ -172,17 +175,40 @@ describe("Type & Spacing Scale", () => {
     ]);
   });
 
-  it("puts a specimen on the board", async () => {
+  it("inserts editable text with the picked font and scale settings", async () => {
     const onAdd = vi.fn();
     const el = mount(onAdd);
+    act(() =>
+      el
+        .querySelector<HTMLButtonElement>('[aria-label^="Headline font"]')
+        ?.click()
+    );
     await act(async () => {
-      button(el, "Add to board").click();
+      await vi.waitFor(() => expect(button(el, "Fraunces")).toBeTruthy());
+    });
+    act(() => button(el, "Fraunces").click());
+    const size = el.querySelector<HTMLInputElement>(
+      '[aria-label="h1 size in pixels"]'
+    );
+    act(() => setInput(size as HTMLInputElement, "72"));
+    await act(async () => {
+      button(el, "Add editable frame").click();
       await vi.waitFor(() => expect(onAdd).toHaveBeenCalled());
     });
-    const file = onAdd.mock.calls[0]?.[0] as File;
-    expect(file.name).toBe("type-scale.png");
-    const bitmap = await createImageBitmap(file);
-    expect(bitmap.width).toBe(2000);
-    expect(bitmap.height).toBeGreaterThan(800);
+    const composition = onAdd.mock.calls[0]?.[0] as StudioComposition;
+    expect(composition.title).toBe("Unruly Chain type scale");
+    expect(composition.items.every((item) => item.imageUrl === null)).toBe(
+      true
+    );
+    expect(
+      composition.items.filter((item) => item.kind === "text")
+    ).toHaveLength(28);
+    expect(
+      composition.items.find((item) => item.fontSize === 72)
+    ).toMatchObject({
+      body: "The quick brown fox",
+      kind: "text",
+      textStyle: { family: "g:Fraunces", weight: 600 },
+    });
   });
 });

@@ -5,7 +5,6 @@ import {
   MAX_TYPEFACES,
   type TypefaceEntry,
 } from "../../../../config/brandKit.js";
-import { familyOf } from "../../../../config/designMd.js";
 import {
   modularScale,
   scaleCss,
@@ -15,8 +14,9 @@ import {
 import { facesFor } from "../../../components/typeScale/faces";
 import { TypeScaleEditor } from "../../../components/typeScale/TypeScaleEditor";
 import { useKitPalette } from "../color/useKitPalette";
+import type { StudioComposition } from "../composition";
 import { FacePicker } from "./FacePicker";
-import { specimenPng } from "./specimen";
+import { typeSpecimen } from "./specimen";
 
 type Role = "body" | "headline";
 
@@ -49,7 +49,7 @@ export function TypeScaleTool({
   onAdd,
   onApply,
 }: {
-  onAdd: (file: File) => void;
+  onAdd?: (composition: StudioComposition) => void;
   /** Working for a frame: restyle its text with this scale. */
   onApply?: (scale: TypeScale) => void;
 }) {
@@ -76,24 +76,14 @@ export function TypeScaleTool({
       }
   );
 
-  const add = async () => {
-    if (!scale) {
+  const add = () => {
+    if (!(scale && onAdd)) {
       return;
     }
-    try {
-      const png = await specimenPng(
-        scale,
-        (face) => {
-          const f = face === "headline" ? faces.headline : faces.body;
-          return f ? `"${familyOf(f)}"` : undefined;
-        },
-        kit?.name ?? "Brand"
-      );
-      onAdd(new File([png], "type-scale.png", { type: "image/png" }));
-      toast.success("Type specimen added to the board");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Couldn't draw it");
-    }
+    onAdd(
+      typeSpecimen(scale, faces, kit?.name ?? "Brand", kit?.resolvedDoc.palette)
+    );
+    toast.success("Editable type scale added");
   };
 
   return (
@@ -119,9 +109,9 @@ export function TypeScaleTool({
         value={scale}
       />
       <p className="studio__blurb">
-        Pick the headline and body faces from the kit or any Google font. Saving
-        writes the scale, and the faces picked here, into the kit's DESIGN.md
-        and brand guide.
+        Pick headline and body faces from the kit, Google Fonts, or Fontshare.
+        Saving writes the scale, and the faces picked here, into the kit's
+        DESIGN.md and brand guide.
       </p>
       <div className="studio__actions">
         {onApply ? (
@@ -168,11 +158,11 @@ export function TypeScaleTool({
         ) : null}
         <button
           className="studio__button"
-          disabled={!scale?.styles.length}
-          onClick={() => void add()}
+          disabled={!(scale?.styles.length && onAdd)}
+          onClick={add}
           type="button"
         >
-          <Plus size={14} /> Add to board
+          <Plus size={14} /> Add editable frame
         </button>
         <button
           className="studio__button"

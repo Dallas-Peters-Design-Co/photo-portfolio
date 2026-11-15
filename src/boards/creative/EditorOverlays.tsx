@@ -1,6 +1,7 @@
 import { CommandPalette } from "../shortcuts/CommandPalette";
 import type { Command } from "../shortcuts/keys";
 import { ShortcutSheet } from "../shortcuts/ShortcutSheet";
+import type { StudioComposition } from "../studio/composition";
 import type { StudioEditing } from "../studio/ImageToolView";
 import { type StudioFrame, StudioPanel } from "../studio/StudioPanel";
 import type { StudioRecipe } from "../studio/types";
@@ -25,6 +26,7 @@ export function EditorOverlays({
     editing?: StudioEditing & { layerId: string };
     frame: StudioFrame;
     onAdd: (file: File, recipe?: StudioRecipe) => void;
+    onAddComposition?: (composition: StudioComposition) => void;
     tool: string;
   } | null;
 }) {
@@ -38,6 +40,7 @@ export function EditorOverlays({
           // A fresh panel per picture opened, so its settings load.
           key={studio.editing ? `edit:${studio.editing.layerId}` : "studio"}
           onAdd={studio.onAdd}
+          onAddComposition={studio.onAddComposition}
           onClose={onCloseStudio}
         />
       ) : null}

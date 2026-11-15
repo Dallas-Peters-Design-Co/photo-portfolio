@@ -12,6 +12,7 @@ import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import { PaletteTool } from "./color/PaletteTool";
 import { RampTool } from "./color/RampTool";
 import { SchemeTool } from "./color/SchemeTool";
+import type { StudioComposition } from "./composition";
 import { ImageToolView, type StudioEditing } from "./ImageToolView";
 import { lastValues, rememberValues } from "./presets";
 import {
@@ -94,6 +95,7 @@ export function StudioPanel({
   frame,
   initialTool,
   onAdd,
+  onAddComposition,
   onAddMany,
   selectedImage,
   onClose,
@@ -107,6 +109,8 @@ export function StudioPanel({
    * an image tool made it.
    */
   onAddMany?: (files: File[]) => void;
+  /** Inserts editable layers from a type or layout tool. */
+  onAddComposition?: (composition: StudioComposition) => void;
   /** The selected canvas image, for Studio tools that take a picture as input. */
   selectedImage?: string | null;
   onAdd: (file: File, recipe?: StudioRecipe) => void;
@@ -139,7 +143,9 @@ export function StudioPanel({
       return <SchemeTool onAdd={onAdd} />;
     }
     if (toolId === "type-scale") {
-      return <TypeScaleTool onAdd={onAdd} onApply={frame?.onApplyType} />;
+      return (
+        <TypeScaleTool onAdd={onAddComposition} onApply={frame?.onApplyType} />
+      );
     }
     if (toolId === "ramps") {
       return (
@@ -253,7 +259,6 @@ export function StudioPanel({
           title="Drag to set the width"
         />
       ) : null}
-      {/* biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the panel works at its default size */}
       <span
         aria-hidden
         className="studio__corner"

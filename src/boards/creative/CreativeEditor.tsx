@@ -17,6 +17,7 @@ import { isDrawingConfig } from "../drawing/drawing";
 import { requestHistory } from "../hooks/historyRequest";
 import { BrandDock } from "../panels/BrandDock";
 import { useShortcuts } from "../shortcuts/useShortcuts";
+import type { StudioComposition } from "../studio/composition";
 import { Artboard } from "./Artboard";
 import { BrandPanel } from "./BrandPanel";
 import { ContextBar } from "./ContextBar";
@@ -46,6 +47,7 @@ import "./CreativeEditor.css";
 export interface CreativeEditorProps {
   frameId: string;
   items: BoardItem[];
+  onAddComposition?: (composition: StudioComposition) => void;
   onChange: (next: BoardItem[]) => void;
   onClose: () => void;
   onDropFiles?: (files: File[], point: { x: number; y: number }) => void;
@@ -79,6 +81,7 @@ export function CreativeEditor({
   frameId,
   items,
   onChange,
+  onAddComposition,
   onClose,
   onDropFiles,
 }: CreativeEditorProps) {
@@ -398,6 +401,7 @@ export function CreativeEditor({
         overlay={overlay}
         studio={frameStudioProps({
           add: cmd.add,
+          addComposition: onAddComposition,
           applyType: cmd.applyTypeScale,
           editId,
           fillShape: (id, url, made) => {
