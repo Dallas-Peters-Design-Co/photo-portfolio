@@ -1,6 +1,7 @@
 import { Check, Copy, Download, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ColorWell } from "../../ColorWell";
 import { saveBlob, svgToPngBlob } from "../render";
 import { type Ramp, rampOf, rampsCss, rampsJson, STEPS, slug } from "./ramp";
 import { swatchesSvg } from "./swatches";
@@ -192,11 +193,11 @@ export function RampTool({
         </label>
         <div className="studio__field">
           <span>Another colour</span>
-          <input
-            aria-label="Colour to add"
-            className="studio-ramps__pick"
-            onChange={(e) => setPick(e.target.value)}
-            type="color"
+          <ColorWell
+            alpha={false}
+            label="Colour to add"
+            noVars
+            onChange={setPick}
             value={pick}
           />
           <button

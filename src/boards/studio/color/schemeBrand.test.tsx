@@ -23,7 +23,7 @@ vi.mock("../../brand/ActiveBrand", () => ({
       resolvedDoc: { palette: PALETTE },
     },
   }),
-  useBrandSwatches: () => null,
+  useBrandSwatches: () => undefined,
 }));
 vi.mock("../../../hooks/useBrandKits", () => ({
   useBrandKits: () => ({ refresh: () => Promise.resolve() }),
@@ -66,16 +66,20 @@ it("loads the brand's colours, changes one, and saves them back named", async ()
   act(() =>
     (host.querySelector('[aria-label="Edit colour 3"]') as HTMLElement).click()
   );
-  const well = host.querySelector(
-    '[aria-label="Colour 3 colour"]'
-  ) as HTMLInputElement;
+  // The well opens the OKLCH picker; its text field takes a hex value.
+  act(() =>
+    (
+      host.querySelector('[aria-label="Colour 3 colour"]') as HTMLElement
+    ).click()
+  );
+  const field = document.querySelector(".oklch__text") as HTMLInputElement;
   const setter = Object.getOwnPropertyDescriptor(
     HTMLInputElement.prototype,
     "value"
   )?.set;
   act(() => {
-    setter?.call(well, "#aa3311");
-    well.dispatchEvent(new Event("input", { bubbles: true }));
+    setter?.call(field, "#aa3311");
+    field.dispatchEvent(new Event("input", { bubbles: true }));
   });
   expect(hexes()).toEqual(["#2f7cf6", "#001a1f", "#aa3311"]);
 

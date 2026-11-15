@@ -8,6 +8,7 @@ import {
   type ReviewConceptElement,
   type ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
+import { ColorWell } from "../../boards/ColorWell";
 import { ConceptSelect } from "./ConceptControls";
 
 const paletteColor = (
@@ -317,11 +318,12 @@ export function ConceptColorField({
             />
           </div>
         ) : null}
-        <input
-          aria-label={ariaLabel}
-          onChange={(event) => onChange(event.target.value)}
-          type="color"
-          value={value === NONE ? "#ffffff" : value}
+        <ColorWell
+          alpha={false}
+          label={ariaLabel}
+          noVars
+          onChange={onChange}
+          value={value}
         />
       </div>
     </div>

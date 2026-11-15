@@ -12,6 +12,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { formatOklch, hexToOklch } from "../../../lib/oklch";
+import { ColorWell } from "../../ColorWell";
 import { saveBlob, svgToPngBlob } from "../render";
 import { inkOn } from "./harmony";
 import { SchemeControls } from "./SchemeControls";
@@ -135,14 +136,14 @@ function SchemeBuilder({
         <div className="studio__controls">
           <div className="studio-scheme__picked">
             <strong>{nameOf(selected)}</strong>
-            <input
-              aria-label={`${nameOf(selected)} colour`}
-              className="studio-scheme__well"
-              onChange={(e) => {
-                const { c, h, l } = lchOf(e.target.value);
+            <ColorWell
+              alpha={false}
+              label={`${nameOf(selected)} colour`}
+              noVars
+              onChange={(hex) => {
+                const { c, h, l } = lchOf(hex);
                 scheme.setColour(selected, { c, h, l });
               }}
-              type="color"
               value={colors[selected] ?? scheme.anchor}
             />
             {scheme.held(selected) ? (

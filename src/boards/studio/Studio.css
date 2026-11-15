@@ -341,14 +341,6 @@
   outline-offset: 1px;
 }
 
-.studio-ramps__pick {
-  width: calc(var(--spacing) * 10);
-  height: calc(var(--spacing) * 7);
-  padding: 0;
-  background: none;
-  border: 0;
-}
-
 /* Palette Generator */
 
 .studio-palette {
@@ -398,15 +390,6 @@
 .studio-palette__swatch:hover .studio-palette__tool,
 .studio-palette__tool:focus-visible {
   opacity: 1;
-}
-
-.studio-palette__well {
-  position: absolute;
-  inset: 0 0 calc(var(--spacing) * 24);
-  width: 100%;
-  height: auto;
-  cursor: pointer;
-  opacity: 0;
 }
 
 .studio-palette__hex {
@@ -980,15 +963,6 @@
   gap: calc(var(--spacing) * 2);
   align-items: center;
   font-size: 0.8125rem;
-}
-
-.studio-scheme__well {
-  width: 2rem;
-  height: 1.5rem;
-  padding: 0;
-  cursor: pointer;
-  background: none;
-  border: 0;
 }
 
 .studio-scheme__switch {

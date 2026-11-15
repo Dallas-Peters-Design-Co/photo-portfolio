@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ColorWell } from "../../ColorWell";
 import { isTyping } from "../../hooks/isTyping";
 import { ImagePick } from "../ImagePick";
 import {
@@ -218,15 +219,13 @@ export function PaletteTool({
                 <X size={15} />
               </button>
             ) : null}
-            <input
-              aria-label={`Colour ${i + 1}`}
-              className="studio-palette__well"
-              onChange={(e) =>
-                setColors((was) =>
-                  was.map((v, k) => (k === i ? e.target.value : v))
-                )
+            <ColorWell
+              alpha={false}
+              label={`Colour ${i + 1}`}
+              noVars
+              onChange={(hex) =>
+                setColors((was) => was.map((v, k) => (k === i ? hex : v)))
               }
-              type="color"
               value={c}
             />
             <select

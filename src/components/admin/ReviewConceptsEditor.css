@@ -99,16 +99,6 @@
   min-width: 0;
 }
 
-.review-concepts__color-row input[type="color"] {
-  flex: none;
-  width: calc(var(--spacing) * 10);
-  height: calc(var(--spacing) * 7);
-  padding: 2px;
-  background: color-mix(in oklch, currentColor 5%, transparent);
-  border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
-  border-radius: var(--radius-control);
-}
-
 .review-concepts__elements {
   display: grid;
   gap: calc(var(--spacing) * 2);
