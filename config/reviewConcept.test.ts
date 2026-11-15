@@ -43,7 +43,7 @@ describe("card border and shadow", () => {
     const [card, button] = cleanConcept({
       elements: [
         { borderColor: "red", kind: "card", shadow: "huge" },
-        { borderColor: "#ffffff", kind: "button", shadow: "soft" },
+        { borderColor: "#ffffff", kind: "text", shadow: "soft" },
       ],
     }).elements;
     expect(card?.borderColor).toBeUndefined();
@@ -186,7 +186,7 @@ describe("badge and card borders", () => {
       elements: [
         { borderColor: "#c7d7fe", borderWidth: 20, kind: "badge" },
         { borderColor: "transparent", kind: "card" },
-        { borderColor: "#c7d7fe", borderWidth: 2, kind: "button" },
+        { borderColor: "#c7d7fe", borderWidth: 2, kind: "text" },
       ],
     }).elements;
     expect(badge).toMatchObject({ borderColor: "#c7d7fe", borderWidth: 8 });
@@ -207,5 +207,35 @@ describe("checkbox accent and size", () => {
     expect(box).toMatchObject({ accentColor: "#ff0000", checkSize: 40 });
     expect(button?.accentColor).toBeUndefined();
     expect(button?.checkSize).toBeUndefined();
+  });
+});
+
+describe("border and shadow on every box", () => {
+  it("keeps a border and shadow on buttons, inputs and selects, not on text", () => {
+    const shadow = {
+      blur: 8,
+      color: "#000000",
+      opacity: 20,
+      spread: 0,
+      x: 0,
+      y: 2,
+    };
+    const [button, input, select, text] = cleanConcept({
+      elements: ["button", "input", "select", "text"].map((kind) => ({
+        borderColor: "#ff0000",
+        borderWidth: 2,
+        kind,
+        shadow,
+      })),
+    }).elements;
+    for (const box of [button, input, select]) {
+      expect(box).toMatchObject({
+        borderColor: "#ff0000",
+        borderWidth: 2,
+        shadow,
+      });
+    }
+    expect(text?.borderColor).toBeUndefined();
+    expect(text?.shadow).toBeUndefined();
   });
 });

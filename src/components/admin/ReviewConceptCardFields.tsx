@@ -5,11 +5,11 @@ import {
 } from "../../../config/conceptIcon.js";
 import {
   type ConceptShadow,
-  DEFAULT_SHADOW,
   presetOf,
   SHADOW_LIMITS,
   SHADOW_PRESETS,
   type ShadowPreset,
+  shadowOf,
 } from "../../../config/conceptShadow.js";
 import {
   iconSizeOf,
@@ -89,7 +89,7 @@ const SHADOW_FIELDS = [
  * A preset to start from, then every part of the shadow. Tuning any field
  * turns the preset to Custom.
  */
-export function CardShadowGroup({
+export function ShadowGroup({
   brandDoc,
   element,
   onChange,
@@ -98,7 +98,7 @@ export function CardShadowGroup({
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
 }) {
-  const shadow = element.shadow ?? DEFAULT_SHADOW;
+  const shadow = shadowOf(element);
   const preset = presetOf(shadow);
   const set = (patch: Partial<ConceptShadow>) =>
     onChange({ shadow: { ...shadow, ...patch } });

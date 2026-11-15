@@ -259,27 +259,41 @@ const cleanIcon = (
   };
 };
 
-/** Kinds with an editable outline: its colour (or none) and its width. */
-const BORDER_KINDS = new Set<ReviewConceptElementKind>(["badge", "card"]);
+/**
+ * Kinds drawn as a box, with an editable border (colour or none, width) and
+ * shadow: the controls, the surfaces and the pills.
+ */
+const BOX_KINDS = new Set<ReviewConceptElementKind>([
+  "badge",
+  "button",
+  "card",
+  "input",
+  "select",
+  "textarea",
+]);
 
-export const takesBorder = (kind: ReviewConceptElementKind): boolean =>
-  BORDER_KINDS.has(kind);
+export const takesBox = (kind: ReviewConceptElementKind): boolean =>
+  BOX_KINDS.has(kind);
 
-const cleanBorder = (
+const cleanBox = (
   kind: ReviewConceptElementKind,
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "borderColor" | "borderWidth"> =>
-  takesBorder(kind)
-    ? {
-        // "transparent" is the editor's None: kept, so it is not a fallback.
-        ...(isHex(raw.borderColor) || raw.borderColor === "transparent"
-          ? { borderColor: raw.borderColor }
-          : {}),
-        ...(typeof raw.borderWidth === "number"
-          ? { borderWidth: bounded(raw.borderWidth, 0, 8, 1) }
-          : {}),
-      }
-    : {};
+): Pick<ReviewConceptElement, "borderColor" | "borderWidth" | "shadow"> => {
+  if (!takesBox(kind)) {
+    return {};
+  }
+  const shadow = cleanShadow(raw.shadow);
+  return {
+    // "transparent" is the editor's None: kept, so it is not a fallback.
+    ...(isHex(raw.borderColor) || raw.borderColor === "transparent"
+      ? { borderColor: raw.borderColor }
+      : {}),
+    ...(typeof raw.borderWidth === "number"
+      ? { borderWidth: bounded(raw.borderWidth, 0, 8, 1) }
+      : {}),
+    ...(shadow ? { shadow } : {}),
+  };
+};
 
 const cleanCheckbox = (
   raw: Partial<ReviewConceptElement>
@@ -292,15 +306,10 @@ const cleanCheckbox = (
 
 const cleanCard = (
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "bodySize" | "shadow"> => {
-  const shadow = cleanShadow(raw.shadow);
-  return {
-    ...(typeof raw.bodySize === "number"
-      ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
-      : {}),
-    ...(shadow ? { shadow } : {}),
-  };
-};
+): Pick<ReviewConceptElement, "bodySize"> =>
+  typeof raw.bodySize === "number"
+    ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
+    : {};
 
 const cleanColor = (value: unknown, fallback: string): string => {
   if (value === "transparent") {
@@ -388,7 +397,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     paddingY: bounded(raw.paddingY, 0, 32, 10),
     radius: bounded(raw.radius, 0, 48, 4),
     ...(kind === "card" ? cleanCard(raw) : {}),
-    ...cleanBorder(kind, raw),
+    ...cleanBox(kind, raw),
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(table ? { table } : {}),
     ...cleanLink(raw),

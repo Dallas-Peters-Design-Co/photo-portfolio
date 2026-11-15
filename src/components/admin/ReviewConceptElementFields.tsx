@@ -4,7 +4,7 @@ import type { BrandKitDoc } from "../../../config/brandKit.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import {
   type ReviewConceptElement,
-  takesBorder,
+  takesBox,
   takesIcon,
 } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
@@ -21,9 +21,9 @@ import { ConceptFontField } from "./ConceptFontField";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import {
-  CardShadowGroup,
   CheckboxGroup,
   ElementIconGroup,
+  ShadowGroup,
 } from "./ReviewConceptCardFields";
 import { ReviewConceptContentField } from "./ReviewConceptContentField";
 
@@ -396,8 +396,8 @@ export function ReviewConceptElementFields({
               value={element.paddingY}
             />
           </ConceptGroup>
-          {element.kind === "card" ? (
-            <CardShadowGroup
+          {takesBox(element.kind) ? (
+            <ShadowGroup
               brandDoc={brandDoc}
               element={element}
               onChange={onChange}
@@ -420,7 +420,7 @@ export function ReviewConceptElementFields({
               value={element.background}
             />
           </ConceptGroup>
-          {takesBorder(element.kind) ? (
+          {takesBox(element.kind) ? (
             <ConceptGroup name="Border">
               <ConceptColorField
                 allowNone

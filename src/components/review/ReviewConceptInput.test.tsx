@@ -143,3 +143,35 @@ it("draws a checkbox in its accent colour and box size", () => {
   expect(box.accentColor).toBe("rgb(255, 0, 0)");
   expect(box.width).toBe("24px");
 });
+
+it("draws a button's border and shadow, and keeps a field's faint outline until set", () => {
+  act(() =>
+    root.render(
+      <>
+        <ReviewConceptElementView
+          element={{
+            ...createConceptElement("button"),
+            borderColor: "#ff0000",
+            borderWidth: 3,
+            shadow: {
+              blur: 10,
+              color: "#000000",
+              opacity: 30,
+              spread: 0,
+              x: 0,
+              y: 4,
+            },
+          }}
+        />
+        <ReviewConceptElementView element={createConceptElement("textarea")} />
+      </>
+    )
+  );
+  const button = getComputedStyle(host.querySelector("button") as HTMLElement);
+  expect(button.borderTopWidth).toBe("3px");
+  expect(button.borderTopColor).toBe("rgb(255, 0, 0)");
+  expect(button.boxShadow).not.toBe("none");
+  const field = getComputedStyle(host.querySelector("textarea") as HTMLElement);
+  expect(field.borderTopWidth).toBe("1px");
+  expect(field.boxShadow).toBe("none");
+});

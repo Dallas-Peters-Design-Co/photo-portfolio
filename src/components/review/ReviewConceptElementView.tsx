@@ -5,12 +5,13 @@ import {
   type ConceptIconSvg,
   conceptIconName,
 } from "../../../config/conceptIcon.js";
-import { shadowCss } from "../../../config/conceptShadow.js";
+import { shadowCss, shadowOf } from "../../../config/conceptShadow.js";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
   iconSizeOf,
   type ReviewConceptElement,
   splitCardText,
+  takesBox,
 } from "../../../config/reviewConcept.js";
 import { findFont } from "../../../config/theme.js";
 import { iconFrom, useIconMap } from "../../cms/useIconMap";
@@ -91,15 +92,7 @@ function CardPreview({
 }) {
   const card = splitCardText(element.text);
   return (
-    <article
-      className="review-concepts__card-preview"
-      style={{
-        ...style,
-        borderColor: element.borderColor,
-        borderWidth: element.borderWidth,
-        boxShadow: shadowCss(element.shadow),
-      }}
-    >
+    <article className="review-concepts__card-preview" style={style}>
       {element.iconName ? (
         <ConceptIcon
           color={element.iconColor}
@@ -252,6 +245,29 @@ const BARE_FIELD: CSSProperties = {
   padding: 0,
 };
 
+/** Fields drawn with a faint outline until they are given a border. */
+const OUTLINED = new Set(["input", "select", "textarea"]);
+const FAINT_OUTLINE =
+  "1px solid color-mix(in srgb, currentColor 25%, transparent)";
+
+/**
+ * A box element's border and shadow: its own border when set, else a field's
+ * faint outline (a card's comes from its stylesheet); its shadow, else none
+ * (a card's soft one).
+ */
+const boxOf = (element: ReviewConceptElement): CSSProperties => {
+  if (!takesBox(element.kind)) {
+    return {};
+  }
+  let border: string | undefined;
+  if (element.borderColor) {
+    border = `${element.borderWidth ?? 1}px solid ${element.borderColor}`;
+  } else if (OUTLINED.has(element.kind)) {
+    border = FAINT_OUTLINE;
+  }
+  return { border, boxShadow: shadowCss(shadowOf(element)) };
+};
+
 export function ReviewConceptElementView({
   element,
 }: {
@@ -259,9 +275,7 @@ export function ReviewConceptElementView({
 }) {
   const style: CSSProperties = {
     background: element.background,
-    border: ["input", "textarea", "select"].includes(element.kind)
-      ? "1px solid color-mix(in srgb, currentColor 25%, transparent)"
-      : undefined,
+    ...boxOf(element),
     borderRadius: element.radius,
     boxSizing: "border-box",
     color: element.color,
@@ -339,19 +353,7 @@ export function ReviewConceptElementView({
     case "label":
       return <span style={style}>{text}</span>;
     case "badge":
-      return (
-        <span
-          style={{
-            ...style,
-            border: element.borderColor
-              ? `${element.borderWidth ?? 1}px solid ${element.borderColor}`
-              : undefined,
-            display: "inline-flex",
-          }}
-        >
-          {text}
-        </span>
-      );
+      return <span style={{ ...style, display: "inline-flex" }}>{text}</span>;
     case "link":
       return (
         <button

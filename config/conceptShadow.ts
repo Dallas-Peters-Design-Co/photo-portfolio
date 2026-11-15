@@ -25,6 +25,14 @@ export type ShadowPreset = keyof typeof SHADOW_PRESETS;
 /** What a card without a stored shadow draws. */
 export const DEFAULT_SHADOW: ConceptShadow = SHADOW_PRESETS.soft;
 
+/** An element's shadow: its own, else a card's soft one, else none. */
+export const shadowOf = (element: {
+  kind: string;
+  shadow?: ConceptShadow;
+}): ConceptShadow =>
+  element.shadow ??
+  (element.kind === "card" ? DEFAULT_SHADOW : SHADOW_PRESETS.none);
+
 const HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
 
 /** The editable ranges, shared by the cleaner and the form. */
