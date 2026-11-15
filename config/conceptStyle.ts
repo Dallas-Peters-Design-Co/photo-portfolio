@@ -46,8 +46,18 @@ export interface ConceptStyle {
 }
 
 export const MAX_CONCEPT_STYLES = 40;
-const ICON_KEYS = new Set<ConceptStyleKey>(["iconColor", "iconSize"]);
-const FONT_KEYS = new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]);
+/** Icon settings a style may leave unset; the element's own then stand. */
+const ICON_KEYS = new Set<ConceptStyleKey>([
+  "iconColor",
+  "iconName",
+  "iconSize",
+  "iconSvg",
+]);
+/** One choice each, kept or overridden whole. */
+const LINKED_KEYS: readonly ReadonlySet<ConceptStyleKey>[] = [
+  new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]),
+  new Set<ConceptStyleKey>(["iconName", "iconSvg"]),
+];
 const MAX_STYLE_NAME = 60;
 
 /** An element's look: the part a style holds. */
@@ -77,9 +87,9 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   const look = (raw.look ?? {}) as ConceptStyleLook;
   const element = cleanElement({
     ...look,
-    // A stand-in icon, so an icon's size and colour survive cleaning; the
-    // icon itself is content and is not kept (lookOf drops it).
-    iconName: "StarIcon",
+    // A stand-in when the style sets no icon, so its icon size and colour
+    // survive cleaning (cleanIcon keeps them only beside an icon).
+    iconName: look.iconName ?? "StarIcon",
     kind: raw.kind,
     // A table's borders and header are checked by the table's own rules.
     table: {
@@ -93,10 +103,13 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
     typeof raw.name === "string"
       ? raw.name.trim().slice(0, MAX_STYLE_NAME)
       : "";
+  const cleaned = lookOf(element);
+  // The stand-in is not the style's icon.
+  const { iconName: _name, iconSvg: _svg, ...iconless } = cleaned;
   return {
     id: raw.id,
     kind: element.kind,
-    look: lookOf(element),
+    look: look.iconName ? cleaned : iconless,
     name: name || "Untitled",
   };
 };
@@ -185,11 +198,14 @@ export const withOverrides = (
   const changed: ConceptStyleKey[] = ELEMENT_STYLE_KEYS.filter(
     (key) => key in patch && !same(patch[key], element[key])
   );
-  // A typeface is one choice across three keys; keep all of it or none.
-  if (changed.some((key) => FONT_KEYS.has(key))) {
-    for (const key of FONT_KEYS) {
-      if (!changed.includes(key)) {
-        changed.push(key);
+  // A typeface (three keys) and an icon (name and drawing) are each one
+  // choice: an element keeps all of it as its own, or none.
+  for (const group of LINKED_KEYS) {
+    if (changed.some((key) => group.has(key))) {
+      for (const key of group) {
+        if (!changed.includes(key)) {
+          changed.push(key);
+        }
       }
     }
   }

@@ -223,3 +223,41 @@ describe("review fixes", () => {
     expect(drawn.table?.columns[0]?.label).toBe("Name");
   });
 });
+
+describe("a style's icon", () => {
+  const heart = [["path", { d: "M1 1h2" }]] as [
+    string,
+    Record<string, string>,
+  ][];
+  const [stat] = cleanConceptStyles([
+    {
+      id: "stat",
+      kind: "card",
+      look: { iconName: "FavouriteIcon", iconSvg: heart },
+      name: "Stat",
+    },
+  ]);
+  const card = (more: Partial<ReviewConceptElement> = {}) =>
+    cleanConcept({ elements: [{ kind: "card", styleId: "stat", ...more }] })
+      .elements[0] as ReviewConceptElement;
+
+  it("is kept by the style, and drawn on linked elements", () => {
+    expect(stat?.look.iconName).toBe("FavouriteIcon");
+    expect(applyConceptStyle(card(), [stat as ConceptStyle]).iconName).toBe(
+      "FavouriteIcon"
+    );
+  });
+
+  it("gives way to an icon the element picked itself, name and drawing together", () => {
+    const linked = applyConceptStyle(card(), [stat as ConceptStyle]);
+    const { overrides } = withOverrides(linked, { iconName: "StarIcon" });
+    expect(overrides).toEqual(["iconName", "iconSvg"]);
+  });
+
+  it("is not invented by cleaning when the style sets none", () => {
+    const [plain] = cleanConceptStyles([
+      { id: "p", kind: "card", look: {}, name: "P" },
+    ]);
+    expect(plain?.look.iconName).toBeUndefined();
+  });
+});

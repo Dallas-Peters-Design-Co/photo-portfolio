@@ -144,6 +144,10 @@ export const ELEMENT_STYLE_KEYS = [
   "bodySize",
   "iconColor",
   "iconSize",
+  // A style may set an icon too ("Input / Search"); it is kept or overridden
+  // as one choice with its drawing.
+  "iconName",
+  "iconSvg",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 export const CONCEPT_STYLE_KEYS = [

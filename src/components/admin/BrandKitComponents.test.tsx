@@ -59,3 +59,30 @@ it("keeps the parent's styles when a sub-brand adds its first own", async () => 
   ]);
   host.remove();
 });
+
+function OneCard() {
+  const [doc, setDoc] = useState<BrandKitDoc>({
+    ...EMPTY_KIT,
+    componentStyles: [{ id: "c1", kind: "card", look: {}, name: "Card" }],
+  });
+  saved = doc;
+  return <BrandKitComponents doc={doc} effective={doc} onChange={setDoc} />;
+}
+
+it("keeps the icon picked for a style", async () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  act(() => createRoot(host).render(<OneCard />));
+  await userEvent.click(
+    host.querySelector('[aria-label="Card icon"]') as HTMLElement
+  );
+  await userEvent.click(
+    host.querySelector('[role="option"][title="Favourite"]') as HTMLElement
+  );
+  expect(saved.componentStyles[0]?.look.iconName).toBe("FavouriteIcon");
+  expect(saved.componentStyles[0]?.look.iconSvg).toBeTruthy();
+  expect(host.querySelector('[aria-label="Card icon"]')?.textContent).toContain(
+    "Favourite"
+  );
+  host.remove();
+});
