@@ -27,7 +27,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
         </p>
         <div className="flex items-center gap-2">
           <button
-            className="flex h-8 flex-1 items-center justify-center gap-1.5 border border-white/15 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-control border border-white/15 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
             disabled={isDisabled}
             onClick={() => onChange(rotateBy(transform, -90))}
             type="button"
@@ -40,7 +40,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
             Left
           </button>
           <button
-            className="flex h-8 flex-1 items-center justify-center gap-1.5 border border-white/15 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+            className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-control border border-white/15 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
             disabled={isDisabled}
             onClick={() => onChange(rotateBy(transform, 90))}
             type="button"
@@ -77,7 +77,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
       <div className="flex items-center gap-2">
         {transform.crop ? (
           <button
-            className="h-8 border border-white/15 px-3 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+            className="h-8 rounded-control border border-white/15 px-3 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
             disabled={isDisabled}
             onClick={() =>
               onChange({ crop: null, rotation: transform.rotation })
@@ -88,7 +88,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
           </button>
         ) : null}
         <button
-          className="h-8 border border-white/15 px-3 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
+          className="h-8 rounded-control border border-white/15 px-3 text-sm text-white/90 uppercase transition-colors hover:border-white/30 hover:text-white disabled:pointer-events-none disabled:opacity-50"
           disabled={isDisabled}
           onClick={() => onChange({ crop: transform.crop, rotation: 0 })}
           type="button"

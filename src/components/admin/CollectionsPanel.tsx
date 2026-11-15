@@ -29,7 +29,7 @@ function AssetTile({
   onRemove: () => void;
 }) {
   return (
-    <div className="group relative overflow-hidden rounded border border-white/10">
+    <div className="group relative overflow-hidden rounded-control border border-white/10">
       {isVideoUrl(item.url) || item.kind === "video" ? (
         // Muted, and no autoplay: a grid of a dozen clips all playing at once
         // is unreadable, and the poster frame is enough to recognise one by.
@@ -155,7 +155,7 @@ function CollectionCard({
       <header className="flex items-center gap-2 px-3 py-2">
         {renaming ? (
           <input
-            className="min-w-0 flex-1 rounded border border-white/20 bg-white/5 px-2 py-1 text-sm text-white outline-none focus:border-white/50"
+            className="min-w-0 flex-1 rounded-control border border-white/20 bg-white/5 px-2 py-1 text-sm text-white outline-none focus:border-white/50"
             onBlur={() => void rename()}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
@@ -259,7 +259,7 @@ export function CollectionsPanel() {
       <div className="flex items-center gap-2">
         <input
           aria-label="New collection name"
-          className="min-w-0 flex-1 rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/40"
+          className="min-w-0 flex-1 rounded-control border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/40"
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {

@@ -26,7 +26,7 @@ const Checkbox = function Checkbox({
       {/* Box */}
       <span
         aria-hidden
-        className="absolute inset-0 rounded border border-white/25 bg-black/40 transition-colors peer-checked:border-white/50 peer-checked:bg-white/10 peer-indeterminate:border-white/40 peer-indeterminate:bg-white/10 peer-focus-visible:ring-2 peer-focus-visible:ring-white/30 peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-black peer-disabled:cursor-not-allowed peer-disabled:opacity-40"
+        className="absolute inset-0 rounded-inner border border-white/25 bg-black/40 transition-colors peer-checked:border-white/50 peer-checked:bg-white/10 peer-indeterminate:border-white/40 peer-indeterminate:bg-white/10 peer-focus-visible:ring-2 peer-focus-visible:ring-white/30 peer-focus-visible:ring-offset-1 peer-focus-visible:ring-offset-black peer-disabled:cursor-not-allowed peer-disabled:opacity-40"
       />
       {/* Check */}
       <Check

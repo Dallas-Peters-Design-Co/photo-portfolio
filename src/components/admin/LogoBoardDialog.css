@@ -147,12 +147,12 @@
 
 .logo-colors__swatch::-webkit-color-swatch {
   border: 0;
-  border-radius: calc(var(--radius-control) - 1px);
+  border-radius: var(--radius-inner);
 }
 
 .logo-colors__swatch::-moz-color-swatch {
   border: 0;
-  border-radius: calc(var(--radius-control) - 1px);
+  border-radius: var(--radius-inner);
 }
 
 .logo-colors__swatch--fixed {

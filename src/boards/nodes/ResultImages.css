@@ -29,7 +29,7 @@
   object-fit: contain;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 /*
@@ -47,7 +47,7 @@
     var(--color-board-surface) 70%,
     transparent
   );
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
   opacity: 0;
   backdrop-filter: blur(4px);
   transition: opacity var(--default-transition-duration) var(--ease-in-out) -out;
@@ -109,7 +109,7 @@
   overflow: hidden;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
   transition: border-color var(--default-transition-duration) var(--ease-in-out)
     -out;
 }

@@ -46,7 +46,7 @@
   color: color-mix(in oklch, var(--color-board-ink) 75%, transparent);
   user-select: text;
   background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .brand-preview__note {

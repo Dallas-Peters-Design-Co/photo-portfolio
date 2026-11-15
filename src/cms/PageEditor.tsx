@@ -68,12 +68,12 @@ export function PageEditor({ value, onChange }: PageEditorProps) {
         // compete with it.
       }),
       FormattedImage.configure({
-        HTMLAttributes: { class: "rounded max-w-full h-auto" },
+        HTMLAttributes: { class: "rounded-control max-w-full h-auto" },
       }),
       // Its own node: TipTap's image renders an <img>, and an mp4 in one is a
       // broken icon for an asset that works. See src/cms/videoNode.ts.
       PageVideo.configure({
-        HTMLAttributes: { class: "rounded max-w-full h-auto" },
+        HTMLAttributes: { class: "rounded-control max-w-full h-auto" },
       }),
       Link.configure({
         autolink: true,
@@ -160,7 +160,7 @@ export function PageEditor({ value, onChange }: PageEditorProps) {
 
   if (!(editor && toolbar)) {
     return (
-      <div className="min-h-95 border border-white/10 bg-black/40 p-5 text-sm text-white/80 uppercase">
+      <div className="min-h-95 rounded-surface border border-white/10 bg-black/40 p-5 text-sm text-white/80 uppercase">
         Loading editor…
       </div>
     );
@@ -185,7 +185,7 @@ export function PageEditor({ value, onChange }: PageEditorProps) {
   };
 
   return (
-    <div className="border border-white/10 bg-black/40">
+    <div className="overflow-clip rounded-surface border border-white/10 bg-black/40">
       <div className="flex flex-wrap items-center gap-px border-white/[0.07] border-b bg-white/3 p-1">
         <ToolButton
           editor={editor}
@@ -390,7 +390,7 @@ function ToolButton({
     <button
       aria-label={label}
       aria-pressed={isActive}
-      className={`flex size-8 items-center justify-center transition-colors ${
+      className={`flex size-8 items-center justify-center rounded-inner transition-colors ${
         isActive
           ? "bg-white/10 text-white"
           : "text-white/90 hover:bg-white/6 hover:text-white"

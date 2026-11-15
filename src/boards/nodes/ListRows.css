@@ -48,7 +48,7 @@
 .list-rows__add {
   padding: calc(var(--spacing) * 0.5) var(--spacing);
   color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .list-rows__add:hover {
@@ -71,7 +71,7 @@
   background-color: color-mix(in oklch, var(--color-amber-600) 5%, transparent);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-amber-600) 30%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .list-rows__refill:hover {
@@ -109,7 +109,7 @@
   );
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .list-rows__number {

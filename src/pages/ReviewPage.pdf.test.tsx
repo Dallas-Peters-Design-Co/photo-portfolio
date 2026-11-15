@@ -124,8 +124,8 @@ describe("ReviewPage — Download PDF", () => {
 
   it("keeps the button out of the printed page", async () => {
     await mount();
-    const masthead = host?.querySelector(".review-page__masthead");
-    expect(masthead?.contains(button())).toBe(true);
+    const sidebar = host?.querySelector(".review-page__sidebar");
+    expect(sidebar?.contains(button())).toBe(true);
     const printRules = [...document.styleSheets]
       .flatMap((sheet) => [...sheet.cssRules])
       .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule)
@@ -135,7 +135,7 @@ describe("ReviewPage — Download PDF", () => {
     expect(
       printRules.some(
         (text) =>
-          text.includes(".review-page__masthead") &&
+          text.includes(".review-page__sidebar") &&
           text.includes("display: none")
       )
     ).toBe(true);

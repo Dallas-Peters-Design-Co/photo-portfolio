@@ -45,7 +45,7 @@
   background: var(--color-board-surface);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 22%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .browser-node__viewport {
@@ -68,7 +68,7 @@
   background: transparent;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 22%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .browser-node__icon,
@@ -230,7 +230,7 @@
   background: var(--color-board-panel);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 18%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .browser-node__note--selected {

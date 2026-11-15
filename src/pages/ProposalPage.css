@@ -100,7 +100,7 @@
 .proposal-page__wordmark:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 4px;
-  border-radius: 2px;
+  border-radius: var(--radius-inner);
 }
 
 .proposal-page__logo {
@@ -137,7 +137,7 @@
   color: var(--sheet-ink);
   background: var(--sheet);
   border-top: 6px solid var(--sheet-accent);
-  border-radius: 2px;
+  border-radius: var(--radius-inner);
 }
 
 .proposal-page__content {
@@ -732,7 +732,7 @@
   font-size: var(--type-small);
   font-weight: 600;
   cursor: pointer;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   transition-timing-function: ease-out;
   transition-duration: 150ms;
   transition-property: opacity, background-color, border-color, scale;

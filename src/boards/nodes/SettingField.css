@@ -60,7 +60,7 @@
   );
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .setting-field__text {
@@ -80,7 +80,7 @@
   );
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .setting-field__number:focus,

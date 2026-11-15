@@ -156,7 +156,7 @@ const HistoryEntryHeader = ({
     >
       <OptimizedImage
         alt={entry.challenge.altText || ""}
-        className="size-12 shrink-0 rounded object-cover opacity-80"
+        className="size-12 shrink-0 rounded-control object-cover opacity-80"
         referrerPolicy="no-referrer"
         sizes="48px"
         src={thumb}
@@ -227,7 +227,7 @@ const JournalForm = ({
       </Label>
       <textarea
         className={cn(
-          "w-full resize-y rounded border border-white/10 bg-black/40 px-3 py-2 text-sm text-white",
+          "w-full resize-y rounded-control border border-white/10 bg-black/40 px-3 py-2 text-sm text-white",
           "placeholder:text-white/80 focus:border-white/35 focus:outline-none focus:ring-1 focus:ring-white/15"
         )}
         id={`journal-${entry.challenge.challengeDate}`}
@@ -337,7 +337,7 @@ const HistoryEntryDetails = ({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
       <a
         aria-label="Open photo on Unsplash"
-        className="block overflow-hidden rounded border border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:w-40 sm:shrink-0"
+        className="block overflow-hidden rounded-control border border-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 sm:w-40 sm:shrink-0"
         href={entry.challenge.unsplashHtmlLink ?? "#"}
         rel="noreferrer noopener"
         target="_blank"

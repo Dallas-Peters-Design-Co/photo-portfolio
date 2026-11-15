@@ -197,7 +197,7 @@ export function SiteSettingsPanel() {
                     <button
                       aria-expanded={openColor === key}
                       aria-label={`Choose ${label.toLowerCase()} color`}
-                      className="size-11 shrink-0 rounded border border-white/10"
+                      className="size-11 shrink-0 rounded-control border border-white/10"
                       id={`color-${key}`}
                       onClick={() =>
                         setOpenColor((current) =>
@@ -364,7 +364,7 @@ export function SiteSettingsPanel() {
           </div>
 
           <div
-            className="space-y-2 rounded border border-white/10 p-6"
+            className="space-y-2 rounded-control border border-white/10 p-6"
             style={{
               background: draft.theme.background,
               color: draft.theme.foreground,

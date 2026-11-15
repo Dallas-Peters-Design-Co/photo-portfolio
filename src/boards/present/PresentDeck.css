@@ -154,7 +154,7 @@
   cursor: pointer;
   background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .present__button:hover,

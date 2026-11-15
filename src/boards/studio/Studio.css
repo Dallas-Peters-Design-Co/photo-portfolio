@@ -67,7 +67,7 @@
     padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
     font-size: 0.8125rem;
     text-align: left;
-    border-radius: var(--radius-control, 6px);
+    border-radius: var(--radius-control);
   }
 
   & button:hover {
@@ -116,7 +116,7 @@
     0 0,
     8px 8px;
   background-size: 16px 16px;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   & img,
   & > canvas:not(.studio__paint-layer) {
@@ -188,7 +188,7 @@
     width: 2.5rem;
     height: 2.5rem;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: var(--radius-inner);
   }
 }
 
@@ -204,7 +204,7 @@
   background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 }
 
 .studio__input--num {
@@ -227,7 +227,7 @@
   place-items: center;
   width: calc(var(--spacing) * 7);
   height: calc(var(--spacing) * 7);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
@@ -254,7 +254,7 @@
   font-size: 0.8125rem;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
@@ -328,7 +328,7 @@
 
 .studio-ramps__chip {
   height: calc(var(--spacing) * 8);
-  border-radius: 4px;
+  border-radius: var(--radius-inner);
   box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.06);
 
   &:hover {
@@ -356,7 +356,7 @@
   flex: none;
   height: 15rem;
   overflow: hidden;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:focus-visible {
     outline: 2px solid var(--color-board-ink);
@@ -382,7 +382,7 @@
   width: calc(var(--spacing) * 7);
   height: calc(var(--spacing) * 7);
   color: inherit;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
   opacity: 0;
   transition: opacity 120ms;
 
@@ -455,7 +455,7 @@
   cursor: pointer;
   border: 1px dashed
     color-mix(in oklch, var(--color-board-ink) 25%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   & img {
     width: 100%;
@@ -555,7 +555,7 @@
   width: 24px;
   height: 24px;
   border: 1px solid color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: 4px;
+  border-radius: var(--radius-inner);
 }
 
 /* Painting mosaic tiles on the preview (TilePaint.tsx). */
@@ -830,7 +830,7 @@
   gap: 2px;
   padding: 2px;
   background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 }
 
 .studio-segments__option {
@@ -842,7 +842,7 @@
   font-size: 0.75rem;
   color: inherit;
   white-space: nowrap;
-  border-radius: calc(var(--radius-control, 6px) - 2px);
+  border-radius: var(--radius-inner);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
@@ -885,7 +885,7 @@
   margin: 0;
   appearance: none;
   cursor: ew-resize;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &::-webkit-slider-thumb {
     width: 6px;
@@ -893,7 +893,7 @@
     appearance: none;
     background: var(--color-board-ink);
     border: 1.5px solid var(--color-board-panel);
-    border-radius: 2px;
+    border-radius: var(--radius-inner);
   }
 
   &::-moz-range-thumb {
@@ -901,7 +901,7 @@
     height: 2rem;
     background: var(--color-board-ink);
     border: 1.5px solid var(--color-board-panel);
-    border-radius: 2px;
+    border-radius: var(--radius-inner);
   }
 
   &:focus-visible {

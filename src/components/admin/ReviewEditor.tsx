@@ -15,10 +15,11 @@ import { reviewAccentStyle } from "../review/ReviewMarkup";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
+import { EditorShell } from "./EditorShell";
 import { proposalLabelClass } from "./proposalStyles";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
-import { ReviewEditorPanel, usePanelOpen } from "./ReviewEditorPanel";
+import { ReviewEditorPanel } from "./ReviewEditorPanel";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
@@ -213,7 +214,6 @@ export function ReviewEditor({
   }
 
   const collapse = useCollapsedBlocks(`review-editor-folded:${review.id}`);
-  const panel = usePanelOpen();
   const blockIds = [
     "opening",
     ...draft.doc.sections.map((x) => x.id),
@@ -251,58 +251,59 @@ export function ReviewEditor({
     }));
 
   return (
-    <div
-      className={`review-editor ${panel.open ? "" : "review-editor--panel-closed"}`}
+    <EditorShell
+      backLabel="Reviews"
+      label="Review settings"
+      onBack={onClose}
+      panel={
+        <ReviewEditorPanel
+          actions={
+            <ReviewEditorActions
+              draft={draft}
+              isPrinting={isPrinting}
+              isSaving={isSaving}
+              latest={latest}
+              onLinkBoard={(boardId) => setDoc({ boardId })}
+              onPreview={() => void openPreview()}
+              onPrint={() => void printPdf()}
+              onSave={(overrides) => void save(overrides)}
+              saveState={saveState}
+            />
+          }
+          audit={{
+            label: AUDIT_LABELS[phase],
+            loginLabel:
+              phase === "exploring"
+                ? agentStatus || AUDIT_LABELS.exploring
+                : "Capture behind login",
+            onAudit: () => void runAudit(),
+            onLoginAudit: () => void runLoginAudit(),
+            running: phase !== "idle",
+          }}
+          clientAccess={
+            <ReviewClientPanel
+              onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
+              review={draft}
+            />
+          }
+          draft={draft}
+          send={
+            <ReviewSendPanel
+              busy={isSaving}
+              onChange={(next) => {
+                setDraft((d) => ({ ...d, sent: next.sent }));
+                void onSaved(next);
+              }}
+              review={draft}
+            />
+          }
+          setDraft={setDraft}
+        />
+      }
+      storageKey="review-editor-panel-open"
       style={reviewAccentStyle(settings.theme)}
     >
-      <ReviewEditorPanel
-        actions={
-          <ReviewEditorActions
-            draft={draft}
-            isPrinting={isPrinting}
-            isSaving={isSaving}
-            latest={latest}
-            onLinkBoard={(boardId) => setDoc({ boardId })}
-            onPreview={() => void openPreview()}
-            onPrint={() => void printPdf()}
-            onSave={(overrides) => void save(overrides)}
-            saveState={saveState}
-          />
-        }
-        audit={{
-          label: AUDIT_LABELS[phase],
-          loginLabel:
-            phase === "exploring"
-              ? agentStatus || AUDIT_LABELS.exploring
-              : "Capture behind login",
-          onAudit: () => void runAudit(),
-          onLoginAudit: () => void runLoginAudit(),
-          running: phase !== "idle",
-        }}
-        clientAccess={
-          <ReviewClientPanel
-            onChange={(next) => setDraft((d) => ({ ...d, ...next }))}
-            review={draft}
-          />
-        }
-        draft={draft}
-        onClose={onClose}
-        onToggle={panel.toggle}
-        open={panel.open}
-        send={
-          <ReviewSendPanel
-            busy={isSaving}
-            onChange={(next) => {
-              setDraft((d) => ({ ...d, sent: next.sent }));
-              void onSaved(next);
-            }}
-            review={draft}
-          />
-        }
-        setDraft={setDraft}
-      />
-
-      <div className="review-editor__content space-y-8">
+      <div className="space-y-8">
         <div className="flex items-center justify-end">
           <Button
             onClick={() => collapse.setAll(blockIds, !allFolded)}
@@ -407,6 +408,6 @@ export function ReviewEditor({
           />
         </EditorBlock>
       </div>
-    </div>
+    </EditorShell>
   );
 }

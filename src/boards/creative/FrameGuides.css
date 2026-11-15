@@ -61,7 +61,7 @@
   color: oklch(99% 0 0);
   white-space: nowrap;
   background: var(--safe);
-  border-radius: 3px;
+  border-radius: var(--radius-inner);
 }
 
 .frame-guides__circle .frame-guides__note {
@@ -79,7 +79,7 @@
     var(--color-board-surface) 85%,
     transparent
   );
-  border-radius: 2px;
+  border-radius: var(--radius-inner);
   opacity: 0.7;
   transition: opacity 120ms ease;
 }
@@ -128,7 +128,7 @@
   cursor: pointer;
   background: var(--color-board-surface);
   border: 0;
-  border-radius: 3px;
+  border-radius: var(--radius-inner);
   opacity: 0.55;
 }
 
@@ -200,5 +200,5 @@
   color: oklch(99% 0 0);
   white-space: nowrap;
   background: var(--guide);
-  border-radius: 3px;
+  border-radius: var(--radius-inner);
 }

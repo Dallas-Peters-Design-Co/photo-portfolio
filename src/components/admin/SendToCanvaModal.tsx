@@ -104,7 +104,7 @@ function TemplatePicker({
           >
             <SelectTrigger
               aria-label="Image field"
-              className="h-auto w-full rounded border border-board-ink/15 bg-board-surface/30 px-2 py-1.5 text-[12px] text-board-ink outline-none focus:border-board-ink/45"
+              className="h-auto w-full rounded-control border border-board-ink/15 bg-board-surface/30 px-2 py-1.5 text-[12px] text-board-ink outline-none focus:border-board-ink/45"
             >
               <SelectValue />
             </SelectTrigger>
@@ -128,7 +128,7 @@ function TemplatePicker({
       ) : null}
 
       {upsellUrl ? (
-        <p className="mt-4 rounded border border-amber-300/30 bg-amber-400/10 p-3 text-[12px] text-amber-200/90 leading-relaxed">
+        <p className="mt-4 rounded-control border border-amber-300/30 bg-amber-400/10 p-3 text-[12px] text-amber-200/90 leading-relaxed">
           You've used up Canva's free autofill trial, so the image can't be
           placed into a design.{" "}
           <a
@@ -376,7 +376,7 @@ export function SendToCanvaModal({
 
           {stage.kind === "connecting" && templates.length === 0 ? (
             <button
-              className="mt-4 rounded bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25"
+              className="mt-4 rounded-control bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25"
               onClick={() => void connect()}
               type="button"
             >
@@ -407,7 +407,7 @@ export function SendToCanvaModal({
 
         <footer className="flex shrink-0 items-center justify-end gap-2 border-board-ink/10 border-t px-4 py-3">
           <button
-            className="rounded px-2.5 py-1.5 text-[12px] text-board-ink/50 hover:text-board-ink"
+            className="rounded-control px-2.5 py-1.5 text-[12px] text-board-ink/50 hover:text-board-ink"
             onClick={onClose}
             type="button"
           >
@@ -415,7 +415,7 @@ export function SendToCanvaModal({
           </button>
           {stage.kind === "done" ? (
             <a
-              className="rounded bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25"
+              className="rounded-control bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25"
               href={designUrl}
               rel="noopener"
               target="_blank"
@@ -424,7 +424,7 @@ export function SendToCanvaModal({
             </a>
           ) : (
             <button
-              className="rounded bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25 disabled:opacity-40"
+              className="rounded-control bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25 disabled:opacity-40"
               disabled={!readyToSend || isSending}
               onClick={() => void send()}
               type="button"

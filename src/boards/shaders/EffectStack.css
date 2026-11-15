@@ -79,7 +79,7 @@
   width: calc(var(--spacing) * 7);
   height: calc(var(--spacing) * 4);
   background: color-mix(in oklch, var(--color-board-ink) 18%, transparent);
-  border-radius: calc(var(--spacing) * 2);
+  border-radius: var(--radius-surface);
   transition: background var(--default-transition-duration) var(--ease-in-out);
 }
 

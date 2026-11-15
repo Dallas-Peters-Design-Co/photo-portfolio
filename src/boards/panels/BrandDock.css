@@ -38,7 +38,7 @@
   background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
 }
 
 .brand-dock__close {
@@ -46,7 +46,7 @@
   place-content: center;
   padding: var(--spacing);
   color: inherit;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
@@ -76,7 +76,7 @@
 
 .brand-dock__swatch {
   aspect-ratio: 1;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
   box-shadow: inset 0 0 0 var(--border-hairline)
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
   transition: transform 120ms ease;
@@ -99,7 +99,7 @@
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
   outline-offset: -1px;
   background: color-mix(in oklch, var(--color-board-ink) 5%, transparent);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
 
   & img {
     width: 100%;
@@ -142,7 +142,7 @@
   margin-top: var(--spacing);
   white-space: pre-wrap;
   background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-md);
 }
 
 .brand-dock__empty {

@@ -96,7 +96,7 @@
     font-size: var(--text-xs);
     color: color-mix(in oklch, #fff 70%, transparent);
     border: 1px solid color-mix(in oklch, #fff 15%, transparent);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
   }
   & button[aria-pressed="true"] {
     color: #000;
@@ -141,7 +141,7 @@
     font-weight: 500;
     color: #000;
     background: #fff;
-    border-radius: calc(var(--radius-control) - 2px);
+    border-radius: var(--radius-inner);
 
     &:disabled {
       color: color-mix(in oklch, #fff 40%, transparent);

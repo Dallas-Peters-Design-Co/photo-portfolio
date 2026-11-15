@@ -233,7 +233,7 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-wider);
   background: color-mix(in oklch, oklch(82.8% 0.189 84.429) 15%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .photo-card__badge-icon {

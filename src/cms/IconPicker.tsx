@@ -78,7 +78,7 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
       <button
         aria-expanded={open}
         aria-haspopup="listbox"
-        className="flex min-h-11 w-full items-center justify-between gap-2 border border-white/10 bg-black/40 px-3 text-left transition-colors hover:border-white/25 focus:border-white/40 focus:outline-none"
+        className="flex min-h-11 w-full items-center justify-between gap-2 rounded-control border border-white/10 bg-black/40 px-3 text-left transition-colors hover:border-white/25 focus:border-white/40 focus:outline-none"
         id={id}
         onClick={() => setOpen((v) => !v)}
         type="button"
@@ -104,14 +104,14 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
 
       {open ? (
         <div
-          className="absolute z-50 mt-1 max-h-72 w-full min-w-70 overflow-y-auto border border-white/15 bg-black shadow-2xl"
+          className="absolute z-50 mt-1 max-h-72 w-full min-w-70 overflow-y-auto rounded-surface border border-white/15 bg-black shadow-2xl"
           role="listbox"
         >
           {/* Sticky so the field stays reachable while scrolling 185 icons. */}
           <div className="sticky top-0 z-10 border-white/10 border-b bg-black p-2">
             <input
               autoFocus
-              className="min-h-9 w-full border border-white/10 bg-black/60 px-2 text-[12px] text-white/90 outline-none focus:border-white/40"
+              className="min-h-9 w-full rounded-control border border-white/10 bg-black/60 px-2 text-[12px] text-white/90 outline-none focus:border-white/40"
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search icons…"
               type="search"
@@ -121,7 +121,7 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
 
           <button
             aria-selected={value === null}
-            className={`flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm uppercase transition-colors hover:bg-white/6 ${
+            className={`flex w-full items-center gap-2 rounded-inner px-3 py-2.5 text-left text-sm uppercase transition-colors hover:bg-white/6 ${
               value === null ? "text-white" : "text-white/90"
             }`}
             onClick={() => {
@@ -155,7 +155,7 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
                   return (
                     <button
                       aria-selected={value === name}
-                      className={`flex aspect-square items-center justify-center transition-colors ${
+                      className={`flex aspect-square items-center justify-center rounded-inner transition-colors ${
                         value === name
                           ? "bg-white text-black"
                           : "text-white/90 hover:bg-white/8 hover:text-white"

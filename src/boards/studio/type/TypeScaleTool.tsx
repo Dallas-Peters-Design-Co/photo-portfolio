@@ -1,6 +1,10 @@
 import { Copy, Plus, Save, Type } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  MAX_TYPEFACES,
+  type TypefaceEntry,
+} from "../../../../config/brandKit.js";
 import { familyOf } from "../../../../config/designMd.js";
 import {
   modularScale,
@@ -11,7 +15,29 @@ import {
 import { facesFor } from "../../../components/typeScale/faces";
 import { TypeScaleEditor } from "../../../components/typeScale/TypeScaleEditor";
 import { useKitPalette } from "../color/useKitPalette";
+import { FacePicker } from "./FacePicker";
 import { specimenPng } from "./specimen";
+
+type Role = "body" | "headline";
+
+/**
+ * The kit's typefaces with the faces picked here put first in their roles,
+ * so the kit reads them as its headline and body faces. Nothing already in
+ * the kit is removed.
+ */
+const withPicked = (
+  typefaces: TypefaceEntry[],
+  picked: Partial<Record<Role, TypefaceEntry>>
+): TypefaceEntry[] => {
+  const chosen = [picked.headline, picked.body].filter(
+    (f): f is TypefaceEntry => Boolean(f)
+  );
+  const refs = new Set(chosen.map((f) => f.ref ?? f.name));
+  return [
+    ...chosen,
+    ...typefaces.filter((f) => !refs.has(f.ref ?? f.name)),
+  ].slice(0, MAX_TYPEFACES);
+};
 
 /**
  * Type & Spacing Scale, after Design System Studio: the brand's text styles
@@ -29,7 +55,13 @@ export function TypeScaleTool({
 }) {
   const { kit, saving, update } = useKitPalette();
   const typefaces = kit?.resolvedDoc.typefaces ?? [];
-  const faces = facesFor(typefaces);
+  // Faces picked here, over the kit's own until saved.
+  const [picked, setPicked] = useState<Partial<Record<Role, TypefaceEntry>>>(
+    {}
+  );
+  const faces = { ...facesFor(typefaces), ...picked };
+  const pick = (role: Role) => (face: TypefaceEntry) =>
+    setPicked((p) => ({ ...p, [role]: face }));
   const [scale, setScale] = useState<TypeScale | null>(
     () =>
       kit?.resolvedDoc.typeScale ?? {
@@ -66,6 +98,20 @@ export function TypeScaleTool({
 
   return (
     <>
+      <FacePicker
+        face="headline"
+        kitFaces={typefaces}
+        label="Headline"
+        onChange={pick("headline")}
+        value={faces.headline}
+      />
+      <FacePicker
+        face="body"
+        kitFaces={typefaces}
+        label="Body"
+        onChange={pick("body")}
+        value={faces.body}
+      />
       <TypeScaleEditor
         faces={faces}
         onChange={setScale}
@@ -73,10 +119,9 @@ export function TypeScaleTool({
         value={scale}
       />
       <p className="studio__blurb">
-        {typefaces.length > 0
-          ? "Set in the kit's headline and body faces."
-          : "The kit has no typefaces yet, so this previews in the system font."}{" "}
-        Saving writes the scale into the kit's DESIGN.md and brand guide.
+        Pick the headline and body faces from the kit or any Google font. Saving
+        writes the scale, and the faces picked here, into the kit's DESIGN.md
+        and brand guide.
       </p>
       <div className="studio__actions">
         {onApply ? (
@@ -99,7 +144,23 @@ export function TypeScaleTool({
           <button
             className="studio__button studio__button--primary"
             disabled={saving}
-            onClick={() => void update({ typeScale: scale }, "type scale")}
+            onClick={() => {
+              const changed = Object.keys(picked).length > 0;
+              void update(
+                changed
+                  ? {
+                      typefaces: withPicked(typefaces, picked),
+                      typeScale: scale,
+                    }
+                  : { typeScale: scale },
+                "type scale"
+              ).then((saved) => {
+                // Saved, the kit's faces are the picked ones.
+                if (saved) {
+                  setPicked({});
+                }
+              });
+            }}
             type="button"
           >
             <Save size={14} /> Save to {kit.name}

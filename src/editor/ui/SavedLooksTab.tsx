@@ -52,7 +52,7 @@ export function SavedLooksTab({
       >
         <input
           aria-label="Name for this look"
-          className="min-w-0 flex-1 border border-white/15 bg-transparent px-2 py-1.5 text-sm text-white placeholder:text-white/40"
+          className="min-w-0 flex-1 rounded-control border border-white/15 bg-transparent px-2 py-1.5 text-sm text-white placeholder:text-white/40"
           disabled={!canSave || busy}
           maxLength={60}
           onChange={(e) => setName(e.target.value)}
@@ -60,7 +60,7 @@ export function SavedLooksTab({
           value={name}
         />
         <button
-          className="border border-white/25 px-3 text-sm text-white disabled:opacity-40"
+          className="rounded-control border border-white/25 px-3 text-sm text-white disabled:opacity-40"
           disabled={!(canSave && name.trim()) || busy}
           type="submit"
         >

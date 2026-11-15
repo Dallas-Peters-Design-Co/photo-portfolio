@@ -17,7 +17,7 @@
   height: calc(var(--spacing) * 2);
   background: var(--color-selection);
   border: var(--border-hairline) solid var(--color-selection);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .resize-handle--nw {

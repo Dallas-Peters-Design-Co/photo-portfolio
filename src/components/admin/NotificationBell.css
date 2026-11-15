@@ -22,7 +22,7 @@
   cursor: pointer;
   background: transparent;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   transition: background-color 150ms ease-out;
 }
 
@@ -50,7 +50,7 @@
   color: var(--background);
   text-align: center;
   background: var(--color-accent, var(--foreground));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .notification-bell__panel {
@@ -66,7 +66,7 @@
   color: var(--foreground);
   background: var(--background);
   border: 1px solid color-mix(in oklch, var(--foreground) 15%, transparent);
-  border-radius: calc(var(--spacing) * 2);
+  border-radius: var(--radius-surface);
   box-shadow: 0 12px 40px rgb(0 0 0 / 0.45);
 }
 
@@ -174,7 +174,7 @@
   height: 0.45rem;
   content: "";
   background: var(--color-accent, var(--foreground));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .notification-bell__item-title {

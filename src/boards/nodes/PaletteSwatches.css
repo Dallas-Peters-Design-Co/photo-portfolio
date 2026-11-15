@@ -64,7 +64,7 @@
   color: color-mix(in oklch, var(--color-board-ink) 40%, transparent);
   border: var(--border-hairline) dashed
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .palette-swatches__add:hover {
@@ -90,7 +90,7 @@
   );
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .palette-swatches__field:focus {

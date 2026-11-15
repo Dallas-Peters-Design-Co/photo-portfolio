@@ -19,7 +19,7 @@
   color: var(--color-board-ink, #111);
   background: var(--color-board-panel, #fff);
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
-  border-radius: 12px;
+  border-radius: var(--radius-surface);
   box-shadow: 0 24px 64px rgb(0 0 0 / 0.35);
 }
 
@@ -58,7 +58,7 @@
   color: inherit;
   text-align: left;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-surface);
 
   &:disabled {
     cursor: default;
@@ -100,7 +100,7 @@
   white-space: nowrap;
   background: color-mix(in oklch, currentColor 7%, transparent);
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
-  border-radius: 5px;
+  border-radius: var(--radius-inner);
 }
 
 .palette__empty {
@@ -117,7 +117,7 @@
   overflow: hidden;
   color: var(--color-board-ink, #111);
   background: var(--color-board-panel, #fff);
-  border-radius: 12px;
+  border-radius: var(--radius-surface);
   box-shadow: 0 24px 64px rgb(0 0 0 / 0.35);
 }
 
@@ -134,7 +134,7 @@
   place-items: center;
   width: 1.75rem;
   height: 1.75rem;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 
   &:hover {
     background: color-mix(in oklch, currentColor 8%, transparent);

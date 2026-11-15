@@ -37,7 +37,7 @@ const buttonVariants = cva(
   // also animate layout properties and cost a frame on every state change.
   // Press feedback is suppressed on menu triggers (`aria-haspopup`), where the
   // button stays put while a popup opens against it.
-  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-clip-padding font-medium outline-none transition-[color,background-color,border-color,scale] duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-control border border-transparent bg-clip-padding font-medium outline-none transition-[color,background-color,border-color,scale] duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     compoundVariants: [
       {
@@ -123,7 +123,7 @@ const buttonVariants = cva(
           "text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
         link: "text-[var(--btn-fg)] underline-offset-4 hover:text-[var(--btn-fg-strong)] hover:underline",
         noborder:
-          "rounded-none text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
+          "text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
         outline:
           "border-[var(--btn-border)] text-[var(--btn-fg)] hover:bg-[var(--btn-hover-bg)] hover:text-[var(--btn-hover-fg)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
         // A pressed/selected toggle, e.g. the board's stacked-view switch.

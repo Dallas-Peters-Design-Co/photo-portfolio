@@ -52,7 +52,7 @@ function Tile({
 }) {
   return (
     <button
-      className="group relative overflow-hidden rounded border border-white/10 hover:border-white/40"
+      className="group relative overflow-hidden rounded-control border border-white/10 hover:border-white/40"
       onClick={onPick}
       type="button"
     >
@@ -187,7 +187,7 @@ export function AssetPicker({ onChoose, onClose }: AssetPickerProps) {
         </div>
 
         <input
-          className="w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/40"
+          className="w-full rounded-control border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/40"
           onChange={(e) => setQuery(e.target.value)}
           placeholder={
             source === "photos" ? "Search your pictures…" : "Search assets…"

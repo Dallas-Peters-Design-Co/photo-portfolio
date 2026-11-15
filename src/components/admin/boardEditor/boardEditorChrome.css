@@ -54,7 +54,7 @@
   cursor: text;
   background: none;
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 /* The name opens the switcher: pointer, and a small caret after it. */
@@ -240,7 +240,7 @@
   color: color-mix(in oklch, var(--color-board-ink) 40%, transparent);
   touch-action: none;
   cursor: grab;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:hover {
     color: var(--color-board-ink);
@@ -260,7 +260,7 @@
   width: calc(var(--spacing) * 8);
   height: calc(var(--spacing) * 8);
   color: color-mix(in oklch, var(--color-board-ink) 60%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:hover {
     color: var(--color-board-ink);
@@ -322,5 +322,5 @@
   color: var(--color-board-panel);
   text-align: center;
   background: var(--color-board-ink);
-  border-radius: 7px;
+  border-radius: var(--radius-control);
 }

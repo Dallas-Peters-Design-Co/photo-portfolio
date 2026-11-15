@@ -27,7 +27,19 @@ vi.mock("../../../hooks/useBrandKits", () => ({
   useBrandKits: () => ({ kits: [kit], refresh: async () => undefined }),
 }));
 vi.mock("../../../services/brandKitService", () => ({
-  brandKitsApi: { save: (id: string, doc: unknown) => save(id, doc) },
+  brandKitsApi: {
+    googleFonts: async () => [
+      {
+        category: "serif",
+        family: "Fraunces",
+        italic: true,
+        rank: 1,
+        variable: true,
+        weights: [400, 700, 900],
+      },
+    ],
+    save: (id: string, doc: unknown) => save(id, doc),
+  },
 }));
 
 const { StudioPanel } = await import("../StudioPanel");
@@ -116,6 +128,47 @@ describe("Type & Spacing Scale", () => {
     });
     expect(doc.typeScale.spacing).toEqual([
       4, 8, 12, 16, 24, 32, 48, 64, 96, 128,
+    ]);
+  });
+
+  it("sets the headline in a Google font picked here, and saves it to the kit", async () => {
+    const el = mount();
+    const picker = el.querySelector<HTMLButtonElement>(
+      '[aria-label^="Headline font"]'
+    );
+    expect(picker?.textContent).toContain("Oswald");
+    act(() => picker?.click());
+    await act(async () => {
+      await vi.waitFor(() => expect(button(el, "Fraunces")).toBeTruthy());
+    });
+    act(() => button(el, "Fraunces").click());
+
+    const [, h1Specimen] = el.querySelectorAll<HTMLElement>(
+      ".type-scale__specimen"
+    );
+    expect(h1Specimen?.style.fontFamily).toContain("Fraunces");
+    // The body keeps the kit's face.
+    const bodyPicker = el.querySelector('[aria-label^="Body font"]');
+    expect(bodyPicker?.textContent).toContain("Public Sans");
+
+    await act(async () => {
+      button(el, "Save to Unruly Chain").click();
+      await vi.waitFor(() => expect(save).toHaveBeenCalled());
+    });
+    const [, doc] = save.mock.calls[0] as [
+      string,
+      { typefaces: { name: string; ref: string | null; role: string }[] },
+    ];
+    expect(doc.typefaces[0]).toMatchObject({
+      name: "Fraunces",
+      ref: "g:Fraunces",
+      role: "headline",
+    });
+    // Nothing the kit had is dropped.
+    expect(doc.typefaces.map((f) => f.name)).toEqual([
+      "Fraunces",
+      "Oswald",
+      "Public Sans",
     ]);
   });
 

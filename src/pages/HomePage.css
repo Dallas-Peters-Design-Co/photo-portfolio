@@ -71,7 +71,7 @@
   text-align: center;
   background-color: color-mix(in oklch, var(--background) 90%, transparent);
   border: 1px solid color-mix(in oklch, var(--foreground) 20%, transparent);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-inner);
   translate: -50%;
 }
 
@@ -300,7 +300,7 @@
   color: color-mix(in oklch, var(--foreground) 90%, transparent);
   letter-spacing: 0.3em;
   background-color: color-mix(in oklch, var(--background) 80%, transparent);
-  border-radius: 0.25rem;
+  border-radius: var(--radius-inner);
 }
 
 .home-page__admin-link {
@@ -326,7 +326,7 @@
   /* Longhands, not `border: 1px solid`: the shorthand would reset the colour to
      `currentcolor` and take the hairline off `.hairline`. */
   border-width: 1px;
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius-surface);
   box-shadow: var(--shadow-2xl);
   backdrop-filter: blur(24px);
 }
@@ -380,7 +380,7 @@
   padding: calc(var(--spacing) * 5) calc(var(--spacing) * 8);
   background-color: var(--filter-paper);
   border: 1px solid oklch(0 0 0 / 8%);
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius-surface);
   box-shadow: var(--shadow-2xl);
   opacity: 0;
   backdrop-filter: blur(24px);

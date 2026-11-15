@@ -1,6 +1,7 @@
 /*
- * The review editor's side panel (ReviewEditorPanel.tsx) and the layout it
- * sits in: the panel on the left, the content beside it.
+ * The admin's editor frame (EditorShell.tsx), shared by the review editor and
+ * the brand kit editor: a panel on the left with everything that is not the
+ * content, and the content beside it.
  *
  * On a wide window the panel is pinned to the window's left edge below the
  * admin bar and scrolls on its own, so its controls stay in reach however far
@@ -8,22 +9,22 @@
  * that opens it. On a narrow window it sits above the content instead.
  */
 
-.review-editor {
+.editor-shell {
   display: grid;
   gap: calc(var(--spacing) * 4);
   width: 100%;
   max-width: var(--container-8xl);
 }
 
-.review-editor-panel {
+.editor-shell__panel {
   min-width: 0;
   overflow-x: hidden;
   background: rgb(255 255 255 / 0.02);
   border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: var(--radius-lg, var(--radius-md));
+  border-radius: var(--radius-surface);
 }
 
-.review-editor-panel__bar {
+.editor-shell__bar {
   display: flex;
   gap: calc(var(--spacing) * 2);
   align-items: center;
@@ -31,7 +32,7 @@
   padding: calc(var(--spacing) * 2);
 }
 
-.review-editor-panel__toggle {
+.editor-shell__toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,28 +43,28 @@
   border-radius: var(--radius-md);
 }
 
-.review-editor-panel__toggle:hover {
+.editor-shell__toggle:hover {
   color: #fff;
   background: rgb(255 255 255 / 0.08);
 }
 
-.review-editor-panel__toggle:focus-visible {
-  outline: 2px solid var(--review-accent, #fff);
+.editor-shell__toggle:focus-visible {
+  outline: 2px solid var(--review-accent, var(--foreground));
   outline-offset: 1px;
 }
 
-.review-editor-panel--closed .review-editor-panel__toggle {
+.editor-shell--closed .editor-shell__toggle {
   margin-inline: auto;
 }
 
-.review-editor-panel__body {
+.editor-shell__body {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--spacing) * 5);
   padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 5);
 }
 
-.review-editor-panel__title {
+.editor-shell__title {
   display: flex;
   gap: calc(var(--spacing) * 2);
   align-items: center;
@@ -75,7 +76,7 @@
   overflow-wrap: anywhere;
 }
 
-.review-editor-panel__group {
+.editor-shell__group {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--spacing) * 3);
@@ -83,26 +84,26 @@
   border-top: 1px solid rgb(255 255 255 / 0.1);
 }
 
-.review-editor-panel__group-title {
+.editor-shell__group-title {
   font-size: var(--text-micro-sm, var(--text-sm));
   color: rgb(255 255 255 / 0.7);
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro-widest);
 }
 
-.review-editor-panel__field {
+.editor-shell__field {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--spacing) * 2);
 }
 
-.review-editor-panel__buttons {
+.editor-shell__buttons {
   display: flex;
   flex-wrap: wrap;
   gap: calc(var(--spacing) * 2);
 }
 
-.review-editor__content {
+.editor-shell__content {
   min-width: 0;
 }
 
@@ -112,25 +113,25 @@
    * and the content takes every pixel to its right. The editor stretches
    * across the admin page instead of sitting centred at a capped width.
    */
-  .review-editor {
-    --review-panel-width: var(--container-panel);
+  .editor-shell {
+    --editor-panel-width: var(--container-panel);
 
     justify-self: stretch;
     max-width: none;
-    padding-inline-start: calc(var(--review-panel-width) - var(--spacing) * 2);
+    padding-inline-start: calc(var(--editor-panel-width) - var(--spacing) * 2);
   }
 
-  .review-editor--panel-closed {
-    --review-panel-width: calc(var(--spacing) * 13);
+  .editor-shell--closed {
+    --editor-panel-width: calc(var(--spacing) * 13);
   }
 
-  .review-editor-panel {
+  .editor-shell__panel {
     position: fixed;
     top: var(--admin-bar-height, 0px);
     bottom: 0;
     left: 0;
     z-index: 40;
-    width: var(--review-panel-width);
+    width: var(--editor-panel-width);
     overflow-y: auto;
     overscroll-behavior: contain;
     background: var(--background);

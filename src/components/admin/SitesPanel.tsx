@@ -275,7 +275,7 @@ export function SitesPanel() {
           <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
               <li
-                className="rounded border border-white/10 bg-black/30 px-3 py-2"
+                className="rounded-control border border-white/10 bg-black/30 px-3 py-2"
                 key={project.id}
               >
                 <p className="truncate text-[13px] text-white/90">
@@ -387,7 +387,7 @@ export function SitesPanel() {
         ) : null}
 
         {setupResult ? (
-          <div className="space-y-2 rounded border border-white/10 bg-black/40 p-3">
+          <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
             {setupResult.done.map((step) => (
               <p className="text-sm text-white/70 leading-relaxed" key={step}>
                 ✓ {step}
@@ -402,7 +402,7 @@ export function SitesPanel() {
         ) : null}
 
         {result ? (
-          <div className="space-y-2 rounded border border-white/10 bg-black/40 p-3">
+          <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
             <p className="text-[12px] text-white/90">
               Created <strong>{result.name}</strong>. Still to do:
             </p>

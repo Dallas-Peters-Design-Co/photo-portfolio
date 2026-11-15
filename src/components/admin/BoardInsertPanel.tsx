@@ -229,7 +229,7 @@ export function BoardInsertPanel({
             <div className="grid grid-cols-2 gap-2">
               {photos.map((photo) => (
                 <button
-                  className="overflow-hidden rounded border border-board-ink/10 transition-colors hover:border-board-ink/50"
+                  className="overflow-hidden rounded-control border border-board-ink/10 transition-colors hover:border-board-ink/50"
                   key={photo.id}
                   onClick={() => onAddPhoto(photo)}
                   type="button"
@@ -342,10 +342,10 @@ function AiTab({
   return (
     <div className="space-y-3">
       {source ? (
-        <div className="flex items-center gap-2 rounded border border-board-ink/10 p-2">
+        <div className="flex items-center gap-2 rounded-control border border-board-ink/10 p-2">
           <img
             alt=""
-            className="size-12 rounded object-cover"
+            className="size-12 rounded-control object-cover"
             height={48}
             src={source.thumbUrl}
             width={48}
@@ -370,7 +370,7 @@ function AiTab({
       ) : null}
 
       <textarea
-        className="min-h-28 w-full resize-y rounded border border-board-ink/10 bg-board-surface/40 p-2 text-board-ink text-micro-lg leading-relaxed outline-none focus:border-board-ink/40"
+        className="min-h-28 w-full resize-y rounded-control border border-board-ink/10 bg-board-surface/40 p-2 text-board-ink text-micro-lg leading-relaxed outline-none focus:border-board-ink/40"
         onChange={(e) => onPromptChange(e.target.value)}
         value={prompt}
       />
@@ -398,7 +398,7 @@ function AiTab({
         <div className="space-y-2">
           <img
             alt="Generated"
-            className="h-auto w-full rounded border border-board-ink/10"
+            className="h-auto w-full rounded-control border border-board-ink/10"
             height={generated.height ?? undefined}
             src={generated.url}
             width={generated.width ?? undefined}
@@ -500,7 +500,7 @@ function UnsplashTab({
         {results.map((result) => (
           <div className="group relative" key={result.id}>
             <button
-              className="block w-full overflow-hidden rounded border border-board-ink/10 transition-colors hover:border-board-ink/50"
+              className="block w-full overflow-hidden rounded-control border border-board-ink/10 transition-colors hover:border-board-ink/50"
               onClick={() => onAdd(result)}
               type="button"
             >
@@ -664,7 +664,7 @@ function FramerTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
           <div className="grid grid-cols-3 gap-2">
             {images.map((image) => (
               <button
-                className="overflow-hidden rounded border border-board-ink/10 hover:border-board-ink/40"
+                className="overflow-hidden rounded-control border border-board-ink/10 hover:border-board-ink/40"
                 key={image.imageUrl}
                 onClick={() =>
                   onAdd({
@@ -784,7 +784,7 @@ function FalLibraryTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
       <div className="grid grid-cols-3 gap-2">
         {items.map((item) => (
           <button
-            className="group relative overflow-hidden rounded border border-board-ink/10 hover:border-board-ink/40 disabled:opacity-40"
+            className="group relative overflow-hidden rounded-control border border-board-ink/10 hover:border-board-ink/40 disabled:opacity-40"
             disabled={adopting !== null}
             key={item.id}
             onClick={() => void adopt(item)}
@@ -862,7 +862,7 @@ function ShaderTab({ onAdd }: { onAdd: (name: string) => void }) {
       <div className="space-y-1">
         {shown.map((shader) => (
           <button
-            className="block w-full rounded border border-board-ink/10 px-2 py-2 text-left transition-colors hover:border-board-ink/40"
+            className="block w-full rounded-control border border-board-ink/10 px-2 py-2 text-left transition-colors hover:border-board-ink/40"
             key={shader.name}
             onClick={() => onAdd(shader.name)}
             type="button"
@@ -1048,7 +1048,7 @@ function PinterestTab({
           <div className="grid grid-cols-2 gap-2">
             {pins.map((pin) => (
               <button
-                className="overflow-hidden rounded border border-board-ink/10 transition-colors hover:border-board-ink/50"
+                className="overflow-hidden rounded-control border border-board-ink/10 transition-colors hover:border-board-ink/50"
                 key={pin.creditUrl}
                 onClick={() => onAdd([pin])}
                 type="button"
@@ -1154,7 +1154,7 @@ function IconTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
         <div className="space-y-2">
           {/* Pale backing: a solid icon is usually dark, and against the
               panel's black it would look like an empty box. */}
-          <div className="flex items-center justify-center rounded border border-board-ink/10 bg-board-ink/90 p-4">
+          <div className="flex items-center justify-center rounded-control border border-board-ink/10 bg-board-ink/90 p-4">
             <img
               alt="Generated icon"
               className="h-24 w-24 object-contain"

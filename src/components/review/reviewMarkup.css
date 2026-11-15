@@ -78,7 +78,7 @@
   color: var(--pin-ink);
   background: var(--pin-fill);
   border: 2px solid var(--pin-ink);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
   transform: translate(-50%, -50%);
 }

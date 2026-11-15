@@ -57,7 +57,7 @@
   color: inherit;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
-  border-radius: var(--radius-control, 8px);
+  border-radius: var(--radius-control);
 
   &:hover:not(:disabled) {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
@@ -116,7 +116,7 @@
   color: inherit;
   text-align: left;
   background: color-mix(in oklch, var(--color-board-ink) 5%, transparent);
-  border-radius: var(--radius-control, 8px);
+  border-radius: var(--radius-control);
 
   &:hover,
   &[aria-pressed="true"] {
@@ -148,7 +148,7 @@
   font-size: 0.75rem;
   color: inherit;
   text-align: left;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   & span {
     overflow: hidden;
@@ -220,7 +220,7 @@
   background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   & option,
   & optgroup {
@@ -254,7 +254,7 @@
   padding-inline: var(--spacing);
   font-size: 0.75rem;
   color: inherit;
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
@@ -410,7 +410,7 @@
   height: var(--size);
   background: white;
   border: calc(1.5px / var(--s, 1)) solid oklch(65% 0.2 255);
-  border-radius: 2px;
+  border-radius: var(--radius-inner);
   translate: -50% -50%;
 }
 
@@ -498,7 +498,7 @@
   background: var(--color-board-surface);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
   box-shadow: 0 12px 32px rgb(0 0 0 / 0.35);
 }
 
@@ -507,7 +507,7 @@
   gap: calc(var(--spacing) * 0.5);
   padding: calc(var(--spacing) * 2);
   text-align: left;
-  border-radius: calc(var(--radius-control, 6px) - 2px);
+  border-radius: var(--radius-inner);
 
   & strong {
     font-size: 0.8125rem;
@@ -601,7 +601,7 @@ button.creative-export__item:hover:not(:disabled) {
   gap: calc(var(--spacing) * 2);
   padding: calc(var(--spacing) * 2);
   background: color-mix(in oklch, var(--color-board-ink) 4%, transparent);
-  border-radius: var(--radius-control, 8px);
+  border-radius: var(--radius-control);
 
   & .creative__button {
     justify-content: center;
@@ -621,13 +621,13 @@ button.creative-export__item:hover:not(:disabled) {
   grid-template-columns: 1fr 1fr;
   padding: 2px;
   background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
-  border-radius: var(--radius-control, 8px);
+  border-radius: var(--radius-control);
 
   & button {
     padding: calc(var(--spacing) * 1.25);
     font-size: 0.75rem;
     color: color-mix(in oklch, var(--color-board-ink) 65%, transparent);
-    border-radius: calc(var(--radius-control, 8px) - 2px);
+    border-radius: var(--radius-inner);
   }
 
   & button[aria-pressed="true"] {
@@ -678,7 +678,7 @@ button.creative-export__item:hover:not(:disabled) {
   & button {
     aspect-ratio: 1;
     overflow: hidden;
-    border-radius: calc(var(--radius-control, 8px) - 2px);
+    border-radius: var(--radius-inner);
   }
 
   & button:hover {
@@ -836,14 +836,14 @@ button.creative-export__item:hover:not(:disabled) {
   padding: 2px;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 
 .creative-fit__option {
   padding: 2px calc(var(--spacing) * 2);
   font-size: 0.6875rem;
   color: inherit;
-  border-radius: 4px;
+  border-radius: var(--radius-inner);
 
   &[aria-pressed="true"] {
     color: var(--color-board-surface);
@@ -861,14 +861,14 @@ button.creative-export__item:hover:not(:disabled) {
   margin: 0;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
-  border-radius: 4px;
+  border-radius: var(--radius-inner);
 }
 
 .creative-anchor__cell {
   width: 9px;
   height: 9px;
   background: color-mix(in oklch, var(--color-board-ink) 18%, transparent);
-  border-radius: 2px;
+  border-radius: var(--radius-inner);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 45%, transparent);
@@ -890,7 +890,7 @@ button.creative-export__item:hover:not(:disabled) {
   background: var(--color-board-panel);
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 12%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 }
 
 .creative-zoom__level {

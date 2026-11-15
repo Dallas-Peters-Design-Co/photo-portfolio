@@ -1,6 +1,7 @@
 {
   "jsPlugins": ["@shadcn/lint"],
   "rules": {
-    "shadcn/no-arbitrary-values": "error"
+    "shadcn/no-arbitrary-values": "error",
+    "shadcn/no-restyle": "error"
   }
 }

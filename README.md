@@ -542,8 +542,14 @@ Also:
 
 - **Ultracite / Biome** (`biome.jsonc`) for format and lint. The pre-commit
   hook (`.husky/pre-commit`) runs `ultracite fix` on staged files.
-- **oxlint** (`pnpm lint:ui`) with `shadcn/no-arbitrary-values`: use theme
-  tokens, not `[min(...)]`-style values.
+- **@shadcn/lint** (`pnpm lint:ui`), run through Oxlint and configured in
+  `.oxlintrc.json`. It finds components, aliases and the theme from
+  `components.json` and `src/index.css`. Enabled rule:
+  `shadcn/no-arbitrary-values` (use theme tokens, not `[calc(...)]`-style
+  values). Other rules — `no-restyle`, `no-raw-colors`, `no-inline-styles`,
+  `no-unknown-classes`, `require-static-classes` — are added in that file;
+  see the [rule docs](https://github.com/shadcn-ui/lint/blob/main/README.md#rules).
+  Not yet part of `pnpm lint` or CI.
 - **CI** (`.github/workflows/ci.yml`, on push to `main` and PRs): install,
   Playwright Chromium, `pnpm lint`, `ultracite check`, `pnpm test`,
   `pnpm build`, and the OpenAPI drift check.

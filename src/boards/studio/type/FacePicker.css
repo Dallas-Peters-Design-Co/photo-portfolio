@@ -1,0 +1,75 @@
+/*
+ * The type scale's face pickers (FacePicker.tsx): the chosen face drawn in
+ * itself, and below it, when open, a search and a list of faces each set in
+ * its own letters.
+ */
+
+.face-picker {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.face-picker__current {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.face-picker__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.face-picker__panel {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  padding: calc(var(--spacing) * 1.5);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-control, 6px);
+}
+
+.face-picker__search {
+  width: 100%;
+}
+
+.face-picker__list {
+  display: grid;
+  max-height: 16rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.face-picker__option {
+  width: 100%;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 1rem;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: var(--radius-control, 6px);
+}
+
+.face-picker__option:hover,
+.face-picker__option:focus-visible {
+  background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
+}
+
+.face-picker__option[aria-pressed="true"] {
+  background: color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+}
+
+.face-picker__note {
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+  color: color-mix(in oklch, var(--color-board-ink) 55%, transparent);
+}

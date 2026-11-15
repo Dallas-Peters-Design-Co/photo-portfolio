@@ -11,7 +11,7 @@
     color: inherit;
     background: color-mix(in oklch, currentColor 5%, transparent);
     border: 1px solid color-mix(in oklch, currentColor 16%, transparent);
-    border-radius: 6px;
+    border-radius: var(--radius-control);
   }
 }
 
@@ -41,7 +41,7 @@
   padding-inline: calc(var(--spacing) * 2.5);
   font-weight: 500;
   border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 
   &:hover {
     background: color-mix(in oklch, currentColor 7%, transparent);
@@ -83,6 +83,21 @@
   color: color-mix(in oklch, currentColor 55%, transparent);
 }
 
+/*
+ * A select in the scale: the same box as the inputs beside it, so a row of
+ * fields lines up. Plain CSS outranks the select's own utility classes.
+ */
+.type-scale__select {
+  height: calc(var(--spacing) * 7);
+  padding-block: 0;
+  padding-inline: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1);
+  font: inherit;
+  color: inherit;
+  background: color-mix(in oklch, currentColor 5%, transparent);
+  border: 1px solid color-mix(in oklch, currentColor 16%, transparent);
+  border-radius: var(--radius-control);
+}
+
 .type-scale__name {
   width: 100%;
   font-family: ui-monospace, monospace;
@@ -99,7 +114,7 @@
   place-items: center;
   width: calc(var(--spacing) * 7);
   height: calc(var(--spacing) * 7);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
   opacity: 0.6;
 
   &:hover {

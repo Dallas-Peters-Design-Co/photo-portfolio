@@ -1,70 +1,159 @@
 /*
- * A site review, read as a document on a sheet: the same shell and sheet
- * tokens as the proposal, with screens instead of clauses. Each screen is
- * its picture with numbered pins, and under it the numbered notes.
+ * A site review as the client reads it, laid out like a studio's own page:
+ * a fixed column down the left (ReviewSidebar.tsx) with the contents, who
+ * it is for and the PDF, and beside it the review in full-width bands split
+ * by hairlines, each heading on the left and its words on the right.
+ *
+ * On screen it takes the site's own colours; on paper it is a white sheet
+ * (see the print rules at the end).
  */
 
 .review-page {
-  --sheet: oklch(0.995 0 0);
-  --sheet-ink: oklch(0.17 0 0);
-  --sheet-ink-soft: oklch(0.5 0 0);
-  --sheet-rule: oklch(0.9 0 0);
-  --sheet-tint: oklch(0.965 0 0);
-  /* Pins and markup are the site accent — see reviewAccentStyle. */
-  --pin-tint: color-mix(in oklch, var(--review-accent) 30%, #fff);
+  --review-sidebar: 17rem;
+  --sheet: var(--background);
+  --sheet-ink: var(--foreground);
+  --sheet-ink-soft: color-mix(in oklch, var(--foreground) 62%, transparent);
+  --sheet-rule: color-mix(in oklch, var(--foreground) 14%, transparent);
+  --sheet-tint: color-mix(in oklch, var(--foreground) 5%, transparent);
+  --band-pad: clamp(calc(var(--spacing) * 6), 4vw, calc(var(--spacing) * 12));
+
+  min-height: 100dvh;
+  color: var(--sheet-ink);
+  background: var(--sheet);
 }
 
-.review-page__masthead,
-.review-page__main {
-  max-width: 75rem;
-}
+/* The left column */
 
-.review-page__masthead {
+.review-page__sidebar {
   display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--spacing) * 4);
+  flex-direction: column;
+  gap: calc(var(--spacing) * 6);
+  padding: calc(var(--spacing) * 6) var(--band-pad);
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.review-page__wordmark {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 3);
   align-items: center;
-  justify-content: space-between;
-  padding-block-start: calc(var(--spacing) * 10);
+  font-size: var(--text-sm-ui);
+  font-weight: 600;
+  color: var(--sheet-ink);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
 }
 
-.review-page__masthead-end {
+.review-page__logo {
+  flex: none;
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+}
+
+.review-nav__list {
   display: flex;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
+  overflow-x: auto;
+}
+
+.review-nav__link {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: baseline;
+  padding-block: calc(var(--spacing) * 1.5);
+  font-size: var(--text-xs-ui);
+  color: var(--sheet-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-wide);
+  white-space: nowrap;
+  transition: color 150ms ease-out;
+}
+
+.review-nav__link:hover,
+.review-nav__link[aria-current="location"] {
+  color: var(--sheet-ink);
+}
+
+.review-nav__key {
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklch, var(--foreground) 40%, transparent);
+}
+
+.review-nav__link[aria-current="location"] .review-nav__key {
+  color: var(--review-accent);
+}
+
+.review-nav__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-nav__link:focus-visible {
+  outline: 2px solid var(--review-accent);
+  outline-offset: 2px;
+}
+
+.review-page__sidebar-end {
+  display: flex;
+  flex-direction: column;
   gap: calc(var(--spacing) * 5);
-  align-items: center;
+}
+
+/* Who the review is for, and the PDF: the one box in the column. */
+.review-page__card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  align-items: flex-start;
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid var(--sheet-rule);
+}
+
+.review-page__card-kicker,
+.review-page__colophon {
+  font-size: var(--text-xs-ui);
+  color: var(--sheet-ink-soft);
+  letter-spacing: var(--tracking-micro);
+}
+
+.review-page__card-title {
+  margin-block-end: calc(var(--spacing) * 2);
+  font-family: var(--font-display, var(--font-sans));
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
 }
 
 .review-page__pdf-wrap {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 1);
-  align-items: flex-end;
 }
 
-/* Quiet until hovered: the review is the subject, not the button. */
 .review-page__pdf {
   display: inline-flex;
   align-items: center;
   min-height: calc(var(--spacing) * 9);
-  padding-inline: calc(var(--spacing) * 5);
+  padding-inline: calc(var(--spacing) * 4);
   font: inherit;
   font-size: var(--text-xs-ui);
-  font-weight: 500;
-  color: var(--foreground);
+  font-weight: 600;
+  color: var(--sheet);
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro);
+  white-space: nowrap;
   cursor: pointer;
-  background: transparent;
-  border: 1px solid var(--review-accent);
-  border-radius: 999px;
+  background: var(--sheet-ink);
+  border: 1px solid var(--sheet-ink);
   transition-timing-function: ease-out;
   transition-duration: 150ms;
   transition-property: color, background-color;
 }
 
 .review-page__pdf:hover:not(:disabled) {
-  color: var(--review-on-accent);
-  background: var(--review-accent);
+  color: var(--sheet-ink);
+  background: transparent;
 }
 
 .review-page__pdf:focus-visible {
@@ -78,47 +167,209 @@
 }
 
 .review-page__pdf-error {
-  max-width: 18rem;
+  max-width: 14rem;
   font-size: var(--text-xs-ui);
   color: var(--review-accent);
-  text-align: end;
 }
 
-.review-page__wordmark {
-  display: inline-flex;
-  gap: calc(var(--spacing) * 3);
-  align-items: center;
-  font-size: var(--text-sm-ui);
-  font-weight: 600;
-  color: var(--foreground);
+.review-page__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  font-size: var(--text-xs-ui);
+  color: var(--sheet-ink-soft);
   text-transform: uppercase;
-  letter-spacing: var(--tracking-micro-caps);
+  letter-spacing: var(--tracking-micro);
 }
 
-.review-page__logo {
-  width: calc(var(--spacing) * 12);
-  height: calc(var(--spacing) * 12);
+.review-page__legend-item::before {
+  box-sizing: border-box;
+  display: inline-block;
+  width: calc(var(--spacing) * 3);
+  height: calc(var(--spacing) * 3);
+  margin-inline-end: calc(var(--spacing) * 2);
+  vertical-align: middle;
+  content: "";
+  border: 2px solid;
+  border-radius: var(--radius-pill);
 }
+
+/*
+ * On a narrow window the column is a bar above the review: the mark, the
+ * contents in a row that scrolls sideways, and the PDF. The key to the notes
+ * is left out; each note names its kind.
+ */
+@media (max-width: 63.99rem) {
+  .review-page__legend,
+  .review-page__colophon,
+  .review-page__card-kicker,
+  .review-page__card-title {
+    display: none;
+  }
+
+  .review-page__card {
+    padding: 0;
+    border: 0;
+  }
+}
+
+@media (min-width: 64rem) {
+  .review-page__sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 10;
+    width: var(--review-sidebar);
+    padding: calc(var(--spacing) * 8) calc(var(--spacing) * 6);
+    overflow-y: auto;
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--sheet-rule);
+  }
+
+  .review-nav__list {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  /* In the column there is room to wrap: a long title is read whole. */
+  .review-nav__link {
+    white-space: normal;
+  }
+
+  .review-nav__label {
+    overflow-wrap: anywhere;
+  }
+
+  .review-page__legend {
+    flex-direction: column;
+  }
+
+  .review-page__sidebar-end {
+    margin-block-start: auto;
+  }
+
+  .review-page__main {
+    margin-inline-start: var(--review-sidebar);
+  }
+}
+
+/* The review */
 
 .review-page__main {
-  padding-block: calc(var(--spacing) * 10) calc(var(--spacing) * 16);
+  min-width: 0;
 }
 
-.review-page__sheet {
-  --foreground: var(--sheet-ink);
+/* Loading, not found and the password: one band, padded like the rest. */
+.review-page__main > :not(.review-page__sheet) {
+  padding: var(--band-pad);
+}
 
+.review-page__hero,
+.review-page__section {
+  padding: calc(var(--band-pad) * 1.25) var(--band-pad);
+  scroll-margin-top: calc(var(--spacing) * 4);
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.review-page__section--last {
+  border-block-end: 0;
+}
+
+.review-page__hero {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 9);
-  padding: clamp(calc(var(--spacing) * 7), 6vw, calc(var(--spacing) * 13));
-  color: var(--sheet-ink);
-  background: var(--sheet);
-  border-top: 12px solid var(--review-accent);
-  border-radius: calc(var(--spacing) * 2);
+  gap: calc(var(--spacing) * 5);
 }
 
-.review-page__sheet .label {
+.review-page__kicker {
+  font-size: var(--text-xs-ui);
   color: var(--sheet-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-wide);
+}
+
+.review-page__title {
+  max-width: 18ch;
+  font-family: var(--font-display, var(--font-sans));
+  font-size: clamp(2.75rem, 6vw, 6rem);
+  font-weight: 800;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}
+
+.review-page__draft {
+  color: oklch(0.75 0.15 70);
+}
+
+.review-page__hero-foot {
+  display: grid;
+  gap: calc(var(--spacing) * 8);
+  margin-block-start: calc(var(--spacing) * 4);
+}
+
+.review-page__parties {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  align-content: start;
+}
+
+.review-page__party {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  font-size: var(--text-sm-ui);
+  line-height: 1.5;
+}
+
+.review-page__party dt {
+  font-size: var(--text-xs-ui);
+  color: var(--sheet-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+}
+
+.review-page__party a,
+.review-page__source a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--sheet-rule);
+  text-underline-offset: 3px;
+}
+
+.review-page__section {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 5);
+}
+
+.review-page__section-title {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.review-page__section-body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  .review-page__hero-foot {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  }
+
+  /* A heading on the left, its words on the right. */
+  .review-page__section--split {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: calc(var(--spacing) * 10);
+    align-items: start;
+  }
 }
 
 .review-page__sheet .page-content__paragraph,
@@ -132,28 +383,12 @@
   line-height: var(--leading-prose);
 }
 
-/* The opening paragraph(s): a lede, a step up from the body. */
 .review-page__intro .page-content__paragraph,
 .review-page__intro .review-page__prose {
   max-width: 60ch;
   font-size: 1.125rem;
   line-height: 1.6;
-}
-
-.review-page__kicker {
-  letter-spacing: var(--tracking-micro-wide);
-}
-
-.review-page__title {
-  font-family: var(--font-display, var(--font-sans));
-  font-size: var(--text-3xl);
-  font-variation-settings: "wght" 800;
-  line-height: 1.1;
-  letter-spacing: -0.05em;
-}
-
-.review-page__draft {
-  color: oklch(0.65 0.15 70);
+  color: var(--sheet-ink-soft);
 }
 
 .review-page__list {
@@ -164,88 +399,29 @@
   padding-inline-start: calc(var(--spacing) * 5);
   font-size: var(--text-prose);
   line-height: 1.6;
-  list-style: disc;
-}
-
-/* The parties */
-
-.review-page__parties {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: calc(var(--spacing) * 4);
-}
-
-@media (min-width: 40rem) {
-  .review-page__parties {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.review-page__party {
-  padding: calc(var(--spacing) * 4) calc(var(--spacing) * 5);
-  font-size: var(--text-sm-ui);
-  line-height: 1.5;
-  border: 1px solid var(--sheet-rule);
-  border-radius: calc(var(--spacing) * 1);
-}
-
-.review-page__party dt {
-  margin-block-start: calc(var(--spacing) * 3);
-}
-
-.review-page__party dt:first-child {
-  margin-block-start: 0;
-}
-
-.review-page__party dd {
-  margin-block-start: calc(var(--spacing) * 1);
-}
-
-.review-page__party a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--sheet-rule);
+  list-style: "—  ";
 }
 
 /* Screens */
 
-.review-page__section {
+.review-page__screen-head {
   display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 3);
-  padding-block-end: calc(var(--spacing) * 8);
-  border-block-end: 1px solid var(--sheet-rule);
-}
-
-.review-page__section--last {
-  padding-block-end: 0;
-  border-block-end: 0;
-}
-
-.review-page__section-title {
-  font-family: var(--font-display, var(--font-sans));
-  font-size: 2.2rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.04em;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 8);
+  align-items: baseline;
+  justify-content: space-between;
 }
 
 .review-page__source {
   font-size: var(--text-sm-ui);
   color: var(--sheet-ink-soft);
-}
-
-.review-page__source a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-color: var(--sheet-rule);
+  overflow-wrap: anywhere;
 }
 
 .review-page__screen {
   display: grid;
   grid-template-columns: 1fr;
-  gap: calc(var(--spacing) * 6);
-  margin-block-start: calc(var(--spacing) * 3);
+  gap: calc(var(--spacing) * 8);
 }
 
 @media (min-width: 60rem) {
@@ -263,11 +439,9 @@
   position: relative;
   overflow: hidden;
   border: 1px solid var(--sheet-rule);
-  border-radius: calc(var(--spacing) * 1);
 }
 
-/* A phone capture is drawn no wider than a large phone (420px), not
-   stretched to the column; print sets its own size below. */
+/* A phone capture is drawn no wider than a large phone (420px). */
 .review-page__screen--mobile .review-page__figure {
   max-width: var(--container-phone);
 }
@@ -303,8 +477,8 @@
   font-size: var(--text-xs-ui);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  border: 2px solid var(--review-accent);
-  border-radius: 999px;
+  border: 2px solid;
+  border-radius: var(--radius-pill);
   box-shadow: 0 1px 4px oklch(0 0 0 / 35%);
   transform: translate(-50%, -50%);
 }
@@ -312,7 +486,6 @@
 .review-page__notes {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 4);
   font-size: var(--text-prose);
   line-height: var(--leading-prose);
 }
@@ -320,8 +493,18 @@
 .review-page__note {
   display: grid;
   grid-template-columns: calc(var(--spacing) * 7) 1fr;
-  gap: calc(var(--spacing) * 3);
+  gap: calc(var(--spacing) * 4);
   align-items: start;
+  padding-block: calc(var(--spacing) * 4);
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.review-page__note:first-child {
+  padding-block-start: 0;
+}
+
+.review-page__note:last-child {
+  border-block-end: 0;
 }
 
 .review-page__note-n {
@@ -333,41 +516,50 @@
   font-size: var(--text-xs-ui);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  border: 2px solid var(--review-accent);
-  border-radius: 999px;
+  border: 2px solid;
+  border-radius: var(--radius-pill);
 }
 
 /*
- * One accent, four treatments — on the picture, in the list and in the
- * legend alike. Kinds differ by fill and ring rather than by hue, so the
- * review stays in the site's colour and still reads printed in greyscale.
+ * Each kind of note in its colour from the site settings (reviewAccentStyle),
+ * with its number and ring in black or white, whichever reads on it — on the
+ * picture, in the list and in the key alike.
  */
 .review-page__pin--issue,
 .review-page__note-n--issue,
 .review-page__legend-item--issue::before {
-  color: var(--review-on-accent);
-  background: var(--review-accent);
+  color: var(--review-pin-issue-ink);
+  background: var(--review-pin-issue);
+  border-color: var(--review-pin-issue-ink);
 }
 
 .review-page__pin--recommendation,
 .review-page__note-n--recommendation,
 .review-page__legend-item--recommendation::before {
-  color: #fff;
-  background: #111;
+  color: var(--review-pin-recommendation-ink);
+  background: var(--review-pin-recommendation);
+  border-color: var(--review-pin-recommendation-ink);
 }
 
 .review-page__pin--suggestion,
 .review-page__note-n--suggestion,
 .review-page__legend-item--suggestion::before {
-  color: #111;
-  background: #fff;
+  color: var(--review-pin-suggestion-ink);
+  background: var(--review-pin-suggestion);
+  border-color: var(--review-pin-suggestion-ink);
 }
 
 .review-page__pin--praise,
 .review-page__note-n--praise,
 .review-page__legend-item--praise::before {
-  color: #111;
-  background: var(--pin-tint);
+  color: var(--review-pin-praise-ink);
+  background: var(--review-pin-praise);
+  border-color: var(--review-pin-praise-ink);
+}
+
+/* In the key, the dot is the fill alone. */
+.review-page__legend-item::before {
+  border-color: var(--sheet-rule);
 }
 
 .review-page__note-title {
@@ -385,29 +577,8 @@
 
 .review-page__note-body {
   margin-block-start: calc(var(--spacing) * 1);
-  white-space: pre-line;
-}
-
-.review-page__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--spacing) * 5);
-  font-size: var(--text-xs-ui);
   color: var(--sheet-ink-soft);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro);
-}
-
-.review-page__legend-item::before {
-  box-sizing: border-box;
-  display: inline-block;
-  width: calc(var(--spacing) * 3);
-  height: calc(var(--spacing) * 3);
-  margin-inline-end: calc(var(--spacing) * 2);
-  vertical-align: middle;
-  content: "";
-  border: 2px solid var(--review-accent);
-  border-radius: 999px;
+  white-space: pre-line;
 }
 
 .review-page__notice-title {
@@ -416,19 +587,21 @@
   font-weight: 400;
 }
 
-.review-page__footer {
-  padding-block: calc(var(--spacing) * 6);
-  text-align: center;
-}
-
 @media print {
+  /* Paper is white whatever the site's theme: back to the light sheet. */
   .review-page {
+    --sheet: #fff;
+    --sheet-ink: oklch(0.17 0 0);
+    --sheet-ink-soft: oklch(0.5 0 0);
+    --sheet-rule: oklch(0.9 0 0);
+    --sheet-tint: oklch(0.965 0 0);
+
+    display: block;
     color: var(--sheet-ink);
     background: #fff;
   }
 
-  .review-page__masthead,
-  .review-page__footer,
+  .review-page__sidebar,
   .review-page__draft {
     display: none;
   }
@@ -436,11 +609,16 @@
   .review-page__main {
     max-width: none;
     padding: 0;
+    margin: 0;
   }
 
-  .review-page__sheet {
-    padding: 0;
-    border-radius: 0;
+  .review-page__hero,
+  .review-page__section {
+    padding-inline: 0;
+  }
+
+  .review-page__title {
+    font-size: var(--text-3xl);
   }
 
   /* The site's own background (dark on some sites) must not show below the sheet. */

@@ -45,6 +45,7 @@
   width: calc(var(--spacing) * 8);
   height: calc(var(--spacing) * 8);
   color: color-mix(in oklch, #fff 90%, transparent);
+  border-radius: var(--radius-inner);
   transition:
     color var(--default-transition-duration) var(--ease-in-out),
     background-color var(--default-transition-duration) var(--ease-in-out);

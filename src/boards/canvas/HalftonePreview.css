@@ -20,7 +20,7 @@
     var(--color-board-surface) 40%,
     transparent
   );
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 .halftone-preview__empty,

@@ -279,10 +279,14 @@
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /*
+   * Tailwind's corner steps, pointed at the three roles below, so every
+   * `rounded-sm/md/lg/xl` lands on one of them. See "Corners" in @theme.
+   */
+  --radius-sm: var(--radius-inner);
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-surface);
+  --radius-xl: var(--radius-surface);
 
   --shadow-2xs: var(--shadow-2xs);
   --shadow-xs: var(--shadow-xs);
@@ -317,6 +321,9 @@
   /* The widest a phone screenshot is drawn (420px), in the review editor
      and on the review page: \`max-w-phone\`. */
   --container-phone: 26.25rem;
+  /* The window less a gutter each side: how wide a dialog may grow before
+     its edges touch the screen's (\`max-w-inset\`). */
+  --container-inset: calc(100% - var(--spacing) * 8);
   --color-a: oklch(50.07% 0.1634 31.33);
   --color-b: oklch(62.67% 0.1766 32.76);
   --color-c: oklch(81.46% 0.1738 111.52);
@@ -438,15 +445,23 @@
   --tracking-gate-tight: 0.15em;
 
   /*
-   * Control corners.
+   * Corners. Every part of the UI takes one of three, by what it is:
    *
-   * `--radius-control` is Tailwind's bare `rounded` — 0.25rem — and is NOT
-   * `--radius-sm`, which this project re-points to `calc(var(--radius) - 4px)`
-   * = 6px. The two are half again apart, so a control reaching for the wrong
-   * one is a visible change. `--radius-glyph` is for a borrowed icon that has
-   * to look like a rounded rectangle at 18px.
+   *   --radius-control  inputs, selects, buttons, text areas, chips, tool
+   *                     buttons, search fields (rounded-control, rounded-md)
+   *   --radius-surface  what holds controls: cards, pop-ups, menus, dialogs,
+   *                     toolbars, panels (rounded-surface, rounded-lg/xl)
+   *   --radius-inner    things inside a surface: menu rows, grid cells,
+   *                     thumbnails (rounded-inner, rounded-sm)
+   *
+   * plus --radius-pill for anything fully round (pins, dots, avatars). The
+   * steps are close on purpose: one family of corners, nested a step apart.
+   * Change a role here and every control, surface or row follows.
+   * `--radius-glyph` is only for a borrowed icon drawn as a rounded square.
    */
-  --radius-control: 0.25rem;
+  --radius-inner: 0.25rem;
+  --radius-control: 0.375rem;
+  --radius-surface: 0.5rem;
   --radius-glyph: 0.1875rem;
   /* Fully round, whatever the box. `infinity` rather than a big number, which
      is what 9999px was pretending to be. */

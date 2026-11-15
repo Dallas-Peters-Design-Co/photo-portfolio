@@ -102,7 +102,7 @@
     height: 4px;
     overflow: hidden;
     background: color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-    border-radius: 2px;
+    border-radius: var(--radius-inner);
   }
 }
 
@@ -135,7 +135,7 @@
     padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
     color: inherit;
     text-align: left;
-    border-radius: var(--radius-control, 6px);
+    border-radius: var(--radius-control);
   }
   & button:hover {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);
@@ -165,7 +165,7 @@
   text-align: left;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-control, 6px);
+  border-radius: var(--radius-control);
 
   &:hover {
     border-color: color-mix(in oklch, var(--color-board-ink) 45%, transparent);
@@ -197,7 +197,7 @@
   color: inherit;
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 20%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 
   &:hover:not(:disabled) {
     background: color-mix(in oklch, var(--color-board-ink) 8%, transparent);

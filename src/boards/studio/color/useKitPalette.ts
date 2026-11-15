@@ -20,18 +20,26 @@ export const useKitPalette = () => {
   const kit = brand?.kit ?? null;
   const entries: PaletteEntry[] = kit?.resolvedDoc.palette ?? [];
 
-  /** Saves part of the kit as a new version; `what` names it in the toast. */
-  const update = async (patch: Partial<BrandKitDoc>, what: string) => {
+  /**
+   * Saves part of the kit as a new version; `what` names it in the toast.
+   * Resolves true once saved.
+   */
+  const update = async (
+    patch: Partial<BrandKitDoc>,
+    what: string
+  ): Promise<boolean> => {
     if (!kit) {
-      return;
+      return false;
     }
     setSaving(true);
     try {
       await brandKitsApi.save(kit.id, { ...kit.doc, ...patch });
       await refresh();
       toast.success(`Saved as ${kit.name}'s ${what}`);
+      return true;
     } catch (e) {
       toast.error(e instanceof Error ? e.message : `Couldn't save the ${what}`);
+      return false;
     } finally {
       setSaving(false);
     }

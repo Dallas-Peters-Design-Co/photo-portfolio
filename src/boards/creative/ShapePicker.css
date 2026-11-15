@@ -24,7 +24,7 @@
   height: calc(var(--spacing) * 9);
   color: inherit;
   background: color-mix(in oklch, var(--color-board-ink) 5%, transparent);
-  border-radius: var(--radius-control, 8px);
+  border-radius: var(--radius-control);
 
   &:hover {
     background: color-mix(in oklch, var(--color-board-ink) 12%, transparent);

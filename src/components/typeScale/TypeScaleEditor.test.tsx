@@ -3,6 +3,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import type { TypeScale } from "../../../config/typeScale.js";
+import "../../index.css";
 import { TypeScaleEditor } from "./TypeScaleEditor";
 
 (
@@ -74,5 +75,23 @@ describe("TypeScaleEditor weight menu", () => {
       ...SCALE,
       styles: [{ ...SCALE.styles[0], weight: 700 }],
     });
+  });
+});
+
+describe("TypeScaleEditor row", () => {
+  it("draws its inputs and selects at the same height", () => {
+    const row = host?.querySelector(
+      ".type-scale__specs:not(.type-scale__specs--head)"
+    );
+    const heights = [
+      ...(row?.querySelectorAll<HTMLElement>(
+        "input, [data-slot='select-trigger']"
+      ) ?? []),
+    ]
+      // Base UI's select keeps a 1px hidden input for forms; not a field.
+      .filter((el) => el.getBoundingClientRect().width > 1)
+      .map((el) => el.getBoundingClientRect().height);
+    expect(heights.length).toBeGreaterThan(4);
+    expect(heights).toEqual(heights.map(() => heights[0]));
   });
 });

@@ -1,52 +1,20 @@
 /*
  * The brand kit library, and the kit being edited.
  *
- * The editor is two columns: what the kit *is* on the left, what it *produces*
- * on the right. A kit is only judgeable whole — a palette that reads well as
- * five rectangles can still put unreadable type on its own ground, and the only
- * way to see that is to look at the output beside the input.
- *
- * One column below the large breakpoint, previews first: on a narrow screen the
- * fields run long, and a preview pushed below all of them is a preview nobody
- * scrolls back to. 1024px written out, because a media query cannot read
- * `--breakpoint-lg`.
+ * The editor sits in the admin's editor frame (EditorShell): its name,
+ * version, Save and prompt in the panel on the left, and its parts in blocks
+ * that fold away, the preview first — what the kit produces, at the top of
+ * what it states.
  */
 
 .brand-kit {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: calc(var(--spacing) * 6);
-}
-
-@media (width >= 1024px) {
-  .brand-kit {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    align-items: start;
-  }
-}
-
-.brand-kit__editor {
   min-width: 0;
 }
 
-/* Sticks while the fields scroll past it, so the output stays in view while the
-   input is being changed — the whole point of having both. */
-.brand-kit__aside {
-  min-width: 0;
-}
-
-@media (width >= 1024px) {
-  .brand-kit__aside {
-    position: sticky;
-    top: calc(var(--spacing) * 4);
-  }
-}
-
-/* The name is the widest field and the least interesting; it takes the room
-   that is left rather than a share of it. */
-.brand-kit__name {
-  flex: 1;
-  min-width: 0;
+.brand-kit__version {
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  color: rgb(255 255 255 / 0.7);
 }
 
 /*
@@ -151,78 +119,82 @@
   border-radius: var(--radius-control);
 }
 
-/* The three output formats, side by side so their proportions can be compared. */
+/*
+ * The three output formats, side by side at one height so their proportions
+ * can be compared: each is as wide as its shape makes it, and the logo and
+ * type are the same size in all three, as they would be in use. On a narrow
+ * window the row scrolls sideways rather than shrinking them unevenly.
+ */
 .brand-kit__previews {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: calc(var(--spacing) * 2);
+  --preview-height: 22rem;
+
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  align-items: flex-start;
+  overflow-x: auto;
 }
 
 .brand-kit__preview {
   position: relative;
-  min-width: 0;
+  flex: none;
+  margin: 0;
 }
 
-/* Names the aspect, because a 9:16 and a 4:5 at thumbnail size are easy to
-   mistake for each other. */
+/* Names the aspect, because a 9:16 and a 4:5 are easy to mistake. */
 .brand-kit__preview-chip {
   position: absolute;
-  top: var(--spacing);
-  left: var(--spacing);
+  top: calc(var(--spacing) * 2);
+  left: calc(var(--spacing) * 2);
   z-index: var(--z-canvas-item);
   padding-block: calc(var(--spacing) * 0.5);
-  padding-inline: var(--spacing);
+  padding-inline: calc(var(--spacing) * 1.5);
   font-size: var(--text-micro-3xs);
   color: #fff;
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro);
   background: color-mix(in oklch, #000 60%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 /*
- * The mock itself.
- *
- * Its ground, ink and accent come from the kit at runtime, so everything here
- * is layout only — the colours are the thing being tested and must not be
- * decided by this file.
+ * The mock itself. Its ground, ink and accent come from the kit at runtime,
+ * so everything here is layout only — the colours are the thing being tested.
  */
 .brand-kit__preview-frame {
   display: flex;
   flex-direction: column;
-  gap: calc(var(--spacing) * 2);
+  gap: calc(var(--spacing) * 3);
   align-items: flex-start;
-  justify-content: flex-end;
-  padding: calc(var(--spacing) * 3);
-  /*
-   * Room at the top for the aspect chip, which is positioned over this frame
-   * rather than beside it. Without it the chip sits on the wordmark and clips
-   * it — and the wordmark is the one part of the mock that has to be legible,
-   * since it is standing in for the logo.
-   */
-  padding-block-start: calc(var(--spacing) * 8);
+  height: var(--preview-height);
+  padding: calc(var(--spacing) * 5);
+  /* Room at the top for the aspect chip, which sits over the frame. */
+  padding-block-start: calc(var(--spacing) * 11);
   overflow: hidden;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-surface);
 }
 
 .brand-kit__preview-logo {
-  max-width: 60%;
-  max-height: calc(var(--spacing) * 8);
+  width: auto;
+  max-width: 80%;
+  height: auto;
+  max-height: calc(var(--preview-height) * 0.2);
   margin-block-end: auto;
   object-fit: contain;
+  object-position: left top;
 }
 
 .brand-kit__preview-wordmark {
   margin-block-end: auto;
-  font-size: var(--text-micro-2xs);
+  font-size: var(--text-sm-ui, 0.875rem);
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro-widest);
 }
 
 .brand-kit__preview-headline {
-  font-size: var(--text-micro-md);
+  font-size: 1.125rem;
   font-weight: 500;
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .brand-kit__preview-cta {
@@ -549,6 +521,6 @@
     height: auto;
     aspect-ratio: 1;
     object-fit: cover;
-    border-radius: var(--radius-control, 6px);
+    border-radius: var(--radius-control);
   }
 }

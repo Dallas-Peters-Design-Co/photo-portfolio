@@ -444,7 +444,7 @@ export function BatchUploader({
                   </div>
 
                   {item.error ? (
-                    <div className="absolute right-2 bottom-6 left-2 z-10 truncate whitespace-nowrap rounded bg-black/80 px-1.5 py-0.5 text-red-300/90 text-sm">
+                    <div className="absolute right-2 bottom-6 left-2 z-10 truncate whitespace-nowrap rounded-control bg-black/80 px-1.5 py-0.5 text-red-300/90 text-sm">
                       {item.error}
                     </div>
                   ) : null}

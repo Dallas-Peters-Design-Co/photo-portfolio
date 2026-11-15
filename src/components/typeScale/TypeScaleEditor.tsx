@@ -56,8 +56,8 @@ const HEAD_WEIGHT_ITEMS = weightItems(WEIGHTS);
  * The look `.type-scale select` gave the native controls: compact, tinted from
  * the current colour, so the triggers sit level with the number inputs.
  */
-const triggerClass =
-  "h-7 rounded-[6px] border-[color-mix(in_oklch,currentColor_16%,transparent)] bg-[color-mix(in_oklch,currentColor_5%,transparent)] py-0 pr-1 pl-[calc(var(--spacing)*1.25)] text-inherit [font:inherit]";
+/** Selects drawn like the inputs beside them (TypeScaleEditor.css). */
+const triggerClass = "type-scale__select";
 const SAMPLES: Record<string, string> = {
   body: "Body copy sets the pace for everything else on the page, so it should read without effort at length.",
   label: "Section label",

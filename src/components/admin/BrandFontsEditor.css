@@ -10,7 +10,7 @@
   color: color-mix(in oklch, #fff 70%, transparent);
   border: var(--border-hairline) solid
     color-mix(in oklch, #fff 15%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .brand-fonts__chip[aria-pressed="true"] {

@@ -13,7 +13,7 @@
   color: #e5e5e5;
   background: #1c1c1e;
   border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 10px;
+  border-radius: var(--radius-surface);
 }
 
 .color-vars-row__label {
@@ -34,7 +34,7 @@
   width: 20px;
   height: 20px;
   border: 1px solid rgb(255 255 255 / 0.2);
-  border-radius: 5px;
+  border-radius: var(--radius-inner);
 }
 
 .color-vars-row__swatch[aria-pressed="true"] {
@@ -49,7 +49,7 @@
   height: 20px;
   color: #e5e5e5;
   border: 1px dashed rgb(255 255 255 / 0.3);
-  border-radius: 5px;
+  border-radius: var(--radius-inner);
 }
 
 .color-vars-row__tool:hover {
@@ -81,7 +81,7 @@
   color: #e5e5e5;
   background: #1c1c1e;
   border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 12px;
+  border-radius: var(--radius-surface);
   box-shadow: 0 20px 48px rgb(0 0 0 / 0.45);
   translate: -50% -50%;
 }
@@ -122,7 +122,7 @@
   color: inherit;
   background: rgb(255 255 255 / 0.06);
   border: 1px solid rgb(255 255 255 / 0.1);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 
 .color-vars__hex {
@@ -136,7 +136,7 @@
   width: 26px;
   height: 26px;
   color: inherit;
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 
 .color-vars__icon:hover {
@@ -157,7 +157,7 @@
   font-size: 12px;
   color: inherit;
   border: 1px solid rgb(255 255 255 / 0.15);
-  border-radius: 6px;
+  border-radius: var(--radius-control);
 }
 
 .color-vars__add:hover {

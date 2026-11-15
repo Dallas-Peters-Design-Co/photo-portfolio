@@ -27,7 +27,7 @@
   contain: paint;
   background-color: var(--color-board-panel);
   border: none;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 /*
@@ -233,7 +233,7 @@
   );
   border: var(--border-hairline) solid
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
 
 /*
@@ -333,5 +333,5 @@
   white-space: pre-wrap;
   /* Its own ground so it reads as quoted material rather than as more chrome. */
   background: color-mix(in oklch, var(--color-sky-600) 12%, transparent);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-inner);
 }
