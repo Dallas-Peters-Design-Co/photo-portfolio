@@ -233,6 +233,8 @@ function ReviewSheet({
   );
 }
 
+const noteId = (pinId: string): string => `note-${pinId}`;
+
 function Screen({
   screen,
   firstNumber,
@@ -241,9 +243,22 @@ function Screen({
   firstNumber: number;
 }) {
   const { image } = screen;
+  const [shown, setShown] = useState<string | null>(null);
   if (!image) {
     return null;
   }
+  // A pin on the picture brings its note to the top of the window, beside
+  // the screenshot, and marks it for a moment so the eye lands on it.
+  const showNote = (id: string) => {
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    document.getElementById(noteId(id))?.scrollIntoView({
+      behavior: reduce ? "auto" : "smooth",
+      block: "start",
+    });
+    setShown(id);
+  };
   const cls = "doc-band review-page__section--screen";
   const figureCls =
     screen.viewport === "mobile"
@@ -289,18 +304,25 @@ function Screen({
             width={image.width}
           />
           {screen.pins.map((pin, i) => (
-            <span
+            <button
+              aria-label={`Note ${firstNumber + i}: ${pin.title || "Note"}`}
               className={`review-page__pin review-page__pin--${pin.kind}`}
               key={pin.id}
+              onClick={() => showNote(pin.id)}
               style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
+              type="button"
             >
               {firstNumber + i}
-            </span>
+            </button>
           ))}
         </figure>
         <ol className="review-page__notes">
           {screen.pins.map((pin, i) => (
-            <li className="review-page__note" key={pin.id}>
+            <li
+              className={`review-page__note${shown === pin.id ? "review-page__note--shown" : ""}`}
+              id={noteId(pin.id)}
+              key={pin.id}
+            >
               <span
                 className={`review-page__note-n review-page__note-n--${pin.kind}`}
               >

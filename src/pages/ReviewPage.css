@@ -270,6 +270,39 @@
   border-block-end: 1px solid var(--sheet-rule);
 }
 
+/* Brought to the top by its pin: level with the sticky screenshot. */
+.review-page__note {
+  scroll-margin-block-start: calc(var(--spacing) * 4);
+}
+
+/* The note its pin just brought up, so the eye finds it; it fades. */
+.review-page__note--shown {
+  animation: review-note-shown 1.6s ease-out;
+}
+
+@keyframes review-note-shown {
+  from {
+    background: color-mix(
+      in oklch,
+      var(--review-accent, currentColor) 14%,
+      transparent
+    );
+  }
+  to {
+    background: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-page__note--shown {
+    animation: none;
+  }
+}
+
+.review-page__pin {
+  cursor: pointer;
+}
+
 .review-page__note:first-child {
   padding-block-start: 0;
 }
