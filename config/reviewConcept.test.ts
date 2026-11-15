@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { joinCardText, splitCardText } from "./reviewConcept.js";
+import { cleanConcept, joinCardText, splitCardText } from "./reviewConcept.js";
 
 describe("card text", () => {
   it("splits the first line into the title and keeps the rest as the body", () => {
@@ -23,5 +23,27 @@ describe("card text", () => {
 
   it("keeps a pasted newline in the title from moving text into the body", () => {
     expect(joinCardText("Two\nlines", "Body")).toBe("Two lines\nBody");
+  });
+});
+
+describe("card border and shadow", () => {
+  it("keeps a valid border color and shadow on a card", () => {
+    const [card] = cleanConcept({
+      elements: [{ borderColor: "#e8e4dc", kind: "card", shadow: "strong" }],
+    }).elements;
+    expect(card).toMatchObject({ borderColor: "#e8e4dc", shadow: "strong" });
+  });
+
+  it("drops a bad border color and shadow, and ignores them on other kinds", () => {
+    const [card, button] = cleanConcept({
+      elements: [
+        { borderColor: "red", kind: "card", shadow: "huge" },
+        { borderColor: "#ffffff", kind: "button", shadow: "soft" },
+      ],
+    }).elements;
+    expect(card?.borderColor).toBeUndefined();
+    expect(card?.shadow).toBeUndefined();
+    expect(button?.borderColor).toBeUndefined();
+    expect(button?.shadow).toBeUndefined();
   });
 });

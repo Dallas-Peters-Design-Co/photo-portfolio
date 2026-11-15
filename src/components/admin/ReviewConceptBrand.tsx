@@ -158,6 +158,16 @@ export const createConceptElement = (
     text: elementText[kind],
     ...(options ? { options } : {}),
     ...elementState(kind),
+    ...(kind === "card"
+      ? {
+          borderColor: paletteColor(
+            brandDoc,
+            ["border", "outline", "stroke"],
+            "#d0d5dd"
+          ),
+          shadow: "soft" as const,
+        }
+      : {}),
   };
 };
 
@@ -285,6 +295,8 @@ const STYLE_KEYS = [
   "paddingX",
   "paddingY",
   "radius",
+  "borderColor",
+  "shadow",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 /**

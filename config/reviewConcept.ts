@@ -104,6 +104,8 @@ export const REVIEW_CONCEPT_ICONS: ReviewConceptIcon[] = [
 
 export interface ReviewConceptElement {
   background: string;
+  /** Cards only: the outline, and how far the card lifts off the page. */
+  borderColor?: string;
   checked?: boolean;
   color: string;
   fontFamily: "sans" | "serif" | "mono" | "brand" | "app";
@@ -121,6 +123,7 @@ export interface ReviewConceptElement {
   paddingY: number;
   placeholder?: string;
   radius: number;
+  shadow?: CardShadow;
   text: string;
 }
 
@@ -153,6 +156,24 @@ export const joinCardText = (title: string, body: string): string =>
 
 const str = (value: unknown, max: number): string =>
   typeof value === "string" ? value.slice(0, max) : "";
+
+export type CardShadow = "none" | "soft" | "strong";
+
+/** Two layers each: a tight edge shadow and a wide soft one. */
+export const CARD_SHADOWS: Record<CardShadow, string> = {
+  none: "none",
+  soft: "0 1px 2px rgb(0 0 0 / 0.08), 0 4px 14px rgb(0 0 0 / 0.12)",
+  strong: "0 2px 4px rgb(0 0 0 / 0.2), 0 14px 36px rgb(0 0 0 / 0.35)",
+};
+
+const cleanCard = (
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "borderColor" | "shadow"> => ({
+  ...(typeof raw.borderColor === "string" && HEX_COLOR.test(raw.borderColor)
+    ? { borderColor: raw.borderColor }
+    : {}),
+  ...(raw.shadow && raw.shadow in CARD_SHADOWS ? { shadow: raw.shadow } : {}),
+});
 
 const cleanColor = (value: unknown, fallback: string): string => {
   if (value === "transparent") {
@@ -249,6 +270,7 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     paddingX: bounded(raw.paddingX, 0, 48, 16),
     paddingY: bounded(raw.paddingY, 0, 32, 10),
     radius: bounded(raw.radius, 0, 48, 4),
+    ...(kind === "card" ? cleanCard(raw) : {}),
     text: str(raw.text, 500),
     ...(typeof raw.placeholder === "string"
       ? { placeholder: str(raw.placeholder, 200) }

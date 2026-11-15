@@ -1,7 +1,10 @@
 import { Copy, Trash2 } from "lucide-react";
 import { type ReactNode, useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
-import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import type {
+  CardShadow,
+  ReviewConceptElement,
+} from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
@@ -20,6 +23,11 @@ const INPUT_TYPES = optionsOf([
   ["url", "URL"],
   ["tel", "Phone"],
   ["password", "Password"],
+]);
+const SHADOWS = optionsOf([
+  ["none", "None"],
+  ["soft", "Soft"],
+  ["strong", "Strong"],
 ]);
 const WEIGHTS = optionsOf([
   ["400", "Regular"],
@@ -228,6 +236,16 @@ export function ReviewConceptElementFields({
           onChange={(paddingY) => onChange({ paddingY })}
           value={element.paddingY}
         />
+        {element.kind === "card" ? (
+          <ConceptField label="Shadow">
+            <ConceptSelect
+              label="Shadow"
+              onChange={(shadow) => onChange({ shadow: shadow as CardShadow })}
+              options={SHADOWS}
+              value={element.shadow ?? "soft"}
+            />
+          </ConceptField>
+        ) : null}
       </Group>
       <Group name="Color">
         <ConceptColorField
@@ -246,6 +264,15 @@ export function ReviewConceptElementFields({
             value={element.background}
           />
         )}
+        {element.kind === "card" ? (
+          <ConceptColorField
+            ariaLabel="card border color"
+            brandDoc={brandDoc}
+            label="Border"
+            onChange={(borderColor) => onChange({ borderColor })}
+            value={element.borderColor ?? "#d0d5dd"}
+          />
+        ) : null}
       </Group>
     </section>
   );

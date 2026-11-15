@@ -20,6 +20,7 @@ import {
 import type { CSSProperties } from "react";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
+  CARD_SHADOWS,
   type ReviewConceptElement,
   type ReviewConceptIcon,
   splitCardText,
@@ -74,7 +75,14 @@ function CardPreview({
   const card = splitCardText(element.text);
   const CardIcon = element.iconName ? CONCEPT_ICONS[element.iconName] : null;
   return (
-    <article className="review-concepts__card-preview" style={style}>
+    <article
+      className="review-concepts__card-preview"
+      style={{
+        ...style,
+        borderColor: element.borderColor,
+        boxShadow: CARD_SHADOWS[element.shadow ?? "soft"],
+      }}
+    >
       {CardIcon ? (
         <CardIcon
           aria-hidden

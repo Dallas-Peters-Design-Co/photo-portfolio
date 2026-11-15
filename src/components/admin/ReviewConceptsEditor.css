@@ -205,8 +205,8 @@
   display: grid;
   gap: calc(var(--spacing) * 1.5);
   width: 100%;
-  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
-  box-shadow: 0 4px 14px color-mix(in srgb, #000 12%, transparent);
+  /* Fallbacks for cards saved before these were settings. */
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 
 .review-concepts__card-preview p {
