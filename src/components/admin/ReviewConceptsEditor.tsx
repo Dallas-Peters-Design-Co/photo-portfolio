@@ -15,18 +15,20 @@ import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  ConceptField,
+  ConceptSelect,
+  NumberField,
+  optionsOf,
+} from "./ConceptControls";
 import { ConceptFontField, conceptFontCss } from "./ConceptFontField";
-import { ConceptField, ConceptSelect, optionsOf } from "./ConceptSelect";
 import {
   addConceptElement,
   ConceptColorField,
   createConcept,
   duplicateConceptElement,
 } from "./ReviewConceptBrand";
-import {
-  NumberField,
-  ReviewConceptElementFields,
-} from "./ReviewConceptElementFields";
+import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import "./ReviewConceptsEditor.css";
 
 const DIRECTIONS = optionsOf([

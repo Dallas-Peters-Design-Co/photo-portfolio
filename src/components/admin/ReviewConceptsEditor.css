@@ -90,6 +90,13 @@
 .review-concepts__color-row {
   display: flex;
   gap: calc(var(--spacing) * 1);
+  min-width: 0;
+}
+
+/* Lets the menu shrink to its column; the swatch keeps its size beside it. */
+.review-concepts__color-pick {
+  flex: 1;
+  min-width: 0;
 }
 
 .review-concepts__color-row input[type="color"] {
@@ -113,9 +120,12 @@
 
 .review-concepts__element {
   display: grid;
+  /* One column that cannot grow past the panel, whatever a row holds. */
+  grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--spacing) * 3);
   min-width: 0;
   padding: calc(var(--spacing) * 3);
+  container-type: inline-size;
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
 }
 
@@ -289,7 +299,14 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .review-concepts__control-grid,
+  .review-concepts__control-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Follows the panel, not the window: a narrow panel in a wide window gets
+   two columns and the row names above, rather than a row that overflows. */
+@container (max-width: 40rem) {
   .review-concepts__group-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

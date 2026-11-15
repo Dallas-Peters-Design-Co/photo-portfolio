@@ -19,7 +19,7 @@ import {
   type ConceptOptionGroup,
   ConceptSelect,
   optionsOf,
-} from "./ConceptSelect";
+} from "./ConceptControls";
 import { conceptFontPatch, conceptFontSelection } from "./ReviewConceptBrand";
 
 const GOOGLE_RESULTS = 40;

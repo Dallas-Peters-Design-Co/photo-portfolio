@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { SHADOW_PRESETS, shadowCss } from "./conceptShadow.js";
 import {
   cleanConcept,
   conceptIconName,
@@ -36,7 +37,10 @@ describe("card border and shadow", () => {
     const [card] = cleanConcept({
       elements: [{ borderColor: "#e8e4dc", kind: "card", shadow: "strong" }],
     }).elements;
-    expect(card).toMatchObject({ borderColor: "#e8e4dc", shadow: "strong" });
+    expect(card).toMatchObject({
+      borderColor: "#e8e4dc",
+      shadow: SHADOW_PRESETS.strong,
+    });
   });
 
   it("drops a bad border color and shadow, and ignores them on other kinds", () => {
@@ -76,5 +80,45 @@ describe("concept icons", () => {
     expect(icon?.iconName).toBe("Notification01Icon");
     expect(card?.iconName).toBeUndefined();
     expect(broken?.iconName).toBe("StarIcon");
+  });
+});
+
+describe("card shadow and icon settings", () => {
+  it("keeps a tuned shadow, clamped to its ranges", () => {
+    const [card] = cleanConcept({
+      elements: [
+        {
+          kind: "card",
+          shadow: {
+            blur: 500,
+            color: "#336699",
+            opacity: 40,
+            spread: 2,
+            x: -3,
+            y: 9,
+          },
+        },
+      ],
+    }).elements;
+    expect(card?.shadow).toEqual({
+      blur: 128,
+      color: "#336699",
+      opacity: 40,
+      spread: 2,
+      x: -3,
+      y: 9,
+    });
+  });
+
+  it("draws no shadow at zero opacity, and a soft one when none is stored", () => {
+    expect(shadowCss(SHADOW_PRESETS.none)).toBe("none");
+    expect(shadowCss()).toContain("14px");
+  });
+
+  it("keeps a card's icon size and color", () => {
+    const [card] = cleanConcept({
+      elements: [{ iconColor: "#ff0000", iconSize: 200, kind: "card" }],
+    }).elements;
+    expect(card).toMatchObject({ iconColor: "#ff0000", iconSize: 96 });
   });
 });

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
@@ -102,6 +103,54 @@ export function ConceptField({
     >
       <span>{label}</span>
       {children}
+    </div>
+  );
+}
+
+export function NumberField({
+  label,
+  max,
+  min = 0,
+  onChange,
+  step = 1,
+  value,
+}: {
+  label: string;
+  max: number;
+  min?: number;
+  onChange: (value: number) => void;
+  step?: number;
+  value: number;
+}) {
+  return (
+    <ConceptField label={label}>
+      <Input
+        aria-label={label}
+        face="numeric"
+        max={max}
+        min={min}
+        onChange={(event) => onChange(Number(event.target.value))}
+        size="sm"
+        step={step}
+        type="number"
+        value={value}
+      />
+    </ConceptField>
+  );
+}
+
+/** One named row of the element form: Content, Icon, Type, Box, Shadow, Color. */
+export function ConceptGroup({
+  children,
+  name,
+}: {
+  children: ReactNode;
+  name: string;
+}) {
+  return (
+    <div className="review-concepts__group">
+      <span className="review-concepts__group-name">{name}</span>
+      <div className="review-concepts__group-fields">{children}</div>
     </div>
   );
 }

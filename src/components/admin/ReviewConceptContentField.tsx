@@ -6,7 +6,7 @@ import {
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
 import { Input } from "../ui/input";
-import { ConceptField } from "./ConceptSelect";
+import { ConceptField } from "./ConceptControls";
 
 export function ReviewConceptContentField({
   element,
@@ -45,14 +45,6 @@ export function ReviewConceptContentField({
             }
             size="sm"
             value={title}
-          />
-        </ConceptField>
-        <ConceptField label="Card icon" wide>
-          <IconPicker
-            label="Card icon"
-            onChange={(icon) => onChange({ iconName: icon ?? undefined })}
-            size="sm"
-            value={conceptIconName(element.iconName)}
           />
         </ConceptField>
         <label className="review-concepts__field review-concepts__field--full">

@@ -1,16 +1,20 @@
 import { Copy, Trash2 } from "lucide-react";
-import { type ReactNode, useId } from "react";
+import { useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
-import type {
-  CardShadow,
-  ReviewConceptElement,
-} from "../../../config/reviewConcept.js";
+import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import {
+  ConceptField,
+  ConceptGroup,
+  ConceptSelect,
+  NumberField,
+  optionsOf,
+} from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
-import { ConceptField, ConceptSelect, optionsOf } from "./ConceptSelect";
 import { ConceptColorField } from "./ReviewConceptBrand";
+import { CardIconGroup, CardShadowGroup } from "./ReviewConceptCardFields";
 import { ReviewConceptContentField } from "./ReviewConceptContentField";
 
 type Patch = Partial<ReviewConceptElement>;
@@ -28,57 +32,12 @@ const SIZE_LABELS: Partial<Record<ReviewConceptElement["kind"], string>> = {
   card: "Title size",
   icon: "Icon size",
 };
-const SHADOWS = optionsOf([
-  ["none", "None"],
-  ["soft", "Soft"],
-  ["strong", "Strong"],
-]);
 const WEIGHTS = optionsOf([
   ["400", "Regular"],
   ["500", "Medium"],
   ["600", "Semibold"],
   ["700", "Bold"],
 ]);
-
-export function NumberField({
-  label,
-  max,
-  onChange,
-  step = 1,
-  value,
-}: {
-  label: string;
-  max: number;
-  onChange: (value: number) => void;
-  step?: number;
-  value: number;
-}) {
-  return (
-    <ConceptField label={label}>
-      <Input
-        aria-label={label}
-        face="numeric"
-        max={max}
-        min={0}
-        onChange={(event) => onChange(Number(event.target.value))}
-        size="sm"
-        step={step}
-        type="number"
-        value={value}
-      />
-    </ConceptField>
-  );
-}
-
-/** One named row of the element form: Content, Type, Box or Color. */
-function Group({ children, name }: { children: ReactNode; name: string }) {
-  return (
-    <div className="review-concepts__group">
-      <span className="review-concepts__group-name">{name}</span>
-      <div className="review-concepts__group-fields">{children}</div>
-    </div>
-  );
-}
 
 function ContentGroup({
   element,
@@ -89,7 +48,7 @@ function ContentGroup({
 }) {
   const checkedId = useId();
   return (
-    <Group name="Content">
+    <ConceptGroup name="Content">
       <ReviewConceptContentField element={element} onChange={onChange} />
       {element.kind === "input" || element.kind === "textarea" ? (
         <ConceptField label="Placeholder" wide>
@@ -143,7 +102,7 @@ function ContentGroup({
           <span>Checked</span>
         </label>
       ) : null}
-    </Group>
+    </ConceptGroup>
   );
 }
 
@@ -184,7 +143,14 @@ export function ReviewConceptElementFields({
         </Button>
       </header>
       <ContentGroup element={element} onChange={onChange} />
-      <Group name="Type">
+      {element.kind === "card" ? (
+        <CardIconGroup
+          brandDoc={brandDoc}
+          element={element}
+          onChange={onChange}
+        />
+      ) : null}
+      <ConceptGroup name="Type">
         <ConceptFontField
           brandDoc={brandDoc}
           family={element.fontFamily}
@@ -228,8 +194,8 @@ export function ReviewConceptElementFields({
           step={0.05}
           value={element.lineHeight}
         />
-      </Group>
-      <Group name="Box">
+      </ConceptGroup>
+      <ConceptGroup name="Box">
         <NumberField
           label="Radius"
           max={48}
@@ -248,18 +214,15 @@ export function ReviewConceptElementFields({
           onChange={(paddingY) => onChange({ paddingY })}
           value={element.paddingY}
         />
-        {element.kind === "card" ? (
-          <ConceptField label="Shadow">
-            <ConceptSelect
-              label="Shadow"
-              onChange={(shadow) => onChange({ shadow: shadow as CardShadow })}
-              options={SHADOWS}
-              value={element.shadow ?? "soft"}
-            />
-          </ConceptField>
-        ) : null}
-      </Group>
-      <Group name="Color">
+      </ConceptGroup>
+      {element.kind === "card" ? (
+        <CardShadowGroup
+          brandDoc={brandDoc}
+          element={element}
+          onChange={onChange}
+        />
+      ) : null}
+      <ConceptGroup name="Color">
         <ConceptColorField
           ariaLabel={`${element.kind} text color`}
           brandDoc={brandDoc}
@@ -285,7 +248,7 @@ export function ReviewConceptElementFields({
             value={element.borderColor ?? "#d0d5dd"}
           />
         ) : null}
-      </Group>
+      </ConceptGroup>
     </section>
   );
 }

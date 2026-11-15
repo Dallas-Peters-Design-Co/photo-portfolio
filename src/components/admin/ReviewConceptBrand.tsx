@@ -1,11 +1,12 @@
 import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
+import { DEFAULT_SHADOW } from "../../../config/conceptShadow.js";
 import { newItemId } from "../../../config/proposal.js";
 import type {
   ReviewConcept,
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
-import { ConceptSelect } from "./ConceptSelect";
+import { ConceptSelect } from "./ConceptControls";
 
 const paletteColor = (
   doc: BrandKitDoc | null | undefined,
@@ -172,7 +173,7 @@ export const createConceptElement = (
             ["border", "outline", "stroke"],
             "#d0d5dd"
           ),
-          shadow: "soft" as const,
+          shadow: DEFAULT_SHADOW,
         }
       : {}),
   };
@@ -260,24 +261,29 @@ export function ConceptColorField({
       <span>{label}</span>
       <div className="review-concepts__color-row">
         {palette.length > 0 ? (
-          <ConceptSelect
-            label={`${ariaLabel} brand color`}
-            onChange={onChange}
-            options={palette
-              .filter(
-                (entry, index) =>
-                  palette.findIndex((other) => other.value === entry.value) ===
-                  index
-              )
-              .map((entry) => ({
-                label:
-                  [entry.role, entry.name].filter(Boolean).join(" · ") ||
-                  entry.value,
-                value: entry.value,
-              }))}
-            placeholder="Custom color"
-            value={palette.some((entry) => entry.value === value) ? value : ""}
-          />
+          <div className="review-concepts__color-pick">
+            <ConceptSelect
+              label={`${ariaLabel} brand color`}
+              onChange={onChange}
+              options={palette
+                .filter(
+                  (entry, index) =>
+                    palette.findIndex(
+                      (other) => other.value === entry.value
+                    ) === index
+                )
+                .map((entry) => ({
+                  label:
+                    [entry.role, entry.name].filter(Boolean).join(" · ") ||
+                    entry.value,
+                  value: entry.value,
+                }))}
+              placeholder="Custom color"
+              value={
+                palette.some((entry) => entry.value === value) ? value : ""
+              }
+            />
+          </div>
         ) : null}
         <input
           aria-label={ariaLabel}
@@ -305,6 +311,8 @@ const STYLE_KEYS = [
   "borderColor",
   "shadow",
   "bodySize",
+  "iconColor",
+  "iconSize",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 /**

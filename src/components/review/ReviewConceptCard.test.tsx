@@ -116,6 +116,26 @@ describe("concept card", () => {
     expect(body && getComputedStyle(body).fontSize).toBe("12px");
   });
 
+  it("sizes and colors the icon, and tunes the shadow", async () => {
+    const picker = host?.querySelector('[aria-label="Card icon"]');
+    await userEvent.click(picker as HTMLElement);
+    await userEvent.click(
+      host?.querySelector('[role="option"][title="Favourite"]') as HTMLElement
+    );
+    await userEvent.clear(field("Icon size"));
+    await userEvent.type(field("Icon size"), "40");
+    await expect
+      .poll(() => card().querySelector("svg")?.getAttribute("width"))
+      .toBe("40");
+
+    await userEvent.clear(field("Blur"));
+    await userEvent.type(field("Blur"), "30");
+    expect(card().style.boxShadow).toContain("30px");
+    expect(
+      host?.querySelector('[aria-label="Shadow preset"]')?.textContent
+    ).toContain("Custom");
+  });
+
   it("has a border and a shadow", () => {
     const style = getComputedStyle(card());
     expect(style.borderTopWidth).toBe("1px");

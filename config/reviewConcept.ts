@@ -1,3 +1,4 @@
+import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
 
@@ -115,7 +116,10 @@ export interface ReviewConceptElement {
   fontRef?: string;
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
+  /** Cards only: the icon's colour and size; default to text colour, 1.5× type. */
+  iconColor?: string;
   iconName?: ReviewConceptIcon;
+  iconSize?: number;
   id: string;
   inputType?: "text" | "email" | "search" | "url" | "tel" | "password";
   kind: ReviewConceptElementKind;
@@ -125,7 +129,7 @@ export interface ReviewConceptElement {
   paddingY: number;
   placeholder?: string;
   radius: number;
-  shadow?: CardShadow;
+  shadow?: ConceptShadow;
   text: string;
 }
 
@@ -159,26 +163,28 @@ export const joinCardText = (title: string, body: string): string =>
 const str = (value: unknown, max: number): string =>
   typeof value === "string" ? value.slice(0, max) : "";
 
-export type CardShadow = "none" | "soft" | "strong";
-
-/** Two layers each: a tight edge shadow and a wide soft one. */
-export const CARD_SHADOWS: Record<CardShadow, string> = {
-  none: "none",
-  soft: "0 1px 2px rgb(0 0 0 / 0.08), 0 4px 14px rgb(0 0 0 / 0.12)",
-  strong: "0 2px 4px rgb(0 0 0 / 0.2), 0 14px 36px rgb(0 0 0 / 0.35)",
-};
+const isHex = (value: unknown): value is string =>
+  typeof value === "string" && HEX_COLOR.test(value);
 
 const cleanCard = (
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "bodySize" | "borderColor" | "shadow"> => ({
-  ...(typeof raw.bodySize === "number"
-    ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
-    : {}),
-  ...(typeof raw.borderColor === "string" && HEX_COLOR.test(raw.borderColor)
-    ? { borderColor: raw.borderColor }
-    : {}),
-  ...(raw.shadow && raw.shadow in CARD_SHADOWS ? { shadow: raw.shadow } : {}),
-});
+): Pick<
+  ReviewConceptElement,
+  "bodySize" | "borderColor" | "iconColor" | "iconSize" | "shadow"
+> => {
+  const shadow = cleanShadow(raw.shadow);
+  return {
+    ...(typeof raw.bodySize === "number"
+      ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
+      : {}),
+    ...(isHex(raw.borderColor) ? { borderColor: raw.borderColor } : {}),
+    ...(isHex(raw.iconColor) ? { iconColor: raw.iconColor } : {}),
+    ...(typeof raw.iconSize === "number"
+      ? { iconSize: bounded(raw.iconSize, 8, 96, 24) }
+      : {}),
+    ...(shadow ? { shadow } : {}),
+  };
+};
 
 const cleanColor = (value: unknown, fallback: string): string => {
   if (value === "transparent") {

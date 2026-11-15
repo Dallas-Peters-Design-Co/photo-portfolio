@@ -1,8 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties } from "react";
+import { shadowCss } from "../../../config/conceptShadow.js";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
-  CARD_SHADOWS,
   conceptIconName,
   type ReviewConceptElement,
   splitCardText,
@@ -36,10 +36,24 @@ const familyCss = (element: ReviewConceptElement): string => {
  * the public review page does not carry it; until it arrives the icon's box
  * holds its place.
  */
-function ConceptIcon({ name, size }: { name?: string; size: number }) {
+function ConceptIcon({
+  color,
+  name,
+  size,
+}: {
+  color?: string;
+  name?: string;
+  size: number;
+}) {
   const Icon = iconFrom(useIconMap(Boolean(name)), conceptIconName(name));
   return Icon ? (
-    <HugeiconsIcon aria-hidden icon={Icon} size={size} strokeWidth={2} />
+    <HugeiconsIcon
+      aria-hidden
+      color={color}
+      icon={Icon}
+      size={size}
+      strokeWidth={2}
+    />
   ) : (
     <span aria-hidden style={{ height: size, width: size }} />
   );
@@ -59,13 +73,14 @@ function CardPreview({
       style={{
         ...style,
         borderColor: element.borderColor,
-        boxShadow: CARD_SHADOWS[element.shadow ?? "soft"],
+        boxShadow: shadowCss(element.shadow),
       }}
     >
       {element.iconName ? (
         <ConceptIcon
+          color={element.iconColor}
           name={element.iconName}
-          size={Math.round(element.fontSize * 1.5)}
+          size={element.iconSize ?? Math.round(element.fontSize * 1.5)}
         />
       ) : null}
       <strong>{card.title || "Card title"}</strong>
