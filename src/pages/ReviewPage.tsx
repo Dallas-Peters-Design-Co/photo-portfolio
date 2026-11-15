@@ -204,8 +204,6 @@ function ReviewSheet({
           </section>
         ))}
 
-      <Recommendations firstNumbers={firstNumbers} screens={screens} />
-
       {doc.concepts.map((concept) => (
         <ReviewConceptPreview concept={concept} key={concept.id} />
       ))}
@@ -373,54 +371,3 @@ const blockKey = (block: TextBlock, index: number): string =>
   block.kind === "list"
     ? `list-${index}-${block.items[0] ?? ""}`
     : `p-${index}-${block.text.slice(0, 24)}`;
-
-/**
- * Every recommendation across the review, in one list near the top.
- *
- * The notes stay with their screens; this is the "what to do" a client can
- * act on without reading every screen first. Numbers match the pins.
- */
-function Recommendations({
-  firstNumbers,
-  screens,
-}: {
-  firstNumbers: number[];
-  screens: ReviewScreen[];
-}) {
-  const items = screens.flatMap((screen, s) =>
-    screen.pins
-      .map((pin, i) => ({ n: (firstNumbers[s] ?? 1) + i, pin, screen }))
-      .filter(({ pin }) => pin.kind === "recommendation")
-  );
-  if (items.length === 0) {
-    return null;
-  }
-  return (
-    <section
-      className="doc-band doc-band--split"
-      id={reviewAnchor.recommendations}
-    >
-      <h2 className="doc-band__title">Recommendations</h2>
-      <ol className="review-page__notes doc-band__body">
-        {items.map(({ n, pin, screen }) => (
-          <li className="review-page__note" key={pin.id}>
-            <span className="review-page__note-n review-page__note-n--recommendation">
-              {n}
-            </span>
-            <div>
-              <p className="review-page__note-title">
-                {pin.title || "Recommendation"}
-                <span className="review-page__note-kind">
-                  {screen.title || "Screen"}
-                </span>
-              </p>
-              {pin.body ? (
-                <p className="review-page__note-body">{pin.body}</p>
-              ) : null}
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
-  );
-}

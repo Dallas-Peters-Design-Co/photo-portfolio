@@ -17,7 +17,6 @@ import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 export const reviewAnchor = {
   comments: "review-comments",
   overview: "review-overview",
-  recommendations: "review-recommendations",
   screen: (id: string) => `review-screen-${id}`,
   section: (id: string) => `review-section-${id}`,
   summary: "review-summary",
@@ -41,12 +40,6 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
     }
   }
   const screens = doc.screens.filter((s) => s.image);
-  if (screens.some((s) => s.pins.some((p) => p.kind === "recommendation"))) {
-    entries.push({
-      id: reviewAnchor.recommendations,
-      label: "Recommendations",
-    });
-  }
   for (const screen of screens) {
     entries.push({
       id: reviewAnchor.screen(screen.id),
