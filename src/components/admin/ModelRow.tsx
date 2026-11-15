@@ -1,9 +1,19 @@
-import { ArrowDown, ArrowUp, Box, Pencil, Trash2 } from "lucide-react";
+import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons-pro/core-stroke-standard/ArrowUp01Icon";
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import Edit02Icon from "@hugeicons-pro/core-stroke-standard/Edit02Icon";
+import ToggleOffIcon from "@hugeicons-pro/core-stroke-standard/ToggleOffIcon";
+import ToggleOnIcon from "@hugeicons-pro/core-stroke-standard/ToggleOnIcon";
+import type { ReactNode } from "react";
 import { PROTECTED_MODEL_ID } from "../../../config/models";
 import type { AiModel } from "../../types";
-import { Button } from "../ui/button";
+import {
+  AdminListNote,
+  AdminListRow,
+  AdminMono,
+  AdminRowAction,
+} from "./AdminList";
 import { inputLabel, loraSummary } from "./modelSummary";
-import "../../styles/primitives.css";
 import "../../styles/adminChrome.css";
 
 /**
@@ -15,6 +25,8 @@ import "../../styles/adminChrome.css";
  */
 
 export interface ModelRowProps {
+  /** The edit form, when this is the row being edited. */
+  below?: ReactNode;
   isFirst: boolean;
   isLast: boolean;
   model: AiModel;
@@ -25,6 +37,7 @@ export interface ModelRowProps {
 }
 
 export function ModelRow({
+  below,
   isFirst,
   isLast,
   model,
@@ -35,18 +48,56 @@ export function ModelRow({
 }: ModelRowProps) {
   const isAuto = model.id === PROTECTED_MODEL_ID;
   const summary = loraSummary(model);
+  const isTraining = model.training?.status === "training";
+  const failure =
+    model.training?.status === "failed" ? model.training.error : undefined;
+  const hasBelow = Boolean(below) || isTraining || Boolean(failure);
   return (
-    <div className="admin-row">
-      <div className="admin-row__body">
-        <div className="row">
-          <span className="admin-row__name">{model.label}</span>
+    <AdminListRow
+      actions={
+        <>
+          <AdminRowAction
+            disabled={isFirst}
+            icon={ArrowUp01Icon}
+            label={`Move ${model.label} up`}
+            onClick={() => onMoved(model.id, -1)}
+          />
+          <AdminRowAction
+            disabled={isLast}
+            icon={ArrowDown01Icon}
+            label={`Move ${model.label} down`}
+            onClick={() => onMoved(model.id, 1)}
+          />
+          <AdminRowAction
+            disabled={isAuto}
+            icon={model.enabled ? ToggleOnIcon : ToggleOffIcon}
+            label={`Toggle ${model.label}`}
+            onClick={() => onToggled(model)}
+            pressed={model.enabled}
+          />
+          <AdminRowAction
+            icon={Edit02Icon}
+            label={`Edit ${model.label}`}
+            onClick={onEdit}
+          />
+          <AdminRowAction
+            danger
+            disabled={isAuto}
+            icon={Delete02Icon}
+            label={`Delete ${model.label}`}
+            onClick={() => onRemoved(model)}
+          />
+        </>
+      }
+      badges={
+        <>
           {model.vector ? (
             <span className="admin-chip admin-chip--kind">Vector</span>
           ) : null}
           {/* Training before Off, and instead of it. A style that is still
               cooking is switched off for a reason, and "Off" alone reads as
               something the author turned off. */}
-          {model.training?.status === "training" ? (
+          {isTraining ? (
             <span className="admin-chip admin-chip--kind">Training…</span>
           ) : null}
           {model.training?.status === "failed" ? (
@@ -54,84 +105,43 @@ export function ModelRow({
               Training failed
             </span>
           ) : null}
-          {model.enabled || model.training?.status === "training" ? null : (
+          {model.enabled || isTraining ? null : (
             <span className="admin-chip admin-chip--plain">Off</span>
           )}
           {isAuto ? (
             <span className="admin-chip admin-chip--on">Default</span>
           ) : null}
-        </div>
-        <p className="admin-row__id">{model.id}</p>
-        <p className="admin-row__note">
-          {inputLabel(model.input)}
-          {summary ? ` · ${summary}` : ""}
-        </p>
-        {/* The reason, not just the fact. A training that failed silently is
-            indistinguishable from one still running, and knowing which decides
-            whether to wait or to start again. */}
-        {model.training?.status === "failed" && model.training.error ? (
-          <p className="admin-row__note admin-row__note--warn">
-            {model.training.error}
-          </p>
-        ) : null}
-        {model.training?.status === "training" ? (
-          <p className="admin-row__note">
-            Training on fal. Usually a few minutes; it turns itself on when the
-            weights arrive.
-          </p>
-        ) : null}
-      </div>
-      <div className="row row--snug">
-        <Button
-          aria-label={`Move ${model.label} up`}
-          disabled={isFirst}
-          onClick={() => onMoved(model.id, -1)}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <ArrowUp size={14} />
-        </Button>
-        <Button
-          aria-label={`Move ${model.label} down`}
-          disabled={isLast}
-          onClick={() => onMoved(model.id, 1)}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <ArrowDown size={14} />
-        </Button>
-        <Button
-          aria-label={`Toggle ${model.label}`}
-          disabled={isAuto}
-          onClick={() => onToggled(model)}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <Box size={14} />
-        </Button>
-        <Button
-          aria-label={`Edit ${model.label}`}
-          onClick={onEdit}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <Pencil size={14} />
-        </Button>
-        <Button
-          aria-label={`Delete ${model.label}`}
-          disabled={isAuto}
-          onClick={() => onRemoved(model)}
-          size="icon"
-          type="button"
-          variant="ghost"
-        >
-          <Trash2 size={14} />
-        </Button>
-      </div>
-    </div>
+        </>
+      }
+      below={
+        hasBelow ? (
+          <div className="grid gap-3">
+            {/* The reason, not just the fact. A training that failed silently
+                is indistinguishable from one still running, and knowing which
+                decides whether to wait or to start again. */}
+            {failure ? (
+              <AdminListNote tone="warn">{failure}</AdminListNote>
+            ) : null}
+            {isTraining ? (
+              <AdminListNote>
+                Training on fal. Usually a few minutes; it turns itself on when
+                the weights arrive.
+              </AdminListNote>
+            ) : null}
+            {below}
+          </div>
+        ) : null
+      }
+      meta={
+        <>
+          <AdminMono>{model.id}</AdminMono>
+          <span>
+            {inputLabel(model.input)}
+            {summary ? ` · ${summary}` : ""}
+          </span>
+        </>
+      }
+      title={model.label}
+    />
   );
 }

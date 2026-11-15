@@ -1,5 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
+import Album02Icon from "@hugeicons-pro/core-stroke-standard/Album02Icon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
 import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
+import Settings01Icon from "@hugeicons-pro/core-stroke-standard/Settings01Icon";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -18,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { AdminListPage } from "./AdminList";
 import { ConnectionState } from "./LightroomConnectionState";
 import { LightroomSetup } from "./LightroomSetup";
 import { LightroomThumb } from "./LightroomThumb";
@@ -135,11 +139,34 @@ export function LightroomPanel() {
   };
 
   if (!status) {
-    return <p className="admin-note">Checking Lightroom…</p>;
+    return (
+      <AdminListPage icon={Album02Icon} title="Lightroom">
+        <p className="admin-note">Checking Lightroom…</p>
+      </AdminListPage>
+    );
   }
 
   return (
-    <div className="lightroom stack stack--loose">
+    <AdminListPage
+      action={
+        status.configured ? (
+          <Button
+            onClick={() => setSetupOpen((open) => !open)}
+            type="button"
+            variant="ghost"
+          >
+            <HugeiconsIcon
+              aria-hidden
+              icon={setupOpen ? Cancel01Icon : Settings01Icon}
+              size={14}
+            />
+            {setupOpen ? "Hide setup" : "Credentials & setup"}
+          </Button>
+        ) : null
+      }
+      icon={Album02Icon}
+      title="Lightroom"
+    >
       <ConnectionState
         onConnect={() => void connect()}
         onDisconnect={async () => {
@@ -150,19 +177,6 @@ export function LightroomPanel() {
         }}
         status={status}
       />
-
-      {status.configured ? (
-        <div className="row row--between">
-          <span />
-          <Button
-            onClick={() => setSetupOpen((open) => !open)}
-            type="button"
-            variant="ghost"
-          >
-            {setupOpen ? "Hide setup" : "Credentials & setup"}
-          </Button>
-        </div>
-      ) : null}
 
       {setupOpen || !status.configured ? (
         <LightroomSetup
@@ -188,7 +202,7 @@ export function LightroomPanel() {
           )}
         </div>
       ) : null}
-    </div>
+    </AdminListPage>
   );
 }
 

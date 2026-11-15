@@ -16,6 +16,7 @@ import {
   readSiteSettingsRow,
   type SiteSettingsWrite,
 } from "./_lib/siteSettingsStore.js";
+import { loadSiteTypography } from "./_lib/siteTypography.js";
 
 const MAX_TEXT = 200;
 const COLOR_KEYS = ["background", "foreground", "accent"] as const;
@@ -71,16 +72,25 @@ const themeError = (themeInput: Record<string, unknown>): string | null => {
   return null;
 };
 
+/** The saved settings, with the typography of the kit the theme names. */
+const readSettings = async (site: SiteConfig) => {
+  const settings = resolveSiteSettings(
+    site,
+    await readSiteSettingsRow(site.key)
+  );
+  return {
+    ...settings,
+    typography: await loadSiteTypography(settings.theme.brandKitId),
+  };
+};
+
 const handleGet = async (
   site: SiteConfig,
   req: VercelRequest,
   res: VercelResponse
 ) => {
   try {
-    const settings = resolveSiteSettings(
-      site,
-      await readSiteSettingsRow(site.key)
-    );
+    const settings = await readSettings(site);
     // Short cache: the gallery fetches this on every load, but an admin
     // saving a change should see it almost immediately.
     cachePublicRead(req, res, { browser: 30, fresh: 30, stale: 86_400 });
@@ -146,9 +156,7 @@ const save = async (
 
     // Re-read rather than echoing the input, so the client renders exactly
     // what a fresh page load would.
-    return res
-      .status(200)
-      .json(resolveSiteSettings(site, await readSiteSettingsRow(site.key)));
+    return res.status(200).json(await readSettings(site));
   } catch (e) {
     return handleSaveFailure(e, res);
   }

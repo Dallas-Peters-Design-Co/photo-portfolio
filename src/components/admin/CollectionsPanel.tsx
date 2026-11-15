@@ -1,11 +1,28 @@
+import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
+import Edit02Icon from "@hugeicons-pro/core-stroke-standard/Edit02Icon";
+import FolderLibraryIcon from "@hugeicons-pro/core-stroke-standard/FolderLibraryIcon";
+import { Plus, X } from "lucide-react";
+import type { FormEvent } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { isVideoUrl } from "../../boards/io/isVideo";
 import { useCollections } from "../../hooks/useCollections";
 import { collectionsApi } from "../../services/libraryService";
 import type { Collection, CollectionItem } from "../../types";
+import { AdminCard } from "./AdminFrame";
+import {
+  AdminEmpty,
+  AdminList,
+  AdminListNote,
+  AdminListPage,
+  AdminRowAction,
+} from "./AdminList";
 import { useConfirm } from "./ConfirmProvider";
+
+const labelClass = "text-sm uppercase tracking-widest text-white/90";
 
 /**
  * The collections, and what is in them.
@@ -69,8 +86,15 @@ function AssetTile({
   );
 }
 
-/** One collection: its name, its count, and its assets once opened. */
-function CollectionCard({
+/**
+ * One collection: its name, its count, and its assets once opened.
+ *
+ * A row of the shared list, drawn here rather than with AdminListRow: the
+ * title has to turn into a field to be renamed and to say whether it is
+ * expanded, and what opens under it is a grid of pictures, not a form. The
+ * spacing and type are AdminListRow's, so it reads as one.
+ */
+function CollectionRow({
   collection,
   onChanged,
 }: {
@@ -151,25 +175,30 @@ function CollectionCard({
     }
   };
 
+  const count = collection.itemCount ?? 0;
+
   return (
-    <section className="rounded-lg border border-white/10 bg-white/2">
-      <header className="flex items-center gap-2 px-3 py-2">
+    <li>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 px-6 py-5">
         {renaming ? (
-          <input
-            className="min-w-0 flex-1 rounded-control border border-white/20 bg-white/5 px-2 py-1 text-sm text-white outline-none focus:border-white/50"
-            onBlur={() => void rename()}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                void rename();
-              }
-              if (e.key === "Escape") {
-                setRenaming(false);
-                setName(collection.name);
-              }
-            }}
-            value={name}
-          />
+          <div className="min-w-0 flex-1">
+            <Input
+              aria-label="Collection name"
+              onBlur={() => void rename()}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  void rename();
+                }
+                if (e.key === "Escape") {
+                  setRenaming(false);
+                  setName(collection.name);
+                }
+              }}
+              size="lg"
+              value={name}
+            />
+          </div>
         ) : (
           <button
             aria-expanded={open}
@@ -177,36 +206,36 @@ function CollectionCard({
             onClick={() => void expand()}
             type="button"
           >
-            <span className="truncate text-sm text-white">
+            <span className="block truncate text-lg text-white leading-snug">
               {collection.name}
             </span>
-            <span className="ml-2 text-sm text-white/40 tabular-nums">
-              {collection.itemCount ?? 0}
+            <span className="mt-1 block text-sm text-white/60 tabular-nums">
+              {count} {count === 1 ? "asset" : "assets"}
             </span>
           </button>
         )}
-        <Button onClick={() => setRenaming(true)} size="xs" variant="ghost">
-          Rename
-        </Button>
-        <Button
-          onClick={() => void removeCollection()}
-          size="xs"
-          tone="danger"
-          variant="ghost"
-        >
-          Delete
-        </Button>
-      </header>
+        <div className="flex shrink-0 items-center gap-1">
+          <AdminRowAction
+            icon={Edit02Icon}
+            label="Rename"
+            onClick={() => setRenaming(true)}
+          />
+          <AdminRowAction
+            danger
+            icon={Delete02Icon}
+            label="Delete"
+            onClick={() => void removeCollection()}
+          />
+        </div>
+      </div>
 
       {open ? (
-        <div className="border-white/10 border-t p-3">
-          {items === null ? (
-            <p className="text-white/40 text-xs">Loading…</p>
-          ) : null}
+        <div className="px-6 pb-5">
+          {items === null ? <AdminListNote>Loading…</AdminListNote> : null}
           {items?.length === 0 ? (
-            <p className="text-white/40 text-xs">
+            <AdminListNote>
               Empty. Save something into it from a board.
-            </p>
+            </AdminListNote>
           ) : null}
           {items && items.length > 0 ? (
             <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
@@ -221,15 +250,17 @@ function CollectionCard({
           ) : null}
         </div>
       ) : null}
-    </section>
+    </li>
   );
 }
 
 export function CollectionsPanel() {
   const { collections, error, isLoading, refresh } = useCollections();
   const [name, setName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
 
-  const create = async () => {
+  const create = async (event: FormEvent) => {
+    event.preventDefault();
     const title = name.trim();
     if (!title) {
       return;
@@ -237,6 +268,7 @@ export function CollectionsPanel() {
     try {
       await collectionsApi.create(title);
       setName("");
+      setIsCreating(false);
       await refresh();
     } catch (e) {
       toast.error(
@@ -246,59 +278,80 @@ export function CollectionsPanel() {
   };
 
   return (
-    <div className="space-y-4">
-      <header className="space-y-1">
-        <h2 className="text-sm text-white/90 uppercase tracking-widest">
-          Collections
-        </h2>
-        <p className="text-white/40 text-xs leading-relaxed">
-          Assets kept for use in boards and pages. Nothing here appears on the
-          site — that is what the photo library is for.
-        </p>
-      </header>
-
-      <div className="flex items-center gap-2">
-        <input
-          aria-label="New collection name"
-          className="min-w-0 flex-1 rounded-control border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none placeholder:text-white/30 focus:border-white/40"
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              void create();
-            }
-          }}
-          placeholder="New collection…"
-          value={name}
-        />
+    <AdminListPage
+      action={
         <Button
-          disabled={name.trim().length === 0}
-          onClick={() => void create()}
-          size="sm"
+          onClick={() => setIsCreating((v) => !v)}
+          type="button"
+          variant="ghost"
         >
-          Create
+          {isCreating ? <X size={14} /> : <Plus size={14} />}
+          {isCreating ? "Cancel" : "New collection"}
         </Button>
-      </div>
+      }
+      icon={FolderLibraryIcon}
+      title="Collections"
+    >
+      <AdminListNote>
+        Assets kept for use in boards and pages. Nothing here appears on the
+        site — that is what the photo library is for.
+      </AdminListNote>
 
-      {isLoading ? <p className="text-white/40 text-xs">Loading…</p> : null}
+      {isCreating ? (
+        <form onSubmit={(e) => void create(e)}>
+          <AdminCard>
+            <CardHeader>New collection</CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <label className={labelClass} htmlFor="new-collection-name">
+                  Name
+                </label>
+                <Input
+                  aria-label="New collection name"
+                  autoFocus
+                  id="new-collection-name"
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="New collection…"
+                  size="lg"
+                  value={name}
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button
+                disabled={name.trim().length === 0}
+                type="submit"
+                variant="outline"
+              >
+                Create
+              </Button>
+            </CardFooter>
+          </AdminCard>
+        </form>
+      ) : null}
+
+      {isLoading ? <AdminListNote>Loading…</AdminListNote> : null}
       {error ? (
-        <p className="text-red-300 text-xs">Could not load collections.</p>
+        <AdminListNote tone="warn">Could not load collections.</AdminListNote>
       ) : null}
       {!isLoading && collections.length === 0 ? (
-        <p className="text-white/40 text-xs leading-relaxed">
-          No collections yet. Name one above, or save a selection into a new one
-          from a board.
-        </p>
+        <AdminEmpty>
+          No collections yet. Start one with New collection, or save a selection
+          into a new one from a board.
+        </AdminEmpty>
       ) : null}
 
-      <div className="space-y-2">
-        {collections.map((collection) => (
-          <CollectionCard
-            collection={collection}
-            key={collection.id}
-            onChanged={refresh}
-          />
-        ))}
-      </div>
-    </div>
+      {collections.length > 0 ? (
+        <AdminList>
+          {collections.map((collection) => (
+            <CollectionRow
+              collection={collection}
+              key={collection.id}
+              onChanged={refresh}
+            />
+          ))}
+        </AdminList>
+      ) : null}
+    </AdminListPage>
   );
 }

@@ -18,22 +18,21 @@ import {
   pagesApi,
 } from "../../services/portfolioService";
 import { Button } from "../ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
+import { CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { AdminCard, AdminFrame } from "./AdminFrame";
+import {
+  AdminEmpty,
+  AdminList,
+  AdminListPage,
+  AdminListRow,
+  AdminMono,
+  AdminRowAction,
+  AdminRowLink,
+} from "./AdminList";
 import { BackButton } from "./BackButton";
 import { useConfirm } from "./ConfirmProvider";
-
-const _labelClass = "text-sm uppercase tracking-widest text-white/90";
-const _inputClass =
-  "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
 /** Mirrors slugify() in api/_lib/pages.ts so the suggested address matches. */
 const slugify = (title: string): string =>
@@ -172,12 +171,8 @@ export function PagesPanel() {
   }
 
   return (
-    <div className="grid w-full max-w-7xl grid-cols-1 gap-4 border-white/10">
-      <div className="flex flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
-          <HugeiconsIcon icon={FileEmpty02Icon} size={16} />
-          Pages
-        </div>
+    <AdminListPage
+      action={
         <Button
           onClick={() => setIsCreating((v) => !v)}
           type="button"
@@ -186,29 +181,34 @@ export function PagesPanel() {
           {isCreating ? <X size={14} /> : <Plus size={14} />}
           {isCreating ? "Cancel" : "New page"}
         </Button>
-      </div>
-
+      }
+      icon={FileEmpty02Icon}
+      title="Pages"
+    >
       {isCreating ? (
         <form
           className="flex flex-wrap items-end gap-3"
           onSubmit={(e) => void handleCreate(e)}
         >
-          <Card selected>
-            <CardHeader>Page title</CardHeader>
-            <CardContent>
-              <Input
-                autoFocus
-                id="new-page-title"
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Page Title"
-                size="lg"
-                value={newTitle}
-              />
-              {newTitle.trim() ? (
-                <p className="font-mono text-sm text-white/80">
-                  /{slugify(newTitle)}
-                </p>
-              ) : null}
+          <AdminCard>
+            <CardHeader>New page</CardHeader>
+            <CardContent layout="grid">
+              <div className="space-y-2">
+                <Label htmlFor="new-page-title">Title</Label>
+                <Input
+                  autoFocus
+                  id="new-page-title"
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Page Title"
+                  size="lg"
+                  value={newTitle}
+                />
+                {newTitle.trim() ? (
+                  <p className="font-mono text-sm text-white/80">
+                    /{slugify(newTitle)}
+                  </p>
+                ) : null}
+              </div>
             </CardContent>
             <CardFooter>
               <Button
@@ -219,62 +219,44 @@ export function PagesPanel() {
                 Create draft
               </Button>
             </CardFooter>
-          </Card>
+          </AdminCard>
         </form>
       ) : null}
 
       {pages.length === 0 ? (
-        <p className="text-sm text-white/80 uppercase tracking-gate-tight">
+        <AdminEmpty>
           No pages yet. Create one and it appears under the site title once
           published.
-        </p>
+        </AdminEmpty>
       ) : (
-        <ul className="grid grid-cols-1 divide-y divide-white/6">
+        <AdminList>
           {pages.map((page) => (
-            <Card key={page.id} selected>
-              <CardContent>
-                <li className="flex items-center gap-3 py-3">
-                  <button
-                    className="flex-1 text-left"
+            <AdminListRow
+              actions={
+                <>
+                  <AdminRowLink href={`/${page.slug}`}>View</AdminRowLink>
+                  <AdminRowAction
+                    icon={Edit02Icon}
+                    label={`Edit ${page.title}`}
                     onClick={() => openPage(page.slug)}
-                    type="button"
-                  >
-                    <span className="text-sm text-white/85">{page.title}</span>
-                    <span className="ml-2 font-mono text-sm text-white/80">
-                      /{page.slug}
-                    </span>
-                  </button>
-                  <a
-                    className="text-sm text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white"
-                    href={`/${page.slug}`}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    View
-                  </a>
-                  <button
-                    aria-label={`Edit ${page.title}`}
-                    className="text-white/80 transition-colors hover:text-blue-400"
-                    onClick={() => openPage(page.slug)}
-                    type="button"
-                  >
-                    <HugeiconsIcon icon={Edit02Icon} size={14} />
-                  </button>
-                  <button
-                    aria-label={`Delete ${page.title}`}
-                    className="text-white/80 transition-colors hover:text-red-400"
+                  />
+                  <AdminRowAction
+                    danger
+                    icon={Delete02Icon}
+                    label={`Delete ${page.title}`}
                     onClick={() => void handleDelete(page)}
-                    type="button"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={14} />
-                  </button>
-                </li>
-              </CardContent>
-            </Card>
+                  />
+                </>
+              }
+              key={page.id}
+              meta={<AdminMono>/{page.slug}</AdminMono>}
+              onOpen={() => openPage(page.slug)}
+              title={page.title}
+            />
           ))}
-        </ul>
+        </AdminList>
       )}
-    </div>
+    </AdminListPage>
   );
 }
 

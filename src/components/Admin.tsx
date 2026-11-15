@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import GridTableIcon from "@hugeicons-pro/core-stroke-standard/GridTableIcon";
+import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
 import Layers01Icon from "@hugeicons-pro/core-stroke-standard/Layers01Icon";
 import TagsIcon from "@hugeicons-pro/core-stroke-standard/TagsIcon";
 import { type ReactNode, useEffect, useRef, useState } from "react";
@@ -17,6 +18,7 @@ import {
 import { portfolioService } from "../services/portfolioService";
 import type { Photo } from "../types";
 import { AddItemForm } from "./admin/AddItemForm";
+import { AdminListPage } from "./admin/AdminList";
 import { CategoriesManageDialog } from "./admin/CategoriesManageDialog";
 import { CategoryPicker } from "./admin/CategoryPicker";
 import { DailyChallengePanel } from "./admin/DailyChallengePanel";
@@ -614,7 +616,7 @@ export const Admin = () => {
   };
 
   return (
-    <div className="mx-auto w-full space-y-8 md:space-y-12">
+    <AdminListPage icon={Image01Icon} title="Photos">
       <CategoriesManageDialog
         categories={data.categories}
         isCreating={data.isSavingCategory}
@@ -669,6 +671,6 @@ export const Admin = () => {
           photo={editingPhoto}
         />
       ) : null}
-    </div>
+    </AdminListPage>
   );
 };

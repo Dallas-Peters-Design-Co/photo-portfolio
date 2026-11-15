@@ -1,14 +1,14 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
-import { useCallback, useState } from "react";
+import { Fragment, useCallback, useState } from "react";
 import { toast } from "sonner";
 import { EMPTY_KIT, MAX_KIT_NAME } from "../../../config/brandKit.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { type BrandKit, brandKitsApi } from "../../services/brandKitService";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
+import { AdminEmpty, AdminList, AdminListPage } from "./AdminList";
 import { KitCard } from "./BrandKitCard";
 import { KitEditor } from "./BrandKitEditor";
 import { useConfirm } from "./ConfirmProvider";
@@ -23,9 +23,9 @@ import "./BrandKitsPanel.css";
 /**
  * One kit in the library.
  *
- * A brand and a sub-brand use the same card: the only difference is the indent
+ * A brand and a sub-brand use the same row: the only difference is the indent
  * and whether it offers to add a child, which is the parent's business rather
- * than the card's.
+ * than the row's.
  */
 export function BrandKitsPanel() {
   const { error, isLoading, kits, refresh } = useBrandKits();
@@ -118,14 +118,12 @@ export function BrandKitsPanel() {
     );
   }
 
+  const listed = !(isLoading || error);
+
   return (
-    <Card>
-      <CardHeader layout="row">
-        <CardTitle>
-          <HugeiconsIcon icon={PaintBoardIcon} size={16} />
-          Brand kits
-        </CardTitle>
-        <div className="row row--tight">
+    <AdminListPage
+      action={
+        <div className="flex flex-wrap items-center gap-2">
           <Input
             aria-label="New kit name"
             maxLength={MAX_KIT_NAME}
@@ -139,85 +137,84 @@ export function BrandKitsPanel() {
             placeholder="New kit…"
             value={newName}
           />
-          <Button onClick={() => void create()} type="button">
-            <HugeiconsIcon icon={PlusSignIcon} size={14} />
+          <Button onClick={() => void create()} type="button" variant="ghost">
+            <HugeiconsIcon aria-hidden icon={PlusSignIcon} size={14} />
             New kit
           </Button>
         </div>
-      </CardHeader>
-      <CardContent layout="stack">
-        {error ? (
-          <p className="admin-empty">Could not load brand kits.</p>
-        ) : null}
-        {isLoading ? <p className="admin-empty">Loading…</p> : null}
-        {!(isLoading || error) && kits.length === 0 ? (
-          <p className="admin-empty">
-            No kits yet. A kit is an identity written down so it can be checked
-            rather than remembered.
-          </p>
-        ) : null}
-        {/*
-          A tree rather than a flat list, because a sub-brand read out of context
-          is just a kit with a confusing name. Two levels is all there can be —
-          the database enforces it, see patch 032.
-         */}
-        <ul className="brand-kit__list">
+      }
+      icon={PaintBoardIcon}
+      title="Brand kits"
+    >
+      {error ? <AdminEmpty>Could not load brand kits.</AdminEmpty> : null}
+      {isLoading ? <AdminEmpty>Loading…</AdminEmpty> : null}
+      {listed && kits.length === 0 ? (
+        <AdminEmpty>
+          No kits yet. A kit is an identity written down so it can be checked
+          rather than remembered.
+        </AdminEmpty>
+      ) : null}
+      {/*
+        A tree rather than a flat list, because a sub-brand read out of context
+        is just a kit with a confusing name. Two levels is all there can be —
+        the database enforces it, see patch 032.
+       */}
+      {kits.length > 0 ? (
+        <AdminList>
           {kits
             .filter((kit) => !kit.parentId)
             .map((parent) => (
-              <li key={parent.id}>
+              <Fragment key={parent.id}>
                 <KitCard
+                  below={
+                    parentFor === parent.id ? (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Input
+                          aria-label={`Name for a sub-brand of ${parent.name}`}
+                          autoFocus
+                          maxLength={MAX_KIT_NAME}
+                          onChange={(e) => setSubName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              void createSub(parent.id);
+                            }
+                            if (e.key === "Escape") {
+                              setParentFor(null);
+                            }
+                          }}
+                          placeholder={`${parent.name} — …`}
+                          value={subName}
+                        />
+                        <Button
+                          onClick={() => void createSub(parent.id)}
+                          type="button"
+                        >
+                          Add
+                        </Button>
+                      </div>
+                    ) : null
+                  }
                   kit={parent}
                   onAddSub={() => setParentFor(parent.id)}
                   onOpen={() => setOpenId(parent.id)}
                   onRemove={() => void remove(parent)}
                 />
-                {parentFor === parent.id ? (
-                  <div className="brand-kit__sub-form row row--tight">
-                    <Input
-                      aria-label={`Name for a sub-brand of ${parent.name}`}
-                      autoFocus
-                      maxLength={MAX_KIT_NAME}
-                      onChange={(e) => setSubName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          void createSub(parent.id);
-                        }
-                        if (e.key === "Escape") {
-                          setParentFor(null);
-                        }
-                      }}
-                      placeholder={`${parent.name} — …`}
-                      value={subName}
+                {kits
+                  .filter((kit) => kit.parentId === parent.id)
+                  .map((sub) => (
+                    <KitCard
+                      indent
+                      key={sub.id}
+                      kit={sub}
+                      onOpen={() => setOpenId(sub.id)}
+                      onRemove={() => void remove(sub)}
                     />
-                    <Button
-                      onClick={() => void createSub(parent.id)}
-                      type="button"
-                    >
-                      Add
-                    </Button>
-                  </div>
-                ) : null}
-                {kits.some((kit) => kit.parentId === parent.id) ? (
-                  <ul className="brand-kit__subs">
-                    {kits
-                      .filter((kit) => kit.parentId === parent.id)
-                      .map((sub) => (
-                        <li key={sub.id}>
-                          <KitCard
-                            kit={sub}
-                            onOpen={() => setOpenId(sub.id)}
-                            onRemove={() => void remove(sub)}
-                          />
-                        </li>
-                      ))}
-                  </ul>
-                ) : null}
-              </li>
+                  ))}
+              </Fragment>
             ))}
-        </ul>
-      </CardContent>
-    </Card>
+        </AdminList>
+      ) : null}
+    </AdminListPage>
   );
 }

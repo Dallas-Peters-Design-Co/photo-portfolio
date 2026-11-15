@@ -32,19 +32,6 @@
   background: color-mix(in oklch, #000 40%, transparent);
 }
 
-.boards-panel__count {
-  font-size: var(--text-micro-sm);
-  color: color-mix(in oklch, #fff 50%, transparent);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-widest);
-}
-
-.boards-panel__note {
-  font-size: var(--text-micro-md);
-  line-height: 1.625;
-  color: color-mix(in oklch, #fff 60%, transparent);
-}
-
 /*
  * Delete, revealed on hover over a cover.
  *

@@ -1,77 +1,77 @@
-import { HugeiconsIcon } from "@hugeicons/react";
+import BookOpen01Icon from "@hugeicons-pro/core-stroke-standard/BookOpen01Icon";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
-import { BookOpen } from "lucide-react";
-import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
 import type { BrandKit } from "../../services/brandKitService";
-import { Button, buttonVariants } from "../ui/button";
+import { AdminListRow, AdminRowAction } from "./AdminList";
 import { PalettePreview } from "./BrandKitPreviews";
 import "./BrandKitsPanel.css";
 
 /**
- * One kit in the library, as a card.
+ * One kit in the library, as a row of the shared admin list.
  *
  * The last thing out of BrandKitsPanel, which was over the 500-line ceiling. A
- * card is a summary and a way in — it neither edits a document nor knows how one
+ * row is a summary and a way in — it neither edits a document nor knows how one
  * is saved, which is the whole of what the panel around it does.
  */
 
+function kitMeta(kit: BrandKit): string {
+  const version =
+    kit.version === null
+      ? "No version yet"
+      : `v${kit.version} · ${kit.resolvedDoc.palette.length} colours`;
+  const inherits =
+    kit.inherited.length > 0 ? ` · inherits ${kit.inherited.length}` : "";
+  return `${version}${inherits}`;
+}
+
 export function KitCard({
+  below,
+  indent = false,
   kit,
   onAddSub,
   onOpen,
   onRemove,
 }: {
+  /** The add-a-sub-brand form, while it is open for this kit. */
+  below?: ReactNode;
+  /** A sub-brand: set in under its parent. */
+  indent?: boolean;
   kit: BrandKit;
   onAddSub?: () => void;
   onOpen: () => void;
   onRemove: () => void;
 }) {
   return (
-    <div className="brand-kit__card">
-      <button className="brand-kit__open" onClick={onOpen} type="button">
-        <span className="brand-kit__card-name">{kit.name}</span>
-        <span className="brand-kit__card-meta">
-          {kit.version === null
-            ? "No version yet"
-            : `v${kit.version} · ${kit.resolvedDoc.palette.length} colours`}
-          {kit.inherited.length > 0
-            ? ` · inherits ${kit.inherited.length}`
-            : ""}
-        </span>
-        <PalettePreview doc={kit.resolvedDoc} />
-      </button>
-      <div className="brand-kit__card-actions">
-        <Link
-          aria-label={`Open the ${kit.name} brand guide`}
-          className={buttonVariants({ size: "icon", variant: "ghost" })}
-          title="Brand guide"
-          to={`/admin/brand-kits/${kit.id}/guide`}
-        >
-          <BookOpen size={14} />
-        </Link>
-        {onAddSub ? (
-          <Button
-            aria-label={`Add a sub-brand of ${kit.name}`}
-            onClick={onAddSub}
-            size="icon"
-            type="button"
-            variant="ghost"
-          >
-            <HugeiconsIcon icon={PlusSignIcon} size={14} />
-          </Button>
-        ) : null}
-        <Button
-          aria-label={`Delete ${kit.name}`}
-          onClick={onRemove}
-          size="icon"
-          tone="danger"
-          type="button"
-          variant="ghost"
-        >
-          <HugeiconsIcon icon={Delete02Icon} size={14} />
-        </Button>
-      </div>
-    </div>
+    <AdminListRow
+      actions={
+        <>
+          <AdminRowAction
+            href={`/admin/brand-kits/${kit.id}/guide`}
+            icon={BookOpen01Icon}
+            label={`Open the ${kit.name} brand guide`}
+          />
+          {onAddSub ? (
+            <AdminRowAction
+              icon={PlusSignIcon}
+              label={`Add a sub-brand of ${kit.name}`}
+              onClick={onAddSub}
+            />
+          ) : null}
+          <AdminRowAction
+            danger
+            icon={Delete02Icon}
+            label={`Delete ${kit.name}`}
+            onClick={onRemove}
+          />
+        </>
+      }
+      below={below}
+      indent={indent}
+      lead={<PalettePreview doc={kit.resolvedDoc} />}
+      meta={<span className="tabular-nums">{kitMeta(kit)}</span>}
+      onOpen={onOpen}
+      title={kit.name}
+    />
   );
 }

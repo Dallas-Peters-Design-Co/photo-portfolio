@@ -331,6 +331,12 @@ export interface SiteTheme {
   accent: string;
   background: string;
   /**
+   * The brand kit the site's typography comes from: its headline and body
+   * faces and its type scale (config/siteType.ts). Null sets the site in the
+   * three fonts below.
+   */
+  brandKitId: string | null;
+  /**
    * Titles: the proposal's title and clause headings, and anything else set
    * in display type. Any family, so a condensed sans can head a body set in
    * a wider one. Falls back to the sans when unset.
@@ -362,6 +368,7 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
   addison: {
     accent: "#ffffff",
     background: "#000000",
+    brandKitId: null,
     displayFont: "inter",
     foreground: "#ffffff",
     pinColors: DEFAULT_PIN_COLORS,
@@ -372,6 +379,7 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
     // Matches the text-cyan-200 the wordmark used before theming moved to the DB.
     accent: "#a5f3fc",
     background: "#000000",
+    brandKitId: null,
     displayFont: "inter",
     foreground: "#ffffff",
     pinColors: DEFAULT_PIN_COLORS,
@@ -381,6 +389,8 @@ export const DEFAULT_THEME: Record<string, SiteTheme> = {
 };
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const KIT_ID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const isHexColor = (value: unknown): value is string =>
   typeof value === "string" && HEX.test(value);
@@ -447,6 +457,10 @@ export const normalizeTheme = (
   return {
     accent: isHexColor(t.accent) ? t.accent : fallback.accent,
     background: isHexColor(t.background) ? t.background : fallback.background,
+    brandKitId:
+      typeof t.brandKitId === "string" && KIT_ID.test(t.brandKitId)
+        ? t.brandKitId
+        : null,
     // Themes saved before there was a display font head with their sans.
     displayFont:
       findFont(t.displayFont)?.id ?? fallback.displayFont ?? sansFont,

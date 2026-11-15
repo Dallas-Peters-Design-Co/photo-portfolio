@@ -1,8 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import PencilEdit02Icon from "@hugeicons-pro/core-stroke-standard/PencilEdit02Icon";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useState, useTransition } from "react";
@@ -13,7 +13,7 @@ import posthog from "../../lib/posthog";
 import { boardsApi } from "../../services/portfolioService";
 import type { Board } from "../../types";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { AdminEmpty, AdminListNote, AdminListPage } from "./AdminList";
 import { useConfirm } from "./ConfirmProvider";
 import { LogoBoardDialog } from "./LogoBoardDialog";
 import "../../styles/primitives.css";
@@ -199,13 +199,9 @@ export function BoardsPanel() {
   };
 
   return (
-    <Card>
-      <CardHeader layout="row">
-        <CardTitle>
-          <HugeiconsIcon aria-hidden icon={FrameIcon} size={16} />
-          Moodboards
-        </CardTitle>
-        <div className="row row--tight">
+    <AdminListPage
+      action={
+        <>
           <Button
             onClick={() => setLogoOpen(true)}
             type="button"
@@ -214,144 +210,145 @@ export function BoardsPanel() {
             <HugeiconsIcon aria-hidden icon={SparklesIcon} size={14} />
             New logo board
           </Button>
-          <Button onClick={() => void create()} type="button" variant="outline">
-            <HugeiconsIcon aria-hidden icon={Add01Icon} size={14} />
+          <Button onClick={() => void create()} type="button" variant="ghost">
+            <HugeiconsIcon aria-hidden icon={PlusSignIcon} size={14} />
             New board
           </Button>
-        </div>
-        <LogoBoardDialog
-          onClose={() => setLogoOpen(false)}
-          onCreated={(board) => {
-            setLogoOpen(false);
-            setBoards((prev) => [board, ...prev]);
-            navigate(`/admin/boards/${board.id}`);
-          }}
-          open={logoOpen}
-        />
-      </CardHeader>
+        </>
+      }
+      icon={FrameIcon}
+      title="Moodboards"
+    >
+      <LogoBoardDialog
+        onClose={() => setLogoOpen(false)}
+        onCreated={(board) => {
+          setLogoOpen(false);
+          setBoards((prev) => [board, ...prev]);
+          navigate(`/admin/boards/${board.id}`);
+        }}
+        open={logoOpen}
+      />
 
-      <CardContent>
-        {isLoading ? <p className="boards-panel__count">Loading…</p> : null}
+      {isLoading ? <AdminListNote>Loading…</AdminListNote> : null}
 
-        {!isLoading && boards.length === 0 ? (
-          <p className="boards-panel__note">
-            No boards yet. A board is a canvas for planning a shoot — collect
-            references, pin your own frames next to them, and leave yourself
-            notes.
-          </p>
-        ) : null}
+      {!isLoading && boards.length === 0 ? (
+        <AdminEmpty>
+          No boards yet. A board is a canvas for planning a shoot — collect
+          references, pin your own frames next to them, and leave yourself
+          notes.
+        </AdminEmpty>
+      ) : null}
 
-        <ul className="boards-panel__grid">
-          <AnimatePresence>
-            {boards.map((board) => (
-              <motion.li initial="initial" key={board.id} whileHover="hover">
-                <div className="group admin-tile boards-panel__tile">
-                  {/*
-                   * onClick, not Motion's onTap, and the scale barely moves.
-                   *
-                   * onTap only fires if the pointer is still within the element
-                   * when it is released — and `whileTap: 0.9` shrank the card to
-                   * nine tenths under the finger, so a press anywhere but dead
-                   * centre ended up outside it and the tap was dropped. Opening
-                   * a board took anywhere up to a dozen clicks, and clicking
-                   * faster made it worse, because each release landed earlier in
-                   * the shrink.
-                   *
-                   * onClick is dispatched on the element the press began on
-                   * regardless of what the animation did to its box. The press
-                   * feedback stays, at a depth that cannot move the target out
-                   * from under the pointer.
-                   */}
-                  <motion.button
-                    className="admin-tile__open"
-                    /* Disabled while this one is opening, so the repeat clicks
-                       the old silence invited cannot queue up behind it. */
-                    disabled={isOpening && openingId === board.id}
-                    onClick={() => openBoard(board.id)}
-                    onFocus={prefetchBoardEditor}
-                    onPointerEnter={prefetchBoardEditor}
-                    type="button"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <div className="admin-tile__frame">
-                      {board.coverUrl ? (
-                        <motion.img
-                          alt=""
-                          className="admin-fill"
-                          height={300}
-                          src={board.coverUrl}
-                          transition={{
-                            damping: 20,
-                            stiffness: 300,
-                            type: "spring",
-                          }}
-                          variants={childVariants}
-                          width={400}
-                        />
-                      ) : (
-                        <HugeiconsIcon
-                          aria-hidden
-                          className="admin-tile__placeholder"
-                          icon={FrameIcon}
-                          size={32}
-                        />
-                      )}
-                    </div>
-                    <div className="admin-tile__caption stack stack--snug">
-                      <p className="admin-tile__name">{board.title}</p>
-                      {/*
-                        The item count gives way to "Opening…" while the editor
-                        loads. Replacing a line rather than adding one, so the
-                        card does not change height and shift the grid at the
-                        exact moment a press is being confirmed.
-                      */}
-                      <p className="admin-tile__meta">
-                        {isOpening && openingId === board.id
-                          ? "Opening…"
-                          : `${board.itemCount ?? 0} ${board.itemCount === 1 ? "item" : "items"}`}
-                        {/* A run started on a board keeps going after you
-                            leave it; this is where you can still see that. */}
-                        {running.has(board.id) ? (
-                          <span className="boards-panel__running">
-                            {" "}
-                            · Running…
-                          </span>
-                        ) : null}
-                      </p>
-                    </div>
-                  </motion.button>
+      <ul className="boards-panel__grid">
+        <AnimatePresence>
+          {boards.map((board) => (
+            <motion.li initial="initial" key={board.id} whileHover="hover">
+              <div className="group admin-tile boards-panel__tile">
+                {/*
+                 * onClick, not Motion's onTap, and the scale barely moves.
+                 *
+                 * onTap only fires if the pointer is still within the element
+                 * when it is released — and `whileTap: 0.9` shrank the card to
+                 * nine tenths under the finger, so a press anywhere but dead
+                 * centre ended up outside it and the tap was dropped. Opening
+                 * a board took anywhere up to a dozen clicks, and clicking
+                 * faster made it worse, because each release landed earlier in
+                 * the shrink.
+                 *
+                 * onClick is dispatched on the element the press began on
+                 * regardless of what the animation did to its box. The press
+                 * feedback stays, at a depth that cannot move the target out
+                 * from under the pointer.
+                 */}
+                <motion.button
+                  className="admin-tile__open"
+                  /* Disabled while this one is opening, so the repeat clicks
+                     the old silence invited cannot queue up behind it. */
+                  disabled={isOpening && openingId === board.id}
+                  onClick={() => openBoard(board.id)}
+                  onFocus={prefetchBoardEditor}
+                  onPointerEnter={prefetchBoardEditor}
+                  type="button"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="admin-tile__frame">
+                    {board.coverUrl ? (
+                      <motion.img
+                        alt=""
+                        className="admin-fill"
+                        height={300}
+                        src={board.coverUrl}
+                        transition={{
+                          damping: 20,
+                          stiffness: 300,
+                          type: "spring",
+                        }}
+                        variants={childVariants}
+                        width={400}
+                      />
+                    ) : (
+                      <HugeiconsIcon
+                        aria-hidden
+                        className="admin-tile__placeholder"
+                        icon={FrameIcon}
+                        size={32}
+                      />
+                    )}
+                  </div>
+                  <div className="admin-tile__caption stack stack--snug">
+                    <p className="admin-tile__name">{board.title}</p>
+                    {/*
+                      The item count gives way to "Opening…" while the editor
+                      loads. Replacing a line rather than adding one, so the
+                      card does not change height and shift the grid at the
+                      exact moment a press is being confirmed.
+                    */}
+                    <p className="admin-tile__meta">
+                      {isOpening && openingId === board.id
+                        ? "Opening…"
+                        : `${board.itemCount ?? 0} ${board.itemCount === 1 ? "item" : "items"}`}
+                      {/* A run started on a board keeps going after you
+                          leave it; this is where you can still see that. */}
+                      {running.has(board.id) ? (
+                        <span className="boards-panel__running">
+                          {" "}
+                          · Running…
+                        </span>
+                      ) : null}
+                    </p>
+                  </div>
+                </motion.button>
 
-                  {/* A bar across the foot of the cover while the editor loads.
-                      The label above says what is happening; this says it is
-                      still happening, which a static word cannot. */}
-                  {isOpening && openingId === board.id ? (
-                    <span aria-hidden className="boards-panel__opening" />
-                  ) : null}
+                {/* A bar across the foot of the cover while the editor loads.
+                    The label above says what is happening; this says it is
+                    still happening, which a static word cannot. */}
+                {isOpening && openingId === board.id ? (
+                  <span aria-hidden className="boards-panel__opening" />
+                ) : null}
 
-                  <button
-                    aria-label={`Rename ${board.title}`}
-                    className="boards-panel__rename"
-                    onClick={() => void rename(board)}
-                    type="button"
-                  >
-                    <HugeiconsIcon icon={PencilEdit02Icon} size={14} />
-                  </button>
+                <button
+                  aria-label={`Rename ${board.title}`}
+                  className="boards-panel__rename"
+                  onClick={() => void rename(board)}
+                  type="button"
+                >
+                  <HugeiconsIcon icon={PencilEdit02Icon} size={14} />
+                </button>
 
-                  <button
-                    aria-label={`Delete ${board.title}`}
-                    className="boards-panel__delete"
-                    onClick={() => void remove(board)}
-                    type="button"
-                  >
-                    <HugeiconsIcon icon={Delete02Icon} size={14} />
-                  </button>
-                </div>
-              </motion.li>
-            ))}
-          </AnimatePresence>
-        </ul>
-      </CardContent>
-    </Card>
+                <button
+                  aria-label={`Delete ${board.title}`}
+                  className="boards-panel__delete"
+                  onClick={() => void remove(board)}
+                  type="button"
+                >
+                  <HugeiconsIcon icon={Delete02Icon} size={14} />
+                </button>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
+      </ul>
+    </AdminListPage>
   );
 }

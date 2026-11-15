@@ -1,6 +1,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import Add01Icon from "@hugeicons-pro/core-stroke-standard/Add01Icon";
+import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
 import GlobeIcon from "@hugeicons-pro/core-stroke-standard/GlobeIcon";
+import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
+import Settings01Icon from "@hugeicons-pro/core-stroke-standard/Settings01Icon";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -14,6 +16,13 @@ import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import {
+  AdminEmpty,
+  AdminListNote,
+  AdminListRow,
+  AdminRowAction,
+  AdminStatus,
+} from "./AdminList";
 
 /** The server refuses non-owners with 403; the service surfaces it as text. */
 const FORBIDDEN = /forbidden/i;
@@ -132,6 +141,98 @@ function setupLabel(project: VercelProjectSummary, openId: string | null) {
   return project.missing.length === 0 ? "Configure" : "Finish setup";
 }
 
+/** The quiet line under a site's name: its framework, and what it lacks. */
+function SiteMeta({ project }: { project: VercelProjectSummary }) {
+  return (
+    <>
+      <span className="uppercase">{project.framework ?? "no framework"}</span>
+      {project.missing.length > 0 ? (
+        <span>Missing: {project.missing.join(", ")}</span>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * Whether a site is set up.
+ *
+ * A ready site keeps its setup reachable. Hiding it once nothing was missing
+ * meant a credential could never be changed afterwards — the Google client id
+ * being the one that actually needed changing.
+ */
+function SiteStatus({ project }: { project: VercelProjectSummary }) {
+  return project.missing.length === 0 ? (
+    <AdminStatus tone="done">Ready</AdminStatus>
+  ) : (
+    <AdminStatus tone="draft">Setup needed</AdminStatus>
+  );
+}
+
+/** What is said above the list: why it could not load, or that it is empty. */
+function SiteNotes({
+  error,
+  isEmpty,
+}: {
+  error: string | null;
+  isEmpty: boolean;
+}) {
+  return (
+    <>
+      {error ? <AdminListNote tone="warn">{error}</AdminListNote> : null}
+
+      {isEmpty && !error ? (
+        <AdminEmpty>
+          No sites created here yet. Sites that predate this panel are not
+          listed — it shows projects deployed from this repository.
+        </AdminEmpty>
+      ) : null}
+    </>
+  );
+}
+
+/** What a setup run, or a newly created site, did and still needs. */
+function SiteResults({
+  result,
+  setupResult,
+}: {
+  result: ProvisionResult | null;
+  setupResult: SetupResult | null;
+}) {
+  return (
+    <>
+      {setupResult ? (
+        <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
+          {setupResult.done.map((step) => (
+            <p className="text-sm text-white/70 leading-relaxed" key={step}>
+              ✓ {step}
+            </p>
+          ))}
+          {setupResult.remaining.map((step) => (
+            <p className="text-sm text-white/50 leading-relaxed" key={step}>
+              • {step}
+            </p>
+          ))}
+        </div>
+      ) : null}
+
+      {result ? (
+        <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
+          <p className="text-white/90 text-xs">
+            Created <strong>{result.name}</strong>. Still to do:
+          </p>
+          <ul className="space-y-1">
+            {result.remaining.map((step) => (
+              <li className="text-sm text-white/60 leading-relaxed" key={step}>
+                • {step}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 /**
  * Creates a new site as its own Vercel project.
  *
@@ -240,6 +341,9 @@ export function SitesPanel() {
     return null;
   }
 
+  const hasNotes = Boolean(error) || projects.length === 0;
+  const hasMore = isOpen || setupResult !== null || result !== null;
+
   return (
     <Card>
       <CardHeader layout="row">
@@ -250,173 +354,131 @@ export function SitesPanel() {
         <Button
           onClick={() => setIsOpen((v) => !v)}
           type="button"
-          variant="outline"
+          variant="ghost"
         >
-          <HugeiconsIcon aria-hidden icon={Add01Icon} size={14} />
-          New site
+          <HugeiconsIcon
+            aria-hidden
+            icon={isOpen ? Cancel01Icon : PlusSignIcon}
+            size={14}
+          />
+          {isOpen ? "Cancel" : "New site"}
         </Button>
       </CardHeader>
 
-      <CardContent layout="stack">
-        {error ? (
-          <p className="text-amber-300/80 text-xs leading-relaxed">{error}</p>
-        ) : null}
+      {hasNotes ? (
+        <CardContent layout="stack">
+          <SiteNotes error={error} isEmpty={projects.length === 0} />
+        </CardContent>
+      ) : null}
 
-        {projects.length === 0 && !error ? (
-          <p className="text-white/60 text-xs leading-relaxed">
-            No sites created here yet. Sites that predate this panel are not
-            listed — it shows projects deployed from this repository.
-          </p>
-        ) : null}
-
-        {projects.length > 0 ? (
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+      {projects.length > 0 ? (
+        // The same rows as every admin list, but not AdminList itself: that
+        // is a card, and this panel already is one on the Settings page.
+        <CardContent flush>
+          <ul className="divide-y divide-white/10 border-white/10 border-y">
             {projects.map((project) => (
-              <li
-                className="rounded-control border border-white/10 bg-black/30 px-3 py-2"
+              <AdminListRow
+                actions={
+                  <AdminRowAction
+                    icon={Settings01Icon}
+                    label={setupLabel(project, setupFor)}
+                    onClick={() =>
+                      setSetupFor((current) =>
+                        current === project.id ? null : project.id
+                      )
+                    }
+                    pressed={setupFor === project.id}
+                  />
+                }
+                below={
+                  setupFor === project.id ? (
+                    <div className="max-w-xl space-y-2">
+                      <Input
+                        onChange={(e) => setDatabaseUrl(e.target.value)}
+                        placeholder="postgres://… (optional)"
+                        size="lg"
+                        value={databaseUrl}
+                      />
+
+                      {CREDENTIAL_FIELDS.map((field) => (
+                        <div className="space-y-1" key={field.key}>
+                          <Input
+                            aria-label={field.label}
+                            onChange={(e) =>
+                              setCredentials((current) => ({
+                                ...current,
+                                [field.key]: e.target.value,
+                              }))
+                            }
+                            placeholder={`${field.label} (optional)`}
+                            size="lg"
+                            // Typed secrets should not sit on screen in the clear.
+                            type="password"
+                            value={credentials[field.key] ?? ""}
+                          />
+                          <p className="text-sm text-white/40">{field.hint}</p>
+                        </div>
+                      ))}
+
+                      <p className="text-sm text-white/40 leading-relaxed">
+                        Leave blank to inherit this site's values.
+                      </p>
+                      <Button
+                        disabled={isSettingUp}
+                        fullWidth
+                        onClick={() => void runSetup(project.id)}
+                        type="button"
+                        variant="outline"
+                      >
+                        {isSettingUp ? "Working…" : "Create storage & secrets"}
+                      </Button>
+                    </div>
+                  ) : null
+                }
                 key={project.id}
-              >
-                <p className="truncate text-micro-lg text-white/90">
-                  {project.name}
-                </p>
-                <p className="text-sm text-white/40 uppercase">
-                  {project.framework ?? "no framework"}
-                </p>
-                {/* A ready site keeps the panel reachable. Hiding it once
-                    nothing was missing meant a credential could never be
-                    changed afterwards — the Google client id being the one
-                    that actually needed changing. */}
-                {project.missing.length === 0 ? (
-                  <p className="mt-2 text-emerald-300/70 text-sm uppercase">
-                    Ready
-                  </p>
-                ) : (
-                  <p className="mt-2 text-sm text-white/40">
-                    Missing: {project.missing.join(", ")}
-                  </p>
-                )}
-                <button
-                  className="mt-1 block text-sm text-white/50 uppercase hover:text-white"
-                  onClick={() =>
-                    setSetupFor((current) =>
-                      current === project.id ? null : project.id
-                    )
-                  }
-                  type="button"
-                >
-                  {setupLabel(project, setupFor)}
-                </button>
-
-                {setupFor === project.id ? (
-                  <div className="mt-2 space-y-2">
-                    <Input
-                      onChange={(e) => setDatabaseUrl(e.target.value)}
-                      placeholder="postgres://… (optional)"
-                      size="lg"
-                      value={databaseUrl}
-                    />
-
-                    {CREDENTIAL_FIELDS.map((field) => (
-                      <div className="space-y-1" key={field.key}>
-                        <Input
-                          aria-label={field.label}
-                          onChange={(e) =>
-                            setCredentials((current) => ({
-                              ...current,
-                              [field.key]: e.target.value,
-                            }))
-                          }
-                          placeholder={`${field.label} (optional)`}
-                          size="lg"
-                          // Typed secrets should not sit on screen in the clear.
-                          type="password"
-                          value={credentials[field.key] ?? ""}
-                        />
-                        <p className="text-sm text-white/40">{field.hint}</p>
-                      </div>
-                    ))}
-
-                    <p className="text-sm text-white/40 leading-relaxed">
-                      Leave blank to inherit this site's values.
-                    </p>
-                    <Button
-                      disabled={isSettingUp}
-                      fullWidth
-                      onClick={() => void runSetup(project.id)}
-                      type="button"
-                      variant="outline"
-                    >
-                      {isSettingUp ? "Working…" : "Create storage & secrets"}
-                    </Button>
-                  </div>
-                ) : null}
-              </li>
+                meta={<SiteMeta project={project} />}
+                status={<SiteStatus project={project} />}
+                title={project.name}
+              />
             ))}
           </ul>
-        ) : null}
+        </CardContent>
+      ) : null}
 
-        {isOpen ? (
-          <form className="space-y-4" onSubmit={(e) => void submit(e)}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {FIELDS.map((field) => (
-                <div className="space-y-2" key={field.key}>
-                  <Label htmlFor={`site-${field.key}`}>
-                    {field.label}
-                    {field.required ? " *" : ""}
-                  </Label>
-                  <Input
-                    id={`site-${field.key}`}
-                    onChange={(e) => set(field.key, e.target.value)}
-                    required={field.required}
-                    size="lg"
-                    value={form[field.key]}
-                  />
-                  {field.hint ? (
-                    <p className="text-sm text-white/60">{field.hint}</p>
-                  ) : null}
-                </div>
-              ))}
-            </div>
+      {hasMore ? (
+        <CardContent layout="stack">
+          {isOpen ? (
+            <form className="space-y-4" onSubmit={(e) => void submit(e)}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {FIELDS.map((field) => (
+                  <div className="space-y-2" key={field.key}>
+                    <Label htmlFor={`site-${field.key}`}>
+                      {field.label}
+                      {field.required ? " *" : ""}
+                    </Label>
+                    <Input
+                      id={`site-${field.key}`}
+                      onChange={(e) => set(field.key, e.target.value)}
+                      required={field.required}
+                      size="lg"
+                      value={form[field.key]}
+                    />
+                    {field.hint ? (
+                      <p className="text-sm text-white/60">{field.hint}</p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
 
-            <Button disabled={isCreating} type="submit" variant="outline">
-              {isCreating ? "Creating…" : "Create project"}
-            </Button>
-          </form>
-        ) : null}
+              <Button disabled={isCreating} type="submit" variant="outline">
+                {isCreating ? "Creating…" : "Create project"}
+              </Button>
+            </form>
+          ) : null}
 
-        {setupResult ? (
-          <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
-            {setupResult.done.map((step) => (
-              <p className="text-sm text-white/70 leading-relaxed" key={step}>
-                ✓ {step}
-              </p>
-            ))}
-            {setupResult.remaining.map((step) => (
-              <p className="text-sm text-white/50 leading-relaxed" key={step}>
-                • {step}
-              </p>
-            ))}
-          </div>
-        ) : null}
-
-        {result ? (
-          <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
-            <p className="text-white/90 text-xs">
-              Created <strong>{result.name}</strong>. Still to do:
-            </p>
-            <ul className="space-y-1">
-              {result.remaining.map((step) => (
-                <li
-                  className="text-sm text-white/60 leading-relaxed"
-                  key={step}
-                >
-                  • {step}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-      </CardContent>
+          <SiteResults result={result} setupResult={setupResult} />
+        </CardContent>
+      ) : null}
     </Card>
   );
 }

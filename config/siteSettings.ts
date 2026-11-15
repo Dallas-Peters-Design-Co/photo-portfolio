@@ -1,4 +1,5 @@
 import type { SiteConfig } from "./sites.js";
+import type { SiteTypography } from "./siteType.js";
 import { DEFAULT_THEME, normalizeTheme, type SiteTheme } from "./theme.js";
 
 /** The subset of a site that an admin may edit. */
@@ -17,6 +18,11 @@ export interface EditableSiteFields {
 export type ResolvedSiteSettings = EditableSiteFields & {
   siteKey: string;
   theme: SiteTheme;
+  /**
+   * The faces and type scale of the brand kit the theme names, read by the
+   * server (the kit itself is private). Null with no kit.
+   */
+  typography: SiteTypography | null;
 };
 
 /** A row from site_settings, with every column possibly NULL. */
@@ -47,7 +53,8 @@ const text = (value: string | null | undefined, fallback: string): string => {
  */
 export const resolveSiteSettings = (
   site: SiteConfig,
-  row: SiteSettingsRow | null | undefined
+  row: SiteSettingsRow | null | undefined,
+  typography: SiteTypography | null = null
 ): ResolvedSiteSettings => {
   const fallbackTheme = DEFAULT_THEME[site.key] ?? DEFAULT_THEME.addison;
 
@@ -62,6 +69,7 @@ export const resolveSiteSettings = (
     siteKey: site.key,
     tagline: text(row?.tagline, site.tagline),
     theme: normalizeTheme(row?.theme, fallbackTheme),
+    typography,
   };
 };
 

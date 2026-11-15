@@ -1,16 +1,20 @@
-import { Plus } from "lucide-react";
-import { Fragment, useCallback, useEffect, useState } from "react";
+import AiBrain01Icon from "@hugeicons-pro/core-stroke-standard/AiBrain01Icon";
+import { Plus, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTrainingWatch } from "../../boards/hooks/useTrainingWatch";
 import { modelsApi } from "../../services/portfolioService";
 import type { AiModel } from "../../types";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import {
+  AdminEmpty,
+  AdminList,
+  AdminListNote,
+  AdminListPage,
+} from "./AdminList";
 import { useConfirm } from "./ConfirmProvider";
 import { ModelForm } from "./ModelForm";
 import { ModelRow } from "./ModelRow";
-import "../../styles/primitives.css";
-import "../../styles/adminChrome.css";
 
 /**
  * The models a Generate node may use, editable without code.
@@ -104,59 +108,61 @@ export function ModelsPanel() {
   };
 
   return (
-    <Card>
-      <CardHeader layout="row">
-        <CardTitle>Models</CardTitle>
+    <AdminListPage
+      action={
         <Button
           onClick={() =>
             setEditing((current) => (current === "new" ? null : "new"))
           }
-          size="sm"
           type="button"
-          variant="outline"
+          variant="ghost"
         >
-          <Plus size={14} />
-          {editing === "new" ? "Close" : "Add model"}
+          {editing === "new" ? <X size={14} /> : <Plus size={14} />}
+          {editing === "new" ? "Cancel" : "Add model"}
         </Button>
-      </CardHeader>
-      <CardContent layout="stack">
-        <p className="admin-note--quiet">
-          These are the models a Generate node may use. Add a fal.ai model id,
-          give it a label and its input shape, and it appears in every node
-          without a code change.
-        </p>
+      }
+      icon={AiBrain01Icon}
+      title="Models"
+    >
+      <AdminListNote>
+        These are the models a Generate node may use. Add a fal.ai model id,
+        give it a label and its input shape, and it appears in every node
+        without a code change.
+      </AdminListNote>
 
-        {/* A new model has no row to sit under, so it opens where the button
-            that asked for it is. */}
-        {editing === "new" ? (
-          <ModelForm editing={null} onCancel={close} onSaved={saved} />
-        ) : null}
+      {/* A new model has no row to sit under, so it opens where the button
+          that asked for it is. */}
+      {editing === "new" ? (
+        <ModelForm editing={null} onCancel={close} onSaved={saved} />
+      ) : null}
 
-        {models.length === 0 ? (
-          <p className="admin-empty">No models yet.</p>
-        ) : (
-          models.map((model, index) => (
-            <Fragment key={model.id}>
-              <ModelRow
-                isFirst={index === 0}
-                isLast={index === models.length - 1}
-                model={model}
-                onEdit={() => setEditing(model)}
-                onMoved={(id, direction) => void handleMoved(id, direction)}
-                onRemoved={(m) => void handleRemoved(m)}
-                onToggled={(m) => void handleToggled(m)}
-              />
-              {/* Under the row it belongs to, rather than above the whole list.
-                  With thirty models the form opened somewhere off screen and
-                  pressing Edit looked like it had done nothing — and the row it
-                  was editing was nowhere near the fields describing it. */}
-              {editing !== "new" && editing?.id === model.id ? (
-                <ModelForm editing={model} onCancel={close} onSaved={saved} />
-              ) : null}
-            </Fragment>
-          ))
-        )}
-      </CardContent>
-    </Card>
+      {models.length === 0 ? (
+        <AdminEmpty>No models yet.</AdminEmpty>
+      ) : (
+        <AdminList>
+          {models.map((model, index) => (
+            <ModelRow
+              // Under the row it belongs to, rather than above the whole list.
+              // With thirty models the form opened somewhere off screen and
+              // pressing Edit looked like it had done nothing — and the row it
+              // was editing was nowhere near the fields describing it.
+              below={
+                editing !== "new" && editing?.id === model.id ? (
+                  <ModelForm editing={model} onCancel={close} onSaved={saved} />
+                ) : null
+              }
+              isFirst={index === 0}
+              isLast={index === models.length - 1}
+              key={model.id}
+              model={model}
+              onEdit={() => setEditing(model)}
+              onMoved={(id, direction) => void handleMoved(id, direction)}
+              onRemoved={(m) => void handleRemoved(m)}
+              onToggled={(m) => void handleToggled(m)}
+            />
+          ))}
+        </AdminList>
+      )}
+    </AdminListPage>
   );
 }
