@@ -135,6 +135,7 @@ export function BrandKitsPanel() {
               }
             }}
             placeholder="New kit…"
+            size="lg"
             value={newName}
           />
           <Button onClick={() => void create()} type="button" variant="ghost">
