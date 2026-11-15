@@ -5,11 +5,11 @@ import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import "./ReviewConceptsEditor.css";
 
-const MAX_CONCEPTS = 8;
 const FONT_FAMILIES = {
   mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
   sans: "var(--font-sans, Arial, sans-serif)",
@@ -407,9 +407,11 @@ function ConceptCard({
 
 export function ReviewConceptsEditor({
   concepts,
+  maxConcepts = MAX_REVIEW_CONCEPTS,
   onChange,
 }: {
   concepts: ReviewConcept[];
+  maxConcepts?: number;
   onChange: (concepts: ReviewConcept[]) => void;
 }) {
   const update = (id: string, next: ReviewConcept) =>
@@ -420,13 +422,10 @@ export function ReviewConceptsEditor({
       <div className="review-concepts-editor__head">
         <div>
           <h3>Here’s what it could look like</h3>
-          <p>
-            Build small interface ideas and share the live preview in this
-            review.
-          </p>
+          <p>Sketch how this recommendation could appear on the page.</p>
         </div>
         <Button
-          disabled={concepts.length >= MAX_CONCEPTS}
+          disabled={concepts.length >= maxConcepts}
           onClick={() => onChange([...concepts, newConcept()])}
           type="button"
           variant="outline"

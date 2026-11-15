@@ -123,7 +123,7 @@ export function BrandKitsPanel() {
   return (
     <AdminListPage
       action={
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <Input
             aria-label="New kit name"
             maxLength={MAX_KIT_NAME}

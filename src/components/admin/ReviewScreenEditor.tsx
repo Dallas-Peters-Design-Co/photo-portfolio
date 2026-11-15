@@ -14,6 +14,7 @@ import type {
   ReviewScreen,
   RichText,
 } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { portfolioService } from "../../services/portfolioService";
 import { reviewsApi } from "../../services/reviewService";
@@ -72,6 +73,7 @@ export function ReviewScreenEditor({
   screen,
   slug,
   firstNumber,
+  conceptLimit = MAX_REVIEW_CONCEPTS,
   onChange,
   onRemove,
 }: {
@@ -79,6 +81,8 @@ export function ReviewScreenEditor({
   slug: string;
   /** The number the first pin on this screen carries, across the review. */
   firstNumber: number;
+  /** Remaining concept slots for this screen after concepts on other screens. */
+  conceptLimit?: number;
   onChange: ScreenUpdate;
   onRemove: () => void;
 }) {
@@ -451,6 +455,7 @@ export function ReviewScreenEditor({
             </div>
           </div>
           <ReviewPinList
+            conceptLimit={conceptLimit}
             firstNumber={firstNumber}
             image={screen.image}
             onRemove={removePin}

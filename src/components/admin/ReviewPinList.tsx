@@ -1,6 +1,7 @@
 import { ArrowDownWideNarrow, Trash2 } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import {
+  MAX_REVIEW_CONCEPTS,
   PIN_KINDS,
   PIN_LABELS,
   type ReviewImage,
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
+import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
 import { readingOrder } from "./reviewEditing";
 
 /** The note kinds with their labels, so the closed menu shows "Issue", not "issue". */
@@ -39,6 +41,7 @@ const moved = (ids: string[], id: string, to: number): string[] => {
  */
 export function ReviewPinList({
   pins,
+  conceptLimit = MAX_REVIEW_CONCEPTS,
   image,
   firstNumber,
   selected,
@@ -48,6 +51,8 @@ export function ReviewPinList({
   onReorder,
 }: {
   pins: ReviewPin[];
+  /** Concept slots available across this screen, after other screens. */
+  conceptLimit?: number;
   /** The picture, so "top to bottom" can tell a line from the next one. */
   image: ReviewImage | null;
   firstNumber: number;
@@ -231,6 +236,25 @@ export function ReviewPinList({
                 value={pin.body}
               />
             </div>
+            {pin.kind === "recommendation" ||
+            (pin.concepts?.length ?? 0) > 0 ? (
+              <ReviewConceptsEditor
+                concepts={pin.concepts ?? []}
+                maxConcepts={Math.max(
+                  pin.concepts?.length ?? 0,
+                  conceptLimit -
+                    pins.reduce(
+                      (total, other) =>
+                        total +
+                        (other.id === pin.id
+                          ? 0
+                          : (other.concepts?.length ?? 0)),
+                      0
+                    )
+                )}
+                onChange={(concepts) => onUpdate(pin.id, { concepts })}
+              />
+            ) : null}
           </li>
         ))}
       </ol>

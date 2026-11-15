@@ -204,10 +204,6 @@ function ReviewSheet({
           </section>
         ))}
 
-      {doc.concepts.map((concept) => (
-        <ReviewConceptPreview concept={concept} key={concept.id} />
-      ))}
-
       {screens.map((screen, i) => (
         <Screen
           firstNumber={firstNumbers[i] ?? 1}
@@ -320,6 +316,9 @@ function Screen({
                 {pin.body ? (
                   <p className="review-page__note-body">{pin.body}</p>
                 ) : null}
+                {pin.concepts?.map((concept) => (
+                  <ReviewConceptPreview concept={concept} key={concept.id} />
+                ))}
               </div>
             </li>
           ))}

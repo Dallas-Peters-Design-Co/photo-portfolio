@@ -57,6 +57,8 @@ export interface ReviewMark {
 
 export interface ReviewPin {
   body: string;
+  /** Small interface concepts attached to this note, usually a recommendation. */
+  concepts?: ReviewConcept[];
   id: string;
   kind: PinKind;
   title: string;
@@ -161,11 +163,11 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
 };
 
 export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
+export const MAX_REVIEW_CONCEPTS = 8;
 const MAX_SCREENS = 40;
 const BOARD_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_SECTIONS = 12;
-const MAX_CONCEPTS = 8;
 const MAX_CONCEPT_ELEMENTS = 20;
 const MAX_PINS = 60;
 const MAX_MARKS = 80;
@@ -212,6 +214,9 @@ export const cleanPin = (v: unknown): ReviewPin => {
     : "issue";
   return {
     body: str(raw.body, MAX_BODY),
+    concepts: (Array.isArray(raw.concepts) ? raw.concepts : [])
+      .slice(0, MAX_REVIEW_CONCEPTS)
+      .map(cleanConcept),
     id: str(raw.id, 64) || newItemId(),
     kind,
     title: str(raw.title, MAX_TITLE),
@@ -369,19 +374,44 @@ const cleanConcept = (v: unknown): ReviewConcept => {
 /** A document from the request or the database, bounded and typed. */
 export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
   const raw = (value ?? {}) as Partial<ReviewDoc>;
+  const screens = (Array.isArray(raw.screens) ? raw.screens : [])
+    .slice(0, MAX_SCREENS)
+    .map(cleanScreen);
+  let concepts = (Array.isArray(raw.concepts) ? raw.concepts : [])
+    .slice(0, MAX_REVIEW_CONCEPTS)
+    .map(cleanConcept);
+
+  // Older reviews stored examples on the document. Move them onto the first
+  // recommendation (or first note) so each example travels with its screenshot.
+  if (concepts.length > 0) {
+    const pins = screens.flatMap((screen) => screen.pins);
+    const target = pins.find((pin) => pin.kind === "recommendation") ?? pins[0];
+    if (target) {
+      target.concepts = [...(target.concepts ?? []), ...concepts].slice(
+        0,
+        MAX_REVIEW_CONCEPTS
+      );
+      concepts = [];
+    }
+  }
+
+  let remainingConcepts = MAX_REVIEW_CONCEPTS;
+  for (const screen of screens) {
+    for (const pin of screen.pins) {
+      pin.concepts = (pin.concepts ?? []).slice(0, remainingConcepts);
+      remainingConcepts -= pin.concepts.length;
+    }
+  }
+
   return {
     boardId:
       typeof raw.boardId === "string" && BOARD_ID.test(raw.boardId)
         ? raw.boardId
         : null,
     closing: cleanRich(raw.closing, MAX_DOC_BYTES / 4),
-    concepts: (Array.isArray(raw.concepts) ? raw.concepts : [])
-      .slice(0, MAX_CONCEPTS)
-      .map(cleanConcept),
+    concepts,
     intro: cleanRich(raw.intro, MAX_DOC_BYTES / 4),
-    screens: (Array.isArray(raw.screens) ? raw.screens : [])
-      .slice(0, MAX_SCREENS)
-      .map(cleanScreen),
+    screens,
     // Reviews written before sections existed have none, which is right.
     sections: (Array.isArray(raw.sections) ? raw.sections : [])
       .slice(0, MAX_SECTIONS)

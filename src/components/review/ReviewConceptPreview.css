@@ -1,6 +1,17 @@
-.review-page__concept .doc-band__title span {
+.review-page__concept {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  margin-block-start: calc(var(--spacing) * 3);
+}
+
+.review-page__concept-title {
+  font-size: var(--text-xs-ui);
+  font-weight: 600;
+}
+
+.review-page__concept-title span {
   display: block;
-  margin-block-start: calc(var(--spacing) * 2);
+  margin-block-start: calc(var(--spacing) * 1);
   font-size: var(--text-sm-ui);
   font-weight: 500;
   line-height: 1.4;
@@ -9,6 +20,6 @@
 }
 
 .review-page__concept-preview {
-  min-height: 14rem;
+  min-height: 8rem;
   overflow: hidden;
 }

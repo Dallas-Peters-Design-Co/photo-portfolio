@@ -7,6 +7,7 @@ import type {
   ReviewScreen,
   RichText,
 } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { downloadReviewPdf } from "../../pages/pagePdf";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
@@ -17,7 +18,6 @@ import { Label } from "../ui/label";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
 import { EditorShell } from "./EditorShell";
 import { ReviewClientPanel } from "./ReviewClientPanel";
-import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
@@ -354,11 +354,6 @@ export function ReviewEditor({
           sections={draft.doc.sections}
         />
 
-        <ReviewConceptsEditor
-          concepts={draft.doc.concepts}
-          onChange={(concepts) => setDoc({ concepts })}
-        />
-
         <section className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className={fieldsetTitleClass}>Screens</h3>
@@ -379,6 +374,21 @@ export function ReviewEditor({
                 title={screen.title || "Untitled screen"}
               >
                 <ReviewScreenEditor
+                  conceptLimit={
+                    MAX_REVIEW_CONCEPTS -
+                    draft.doc.concepts.length -
+                    draft.doc.screens
+                      .filter((other) => other.id !== screen.id)
+                      .reduce(
+                        (total, other) =>
+                          total +
+                          other.pins.reduce(
+                            (count, pin) => count + (pin.concepts?.length ?? 0),
+                            0
+                          ),
+                        0
+                      )
+                  }
                   firstNumber={
                     firstNumbers[draft.doc.screens.indexOf(screen)] ?? 1
                   }

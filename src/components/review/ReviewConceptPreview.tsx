@@ -29,37 +29,35 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
   };
 
   return (
-    <section className="doc-band doc-band--split review-page__concept">
-      <h2 className="doc-band__title">
-        Here’s what it could look like
-        <span>{concept.title || "Concept"}</span>
-      </h2>
-      <div className="doc-band__body">
-        <div
-          aria-label={`${concept.title || "Interface concept"} preview`}
-          className="review-page__concept-preview"
-          role="img"
-          style={style}
-        >
-          {concept.elements.map((element) => (
-            <div
-              key={element.id}
-              style={{
-                background: element.background,
-                borderRadius: element.radius,
-                color: element.color,
-                fontFamily: CONCEPT_FONTS[element.fontFamily],
-                fontSize: element.fontSize,
-                fontWeight: element.fontWeight,
-                lineHeight: element.lineHeight,
-                padding: `${element.paddingY}px ${element.paddingX}px`,
-              }}
-            >
-              {element.text}
-            </div>
-          ))}
-        </div>
+    <div className="review-page__concept">
+      <h4 className="review-page__concept-title">
+        What it could look like
+        {concept.title ? <span>{concept.title}</span> : null}
+      </h4>
+      <div
+        aria-label={`${concept.title || "Interface concept"} preview`}
+        className="review-page__concept-preview"
+        role="img"
+        style={style}
+      >
+        {concept.elements.map((element) => (
+          <div
+            key={element.id}
+            style={{
+              background: element.background,
+              borderRadius: element.radius,
+              color: element.color,
+              fontFamily: CONCEPT_FONTS[element.fontFamily],
+              fontSize: element.fontSize,
+              fontWeight: element.fontWeight,
+              lineHeight: element.lineHeight,
+              padding: `${element.paddingY}px ${element.paddingX}px`,
+            }}
+          >
+            {element.text}
+          </div>
+        ))}
       </div>
-    </section>
+    </div>
   );
 }
