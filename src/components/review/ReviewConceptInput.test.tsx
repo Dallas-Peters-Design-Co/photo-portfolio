@@ -124,3 +124,22 @@ it("draws a badge with its fill, text color and border", () => {
   expect(badge.borderTopWidth).toBe("2px");
   expect(badge.borderTopColor).toBe("rgb(255, 0, 0)");
 });
+
+it("draws a checkbox in its accent colour and box size", () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("checkbox"),
+          accentColor: "#ff0000",
+          checkSize: 24,
+        }}
+      />
+    )
+  );
+  const box = getComputedStyle(
+    host.querySelector('input[type="checkbox"]') as HTMLElement
+  );
+  expect(box.accentColor).toBe("rgb(255, 0, 0)");
+  expect(box.width).toBe("24px");
+});

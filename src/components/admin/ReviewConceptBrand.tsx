@@ -181,6 +181,16 @@ export const createConceptElement = (
     ...elementState(kind),
     ...(kind === "table" ? { table: DEFAULT_TABLE } : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
+    ...(kind === "checkbox"
+      ? {
+          accentColor: paletteColor(
+            brandDoc,
+            ["accent", "primary", "button"],
+            "#3538cd"
+          ),
+          checkSize: 18,
+        }
+      : {}),
     ...(kind === "card"
       ? {
           bodySize: 14,

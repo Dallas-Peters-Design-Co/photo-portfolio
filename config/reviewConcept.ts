@@ -79,6 +79,8 @@ export type ReviewConceptElementKind =
 export type ReviewConceptIcon = string;
 
 export interface ReviewConceptElement {
+  /** Checkboxes: the checked box's colour (CSS accent-color). */
+  accentColor?: string;
   background: string;
   /** Cards only: the body's type size. The title uses `fontSize`. */
   bodySize?: number;
@@ -87,6 +89,8 @@ export interface ReviewConceptElement {
   /** Badges and cards: the outline's width in px, 0–8. Default 1. */
   borderWidth?: number;
   checked?: boolean;
+  /** Checkboxes: the box's size in px. */
+  checkSize?: number;
   color: string;
   fontFamily: "sans" | "serif" | "mono" | "brand" | "app";
   fontId?: string;
@@ -148,6 +152,8 @@ export const ELEMENT_STYLE_KEYS = [
   // as one choice with its drawing.
   "iconName",
   "iconSvg",
+  "accentColor",
+  "checkSize",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 export const CONCEPT_STYLE_KEYS = [
@@ -275,6 +281,15 @@ const cleanBorder = (
       }
     : {};
 
+const cleanCheckbox = (
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "accentColor" | "checkSize"> => ({
+  ...(isHex(raw.accentColor) ? { accentColor: raw.accentColor } : {}),
+  ...(typeof raw.checkSize === "number"
+    ? { checkSize: bounded(raw.checkSize, 10, 40, 18) }
+    : {}),
+});
+
 const cleanCard = (
   raw: Partial<ReviewConceptElement>
 ): Pick<ReviewConceptElement, "bodySize" | "shadow"> => {
@@ -374,6 +389,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     radius: bounded(raw.radius, 0, 48, 4),
     ...(kind === "card" ? cleanCard(raw) : {}),
     ...cleanBorder(kind, raw),
+    ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(table ? { table } : {}),
     ...cleanLink(raw),
     text: str(raw.text, 500),

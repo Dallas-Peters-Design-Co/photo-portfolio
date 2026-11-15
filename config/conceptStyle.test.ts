@@ -261,3 +261,28 @@ describe("a style's icon", () => {
     expect(plain?.look.iconName).toBeUndefined();
   });
 });
+
+it("never blanks an element's basic settings for a style that lacks them", () => {
+  const drawn = applyConceptStyle(button({ styleId: "bare" }), [
+    { id: "bare", kind: "button", look: {}, name: "Bare" },
+  ]);
+  expect(drawn.fontWeight).toBeDefined();
+  expect(drawn.background).toBe("#000000");
+});
+
+it("lets a checkbox style set the accent and box size", () => {
+  const [style] = cleanConceptStyles([
+    {
+      id: "ok",
+      kind: "checkbox",
+      look: { accentColor: "#12b76a", checkSize: 22 },
+      name: "Ok",
+    },
+  ]);
+  const box = cleanConcept({ elements: [{ kind: "checkbox", styleId: "ok" }] })
+    .elements[0] as ReviewConceptElement;
+  expect(applyConceptStyle(box, [style as ConceptStyle])).toMatchObject({
+    accentColor: "#12b76a",
+    checkSize: 22,
+  });
+});

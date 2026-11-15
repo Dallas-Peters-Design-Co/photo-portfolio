@@ -20,7 +20,11 @@ import {
 import { ConceptFontField } from "./ConceptFontField";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
-import { CardShadowGroup, ElementIconGroup } from "./ReviewConceptCardFields";
+import {
+  CardShadowGroup,
+  CheckboxGroup,
+  ElementIconGroup,
+} from "./ReviewConceptCardFields";
 import { ReviewConceptContentField } from "./ReviewConceptContentField";
 
 type Patch = Partial<ReviewConceptElement>;
@@ -169,6 +173,53 @@ function ContentGroup({
   );
 }
 
+/**
+ * What only some kinds have, above the shared look: a table's columns, rows,
+ * header and borders; the content of the rest; a checkbox's box; an icon.
+ */
+function KindGroups({
+  brandDoc,
+  element,
+  lookOnly,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  lookOnly: boolean;
+  onChange: (patch: Patch) => void;
+}) {
+  return (
+    <>
+      {/* A table's content is its columns and rows. */}
+      {element.kind === "table" ? (
+        <ConceptTableFields
+          brandDoc={brandDoc}
+          element={element}
+          lookOnly={lookOnly}
+          onChange={onChange}
+        />
+      ) : null}
+      {element.kind === "table" || lookOnly ? null : (
+        <ContentGroup element={element} onChange={onChange} />
+      )}
+      {element.kind === "checkbox" ? (
+        <CheckboxGroup
+          brandDoc={brandDoc}
+          element={element}
+          onChange={onChange}
+        />
+      ) : null}
+      {takesIcon(element.kind) ? (
+        <ElementIconGroup
+          brandDoc={brandDoc}
+          element={element}
+          onChange={onChange}
+        />
+      ) : null}
+    </>
+  );
+}
+
 /** The element's name (the fold control), its kit style, and its actions. */
 function ElementBar({
   bodyId,
@@ -274,25 +325,12 @@ export function ReviewConceptElementFields({
       )}
       {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
-          {/* A table's content is its columns and rows. */}
-          {element.kind === "table" ? (
-            <ConceptTableFields
-              brandDoc={brandDoc}
-              element={element}
-              lookOnly={lookOnly}
-              onChange={onChange}
-            />
-          ) : null}
-          {element.kind === "table" || lookOnly ? null : (
-            <ContentGroup element={element} onChange={onChange} />
-          )}
-          {takesIcon(element.kind) ? (
-            <ElementIconGroup
-              brandDoc={brandDoc}
-              element={element}
-              onChange={onChange}
-            />
-          ) : null}
+          <KindGroups
+            brandDoc={brandDoc}
+            element={element}
+            lookOnly={lookOnly}
+            onChange={onChange}
+          />
           <ConceptGroup name="Type">
             <ConceptFontField
               brandDoc={brandDoc}

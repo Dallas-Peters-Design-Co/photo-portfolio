@@ -57,6 +57,13 @@ it("keeps the parent's styles when a sub-brand adds its first own", async () => 
     "button",
     "badge",
   ]);
+  // The new style opens, ready to style; the parent's stays folded.
+  expect(
+    host.querySelector('[aria-label="Fold Badge Primary"]')
+  ).not.toBeNull();
+  expect(
+    host.querySelector('[aria-label="Open Button Primary"]')
+  ).not.toBeNull();
   host.remove();
 });
 
@@ -73,6 +80,11 @@ it("keeps the icon picked for a style", async () => {
   const host = document.createElement("div");
   document.body.append(host);
   act(() => createRoot(host).render(<OneCard />));
+  // Styles start folded; open this one.
+  expect(host.querySelector('[aria-label="Card icon"]')).toBeNull();
+  await userEvent.click(
+    host.querySelector('[aria-label="Open Card Card"]') as HTMLElement
+  );
   await userEvent.click(
     host.querySelector('[aria-label="Card icon"]') as HTMLElement
   );

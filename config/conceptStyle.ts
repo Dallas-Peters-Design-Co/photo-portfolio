@@ -53,6 +53,18 @@ const ICON_KEYS = new Set<ConceptStyleKey>([
   "iconSize",
   "iconSvg",
 ]);
+/** Settings every element has: never left blank by a style missing them. */
+const REQUIRED_KEYS = new Set<ConceptStyleKey>([
+  "background",
+  "color",
+  "fontFamily",
+  "fontSize",
+  "fontWeight",
+  "lineHeight",
+  "paddingX",
+  "paddingY",
+  "radius",
+]);
 /** One choice each, kept or overridden whole. */
 const LINKED_KEYS: readonly ReadonlySet<ConceptStyleKey>[] = [
   new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]),
@@ -135,9 +147,12 @@ export const applyConceptStyle = (
   const own = new Set(element.overrides);
   const next: Record<string, unknown> = { ...element };
   for (const key of ELEMENT_STYLE_KEYS) {
-    // A style that sets no icon size or colour leaves the element's own.
-    const keepsOwnIcon = ICON_KEYS.has(key) && style.look[key] === undefined;
-    if (!(own.has(key) || keepsOwnIcon)) {
+    // A style that sets no icon, or (incomplete) no basic setting, leaves
+    // the element's own; its unset border and shadow mean "none".
+    const keepsOwn =
+      (ICON_KEYS.has(key) || REQUIRED_KEYS.has(key)) &&
+      style.look[key] === undefined;
+    if (!(own.has(key) || keepsOwn)) {
       next[key] = style.look[key];
     }
   }

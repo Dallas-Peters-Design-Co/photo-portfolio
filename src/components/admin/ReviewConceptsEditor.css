@@ -427,16 +427,14 @@
 
 .brand-kit-components__head {
   display: grid;
-  grid-template-columns: 6rem minmax(0, 18rem) auto;
+  grid-template-columns: 9rem minmax(0, 18rem) auto;
   gap: calc(var(--spacing) * 2);
   align-items: center;
 }
 
-.brand-kit-components__head > span {
-  font-size: var(--text-xs-ui);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro);
+.brand-kit-components__body {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
 }
 
 /* Paper, as a concept preview is: a style is judged on the page it goes on. */

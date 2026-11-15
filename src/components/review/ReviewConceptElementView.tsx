@@ -319,8 +319,18 @@ export function ReviewConceptElementView({
       return <SelectPreview element={element} style={style} text={text} />;
     case "checkbox":
       return (
-        <label className="review-concepts__checkbox-preview">
-          <input checked={element.checked ?? false} readOnly type="checkbox" />
+        <label className="review-concepts__checkbox-preview" style={style}>
+          <input
+            checked={element.checked ?? false}
+            readOnly
+            style={{
+              accentColor: element.accentColor,
+              height: element.checkSize,
+              margin: 0,
+              width: element.checkSize,
+            }}
+            type="checkbox"
+          />
           {text}
         </label>
       );

@@ -141,3 +141,33 @@ export function CardShadowGroup({
     </ConceptGroup>
   );
 }
+
+/** A checkbox's box: its checked colour and its size. */
+export function CheckboxGroup({
+  brandDoc,
+  element,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  return (
+    <ConceptGroup name="Checkbox">
+      <ConceptColorField
+        ariaLabel="checkbox accent color"
+        brandDoc={brandDoc}
+        label="Accent"
+        onChange={(accentColor) => onChange({ accentColor })}
+        value={element.accentColor ?? "#3538cd"}
+      />
+      <NumberField
+        label="Box size"
+        max={40}
+        min={10}
+        onChange={(checkSize) => onChange({ checkSize })}
+        value={element.checkSize ?? 16}
+      />
+    </ConceptGroup>
+  );
+}

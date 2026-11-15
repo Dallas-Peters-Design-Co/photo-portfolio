@@ -195,3 +195,17 @@ describe("badge and card borders", () => {
     expect(button?.borderWidth).toBeUndefined();
   });
 });
+
+describe("checkbox accent and size", () => {
+  it("keeps a checkbox's accent and size, clamped, and only on checkboxes", () => {
+    const [box, button] = cleanConcept({
+      elements: [
+        { accentColor: "#ff0000", checkSize: 90, kind: "checkbox" },
+        { accentColor: "#ff0000", checkSize: 20, kind: "button" },
+      ],
+    }).elements;
+    expect(box).toMatchObject({ accentColor: "#ff0000", checkSize: 40 });
+    expect(button?.accentColor).toBeUndefined();
+    expect(button?.checkSize).toBeUndefined();
+  });
+});

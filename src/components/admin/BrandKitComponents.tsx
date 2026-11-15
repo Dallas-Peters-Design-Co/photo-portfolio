@@ -1,4 +1,5 @@
-import { Trash2 } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
+import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ConceptStyle,
@@ -37,22 +38,39 @@ const sampleOf = (
     style
   );
 
+/** One style: a row (fold, type, name, remove) that opens to its sample and look. */
 function StyleEditor({
   brand,
   onChange,
   onRemove,
+  onToggle,
+  open,
   style,
 }: {
   brand: BrandKitDoc;
   onChange: (next: ConceptStyle) => void;
   onRemove: () => void;
+  onToggle: () => void;
+  open: boolean;
   style: ConceptStyle;
 }) {
+  const bodyId = useId();
   const sample = sampleOf(style, brand);
   return (
     <section className="brand-kit-components__style">
       <header className="brand-kit-components__head">
-        <span>{kindLabel(style.kind)}</span>
+        <button
+          aria-controls={bodyId}
+          aria-expanded={open}
+          aria-label={`${open ? "Fold" : "Open"} ${kindLabel(style.kind)} ${style.name}`}
+          // The same fold control as an element's, so the two read alike.
+          className="review-concepts__element-toggle"
+          onClick={onToggle}
+          type="button"
+        >
+          <ChevronDown aria-hidden size={14} />
+          <span>{kindLabel(style.kind)}</span>
+        </button>
         <Input
           aria-label={`${kindLabel(style.kind)} style name`}
           onChange={(event) => onChange({ ...style, name: event.target.value })}
@@ -70,17 +88,21 @@ function StyleEditor({
           <Trash2 size={13} />
         </Button>
       </header>
-      <div className="brand-kit-components__sample">
-        <ReviewConceptElementView element={sample} />
-      </div>
-      <ReviewConceptElementFields
-        brandDoc={brand}
-        element={sample}
-        lookOnly
-        onChange={(patch) =>
-          onChange({ ...style, look: lookOf({ ...sample, ...patch }) })
-        }
-      />
+      {open ? (
+        <div className="brand-kit-components__body" id={bodyId}>
+          <div className="brand-kit-components__sample">
+            <ReviewConceptElementView element={sample} />
+          </div>
+          <ReviewConceptElementFields
+            brandDoc={brand}
+            element={sample}
+            lookOnly
+            onChange={(patch) =>
+              onChange({ ...style, look: lookOf({ ...sample, ...patch }) })
+            }
+          />
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -107,6 +129,16 @@ export function BrandKitComponents({
     styles.length === 0 ? effective.componentStyles : [];
   const set = (next: ConceptStyle[]) =>
     onChange({ ...doc, componentStyles: next });
+  // Folded by default: the list reads as a list of styles until one is opened.
+  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  const toggle = (id: string) =>
+    setOpen((was) => {
+      const next = new Set(was);
+      if (!next.delete(id)) {
+        next.add(id);
+      }
+      return next;
+    });
 
   const add = (choice: string) => {
     // Adding to a sub-brand that uses its parent's styles starts from those,
@@ -117,10 +149,13 @@ export function BrandKitComponents({
     }
     const kind = choice as ReviewConceptElementKind;
     const count = base.filter((style) => style.kind === kind).length;
+    const id = newItemId();
+    // A new style opens, ready to style; the rest stay as they were.
+    setOpen((was) => new Set(was).add(id));
     set([
       ...base,
       {
-        id: newItemId(),
+        id,
         kind,
         look: lookOf(createConceptElement(kind, effective)),
         name: count === 0 ? "Primary" : `Style ${count + 1}`,
@@ -169,6 +204,8 @@ export function BrandKitComponents({
             set(styles.map((s) => (s.id === style.id ? next : s)))
           }
           onRemove={() => set(styles.filter((s) => s.id !== style.id))}
+          onToggle={() => toggle(style.id)}
+          open={open.has(style.id)}
           style={style}
         />
       ))}
