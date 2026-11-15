@@ -27,6 +27,7 @@ import {
 } from "../../../config/review.js";
 import { MarkEditLayer } from "../../components/review/MarkEditLayer";
 import {
+  markIdAt,
   ReviewMarks,
   reviewPinClass,
 } from "../../components/review/ReviewMarkup";
@@ -135,17 +136,19 @@ export function BrowserMarkup({
 }) {
   const surface = useRef<HTMLDivElement>(null);
   const [draft, setDraft] = useState<ReviewMark | null>(null);
-  // The Edit tool's selected mark, and where it is mid-drag.
+  // The selected mark, and where it is mid-drag. Edit and the drawing tools
+  // show its handles; a mark just drawn starts selected.
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
   const [preview, setPreview] = useState<ReviewMark | null>(null);
   const editing =
-    tool === "select" && !readOnly
+    tool !== "pin" && tool !== "erase" && !readOnly
       ? (preview ?? marks.find((m) => m.id === selectedMark) ?? null)
       : null;
   const shown = preview
     ? marks.map((m) => (m.id === preview.id ? preview : m))
     : marks;
   const moving = useRef<string | null>(null);
+  const pressedMark = useRef<string | null>(null);
   const moved = useRef<boolean>(false);
 
   const at = (e: { clientX: number; clientY: number }) => {
@@ -189,7 +192,9 @@ export function BrowserMarkup({
     if (tool === "erase") {
       return;
     }
+    pressedMark.current = markIdAt(e.target);
     e.currentTarget.setPointerCapture(e.pointerId);
+    setSelectedMark(null);
     setDraft({
       id: newItemId(),
       kind: tool,
@@ -237,7 +242,12 @@ export function BrowserMarkup({
     // A click without a drag is not a mark.
     if (span > MIN_MARK) {
       onChange({ marks: [...marks, draft] });
+      setSelectedMark(draft.id);
+    } else {
+      // A press on a mark without a drag selects it.
+      setSelectedMark(pressedMark.current);
     }
+    pressedMark.current = null;
     setDraft(null);
   };
 
@@ -247,7 +257,9 @@ export function BrowserMarkup({
   let onMarkClick: ((id: string) => void) | undefined;
   if (!readOnly && tool === "erase") {
     onMarkClick = erase;
-  } else if (!readOnly && tool === "select") {
+  } else if (!readOnly && tool !== "pin") {
+    // Also gives each mark its hit area, which the drawing tools need to
+    // tell a press on a mark from one on the picture.
     onMarkClick = setSelectedMark;
   }
 

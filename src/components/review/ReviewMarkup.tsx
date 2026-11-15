@@ -105,6 +105,16 @@ export function Shape({
 }
 
 /**
+ * The mark a pointer event landed on, if any. A drawing tool captures the
+ * pointer on press, so the mark never gets the click itself; the editors ask
+ * this instead, and a press without a drag selects the mark.
+ */
+export const markIdAt = (target: EventTarget | null): string | null =>
+  target instanceof Element
+    ? (target.closest("[data-mark-id]")?.getAttribute("data-mark-id") ?? null)
+    : null;
+
+/**
  * A mark's line width, proportional to the picture, so a stroke reads the same
  * on a phone capture and a desktop one.
  */
@@ -160,6 +170,7 @@ export function ReviewMarks({
         // biome-ignore lint/a11y/noStaticElementInteractions: SVG markup; deletion is also available from the toolbar
         <g
           className={`review-markup__mark ${selected === mark.id ? "review-markup__mark--selected" : ""}`}
+          data-mark-id={mark.id}
           key={mark.id}
           onClick={
             onSelect

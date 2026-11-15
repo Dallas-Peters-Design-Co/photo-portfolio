@@ -1,6 +1,7 @@
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import type { ReviewMark, ReviewScreen } from "../../../config/review.js";
 
 vi.mock("../../cms/PageEditor", () => ({ PageEditor: () => null }));
@@ -249,6 +250,38 @@ describe("review markup tools", () => {
     await act(() => button("Undo")?.click());
     await act(() => button("Undo")?.click());
     expect(current.marks[0]?.points).toEqual(ARROW.points);
+  });
+
+  it("selects a mark as soon as it is drawn, so Delete removes it", async () => {
+    await mount();
+    await drawBox();
+    expect(document.querySelectorAll(".review-mark-edit__handle")).toHaveLength(
+      2
+    );
+    await userEvent.keyboard("{Delete}");
+    expect(current.marks).toHaveLength(0);
+  });
+
+  it("selects an arrow clicked with the Arrow tool, with a real click", async () => {
+    const ARROW: ReviewMark = {
+      id: "a1",
+      kind: "arrow",
+      points: [
+        [0.1, 0.1],
+        [0.6, 0.6],
+      ],
+    };
+    await mount({ ...start, marks: [ARROW] });
+    await userEvent.click(button("Arrow") as HTMLButtonElement);
+    const line = document.querySelector(".review-markup__hit line");
+    await userEvent.click(line as Element);
+    expect(document.querySelectorAll(".review-mark-edit__handle")).toHaveLength(
+      2
+    );
+    // A plain click is not a new mark.
+    expect(current.marks).toHaveLength(1);
+    await userEvent.keyboard("{Delete}");
+    expect(current.marks).toHaveLength(0);
   });
 
   it("removes the selected mark with Delete", async () => {

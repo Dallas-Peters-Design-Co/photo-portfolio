@@ -1,6 +1,7 @@
-import { type PointerEvent, useEffect, useState } from "react";
+import { type PointerEvent, useEffect, useRef, useState } from "react";
 import { newItemId } from "../../../config/proposal.js";
 import type { ReviewMark } from "../../../config/review.js";
+import { markIdAt } from "../review/ReviewMarkup";
 import type { ReviewTool } from "./ReviewMarkupToolbar";
 import { isActiveScreen, isTyping, touchScreen } from "./reviewEditing";
 
@@ -35,6 +36,8 @@ export function useReviewMarkup({
   const [selectedMark, setSelectedMark] = useState<string | null>(null);
   // The selected mark mid-drag, drawn in place of the saved one until release.
   const [preview, setPreview] = useState<ReviewMark | null>(null);
+  // The mark a drawing tool was pressed on: a press without a drag selects it.
+  const pressedMark = useRef<string | null>(null);
 
   const step = (next: ReviewMark[]) => {
     record();
@@ -58,9 +61,10 @@ export function useReviewMarkup({
     step(marks.map((m) => (m.id === mark.id ? mark : m)));
   };
 
-  // Leaving the Edit tool lets go of the selection.
+  // The pin tool and the eraser let go of the selection; the drawing tools
+  // keep it, so a mark just drawn can be adjusted at once.
   useEffect(() => {
-    if (tool !== "select") {
+    if (tool === "pin" || tool === "erase") {
       setSelectedMark(null);
       setPreview(null);
     }
@@ -100,7 +104,9 @@ export function useReviewMarkup({
     if (!pos) {
       return;
     }
+    pressedMark.current = markIdAt(e.target);
     e.currentTarget.setPointerCapture(e.pointerId);
+    setSelectedMark(null);
     setDraft({
       id: newItemId(),
       kind: tool,
@@ -136,16 +142,26 @@ export function useReviewMarkup({
     // A click without a drag is not a mark.
     if (span > MIN_MARK && draft.points.length >= 2) {
       step([...marks, draft]);
+      // Selected as soon as it is drawn: its handles show, and Delete
+      // removes it, without reaching for the Edit tool.
+      setSelectedMark(draft.id);
+    } else {
+      setSelectedMark(pressedMark.current);
     }
+    pressedMark.current = null;
     setDraft(null);
   };
 
   const editing = marks.find((m) => m.id === selectedMark) ?? null;
-  // What clicking a mark does: the eraser removes it, Edit selects it.
+  // What clicking a mark does: the eraser removes it, Edit selects it. The
+  // drawing tools select a mark pressed without a drag (finishMark); the pin
+  // tool keeps its click for pins, which often go inside a box.
   let onMarkClick: ((id: string) => void) | undefined;
   if (tool === "erase") {
     onMarkClick = eraseMark;
-  } else if (tool === "select") {
+  } else if (tool !== "pin") {
+    // Also gives each mark its hit area, which the drawing tools need to
+    // tell a press on a mark from one on the picture.
     onMarkClick = setSelectedMark;
   }
   let cursor = "cursor-crosshair";
