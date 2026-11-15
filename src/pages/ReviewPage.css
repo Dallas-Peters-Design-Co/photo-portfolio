@@ -212,58 +212,183 @@
   border: 1px solid var(--sheet-rule);
 }
 
-/* A phone capture is drawn no wider than a large phone (420px). */
 /*
- * The phone around a mobile capture. Its proportions follow a current
- * phone (about 9 : 19.5); the bezel is a fixed width, the corners follow it.
+ * The phone around a mobile capture, after an iPhone X: a 1 : 2 body, an
+ * inset screen with its own edge, the notch with its curved shoulders, the
+ * antenna lines and the side buttons. Every size is in em of a font-size set
+ * from the phone's own width (5cqi = 1/20 of it), so it keeps its
+ * proportions at any width.
  */
 .review-page__phone {
-  --phone-bezel: calc(var(--spacing) * 3);
-  --phone-radius: 3rem;
   position: relative;
+  width: 100%;
   max-width: var(--container-phone);
-  padding: calc(var(--spacing) * 11) var(--phone-bezel) calc(var(--spacing) * 7);
-  background: oklch(0.16 0 0);
-  border-radius: var(--phone-radius);
+  aspect-ratio: 1 / 2;
+  container-type: inline-size;
+}
+
+.review-page__phone > * {
+  font-size: 5cqi;
+}
+
+.review-page__phone-body {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  margin: 0.2em;
+  overflow: hidden;
+  background: #292c2d;
+  border-radius: 3em;
   box-shadow:
-    inset 0 0 0 2px oklch(0.32 0 0),
-    0 0 0 1px oklch(0 0 0 / 0.5),
-    0 18px 40px oklch(0 0 0 / 0.28);
+    0 0.1em 0.4em rgb(255 255 255 / 10%) inset,
+    0 0 4em rgb(0 0 0 / 25%);
 }
 
-/* The camera cut-out, in the strip above the screen. */
-.review-page__phone::before {
+/* The antenna lines, showing in the bezel above and below the screen. */
+.review-page__phone-body::before,
+.review-page__phone-body::after {
   position: absolute;
-  top: calc(var(--spacing) * 3.5);
-  left: 50%;
-  width: 32%;
-  height: calc(var(--spacing) * 6.5);
+  top: 10%;
+  left: 0;
+  width: 100%;
+  height: 0.5em;
   content: "";
-  background: oklch(0 0 0);
-  border-radius: var(--radius-pill);
-  translate: -50% 0;
+  background: linear-gradient(to right, #515455, #454748, #515455);
 }
 
-/* The home bar, below it. */
-.review-page__phone::after {
+.review-page__phone-body::after {
+  top: 90%;
+}
+
+.review-page__phone-screen {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1;
+  margin: 0.4em;
+  background: #191b1c;
+  border: 0.2em solid #121415;
+  border-radius: 2.6em;
+}
+
+/* The notch, with the curves where it meets the top of the screen. */
+.review-page__phone-notch {
   position: absolute;
-  bottom: calc(var(--spacing) * 2.5);
-  left: 50%;
-  width: 34%;
-  height: calc(var(--spacing) * 1.25);
-  content: "";
-  background: oklch(0.7 0 0);
-  border-radius: var(--radius-pill);
-  translate: -50% 0;
+  top: 0;
+  right: 25%;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50%;
+  height: 1.8em;
+  padding-bottom: 0.3em;
+  margin-top: 0.5em;
+  background: #191b1c;
+  border-radius: 0 0 0.9em 0.9em;
 }
 
-/* The screen: a phone's height of the capture, scrolling inside. */
+.review-page__phone-notch::before,
+.review-page__phone-notch::after {
+  position: absolute;
+  top: -0.3em;
+  width: 10%;
+  height: 50%;
+  content: "";
+  border: 0.4em solid #191b1c;
+  border-bottom: 0;
+}
+
+.review-page__phone-notch::before {
+  right: 0.4em;
+  border-right: 0;
+  border-radius: 0.7em 0 0;
+  transform: translateX(100%);
+}
+
+.review-page__phone-notch::after {
+  left: 0.4em;
+  border-left: 0;
+  border-radius: 0 0.7em 0 0;
+  transform: translateX(-100%);
+}
+
+.review-page__phone-speaker {
+  width: 28%;
+  height: 0.35em;
+  background: #070808;
+  border-radius: 0.2em;
+}
+
+.review-page__phone-camera {
+  width: 0.35em;
+  height: 0.35em;
+  margin-inline: 0.5em -0.8em;
+  background: #272727;
+  border-radius: 50%;
+}
+
+/*
+ * The screen's picture: a black status-bar strip as tall as the notch, then
+ * the capture, clipped to the screen's corners and scrolling inside it.
+ */
+.review-page__phone-view {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  padding-top: 1.7em;
+  margin: 0.6em;
+  overflow: hidden;
+  background: #000;
+  border-radius: 2em;
+}
+
 .review-page__phone .review-page__figure {
-  aspect-ratio: 9 / 17;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-width: none;
   border: 0;
-  border-radius: calc(var(--phone-radius) - var(--phone-bezel));
+}
+
+.review-page__phone .review-page__figure::-webkit-scrollbar {
+  display: none;
+}
+
+/* The side buttons, behind the body: only their edge shows. */
+.review-page__phone-button {
+  position: absolute;
+  width: 1em;
+  background: linear-gradient(to bottom, #212324, #2b2e31, #212324);
+  border-radius: 2px;
+  box-shadow: 0 0 0.4em rgb(255 255 255 / 10%) inset;
+}
+
+.review-page__phone-button--action {
+  top: 15%;
+  left: 0;
+  height: 3em;
+}
+
+.review-page__phone-button--up {
+  top: 25%;
+  left: 0;
+  height: 5em;
+}
+
+.review-page__phone-button--down {
+  top: calc(25% + 6em);
+  left: 0;
+  height: 5em;
+}
+
+.review-page__phone-button--power {
+  top: 30%;
+  right: 0;
+  height: 6em;
 }
 
 /*
@@ -272,15 +397,14 @@
  * scrolls on its own; the pins scroll with it. Print undoes this below.
  */
 @media (min-width: 60rem) {
-  /* A phone stays in view whole; the capture scrolls in its screen. */
+  /* A phone stays in view whole; the capture scrolls in its screen. It is
+     narrow enough that all of it (1 : 2) fits the window. */
   .review-page__phone {
     position: sticky;
     top: calc(var(--spacing) * 4);
-    /* Narrow enough that the whole phone fits the window: its screen is
-       9 : 17, and the bezel and strips add 26 spacing units of height. */
     max-width: min(
       var(--container-phone),
-      calc((100dvh - var(--spacing) * 26) * 9 / 17 + var(--spacing) * 6)
+      calc((100dvh - var(--spacing) * 8) / 2)
     );
   }
 
@@ -291,6 +415,10 @@
     overflow-y: auto;
     overscroll-behavior: contain;
   }
+}
+
+.review-page__canvas {
+  position: relative;
 }
 
 .review-page__image {
@@ -537,20 +665,31 @@
   /* On paper the whole capture shows, without the phone around it. */
   .review-page__phone {
     max-width: none;
-    padding: 0;
-    background: none;
-    box-shadow: none;
+    aspect-ratio: auto;
   }
 
-  .review-page__phone::before,
-  .review-page__phone::after {
+  .review-page__phone-button,
+  .review-page__phone-notch,
+  .review-page__phone-body::before,
+  .review-page__phone-body::after {
     display: none;
   }
 
-  .review-page__phone .review-page__figure {
-    aspect-ratio: auto;
-    border: 1px solid var(--sheet-rule);
+  .review-page__phone-body,
+  .review-page__phone-screen,
+  .review-page__phone-view {
+    position: static;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: 0;
     border-radius: 0;
+    box-shadow: none;
+  }
+
+  .review-page__phone .review-page__figure {
+    overflow: hidden;
+    border: 1px solid var(--sheet-rule);
   }
 }
 

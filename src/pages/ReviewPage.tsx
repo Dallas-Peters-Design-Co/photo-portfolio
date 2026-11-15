@@ -236,10 +236,10 @@ function ReviewSheet({
 const noteId = (pinId: string): string => `note-${pinId}`;
 
 /**
- * A phone capture is shown in a phone: a dark body, the camera cut-out in a
- * strip above the screen (so it never covers the capture) and a home bar
- * below. The capture scrolls inside the screen, as the page would. A desktop
- * capture is shown as it is.
+ * A phone capture is shown in a phone: body, screen, notch, side buttons.
+ * The capture starts below the notch (a status-bar strip), so the notch never
+ * covers it or its pins, and it scrolls inside the screen as the page would.
+ * A desktop capture is shown as it is.
  */
 function Device({
   children,
@@ -248,10 +248,37 @@ function Device({
   children: ReactNode;
   mobile: boolean;
 }) {
-  return mobile ? (
-    <div className="review-page__phone">{children}</div>
-  ) : (
-    children
+  if (!mobile) {
+    return children;
+  }
+  return (
+    <div className="review-page__phone">
+      <span
+        aria-hidden
+        className="review-page__phone-button review-page__phone-button--action"
+      />
+      <span
+        aria-hidden
+        className="review-page__phone-button review-page__phone-button--up"
+      />
+      <span
+        aria-hidden
+        className="review-page__phone-button review-page__phone-button--down"
+      />
+      <span
+        aria-hidden
+        className="review-page__phone-button review-page__phone-button--power"
+      />
+      <div className="review-page__phone-body">
+        <div className="review-page__phone-screen">
+          <span aria-hidden className="review-page__phone-notch">
+            <span className="review-page__phone-speaker" />
+            <span className="review-page__phone-camera" />
+          </span>
+          <div className="review-page__phone-view">{children}</div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -307,35 +334,39 @@ function Screen({
               } as CSSProperties
             }
           >
-            <img
-              alt={screen.title}
-              className="review-page__image"
-              height={image.height}
-              src={image.url}
-              width={image.width}
-            />
-            <ReviewMarks
-              height={image.height}
-              marks={screen.marks}
-              width={image.width}
-            />
-            <ClientLayer
-              height={image.height}
-              screenId={screen.id}
-              width={image.width}
-            />
-            {screen.pins.map((pin, i) => (
-              <button
-                aria-label={`Note ${firstNumber + i}: ${pin.title || "Note"}`}
-                className={`review-page__pin review-page__pin--${pin.kind}`}
-                key={pin.id}
-                onClick={() => showNote(pin.id)}
-                style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
-                type="button"
-              >
-                {firstNumber + i}
-              </button>
-            ))}
+            {/* The image's full height, so pins and marks are placed on the
+                picture, not on the window the figure scrolls it through. */}
+            <div className="review-page__canvas">
+              <img
+                alt={screen.title}
+                className="review-page__image"
+                height={image.height}
+                src={image.url}
+                width={image.width}
+              />
+              <ReviewMarks
+                height={image.height}
+                marks={screen.marks}
+                width={image.width}
+              />
+              <ClientLayer
+                height={image.height}
+                screenId={screen.id}
+                width={image.width}
+              />
+              {screen.pins.map((pin, i) => (
+                <button
+                  aria-label={`Note ${firstNumber + i}: ${pin.title || "Note"}`}
+                  className={`review-page__pin review-page__pin--${pin.kind}`}
+                  key={pin.id}
+                  onClick={() => showNote(pin.id)}
+                  style={{ left: `${pin.x * 100}%`, top: `${pin.y * 100}%` }}
+                  type="button"
+                >
+                  {firstNumber + i}
+                </button>
+              ))}
+            </div>
           </figure>
         </Device>
         <ol className="review-page__notes">
