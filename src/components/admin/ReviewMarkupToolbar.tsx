@@ -1,4 +1,5 @@
 import {
+  ArrowDownWideNarrow,
   ArrowUpRight,
   Eraser,
   Highlighter,
@@ -51,18 +52,22 @@ const idle =
  */
 export function ReviewMarkupToolbar({
   canClear,
+  canOrderPins,
   canRedo,
   canUndo,
   onClear,
+  onOrderPins,
   onRedo,
   onTool,
   onUndo,
   tool,
 }: {
   canClear: boolean;
+  canOrderPins: boolean;
   canRedo: boolean;
   canUndo: boolean;
   onClear: () => void;
+  onOrderPins: () => void;
   onRedo: () => void;
   onTool: (tool: ReviewTool) => void;
   onUndo: () => void;
@@ -87,6 +92,17 @@ export function ReviewMarkupToolbar({
           </button>
         ))}
       </div>
+      <button
+        aria-label="Reorder pins top to bottom, left to right"
+        className={`${iconButton} ${idle} gap-1 px-2 text-md`}
+        disabled={!canOrderPins}
+        onClick={onOrderPins}
+        title="Number pins from top to bottom, left to right across nearby points"
+        type="button"
+      >
+        <ArrowDownWideNarrow size={14} />
+        Reorder pins
+      </button>
       <div className="ml-2 flex gap-1">
         <button
           aria-label="Undo (⌘Z)"

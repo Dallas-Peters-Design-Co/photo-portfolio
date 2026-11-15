@@ -38,6 +38,7 @@ import {
   isTyping,
   orderPins,
   RECAPTURE_HINT,
+  readingOrder,
   replaceScreenImage,
   toEditorDoc,
   useMarkupHistory,
@@ -244,6 +245,10 @@ export function ReviewScreenEditor({
     history.record();
     patch(next);
   };
+  const readingPinIds = readingOrder(pins, screen.image);
+  const canOrderPins =
+    pins.length > 1 &&
+    readingPinIds.join() !== pins.map((pin) => pin.id).join();
 
   const markup = useReviewMarkup({
     at,
@@ -349,9 +354,11 @@ export function ReviewScreenEditor({
           <div className="review-screen-editor__shot">
             <ReviewMarkupToolbar
               canClear={marks.length > 0}
+              canOrderPins={canOrderPins}
               canRedo={history.canRedo}
               canUndo={history.canUndo}
               onClear={markup.clearMarks}
+              onOrderPins={() => step({ pins: orderPins(pins, readingPinIds) })}
               onRedo={history.redo}
               onTool={setTool}
               onUndo={history.undo}
