@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import { isTyping } from "../../hooks/isTyping";
 import { ImagePick } from "../ImagePick";
-import { svgToPngBlob } from "../render";
 import {
   generatePalette,
   HARMONIES,
@@ -27,7 +26,7 @@ import {
   inkOn,
   paletteFromImage,
 } from "./harmony";
-import { swatchesSvg } from "./swatches";
+import { colorSwatchSvg } from "./swatches";
 import { useKitPalette } from "./useKitPalette";
 
 /**
@@ -49,9 +48,11 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
   });
 
 export function PaletteTool({
+  onAddMany,
   onAdd,
   rand = Math.random,
 }: {
+  onAddMany?: (files: File[]) => void;
   onAdd: (file: File) => void;
   /** Injectable for tests. */
   rand?: () => number;
@@ -134,11 +135,27 @@ export function PaletteTool({
     }
   };
 
-  const add = async () => {
-    const { h, svg, w } = swatchesSvg([{ colors }]);
-    const png = await svgToPngBlob(svg, w, h);
-    onAdd(new File([png], "palette.png", { type: "image/png" }));
-    toast.success("Palette added to the board");
+  const add = () => {
+    const files = colors.map(
+      (color, index) =>
+        new File(
+          [colorSwatchSvg(color)],
+          `palette-${index + 1}-${color.slice(1)}.svg`,
+          {
+            type: "image/svg+xml",
+          }
+        )
+    );
+    if (onAddMany) {
+      onAddMany(files);
+    } else {
+      for (const file of files) {
+        onAdd(file);
+      }
+    }
+    toast.success(
+      `${files.length} color SVG${files.length === 1 ? "" : "s"} added to the board`
+    );
   };
 
   const lock = (i: number) =>

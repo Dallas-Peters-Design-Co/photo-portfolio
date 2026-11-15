@@ -51,6 +51,10 @@ export const useFrameDesign = (
         const point = dropPoint?.(items, 480, 480) ?? { x: 0, y: 0 };
         void dropFiles([file], { x: point.x + 240, y: point.y + 240 });
       }}
+      onAddMany={(files) => {
+        const point = dropPoint?.(items, 480, 480) ?? { x: 0, y: 0 };
+        void dropFiles(files, { x: point.x + 240, y: point.y + 240 });
+      }}
       onClose={() => setStudio(null)}
     />
   ) : null;

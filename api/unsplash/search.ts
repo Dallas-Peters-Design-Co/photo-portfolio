@@ -3,7 +3,7 @@ import { getBearerUser } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 
-const PER_PAGE = 24;
+const PER_PAGE = 30;
 
 interface UnsplashPhotoJson {
   alt_description?: string | null;
@@ -42,8 +42,15 @@ async function handleSearch(
   if (!query) {
     return res.status(400).json({ error: "A search term is required" });
   }
+  const rawPage = req.query.page;
+  const pageValue = Array.isArray(rawPage) ? rawPage[0] : rawPage;
+  const requestedPage = Number(pageValue);
+  const page =
+    Number.isSafeInteger(requestedPage) && requestedPage > 0
+      ? requestedPage
+      : 1;
 
-  const url = `https://api.unsplash.com/search/photos?per_page=${PER_PAGE}&content_filter=high&query=${encodeURIComponent(query)}`;
+  const url = `https://api.unsplash.com/search/photos?page=${page}&per_page=${PER_PAGE}&content_filter=high&query=${encodeURIComponent(query)}`;
   const upstream = await fetch(url, {
     headers: { Authorization: `Client-ID ${key}` },
   });
@@ -58,11 +65,16 @@ async function handleSearch(
     return res.status(502).json({ error: reason });
   }
 
-  const json = (await upstream.json()) as { results?: UnsplashPhotoJson[] };
+  const json = (await upstream.json()) as {
+    results?: UnsplashPhotoJson[];
+    total_pages?: number;
+  };
   const results = (json.results ?? [])
     .map(toResult)
     .filter((r) => r.imageUrl !== "");
-  return res.status(200).json({ results });
+  return res
+    .status(200)
+    .json({ hasMore: page < (json.total_pages ?? page), results });
 }
 
 /**

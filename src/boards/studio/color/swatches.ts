@@ -18,6 +18,16 @@ const LABEL = 180;
 const GAP = 8;
 const PAD = 40;
 
+/** One board-ready swatch. Kept separate from the palette sheet. */
+export const colorSwatchSvg = (color: string): string => {
+  const ink = inkOn(color);
+  return svgDoc(
+    480,
+    360,
+    `<rect width="480" height="360" fill="${color}"/><text x="240" y="190" text-anchor="middle" dominant-baseline="middle" fill="${ink}" font-family="system-ui,sans-serif" font-size="32" font-weight="600">${esc(color.toUpperCase())}</text>`
+  );
+};
+
 export const swatchesSvg = (
   rows: SwatchRow[]
 ): { h: number; svg: string; w: number } => {

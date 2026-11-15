@@ -4,7 +4,13 @@ import MagicWand01Icon from "@hugeicons-pro/core-stroke-standard/MagicWand01Icon
 import Search01Icon from "@hugeicons-pro/core-stroke-standard/Search01Icon";
 import SparklesIcon from "@hugeicons-pro/core-stroke-standard/SparklesIcon";
 import { motion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import {
   Select,
@@ -127,6 +133,7 @@ export function BoardInsertPanel({
   sources,
 }: BoardInsertPanelProps) {
   const [tab, setTab] = useState<Tab>(initialTab ?? "yours");
+  const scrollRootRef = useRef<HTMLDivElement>(null);
 
   // Seeded from what they already shoot, then edited freely.
   const [prompt, setPrompt] = useState(() => defaultPrompt(photos));
@@ -216,7 +223,7 @@ export function BoardInsertPanel({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto p-3" ref={scrollRootRef}>
         {tab === "elements" ? <ElementsTab onAdd={onAddElement} /> : null}
 
         {tab === "yours" ? (
@@ -249,7 +256,11 @@ export function BoardInsertPanel({
         ) : null}
 
         {tab === "unsplash" ? (
-          <UnsplashTab onAdd={addUnsplash} onMakeVersions={makeVersions} />
+          <UnsplashTab
+            onAdd={addUnsplash}
+            onMakeVersions={makeVersions}
+            scrollRootRef={scrollRootRef}
+          />
         ) : null}
 
         {tab === "pinterest" ? (
@@ -447,28 +458,98 @@ const shortEndpoint = (endpoint: string): string =>
 function UnsplashTab({
   onAdd,
   onMakeVersions,
+  scrollRootRef,
 }: {
   onAdd: (result: UnsplashResult) => void;
   onMakeVersions: (result: UnsplashResult) => void;
+  scrollRootRef: RefObject<HTMLDivElement | null>;
 }) {
   const [query, setQuery] = useState("");
+  const [activeQuery, setActiveQuery] = useState("");
   const [results, setResults] = useState<UnsplashResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const searchId = useRef(0);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const search = async () => {
     const term = query.trim();
     if (!term) {
       return;
     }
+    const id = searchId.current + 1;
+    searchId.current = id;
+    setActiveQuery(term);
     setIsSearching(true);
+    setIsLoadingMore(false);
+    setHasMore(false);
+    setResults([]);
+    setPage(1);
     try {
-      setResults(await unsplashApi.search(term));
+      const result = await unsplashApi.searchPage(term, 1);
+      if (searchId.current === id) {
+        setResults(result.results);
+        setHasMore(result.hasMore);
+      }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Search failed");
+      if (searchId.current === id) {
+        toast.error(err instanceof Error ? err.message : "Search failed");
+      }
     } finally {
-      setIsSearching(false);
+      if (searchId.current === id) {
+        setIsSearching(false);
+      }
     }
   };
+
+  const loadMore = useCallback(async () => {
+    const term = activeQuery;
+    if (!(term && hasMore && !isSearching && !isLoadingMore)) {
+      return;
+    }
+    const id = searchId.current;
+    setIsLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const result = await unsplashApi.searchPage(term, nextPage);
+      if (searchId.current === id) {
+        setResults((current) => [...current, ...result.results]);
+        setPage(nextPage);
+        setHasMore(result.hasMore);
+      }
+    } catch (err) {
+      if (searchId.current === id) {
+        setHasMore(false);
+        toast.error(
+          err instanceof Error ? err.message : "Could not load more photos"
+        );
+      }
+    } finally {
+      if (searchId.current === id) {
+        setIsLoadingMore(false);
+      }
+    }
+  }, [activeQuery, hasMore, isLoadingMore, isSearching, page]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const root = scrollRootRef.current;
+    if (!(sentinel && root && hasMore && !isSearching && !isLoadingMore)) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMore();
+        }
+      },
+      { root, rootMargin: "240px" }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, isSearching, loadMore, scrollRootRef]);
 
   return (
     <>
@@ -530,6 +611,15 @@ function UnsplashTab({
           </div>
         ))}
       </div>
+      {results.length === 0 && !isSearching && activeQuery ? (
+        <p className="py-4 text-board-ink/50 text-micro-sm">No photos found.</p>
+      ) : null}
+      {hasMore ? <div aria-hidden="true" ref={sentinelRef} /> : null}
+      {isLoadingMore ? (
+        <p className="py-3 text-center text-board-ink/50 text-micro-sm">
+          Loading more photos…
+        </p>
+      ) : null}
     </>
   );
 }

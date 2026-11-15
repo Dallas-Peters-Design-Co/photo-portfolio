@@ -1217,17 +1217,25 @@ export interface UnsplashResult {
   thumbUrl: string;
 }
 
+export interface UnsplashSearchPage {
+  hasMore: boolean;
+  results: UnsplashResult[];
+}
+
 export const unsplashApi = {
   search: async (query: string): Promise<UnsplashResult[]> => {
+    const { results } = await unsplashApi.searchPage(query);
+    return results;
+  },
+  searchPage: async (query: string, page = 1): Promise<UnsplashSearchPage> => {
     const res = await fetch(
-      `${apiBase()}/api/unsplash/search?q=${encodeURIComponent(query)}`,
+      `${apiBase()}/api/unsplash/search?q=${encodeURIComponent(query)}&page=${page}`,
       { headers: jsonHeaders() }
     );
     if (!res.ok) {
       throw new Error(await readPageError(res, "Could not search Unsplash"));
     }
-    const data = (await res.json()) as { results: UnsplashResult[] };
-    return data.results;
+    return (await res.json()) as UnsplashSearchPage;
   },
 
   /**

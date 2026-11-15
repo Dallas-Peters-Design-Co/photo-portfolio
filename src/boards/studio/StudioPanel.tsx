@@ -94,6 +94,7 @@ export function StudioPanel({
   frame,
   initialTool,
   onAdd,
+  onAddMany,
   onClose,
 }: {
   /** A placed Studio picture opened to be changed, or a shape to fill. */
@@ -104,6 +105,7 @@ export function StudioPanel({
    * Places the file on the board (or in the frame), with how it was made when
    * an image tool made it.
    */
+  onAddMany?: (files: File[]) => void;
   onAdd: (file: File, recipe?: StudioRecipe) => void;
   onClose: () => void;
 }) {
@@ -128,7 +130,7 @@ export function StudioPanel({
 
   const view = () => {
     if (toolId === "palette") {
-      return <PaletteTool onAdd={onAdd} />;
+      return <PaletteTool onAdd={onAdd} onAddMany={onAddMany} />;
     }
     if (toolId === "scheme") {
       return <SchemeTool onAdd={onAdd} />;

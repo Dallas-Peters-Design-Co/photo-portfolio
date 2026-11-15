@@ -24,6 +24,14 @@ import {
 import { portfolioService } from "../../services/portfolioService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import "./BrandKitsPanel.css";
 
 /**
@@ -323,6 +331,22 @@ export function LogoEditor({
   );
 }
 
+const PALETTE_ROLES = [
+  ["background", "Background"],
+  ["ink", "Ink / text"],
+  ["surface", "Surface"],
+  ["accent", "Accent"],
+  ["button", "Button"],
+  ["button-text", "Button text"],
+  ["muted-text", "Muted text"],
+  ["border", "Border"],
+  ["success", "Success"],
+  ["warning", "Warning"],
+  ["error", "Error"],
+  ["info", "Info"],
+  ["decorative", "Decorative / other"],
+] as const;
+
 /** One colour row: what it is, what it is for, and the colour itself. */
 export function PaletteEditor({
   doc,
@@ -398,12 +422,31 @@ export function PaletteEditor({
             placeholder="Ink"
             value={entry.name}
           />
-          <Input
-            aria-label="What it is for"
-            onChange={(e) => set(index, { role: e.target.value })}
-            placeholder="text, surface, accent…"
-            value={entry.role}
-          />
+          <Select
+            onValueChange={(role) => {
+              if (role !== null) {
+                set(index, { role });
+              }
+            }}
+            value={
+              PALETTE_ROLES.some(([role]) => role === entry.role)
+                ? entry.role
+                : ""
+            }
+          >
+            <SelectTrigger aria-label="Colour role">
+              <SelectValue placeholder="Choose role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {PALETTE_ROLES.map(([role, label]) => (
+                  <SelectItem key={role} value={role}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
           <Button
             aria-label={`Remove ${entry.name || entry.value}`}
             onClick={() =>

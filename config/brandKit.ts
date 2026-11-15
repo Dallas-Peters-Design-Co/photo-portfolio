@@ -41,7 +41,7 @@ export const MAX_RULE_TEXT = 300;
 
 export interface PaletteEntry {
   name: string;
-  /** What it is for — "text", "surface", "accent". Free text, not an enum. */
+  /** Semantic role used by the guide; unknown legacy values remain readable. */
   role: string;
   /** Lower-cased six-digit hex. Anything else is dropped, never stored. */
   value: string;
