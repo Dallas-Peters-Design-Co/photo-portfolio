@@ -25,7 +25,9 @@ import type { BoardItem, BoardWire } from "../../../types";
 
 /** Items that draw their wired picture themselves, with no run to render it. */
 const drawsLive = (item: BoardItem): boolean =>
-  item.kind === "shader" || item.nodeType === "standard";
+  item.kind === "shader" ||
+  item.nodeType === "standard" ||
+  item.nodeType === "social";
 
 /** Long enough to outlast a drag; short enough not to feel like waiting. */
 const SETTLE_MS = 900;

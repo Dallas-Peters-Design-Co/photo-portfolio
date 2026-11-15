@@ -216,6 +216,13 @@ const BASE_ENTRIES: Entry[] = [
     label: "Mockup",
     section: "Nodes",
   },
+  {
+    action: { kind: "node", nodeType: "social" },
+    hint: "instagram facebook tiktok linkedin platform post page preview",
+    icon: Image01Icon,
+    label: "Social Preview",
+    section: "Nodes",
+  },
 ];
 
 interface InsertPaletteProps {

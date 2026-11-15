@@ -44,6 +44,7 @@ import { LIST } from "./nodes/list.js";
 import { MOCKUP } from "./nodes/mockup.js";
 import { PALETTE } from "./nodes/palette.js";
 import { PROMPT } from "./nodes/prompt.js";
+import { SOCIAL } from "./nodes/social.js";
 import { STANDARD } from "./nodes/standard.js";
 import { TRACE } from "./nodes/trace.js";
 import { VIDEO } from "./nodes/video.js";
@@ -210,6 +211,7 @@ export type NodeTypeId =
   | "palette"
   | "prompt"
   | "standard"
+  | "social"
   | "trace"
   | "video"
   | "wrap";
@@ -242,6 +244,7 @@ export const NODE_TYPES: Record<NodeTypeId, NodeType> = {
   mockup: MOCKUP,
   palette: PALETTE,
   prompt: PROMPT,
+  social: SOCIAL,
   standard: STANDARD,
   trace: TRACE,
   video: VIDEO,
