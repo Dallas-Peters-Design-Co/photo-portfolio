@@ -1,5 +1,6 @@
 import { ArrowDownWideNarrow, Trash2 } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   MAX_REVIEW_CONCEPTS,
   PIN_KINDS,
@@ -42,6 +43,7 @@ const moved = (ids: string[], id: string, to: number): string[] => {
 export function ReviewPinList({
   pins,
   conceptLimit = MAX_REVIEW_CONCEPTS,
+  brandDoc,
   image,
   firstNumber,
   selected,
@@ -53,6 +55,7 @@ export function ReviewPinList({
   pins: ReviewPin[];
   /** Concept slots available across this screen, after other screens. */
   conceptLimit?: number;
+  brandDoc?: BrandKitDoc | null;
   /** The picture, so "top to bottom" can tell a line from the next one. */
   image: ReviewImage | null;
   firstNumber: number;
@@ -239,6 +242,7 @@ export function ReviewPinList({
             {pin.kind === "recommendation" ||
             (pin.concepts?.length ?? 0) > 0 ? (
               <ReviewConceptsEditor
+                brandDoc={brandDoc}
                 concepts={pin.concepts ?? []}
                 maxConcepts={Math.max(
                   pin.concepts?.length ?? 0,

@@ -1,6 +1,7 @@
 import { ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { newItemId } from "../../../config/proposal.js";
 import type {
   ReviewDoc,
@@ -9,6 +10,7 @@ import type {
 } from "../../../config/review.js";
 import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
 import { PageEditor } from "../../cms/PageEditor";
+import { useBrandKits } from "../../hooks/useBrandKits";
 import { downloadReviewPdf } from "../../pages/pagePdf";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useSiteSettings } from "../../theme/SiteSettingsProvider";
@@ -73,6 +75,9 @@ export function ReviewEditor({
   onSaved: (saved: ReviewRecord) => Promise<void>;
 }) {
   const [draft, setDraft] = useState<ReviewRecord>(review);
+  const { kits } = useBrandKits();
+  const brandDoc: BrandKitDoc | null =
+    kits.find((kit) => kit.id === draft.brandKitId)?.resolvedDoc ?? null;
   // Markup and pins are drawn in the site accent, as the client will see them.
   const { settings } = useSiteSettings();
   const [isSaving, setIsSaving] = useState(false);
@@ -374,6 +379,7 @@ export function ReviewEditor({
                 title={screen.title || "Untitled screen"}
               >
                 <ReviewScreenEditor
+                  brandDoc={brandDoc}
                   conceptLimit={
                     MAX_REVIEW_CONCEPTS -
                     draft.doc.concepts.length -

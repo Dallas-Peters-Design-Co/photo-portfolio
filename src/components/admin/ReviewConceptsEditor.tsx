@@ -1,55 +1,31 @@
 import { Plus, Trash2 } from "lucide-react";
-import { newItemId } from "../../../config/proposal.js";
+import { useEffect } from "react";
+import type { BrandKitDoc } from "../../../config/brandKit.js";
 import type {
   ReviewConcept,
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "../../../config/review.js";
 import { MAX_REVIEW_CONCEPTS } from "../../../config/review.js";
+import { loadFontRef } from "../../theme/remoteFonts";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
+import {
+  ConceptColorField,
+  conceptFamilyCss,
+  conceptFontPatch,
+  conceptFontSelection,
+  createConcept,
+  createConceptElement,
+} from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
-const FONT_FAMILIES = {
-  mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
-  sans: "var(--font-sans, Arial, sans-serif)",
-  serif: "Georgia, serif",
-} as const;
 const ALIGN_ITEMS = {
   center: "center",
   end: "flex-end",
   start: "flex-start",
   stretch: "stretch",
 } as const;
-
-const newElement = (kind: ReviewConceptElementKind): ReviewConceptElement => ({
-  background: kind === "button" ? "#172033" : "transparent",
-  color: kind === "button" ? "#ffffff" : "#172033",
-  fontFamily: "sans",
-  fontSize: kind === "button" ? 14 : 28,
-  fontWeight: kind === "button" ? 600 : 700,
-  id: newItemId(),
-  kind,
-  lineHeight: 1.25,
-  paddingX: kind === "button" ? 18 : 0,
-  paddingY: kind === "button" ? 11 : 0,
-  radius: kind === "button" ? 6 : 0,
-  text: kind === "button" ? "Get started" : "A better way to work",
-});
-
-const newConcept = (): ReviewConcept => ({
-  align: "start",
-  background: "#f2f4f7",
-  color: "#172033",
-  direction: "column",
-  elements: [newElement("text"), newElement("button")],
-  fontFamily: "sans",
-  gap: 12,
-  id: newItemId(),
-  padding: 24,
-  radius: 12,
-  title: "Homepage hero",
-});
 
 const numberInput = (
   label: string,
@@ -70,10 +46,12 @@ const numberInput = (
 );
 
 function ConceptCard({
+  brandDoc,
   concept,
   onChange,
   onRemove,
 }: {
+  brandDoc?: BrandKitDoc | null;
   concept: ReviewConcept;
   onChange: (next: ReviewConcept) => void;
   onRemove: () => void;
@@ -87,7 +65,21 @@ function ConceptCard({
     });
 
   const addElement = (kind: ReviewConceptElementKind) =>
-    onChange({ ...concept, elements: [...concept.elements, newElement(kind)] });
+    onChange({
+      ...concept,
+      elements: [...concept.elements, createConceptElement(kind, brandDoc)],
+    });
+
+  useEffect(() => {
+    if (concept.fontRef) {
+      loadFontRef(concept.fontRef);
+    }
+    for (const element of concept.elements) {
+      if (element.fontRef) {
+        loadFontRef(element.fontRef);
+      }
+    }
+  }, [concept]);
 
   const previewStyle = {
     alignItems: ALIGN_ITEMS[concept.align],
@@ -96,7 +88,7 @@ function ConceptCard({
     color: concept.color,
     display: "flex",
     flexDirection: concept.direction,
-    fontFamily: FONT_FAMILIES[concept.fontFamily],
+    fontFamily: conceptFamilyCss(concept.fontFamily, concept.fontRef),
     gap: concept.gap,
     padding: concept.padding,
   } as const;
@@ -125,6 +117,32 @@ function ConceptCard({
       </header>
 
       <div className="review-concepts__workspace">
+        <div className="review-concepts__preview-wrap">
+          <p>Live preview</p>
+          <div className="review-concepts__preview" style={previewStyle}>
+            {concept.elements.map((element) => (
+              <div
+                key={element.id}
+                style={{
+                  background: element.background,
+                  borderRadius: element.radius,
+                  color: element.color,
+                  fontFamily: conceptFamilyCss(
+                    element.fontFamily,
+                    element.fontRef
+                  ),
+                  fontSize: element.fontSize,
+                  fontWeight: element.fontWeight,
+                  lineHeight: element.lineHeight,
+                  padding: `${element.paddingY}px ${element.paddingX}px`,
+                }}
+              >
+                {element.text ||
+                  (element.kind === "button" ? "Button" : "Text")}
+              </div>
+            ))}
+          </div>
+        </div>
         <div className="review-concepts__controls">
           <div className="review-concepts__control-grid">
             <label className="review-concepts__field">
@@ -183,39 +201,41 @@ function ConceptCard({
                 onChange={(event) =>
                   onChange({
                     ...concept,
-                    fontFamily: event.target
-                      .value as ReviewConcept["fontFamily"],
+                    ...conceptFontPatch(event.target.value),
                   })
                 }
-                value={concept.fontFamily}
+                value={conceptFontSelection(
+                  concept.fontFamily,
+                  concept.fontRef
+                )}
               >
                 <option value="sans">Sans serif</option>
                 <option value="serif">Serif</option>
                 <option value="mono">Monospace</option>
+                {(brandDoc?.typefaces ?? [])
+                  .filter((face) => face.ref)
+                  .map((face) => (
+                    <option key={face.ref} value={`brand|${face.ref}`}>
+                      {face.name}
+                      {face.role ? ` · ${face.role}` : ""}
+                    </option>
+                  ))}
               </select>
             </label>
-            <label className="review-concepts__field review-concepts__field--color">
-              <span>Background</span>
-              <input
-                aria-label="Concept background"
-                onChange={(event) =>
-                  onChange({ ...concept, background: event.target.value })
-                }
-                type="color"
-                value={concept.background}
-              />
-            </label>
-            <label className="review-concepts__field review-concepts__field--color">
-              <span>Text color</span>
-              <input
-                aria-label="Concept text color"
-                onChange={(event) =>
-                  onChange({ ...concept, color: event.target.value })
-                }
-                type="color"
-                value={concept.color}
-              />
-            </label>
+            <ConceptColorField
+              ariaLabel="Concept background"
+              brandDoc={brandDoc}
+              label="Background"
+              onChange={(background) => onChange({ ...concept, background })}
+              value={concept.background}
+            />
+            <ConceptColorField
+              ariaLabel="Concept text color"
+              brandDoc={brandDoc}
+              label="Text color"
+              onChange={(color) => onChange({ ...concept, color })}
+              value={concept.color}
+            />
           </div>
 
           <div className="review-concepts__elements">
@@ -289,16 +309,27 @@ function ConceptCard({
                     <span>Typeface</span>
                     <select
                       onChange={(event) =>
-                        updateElement(element.id, {
-                          fontFamily: event.target
-                            .value as ReviewConceptElement["fontFamily"],
-                        })
+                        updateElement(
+                          element.id,
+                          conceptFontPatch(event.target.value)
+                        )
                       }
-                      value={element.fontFamily}
+                      value={conceptFontSelection(
+                        element.fontFamily,
+                        element.fontRef
+                      )}
                     >
                       <option value="sans">Sans serif</option>
                       <option value="serif">Serif</option>
                       <option value="mono">Monospace</option>
+                      {(brandDoc?.typefaces ?? [])
+                        .filter((face) => face.ref)
+                        .map((face) => (
+                          <option key={face.ref} value={`brand|${face.ref}`}>
+                            {face.name}
+                            {face.role ? ` · ${face.role}` : ""}
+                          </option>
+                        ))}
                     </select>
                   </label>
                   {numberInput(
@@ -325,35 +356,23 @@ function ConceptCard({
                     (paddingY) => updateElement(element.id, { paddingY }),
                     32
                   )}
-                  <label className="review-concepts__field review-concepts__field--color">
-                    <span>Text color</span>
-                    <input
-                      aria-label={`${element.kind} text color`}
-                      onChange={(event) =>
-                        updateElement(element.id, { color: event.target.value })
-                      }
-                      type="color"
-                      value={element.color}
-                    />
-                  </label>
+                  <ConceptColorField
+                    ariaLabel={`${element.kind} text color`}
+                    brandDoc={brandDoc}
+                    label="Text color"
+                    onChange={(color) => updateElement(element.id, { color })}
+                    value={element.color}
+                  />
                   {element.kind === "button" ? (
-                    <label className="review-concepts__field review-concepts__field--color">
-                      <span>Fill</span>
-                      <input
-                        aria-label="Button fill"
-                        onChange={(event) =>
-                          updateElement(element.id, {
-                            background: event.target.value,
-                          })
-                        }
-                        type="color"
-                        value={
-                          element.background === "transparent"
-                            ? "#ffffff"
-                            : element.background
-                        }
-                      />
-                    </label>
+                    <ConceptColorField
+                      ariaLabel="Button fill"
+                      brandDoc={brandDoc}
+                      label="Fill"
+                      onChange={(background) =>
+                        updateElement(element.id, { background })
+                      }
+                      value={element.background}
+                    />
                   ) : null}
                   <Button
                     aria-label={`Remove ${element.kind}`}
@@ -376,40 +395,18 @@ function ConceptCard({
             ))}
           </div>
         </div>
-
-        <div className="review-concepts__preview-wrap">
-          <p>Live preview</p>
-          <div className="review-concepts__preview" style={previewStyle}>
-            {concept.elements.map((element) => (
-              <div
-                key={element.id}
-                style={{
-                  background: element.background,
-                  borderRadius: element.radius,
-                  color: element.color,
-                  fontFamily: FONT_FAMILIES[element.fontFamily],
-                  fontSize: element.fontSize,
-                  fontWeight: element.fontWeight,
-                  lineHeight: element.lineHeight,
-                  padding: `${element.paddingY}px ${element.paddingX}px`,
-                }}
-              >
-                {element.text ||
-                  (element.kind === "button" ? "Button" : "Text")}
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </article>
   );
 }
 
 export function ReviewConceptsEditor({
+  brandDoc,
   concepts,
   maxConcepts = MAX_REVIEW_CONCEPTS,
   onChange,
 }: {
+  brandDoc?: BrandKitDoc | null;
   concepts: ReviewConcept[];
   maxConcepts?: number;
   onChange: (concepts: ReviewConcept[]) => void;
@@ -426,7 +423,7 @@ export function ReviewConceptsEditor({
         </div>
         <Button
           disabled={concepts.length >= maxConcepts}
-          onClick={() => onChange([...concepts, newConcept()])}
+          onClick={() => onChange([...concepts, createConcept(brandDoc)])}
           type="button"
           variant="outline"
         >
@@ -442,6 +439,7 @@ export function ReviewConceptsEditor({
         <div className="review-concepts-editor__list">
           {concepts.map((concept) => (
             <ConceptCard
+              brandDoc={brandDoc}
               concept={concept}
               key={concept.id}
               onChange={(next) => update(concept.id, next)}

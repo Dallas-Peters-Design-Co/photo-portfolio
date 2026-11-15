@@ -7,6 +7,8 @@
  * 1 on each axis) rather than pixels, so the same pin lands in the same
  * place whatever size the image is shown at.
  */
+
+import { isFontRef } from "./fontRef.js";
 import {
   type EditorDoc,
   isEditorDoc,
@@ -106,7 +108,8 @@ export type ReviewConceptElementKind = "text" | "button";
 export interface ReviewConceptElement {
   background: string;
   color: string;
-  fontFamily: "sans" | "serif" | "mono";
+  fontFamily: "sans" | "serif" | "mono" | "brand";
+  fontRef?: string;
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
   id: string;
@@ -125,7 +128,8 @@ export interface ReviewConcept {
   color: string;
   direction: "row" | "column";
   elements: ReviewConceptElement[];
-  fontFamily: "sans" | "serif" | "mono";
+  fontFamily: "sans" | "serif" | "mono" | "brand";
+  fontRef?: string;
   gap: number;
   id: string;
   padding: number;
@@ -297,15 +301,21 @@ const cleanConceptElement = (v: unknown): ReviewConceptElement => {
   const fontWeight = [400, 500, 600, 700].includes(raw.fontWeight as number)
     ? (raw.fontWeight as 400 | 500 | 600 | 700)
     : 400;
-  const fontFamily = ["sans", "serif", "mono"].includes(
+  const requestedFontFamily = ["sans", "serif", "mono", "brand"].includes(
     raw.fontFamily as string
   )
-    ? (raw.fontFamily as "sans" | "serif" | "mono")
+    ? (raw.fontFamily as ReviewConceptElement["fontFamily"])
     : "sans";
+  const fontRef = isFontRef(raw.fontRef) ? raw.fontRef : null;
+  let fontFamily = requestedFontFamily;
+  if (fontFamily === "brand" && !fontRef) {
+    fontFamily = "sans";
+  }
   return {
     background: cleanConceptColor(raw.background, "transparent"),
     color: cleanConceptColor(raw.color, "#172033"),
     fontFamily,
+    ...(fontFamily === "brand" && fontRef ? { fontRef } : {}),
     fontSize:
       typeof raw.fontSize === "number" && Number.isFinite(raw.fontSize)
         ? Math.min(72, Math.max(10, raw.fontSize))
@@ -335,11 +345,16 @@ const cleanConceptElement = (v: unknown): ReviewConceptElement => {
 
 const cleanConcept = (v: unknown): ReviewConcept => {
   const raw = (v ?? {}) as Partial<ReviewConcept>;
-  const fontFamily = ["sans", "serif", "mono"].includes(
+  const requestedFontFamily = ["sans", "serif", "mono", "brand"].includes(
     raw.fontFamily as string
   )
-    ? (raw.fontFamily as "sans" | "serif" | "mono")
+    ? (raw.fontFamily as ReviewConcept["fontFamily"])
     : "sans";
+  const fontRef = isFontRef(raw.fontRef) ? raw.fontRef : null;
+  let fontFamily = requestedFontFamily;
+  if (fontFamily === "brand" && !fontRef) {
+    fontFamily = "sans";
+  }
   const align = ["start", "center", "end", "stretch"].includes(
     raw.align as string
   )
@@ -354,6 +369,7 @@ const cleanConcept = (v: unknown): ReviewConcept => {
       .slice(0, MAX_CONCEPT_ELEMENTS)
       .map(cleanConceptElement),
     fontFamily,
+    ...(fontFamily === "brand" && fontRef ? { fontRef } : {}),
     gap:
       typeof raw.gap === "number" && Number.isFinite(raw.gap)
         ? Math.min(64, Math.max(0, raw.gap))

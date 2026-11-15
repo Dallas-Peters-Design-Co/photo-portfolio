@@ -51,7 +51,7 @@
 
 .review-concepts__workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(14rem, 0.65fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--spacing) * 4);
   align-items: start;
 }

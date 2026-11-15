@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { newItemId } from "../../../config/proposal.js";
 import type {
   ReviewPin,
@@ -74,6 +75,7 @@ export function ReviewScreenEditor({
   slug,
   firstNumber,
   conceptLimit = MAX_REVIEW_CONCEPTS,
+  brandDoc,
   onChange,
   onRemove,
 }: {
@@ -83,6 +85,7 @@ export function ReviewScreenEditor({
   firstNumber: number;
   /** Remaining concept slots for this screen after concepts on other screens. */
   conceptLimit?: number;
+  brandDoc?: BrandKitDoc | null;
   onChange: ScreenUpdate;
   onRemove: () => void;
 }) {
@@ -455,6 +458,7 @@ export function ReviewScreenEditor({
             </div>
           </div>
           <ReviewPinList
+            brandDoc={brandDoc}
             conceptLimit={conceptLimit}
             firstNumber={firstNumber}
             image={screen.image}
