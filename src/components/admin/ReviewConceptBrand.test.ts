@@ -63,3 +63,12 @@ describe("duplicating an element", () => {
     expect(elements[1]?.id).not.toBe(first.id);
   });
 });
+
+describe("a new badge", () => {
+  it("starts as a tinted pill with a fill, text color and thin border", () => {
+    const badge = createConceptElement("badge");
+    expect(badge.background).not.toBe("transparent");
+    expect(badge.borderColor).toBeTruthy();
+    expect(badge.borderWidth).toBe(1);
+  });
+});

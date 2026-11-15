@@ -1,5 +1,6 @@
 import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
 import { DEFAULT_SHADOW } from "../../../config/conceptShadow.js";
+import { DEFAULT_TABLE } from "../../../config/conceptTable.js";
 import { newItemId } from "../../../config/proposal.js";
 import type {
   ReviewConcept,
@@ -81,9 +82,6 @@ const elementText: Record<ReviewConceptElementKind, string> = {
 const elementOptions = (
   kind: ReviewConceptElementKind
 ): string[] | undefined => {
-  if (kind === "table") {
-    return ["Project", "Status"];
-  }
   if (kind === "menu") {
     return ["Rename", "Duplicate", "Delete"];
   }
@@ -91,6 +89,21 @@ const elementOptions = (
     return ["Overview", "Settings", "Activity"];
   }
 };
+
+/** A badge starts as a soft tinted pill: light fill, strong text, thin edge. */
+const badgeLook = (
+  brandDoc?: BrandKitDoc | null
+): Partial<ReviewConceptElement> => ({
+  background: paletteColor(
+    brandDoc,
+    ["badge", "accent light", "tint"],
+    "#eef4ff"
+  ),
+  borderColor: paletteColor(brandDoc, ["badge border", "border"], "#c7d7fe"),
+  borderWidth: 1,
+  color: paletteColor(brandDoc, ["badge ink", "accent", "primary"], "#3538cd"),
+  radius: 999,
+});
 
 const elementState = (
   kind: ReviewConceptElementKind
@@ -165,6 +178,8 @@ export const createConceptElement = (
     text: elementText[kind],
     ...(options ? { options } : {}),
     ...elementState(kind),
+    ...(kind === "table" ? { table: DEFAULT_TABLE } : {}),
+    ...(kind === "badge" ? badgeLook(brandDoc) : {}),
     ...(kind === "card"
       ? {
           bodySize: 14,
@@ -242,46 +257,52 @@ export const conceptFontPatch = (
   };
 };
 
+const NONE = "transparent";
+
+/**
+ * A colour from the brand palette or the swatch. With `allowNone`, "None"
+ * clears it (stored as "transparent"): no fill, no border.
+ */
 export function ConceptColorField({
+  allowNone = false,
   ariaLabel,
   brandDoc,
   label,
   onChange,
   value,
 }: {
+  allowNone?: boolean;
   ariaLabel: string;
   brandDoc?: BrandKitDoc | null;
   label: string;
   onChange: (value: string) => void;
   value: string;
 }) {
-  const palette = brandDoc?.palette ?? [];
+  const palette = (brandDoc?.palette ?? []).filter(
+    (entry, index, all) =>
+      all.findIndex((other) => other.value === entry.value) === index
+  );
+  const options = [
+    ...(allowNone ? [{ label: "None", value: NONE }] : []),
+    ...palette.map((entry) => ({
+      label:
+        [entry.role, entry.name].filter(Boolean).join(" · ") || entry.value,
+      value: entry.value,
+    })),
+  ];
+  const listed = options.some((option) => option.value === value);
   return (
     <div className="review-concepts__field review-concepts__field--color">
       <span>{label}</span>
       <div className="review-concepts__color-row">
-        {palette.length > 0 ? (
+        {options.length > 0 ? (
           <div className="review-concepts__color-pick">
             <ConceptSelect
               label={`${ariaLabel} brand color`}
               onChange={onChange}
-              options={palette
-                .filter(
-                  (entry, index) =>
-                    palette.findIndex(
-                      (other) => other.value === entry.value
-                    ) === index
-                )
-                .map((entry) => ({
-                  label:
-                    [entry.role, entry.name].filter(Boolean).join(" · ") ||
-                    entry.value,
-                  value: entry.value,
-                }))}
+              options={options}
               placeholder="Custom color"
-              value={
-                palette.some((entry) => entry.value === value) ? value : ""
-              }
+              value={listed ? value : ""}
             />
           </div>
         ) : null}
@@ -289,7 +310,7 @@ export function ConceptColorField({
           aria-label={ariaLabel}
           onChange={(event) => onChange(event.target.value)}
           type="color"
-          value={value === "transparent" ? "#ffffff" : value}
+          value={value === NONE ? "#ffffff" : value}
         />
       </div>
     </div>
@@ -309,6 +330,7 @@ const STYLE_KEYS = [
   "paddingY",
   "radius",
   "borderColor",
+  "borderWidth",
   "shadow",
   "bodySize",
   "iconColor",

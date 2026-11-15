@@ -184,3 +184,19 @@ describe("icons on inputs", () => {
     expect(button?.iconColor).toBeUndefined();
   });
 });
+
+describe("badge and card borders", () => {
+  it("keeps a badge's border color and width, and None as transparent", () => {
+    const [badge, none, button] = cleanConcept({
+      elements: [
+        { borderColor: "#c7d7fe", borderWidth: 20, kind: "badge" },
+        { borderColor: "transparent", kind: "card" },
+        { borderColor: "#c7d7fe", borderWidth: 2, kind: "button" },
+      ],
+    }).elements;
+    expect(badge).toMatchObject({ borderColor: "#c7d7fe", borderWidth: 8 });
+    expect(none?.borderColor).toBe("transparent");
+    expect(button?.borderColor).toBeUndefined();
+    expect(button?.borderWidth).toBeUndefined();
+  });
+});

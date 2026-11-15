@@ -177,6 +177,46 @@
   white-space: nowrap;
 }
 
+/* The table editor spans its row: columns as name / cells / colour / remove,
+   then the rows as a grid with one column per table column. */
+.review-concepts__table-editor {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: calc(var(--spacing) * 2);
+  min-width: 0;
+}
+
+.review-concepts__table-column {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.4fr)
+    calc(var(--spacing) * 8);
+  gap: calc(var(--spacing) * 2);
+  align-items: end;
+}
+
+.review-concepts__table-row {
+  display: grid;
+  grid-template-columns:
+    repeat(var(--table-columns), minmax(0, 1fr))
+    calc(var(--spacing) * 8);
+  gap: calc(var(--spacing) * 1.5);
+  align-items: start;
+}
+
+.review-concepts__table-head {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 65%, transparent);
+  white-space: nowrap;
+}
+
+.review-concepts__table-stack {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+}
+
 .review-concepts__element-body {
   display: grid;
   gap: calc(var(--spacing) * 3);
@@ -236,23 +276,11 @@
   border-bottom: 2px solid currentColor;
 }
 
-.review-concepts__table-preview {
-  width: 100%;
-  text-align: start;
-  border-collapse: collapse;
-}
-
-.review-concepts__table-preview th,
-.review-concepts__table-preview td {
-  padding: calc(var(--spacing) * 2);
-  text-align: start;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-
 .review-concepts__card-preview {
   display: grid;
   gap: calc(var(--spacing) * 1.5);
   width: 100%;
+  min-width: 0;
   /* Fallbacks for cards saved before these were settings. */
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
@@ -355,4 +383,12 @@
   .review-concepts__group {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Side by side, cards share the row instead of each claiming all of it,
+   which pushed the last one past the edge. Stacked, they stay full width. */
+.review-concepts__preview[data-direction="row"]
+> .review-concepts__card-preview {
+  flex: 1 1 0;
+  width: auto;
 }

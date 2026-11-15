@@ -71,6 +71,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
       <div
         aria-label={`${concept.title || "Interface concept"} preview`}
         className="review-page__concept-preview"
+        data-direction={concept.direction}
         role="img"
         style={style}
       >

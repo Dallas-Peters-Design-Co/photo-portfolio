@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { ConceptTablePreview } from "./ConceptTablePreview";
 
 const ICON_SUFFIX = /Icon$/;
 
@@ -93,6 +94,7 @@ function CardPreview({
       style={{
         ...style,
         borderColor: element.borderColor,
+        borderWidth: element.borderWidth,
         boxShadow: shadowCss(element.shadow),
       }}
     >
@@ -325,7 +327,19 @@ export function ReviewConceptElementView({
     case "label":
       return <span style={style}>{text}</span>;
     case "badge":
-      return <span style={style}>{text}</span>;
+      return (
+        <span
+          style={{
+            ...style,
+            border: element.borderColor
+              ? `${element.borderWidth ?? 1}px solid ${element.borderColor}`
+              : undefined,
+            display: "inline-flex",
+          }}
+        >
+          {text}
+        </span>
+      );
     case "link":
       return (
         <button
@@ -370,24 +384,7 @@ export function ReviewConceptElementView({
         </nav>
       );
     case "table":
-      return (
-        <table className="review-concepts__table-preview" style={style}>
-          <thead>
-            <tr>
-              {(element.options ?? [text]).map((option) => (
-                <th key={option}>{option}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              {(element.options ?? [text]).map((option) => (
-                <td key={option}>Example</td>
-              ))}
-            </tr>
-          </tbody>
-        </table>
-      );
+      return <ConceptTablePreview element={element} style={style} />;
     case "dialog":
       return (
         <section

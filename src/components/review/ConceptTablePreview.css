@@ -1,0 +1,73 @@
+/* A concept table, in the editor's preview and on the review page alike.
+   Colours come from the element (currentColor) and, for tags and chips, from
+   the column's tint. */
+.concept-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.concept-table th,
+.concept-table td {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  vertical-align: middle;
+  text-align: start;
+}
+
+/* Lines: between rows, or around every cell; colour and width come from
+   the table's settings through --concept-line and --concept-line-width. */
+.concept-table[data-lines="rows"] :is(th, td) {
+  border-bottom: var(--concept-line-width) solid var(--concept-line);
+}
+
+.concept-table[data-lines="grid"] :is(th, td) {
+  border: var(--concept-line-width) solid var(--concept-line);
+}
+
+.concept-table[data-outline] {
+  outline: var(--concept-line-width) solid var(--concept-line);
+  outline-offset: calc(var(--concept-line-width) * -1);
+}
+
+.concept-table th {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: color-mix(in srgb, currentColor 65%, transparent);
+}
+
+.concept-table__stack {
+  display: grid;
+  gap: 0.15em;
+}
+
+.concept-table__stack > small {
+  font-size: 0.85em;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+.concept-table__tag,
+.concept-table__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15em 0.6em;
+  font-size: 0.8em;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--concept-tint);
+  white-space: nowrap;
+  border-radius: 999px;
+}
+
+/* A tag is filled with its tint; a chip is outlined in it. */
+.concept-table__tag {
+  background: color-mix(in srgb, var(--concept-tint) 16%, transparent);
+}
+
+.concept-table__chip {
+  border: 1px solid color-mix(in srgb, var(--concept-tint) 40%, transparent);
+}
+
+.concept-table__chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+}

@@ -1,4 +1,5 @@
 import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
+import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
 
@@ -185,8 +186,10 @@ export interface ReviewConceptElement {
   background: string;
   /** Cards only: the body's type size. The title uses `fontSize`. */
   bodySize?: number;
-  /** Cards only: the outline, and how far the card lifts off the page. */
+  /** Badges and cards: the outline colour; "transparent" draws none. */
   borderColor?: string;
+  /** Badges and cards: the outline's width in px, 0–8. Default 1. */
+  borderWidth?: number;
   checked?: boolean;
   color: string;
   fontFamily: "sans" | "serif" | "mono" | "brand" | "app";
@@ -210,6 +213,8 @@ export interface ReviewConceptElement {
   placeholder?: string;
   radius: number;
   shadow?: ConceptShadow;
+  /** Tables only: typed columns and rows (see conceptTable.ts). */
+  table?: ConceptTable;
   text: string;
 }
 
@@ -288,15 +293,36 @@ const cleanIcon = (
   };
 };
 
+/** Kinds with an editable outline: its colour (or none) and its width. */
+const BORDER_KINDS = new Set<ReviewConceptElementKind>(["badge", "card"]);
+
+export const takesBorder = (kind: ReviewConceptElementKind): boolean =>
+  BORDER_KINDS.has(kind);
+
+const cleanBorder = (
+  kind: ReviewConceptElementKind,
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "borderColor" | "borderWidth"> =>
+  takesBorder(kind)
+    ? {
+        // "transparent" is the editor's None: kept, so it is not a fallback.
+        ...(isHex(raw.borderColor) || raw.borderColor === "transparent"
+          ? { borderColor: raw.borderColor }
+          : {}),
+        ...(typeof raw.borderWidth === "number"
+          ? { borderWidth: bounded(raw.borderWidth, 0, 8, 1) }
+          : {}),
+      }
+    : {};
+
 const cleanCard = (
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "bodySize" | "borderColor" | "shadow"> => {
+): Pick<ReviewConceptElement, "bodySize" | "shadow"> => {
   const shadow = cleanShadow(raw.shadow);
   return {
     ...(typeof raw.bodySize === "number"
       ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
       : {}),
-    ...(isHex(raw.borderColor) ? { borderColor: raw.borderColor } : {}),
     ...(shadow ? { shadow } : {}),
   };
 };
@@ -372,6 +398,7 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     : 400;
   const options = cleanOptions(raw.options);
   const kind = cleanKind(raw.kind);
+  const table = kind === "table" ? cleanTable(raw.table) : undefined;
   return {
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
@@ -386,6 +413,8 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     paddingY: bounded(raw.paddingY, 0, 32, 10),
     radius: bounded(raw.radius, 0, 48, 4),
     ...(kind === "card" ? cleanCard(raw) : {}),
+    ...cleanBorder(kind, raw),
+    ...(table ? { table } : {}),
     text: str(raw.text, 500),
     ...(typeof raw.placeholder === "string"
       ? { placeholder: str(raw.placeholder, 200) }

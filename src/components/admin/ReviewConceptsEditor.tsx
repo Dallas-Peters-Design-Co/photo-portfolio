@@ -142,7 +142,11 @@ function ConceptCard({
       <div className="review-concepts__workspace">
         <div className="review-concepts__preview-wrap">
           <p>Live preview</p>
-          <div className="review-concepts__preview" style={previewStyle}>
+          <div
+            className="review-concepts__preview"
+            data-direction={concept.direction}
+            style={previewStyle}
+          >
             {concept.elements.map((element) => (
               <ReviewConceptElementView element={element} key={element.id} />
             ))}

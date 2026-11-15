@@ -43,23 +43,11 @@
   border-bottom: 2px solid currentColor;
 }
 
-.review-page__concept-preview .review-concepts__table-preview {
-  width: 100%;
-  text-align: start;
-  border-collapse: collapse;
-}
-
-.review-page__concept-preview .review-concepts__table-preview th,
-.review-page__concept-preview .review-concepts__table-preview td {
-  padding: calc(var(--spacing) * 2);
-  text-align: start;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-}
-
 .review-page__concept-preview .review-concepts__card-preview {
   display: grid;
   gap: calc(var(--spacing) * 1.5);
   width: 100%;
+  min-width: 0;
   /* Fallbacks for cards saved before these were settings. */
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
@@ -107,4 +95,12 @@
   .review-concepts__skeleton-preview
   span:first-child {
   width: 58%;
+}
+
+/* Side by side, cards share the row instead of each claiming all of it,
+   which pushed the last one past the edge. Stacked, they stay full width. */
+.review-page__concept-preview[data-direction="row"]
+> .review-concepts__card-preview {
+  flex: 1 1 0;
+  width: auto;
 }

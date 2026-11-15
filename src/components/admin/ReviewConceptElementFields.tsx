@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ReviewConceptElement,
+  takesBorder,
   takesIcon,
 } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
@@ -16,13 +17,14 @@ import {
   optionsOf,
 } from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
+import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import { CardShadowGroup, ElementIconGroup } from "./ReviewConceptCardFields";
 import { ReviewConceptContentField } from "./ReviewConceptContentField";
 
 type Patch = Partial<ReviewConceptElement>;
 
-const OPTION_KINDS = new Set(["select", "tabs", "table", "menu"]);
+const OPTION_KINDS = new Set(["select", "tabs", "menu"]);
 const INPUT_TYPES = optionsOf([
   ["text", "Text"],
   ["email", "Email"],
@@ -169,7 +171,16 @@ export function ReviewConceptElementFields({
       </header>
       {open ? (
         <div className="review-concepts__element-body" id={bodyId}>
-          <ContentGroup element={element} onChange={onChange} />
+          {/* A table's content is its columns and rows. */}
+          {element.kind === "table" ? (
+            <ConceptTableFields
+              brandDoc={brandDoc}
+              element={element}
+              onChange={onChange}
+            />
+          ) : (
+            <ContentGroup element={element} onChange={onChange} />
+          )}
           {takesIcon(element.kind) ? (
             <ElementIconGroup
               brandDoc={brandDoc}
@@ -257,25 +268,33 @@ export function ReviewConceptElementFields({
               onChange={(color) => onChange({ color })}
               value={element.color}
             />
-            {element.background === "transparent" ? null : (
-              <ConceptColorField
-                ariaLabel={`${element.kind} background`}
-                brandDoc={brandDoc}
-                label="Fill"
-                onChange={(background) => onChange({ background })}
-                value={element.background}
-              />
-            )}
-            {element.kind === "card" ? (
-              <ConceptColorField
-                ariaLabel="card border color"
-                brandDoc={brandDoc}
-                label="Border"
-                onChange={(borderColor) => onChange({ borderColor })}
-                value={element.borderColor ?? "#d0d5dd"}
-              />
-            ) : null}
+            <ConceptColorField
+              allowNone
+              ariaLabel={`${element.kind} background`}
+              brandDoc={brandDoc}
+              label="Fill"
+              onChange={(background) => onChange({ background })}
+              value={element.background}
+            />
           </ConceptGroup>
+          {takesBorder(element.kind) ? (
+            <ConceptGroup name="Border">
+              <ConceptColorField
+                allowNone
+                ariaLabel={`${element.kind} border color`}
+                brandDoc={brandDoc}
+                label="Color"
+                onChange={(borderColor) => onChange({ borderColor })}
+                value={element.borderColor ?? "transparent"}
+              />
+              <NumberField
+                label="Width"
+                max={8}
+                onChange={(borderWidth) => onChange({ borderWidth })}
+                value={element.borderWidth ?? 1}
+              />
+            </ConceptGroup>
+          ) : null}
         </div>
       ) : null}
     </section>

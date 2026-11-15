@@ -103,3 +103,24 @@ it("draws a dropdown menu with the project DropdownMenu, which opens on click", 
     expect(items).toEqual(["Rename", "Delete"]);
   });
 });
+
+it("draws a badge with its fill, text color and border", () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("badge"),
+          background: "#ffeedd",
+          borderColor: "#ff0000",
+          borderWidth: 2,
+          color: "#0000ff",
+        }}
+      />
+    )
+  );
+  const badge = getComputedStyle(host.querySelector("span") as HTMLElement);
+  expect(badge.backgroundColor).toBe("rgb(255, 238, 221)");
+  expect(badge.color).toBe("rgb(0, 0, 255)");
+  expect(badge.borderTopWidth).toBe("2px");
+  expect(badge.borderTopColor).toBe("rgb(255, 0, 0)");
+});
