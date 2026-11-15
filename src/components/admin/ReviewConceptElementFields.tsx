@@ -24,6 +24,7 @@ import {
   CheckboxGroup,
   ElementIconGroup,
   ShadowGroup,
+  TabsGroup,
 } from "./ReviewConceptCardFields";
 import { ReviewConceptContentField } from "./ReviewConceptContentField";
 
@@ -202,6 +203,9 @@ function KindGroups({
       {element.kind === "table" || lookOnly ? null : (
         <ContentGroup element={element} onChange={onChange} />
       )}
+      {element.kind === "tabs" ? (
+        <TabsGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      ) : null}
       {element.kind === "checkbox" ? (
         <CheckboxGroup
           brandDoc={brandDoc}

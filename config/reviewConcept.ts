@@ -5,6 +5,7 @@ import {
 } from "./conceptIcon.js";
 import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
+import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
 
@@ -120,6 +121,8 @@ export interface ReviewConceptElement {
   shadow?: ConceptShadow;
   /** The brand kit component style this element follows, if any. */
   styleId?: string;
+  /** Tabs only: indicator, active and inactive colours, height. */
+  tabLook?: ConceptTabLook;
   /** Tables only: typed columns and rows (see conceptTable.ts). */
   table?: ConceptTable;
   text: string;
@@ -154,6 +157,7 @@ export const ELEMENT_STYLE_KEYS = [
   "iconSvg",
   "accentColor",
   "checkSize",
+  "tabLook",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 export const CONCEPT_STYLE_KEYS = [
@@ -383,6 +387,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
   const options = cleanOptions(raw.options);
   const kind = cleanKind(raw.kind);
   const table = kind === "table" ? cleanTable(raw.table) : undefined;
+  const tabLook = kind === "tabs" ? cleanTabLook(raw.tabLook) : undefined;
   return {
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
@@ -399,6 +404,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     ...(kind === "card" ? cleanCard(raw) : {}),
     ...cleanBox(kind, raw),
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
+    ...(tabLook ? { tabLook } : {}),
     ...(table ? { table } : {}),
     ...cleanLink(raw),
     text: str(raw.text, 500),

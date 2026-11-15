@@ -1,0 +1,32 @@
+/* A tabs element, in the editor's preview and on the review page alike.
+   Every colour and size falls back to the look tabs had before they were
+   settings. */
+.concept-tabs {
+  display: flex;
+  gap: calc(var(--spacing) * 4);
+  align-items: stretch;
+  min-height: var(--tab-height, auto);
+  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.concept-tabs__tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: var(--tab-inactive, currentColor);
+}
+
+.concept-tabs__tab[aria-current="page"] {
+  color: var(--tab-active, currentColor);
+}
+
+/* The indicator, over the row's base line. */
+.concept-tabs__tab[aria-current="page"]::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: var(--tab-indicator-size, 2px);
+  content: "";
+  background: var(--tab-indicator, currentColor);
+}

@@ -12,6 +12,10 @@ import {
   shadowOf,
 } from "../../../config/conceptShadow.js";
 import {
+  type ConceptTabLook,
+  TAB_LIMITS,
+} from "../../../config/conceptTabs.js";
+import {
   iconSizeOf,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
@@ -167,6 +171,60 @@ export function CheckboxGroup({
         min={10}
         onChange={(checkSize) => onChange({ checkSize })}
         value={element.checkSize ?? 16}
+      />
+    </ConceptGroup>
+  );
+}
+
+/** Tabs: the active tab's indicator and colour, the others' colour, height. */
+export function TabsGroup({
+  brandDoc,
+  element,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  const look = element.tabLook ?? {};
+  const set = (patch: ConceptTabLook) =>
+    onChange({ tabLook: { ...look, ...patch } });
+  return (
+    <ConceptGroup name="Tabs">
+      <ConceptColorField
+        ariaLabel="tabs indicator color"
+        brandDoc={brandDoc}
+        label="Indicator"
+        onChange={(indicatorColor) => set({ indicatorColor })}
+        value={look.indicatorColor ?? element.color}
+      />
+      <NumberField
+        label="Indicator size"
+        max={TAB_LIMITS.indicatorSize[1]}
+        min={TAB_LIMITS.indicatorSize[0]}
+        onChange={(indicatorSize) => set({ indicatorSize })}
+        value={look.indicatorSize ?? 2}
+      />
+      <ConceptColorField
+        ariaLabel="active tab color"
+        brandDoc={brandDoc}
+        label="Active"
+        onChange={(activeColor) => set({ activeColor })}
+        value={look.activeColor ?? element.color}
+      />
+      <ConceptColorField
+        ariaLabel="inactive tab color"
+        brandDoc={brandDoc}
+        label="Inactive"
+        onChange={(inactiveColor) => set({ inactiveColor })}
+        value={look.inactiveColor ?? element.color}
+      />
+      <NumberField
+        label="Height"
+        max={TAB_LIMITS.height[1]}
+        min={TAB_LIMITS.height[0]}
+        onChange={(height) => set({ height })}
+        value={look.height ?? 40}
       />
     </ConceptGroup>
   );

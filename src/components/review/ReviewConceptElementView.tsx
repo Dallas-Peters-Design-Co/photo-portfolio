@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { ConceptTablePreview } from "./ConceptTablePreview";
+import { ConceptTabsPreview } from "./ConceptTabsPreview";
 
 const ICON_SUFFIX = /Icon$/;
 
@@ -381,22 +382,7 @@ export function ReviewConceptElementView({
         />
       );
     case "tabs":
-      return (
-        <nav
-          aria-label="Preview tabs"
-          className="review-concepts__tabs-preview"
-          style={style}
-        >
-          {(element.options ?? [text]).map((option) => (
-            <span
-              aria-current={option === text ? "page" : undefined}
-              key={option}
-            >
-              {option}
-            </span>
-          ))}
-        </nav>
-      );
+      return <ConceptTabsPreview element={element} style={style} text={text} />;
     case "table":
       return <ConceptTablePreview element={element} style={style} />;
     case "dialog":

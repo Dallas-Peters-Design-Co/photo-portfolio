@@ -175,3 +175,35 @@ it("draws a button's border and shadow, and keeps a field's faint outline until 
   expect(field.borderTopWidth).toBe("1px");
   expect(field.boxShadow).toBe("none");
 });
+
+it("draws tabs with their indicator, active and inactive colours and height", () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("tabs"),
+          tabLook: {
+            activeColor: "#0000ff",
+            height: 48,
+            inactiveColor: "#999999",
+            indicatorColor: "#ff0000",
+            indicatorSize: 4,
+          },
+        }}
+      />
+    )
+  );
+  const active = host.querySelector('[aria-current="page"]') as HTMLElement;
+  const other = host.querySelector(
+    ".concept-tabs__tab:not([aria-current])"
+  ) as HTMLElement;
+  expect(getComputedStyle(active).color).toBe("rgb(0, 0, 255)");
+  expect(getComputedStyle(other).color).toBe("rgb(153, 153, 153)");
+  const line = getComputedStyle(active, "::after");
+  expect(line.height).toBe("4px");
+  expect(line.backgroundColor).toBe("rgb(255, 0, 0)");
+  expect(
+    (host.querySelector(".concept-tabs") as HTMLElement).getBoundingClientRect()
+      .height
+  ).toBeGreaterThanOrEqual(48);
+});

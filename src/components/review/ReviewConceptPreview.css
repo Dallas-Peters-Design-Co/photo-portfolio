@@ -30,20 +30,9 @@
   align-items: center;
 }
 
-.review-page__concept-preview .review-concepts__tabs-preview {
-  display: flex;
-  gap: calc(var(--spacing) * 4);
-  align-items: center;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
-}
-
 .review-page__concept-preview
-  .review-concepts__tabs-preview
-  [aria-current="page"] {
-  border-bottom: 2px solid currentColor;
-}
-
-.review-page__concept-preview .review-concepts__card-preview {
+  .review-page__concept-preview
+  .review-concepts__card-preview {
   display: grid;
   gap: calc(var(--spacing) * 1.5);
   width: 100%;
