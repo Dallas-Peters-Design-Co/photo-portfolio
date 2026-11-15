@@ -20,11 +20,13 @@ import { brandKitsApi } from "../services/brandKitService";
 import { authStorage } from "../services/portfolioService";
 import { loadFontRef } from "../theme/remoteFonts";
 import "../components/brandGuide/BrandGuide.css";
+import { DocSidebar } from "./DocShell";
 
 /**
  * A brand kit as a guide: one page with Foundation, Colour, Type, Logo,
- * Imagery and References, set in the brand's own colours and type. Every
- * value copies on click. At /admin/brand-kits/:kitId/guide; it prints.
+ * Imagery and References, set in the brand's own colours and type, in the
+ * document frame the client review uses (DocShell). Every value copies on
+ * click. At /admin/brand-kits/:kitId/guide; it prints.
  */
 
 const SECTIONS = [
@@ -56,7 +58,6 @@ export function BrandGuidePage() {
   const { kitId } = useParams<{ kitId: string }>();
   const navigate = useNavigate();
   const [authed] = useState(() => Boolean(authStorage.getToken()));
-  const [active, setActive] = useState<string>("foundation");
   const { data: kit, error } = useSWR(
     authed && kitId ? ["kit", kitId] : null,
     () => brandKitsApi.get(kitId as string)
@@ -81,32 +82,6 @@ export function BrandGuidePage() {
       document.title = `${kit.name} — Brand guide`;
     }
   }, [kit]);
-
-  // Which section is in view, for the sidebar.
-  useEffect(() => {
-    if (!doc) {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const seen = entries.filter((e) => e.isIntersecting);
-        const [first] = seen.sort(
-          (a, b) => a.boundingClientRect.top - b.boundingClientRect.top
-        );
-        if (first) {
-          setActive(first.target.id);
-        }
-      },
-      { rootMargin: "-20% 0px -60% 0px" }
-    );
-    for (const [id] of SECTIONS) {
-      const el = document.getElementById(id);
-      if (el) {
-        observer.observe(el);
-      }
-    }
-    return () => observer.disconnect();
-  }, [doc]);
 
   if (error) {
     return (
@@ -134,48 +109,55 @@ export function BrandGuidePage() {
   } as React.CSSProperties;
 
   return (
-    <div className="guide" style={theme}>
+    <div className="doc-shell guide" style={theme}>
       <Toaster position="top-center" />
-      <aside className="guide__nav">
-        <Link className="guide__back" to="/admin/brand-kits">
-          <ArrowLeft size={14} /> Brand kits
-        </Link>
-        <p className="guide__brand">
-          {kit.name}
-          <span>Brand guide · v{kit.version ?? 0}</span>
-        </p>
-        <nav>
-          {SECTIONS.map(([id, label]) => (
-            <a
-              aria-current={active === id ? "true" : undefined}
-              href={`#${id}`}
-              key={id}
-            >
-              {label}
-            </a>
-          ))}
-        </nav>
-        <div className="guide__actions">
-          <button
-            className="guide__print"
-            onClick={() => void downloadDesignMd(kit.id)}
-            title="The brand as DESIGN.md, for coding and design agents"
-            type="button"
-          >
-            <FileText size={14} /> Download DESIGN.md
-          </button>
-          <button
-            className="guide__print"
-            onClick={() => window.print()}
-            type="button"
-          >
-            <Printer size={14} /> Print or save PDF
-          </button>
-        </div>
-      </aside>
+      <DocSidebar
+        card={
+          <>
+            <p className="doc-shell__card-kicker">
+              Brand guide · v{kit.version ?? 0}
+            </p>
+            <p className="doc-shell__card-title">{kit.name}</p>
+            <div className="doc-shell__actions">
+              <button
+                className="doc-shell__action"
+                onClick={() => void downloadDesignMd(kit.id)}
+                title="The brand as DESIGN.md, for coding and design agents"
+                type="button"
+              >
+                <FileText aria-hidden size={14} /> DESIGN.md
+              </button>
+              <button
+                className="doc-shell__action doc-shell__action--quiet"
+                onClick={() => window.print()}
+                type="button"
+              >
+                <Printer aria-hidden size={14} /> Print or PDF
+              </button>
+            </div>
+          </>
+        }
+        contents={SECTIONS.map(([id, label]) => ({ id, label }))}
+        foot={
+          <p className="doc-shell__colophon">
+            {kit.parentName
+              ? `A sub-brand of ${kit.parentName}`
+              : "Set in the brand's own colours and type"}
+          </p>
+        }
+        head={
+          <>
+            <Link className="doc-shell__back" to="/admin/brand-kits">
+              <ArrowLeft aria-hidden size={14} /> Brand kits
+            </Link>
+            <p className="doc-shell__wordmark">{kit.name}</p>
+          </>
+        }
+        label="Brand guide"
+      />
 
-      <main className="guide__main">
-        <section className="guide-section guide-hero" id="foundation">
+      <main className="doc-shell__main">
+        <section className="doc-band guide-hero" id="foundation">
           <p className="guide-eyebrow">Brand guide</p>
           <h1 className="guide-hero__name">{kit.name}</h1>
           {kit.parentName ? (
@@ -198,28 +180,28 @@ export function BrandGuidePage() {
           </div>
         </section>
 
-        <section className="guide-section" id="colour">
-          <h2 className="guide-heading">Colour</h2>
+        <section className="doc-band" id="colour">
+          <h2 className="doc-band__title">Colour</h2>
           <ColourSection doc={doc} />
         </section>
 
-        <section className="guide-section" id="type">
-          <h2 className="guide-heading">Type</h2>
+        <section className="doc-band" id="type">
+          <h2 className="doc-band__title">Type</h2>
           <TypeSection doc={doc} />
         </section>
 
-        <section className="guide-section" id="logo">
-          <h2 className="guide-heading">Logo</h2>
+        <section className="doc-band" id="logo">
+          <h2 className="doc-band__title">Logo</h2>
           <LogoSection doc={doc} />
         </section>
 
-        <section className="guide-section" id="imagery">
-          <h2 className="guide-heading">Imagery</h2>
+        <section className="doc-band" id="imagery">
+          <h2 className="doc-band__title">Imagery</h2>
           <ImagerySection doc={doc} />
         </section>
 
-        <section className="guide-section" id="references">
-          <h2 className="guide-heading">References</h2>
+        <section className="doc-band" id="references">
+          <h2 className="doc-band__title">References</h2>
           <ReferenceSection doc={doc} />
         </section>
       </main>

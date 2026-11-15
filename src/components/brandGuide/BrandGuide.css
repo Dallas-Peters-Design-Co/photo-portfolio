@@ -7,129 +7,30 @@
 .guide {
   --line: color-mix(in oklch, var(--guide-ink) 14%, transparent);
   --muted: color-mix(in oklch, var(--guide-ink) 55%, transparent);
-  display: grid;
-  grid-template-columns: 15rem minmax(0, 1fr);
-  min-height: 100dvh;
+  /* The document frame (docShell.css) reads these. */
+  --doc-bg: var(--guide-bg);
+  --doc-ink: var(--guide-ink);
+  --doc-ink-soft: var(--muted);
+  --doc-rule: var(--line);
+  --doc-accent: var(--guide-accent);
+  --doc-head-font: var(
+    --guide-head-font,
+    var(--font-display, var(--font-sans))
+  );
+
   font-family: var(--guide-body-font, var(--font-sans));
-  color: var(--guide-ink);
-  background: var(--guide-bg);
 }
 
 .guide--message {
   --guide-bg: #f6f6f3;
   --guide-ink: #0b0f1a;
+
   display: grid;
   gap: 1rem;
   place-content: center;
-}
-
-.guide__nav {
-  /* Placed explicitly: the toaster renders an element into the grid too. */
-  position: sticky;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  /* Placed explicitly: the toaster renders an element into the grid too. */
-  grid-row: 1;
-  grid-column: 1;
-  gap: 1.5rem;
-  height: 100dvh;
-  padding: 1.75rem 1.5rem;
-  border-right: 1px solid var(--line);
-}
-
-.guide__back {
-  display: inline-flex;
-  gap: 0.375rem;
-  align-items: center;
-  font-size: 0.875rem;
-  color: var(--muted);
-
-  &:hover {
-    color: var(--guide-ink);
-  }
-}
-
-.guide__brand {
-  display: grid;
-  gap: 0.25rem;
-  font-family: var(--guide-head-font, inherit);
-  font-size: 1.5rem;
-  font-weight: 700;
-  line-height: 1.1;
-
-  & span {
-    font-family: var(--guide-body-font, var(--font-sans));
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.14em;
-  }
-}
-
-.guide__nav nav {
-  display: grid;
-  gap: 0.125rem;
-
-  & a {
-    padding: 0.375rem 0.625rem;
-    font-size: 0.6875rem;
-    font-weight: 500;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    border-radius: var(--radius-control);
-  }
-  & a:hover {
-    color: var(--guide-ink);
-  }
-  & a[aria-current="true"] {
-    color: var(--guide-ink);
-    background: color-mix(in oklch, var(--guide-ink) 7%, transparent);
-    box-shadow: inset 2px 0 0 var(--guide-accent);
-  }
-}
-
-.guide__actions {
-  display: grid;
-  gap: 0.75rem;
-  justify-items: start;
-  margin-top: auto;
-}
-
-.guide__print {
-  display: inline-flex;
-  gap: 0.5rem;
-  align-items: center;
-  font-size: 0.875rem;
-  color: var(--muted);
-
-  &:hover {
-    color: var(--guide-ink);
-  }
-}
-
-.guide__main {
-  grid-row: 1;
-  grid-column: 2;
-  min-width: 0;
-  padding: 0 clamp(1.5rem, 5vw, 5rem) 6rem;
-}
-
-.guide-section {
-  padding-block: clamp(3rem, 7vw, 5.5rem);
-  scroll-margin-top: 1rem;
-  border-bottom: 1px solid var(--line);
-}
-
-.guide-heading {
-  margin-bottom: 2rem;
-  font-family: var(--guide-head-font, inherit);
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  min-height: 100dvh;
+  color: var(--guide-ink);
+  background: var(--guide-bg);
 }
 
 .guide-subhead {
@@ -491,37 +392,13 @@
 }
 
 @media (max-width: 760px) {
-  .guide {
-    grid-template-columns: 1fr;
-  }
-  .guide__nav,
-  .guide__main {
-    grid-row: auto;
-    grid-column: 1;
-  }
-  .guide__nav {
-    position: static;
-    height: auto;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .guide__nav nav {
-    display: flex;
-    flex-wrap: wrap;
-  }
   .guide-type {
     grid-template-columns: 1fr;
   }
 }
 
 @media print {
-  .guide {
-    grid-template-columns: 1fr;
-  }
-  .guide__nav {
-    display: none;
-  }
-  .guide-section {
+  .guide .doc-band {
     break-inside: avoid-page;
   }
   .guide-colour,

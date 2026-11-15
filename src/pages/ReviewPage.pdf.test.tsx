@@ -124,7 +124,7 @@ describe("ReviewPage — Download PDF", () => {
 
   it("keeps the button out of the printed page", async () => {
     await mount();
-    const sidebar = host?.querySelector(".review-page__sidebar");
+    const sidebar = host?.querySelector(".doc-shell__sidebar");
     expect(sidebar?.contains(button())).toBe(true);
     const printRules = [...document.styleSheets]
       .flatMap((sheet) => [...sheet.cssRules])
@@ -135,8 +135,7 @@ describe("ReviewPage — Download PDF", () => {
     expect(
       printRules.some(
         (text) =>
-          text.includes(".review-page__sidebar") &&
-          text.includes("display: none")
+          text.includes(".doc-shell__sidebar") && text.includes("display: none")
       )
     ).toBe(true);
   });

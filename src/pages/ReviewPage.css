@@ -1,169 +1,36 @@
 /*
- * A site review as the client reads it, laid out like a studio's own page:
- * a fixed column down the left (ReviewSidebar.tsx) with the contents, who
- * it is for and the PDF, and beside it the review in full-width bands split
- * by hairlines, each heading on the left and its words on the right.
+ * A site review as the client reads it, in the document frame shared with
+ * the brand guide (DocShell.tsx, docShell.css): the fixed column with the
+ * contents, who it is for and the PDF, and the review in full-width bands,
+ * each heading on the left and its words on the right. This file holds what
+ * is the review's own: its hero, its screens, its notes.
  *
  * On screen it takes the site's own colours; on paper it is a white sheet
  * (see the print rules at the end).
  */
 
 .review-page {
-  --review-sidebar: 25%;
   --sheet: var(--background);
   --sheet-ink: var(--foreground);
   --sheet-ink-soft: color-mix(in oklch, var(--foreground) 62%, transparent);
   --sheet-rule: color-mix(in oklch, var(--foreground) 14%, transparent);
   --sheet-tint: color-mix(in oklch, var(--foreground) 5%, transparent);
-  --band-pad: clamp(calc(var(--spacing) * 6), 4vw, calc(var(--spacing) * 12));
-
-  min-height: 100dvh;
-  color: var(--sheet-ink);
-  background: var(--sheet);
+  /* The frame reads these. */
+  --doc-sidebar: 25%;
+  --doc-bg: var(--sheet);
+  --doc-ink: var(--sheet-ink);
+  --doc-ink-soft: var(--sheet-ink-soft);
+  --doc-rule: var(--sheet-rule);
+  --doc-accent: var(--review-accent);
+  --doc-head-font: var(--font-display, var(--font-sans));
 }
 
-/* The left column */
-
-.review-page__sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 6);
-  padding: calc(var(--spacing) * 6) var(--band-pad);
-  border-block-end: 1px solid var(--sheet-rule);
-}
-
-.review-page__wordmark {
-  display: inline-flex;
-  gap: calc(var(--spacing) * 3);
-  align-items: center;
-  font-size: var(--text-sm-ui);
-  font-weight: 600;
-  color: var(--sheet-ink);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro-caps);
-}
-
-.review-page__logo {
-  flex: none;
-  width: calc(var(--spacing) * 12);
-  height: calc(var(--spacing) * 12);
-}
-
-.review-nav__list {
-  display: flex;
-  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
-  overflow-x: auto;
-}
-
-.review-nav__link {
-  display: flex;
-  gap: calc(var(--spacing) * 3);
-  align-items: baseline;
-  padding-block: calc(var(--spacing) * 1.5);
-  font-size: var(--text-xs-ui);
-  color: var(--sheet-ink-soft);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro-wide);
-  white-space: nowrap;
-  transition: color 150ms ease-out;
-}
-
-.review-nav__link:hover,
-.review-nav__link[aria-current="location"] {
-  color: var(--sheet-ink);
-}
-
-.review-nav__key {
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in oklch, var(--foreground) 40%, transparent);
-}
-
-.review-nav__link[aria-current="location"] .review-nav__key {
-  color: var(--review-accent);
-}
-
-.review-nav__label {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.review-nav__link:focus-visible {
-  outline: 2px solid var(--review-accent);
-  outline-offset: 2px;
-}
-
-.review-page__sidebar-end {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 5);
-}
-
-/* Who the review is for, and the PDF: the one box in the column. */
-.review-page__card {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 2);
-  align-items: flex-start;
-  padding: calc(var(--spacing) * 4);
-  border: 1px solid var(--sheet-rule);
-}
-
-.review-page__card-kicker,
-.review-page__colophon {
-  font-size: var(--text-xs-ui);
-  color: var(--sheet-ink-soft);
-  letter-spacing: var(--tracking-micro);
-}
-
-.review-page__card-title {
-  margin-block-end: calc(var(--spacing) * 2);
-  font-family: var(--font-display, var(--font-sans));
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.1;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-}
-
+/* The PDF button's wrap, so a failure shows under it. */
 .review-page__pdf-wrap {
   display: flex;
   flex-direction: column;
   gap: calc(var(--spacing) * 1);
-}
-
-.review-page__pdf {
-  display: inline-flex;
-  align-items: center;
-  min-height: calc(var(--spacing) * 9);
-  padding-inline: calc(var(--spacing) * 4);
-  font: inherit;
-  font-size: var(--text-xs-ui);
-  font-weight: 600;
-  color: var(--sheet);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-micro);
-  white-space: nowrap;
-  cursor: pointer;
-  background: var(--sheet-ink);
-  border: 1px solid var(--sheet-ink);
-  transition-timing-function: ease-out;
-  transition-duration: 150ms;
-  transition-property: color, background-color;
-}
-
-.review-page__pdf:hover:not(:disabled) {
-  color: var(--sheet-ink);
-  background: transparent;
-}
-
-.review-page__pdf:focus-visible {
-  outline: 2px solid var(--review-accent);
-  outline-offset: 2px;
-}
-
-.review-page__pdf:disabled {
-  cursor: progress;
-  opacity: 0.7;
+  align-self: stretch;
 }
 
 .review-page__pdf-error {
@@ -172,6 +39,7 @@
   color: var(--review-accent);
 }
 
+/* The key to the notes, under the box. */
 .review-page__legend {
   display: flex;
   flex-wrap: wrap;
@@ -194,92 +62,24 @@
   border-radius: var(--radius-pill);
 }
 
-/*
- * On a narrow window the column is a bar above the review: the mark, the
- * contents in a row that scrolls sideways, and the PDF. The key to the notes
- * is left out; each note names its kind.
- */
+/* On a narrow window the key is left out; each note names its kind. */
 @media (max-width: 63.99rem) {
-  .review-page__legend,
-  .review-page__colophon,
-  .review-page__card-kicker,
-  .review-page__card-title {
+  .review-page__legend {
     display: none;
-  }
-
-  .review-page__card {
-    padding: 0;
-    border: 0;
   }
 }
 
 @media (min-width: 64rem) {
-  .review-page__sidebar {
-    position: fixed;
-    inset-block: 0;
-    inset-inline-start: 0;
-    z-index: 10;
-    width: var(--review-sidebar);
-    padding: calc(var(--spacing) * 8) calc(var(--spacing) * 6);
-    overflow-y: auto;
-    scrollbar-width: none;
-    border-block-end: 0;
-    border-inline-end: 1px solid var(--sheet-rule);
-  }
-
-  .review-nav__list {
-    flex-direction: column;
-    overflow: visible;
-  }
-
-  /* In the column there is room to wrap: a long title is read whole. */
-  .review-nav__link {
-    white-space: normal;
-  }
-
-  .review-nav__label {
-    overflow-wrap: anywhere;
-  }
-
   .review-page__legend {
     flex-direction: column;
-  }
-
-  .review-page__sidebar-end {
-    margin-block-start: auto;
-  }
-
-  .review-page__main {
-    margin-inline-start: var(--review-sidebar);
   }
 }
 
 /* The review */
 
-.review-page__main {
-  min-width: 0;
-}
-
 /* Loading, not found and the password: one band, padded like the rest. */
 .review-page__main > :not(.review-page__sheet) {
-  padding: var(--band-pad);
-}
-
-.review-page__hero,
-.review-page__section {
-  padding: calc(var(--band-pad) * 1.25) var(--band-pad);
-  scroll-margin-top: calc(var(--spacing) * 4);
-  border-block-end: 1px solid var(--sheet-rule);
-}
-
-.review-page__section--last {
-  border-block-end: 0;
-}
-
-.review-page__hero {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 5);
+  padding: var(--doc-band-pad);
 }
 
 .review-page__kicker {
@@ -337,39 +137,9 @@
   text-underline-offset: 3px;
 }
 
-.review-page__section {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 5);
-}
-
-.review-page__section-title {
-  font-family: var(--font-display, var(--font-sans));
-  font-size: clamp(1.75rem, 5vw, 18.75rem);
-  font-weight: 800;
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-}
-
-.review-page__section-body {
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--spacing) * 4);
-  min-width: 0;
-}
-
 @media (min-width: 60rem) {
   .review-page__hero-foot {
     grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
-  }
-
-  /* A heading on the left, its words on the right. */
-  .review-page__section--split {
-    display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    gap: calc(var(--spacing) * 10);
-    align-items: start;
   }
 }
 
@@ -602,7 +372,6 @@
     background: #fff;
   }
 
-  .review-page__sidebar,
   .review-page__draft {
     display: none;
   }
@@ -611,11 +380,6 @@
     max-width: none;
     padding: 0;
     margin: 0;
-  }
-
-  .review-page__hero,
-  .review-page__section {
-    padding-inline: 0;
   }
 
   .review-page__title {
@@ -633,7 +397,6 @@
    * and keeping it in one piece only leaves a blank page in front of it. The
    * pieces that must not split, or be stranded from what follows, say so.
    */
-  .review-page__section-title,
   .review-page__source {
     break-after: avoid;
   }

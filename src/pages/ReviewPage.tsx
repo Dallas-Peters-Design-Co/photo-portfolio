@@ -77,12 +77,15 @@ export function ReviewPage() {
   }, [review, settings.ownerName]);
 
   return (
-    <div className="page review-page" style={reviewAccentStyle(settings.theme)}>
+    <div
+      className="page doc-shell review-page"
+      style={reviewAccentStyle(settings.theme)}
+    >
       <ReviewSidebar
         ownerName={settings.ownerName}
         review={state === "ready" ? review : null}
       />
-      <main className="review-page__main">
+      <main className="doc-shell__main review-page__main">
         {state === "loading" && <p className="label label--quiet">Loading</p>}
         {state === "missing" && (
           <div className="stack">
@@ -128,7 +131,7 @@ function ReviewSheet({
 
   return (
     <article className="review-page__sheet">
-      <header className="review-page__hero" id={reviewAnchor.overview}>
+      <header className="doc-band review-page__hero" id={reviewAnchor.overview}>
         <p className="review-page__kicker">
           Site review · {formatDate(review.updatedAt)} · {screens.length}{" "}
           {screens.length === 1 ? "screen" : "screens"} · {total}{" "}
@@ -177,12 +180,9 @@ function ReviewSheet({
       </header>
 
       {isRichTextEmpty(doc.summary) ? null : (
-        <section
-          className="review-page__section review-page__section--split"
-          id={reviewAnchor.summary}
-        >
-          <h2 className="review-page__section-title">Headline findings</h2>
-          <div className="review-page__section-body">
+        <section className="doc-band doc-band--split" id={reviewAnchor.summary}>
+          <h2 className="doc-band__title">Headline findings</h2>
+          <div className="doc-band__body">
             <Prose text={doc.summary} />
           </div>
         </section>
@@ -192,14 +192,12 @@ function ReviewSheet({
         .filter((section) => !isRichTextEmpty(section.body))
         .map((section) => (
           <section
-            className="review-page__section review-page__section--split"
+            className="doc-band doc-band--split"
             id={reviewAnchor.section(section.id)}
             key={section.id}
           >
-            <h2 className="review-page__section-title">
-              {section.title || "Section"}
-            </h2>
-            <div className="review-page__section-body">
+            <h2 className="doc-band__title">{section.title || "Section"}</h2>
+            <div className="doc-band__body">
               <Prose text={section.body} />
             </div>
           </section>
@@ -216,19 +214,19 @@ function ReviewSheet({
       ))}
 
       {isRichTextEmpty(doc.closing) ? null : (
-        <section className="review-page__section review-page__section--split">
-          <h2 className="review-page__section-title">Closing</h2>
-          <div className="review-page__section-body">
+        <section className="doc-band doc-band--split">
+          <h2 className="doc-band__title">Closing</h2>
+          <div className="doc-band__body">
             <Prose text={doc.closing} />
           </div>
         </section>
       )}
       <section
-        className="review-page__section review-page__section--split review-page__section--last"
+        className="doc-band doc-band--split doc-band--last"
         id={reviewAnchor.comments}
       >
-        <h2 className="review-page__section-title">Comments</h2>
-        <div className="review-page__section-body">
+        <h2 className="doc-band__title">Comments</h2>
+        <div className="doc-band__body">
           <ScreenComments screenId="" />
         </div>
       </section>
@@ -247,7 +245,7 @@ function Screen({
   if (!image) {
     return null;
   }
-  const cls = "review-page__section review-page__section--screen";
+  const cls = "doc-band review-page__section--screen";
   const figureCls =
     screen.viewport === "mobile"
       ? "review-page__screen review-page__screen--mobile"
@@ -255,9 +253,7 @@ function Screen({
   return (
     <section className={cls} id={reviewAnchor.screen(screen.id)}>
       <div className="review-page__screen-head">
-        <h2 className="review-page__section-title">
-          {screen.title || "Screen"}
-        </h2>
+        <h2 className="doc-band__title">{screen.title || "Screen"}</h2>
         {screen.sourceUrl ? (
           <p className="review-page__source">
             <a href={screen.sourceUrl} rel="noreferrer" target="_blank">
@@ -396,11 +392,11 @@ function Recommendations({
   }
   return (
     <section
-      className="review-page__section review-page__section--split"
+      className="doc-band doc-band--split"
       id={reviewAnchor.recommendations}
     >
-      <h2 className="review-page__section-title">Recommendations</h2>
-      <ol className="review-page__notes review-page__section-body">
+      <h2 className="doc-band__title">Recommendations</h2>
+      <ol className="review-page__notes doc-band__body">
         {items.map(({ n, pin, screen }) => (
           <li className="review-page__note" key={pin.id}>
             <span className="review-page__note-n review-page__note-n--recommendation">

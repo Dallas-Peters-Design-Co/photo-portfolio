@@ -1,0 +1,341 @@
+/*
+ * A document read on the site — a review, a brand guide — laid out like a
+ * studio's own page (DocShell.tsx): a fixed column down the left with the
+ * mark, numbered contents that follow the reader and a box of actions, and
+ * beside it the document in full-width bands split by hairlines.
+ *
+ * Each page sets the colours and faces it is read in:
+ *   --doc-bg, --doc-ink, --doc-ink-soft, --doc-rule, --doc-accent
+ *   --doc-head-font (headings), and optionally --doc-sidebar (its width).
+ * On a narrow window the column is a bar above the document.
+ */
+
+.doc-shell {
+  --doc-band-pad: clamp(
+    calc(var(--spacing) * 6),
+    4vw,
+    calc(var(--spacing) * 12)
+  );
+
+  min-height: 100dvh;
+  color: var(--doc-ink);
+  background: var(--doc-bg);
+}
+
+/* The left column */
+
+.doc-shell__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 6);
+  padding: calc(var(--spacing) * 6) var(--doc-band-pad);
+  border-block-end: 1px solid var(--doc-rule);
+}
+
+.doc-shell__head {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 3);
+  align-items: flex-start;
+}
+
+.doc-shell__wordmark {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+  font-size: var(--text-sm-ui);
+  font-weight: 600;
+  color: var(--doc-ink);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
+}
+
+.doc-shell__logo {
+  flex: none;
+  width: calc(var(--spacing) * 12);
+  height: calc(var(--spacing) * 12);
+}
+
+.doc-shell__back {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  font-size: var(--text-xs-ui);
+  color: var(--doc-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+
+  &:hover {
+    color: var(--doc-ink);
+  }
+}
+
+.doc-nav__list {
+  display: flex;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 4);
+  overflow-x: auto;
+}
+
+.doc-nav__link {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: baseline;
+  padding-block: calc(var(--spacing) * 1.5);
+  font-size: var(--text-xs-ui);
+  color: var(--doc-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-wide);
+  white-space: nowrap;
+  transition: color 150ms ease-out;
+}
+
+.doc-nav__link:hover,
+.doc-nav__link[aria-current="location"] {
+  color: var(--doc-ink);
+}
+
+.doc-nav__key {
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklch, var(--doc-ink) 40%, transparent);
+}
+
+.doc-nav__link[aria-current="location"] .doc-nav__key {
+  color: var(--doc-accent);
+}
+
+.doc-nav__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-nav__link:focus-visible,
+.doc-shell__action:focus-visible {
+  outline: 2px solid var(--doc-accent);
+  outline-offset: 2px;
+}
+
+.doc-shell__sidebar-end {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 5);
+}
+
+/* The one box in the column: who or what this is, and its actions. */
+.doc-shell__card {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  align-items: flex-start;
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid var(--doc-rule);
+}
+
+.doc-shell__card-kicker,
+.doc-shell__colophon {
+  font-size: var(--text-xs-ui);
+  color: var(--doc-ink-soft);
+  letter-spacing: var(--tracking-micro);
+}
+
+.doc-shell__card-title {
+  margin-block-end: calc(var(--spacing) * 2);
+  font-family: var(--doc-head-font);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.doc-shell__actions {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  align-items: stretch;
+  align-self: stretch;
+}
+
+/* The box's buttons: ink on the page, outlined once hovered. */
+.doc-shell__action {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--spacing) * 9);
+  padding-inline: calc(var(--spacing) * 4);
+  font: inherit;
+  font-size: var(--text-xs-ui);
+  font-weight: 600;
+  color: var(--doc-bg);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+  white-space: nowrap;
+  cursor: pointer;
+  background: var(--doc-ink);
+  border: 1px solid var(--doc-ink);
+  transition-timing-function: ease-out;
+  transition-duration: 150ms;
+  transition-property: color, background-color;
+}
+
+.doc-shell__action:hover:not(:disabled) {
+  color: var(--doc-ink);
+  background: transparent;
+}
+
+.doc-shell__action--quiet {
+  color: var(--doc-ink);
+  background: transparent;
+  border-color: var(--doc-rule);
+}
+
+.doc-shell__action--quiet:hover:not(:disabled) {
+  border-color: var(--doc-ink);
+}
+
+.doc-shell__action:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* On a narrow window the column is a bar: the mark, the contents, the actions. */
+@media (max-width: 63.99rem) {
+  .doc-shell__colophon,
+  .doc-shell__card-kicker,
+  .doc-shell__card-title {
+    display: none;
+  }
+
+  .doc-shell__card {
+    padding: 0;
+    border: 0;
+  }
+
+  .doc-shell__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-self: flex-start;
+  }
+}
+
+@media (min-width: 64rem) {
+  .doc-shell__sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    z-index: 10;
+    width: var(--doc-sidebar, 17rem);
+    padding: calc(var(--spacing) * 8) calc(var(--spacing) * 6);
+    overflow-y: auto;
+    scrollbar-width: none;
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--doc-rule);
+  }
+
+  .doc-nav__list {
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  /* In the column there is room to wrap: a long title is read whole. */
+  .doc-nav__link {
+    white-space: normal;
+  }
+
+  .doc-nav__label {
+    overflow-wrap: anywhere;
+  }
+
+  .doc-shell__sidebar-end {
+    margin-block-start: auto;
+  }
+
+  .doc-shell__main {
+    margin-inline-start: var(--doc-sidebar, 17rem);
+  }
+}
+
+/* The document */
+
+.doc-shell__main {
+  min-width: 0;
+}
+
+/* A part of the document: full width, ruled off from the next. */
+.doc-band {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 5);
+  padding: calc(var(--doc-band-pad) * 1.25) var(--doc-band-pad);
+  scroll-margin-top: calc(var(--spacing) * 4);
+  border-block-end: 1px solid var(--doc-rule);
+}
+
+.doc-band--last {
+  border-block-end: 0;
+}
+
+.doc-band__title {
+  font-family: var(--doc-head-font);
+  font-size: clamp(1.75rem, 5vw, 18.75rem);
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.doc-band__body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  min-width: 0;
+}
+
+@media (min-width: 60rem) {
+  /*
+   * A heading on the left, its words on the right. The heading keeps at
+   * least two fifths of the band, so the words line up down the page; a
+   * heading too long for that takes the row, and its words go under it
+   * rather than being run into.
+   */
+  .doc-band--split {
+    flex-flow: row wrap;
+    gap: calc(var(--spacing) * 6) calc(var(--spacing) * 10);
+    align-items: flex-start;
+  }
+
+  .doc-band--split > .doc-band__title {
+    flex: 0 0 auto;
+    min-width: calc(40% - var(--spacing) * 10);
+    max-width: 100%;
+  }
+
+  .doc-band--split > .doc-band__body {
+    flex: 1 1 20rem;
+  }
+}
+
+/* Paper: the column stays on screen, the document prints alone. */
+@media print {
+  .doc-shell {
+    display: block;
+  }
+
+  .doc-shell__sidebar {
+    display: none;
+  }
+
+  .doc-shell__main {
+    max-width: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .doc-band {
+    padding-inline: 0;
+  }
+
+  .doc-band__title {
+    break-after: avoid;
+  }
+}

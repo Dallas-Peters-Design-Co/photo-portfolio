@@ -27,7 +27,7 @@ export function ReviewPdfButton({ slug }: { slug: string }) {
   return (
     <span className="review-page__pdf-wrap">
       <button
-        className="review-page__pdf"
+        className="doc-shell__action review-page__pdf"
         disabled={isRendering}
         onClick={() => void download()}
         type="button"
