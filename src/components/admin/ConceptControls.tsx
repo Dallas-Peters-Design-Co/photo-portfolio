@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import type { ReviewConceptElementKind } from "../../../config/reviewConcept.js";
 import { Input } from "../ui/input";
 import {
   Select,
@@ -154,3 +155,29 @@ export function ConceptGroup({
     </div>
   );
 }
+
+/** The element types, as the add menus list them. */
+export const ELEMENT_KINDS = optionsOf([
+  ["text", "Text"],
+  ["icon", "Icon"],
+  ["button", "Button"],
+  ["input", "Input"],
+  ["textarea", "Text area"],
+  ["select", "Select"],
+  ["checkbox", "Checkbox"],
+  ["card", "Card"],
+  ["label", "Label"],
+  ["badge", "Badge"],
+  ["link", "Link"],
+  ["divider", "Divider"],
+  ["tabs", "Tabs"],
+  ["table", "Table"],
+  ["dialog", "Dialog"],
+  ["menu", "Dropdown menu"],
+  ["toast", "Toast"],
+  ["skeleton", "Skeleton loader"],
+]);
+
+/** A kind's menu label ("Dropdown menu" for menu), or the kind itself. */
+export const kindLabel = (kind: ReviewConceptElementKind): string =>
+  ELEMENT_KINDS.find((option) => option.value === kind)?.label ?? kind;

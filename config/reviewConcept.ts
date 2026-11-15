@@ -104,15 +104,75 @@ export interface ReviewConceptElement {
   kind: ReviewConceptElementKind;
   lineHeight: number;
   options?: string[];
+  /**
+   * The settings this element has set itself while following a kit style;
+   * every other style setting comes from the style (see conceptStyle.ts).
+   */
+  overrides?: ConceptStyleKey[];
   paddingX: number;
   paddingY: number;
   placeholder?: string;
   radius: number;
   shadow?: ConceptShadow;
+  /** The brand kit component style this element follows, if any. */
+  styleId?: string;
   /** Tables only: typed columns and rows (see conceptTable.ts). */
   table?: ConceptTable;
   text: string;
 }
+
+/**
+ * An element's look, as opposed to its content: what a brand kit component
+ * style sets. `tableBorders` and `tableHeader` stand for a table's borders and
+ * header colours, which live inside `table`.
+ */
+export const ELEMENT_STYLE_KEYS = [
+  "background",
+  "color",
+  "fontFamily",
+  "fontId",
+  "fontRef",
+  "fontSize",
+  "fontWeight",
+  "lineHeight",
+  "paddingX",
+  "paddingY",
+  "radius",
+  "borderColor",
+  "borderWidth",
+  "shadow",
+  "bodySize",
+  "iconColor",
+  "iconSize",
+] as const satisfies readonly (keyof ReviewConceptElement)[];
+
+export const CONCEPT_STYLE_KEYS = [
+  ...ELEMENT_STYLE_KEYS,
+  "tableBorders",
+  "tableHeader",
+] as const;
+
+export type ConceptStyleKey = (typeof CONCEPT_STYLE_KEYS)[number];
+
+/** A kit style's id, and an element's link to one. */
+export const STYLE_ID = /^[a-z0-9-]{1,64}$/i;
+
+const cleanLink = (
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "overrides" | "styleId"> => {
+  if (typeof raw.styleId !== "string" || !STYLE_ID.test(raw.styleId)) {
+    return {};
+  }
+  const overrides = (Array.isArray(raw.overrides) ? raw.overrides : []).filter(
+    (key, index, all): key is ConceptStyleKey =>
+      CONCEPT_STYLE_KEYS.includes(key as ConceptStyleKey) &&
+      all.indexOf(key) === index
+  );
+  return {
+    ...(overrides.length > 0 ? { overrides } : {}),
+    styleId: raw.styleId,
+  };
+};
 
 export interface ReviewConcept {
   align: "start" | "center" | "end" | "stretch";
@@ -284,7 +344,7 @@ const cleanOptions = (value: unknown): string[] | undefined => {
     .map((option) => str(option, 100));
 };
 
-const cleanElement = (value: unknown): ReviewConceptElement => {
+export const cleanElement = (value: unknown): ReviewConceptElement => {
   const raw = (value ?? {}) as Partial<ReviewConceptElement>;
   const font = fontSelection(raw.fontFamily, raw.fontRef, raw.fontId);
   const fontWeight = FONT_WEIGHTS.includes(
@@ -311,6 +371,7 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     ...(kind === "card" ? cleanCard(raw) : {}),
     ...cleanBorder(kind, raw),
     ...(table ? { table } : {}),
+    ...cleanLink(raw),
     text: str(raw.text, 500),
     ...(typeof raw.placeholder === "string"
       ? { placeholder: str(raw.placeholder, 200) }

@@ -14,6 +14,7 @@
  */
 
 import { describePalette } from "./colourWords.js";
+import { type ConceptStyle, cleanConceptStyles } from "./conceptStyle.js";
 import { isAdobeKitId, isFontFamilyName, isFontRef } from "./fontRef.js";
 import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
 import { sanitizeTypeScale, type TypeScale } from "./typeScale.js";
@@ -127,6 +128,11 @@ export interface BrandKitDoc {
    */
   adobeKitId: string | null;
   /**
+   * Buttons, badges, cards, tables… styled once here and followed by every
+   * review concept that picks them (config/conceptStyle.ts).
+   */
+  componentStyles: ConceptStyle[];
+  /**
    * The collection that is this brand's image library: photography, product
    * shots, past work. A link rather than a copy, so the library is managed
    * where collections already are and every app sees the same pictures.
@@ -158,6 +164,7 @@ export interface BrandKitDoc {
 
 export const EMPTY_KIT: BrandKitDoc = {
   adobeKitId: null,
+  componentStyles: [],
   libraryCollectionId: null,
   logos: [],
   look: null,
@@ -261,6 +268,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
   const raw = (input ?? {}) as Record<string, unknown>;
   return {
     adobeKitId: isAdobeKitId(raw.adobeKitId) ? raw.adobeKitId : null,
+    componentStyles: cleanConceptStyles(raw.componentStyles),
     libraryCollectionId:
       typeof raw.libraryCollectionId === "string" &&
       UUID.test(raw.libraryCollectionId)
@@ -362,6 +370,10 @@ export const resolveKitDoc = (
   }
   return {
     adobeKitId: child.adobeKitId ?? parent.adobeKitId,
+    componentStyles:
+      child.componentStyles.length > 0
+        ? child.componentStyles
+        : parent.componentStyles,
     libraryCollectionId:
       child.libraryCollectionId ?? parent.libraryCollectionId,
     logos: child.logos.length > 0 ? child.logos : parent.logos,
@@ -413,6 +425,9 @@ export const inheritedParts = (
   }
   if (child.references.length === 0 && parent.references.length > 0) {
     parts.push("references");
+  }
+  if (child.componentStyles.length === 0 && parent.componentStyles.length > 0) {
+    parts.push("components");
   }
   return parts;
 };

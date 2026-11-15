@@ -17,6 +17,7 @@ import {
   passwordProblem,
 } from "../_lib/reviewAccess.js";
 import { signDoc, storeDoc } from "../_lib/reviewImages.js";
+import { withKitStyles } from "../_lib/reviewStyles.js";
 import {
   isReviewStatus,
   REVIEW_SELECT,
@@ -104,6 +105,7 @@ type Viewer = ReturnType<typeof getBearerUser>;
 
 /** GET the review, or POST its password for a pass. */
 const read = async (
+  sql: Sql,
   req: VercelRequest,
   res: VercelResponse,
   row: ReviewRow | null,
@@ -121,7 +123,9 @@ const read = async (
   if (access && !user && !passValid(passOf(req), row.id, access)) {
     return res.status(401).json({ locked: true, title: row.title });
   }
-  return res.status(200).json(await signDoc(rowToReviewDto(row)));
+  return res
+    .status(200)
+    .json(await signDoc(await withKitStyles(sql, rowToReviewDto(row))));
 };
 
 const save = async (
@@ -189,7 +193,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const sql = getSql();
     const row = await loadBySlug(sql, slug);
     if (req.method === "GET" || req.method === "POST") {
-      return await read(req, res, row, user);
+      return await read(sql, req, res, row, user);
     }
     if (!user) {
       return res.status(401).json({ error: "Unauthorized" });

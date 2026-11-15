@@ -1,6 +1,12 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import {
+  applyConceptStyle,
+  type ConceptStyle,
+  linkStyle,
+  withOverrides,
+} from "../../../config/conceptStyle.js";
 import type {
   ReviewConcept,
   ReviewConceptElement,
@@ -18,6 +24,8 @@ import { Label } from "../ui/label";
 import {
   ConceptField,
   ConceptSelect,
+  ELEMENT_KINDS,
+  kindLabel,
   NumberField,
   optionsOf,
 } from "./ConceptControls";
@@ -26,6 +34,7 @@ import {
   addConceptElement,
   ConceptColorField,
   createConcept,
+  createConceptElement,
   duplicateConceptElement,
 } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
@@ -41,26 +50,6 @@ const ALIGNS = optionsOf([
   ["end", "End"],
   ["stretch", "Stretch"],
 ]);
-const KINDS = optionsOf([
-  ["text", "Text"],
-  ["icon", "Icon"],
-  ["button", "Button"],
-  ["input", "Input"],
-  ["textarea", "Text area"],
-  ["select", "Select"],
-  ["checkbox", "Checkbox"],
-  ["card", "Card"],
-  ["label", "Label"],
-  ["badge", "Badge"],
-  ["link", "Link"],
-  ["divider", "Divider"],
-  ["tabs", "Tabs"],
-  ["table", "Table"],
-  ["dialog", "Dialog"],
-  ["menu", "Dropdown menu"],
-  ["toast", "Toast"],
-  ["skeleton", "Skeleton loader"],
-]);
 
 function ConceptCard({
   brandDoc,
@@ -73,19 +62,61 @@ function ConceptCard({
   onChange: (next: ReviewConcept) => void;
   onRemove: () => void;
 }) {
-  const updateElement = (id: string, patch: Partial<ReviewConceptElement>) =>
-    onChange({
-      ...concept,
-      elements: concept.elements.map((element) =>
-        element.id === id ? { ...element, ...patch } : element
-      ),
-    });
+  // Elements as their kit styles draw them: what the preview shows and the
+  // fields edit. Saving them so keeps each one's own values current too.
+  const styles = brandDoc?.componentStyles ?? [];
+  const elements = concept.elements.map((element) =>
+    applyConceptStyle(element, styles)
+  );
+  const setElements = (next: ReviewConceptElement[]) =>
+    onChange({ ...concept, elements: next });
 
-  const addElement = (kind: ReviewConceptElementKind) =>
-    onChange({
-      ...concept,
-      elements: addConceptElement(concept.elements, kind, brandDoc),
-    });
+  const updateElement = (id: string, patch: Partial<ReviewConceptElement>) =>
+    setElements(
+      elements.map((element) =>
+        element.id === id
+          ? { ...element, ...withOverrides(element, patch) }
+          : element
+      )
+    );
+
+  const linkElement = (id: string, style: ConceptStyle | null) =>
+    setElements(
+      elements.map((element) =>
+        element.id === id ? linkStyle(element, style) : element
+      )
+    );
+
+  /** A kind ("button"), or a kit style ("style:<id>") to add already linked. */
+  const addElement = (choice: string) => {
+    const style = styles.find((s) => `style:${s.id}` === choice);
+    setElements(
+      style
+        ? [
+            ...elements,
+            linkStyle(createConceptElement(style.kind, brandDoc), style),
+          ]
+        : addConceptElement(
+            elements,
+            choice as ReviewConceptElementKind,
+            brandDoc
+          )
+    );
+  };
+  const addGroups = [
+    { label: "Components", options: ELEMENT_KINDS },
+    ...(styles.length > 0
+      ? [
+          {
+            label: "From the brand kit",
+            options: styles.map((style) => ({
+              label: `${kindLabel(style.kind)} · ${style.name}`,
+              value: `style:${style.id}`,
+            })),
+          },
+        ]
+      : []),
+  ];
 
   useEffect(() => {
     if (concept.fontRef) {
@@ -147,7 +178,7 @@ function ConceptCard({
             data-direction={concept.direction}
             style={previewStyle}
           >
-            {concept.elements.map((element) => (
+            {elements.map((element) => (
               <ReviewConceptElementView element={element} key={element.id} />
             ))}
           </div>
@@ -226,39 +257,28 @@ function ConceptCard({
               <Label>Elements</Label>
               <div className="review-concepts__add-actions">
                 <ConceptSelect
+                  groups={addGroups}
                   label="Add a component"
-                  onChange={(kind) =>
-                    addElement(kind as ReviewConceptElementKind)
-                  }
-                  options={KINDS}
+                  onChange={addElement}
                   placeholder="+ Add component"
                   value=""
                 />
               </div>
             </div>
-            {concept.elements.map((element) => (
+            {elements.map((element) => (
               <ReviewConceptElementFields
                 brandDoc={brandDoc}
                 element={element}
                 key={element.id}
                 onChange={(patch) => updateElement(element.id, patch)}
                 onDuplicate={() =>
-                  onChange({
-                    ...concept,
-                    elements: duplicateConceptElement(
-                      concept.elements,
-                      element.id
-                    ),
-                  })
+                  setElements(duplicateConceptElement(elements, element.id))
                 }
+                onLink={(style) => linkElement(element.id, style)}
                 onRemove={() =>
-                  onChange({
-                    ...concept,
-                    elements: concept.elements.filter(
-                      (item) => item.id !== element.id
-                    ),
-                  })
+                  setElements(elements.filter((item) => item.id !== element.id))
                 }
+                styles={styles.filter((style) => style.kind === element.kind)}
               />
             ))}
           </div>

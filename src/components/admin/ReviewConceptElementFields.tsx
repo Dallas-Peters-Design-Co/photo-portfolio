@@ -1,6 +1,7 @@
 import { ChevronDown, Copy, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import {
   type ReviewConceptElement,
   takesBorder,
@@ -43,6 +44,53 @@ const WEIGHTS = optionsOf([
   ["600", "Semibold"],
   ["700", "Bold"],
 ]);
+
+const CUSTOM = "custom";
+
+/**
+ * Which kit style the element follows, and how many settings it has set
+ * itself; Reset hands those back to the style.
+ */
+function StyleLink({
+  element,
+  onLink,
+  styles,
+}: {
+  element: ReviewConceptElement;
+  onLink: (style: ConceptStyle | null) => void;
+  styles: ConceptStyle[];
+}) {
+  const linked = styles.find((style) => style.id === element.styleId) ?? null;
+  const own = element.overrides?.length ?? 0;
+  return (
+    <div className="review-concepts__style-link">
+      {linked && own > 0 ? (
+        <Button
+          onClick={() => onLink(linked)}
+          size="xs"
+          title="Hand these settings back to the kit style"
+          type="button"
+          variant="ghost"
+        >
+          {own} {own === 1 ? "change" : "changes"} · Reset
+        </Button>
+      ) : null}
+      <div className="review-concepts__style-pick">
+        <ConceptSelect
+          label={`${element.kind} style`}
+          onChange={(id) =>
+            onLink(styles.find((style) => style.id === id) ?? null)
+          }
+          options={[
+            { label: "Custom", value: CUSTOM },
+            ...styles.map((style) => ({ label: style.name, value: style.id })),
+          ]}
+          value={linked?.id ?? CUSTOM}
+        />
+      </div>
+    </div>
+  );
+}
 
 const SUMMARY_LENGTH = 48;
 
@@ -121,35 +169,43 @@ function ContentGroup({
   );
 }
 
-export function ReviewConceptElementFields({
-  brandDoc,
+/** The element's name (the fold control), its kit style, and its actions. */
+function ElementBar({
+  bodyId,
   element,
-  onChange,
   onDuplicate,
+  onLink,
   onRemove,
+  onToggle,
+  open,
+  styles,
 }: {
-  brandDoc?: BrandKitDoc | null;
+  bodyId: string;
   element: ReviewConceptElement;
-  onChange: (patch: Patch) => void;
-  onDuplicate: () => void;
-  onRemove: () => void;
+  onDuplicate?: () => void;
+  onLink?: (style: ConceptStyle | null) => void;
+  onRemove?: () => void;
+  onToggle: () => void;
+  open: boolean;
+  styles: ConceptStyle[];
 }) {
-  const [open, setOpen] = useState(true);
-  const bodyId = useId();
   return (
-    <section aria-label={element.kind} className="review-concepts__element">
-      <header className="review-concepts__element-bar">
-        <button
-          aria-controls={bodyId}
-          aria-expanded={open}
-          className="review-concepts__element-toggle"
-          onClick={() => setOpen(!open)}
-          type="button"
-        >
-          <ChevronDown aria-hidden size={14} />
-          <span>{element.kind}</span>
-          {open ? null : <small>{summaryOf(element)}</small>}
-        </button>
+    <header className="review-concepts__element-bar">
+      <button
+        aria-controls={bodyId}
+        aria-expanded={open}
+        className="review-concepts__element-toggle"
+        onClick={onToggle}
+        type="button"
+      >
+        <ChevronDown aria-hidden size={14} />
+        <span>{element.kind}</span>
+        {open ? null : <small>{summaryOf(element)}</small>}
+      </button>
+      {onLink && styles.length > 0 ? (
+        <StyleLink element={element} onLink={onLink} styles={styles} />
+      ) : null}
+      {onDuplicate ? (
         <Button
           aria-label={`Duplicate ${element.kind}`}
           onClick={onDuplicate}
@@ -159,6 +215,8 @@ export function ReviewConceptElementFields({
         >
           <Copy size={13} />
         </Button>
+      ) : null}
+      {onRemove ? (
         <Button
           aria-label={`Remove ${element.kind}`}
           onClick={onRemove}
@@ -168,17 +226,64 @@ export function ReviewConceptElementFields({
         >
           <Trash2 size={13} />
         </Button>
-      </header>
-      {open ? (
+      ) : null}
+    </header>
+  );
+}
+
+export function ReviewConceptElementFields({
+  brandDoc,
+  element,
+  lookOnly = false,
+  onChange,
+  onDuplicate,
+  onLink,
+  onRemove,
+  styles = [],
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  /**
+   * The brand kit's style editor: only the look (type, box, border, shadow,
+   * colour, a table's header and borders), none of the content.
+   */
+  lookOnly?: boolean;
+  onChange: (patch: Patch) => void;
+  onDuplicate?: () => void;
+  /** Follow a kit style, or (null) stop following one. */
+  onLink?: (style: ConceptStyle | null) => void;
+  onRemove?: () => void;
+  /** The kit styles this element could follow: those of its kind. */
+  styles?: ConceptStyle[];
+}) {
+  const [open, setOpen] = useState(true);
+  const bodyId = useId();
+  return (
+    <section aria-label={element.kind} className="review-concepts__element">
+      {lookOnly ? null : (
+        <ElementBar
+          bodyId={bodyId}
+          element={element}
+          onDuplicate={onDuplicate}
+          onLink={onLink}
+          onRemove={onRemove}
+          onToggle={() => setOpen(!open)}
+          open={open}
+          styles={styles}
+        />
+      )}
+      {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
           {/* A table's content is its columns and rows. */}
           {element.kind === "table" ? (
             <ConceptTableFields
               brandDoc={brandDoc}
               element={element}
+              lookOnly={lookOnly}
               onChange={onChange}
             />
-          ) : (
+          ) : null}
+          {element.kind === "table" || lookOnly ? null : (
             <ContentGroup element={element} onChange={onChange} />
           )}
           {takesIcon(element.kind) ? (

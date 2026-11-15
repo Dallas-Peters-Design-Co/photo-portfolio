@@ -138,6 +138,17 @@
 }
 
 /* The whole name is the fold control: a wide target, not a small chevron. */
+/* The kit style an element follows, beside its name. */
+.review-concepts__style-link {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+}
+
+.review-concepts__style-pick {
+  width: 11rem;
+}
+
 .review-concepts__element-toggle {
   display: flex;
   flex: 1;
@@ -400,4 +411,39 @@
 > .review-concepts__card-preview {
   flex: 1 1 0;
   width: auto;
+}
+
+/* Brand kit component styles: a name bar, a sample on paper, the look. */
+.brand-kit-components__add {
+  width: 14rem;
+}
+
+.brand-kit-components__style {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 3);
+  border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
+}
+
+.brand-kit-components__head {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 18rem) auto;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.brand-kit-components__head > span {
+  font-size: var(--text-xs-ui);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+}
+
+/* Paper, as a concept preview is: a style is judged on the page it goes on. */
+.brand-kit-components__sample {
+  display: flex;
+  align-items: flex-start;
+  padding: calc(var(--spacing) * 6);
+  color: #172033;
+  background: #f2f4f7;
 }

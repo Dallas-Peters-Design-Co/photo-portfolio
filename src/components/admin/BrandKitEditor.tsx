@@ -15,6 +15,7 @@ import { useProofBoard } from "../../boards/brand/useProofBoard";
 import { type BrandKit, brandKitsApi } from "../../services/brandKitService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { BrandKitComponents } from "./BrandKitComponents";
 import {
   CssImport,
   LogoEditor,
@@ -57,6 +58,7 @@ import "./BrandKitsPanel.css";
 
 /** The editor's blocks, for Collapse all. */
 const BLOCK_IDS = [
+  "components",
   "preview",
   "palette",
   "css",
@@ -305,6 +307,15 @@ export function KitEditor({
           <TypefaceEditor doc={doc} onChange={setDoc} />
         )}
         {block("look", "Look", <LookPicker doc={doc} onChange={setDoc} />)}
+        {block(
+          "components",
+          "Components",
+          <BrandKitComponents
+            doc={doc}
+            effective={effective}
+            onChange={setDoc}
+          />
+        )}
         {block(
           "voice",
           "Voice",

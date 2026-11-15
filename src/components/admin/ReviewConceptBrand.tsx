@@ -2,10 +2,11 @@ import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
 import { DEFAULT_SHADOW } from "../../../config/conceptShadow.js";
 import { DEFAULT_TABLE } from "../../../config/conceptTable.js";
 import { newItemId } from "../../../config/proposal.js";
-import type {
-  ReviewConcept,
-  ReviewConceptElement,
-  ReviewConceptElementKind,
+import {
+  ELEMENT_STYLE_KEYS,
+  type ReviewConcept,
+  type ReviewConceptElement,
+  type ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
 import { ConceptSelect } from "./ConceptControls";
 
@@ -317,26 +318,6 @@ export function ConceptColorField({
   );
 }
 
-const STYLE_KEYS = [
-  "background",
-  "color",
-  "fontFamily",
-  "fontId",
-  "fontRef",
-  "fontSize",
-  "fontWeight",
-  "lineHeight",
-  "paddingX",
-  "paddingY",
-  "radius",
-  "borderColor",
-  "borderWidth",
-  "shadow",
-  "bodySize",
-  "iconColor",
-  "iconSize",
-] as const satisfies readonly (keyof ReviewConceptElement)[];
-
 /**
  * A new element takes the look of the last one of its kind, so a second
  * button matches the first without restyling it. Content stays the default.
@@ -352,7 +333,7 @@ export const addConceptElement = (
     return [...elements, fresh];
   }
   const isStyle = (key: string) =>
-    (STYLE_KEYS as readonly string[]).includes(key);
+    (ELEMENT_STYLE_KEYS as readonly string[]).includes(key);
   const content = Object.entries(fresh).filter(([key]) => !isStyle(key));
   const style = Object.entries(model).filter(([key]) => isStyle(key));
   return [
