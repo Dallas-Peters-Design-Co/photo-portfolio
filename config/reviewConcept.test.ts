@@ -239,3 +239,18 @@ describe("border and shadow on every box", () => {
     expect(text?.shadow).toBeUndefined();
   });
 });
+
+describe("colours with alpha", () => {
+  it("keeps #rrggbbaa and #rgba, and still drops anything else", () => {
+    const [box, short, bad] = cleanConcept({
+      elements: [
+        { background: "#ff000080", kind: "button" },
+        { background: "#f008", kind: "button" },
+        { background: "#ff00008", kind: "button" },
+      ],
+    }).elements;
+    expect(box?.background).toBe("#ff000080");
+    expect(short?.background).toBe("#f008");
+    expect(bad?.background).toBe("transparent");
+  });
+});

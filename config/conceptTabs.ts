@@ -1,3 +1,4 @@
+import { CONCEPT_HEX } from "./conceptColor.js";
 /**
  * A tabs element's look: the indicator under the active tab, the active and
  * inactive tab colours, and the row's height. Each is optional; without it
@@ -19,10 +20,8 @@ export const TAB_LIMITS = {
   indicatorSize: [1, 8],
 } as const;
 
-const HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
-
 const hex = <K extends string>(key: K, value: unknown) =>
-  typeof value === "string" && HEX_COLOR.test(value)
+  typeof value === "string" && CONCEPT_HEX.test(value)
     ? ({ [key]: value } as Record<K, string>)
     : {};
 

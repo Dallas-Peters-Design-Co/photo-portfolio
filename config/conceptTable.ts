@@ -1,3 +1,4 @@
+import { CONCEPT_HEX } from "./conceptColor.js";
 import {
   type ConceptIconSvg,
   cleanIconSvg,
@@ -93,7 +94,6 @@ export const MAX_TABLE_ROWS = 20;
 // Matches the 100 an older table's column names (options) were allowed.
 const MAX_LABEL = 100;
 const MAX_CELL = 200;
-const HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
 const CHIP_SPLIT = /\s*,\s*/;
 
 export const DEFAULT_TABLE: ConceptTable = {
@@ -116,7 +116,7 @@ const optionalHex = <K extends string>(
   key: K,
   value: unknown
 ): Partial<Record<K, string>> =>
-  typeof value === "string" && HEX_COLOR.test(value)
+  typeof value === "string" && CONCEPT_HEX.test(value)
     ? ({ [key]: value } as Record<K, string>)
     : {};
 

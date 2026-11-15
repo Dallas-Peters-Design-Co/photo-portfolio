@@ -318,13 +318,7 @@ export function ConceptColorField({
             />
           </div>
         ) : null}
-        <ColorWell
-          alpha={false}
-          label={ariaLabel}
-          noVars
-          onChange={onChange}
-          value={value}
-        />
+        <ColorWell label={ariaLabel} noVars onChange={onChange} value={value} />
       </div>
     </div>
   );

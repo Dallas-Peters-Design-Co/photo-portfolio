@@ -33,6 +33,8 @@ it("opens the OKLCH picker and takes a typed colour", async () => {
   expect(
     document.querySelector('[aria-label="Lightness and chroma"]')
   ).not.toBeNull();
+  // Concept colours may be see-through: the alpha strip is offered.
+  expect(document.querySelector('[aria-label="Alpha"]')).not.toBeNull();
   const field = document.querySelector(".oklch__text") as HTMLInputElement;
   await userEvent.clear(field);
   await userEvent.type(field, "#00ff00{Enter}");

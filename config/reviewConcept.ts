@@ -1,3 +1,4 @@
+import { CONCEPT_HEX } from "./conceptColor.js";
 import {
   type ConceptIconSvg,
   cleanIconSvg,
@@ -20,7 +21,6 @@ export const ALIGN_ITEMS = {
 } as const;
 const MAX_CONCEPT_ELEMENTS = 64;
 const MAX_TITLE = 160;
-const HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
 const FONT_ID = /^[a-z0-9-]{1,64}$/;
 const FONT_FAMILIES = ["sans", "serif", "mono", "brand", "app"] as const;
 const ELEMENT_KINDS: ReviewConceptElementKind[] = [
@@ -219,7 +219,7 @@ const str = (value: unknown, max: number): string =>
   typeof value === "string" ? value.slice(0, max) : "";
 
 const isHex = (value: unknown): value is string =>
-  typeof value === "string" && HEX_COLOR.test(value);
+  typeof value === "string" && CONCEPT_HEX.test(value);
 
 /** Kinds that may carry an icon beside their text; an icon element always has one. */
 const OPTIONAL_ICON_KINDS = new Set<ReviewConceptElementKind>([
@@ -319,7 +319,9 @@ const cleanColor = (value: unknown, fallback: string): string => {
   if (value === "transparent") {
     return value;
   }
-  return typeof value === "string" && HEX_COLOR.test(value) ? value : fallback;
+  return typeof value === "string" && CONCEPT_HEX.test(value)
+    ? value
+    : fallback;
 };
 
 const bounded = (

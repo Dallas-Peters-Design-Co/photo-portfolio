@@ -1,3 +1,4 @@
+import { CONCEPT_HEX } from "./conceptColor.js";
 /**
  * A concept card's drop shadow: one CSS box-shadow, edited field by field.
  *
@@ -33,8 +34,6 @@ export const shadowOf = (element: {
   element.shadow ??
   (element.kind === "card" ? DEFAULT_SHADOW : SHADOW_PRESETS.none);
 
-const HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
-
 /** The editable ranges, shared by the cleaner and the form. */
 export const SHADOW_LIMITS = {
   blur: [0, 128],
@@ -65,7 +64,7 @@ export const cleanShadow = (value: unknown): ConceptShadow | undefined => {
   return {
     blur: clamp(raw.blur, SHADOW_LIMITS.blur),
     color:
-      typeof raw.color === "string" && HEX_COLOR.test(raw.color)
+      typeof raw.color === "string" && CONCEPT_HEX.test(raw.color)
         ? raw.color
         : "#000000",
     opacity: clamp(raw.opacity, SHADOW_LIMITS.opacity),
