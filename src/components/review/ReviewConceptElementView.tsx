@@ -11,6 +11,13 @@ import {
 } from "../../../config/reviewConcept.js";
 import { findFont } from "../../../config/theme.js";
 import { iconFrom, useIconMap } from "../../cms/useIconMap";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 
 const ICON_SUFFIX = /Icon$/;
 
@@ -147,6 +154,45 @@ function InputPreview({
   );
 }
 
+/**
+ * A select drawn with the project's own Select, so it opens and reads the way
+ * the site's menus do. The element's colours, type, padding and corners still
+ * apply: the preview shows the design, the component supplies the behaviour.
+ * The text is the placeholder, as it was on the old native menu.
+ */
+function SelectPreview({
+  element,
+  style,
+  text,
+}: {
+  element: ReviewConceptElement;
+  style: CSSProperties;
+  text: string;
+}) {
+  const options = element.options ?? [];
+  return (
+    <Select
+      items={Object.fromEntries(options.map((option) => [option, option]))}
+    >
+      <SelectTrigger
+        aria-label={text}
+        style={{ ...style, height: "auto" }}
+        tone="inherit"
+        width="fit"
+      >
+        <SelectValue placeholder={text} />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((option) => (
+          <SelectItem key={option} value={option}>
+            {option}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 /** The text field inside an input's box: no box of its own. */
 const BARE_FIELD: CSSProperties = {
   background: "transparent",
@@ -223,14 +269,7 @@ export function ReviewConceptElementView({
         />
       );
     case "select":
-      return (
-        <select aria-label={text} style={style} value="">
-          <option value="">{text}</option>
-          {(element.options ?? []).map((option) => (
-            <option key={option}>{option}</option>
-          ))}
-        </select>
-      );
+      return <SelectPreview element={element} style={style} text={text} />;
     case "checkbox":
       return (
         <label className="review-concepts__checkbox-preview">

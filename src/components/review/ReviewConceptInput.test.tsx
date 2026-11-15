@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { afterEach, expect, it } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
+import { userEvent } from "vitest/browser";
 import { createConceptElement } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
@@ -47,4 +48,36 @@ it("draws a plain input when it has no icon", () => {
   );
   expect(host.querySelector("input")?.parentElement).toBe(host);
   expect(host.querySelector("svg")).toBeNull();
+});
+
+it("draws a select with the project Select: it opens, picks, and keeps the design", async () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("select"),
+          background: "#ffeedd",
+          options: ["Overview", "Settings"],
+        }}
+      />
+    )
+  );
+  const trigger = host.querySelector('[data-slot="select-trigger"]');
+  expect(trigger?.textContent).toContain("Choose an option");
+  expect(getComputedStyle(trigger as HTMLElement).backgroundColor).toBe(
+    "rgb(255, 238, 221)"
+  );
+
+  await userEvent.click(trigger as HTMLElement);
+  const settings = await vi.waitFor(() => {
+    const option = [...document.querySelectorAll('[role="option"]')].find(
+      (item) => item.textContent === "Settings"
+    );
+    if (!option) {
+      throw new Error("Menu not open");
+    }
+    return option as HTMLElement;
+  });
+  await userEvent.click(settings);
+  await vi.waitFor(() => expect(trigger?.textContent).toContain("Settings"));
 });
