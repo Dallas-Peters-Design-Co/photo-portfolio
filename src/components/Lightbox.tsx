@@ -78,7 +78,7 @@ export function Lightbox({
 
       {/* The backdrop's handler already ignores clicks that land on a
           descendant, so this wrapper needs no handler of its own. */}
-      <div className="max-h-[90vh] w-full max-w-8xl px-12">
+      <div className="max-h-lightbox w-full max-w-8xl px-12">
         {currentPhoto.showChrome ? (
           <BrowserChrome url={currentPhoto.chromeUrl}>
             {/* No max-height and no object-contain: inside the frame the
@@ -100,7 +100,7 @@ export function Lightbox({
           <motion.img
             alt={currentPhoto.title}
             animate={{ opacity: 1, scale: 1 }}
-            className="h-auto max-h-[80vh] w-full object-contain"
+            className="h-auto max-h-frame w-full object-contain"
             height={currentPhoto.height ?? undefined}
             initial={{ opacity: 0, scale: 0.9 }}
             key={currentPhoto.id}

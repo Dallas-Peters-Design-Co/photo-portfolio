@@ -128,7 +128,7 @@ export function InvoicesPanel() {
           </CardTitle>
           <div className="flex items-center gap-4">
             {outstanding > 0 ? (
-              <span className="text-[11px] text-sky-300/90 uppercase tracking-[0.16em]">
+              <span className="text-micro-sm text-sky-300/90 uppercase tracking-micro-wide">
                 {formatMoney(outstanding)} outstanding
               </span>
             ) : null}
@@ -182,7 +182,7 @@ export function InvoicesPanel() {
                     {formatMoney(inv.amountCents, inv.currency)}
                   </span>
                   <span
-                    className={`w-36 text-[11px] uppercase tracking-[0.16em] ${STATUS[inv.status].cls}`}
+                    className={`w-36 text-micro-sm uppercase tracking-micro-wide ${STATUS[inv.status].cls}`}
                   >
                     {STATUS[inv.status].label}
                   </span>
@@ -239,7 +239,7 @@ export function InvoicesPanel() {
           )}
 
           <section className="space-y-2">
-            <h3 className="text-[11px] text-white/70 uppercase tracking-[0.2em]">
+            <h3 className="text-micro-sm text-white/70 uppercase tracking-micro-widest">
               Templates
             </h3>
             {templates.length === 0 ? (

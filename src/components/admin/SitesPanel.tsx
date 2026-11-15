@@ -259,13 +259,11 @@ export function SitesPanel() {
 
       <CardContent layout="stack">
         {error ? (
-          <p className="text-[12px] text-amber-300/80 leading-relaxed">
-            {error}
-          </p>
+          <p className="text-amber-300/80 text-xs leading-relaxed">{error}</p>
         ) : null}
 
         {projects.length === 0 && !error ? (
-          <p className="text-[12px] text-white/60 leading-relaxed">
+          <p className="text-white/60 text-xs leading-relaxed">
             No sites created here yet. Sites that predate this panel are not
             listed — it shows projects deployed from this repository.
           </p>
@@ -278,7 +276,7 @@ export function SitesPanel() {
                 className="rounded-control border border-white/10 bg-black/30 px-3 py-2"
                 key={project.id}
               >
-                <p className="truncate text-[13px] text-white/90">
+                <p className="truncate text-micro-lg text-white/90">
                   {project.name}
                 </p>
                 <p className="text-sm text-white/40 uppercase">
@@ -403,7 +401,7 @@ export function SitesPanel() {
 
         {result ? (
           <div className="space-y-2 rounded-control border border-white/10 bg-black/40 p-3">
-            <p className="text-[12px] text-white/90">
+            <p className="text-white/90 text-xs">
               Created <strong>{result.name}</strong>. Still to do:
             </p>
             <ul className="space-y-1">

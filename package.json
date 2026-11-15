@@ -39,7 +39,7 @@
     "electron:dev": "electron .",
     "electron:dev-temp": "ELECTRON_ORIGIN=https://dallas-images-git-cover-node-dallaspeters.vercel.app electron .",
     "fix": "npx ultracite fix --claude",
-    "lint": "tsc --noEmit && tsx scripts/check-esm-imports.ts && tsx scripts/check-file-size.ts && tsx scripts/check-migrations.ts && tsx scripts/check-utilities.ts src/boards && tsx scripts/check-utilities.ts src/pages",
+    "lint": "tsc --noEmit && tsx scripts/check-esm-imports.ts && tsx scripts/check-file-size.ts && tsx scripts/check-migrations.ts && tsx scripts/check-utilities.ts src/boards && tsx scripts/check-utilities.ts src/pages && oxlint src",
     "lint:ui": "oxlint src",
     "lora:upload": "tsx scripts/upload-lora.ts",
     "openapi": "tsx scripts/generate-openapi.ts",

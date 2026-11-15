@@ -246,10 +246,7 @@ export function ProposalPackagesEditor({
           </Button>
         </div>
         {doc.addOns.map((addOn) => (
-          <div
-            className="grid gap-3 sm:grid-cols-[2fr_1fr_auto]"
-            key={addOn.id}
-          >
+          <div className="grid gap-3 sm:grid-cols-package" key={addOn.id}>
             <Input
               aria-label="Add-on name"
               onChange={(e) => updateAddOn(addOn.id, { name: e.target.value })}

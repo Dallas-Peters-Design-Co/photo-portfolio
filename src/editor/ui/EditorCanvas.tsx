@@ -85,7 +85,7 @@ export function EditorCanvas({
   return (
     <main className="relative flex min-w-0 flex-1 flex-col">
       <header className="flex h-12 shrink-0 items-center justify-between border-white/[0.07] border-b px-6">
-        <span className="truncate text-sm text-white/90 uppercase tracking-[0.22em]">
+        <span className="truncate text-sm text-white/90 uppercase tracking-micro-widest">
           {title}
         </span>
         <div className="flex items-center gap-5">
@@ -116,7 +116,7 @@ export function EditorCanvas({
         ref={areaRef}
       >
         {loadError ? (
-          <p className="max-w-xs text-center text-sm text-white/90 uppercase leading-relaxed tracking-[0.12em]">
+          <p className="max-w-xs text-center text-sm text-white/90 uppercase leading-relaxed tracking-micro">
             {loadError}
           </p>
         ) : (
@@ -144,7 +144,7 @@ export function EditorCanvas({
               </>
             ) : null}
             {isReady ? null : (
-              <span className="absolute text-sm text-white/80 uppercase tracking-[0.3em]">
+              <span className="absolute text-sm text-white/80 uppercase tracking-stamped">
                 Loading
               </span>
             )}

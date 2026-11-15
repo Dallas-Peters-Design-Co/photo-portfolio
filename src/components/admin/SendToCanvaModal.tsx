@@ -55,7 +55,7 @@ function TemplatePicker({
   return (
     <>
       <p className="mt-4 mb-2 text-board-ink/35 text-sm uppercase">Design</p>
-      <div className="grid max-h-52 grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-2 overflow-y-auto">
+      <div className="grid max-h-52 grid-cols-tiles gap-2 overflow-y-auto">
         {templates.map((template) => (
           <button
             className={`relative aspect-square overflow-hidden rounded-lg border transition-colors ${
@@ -117,7 +117,7 @@ function TemplatePicker({
       ) : null}
 
       {chosen && fieldsStatus === "empty" ? (
-        <p className="mt-4 text-[12px] text-amber-200/90 leading-relaxed">
+        <p className="mt-4 text-amber-200/90 text-xs leading-relaxed">
           This template has no autofill image fields, so a photo can't be placed
           into it. In Canva, open the template and enable its autofill fields,
           then reload.
@@ -125,7 +125,7 @@ function TemplatePicker({
       ) : null}
 
       {upsellUrl ? (
-        <p className="mt-4 rounded-control border border-amber-300/30 bg-amber-400/10 p-3 text-[12px] text-amber-200/90 leading-relaxed">
+        <p className="mt-4 rounded-control border border-amber-300/30 bg-amber-400/10 p-3 text-amber-200/90 text-xs leading-relaxed">
           You've used up Canva's free autofill trial, so the image can't be
           placed into a design.{" "}
           <a
@@ -312,7 +312,7 @@ export function SendToCanvaModal({
   const isSending = stage.kind === "sending";
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-6">
       <button
         aria-label="Cancel"
         className="absolute inset-0 cursor-default bg-board-surface/70 backdrop-blur-sm"
@@ -321,7 +321,7 @@ export function SendToCanvaModal({
         type="button"
       />
 
-      <div className="relative flex max-h-full w-[min(92vw,42rem)] flex-col overflow-hidden rounded-xl border border-board-ink/15 bg-board-panel shadow-2xl">
+      <div className="relative flex max-h-full w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-board-ink/15 bg-board-panel shadow-2xl">
         <header className="shrink-0 border-board-ink/10 border-b px-4 py-3">
           <h2 className="text-board-ink text-sm uppercase">Send to Canva</h2>
           <p className="mt-1 text-board-ink/45 text-sm leading-relaxed">
@@ -339,7 +339,7 @@ export function SendToCanvaModal({
               width={80}
             />
             <div className="min-w-0">
-              <p className="truncate text-[13px] text-board-ink">{name}</p>
+              <p className="truncate text-board-ink text-micro-lg">{name}</p>
               {stage.kind === "connecting" ? (
                 <p className="mt-1 text-board-ink/50 text-sm leading-relaxed">
                   {templates.length === 0
@@ -351,21 +351,21 @@ export function SendToCanvaModal({
           </div>
 
           {stage.kind === "unconfigured" ? (
-            <p className="mt-4 text-[12px] text-red-300/90 leading-relaxed">
+            <p className="mt-4 text-red-300/90 text-xs leading-relaxed">
               Canva is not connected. Set CANVA_CLIENT_ID to enable it, then
               reload.
             </p>
           ) : null}
 
           {stage.kind === "done" ? (
-            <p className="mt-4 text-[12px] text-emerald-200/90 leading-relaxed">
+            <p className="mt-4 text-emerald-200/90 text-xs leading-relaxed">
               Your design is ready. Open it in Canva to edit, then save it to
               your brand.
             </p>
           ) : null}
 
           {stage.kind === "sending" ? (
-            <p className="mt-4 text-[12px] text-board-ink/50 leading-relaxed">
+            <p className="mt-4 text-board-ink/50 text-xs leading-relaxed">
               Uploading your image and building the design… this can take a
               minute.
             </p>
@@ -373,7 +373,7 @@ export function SendToCanvaModal({
 
           {stage.kind === "connecting" && templates.length === 0 ? (
             <button
-              className="mt-4 rounded-control bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25"
+              className="mt-4 rounded-control bg-board-ink/15 px-3 py-1.5 text-board-ink text-xs hover:bg-board-ink/25"
               onClick={() => void connect()}
               type="button"
             >
@@ -382,7 +382,7 @@ export function SendToCanvaModal({
           ) : null}
 
           {stage.kind === "templates" && templates.length === 0 ? (
-            <p className="mt-4 text-[12px] text-board-ink/50 leading-relaxed">
+            <p className="mt-4 text-board-ink/50 text-xs leading-relaxed">
               No brand templates found. Publish one from Canva first, then
               reload.
             </p>
@@ -404,7 +404,7 @@ export function SendToCanvaModal({
 
         <footer className="flex shrink-0 items-center justify-end gap-2 border-board-ink/10 border-t px-4 py-3">
           <button
-            className="rounded-control px-2.5 py-1.5 text-[12px] text-board-ink/50 hover:text-board-ink"
+            className="rounded-control px-2.5 py-1.5 text-board-ink/50 text-xs hover:text-board-ink"
             onClick={onClose}
             type="button"
           >
@@ -412,7 +412,7 @@ export function SendToCanvaModal({
           </button>
           {stage.kind === "done" ? (
             <a
-              className="rounded-control bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25"
+              className="rounded-control bg-board-ink/15 px-3 py-1.5 text-board-ink text-xs hover:bg-board-ink/25"
               href={designUrl}
               rel="noopener"
               target="_blank"
@@ -421,7 +421,7 @@ export function SendToCanvaModal({
             </a>
           ) : (
             <button
-              className="rounded-control bg-board-ink/15 px-3 py-1.5 text-[12px] text-board-ink hover:bg-board-ink/25 disabled:opacity-40"
+              className="rounded-control bg-board-ink/15 px-3 py-1.5 text-board-ink text-xs hover:bg-board-ink/25 disabled:opacity-40"
               disabled={!readyToSend || isSending}
               onClick={() => void send()}
               type="button"

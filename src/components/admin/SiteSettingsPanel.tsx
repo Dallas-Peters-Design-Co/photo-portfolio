@@ -359,7 +359,7 @@ export function SiteSettingsPanel() {
               color: draft.theme.foreground,
             }}
           >
-            <p className="text-sm uppercase tracking-[0.3em] opacity-40">
+            <p className="text-sm uppercase tracking-stamped opacity-40">
               Preview
             </p>
             <p

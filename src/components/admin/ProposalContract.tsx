@@ -174,12 +174,12 @@ export function ProposalContract({
   return (
     <section className="space-y-5 rounded-md border border-white/10 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="flex items-center gap-2 text-[11px] text-white/70 uppercase tracking-[0.2em]">
+        <h3 className="flex items-center gap-2 text-micro-sm text-white/70 uppercase tracking-micro-widest">
           <FileSignature size={14} /> Agreement
         </h3>
         {status ? (
           <span
-            className={`text-[11px] uppercase tracking-[0.16em] ${status.cls}`}
+            className={`text-micro-sm uppercase tracking-micro-wide ${status.cls}`}
           >
             {status.label}
           </span>
@@ -386,7 +386,7 @@ function ContractActions({
         </Button>
       ) : null}
       <a
-        className="inline-flex items-center gap-1 text-[11px] text-white/80 uppercase tracking-[0.16em] hover:text-white"
+        className="inline-flex items-center gap-1 text-micro-sm text-white/80 uppercase tracking-micro-wide hover:text-white"
         href={`/contract/${contract.id}`}
         rel="noreferrer"
         target="_blank"
@@ -395,7 +395,7 @@ function ContractActions({
         {contract.status === "draft" ? "Preview" : "Open"}
       </a>
       <button
-        className="text-[11px] text-white/80 uppercase tracking-[0.16em] hover:text-white disabled:text-white/40"
+        className="text-micro-sm text-white/80 uppercase tracking-micro-wide hover:text-white disabled:text-white/40"
         disabled={busy}
         onClick={() =>
           void downloadPagePdf(

@@ -171,7 +171,7 @@ export function ProposalInvoices({
       </div>
 
       {stripe ? null : (
-        <p className="text-[12px] text-amber-300/80">
+        <p className="text-amber-300/80 text-xs">
           Stripe isn't connected yet. Drafts work; sending needs
           STRIPE_SECRET_KEY in Vercel.
         </p>
@@ -211,13 +211,13 @@ export function ProposalInvoices({
                 {formatMoney(invoice.amountCents, invoice.currency)}
               </span>
               <span
-                className={`text-sm uppercase tracking-[0.16em] ${STATUS[invoice.status].cls}`}
+                className={`text-sm uppercase tracking-micro-wide ${STATUS[invoice.status].cls}`}
               >
                 {STATUS[invoice.status].label}
               </span>
               {invoice.hostedUrl ? (
                 <a
-                  className="inline-flex items-center gap-1 text-[12px] text-white/70 hover:text-white"
+                  className="inline-flex items-center gap-1 text-white/70 text-xs hover:text-white"
                   href={invoice.hostedUrl}
                   rel="noreferrer"
                   target="_blank"

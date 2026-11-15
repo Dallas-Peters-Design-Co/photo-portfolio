@@ -65,7 +65,7 @@ export function InvoiceDraftRow({
 
   return (
     <li className="space-y-3 rounded-md border border-amber-300/20 p-3">
-      <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
+      <div className="grid gap-3 sm:grid-cols-label-field">
         <div className="space-y-1.5">
           <Label htmlFor={`inv-amount-${id}`}>Amount (USD)</Label>
           <Input
@@ -97,7 +97,7 @@ export function InvoiceDraftRow({
           />
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
+      <div className="grid gap-3 sm:grid-cols-field-amount">
         <div className="space-y-1.5">
           <Label htmlFor={`inv-email-${id}`}>Send to</Label>
           <Input
@@ -153,7 +153,7 @@ export function InvoiceDraftRow({
           <Trash2 size={14} /> Delete draft
         </Button>
         {reason ? (
-          <span className="text-amber-400/70 text-sm uppercase tracking-[0.16em]">
+          <span className="text-amber-400/70 text-sm uppercase tracking-micro-wide">
             {reason}
           </span>
         ) : null}

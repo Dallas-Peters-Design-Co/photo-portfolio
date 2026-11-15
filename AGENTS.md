@@ -70,10 +70,12 @@ pnpm test     # vitest in real Chromium — canvas code needs a real canvas,
 pnpm lint     # tsc --noEmit + the 500-line ceiling
 pnpm api:docs # regenerate openapi.json, openapi.yaml and bruno/
 pnpm dlx ultracite check
-pnpm lint:ui  # @shadcn/lint via Oxlint (.oxlintrc.json): design-system rules
-              # for the Tailwind code. Errors, not yet in `pnpm lint` or CI
-              # while existing findings are cleared. Run it after any UI
-              # change and fix what it reports in the files you touched.
+pnpm lint:ui  # @shadcn/lint via Oxlint (.oxlintrc.json): no arbitrary
+              # values, no restyling a ui component. Part of `pnpm lint`, so
+              # CI fails on any finding. A component's look lives in
+              # src/components/ui as a variant; call sites pick a variant and
+              # put layout on a wrapper. Missing a token? Add it to
+              # src/index.css (@theme, or an @utility) rather than [value].
 ```
 
 ## Giving local development its own database

@@ -187,10 +187,7 @@ export function InvoiceComposer({
       <div className="space-y-2">
         <span className={proposalLabelClass}>Lines</span>
         {lines.map((line) => (
-          <div
-            className="grid grid-cols-[minmax(0,1fr)_9rem_auto] gap-2"
-            key={line.key}
-          >
+          <div className="grid grid-cols-line-item gap-2" key={line.key}>
             <Input
               aria-label="Description"
               onChange={(e) =>
@@ -245,7 +242,7 @@ export function InvoiceComposer({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
+      <div className="grid gap-3 sm:grid-cols-label-field">
         <div className="space-y-1.5">
           <Label htmlFor="inv-due">Due in (days)</Label>
           <Input

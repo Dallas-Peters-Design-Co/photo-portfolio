@@ -22,7 +22,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
   return (
     <div className="flex flex-col gap-5">
       <div>
-        <p className="mb-2 text-sm text-white/60 uppercase tracking-[0.22em]">
+        <p className="mb-2 text-sm text-white/60 uppercase tracking-micro-widest">
           Rotate
         </p>
         <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export function CropPanel({ isDisabled, onChange, transform }: CropPanelProps) {
 
       <div>
         <div className="mb-2 flex items-baseline justify-between">
-          <p className="text-sm text-white/60 uppercase tracking-[0.22em]">
+          <p className="text-sm text-white/60 uppercase tracking-micro-widest">
             Free rotate
           </p>
           <span className="font-mono text-sm text-white/80 tabular-nums">

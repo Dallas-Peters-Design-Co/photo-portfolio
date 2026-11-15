@@ -111,7 +111,7 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
           <div className="sticky top-0 z-10 border-white/10 border-b bg-black p-2">
             <input
               autoFocus
-              className="min-h-9 w-full rounded-control border border-white/10 bg-black/60 px-2 text-[12px] text-white/90 outline-none focus:border-white/40"
+              className="min-h-9 w-full rounded-control border border-white/10 bg-black/60 px-2 text-white/90 text-xs outline-none focus:border-white/40"
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search icons…"
               type="search"
@@ -143,7 +143,7 @@ export function IconPicker({ value, onChange, id }: IconPickerProps) {
 
           {matches.map((group) => (
             <div className="border-white/6 border-t" key={group.label}>
-              <p className="px-3 pt-3 pb-1.5 text-sm text-white/80 uppercase tracking-[0.22em]">
+              <p className="px-3 pt-3 pb-1.5 text-sm text-white/80 uppercase tracking-micro-widest">
                 {group.label}
               </p>
               <div className="grid grid-cols-6 gap-px p-1">

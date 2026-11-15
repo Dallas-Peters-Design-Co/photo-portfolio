@@ -224,7 +224,7 @@ export function PagesPanel() {
       ) : null}
 
       {pages.length === 0 ? (
-        <p className="text-sm text-white/80 uppercase tracking-[0.15em]">
+        <p className="text-sm text-white/80 uppercase tracking-gate-tight">
           No pages yet. Create one and it appears under the site title once
           published.
         </p>
@@ -245,7 +245,7 @@ export function PagesPanel() {
                     </span>
                   </button>
                   <a
-                    className="text-sm text-white/90 uppercase tracking-[0.16em] transition-colors hover:text-white"
+                    className="text-sm text-white/90 uppercase tracking-micro-wide transition-colors hover:text-white"
                     href={`/${page.slug}`}
                     rel="noreferrer"
                     target="_blank"
@@ -391,7 +391,7 @@ function PageEditorPanel({
             </Button>
 
             <span
-              className={`text-sm uppercase tracking-[0.16em] ${
+              className={`text-sm uppercase tracking-micro-wide ${
                 draft.status === "published"
                   ? "text-emerald-400/70"
                   : "text-amber-400/70"

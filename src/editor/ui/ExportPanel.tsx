@@ -97,7 +97,7 @@ export function ExportPanel({
       </dl>
 
       {tooLarge ? (
-        <p className="text-amber-400/70 text-sm leading-relaxed tracking-[0.05em]">
+        <p className="text-amber-400/70 text-sm leading-relaxed tracking-wider">
           Over the {formatBytes(MAX_UPLOAD_BYTES)} upload limit. Lower the
           quality or the longest edge.
         </p>

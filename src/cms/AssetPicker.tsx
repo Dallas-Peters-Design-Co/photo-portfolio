@@ -174,7 +174,7 @@ export function AssetPicker({ onChoose, onClose }: AssetPickerProps) {
       <div
         aria-label="Choose an asset"
         aria-modal
-        className="relative flex max-h-[80vh] w-full max-w-3xl flex-col gap-3 rounded-lg border border-white/10 bg-neutral-900 p-4 shadow-xl"
+        className="relative flex max-h-frame w-full max-w-3xl flex-col gap-3 rounded-lg border border-white/10 bg-neutral-900 p-4 shadow-xl"
         role="dialog"
       >
         <div className="flex items-center gap-2">

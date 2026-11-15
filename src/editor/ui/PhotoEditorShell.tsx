@@ -131,7 +131,7 @@ export function PhotoEditorShell({
 
       <aside className="flex w-69 shrink-0 flex-col border-white/[0.07] border-r">
         <header className="flex h-12 shrink-0 items-center border-white/[0.07] border-b px-5">
-          <h2 className="text-sm text-white/90 uppercase tracking-[0.28em]">
+          <h2 className="text-sm text-white/90 uppercase tracking-stamped">
             {TOOLS.find((t) => t.id === tool)?.label}
           </h2>
         </header>

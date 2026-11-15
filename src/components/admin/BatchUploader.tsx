@@ -462,7 +462,7 @@ export function BatchUploader({
                 {isRunning ? "Uploading…" : `Upload ${pendingCount}`}
               </Button>
               {doneCount > 0 ? (
-                <span className="text-sm text-white/90 uppercase tracking-[0.16em]">
+                <span className="text-sm text-white/90 uppercase tracking-micro-wide">
                   {doneCount} of {items.length} done
                 </span>
               ) : null}

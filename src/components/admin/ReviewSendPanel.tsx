@@ -90,7 +90,7 @@ export function ReviewSendPanel({
           {label}
         </Button>
         {canSend ? null : (
-          <span className="text-amber-400/70 text-sm uppercase tracking-[0.16em]">
+          <span className="text-amber-400/70 text-sm uppercase tracking-micro-wide">
             {reason}
           </span>
         )}

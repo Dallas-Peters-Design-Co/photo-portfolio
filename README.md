@@ -537,6 +537,8 @@ the real click fails.
    `-- migration-safety: <why>` comment on the line before.
 5. `check:utilities` — no Tailwind utility classes in `src/boards` or
    `src/pages`; BEM classes only.
+6. `oxlint src` — `@shadcn/lint`: no arbitrary values, no restyling a ui
+   component (see below).
 
 Also:
 
@@ -549,7 +551,9 @@ Also:
   values). Other rules — `no-restyle`, `no-raw-colors`, `no-inline-styles`,
   `no-unknown-classes`, `require-static-classes` — are added in that file;
   see the [rule docs](https://github.com/shadcn-ui/lint/blob/main/README.md#rules).
-  Not yet part of `pnpm lint` or CI.
+  `no-restyle` is on too: a ui component's look is a variant in
+  `src/components/ui`, never classes at the call site. Both run in
+  `pnpm lint`, so CI fails on any finding.
 - **CI** (`.github/workflows/ci.yml`, on push to `main` and PRs): install,
   Playwright Chromium, `pnpm lint`, `ultracite check`, `pnpm test`,
   `pnpm build`, and the OpenAPI drift check.

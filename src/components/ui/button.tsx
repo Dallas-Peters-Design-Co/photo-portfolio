@@ -37,26 +37,25 @@ const buttonVariants = cva(
   // also animate layout properties and cost a frame on every state change.
   // Press feedback is suppressed on menu triggers (`aria-haspopup`), where the
   // button stays put while a popup opens against it.
-  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-control border border-transparent bg-clip-padding font-medium outline-none transition-[color,background-color,border-color,scale] duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:scale-[0.96] disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "group/button inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-control border border-transparent bg-clip-padding font-medium outline-none transition duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:scale-96 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     compoundVariants: [
       {
         class:
-          "border-[var(--btn-danger-border)] text-[var(--btn-danger-fg)] hover:border-[var(--btn-danger-hover-border)] hover:bg-[var(--btn-danger-hover-bg)] hover:text-[var(--btn-danger-hover-fg)]",
+          "border-btn-danger-border text-btn-danger-fg hover:border-btn-danger-hover-border hover:bg-btn-danger-hover-bg hover:text-btn-danger-hover-fg",
         tone: "danger",
         variant: "outline",
       },
       {
         // Calm at rest, red on intent. A row of icon actions should not be a
         // wall of red, and the label already says "Delete".
-        class:
-          "hover:bg-[var(--btn-danger-hover-bg)] hover:text-[var(--btn-danger-fg)]",
+        class: "hover:bg-btn-danger-hover-bg hover:text-btn-danger-fg",
         tone: "danger",
         variant: "ghost",
       },
       {
         class:
-          "bg-[var(--btn-danger-solid-bg)] text-[var(--btn-danger-solid-fg)] hover:bg-[var(--btn-danger-solid-hover-bg)]",
+          "bg-btn-danger-solid-bg text-btn-danger-solid-fg hover:bg-btn-danger-solid-hover-bg",
         tone: "danger",
         variant: "default",
       },
@@ -86,10 +85,9 @@ const buttonVariants = cva(
         // extended past the visible box with a pseudo-element rather than by
         // growing the art. Only use these where nothing sits within ~8px, or
         // the invisible targets will overlap.
-        "icon-sm":
-          "relative size-8 after:absolute after:-inset-1 after:content-['']",
+        "icon-sm": "relative size-8 after:absolute after:-inset-1",
         "icon-xs":
-          "relative size-6 after:absolute after:-inset-2 after:content-[''] [&_svg:not([class*='size-'])]:size-3",
+          "relative size-6 after:absolute after:-inset-2 [&_svg:not([class*='size-'])]:size-3",
         // The tall, wide call to action — "Save settings", "Add photos".
         lg: "min-h-12 gap-2 px-8 text-sm uppercase tracking-widest",
         sm: "min-h-11 gap-1.5 px-3 text-xs uppercase tracking-widest",
@@ -114,7 +112,7 @@ const buttonVariants = cva(
          * button must already carry for screen readers, so the state is stated
          * once instead of once for assistive tech and again in a ternary.
          */
-        accent: "aria-pressed:text-[var(--btn-accent-fg)]",
+        accent: "aria-pressed:text-btn-accent-fg",
         danger: "",
         default: "",
         /** The board is published: its link and globe say so in green. */
@@ -122,20 +120,20 @@ const buttonVariants = cva(
       },
       variant: {
         default:
-          "bg-primary text-primary-foreground hover:bg-[var(--btn-solid-hover-bg)]",
+          "bg-primary text-primary-foreground hover:bg-btn-solid-hover-bg",
         ghost:
-          "text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
+          "text-btn-fg hover:bg-btn-ghost-hover-bg hover:text-btn-fg-strong aria-expanded:bg-btn-ghost-hover-bg aria-expanded:text-btn-fg-strong",
         /** The board editor's header: ink on the paper, pressed when on. */
         header:
           "text-board-ink/70 hover:text-board-ink aria-pressed:bg-board-ink/10 aria-pressed:text-board-ink",
-        link: "text-[var(--btn-fg)] underline-offset-4 hover:text-[var(--btn-fg-strong)] hover:underline",
+        link: "text-btn-fg underline-offset-4 hover:text-btn-fg-strong hover:underline",
         noborder:
-          "text-[var(--btn-fg)] hover:bg-[var(--btn-ghost-hover-bg)] hover:text-[var(--btn-fg-strong)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
+          "text-btn-fg hover:bg-btn-ghost-hover-bg hover:text-btn-fg-strong aria-expanded:bg-btn-ghost-hover-bg aria-expanded:text-btn-fg-strong",
         outline:
-          "border-[var(--btn-border)] text-[var(--btn-fg)] hover:bg-[var(--btn-hover-bg)] hover:text-[var(--btn-hover-fg)] aria-expanded:bg-[var(--btn-ghost-hover-bg)] aria-expanded:text-[var(--btn-fg-strong)]",
+          "border-btn-border text-btn-fg hover:bg-btn-hover-bg hover:text-btn-hover-fg aria-expanded:bg-btn-ghost-hover-bg aria-expanded:text-btn-fg-strong",
         // A pressed/selected toggle, e.g. the board's stacked-view switch.
         selected:
-          "border-[var(--btn-selected-border)] bg-[var(--btn-selected-bg)] text-[var(--btn-fg-strong)] hover:bg-[var(--btn-hover-bg)] hover:text-[var(--btn-hover-fg)]",
+          "border-btn-selected-border bg-btn-selected-bg text-btn-fg-strong hover:bg-btn-hover-bg hover:text-btn-hover-fg",
       },
     },
   }

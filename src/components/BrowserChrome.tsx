@@ -23,16 +23,16 @@ interface BrowserChromeProps {
  */
 export function BrowserChrome({ children, url }: BrowserChromeProps) {
   return (
-    <div className="flex max-h-[78vh] w-full flex-col overflow-hidden rounded-xl bg-[#141416] shadow-2xl ring-1 ring-white/10">
-      <div className="flex shrink-0 items-center gap-3 border-white/8 border-b bg-[#18181b] px-4 py-3">
+    <div className="flex max-h-frame w-full flex-col overflow-hidden rounded-xl bg-chrome-frame shadow-2xl ring-1 ring-white/10">
+      <div className="flex shrink-0 items-center gap-3 border-white/8 border-b bg-zinc-900 px-4 py-3">
         <div aria-hidden className="flex shrink-0 gap-2">
-          <span className="size-3 rounded-full bg-[#fc2f24]" />
-          <span className="size-3 rounded-full bg-[#fbad04]" />
-          <span className="size-3 rounded-full bg-[#01a019]" />
+          <span className="size-3 rounded-full bg-chrome-close" />
+          <span className="size-3 rounded-full bg-chrome-minimize" />
+          <span className="size-3 rounded-full bg-chrome-zoom" />
         </div>
 
         {url ? (
-          <div className="min-w-0 flex-1 rounded-md bg-[#2a2a2d] px-3 py-1.5">
+          <div className="min-w-0 flex-1 rounded-md bg-chrome-field px-3 py-1.5">
             <p className="truncate text-center font-sans text-sm text-white/55 lowercase tracking-normal">
               {url}
             </p>
@@ -41,7 +41,7 @@ export function BrowserChrome({ children, url }: BrowserChromeProps) {
 
         {/* Balances the traffic lights so a url with no trailing control still
             reads as centred in the bar. */}
-        <div aria-hidden className="w-[52px] shrink-0" />
+        <div aria-hidden className="w-13 shrink-0" />
       </div>
 
       {/* The scroll container. `overscroll-contain` stops a flick at the end of

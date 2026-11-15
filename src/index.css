@@ -236,6 +236,29 @@
 }
 
 @theme inline {
+  /* The button colours as theme colours (text-btn-fg, hover:bg-btn-hover-bg,
+     ...), so Button needs no arbitrary values. Inline, so a surface that
+     re-points --btn-* (the board, data-surface="board") still recolours them. */
+  --color-btn-accent-fg: var(--btn-accent-fg);
+  --color-btn-border: var(--btn-border);
+  --color-btn-danger-border: var(--btn-danger-border);
+  --color-btn-danger-fg: var(--btn-danger-fg);
+  --color-btn-danger-hover-bg: var(--btn-danger-hover-bg);
+  --color-btn-danger-hover-border: var(--btn-danger-hover-border);
+  --color-btn-danger-hover-fg: var(--btn-danger-hover-fg);
+  --color-btn-danger-solid-bg: var(--btn-danger-solid-bg);
+  --color-btn-danger-solid-fg: var(--btn-danger-solid-fg);
+  --color-btn-danger-solid-hover-bg: var(--btn-danger-solid-hover-bg);
+  --color-btn-fg: var(--btn-fg);
+  --color-btn-fg-strong: var(--btn-fg-strong);
+  --color-btn-ghost-hover-bg: var(--btn-ghost-hover-bg);
+  --color-btn-hover-bg: var(--btn-hover-bg);
+  --color-btn-hover-fg: var(--btn-hover-fg);
+  --color-btn-selected-bg: var(--btn-selected-bg);
+  --color-btn-selected-border: var(--btn-selected-border);
+  --color-btn-solid-bg: var(--btn-solid-bg);
+  --color-btn-solid-fg: var(--btn-solid-fg);
+  --color-btn-solid-hover-bg: var(--btn-solid-hover-bg);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -315,6 +338,13 @@
    * One step past Tailwind's widest container (7xl, 80rem): \`max-w-8xl\`,
    * for admin pages that hold wide work such as a review's screens.
    */
+  /* The browser frame drawn around a screenshot (BrowserChrome): its window,
+     its address field, and the three window dots. */
+  --color-chrome-frame: #141416;
+  --color-chrome-field: #2a2a2d;
+  --color-chrome-close: #fc2f24;
+  --color-chrome-minimize: #fbad04;
+  --color-chrome-zoom: #01a019;
   --container-8xl: 96rem;
   /* The review editor's side panel, open. */
   --container-panel: 22rem;
@@ -714,4 +744,47 @@
 
 @utility max-h-dialog-list {
   max-height: min(32rem, 85dvh);
+}
+
+/*
+ * Named column layouts the admin uses more than once, instead of
+ * grid-cols-[...] at each call site.
+ */
+@utility grid-cols-feature {
+  /* A wide main column beside a narrower one. */
+  grid-template-columns: 1.2fr 0.8fr;
+}
+
+@utility grid-cols-label-field {
+  /* A short label column, then the field. */
+  grid-template-columns: 8rem minmax(0, 1fr);
+}
+
+@utility grid-cols-field-amount {
+  /* A field, then a short amount column. */
+  grid-template-columns: minmax(0, 1fr) 8rem;
+}
+
+@utility grid-cols-line-item {
+  /* An invoice line: description, amount, remove. */
+  grid-template-columns: minmax(0, 1fr) 9rem auto;
+}
+
+@utility grid-cols-package {
+  /* A proposal package: name, price, remove. */
+  grid-template-columns: 2fr 1fr auto;
+}
+
+@utility grid-cols-tiles {
+  /* As many small tiles as fit. */
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+}
+
+/* How tall a framed picture or picker may be against the window. */
+@utility max-h-frame {
+  max-height: 80vh;
+}
+
+@utility max-h-lightbox {
+  max-height: 90vh;
 }

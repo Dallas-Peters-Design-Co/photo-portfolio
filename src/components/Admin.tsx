@@ -154,7 +154,7 @@ const CategoryStack = ({ group, groupIdx, selection }: CategoryStackProps) => {
       <div className="group/stack relative aspect-3/4 rounded-lg p-2">
         <div
           aria-hidden
-          className={`absolute inset-0 animate-gradient-spin rounded-lg blur-[5px] transition-opacity duration-500 ${
+          className={`absolute inset-0 animate-gradient-spin rounded-lg blur-xs transition-opacity duration-500 ${
             allSelected
               ? "opacity-100"
               : "opacity-0 group-hover/stack:opacity-30"
@@ -626,7 +626,7 @@ export const Admin = () => {
       />
 
       {/* ── Top row: daily challenge + add form ── */}
-      <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="grid grid-cols-1 items-stretch gap-5 md:gap-6 lg:grid-cols-feature">
         <DailyChallengePanel />
 
         <AddItemForm
