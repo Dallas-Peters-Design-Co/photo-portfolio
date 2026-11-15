@@ -9,7 +9,8 @@ import {
   invoicesApi,
 } from "../../services/activityService";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { CardContent, CardHeader, CardTitle } from "../ui/card";
+import { AdminCard, AdminFrame } from "./AdminFrame";
 import { useConfirm } from "./ConfirmProvider";
 import { InvoiceComposer } from "./InvoiceComposer";
 
@@ -119,163 +120,165 @@ export function InvoicesPanel() {
     .reduce((s, i) => s + i.amountCents, 0);
 
   return (
-    <Card className="w-full max-w-6xl border-white/10 bg-white/2">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-[0.2em]">
-          <Receipt size={16} /> Invoices
-        </CardTitle>
-        <div className="flex items-center gap-4">
-          {outstanding > 0 ? (
-            <span className="text-[11px] text-sky-300/90 uppercase tracking-[0.16em]">
-              {formatMoney(outstanding)} outstanding
-            </span>
-          ) : null}
-          {composing ? null : (
-            <Button
-              onClick={() => setComposing(true)}
-              type="button"
-              variant="outline"
-            >
-              <Plus size={14} /> New invoice
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {stripe ? null : (
-          <p className="text-amber-300/80 text-sm">
-            Stripe isn't connected (STRIPE_SECRET_KEY), so drafts can be made
-            but not sent.
-          </p>
-        )}
-
-        {composing ? (
-          <InvoiceComposer
-            onClose={() => setComposing(false)}
-            onCreated={(inv) => setInvoices((list) => [inv, ...list])}
-            onTemplatesChange={setTemplates}
-            templates={templates}
-          />
-        ) : null}
-
-        {invoices.length === 0 ? (
-          <p className="text-sm text-white/55">No invoices yet.</p>
-        ) : (
-          <ul className="divide-y divide-white/10">
-            {invoices.map((inv) => (
-              <li
-                className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
-                key={inv.id}
+    <AdminFrame>
+      <AdminCard>
+        <CardHeader layout="row">
+          <CardTitle>
+            <Receipt size={16} /> Invoices
+          </CardTitle>
+          <div className="flex items-center gap-4">
+            {outstanding > 0 ? (
+              <span className="text-[11px] text-sky-300/90 uppercase tracking-[0.16em]">
+                {formatMoney(outstanding)} outstanding
+              </span>
+            ) : null}
+            {composing ? null : (
+              <Button
+                onClick={() => setComposing(true)}
+                type="button"
+                variant="outline"
               >
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm text-white/90">
-                    {inv.number ? `${inv.number} · ` : ""}
-                    {inv.customerName || inv.customerEmail || "No client yet"}
-                  </p>
-                  <p className="truncate text-white/50 text-xs">
-                    {inv.lines.map((l) => l.description).join(" · ")}
-                  </p>
-                </div>
-                <span className="text-sm text-white/90 tabular-nums">
-                  {formatMoney(inv.amountCents, inv.currency)}
-                </span>
-                <span
-                  className={`w-36 text-[11px] uppercase tracking-[0.16em] ${STATUS[inv.status].cls}`}
-                >
-                  {STATUS[inv.status].label}
-                </span>
-                <div className="flex items-center gap-1">
-                  {inv.status === "draft" ? (
-                    <>
-                      <Button
-                        disabled={
-                          !stripe || busy === inv.id || !inv.customerEmail
-                        }
-                        onClick={() => void act(inv, "send")}
-                        type="button"
-                        variant="ghost"
-                      >
-                        <Send size={14} /> Send
-                      </Button>
-                      <Button
-                        aria-label="Delete draft"
-                        disabled={busy === inv.id}
-                        onClick={() => void act(inv, "remove")}
-                        type="button"
-                        variant="ghost"
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </>
-                  ) : null}
-                  {inv.status === "open" ? (
-                    <Button
-                      aria-label="Void"
-                      disabled={busy === inv.id}
-                      onClick={() => void act(inv, "void")}
-                      type="button"
-                      variant="ghost"
-                    >
-                      <X size={14} />
-                    </Button>
-                  ) : null}
-                  {inv.hostedUrl ? (
-                    <a
-                      aria-label="Open the client's invoice"
-                      className="p-2 text-white/70 hover:text-white"
-                      href={inv.hostedUrl}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <ExternalLink size={14} />
-                    </a>
-                  ) : null}
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <section className="space-y-2">
-          <h3 className="text-[11px] text-white/70 uppercase tracking-[0.2em]">
-            Templates
-          </h3>
-          {templates.length === 0 ? (
-            <p className="text-sm text-white/55">
-              Save one from a new invoice: a deposit, a monthly retainer, an
-              hourly block.
+                <Plus size={14} /> New invoice
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent layout="stack">
+          {stripe ? null : (
+            <p className="text-amber-300/80 text-sm">
+              Stripe isn't connected (STRIPE_SECRET_KEY), so drafts can be made
+              but not sent.
             </p>
+          )}
+
+          {composing ? (
+            <InvoiceComposer
+              onClose={() => setComposing(false)}
+              onCreated={(inv) => setInvoices((list) => [inv, ...list])}
+              onTemplatesChange={setTemplates}
+              templates={templates}
+            />
+          ) : null}
+
+          {invoices.length === 0 ? (
+            <p className="text-sm text-white/55">No invoices yet.</p>
           ) : (
-            <ul className="space-y-1">
-              {templates.map((t) => (
-                <li className="flex items-center gap-3 text-sm" key={t.id}>
-                  <span className="flex-1 text-white/85">{t.name}</span>
-                  <span className="text-white/55 tabular-nums">
-                    {formatMoney(
-                      t.lines.reduce((s, l) => s + l.amountCents, 0)
-                    )}{" "}
-                    · {t.dueDays} days
+            <ul className="divide-y divide-white/10">
+              {invoices.map((inv) => (
+                <li
+                  className="flex flex-wrap items-center gap-x-4 gap-y-1 py-3"
+                  key={inv.id}
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-white/90">
+                      {inv.number ? `${inv.number} · ` : ""}
+                      {inv.customerName || inv.customerEmail || "No client yet"}
+                    </p>
+                    <p className="truncate text-white/50 text-xs">
+                      {inv.lines.map((l) => l.description).join(" · ")}
+                    </p>
+                  </div>
+                  <span className="text-sm text-white/90 tabular-nums">
+                    {formatMoney(inv.amountCents, inv.currency)}
                   </span>
-                  <Button
-                    aria-label={`Delete ${t.name}`}
-                    onClick={() => void removeTemplate(t)}
-                    type="button"
-                    variant="ghost"
+                  <span
+                    className={`w-36 text-[11px] uppercase tracking-[0.16em] ${STATUS[inv.status].cls}`}
                   >
-                    <Trash2 size={14} />
-                  </Button>
+                    {STATUS[inv.status].label}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {inv.status === "draft" ? (
+                      <>
+                        <Button
+                          disabled={
+                            !stripe || busy === inv.id || !inv.customerEmail
+                          }
+                          onClick={() => void act(inv, "send")}
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Send size={14} /> Send
+                        </Button>
+                        <Button
+                          aria-label="Delete draft"
+                          disabled={busy === inv.id}
+                          onClick={() => void act(inv, "remove")}
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </>
+                    ) : null}
+                    {inv.status === "open" ? (
+                      <Button
+                        aria-label="Void"
+                        disabled={busy === inv.id}
+                        onClick={() => void act(inv, "void")}
+                        type="button"
+                        variant="ghost"
+                      >
+                        <X size={14} />
+                      </Button>
+                    ) : null}
+                    {inv.hostedUrl ? (
+                      <a
+                        aria-label="Open the client's invoice"
+                        className="p-2 text-white/70 hover:text-white"
+                        href={inv.hostedUrl}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <ExternalLink size={14} />
+                      </a>
+                    ) : null}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
-        </section>
-        <p className="text-white/45 text-xs">
-          Invoices for a proposal also appear on that proposal.{" "}
-          <Link className="underline" to="/admin/proposals">
-            Proposals
-          </Link>
-        </p>
-      </CardContent>
-    </Card>
+
+          <section className="space-y-2">
+            <h3 className="text-[11px] text-white/70 uppercase tracking-[0.2em]">
+              Templates
+            </h3>
+            {templates.length === 0 ? (
+              <p className="text-sm text-white/55">
+                Save one from a new invoice: a deposit, a monthly retainer, an
+                hourly block.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {templates.map((t) => (
+                  <li className="flex items-center gap-3 text-sm" key={t.id}>
+                    <span className="flex-1 text-white/85">{t.name}</span>
+                    <span className="text-white/55 tabular-nums">
+                      {formatMoney(
+                        t.lines.reduce((s, l) => s + l.amountCents, 0)
+                      )}{" "}
+                      · {t.dueDays} days
+                    </span>
+                    <Button
+                      aria-label={`Delete ${t.name}`}
+                      onClick={() => void removeTemplate(t)}
+                      type="button"
+                      variant="ghost"
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          <p className="text-white/45 text-xs">
+            Invoices for a proposal also appear on that proposal.{" "}
+            <Link className="underline" to="/admin/proposals">
+              Proposals
+            </Link>
+          </p>
+        </CardContent>
+      </AdminCard>
+    </AdminFrame>
   );
 }

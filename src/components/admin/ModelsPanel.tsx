@@ -104,9 +104,9 @@ export function ModelsPanel() {
   };
 
   return (
-    <Card className="admin-card">
-      <CardHeader className="row row--between">
-        <CardTitle className="admin-heading">Models</CardTitle>
+    <Card>
+      <CardHeader layout="row">
+        <CardTitle>Models</CardTitle>
         <Button
           onClick={() =>
             setEditing((current) => (current === "new" ? null : "new"))
@@ -119,7 +119,7 @@ export function ModelsPanel() {
           {editing === "new" ? "Close" : "Add model"}
         </Button>
       </CardHeader>
-      <CardContent className="stack stack--mid">
+      <CardContent layout="stack">
         <p className="admin-note--quiet">
           These are the models a Generate node may use. Add a fal.ai model id,
           give it a label and its input shape, and it appears in every node

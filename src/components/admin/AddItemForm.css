@@ -8,21 +8,6 @@
  * 768px written out: a media query cannot read `--breakpoint-md`.
  */
 
-.add-item {
-  height: 100%;
-  overflow: visible;
-  background: color-mix(in oklch, #fff 5%, transparent);
-  border-color: color-mix(in oklch, #fff 10%, transparent);
-}
-
-.add-item__title {
-  font-size: var(--text-sm-ui);
-  font-weight: 300;
-  color: color-mix(in oklch, #fff 90%, transparent);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-stamped);
-}
-
 .add-item__form {
   display: grid;
   grid-template-columns: minmax(0, 1fr);

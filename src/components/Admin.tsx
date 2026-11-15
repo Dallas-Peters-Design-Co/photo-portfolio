@@ -371,12 +371,10 @@ const ItemsCard = ({
   selection,
   view,
 }: ItemsCardProps) => (
-  <Card className="overflow-hidden border-white/0 bg-white/5">
-    <CardHeader className="flex flex-col gap-3 border-white/5 border-b md:flex-row md:items-center md:gap-4">
+  <Card tone="raised">
+    <CardHeader layout="bar">
       <div className="flex shrink-0 items-center gap-3">
-        <CardTitle className="whitespace-nowrap font-light text-sm text-white/90 uppercase tracking-[0.3em]">
-          Current Items
-        </CardTitle>
+        <CardTitle>Current Items</CardTitle>
         <Button
           onClick={onManageCategories}
           size="sm"
@@ -401,7 +399,7 @@ const ItemsCard = ({
       ) : null}
     </CardHeader>
 
-    <CardContent className="p-0">
+    <CardContent flush>
       {data.isLoadingPhotos ? (
         <p className="p-6 text-center text-sm text-white/90 uppercase tracking-widest">
           Loading…

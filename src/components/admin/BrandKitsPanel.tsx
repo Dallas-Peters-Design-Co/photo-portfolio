@@ -119,9 +119,9 @@ export function BrandKitsPanel() {
   }
 
   return (
-    <Card className="admin-card">
-      <CardHeader className="row row--between row--mid">
-        <CardTitle className="admin-heading">
+    <Card>
+      <CardHeader layout="row">
+        <CardTitle>
           <HugeiconsIcon icon={PaintBoardIcon} size={16} />
           Brand kits
         </CardTitle>
@@ -145,7 +145,7 @@ export function BrandKitsPanel() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="stack stack--mid">
+      <CardContent layout="stack">
         {error ? (
           <p className="admin-empty">Could not load brand kits.</p>
         ) : null}

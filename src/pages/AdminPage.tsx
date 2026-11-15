@@ -206,11 +206,9 @@ export function AdminPage() {
                     <div className="admin-page__settings-grid">
                       <SiteSettingsPanel />
                       <div className="stack stack--loose">
-                        <Card className="admin-page__card">
+                        <Card>
                           <CardHeader>
-                            <CardTitle className="admin-page__card-title">
-                              Password
-                            </CardTitle>
+                            <CardTitle>Password</CardTitle>
                           </CardHeader>
                           <CardContent>
                             <ChangePasswordForm />

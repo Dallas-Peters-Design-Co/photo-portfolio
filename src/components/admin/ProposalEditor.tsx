@@ -151,15 +151,15 @@ export function ProposalEditor({
   return (
     <AdminFrame>
       <AdminCard>
-        <CardHeader className="flex flex-col items-start gap-2">
+        <CardHeader>
           <BackButton label="Proposals" onClick={onClose} />
-          <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
+          <CardTitle>
             <HugeiconsIcon aria-hidden icon={Invoice03Icon} size={16} />
             {draft.title}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="space-y-10">
+        <CardContent layout="stack">
           {/* Who it is for, and where it lives. */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-2">

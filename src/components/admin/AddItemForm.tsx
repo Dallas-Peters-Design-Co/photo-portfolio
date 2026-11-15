@@ -26,9 +26,9 @@ export const AddItemForm = ({
   data,
   newPhoto,
 }: AddItemFormProps) => (
-  <Card className="add-item">
+  <Card tone="raised">
     <CardHeader>
-      <CardTitle className="add-item__title">Add New Item</CardTitle>
+      <CardTitle>Add New Item</CardTitle>
     </CardHeader>
     <CardContent>
       <form

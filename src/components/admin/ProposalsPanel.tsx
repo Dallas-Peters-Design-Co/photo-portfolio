@@ -214,8 +214,8 @@ export function ProposalsPanel() {
           onSubmit={(e) => void handleCreate(e)}
         >
           <AdminCard>
-            <CardHeader className={labelClass}>New proposal</CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
+            <CardHeader>New proposal</CardHeader>
+            <CardContent layout="grid">
               <div className="space-y-2">
                 <label className={labelClass} htmlFor="new-proposal-title">
                   Title
@@ -247,7 +247,7 @@ export function ProposalsPanel() {
                 />
               </div>
             </CardContent>
-            <CardFooter className="flex items-center justify-end gap-3">
+            <CardFooter>
               <Button
                 disabled={isBusy || !newTitle.trim()}
                 type="submit"
@@ -266,7 +266,7 @@ export function ProposalsPanel() {
           add the packages and send the link.
         </p>
       ) : (
-        <AdminCard className="gap-0 py-0">
+        <AdminCard flush>
           <ul className="divide-y divide-white/10">
             {proposals.map((proposal) => (
               <li

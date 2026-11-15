@@ -689,10 +689,10 @@ export const DailyChallengePanel = () => {
   // ── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <Card className="border-white/10 bg-white/5">
-      <CardHeader className="flex flex-col gap-3 border-white/5 border-b sm:flex-row sm:items-start sm:justify-between">
+    <Card tone="raised">
+      <CardHeader layout="bar">
         <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase tracking-micro-widest">
+          <CardTitle>
             <Sparkles aria-hidden className="size-4 text-amber-200/80" />
             Daily challenge
           </CardTitle>
@@ -709,7 +709,7 @@ export const DailyChallengePanel = () => {
         />
       </CardHeader>
 
-      <CardContent className="space-y-5 pt-6">
+      <CardContent layout="stack">
         {/* ── TODAY ── */}
         {view === "today" ? (
           <TodayView

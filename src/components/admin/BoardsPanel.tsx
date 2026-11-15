@@ -199,9 +199,9 @@ export function BoardsPanel() {
   };
 
   return (
-    <Card className="admin-card">
-      <CardHeader className="row row--between row--mid">
-        <CardTitle className="admin-heading">
+    <Card>
+      <CardHeader layout="row">
+        <CardTitle>
           <HugeiconsIcon aria-hidden icon={FrameIcon} size={16} />
           Moodboards
         </CardTitle>

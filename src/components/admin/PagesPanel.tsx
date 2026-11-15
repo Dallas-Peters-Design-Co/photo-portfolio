@@ -27,10 +27,11 @@ import {
 } from "../ui/card";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
+import { AdminCard, AdminFrame } from "./AdminFrame";
 import { BackButton } from "./BackButton";
 import { useConfirm } from "./ConfirmProvider";
 
-const labelClass = "text-sm uppercase tracking-widest text-white/90";
+const _labelClass = "text-sm uppercase tracking-widest text-white/90";
 const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
@@ -192,8 +193,8 @@ export function PagesPanel() {
           className="flex flex-wrap items-end gap-3"
           onSubmit={(e) => void handleCreate(e)}
         >
-          <Card className="w-full border-white bg-white/2">
-            <CardHeader className={labelClass}>Page title</CardHeader>
+          <Card selected>
+            <CardHeader>Page title</CardHeader>
             <CardContent>
               <Input
                 autoFocus
@@ -209,7 +210,7 @@ export function PagesPanel() {
                 </p>
               ) : null}
             </CardContent>
-            <CardFooter className="flex items-center justify-end gap-3">
+            <CardFooter>
               <Button
                 disabled={isBusy || !newTitle.trim()}
                 type="submit"
@@ -230,7 +231,7 @@ export function PagesPanel() {
       ) : (
         <ul className="grid grid-cols-1 divide-y divide-white/6">
           {pages.map((page) => (
-            <Card className="border-white bg-white/2" key={page.id}>
+            <Card key={page.id} selected>
               <CardContent>
                 <li className="flex items-center gap-3 py-3">
                   <button
@@ -314,91 +315,93 @@ function PageEditorPanel({
   };
 
   return (
-    <Card className="w-full max-w-7xl border-white/10 bg-white/2">
-      <CardHeader className="flex flex-col items-start gap-2">
-        <BackButton label="Pages" onClick={onClose} />
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
-          <HugeiconsIcon aria-hidden icon={FileEmpty02Icon} size={16} />
-          {draft.title}
-        </CardTitle>
-      </CardHeader>
+    <AdminFrame>
+      <AdminCard>
+        <CardHeader>
+          <BackButton label="Pages" onClick={onClose} />
+          <CardTitle>
+            <HugeiconsIcon aria-hidden icon={FileEmpty02Icon} size={16} />
+            {draft.title}
+          </CardTitle>
+        </CardHeader>
 
-      <CardContent className="space-y-6">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="page-title">Title</Label>
-            <Input
-              id="page-title"
-              onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-              size="lg"
-              value={draft.title}
-            />
+        <CardContent layout="stack">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="page-title">Title</Label>
+              <Input
+                id="page-title"
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                size="lg"
+                value={draft.title}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="page-slug">Address</Label>
+              <Input
+                face="mono"
+                id="page-slug"
+                onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
+                size="lg"
+                value={draft.slug}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="page-icon">Icon (optional)</Label>
+              <IconPicker
+                id="page-icon"
+                onChange={(icon) => setDraft({ ...draft, icon })}
+                value={draft.icon}
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="page-slug">Address</Label>
-            <Input
-              face="mono"
-              id="page-slug"
-              onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
-              size="lg"
-              value={draft.slug}
-            />
+
+          <PageEditor
+            onChange={(content) => setDraft({ ...draft, content })}
+            value={draft.content}
+          />
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              disabled={isSaving}
+              onClick={() => void save()}
+              type="button"
+              variant="outline"
+            >
+              <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
+              {isSaving ? "Saving…" : "Save"}
+            </Button>
+
+            <Button
+              disabled={isSaving}
+              onClick={() =>
+                void save({
+                  status: draft.status === "published" ? "draft" : "published",
+                })
+              }
+              type="button"
+              variant="ghost"
+            >
+              {draft.status === "published" ? (
+                <HugeiconsIcon icon={EyeIcon} size={14} />
+              ) : (
+                <HugeiconsIcon icon={ViewOffIcon} size={14} />
+              )}
+              {draft.status === "published" ? "Unpublish" : "Publish"}
+            </Button>
+
+            <span
+              className={`text-sm uppercase tracking-[0.16em] ${
+                draft.status === "published"
+                  ? "text-emerald-400/70"
+                  : "text-amber-400/70"
+              }`}
+            >
+              {draft.status}
+            </span>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="page-icon">Icon (optional)</Label>
-            <IconPicker
-              id="page-icon"
-              onChange={(icon) => setDraft({ ...draft, icon })}
-              value={draft.icon}
-            />
-          </div>
-        </div>
-
-        <PageEditor
-          onChange={(content) => setDraft({ ...draft, content })}
-          value={draft.content}
-        />
-
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            disabled={isSaving}
-            onClick={() => void save()}
-            type="button"
-            variant="outline"
-          >
-            <HugeiconsIcon icon={FloppyDiskIcon} size={14} />
-            {isSaving ? "Saving…" : "Save"}
-          </Button>
-
-          <Button
-            disabled={isSaving}
-            onClick={() =>
-              void save({
-                status: draft.status === "published" ? "draft" : "published",
-              })
-            }
-            type="button"
-            variant="ghost"
-          >
-            {draft.status === "published" ? (
-              <HugeiconsIcon icon={EyeIcon} size={14} />
-            ) : (
-              <HugeiconsIcon icon={ViewOffIcon} size={14} />
-            )}
-            {draft.status === "published" ? "Unpublish" : "Publish"}
-          </Button>
-
-          <span
-            className={`text-sm uppercase tracking-[0.16em] ${
-              draft.status === "published"
-                ? "text-emerald-400/70"
-                : "text-amber-400/70"
-            }`}
-          >
-            {draft.status}
-          </span>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </AdminCard>
+    </AdminFrame>
   );
 }

@@ -27,18 +27,6 @@ export function AdminFrame({
  * Clipped with overflow: clip, not hidden: it clips the same, but it is not a
  * scroll container, so a sticky child (a review's screenshot) still sticks.
  */
-export function AdminCard({
-  className,
-  ...props
-}: React.ComponentProps<typeof Card>) {
-  return (
-    <Card
-      className={cn(
-        "w-full overflow-clip border-white/10 bg-white/2",
-        className
-      )}
-      data-slot="admin-card"
-      {...props}
-    />
-  );
+export function AdminCard(props: React.ComponentProps<typeof Card>) {
+  return <Card data-slot="admin-card" {...props} />;
 }

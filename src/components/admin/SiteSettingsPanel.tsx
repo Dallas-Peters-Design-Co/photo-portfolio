@@ -154,9 +154,9 @@ export function SiteSettingsPanel() {
   };
 
   return (
-    <Card className="border-white/10 bg-white/2">
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
+        <CardTitle>
           <Palette aria-hidden size={16} />
           Site settings
         </CardTitle>

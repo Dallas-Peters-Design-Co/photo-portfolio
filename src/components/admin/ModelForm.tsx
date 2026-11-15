@@ -149,11 +149,9 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
   }
 
   return (
-    <Card className="border-white/10 bg-black/20">
+    <Card tone="sunken">
       <CardHeader>
-        <CardTitle className="text-sm text-white/90 uppercase tracking-widest">
-          {isNew ? "Add a model" : `Edit ${editing.label}`}
-        </CardTitle>
+        <CardTitle>{isNew ? "Add a model" : `Edit ${editing.label}`}</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="grid gap-4" onSubmit={(e) => void handleSubmit(e)}>

@@ -241,9 +241,9 @@ export function SitesPanel() {
   }
 
   return (
-    <Card className="border-white/10 bg-white/2">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="flex items-center gap-2 font-light text-sm text-white/90 uppercase">
+    <Card>
+      <CardHeader layout="row">
+        <CardTitle>
           <HugeiconsIcon aria-hidden icon={GlobeIcon} size={16} />
           Sites
         </CardTitle>
@@ -257,7 +257,7 @@ export function SitesPanel() {
         </Button>
       </CardHeader>
 
-      <CardContent className="space-y-5">
+      <CardContent layout="stack">
         {error ? (
           <p className="text-[12px] text-amber-300/80 leading-relaxed">
             {error}

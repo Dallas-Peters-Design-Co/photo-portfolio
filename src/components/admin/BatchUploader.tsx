@@ -287,7 +287,7 @@ export function BatchUploader({
 
   return (
     <>
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+      <CardHeader layout="row">
         <Button
           disabled={isPickingDrive}
           onClick={() => void pickFromDrive()}

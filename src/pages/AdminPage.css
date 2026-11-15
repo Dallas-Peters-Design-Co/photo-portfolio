@@ -173,17 +173,6 @@
  * anything — Card's edge is a `ring`, and nothing set a border width — so it is
  * gone rather than translated.
  */
-.admin-page__card {
-  background-color: color-mix(in oklch, var(--foreground) 2%, transparent);
-}
-
-.admin-page__card-title {
-  font-size: var(--text-sm);
-  font-weight: 300;
-  color: color-mix(in oklch, var(--foreground) 90%, transparent);
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-}
 
 @media (width >= 568px) {
   .admin-page__bar-inner {
