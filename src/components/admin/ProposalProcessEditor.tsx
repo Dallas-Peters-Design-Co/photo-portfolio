@@ -6,7 +6,7 @@ import {
 } from "../../../config/proposal.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { proposalInputClass, proposalTextareaClass } from "./proposalStyles";
+import { proposalTextareaClass } from "./proposalStyles";
 
 /** "What happens next": the proposal's numbered steps, each a title and a line. */
 export function ProposalProcessEditor({
@@ -48,13 +48,15 @@ export function ProposalProcessEditor({
           className="flex flex-col gap-3 rounded-md border border-white/10 p-4 sm:flex-row sm:items-start"
           key={step.id}
         >
-          <Input
-            aria-label={`Step ${index + 1} title`}
-            className={`${proposalInputClass} sm:flex-1`}
-            onChange={(e) => updateStep(step.id, { title: e.target.value })}
-            placeholder={`Step ${index + 1}`}
-            value={step.title}
-          />
+          <div className="sm:flex-1">
+            <Input
+              aria-label={`Step ${index + 1} title`}
+              onChange={(e) => updateStep(step.id, { title: e.target.value })}
+              placeholder={`Step ${index + 1}`}
+              size="lg"
+              value={step.title}
+            />
+          </div>
           <textarea
             aria-label={`Step ${index + 1} detail`}
             className={`${proposalTextareaClass} min-h-11 sm:flex-2`}

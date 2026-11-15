@@ -8,7 +8,7 @@ import {
 import { siteConfig } from "../../site";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
+import { proposalTextareaClass } from "./proposalStyles";
 
 /**
  * Getting the proposal to the client, and what came back.
@@ -81,7 +81,7 @@ export function ProposalSendPanel({
         </Button>
       </div>
       <div className="space-y-2">
-        <Label className={proposalLabelClass} htmlFor="proposal-note">
+        <Label htmlFor="proposal-note">
           Note (optional, goes above the link)
         </Label>
         <textarea

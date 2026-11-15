@@ -13,7 +13,7 @@ const MIN_PASSWORD_LENGTH = 8;
 /** Matches the settings panel's inputs — soft border on translucent black,
  * rather than the bright default border-input the shared component uses. */
 /* The shared admin control — see .admin-control in styles/adminChrome.css. */
-const inputClass = "admin-control admin-control--touch";
+const _inputClass = "admin-control admin-control--touch";
 
 /**
  * Changing the password of the account you are signed in as.
@@ -53,31 +53,31 @@ export function ChangePasswordForm() {
 
   return (
     <form className="stack stack--mid" onSubmit={(e) => void handleSubmit(e)}>
-      <Label className="admin-field-group">
+      <Label>
         <span className="admin-field-label">Current password</span>
         <Input
           autoComplete="current-password"
-          className={inputClass}
           onChange={(e) => setCurrent(e.target.value)}
           required
+          size="lg"
           type="password"
           value={current}
         />
       </Label>
-      <Label className="admin-field-group">
+      <Label>
         <span className="admin-field-label">New password</span>
         <Input
           autoComplete="new-password"
-          className={inputClass}
           minLength={MIN_PASSWORD_LENGTH}
           onChange={(e) => setNext(e.target.value)}
           placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
           required
+          size="lg"
           type="password"
           value={next}
         />
       </Label>
-      <Label className="admin-field-group">
+      <Label>
         <span className="admin-field-label">Confirm new password</span>
         <Input
           autoComplete="new-password"

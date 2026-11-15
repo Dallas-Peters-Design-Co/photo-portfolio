@@ -20,7 +20,7 @@ import { useConfirm } from "./ConfirmProvider";
 import { ReviewEditor } from "./ReviewEditor";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
 /** Mirrors the API's slug rules so the suggested address is accepted as is. */
@@ -215,10 +215,10 @@ export function ReviewsPanel() {
                 </label>
                 <Input
                   autoFocus
-                  className={inputClass}
                   id="new-review-title"
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Pretext launch design"
+                  size="lg"
                   value={newTitle}
                 />
                 {newTitle.trim() ? (
@@ -232,10 +232,10 @@ export function ReviewsPanel() {
                   Client (as it should read on the page)
                 </label>
                 <Input
-                  className={inputClass}
                   id="new-review-client"
                   onChange={(e) => setNewClient(e.target.value)}
                   placeholder="Vin at Viaskai"
+                  size="lg"
                   value={newClient}
                 />
               </div>

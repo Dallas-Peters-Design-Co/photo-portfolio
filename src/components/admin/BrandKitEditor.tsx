@@ -219,7 +219,6 @@ export function KitEditor({
                 Name
               </label>
               <Input
-                className="admin-control"
                 id="brand-kit-name"
                 maxLength={MAX_KIT_NAME}
                 onChange={(e) => setName(e.target.value)}

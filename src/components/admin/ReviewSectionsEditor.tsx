@@ -5,7 +5,6 @@ import { PageEditor } from "../../cms/PageEditor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { type CollapsedBlocks, EditorBlock } from "./EditorBlock";
-import { proposalInputClass } from "./proposalStyles";
 import { toEditorDoc } from "./reviewEditing";
 import { SortableList } from "./SortableList";
 
@@ -83,9 +82,9 @@ export function ReviewSectionsEditor({
             <div className="space-y-2">
               <Input
                 aria-label="Section title"
-                className={proposalInputClass}
                 onChange={(e) => update(section.id, { title: e.target.value })}
                 placeholder="Section title"
+                size="lg"
                 value={section.title}
               />
               <PageEditor

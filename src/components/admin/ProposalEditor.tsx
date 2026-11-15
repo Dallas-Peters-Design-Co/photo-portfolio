@@ -37,11 +37,7 @@ import { ProposalInvoices } from "./ProposalInvoices";
 import { ProposalPackagesEditor } from "./ProposalPackagesEditor";
 import { ProposalProcessEditor } from "./ProposalProcessEditor";
 import { ProposalSendPanel } from "./ProposalSendPanel";
-import {
-  proposalInputClass,
-  proposalLabelClass,
-  proposalTextareaClass,
-} from "./proposalStyles";
+import { proposalInputClass, proposalTextareaClass } from "./proposalStyles";
 
 /**
  * The editor takes a TipTap document. Text written before the editor (seeded
@@ -167,49 +163,41 @@ export function ProposalEditor({
           {/* Who it is for, and where it lives. */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-title">
-                Title
-              </Label>
+              <Label htmlFor="proposal-title">Title</Label>
               <Input
-                className={proposalInputClass}
                 id="proposal-title"
                 onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                size="lg"
                 value={draft.title}
               />
             </div>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-client">
-                Client label
-              </Label>
+              <Label htmlFor="proposal-client">Client label</Label>
               <Input
-                className={proposalInputClass}
                 id="proposal-client"
                 onChange={(e) =>
                   setDraft({ ...draft, clientName: e.target.value })
                 }
                 placeholder="Vin at Viaskai"
+                size="lg"
                 value={draft.clientName}
               />
             </div>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-email">
-                Client email
-              </Label>
+              <Label htmlFor="proposal-email">Client email</Label>
               <Input
-                className={proposalInputClass}
                 id="proposal-email"
                 onChange={(e) =>
                   setDraft({ ...draft, clientEmail: e.target.value || null })
                 }
                 placeholder="Gets the signed copy"
+                size="lg"
                 type="email"
                 value={draft.clientEmail ?? ""}
               />
             </div>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-kit">
-                Brand kit
-              </Label>
+              <Label htmlFor="proposal-kit">Brand kit</Label>
               <Select
                 items={[
                   { label: "None (site accent)", value: "" },
@@ -242,13 +230,12 @@ export function ProposalEditor({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-slug">
-                Address
-              </Label>
+              <Label htmlFor="proposal-slug">Address</Label>
               <Input
-                className={`${proposalInputClass} font-mono`}
+                face="mono"
                 id="proposal-slug"
                 onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
+                size="lg"
                 value={draft.slug}
               />
               <p className="font-mono text-micro-xs text-white/60">
@@ -261,18 +248,14 @@ export function ProposalEditor({
           <section className="space-y-4">
             <h3 className={fieldsetTitleClass}>Opening</h3>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-intro">
-                Intro
-              </Label>
+              <Label htmlFor="proposal-intro">Intro</Label>
               <PageEditor
                 onChange={(intro) => setDoc({ intro: intro as RichText })}
                 value={toEditorDoc(draft.doc.intro)}
               />
             </div>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-summary">
-                What you asked for
-              </Label>
+              <Label htmlFor="proposal-summary">What you asked for</Label>
               <PageEditor
                 onChange={(summary) => setDoc({ summary: summary as RichText })}
                 value={toEditorDoc(draft.doc.summary)}
@@ -306,18 +289,15 @@ export function ProposalEditor({
               >
                 <div className="flex items-end gap-3">
                   <div className="flex-1 space-y-2">
-                    <Label
-                      className={proposalLabelClass}
-                      htmlFor={`section-heading-${section.id}`}
-                    >
+                    <Label htmlFor={`section-heading-${section.id}`}>
                       Heading {index + 1}
                     </Label>
                     <Input
-                      className={proposalInputClass}
                       id={`section-heading-${section.id}`}
                       onChange={(e) =>
                         updateSection(section.id, { heading: e.target.value })
                       }
+                      size="lg"
                       value={section.heading}
                     />
                   </div>
@@ -359,9 +339,7 @@ export function ProposalEditor({
           <section className="space-y-4">
             <h3 className={fieldsetTitleClass}>Terms and closing</h3>
             <div className="space-y-2">
-              <Label className={proposalLabelClass} htmlFor="proposal-terms">
-                Terms (one per line)
-              </Label>
+              <Label htmlFor="proposal-terms">Terms (one per line)</Label>
               <textarea
                 className={proposalTextareaClass}
                 id="proposal-terms"
@@ -371,12 +349,7 @@ export function ProposalEditor({
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2 sm:col-span-2">
-                <Label
-                  className={proposalLabelClass}
-                  htmlFor="proposal-closing"
-                >
-                  Closing line
-                </Label>
+                <Label htmlFor="proposal-closing">Closing line</Label>
                 <PageEditor
                   onChange={(closing) =>
                     setDoc({ closing: closing as RichText })
@@ -385,13 +358,11 @@ export function ProposalEditor({
                 />
               </div>
               <div className="space-y-2">
-                <Label className={proposalLabelClass} htmlFor="proposal-valid">
-                  Valid until (optional)
-                </Label>
+                <Label htmlFor="proposal-valid">Valid until (optional)</Label>
                 <Input
-                  className={proposalInputClass}
                   id="proposal-valid"
                   onChange={(e) => setDoc({ validUntil: e.target.value })}
+                  size="lg"
                   type="date"
                   value={draft.doc.validUntil}
                 />

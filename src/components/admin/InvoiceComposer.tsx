@@ -141,9 +141,7 @@ export function InvoiceComposer({
     <div className="space-y-5 rounded-md border border-white/15 p-4">
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="inv-template">
-            Start from
-          </Label>
+          <Label htmlFor="inv-template">Start from</Label>
           <Select
             items={[
               { label: "Blank invoice", value: "" },
@@ -173,24 +171,20 @@ export function InvoiceComposer({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="inv-name">
-            Client name
-          </Label>
+          <Label htmlFor="inv-name">Client name</Label>
           <Input
-            className={proposalInputClass}
             id="inv-name"
             onChange={(e) => setName(e.target.value)}
+            size="lg"
             value={name}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="inv-email">
-            Client email
-          </Label>
+          <Label htmlFor="inv-email">Client email</Label>
           <Input
-            className={proposalInputClass}
             id="inv-email"
             onChange={(e) => setEmail(e.target.value)}
+            size="lg"
             type="email"
             value={email}
           />
@@ -206,19 +200,20 @@ export function InvoiceComposer({
           >
             <Input
               aria-label="Description"
-              className={proposalInputClass}
               onChange={(e) =>
                 setLine(line.key, { description: e.target.value })
               }
               placeholder="What it's for"
+              size="lg"
               value={line.description}
             />
             <Input
               aria-label="Amount (USD)"
-              className={`${proposalInputClass} tabular-nums`}
+              face="numeric"
               inputMode="decimal"
               onChange={(e) => setLine(line.key, { amount: e.target.value })}
               placeholder="0.00"
+              size="lg"
               value={line.amount}
             />
             <Button
@@ -259,21 +254,18 @@ export function InvoiceComposer({
 
       <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="inv-due">
-            Due in (days)
-          </Label>
+          <Label htmlFor="inv-due">Due in (days)</Label>
           <Input
-            className={`${proposalInputClass} tabular-nums`}
+            face="numeric"
             id="inv-due"
             inputMode="numeric"
             onChange={(e) => setDueDays(e.target.value)}
+            size="lg"
             value={dueDays}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="inv-memo">
-            Memo on the invoice (optional)
-          </Label>
+          <Label htmlFor="inv-memo">Memo on the invoice (optional)</Label>
           <textarea
             className={`${proposalTextareaClass} min-h-11`}
             id="inv-memo"
@@ -298,14 +290,12 @@ export function InvoiceComposer({
         </Button>
         <div className="ml-auto flex items-end gap-2">
           <div className="space-y-1.5">
-            <Label className={proposalLabelClass} htmlFor="inv-template-name">
-              Template name
-            </Label>
+            <Label htmlFor="inv-template-name">Template name</Label>
             <Input
-              className={proposalInputClass}
               id="inv-template-name"
               onChange={(e) => setTemplateName(e.target.value)}
               placeholder="Monthly retainer"
+              size="lg"
               value={templateName}
             />
           </div>

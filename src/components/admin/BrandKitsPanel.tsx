@@ -128,7 +128,6 @@ export function BrandKitsPanel() {
         <div className="row row--tight">
           <Input
             aria-label="New kit name"
-            className="admin-control"
             maxLength={MAX_KIT_NAME}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => {
@@ -178,7 +177,6 @@ export function BrandKitsPanel() {
                     <Input
                       aria-label={`Name for a sub-brand of ${parent.name}`}
                       autoFocus
-                      className="admin-control"
                       maxLength={MAX_KIT_NAME}
                       onChange={(e) => setSubName(e.target.value)}
                       onKeyDown={(e) => {

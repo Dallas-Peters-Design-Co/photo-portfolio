@@ -85,7 +85,6 @@ function GoogleSearch({
     <div className="brand-fonts__search stack stack--snug">
       <Input
         aria-label="Search Google Fonts"
-        className="admin-control"
         onChange={(e) => setQuery(e.target.value)}
         placeholder={
           data
@@ -183,7 +182,6 @@ function AdobeProject({
       <div className="row row--snug">
         <Input
           aria-label="Adobe Fonts web project id"
-          className="admin-control"
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -284,7 +282,6 @@ function TypefaceRow({
       </div>
       <Input
         aria-label="What it is for"
-        className="admin-control"
         onChange={(e) => onChange({ ...entry, role: e.target.value })}
         placeholder="headline, body, accent…"
         value={entry.role}

@@ -63,13 +63,3 @@
  * iOS zooms the page when a focused field is under 16px, and that zoom does not
  * come back.
  */
-.add-item__field {
-  min-height: calc(var(--spacing) * 11);
-  font-size: var(--text-base-ui);
-}
-
-@media (width >= 568px) {
-  .add-item__field {
-    font-size: var(--text-sm-ui);
-  }
-}

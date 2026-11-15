@@ -20,7 +20,7 @@ import { useConfirm } from "./ConfirmProvider";
 import { ProposalEditor } from "./ProposalEditor";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
 /** Mirrors the API's slug rules so the suggested address is accepted as is. */
@@ -222,10 +222,10 @@ export function ProposalsPanel() {
                 </label>
                 <Input
                   autoFocus
-                  className={inputClass}
                   id="new-proposal-title"
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Pretext launch design"
+                  size="lg"
                   value={newTitle}
                 />
                 {newTitle.trim() ? (
@@ -239,10 +239,10 @@ export function ProposalsPanel() {
                   Client (as it should read on the page)
                 </label>
                 <Input
-                  className={inputClass}
                   id="new-proposal-client"
                   onChange={(e) => setNewClient(e.target.value)}
                   placeholder="Vin at Viaskai"
+                  size="lg"
                   value={newClient}
                 />
               </div>

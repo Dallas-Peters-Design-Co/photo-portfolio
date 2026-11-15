@@ -255,7 +255,6 @@ export function LogoEditor({
               />
               <Input
                 aria-label="Logo label"
-                className="admin-control"
                 onChange={(e) =>
                   onChange({
                     ...doc,
@@ -395,14 +394,12 @@ export function PaletteEditor({
           />
           <Input
             aria-label="Colour name"
-            className="admin-control"
             onChange={(e) => set(index, { name: e.target.value })}
             placeholder="Ink"
             value={entry.name}
           />
           <Input
             aria-label="What it is for"
-            className="admin-control"
             onChange={(e) => set(index, { role: e.target.value })}
             placeholder="text, surface, accent…"
             value={entry.role}

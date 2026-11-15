@@ -14,12 +14,10 @@ import { OklchPicker } from "../ui/OklchPicker";
  */
 export function PinColorFields({
   colors,
-  inputClass,
   labelClass,
   onChange,
 }: {
   colors: Record<PinKind, string>;
-  inputClass: string;
   labelClass: string;
   onChange: (next: Record<PinKind, string>) => void;
 }) {
@@ -36,9 +34,7 @@ export function PinColorFields({
           const ink = inkOn(fill);
           return (
             <div className="space-y-2" key={kind}>
-              <Label className={labelClass} htmlFor={`pin-color-${kind}`}>
-                {PIN_LABELS[kind]}
-              </Label>
+              <Label htmlFor={`pin-color-${kind}`}>{PIN_LABELS[kind]}</Label>
               <div className="relative flex items-center gap-2">
                 {/* The swatch is the note itself: fill, number and ring. */}
                 <button
@@ -58,8 +54,9 @@ export function PinColorFields({
                 </button>
                 <Input
                   aria-label={`${PIN_LABELS[kind]} hex value`}
-                  className={`${inputClass} font-mono`}
+                  face="mono"
                   onChange={(e) => set(kind, e.target.value)}
+                  size="lg"
                   spellCheck={false}
                   value={fill}
                 />

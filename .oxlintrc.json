@@ -2,6 +2,20 @@
   "jsPlugins": ["@shadcn/lint"],
   "rules": {
     "shadcn/no-arbitrary-values": "error",
-    "shadcn/no-restyle": "error"
+    "shadcn/no-restyle": [
+      "error",
+      {
+        "allow": ["layout"],
+        "contracts": [
+          { "pattern": "^Button$", "allow": ["w-full", "mt-*", "mb-*"] },
+          {
+            "pattern": "^CardTitle$",
+            "allow": ["layout", "typography"],
+            "deny": ["font-*"]
+          },
+          { "pattern": "^CardContent$", "allow": ["layout", "spacing"] }
+        ]
+      }
+    ]
   }
 }

@@ -87,11 +87,8 @@ export const DetailsDialog = ({
           </DialogDescription>
         </DialogHeader>
         <div className="stack stack--tight">
-          <Label className="admin-caps" htmlFor="details-title">
-            Title
-          </Label>
+          <Label htmlFor="details-title">Title</Label>
           <Input
-            className="admin-control"
             id="details-title"
             onChange={(e) => details.setDetailsTitle(e.target.value)}
             required
@@ -109,11 +106,8 @@ export const DetailsDialog = ({
           value={details.detailsCategoryId}
         />
         <div className="stack stack--tight">
-          <Label className="admin-caps" htmlFor="details-order">
-            Order
-          </Label>
+          <Label htmlFor="details-order">Order</Label>
           <Input
-            className="admin-control"
             id="details-order"
             onChange={(e) =>
               details.setDetailsOrder(Number.parseInt(e.target.value, 10) || 0)
@@ -137,9 +131,7 @@ export const DetailsDialog = ({
               onChange={(e) => details.setDetailsShowChrome(e.target.checked)}
             />
             <div className="stack stack--snug">
-              <Label className="admin-caps" htmlFor="details-show-chrome">
-                Show browser chrome
-              </Label>
+              <Label htmlFor="details-show-chrome">Show browser chrome</Label>
               <p className="admin-note">
                 Frames this image in a browser window and lets it scroll
               </p>
@@ -148,11 +140,8 @@ export const DetailsDialog = ({
 
           {details.detailsShowChrome ? (
             <div className="stack stack--tight">
-              <Label className="admin-caps" htmlFor="details-chrome-url">
-                Address bar
-              </Label>
+              <Label htmlFor="details-chrome-url">Address bar</Label>
               <Input
-                className="admin-control"
                 id="details-chrome-url"
                 maxLength={300}
                 onChange={(e) => details.setDetailsChromeUrl(e.target.value)}
@@ -176,14 +165,10 @@ export const DetailsDialog = ({
           <div className="photo-details__grid">
             {EXIF_FIELDS.map((field) => (
               <div className="stack stack--tight" key={field.name}>
-                <Label
-                  className="photo-details__field-label"
-                  htmlFor={`details-exif-${field.name}`}
-                >
+                <Label htmlFor={`details-exif-${field.name}`}>
                   {field.label}
                 </Label>
                 <Input
-                  className="admin-control"
                   id={`details-exif-${field.name}`}
                   inputMode={field.inputMode}
                   onChange={(e) =>

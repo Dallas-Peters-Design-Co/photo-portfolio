@@ -36,9 +36,7 @@ export const AddItemForm = ({
         onSubmit={(e) => void newPhoto.handleAdd(e)}
       >
         <div className="stack stack--mid">
-          <Label className="admin-caps" htmlFor="add-image-file">
-            Image
-          </Label>
+          <Label htmlFor="add-image-file">Image</Label>
           <div className="stack stack--tight">
             <input
               accept="image/jpeg,image/png,image/webp,image/gif"
@@ -68,11 +66,8 @@ export const AddItemForm = ({
         </div>
 
         <div className="stack stack--mid">
-          <Label className="admin-caps" htmlFor="title">
-            Title
-          </Label>
+          <Label htmlFor="title">Title</Label>
           <Input
-            className="admin-control add-item__field"
             id="title"
             onChange={(e) =>
               newPhoto.setForm({
@@ -82,6 +77,7 @@ export const AddItemForm = ({
             }
             placeholder="Project Name"
             required
+            size="lg"
             value={newPhoto.form.title}
           />
         </div>

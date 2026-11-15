@@ -32,7 +32,7 @@ import {
 import { PinColorFields } from "./PinColorFields";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
 /** WCAG AA for normal-size body text. */
@@ -167,14 +167,12 @@ export function SiteSettingsPanel() {
           <div className="grid gap-4 sm:grid-cols-2">
             {TEXT_FIELDS.map((field) => (
               <div className="space-y-2" key={field.key}>
-                <Label className={labelClass} htmlFor={`setting-${field.key}`}>
-                  {field.label}
-                </Label>
+                <Label htmlFor={`setting-${field.key}`}>{field.label}</Label>
                 <Input
-                  className={inputClass}
                   id={`setting-${field.key}`}
                   maxLength={200}
                   onChange={(e) => setField(field.key, e.target.value)}
+                  size="lg"
                   type={field.type ?? "text"}
                   value={draft[field.key]}
                 />
@@ -190,9 +188,7 @@ export function SiteSettingsPanel() {
             <div className="grid gap-4 sm:grid-cols-3">
               {COLOR_FIELDS.map(({ key, label }) => (
                 <div className="space-y-2" key={key}>
-                  <Label className={labelClass} htmlFor={`color-${key}`}>
-                    {label}
-                  </Label>
+                  <Label htmlFor={`color-${key}`}>{label}</Label>
                   <div className="relative flex items-center gap-2">
                     <button
                       aria-expanded={openColor === key}
@@ -212,8 +208,9 @@ export function SiteSettingsPanel() {
                         than hunting for it on a gradient. */}
                     <Input
                       aria-label={`${label} hex value`}
-                      className={`${inputClass} font-mono`}
+                      face="mono"
                       onChange={(e) => setTheme(key, e.target.value)}
+                      size="lg"
                       spellCheck={false}
                       value={draft.theme[key]}
                     />
@@ -284,7 +281,6 @@ export function SiteSettingsPanel() {
 
           <PinColorFields
             colors={draft.theme.pinColors}
-            inputClass={inputClass}
             labelClass={labelClass}
             onChange={(pinColors) =>
               setDraft((d) => ({ ...d, theme: { ...d.theme, pinColors } }))
@@ -306,9 +302,7 @@ export function SiteSettingsPanel() {
                 ] as const
               ).map(({ key, label, options }) => (
                 <div className="space-y-2" key={key}>
-                  <Label className={labelClass} htmlFor={`font-${key}`}>
-                    {label}
-                  </Label>
+                  <Label htmlFor={`font-${key}`}>{label}</Label>
                   <Select
                     items={options.map((font) => ({
                       label: font.label,
@@ -352,9 +346,7 @@ export function SiteSettingsPanel() {
                 }
               />
               <div className="space-y-1">
-                <Label className={labelClass} htmlFor="setting-showShader">
-                  Animated shader
-                </Label>
+                <Label htmlFor="setting-showShader">Animated shader</Label>
                 <p className="text-sm text-white/80">
                   Dithered gradient behind the gallery, tinted with the accent
                   color

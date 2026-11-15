@@ -167,7 +167,6 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
           <Input
             autoFocus
-            className="admin-control admin-control--touch"
             onChange={(e) => setPromptValue(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -176,6 +175,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               }
             }}
             placeholder={promptOptions?.placeholder}
+            size="lg"
             value={promptValue}
           />
 

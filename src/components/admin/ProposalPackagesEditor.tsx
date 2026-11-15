@@ -10,7 +10,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 const textareaClass =
   "w-full min-h-28 rounded-md border border-white/10 bg-black/40 px-3 py-2 text-base leading-relaxed text-white/90 transition-colors placeholder:text-white/30 focus:border-white/40 focus:outline-none";
@@ -123,82 +123,72 @@ export function ProposalPackagesEditor({
               </div>
 
               <div className="space-y-2">
-                <Label className={labelClass} htmlFor={`pkg-name-${pkg.id}`}>
-                  Name
-                </Label>
+                <Label htmlFor={`pkg-name-${pkg.id}`}>Name</Label>
                 <Input
-                  className={inputClass}
                   id={`pkg-name-${pkg.id}`}
                   onChange={(e) =>
                     updatePackage(pkg.id, { name: e.target.value })
                   }
                   placeholder="Launch Package"
+                  size="lg"
                   value={pkg.name}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-2">
-                  <Label className={labelClass} htmlFor={`pkg-price-${pkg.id}`}>
-                    Price
-                  </Label>
+                  <Label htmlFor={`pkg-price-${pkg.id}`}>Price</Label>
                   <Input
-                    className={inputClass}
                     id={`pkg-price-${pkg.id}`}
                     onChange={(e) =>
                       updatePackage(pkg.id, { price: e.target.value })
                     }
                     placeholder="$9,500"
+                    size="lg"
                     value={pkg.price}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className={labelClass} htmlFor={`pkg-note-${pkg.id}`}>
-                    Price note
-                  </Label>
+                  <Label htmlFor={`pkg-note-${pkg.id}`}>Price note</Label>
                   <Input
-                    className={inputClass}
                     id={`pkg-note-${pkg.id}`}
                     onChange={(e) =>
                       updatePackage(pkg.id, { priceNote: e.target.value })
                     }
                     placeholder="fixed"
+                    size="lg"
                     value={pkg.priceNote}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className={labelClass} htmlFor={`pkg-time-${pkg.id}`}>
-                  Timeline
-                </Label>
+                <Label htmlFor={`pkg-time-${pkg.id}`}>Timeline</Label>
                 <Input
-                  className={inputClass}
                   id={`pkg-time-${pkg.id}`}
                   onChange={(e) =>
                     updatePackage(pkg.id, { timeline: e.target.value })
                   }
                   placeholder="6 to 8 weeks"
+                  size="lg"
                   value={pkg.timeline}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className={labelClass} htmlFor={`pkg-for-${pkg.id}`}>
-                  Best for
-                </Label>
+                <Label htmlFor={`pkg-for-${pkg.id}`}>Best for</Label>
                 <Input
-                  className={inputClass}
                   id={`pkg-for-${pkg.id}`}
                   onChange={(e) =>
                     updatePackage(pkg.id, { bestFor: e.target.value })
                   }
+                  size="lg"
                   value={pkg.bestFor}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className={labelClass} htmlFor={`pkg-inc-${pkg.id}`}>
+                <Label htmlFor={`pkg-inc-${pkg.id}`}>
                   Includes (one per line)
                 </Label>
                 <textarea
@@ -215,30 +205,26 @@ export function ProposalPackagesEditor({
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-2">
-                  <Label className={labelClass} htmlFor={`pkg-rev-${pkg.id}`}>
-                    Revisions
-                  </Label>
+                  <Label htmlFor={`pkg-rev-${pkg.id}`}>Revisions</Label>
                   <Input
-                    className={inputClass}
                     id={`pkg-rev-${pkg.id}`}
                     onChange={(e) =>
                       updatePackage(pkg.id, { revisions: e.target.value })
                     }
                     placeholder="2 rounds"
+                    size="lg"
                     value={pkg.revisions}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className={labelClass} htmlFor={`pkg-pay-${pkg.id}`}>
-                    Payment
-                  </Label>
+                  <Label htmlFor={`pkg-pay-${pkg.id}`}>Payment</Label>
                   <Input
-                    className={inputClass}
                     id={`pkg-pay-${pkg.id}`}
                     onChange={(e) =>
                       updatePackage(pkg.id, { payment: e.target.value })
                     }
                     placeholder="50% to start"
+                    size="lg"
                     value={pkg.payment}
                   />
                 </div>
@@ -266,16 +252,16 @@ export function ProposalPackagesEditor({
           >
             <Input
               aria-label="Add-on name"
-              className={inputClass}
               onChange={(e) => updateAddOn(addOn.id, { name: e.target.value })}
               placeholder="Landing page built in Framer"
+              size="lg"
               value={addOn.name}
             />
             <Input
               aria-label="Add-on price"
-              className={inputClass}
               onChange={(e) => updateAddOn(addOn.id, { price: e.target.value })}
               placeholder="+$1,500"
+              size="lg"
               value={addOn.price}
             />
             <Button

@@ -180,10 +180,10 @@ export function ReviewPinList({
               </button>
               <Input
                 aria-label={`Note ${firstNumber + i} title`}
-                className={proposalInputClass}
                 onChange={(e) => onUpdate(pin.id, { title: e.target.value })}
                 onFocus={() => onSelect(pin.id)}
                 placeholder="What's here"
+                size="lg"
                 value={pin.title}
               />
               <Select

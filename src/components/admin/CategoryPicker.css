@@ -18,13 +18,3 @@
  * The same iOS rule as AddItemForm's title field: a focused input under 16px
  * makes the page zoom, and it does not zoom back.
  */
-.category-picker__field {
-  min-height: calc(var(--spacing) * 11);
-  font-size: var(--text-base-ui);
-}
-
-@media (width >= 568px) {
-  .category-picker__field {
-    font-size: var(--text-sm-ui);
-  }
-}

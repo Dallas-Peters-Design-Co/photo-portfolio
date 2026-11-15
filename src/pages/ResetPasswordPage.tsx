@@ -84,38 +84,28 @@ export function ResetPasswordPage() {
                   credential to the right account. */}
               <input autoComplete="username" name="username" type="hidden" />
               <div className="stack stack--tight">
-                <Label
-                  className="label reset-password-page__label"
-                  htmlFor="new-password"
-                >
-                  New password
-                </Label>
+                <Label htmlFor="new-password">New password</Label>
                 <Input
                   autoComplete="new-password"
                   autoFocus
-                  className="hairline reset-password-page__input"
                   id="new-password"
                   minLength={MIN_PASSWORD_LENGTH}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  size="lg"
                   type="password"
                   value={password}
                 />
               </div>
               <div className="stack stack--tight">
-                <Label
-                  className="label reset-password-page__label"
-                  htmlFor="confirm-password"
-                >
-                  Confirm password
-                </Label>
+                <Label htmlFor="confirm-password">Confirm password</Label>
                 <Input
                   autoComplete="new-password"
-                  className="hairline reset-password-page__input"
                   id="confirm-password"
                   minLength={MIN_PASSWORD_LENGTH}
                   onChange={(e) => setConfirm(e.target.value)}
                   required
+                  size="lg"
                   type="password"
                   value={confirm}
                 />

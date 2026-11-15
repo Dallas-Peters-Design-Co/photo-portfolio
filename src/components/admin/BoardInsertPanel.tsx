@@ -480,9 +480,10 @@ function UnsplashTab({
         }}
       >
         <Input
-          className="min-h-10 border-board-ink/10 bg-board-surface/40 text-base"
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search references…"
+          size="lg"
+          tone="board"
           value={query}
         />
         <Button aria-label="Search" size="icon" type="submit" variant="outline">
@@ -977,9 +978,10 @@ function PinterestTab({
         }}
       >
         <Input
-          className="min-h-10 border-board-ink/10 bg-board-surface/40 text-base"
           onChange={(e) => onUrlChange(e.target.value)}
           placeholder="Paste a board or pin link…"
+          size="lg"
+          tone="board"
           value={url}
         />
         <Button
@@ -1121,12 +1123,12 @@ function IconTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
         }}
       >
         <Input
-          className="min-h-10 border-board-ink/10 bg-board-surface/40 text-base"
           onChange={(e) => onPrompt(e.target.value)}
           placeholder="Describe an icon…"
+          size="lg"
+          tone="board"
           value={prompt}
         />
-
         <div className="flex flex-wrap gap-1">
           {ICON_STYLES.map((option) => (
             <button

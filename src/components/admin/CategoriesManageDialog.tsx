@@ -134,12 +134,9 @@ export const CategoriesManageDialog = ({
 
         <div className="stack stack--mid">
           <div className="stack stack--tight">
-            <Label className="admin-caps" htmlFor={inputId}>
-              Find or add
-            </Label>
+            <Label htmlFor={inputId}>Find or add</Label>
             <Input
               autoComplete="off"
-              className="admin-control"
               disabled={loading}
               id={inputId}
               onChange={(e) => setQuery(e.target.value)}

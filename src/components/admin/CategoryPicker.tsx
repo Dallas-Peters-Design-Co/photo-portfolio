@@ -147,15 +147,12 @@ export const CategoryPicker = ({
 
   return (
     <div className={cn("category-picker", className)} ref={containerRef}>
-      <Label className="admin-caps" htmlFor={id}>
-        {label}
-      </Label>
+      <Label htmlFor={id}>{label}</Label>
       <Input
         aria-autocomplete="list"
         aria-controls={listboxId}
         aria-expanded={open}
         autoComplete="off"
-        className="admin-control category-picker__field"
         disabled={disabled}
         id={id}
         onChange={(e) => {
@@ -166,6 +163,7 @@ export const CategoryPicker = ({
         onKeyDown={handleKeyDown}
         placeholder="Search or add…"
         role="combobox"
+        size="lg"
         value={query}
       />
       {open && !disabled ? (

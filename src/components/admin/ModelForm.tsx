@@ -42,8 +42,8 @@ import { inputLabel } from "./modelSummary";
  * fail on save with a message about a rule nothing on screen mentioned.
  */
 
-const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _labelClass = "text-sm uppercase tracking-widest text-white/90";
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 const hintClass = "text-xs text-white/50";
 
@@ -159,15 +159,13 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
         <form className="grid gap-4" onSubmit={(e) => void handleSubmit(e)}>
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label className={labelClass} htmlFor="model-id">
-                Model id
-              </Label>
+              <Label htmlFor="model-id">Model id</Label>
               <Input
-                className={inputClass}
                 disabled={!isNew}
                 id="model-id"
                 onChange={(e) => setId(e.target.value)}
                 placeholder="fal-ai/…"
+                size="lg"
                 value={id}
               />
               {isNew ? null : (
@@ -177,14 +175,12 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
               )}
             </div>
             <div className="space-y-1">
-              <Label className={labelClass} htmlFor="model-label">
-                Label
-              </Label>
+              <Label htmlFor="model-label">Label</Label>
               <Input
-                className={inputClass}
                 id="model-label"
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="Shown on the node"
+                size="lg"
                 value={label}
               />
             </div>
@@ -192,9 +188,7 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
-              <Label className={labelClass} htmlFor="model-input">
-                Consumes
-              </Label>
+              <Label htmlFor="model-input">Consumes</Label>
               <Select
                 onValueChange={(value) => {
                   if (value !== null) {
@@ -218,9 +212,7 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className={labelClass} htmlFor="model-output">
-                Returns
-              </Label>
+              <Label htmlFor="model-output">Returns</Label>
               <Select
                 data-size="md"
                 onValueChange={(value) => {
@@ -250,9 +242,7 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
               </p>
             </div>
             <div className="space-y-1">
-              <Label className={labelClass} htmlFor="model-image-param">
-                Source-image parameter
-              </Label>
+              <Label htmlFor="model-image-param">Source-image parameter</Label>
               <Select
                 data-size="md"
                 onValueChange={(value) => {
@@ -286,9 +276,7 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
                 id="model-vector"
                 onChange={(e) => setVector(e.target.checked)}
               />
-              <Label className={labelClass} htmlFor="model-vector">
-                Returns vector art
-              </Label>
+              <Label htmlFor="model-vector">Returns vector art</Label>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
@@ -297,22 +285,20 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
                 id="model-enabled"
                 onChange={(e) => setEnabled(e.target.checked)}
               />
-              <Label className={labelClass} htmlFor="model-enabled">
-                Enabled
-              </Label>
+              <Label htmlFor="model-enabled">Enabled</Label>
             </div>
             <div className="space-y-1">
-              <Label className={labelClass} htmlFor="model-sort">
-                Position
-              </Label>
-              <Input
-                className="min-h-11 w-24 bg-black/40 text-white"
-                id="model-sort"
-                min={0}
-                onChange={(e) => setSortOrder(e.target.value)}
-                type="number"
-                value={sortOrder}
-              />
+              <Label htmlFor="model-sort">Position</Label>
+              <div className="w-24">
+                <Input
+                  id="model-sort"
+                  min={0}
+                  onChange={(e) => setSortOrder(e.target.value)}
+                  size="lg"
+                  type="number"
+                  value={sortOrder}
+                />
+              </div>
             </div>
           </div>
 
@@ -323,7 +309,7 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
               id="model-lora"
               onChange={(e) => setIsLora(e.target.checked)}
             />
-            <Label className="text-sm text-white/80" htmlFor="model-lora">
+            <Label htmlFor="model-lora" variant="inline">
               This is a LoRA style
             </Label>
           </div>
@@ -331,68 +317,60 @@ export function ModelForm({ editing, onCancel, onSaved }: ModelFormProps) {
           {isLora ? (
             <div className="grid gap-3 rounded-md border border-white/10 bg-black/20 p-3 sm:grid-cols-2">
               <div className="space-y-1 sm:col-span-2">
-                <Label className={labelClass} htmlFor="lora-path">
-                  Weights path
-                </Label>
+                <Label htmlFor="lora-path">Weights path</Label>
                 <Input
-                  className={inputClass}
                   id="lora-path"
                   maxLength={MAX_MODEL_LORA_FIELD}
                   onChange={(e) => setLoraPath(e.target.value)}
                   placeholder="https://…/model.safetensors"
+                  size="lg"
                   value={loraPath}
                 />
               </div>
               <div className="space-y-1">
-                <Label className={labelClass} htmlFor="lora-scale">
-                  Strength
-                </Label>
+                <Label htmlFor="lora-scale">Strength</Label>
                 <Input
-                  className={inputClass}
                   id="lora-scale"
                   max={MAX_MODEL_LORA_SCALE}
                   min={0}
                   onChange={(e) => setLoraScale(e.target.value)}
+                  size="lg"
                   step={0.1}
                   type="number"
                   value={loraScale}
                 />
               </div>
               <div className="space-y-1">
-                <Label className={labelClass} htmlFor="lora-trigger">
-                  Trigger token
-                </Label>
+                <Label htmlFor="lora-trigger">Trigger token</Label>
                 <Input
-                  className={inputClass}
                   id="lora-trigger"
                   maxLength={MAX_MODEL_LORA_TRIGGER}
                   onChange={(e) => setLoraTrigger(e.target.value)}
                   placeholder="prepended to the prompt"
+                  size="lg"
                   value={loraTrigger}
                 />
               </div>
               <div className="space-y-1">
-                <Label className={labelClass} htmlFor="lora-endpoint">
-                  Base endpoint (optional)
-                </Label>
+                <Label htmlFor="lora-endpoint">Base endpoint (optional)</Label>
                 <Input
-                  className={inputClass}
                   id="lora-endpoint"
                   maxLength={MAX_MODEL_LORA_FIELD}
                   onChange={(e) => setLoraEndpoint(e.target.value)}
                   placeholder="blank means Flux"
+                  size="lg"
                   value={loraEndpoint}
                 />
               </div>
               <div className="space-y-1">
-                <Label className={labelClass} htmlFor="lora-image-endpoint">
+                <Label htmlFor="lora-image-endpoint">
                   Image-to-image endpoint (optional)
                 </Label>
                 <Input
-                  className={inputClass}
                   id="lora-image-endpoint"
                   maxLength={MAX_MODEL_LORA_FIELD}
                   onChange={(e) => setLoraImageEndpoint(e.target.value)}
+                  size="lg"
                   value={loraImageEndpoint}
                 />
               </div>

@@ -10,7 +10,6 @@ import {
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 
 /**
  * A draft invoice, edited in place: amount, what it's for, who it goes to,
@@ -68,11 +67,9 @@ export function InvoiceDraftRow({
     <li className="space-y-3 rounded-md border border-amber-300/20 p-3">
       <div className="grid gap-3 sm:grid-cols-[8rem_minmax(0,1fr)]">
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor={`inv-amount-${id}`}>
-            Amount (USD)
-          </Label>
+          <Label htmlFor={`inv-amount-${id}`}>Amount (USD)</Label>
           <Input
-            className={`${proposalInputClass} tabular-nums`}
+            face="numeric"
             id={`inv-amount-${id}`}
             inputMode="decimal"
             onBlur={() => {
@@ -81,15 +78,13 @@ export function InvoiceDraftRow({
               }
             }}
             onChange={(e) => setAmount(e.target.value)}
+            size="lg"
             value={amount}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor={`inv-desc-${id}`}>
-            What it's for
-          </Label>
+          <Label htmlFor={`inv-desc-${id}`}>What it's for</Label>
           <Input
-            className={proposalInputClass}
             id={`inv-desc-${id}`}
             onBlur={() => {
               if (description.trim() && description !== invoice.description) {
@@ -97,17 +92,15 @@ export function InvoiceDraftRow({
               }
             }}
             onChange={(e) => setDescription(e.target.value)}
+            size="lg"
             value={description}
           />
         </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem]">
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor={`inv-email-${id}`}>
-            Send to
-          </Label>
+          <Label htmlFor={`inv-email-${id}`}>Send to</Label>
           <Input
-            className={proposalInputClass}
             id={`inv-email-${id}`}
             onBlur={() => {
               if (email !== invoice.customerEmail) {
@@ -115,16 +108,15 @@ export function InvoiceDraftRow({
               }
             }}
             onChange={(e) => setEmail(e.target.value)}
+            size="lg"
             type="email"
             value={email}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor={`inv-due-${id}`}>
-            Due in (days)
-          </Label>
+          <Label htmlFor={`inv-due-${id}`}>Due in (days)</Label>
           <Input
-            className={`${proposalInputClass} tabular-nums`}
+            face="numeric"
             id={`inv-due-${id}`}
             inputMode="numeric"
             onBlur={() => {
@@ -134,6 +126,7 @@ export function InvoiceDraftRow({
               }
             }}
             onChange={(e) => setDueDays(e.target.value)}
+            size="lg"
             value={dueDays}
           />
         </div>

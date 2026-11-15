@@ -5,7 +5,7 @@ import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { siteConfig } from "../../site";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
-import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
+import { proposalTextareaClass } from "./proposalStyles";
 
 /** Getting the review to the client: copy the link, or email it with a note. */
 export function ReviewSendPanel({
@@ -67,7 +67,7 @@ export function ReviewSendPanel({
         </Button>
       </div>
       <div className="space-y-2">
-        <Label className={proposalLabelClass} htmlFor="review-note">
+        <Label htmlFor="review-note">
           Note (optional, goes above the link)
         </Label>
         <textarea

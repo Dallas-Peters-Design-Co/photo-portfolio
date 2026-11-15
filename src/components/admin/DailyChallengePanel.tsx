@@ -219,10 +219,7 @@ const JournalForm = ({
       className="flex min-w-0 flex-1 flex-col gap-2"
       onSubmit={(e) => void journal.handleSave(e)}
     >
-      <Label
-        className="text-sm text-white/90 uppercase tracking-widest"
-        htmlFor={`journal-${entry.challenge.challengeDate}`}
-      >
+      <Label htmlFor={`journal-${entry.challenge.challengeDate}`}>
         Your thoughts
       </Label>
       <textarea
@@ -519,12 +516,7 @@ const TodayJournalForm = ({
 }) => (
   <form className="flex flex-col gap-3" onSubmit={onSubmit}>
     <div className="space-y-2">
-      <Label
-        className="text-sm text-white/90 uppercase tracking-widest"
-        htmlFor="challenge-journal"
-      >
-        Your thoughts
-      </Label>
+      <Label htmlFor="challenge-journal">Your thoughts</Label>
       <textarea
         className={cn(
           "w-full resize-y rounded-lg border border-white/10 bg-black/40 px-3 py-2.5 text-sm text-white",

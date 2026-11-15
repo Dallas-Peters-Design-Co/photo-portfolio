@@ -74,16 +74,14 @@ export function ForgotPasswordForm({
         onSubmit={(e) => void handleSubmit(e)}
       >
         <div className="stack stack--tight">
-          <Label className="admin-caps" htmlFor="reset-email">
-            Email
-          </Label>
+          <Label htmlFor="reset-email">Email</Label>
           <Input
             autoComplete="username"
             autoFocus
-            className="admin-control admin-control--touch"
             id="reset-email"
             onChange={(e) => setEmail(e.target.value)}
             required
+            size="lg"
             type="email"
             value={email}
           />

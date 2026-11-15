@@ -6,7 +6,6 @@ import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
 
 /**
  * The client's side of a review, in the editor: the password that guards it,
@@ -86,15 +85,15 @@ export function ReviewClientPanel({
       </div>
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-56 flex-1 space-y-2">
-          <Label className={proposalLabelClass} htmlFor="review-password">
+          <Label htmlFor="review-password">
             {review.hasPassword ? "New password" : "Password"}
           </Label>
           <Input
             autoComplete="new-password"
-            className={proposalInputClass}
             id="review-password"
             onChange={(e) => setPassword(e.target.value)}
             placeholder="At least 4 characters"
+            size="lg"
             type="password"
             value={password}
           />

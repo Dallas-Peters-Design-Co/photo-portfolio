@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { proposalInputClass } from "./proposalStyles";
 
 /**
  * The agreement, drafted for the option the client chose when they said yes
@@ -66,9 +66,7 @@ export function RecordAcceptance({
       </p>
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="ra-option">
-            Option they chose
-          </Label>
+          <Label htmlFor="ra-option">Option they chose</Label>
           <Select
             items={packages.map((p) => ({
               label: `${p.name} · ${p.price}`,
@@ -97,24 +95,20 @@ export function RecordAcceptance({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="ra-name">
-            Agreed by
-          </Label>
+          <Label htmlFor="ra-name">Agreed by</Label>
           <Input
-            className={proposalInputClass}
             id="ra-name"
             onChange={(e) => setName(e.target.value)}
+            size="lg"
             value={name}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="ra-how">
-            How they told you
-          </Label>
+          <Label htmlFor="ra-how">How they told you</Label>
           <Input
-            className={proposalInputClass}
             id="ra-how"
             onChange={(e) => setHow(e.target.value)}
+            size="lg"
             value={how}
           />
         </div>

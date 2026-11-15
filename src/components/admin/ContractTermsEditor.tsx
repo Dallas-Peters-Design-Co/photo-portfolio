@@ -9,11 +9,7 @@ import { newItemId } from "../../../config/proposal.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import {
-  proposalInputClass,
-  proposalLabelClass,
-  proposalTextareaClass,
-} from "./proposalStyles";
+import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
 
 /**
  * The editable body of an agreement: who it is between, the scope taken from
@@ -67,13 +63,11 @@ export function ContractTermsEditor({
     type = "text"
   ) => (
     <div className="space-y-1.5" key={id}>
-      <Label className={proposalLabelClass} htmlFor={id}>
-        {label}
-      </Label>
+      <Label htmlFor={id}>{label}</Label>
       <Input
-        className={proposalInputClass}
         id={id}
         onChange={(e) => set(e.target.value)}
+        size="lg"
         type={type}
         value={value}
       />
@@ -115,9 +109,7 @@ export function ContractTermsEditor({
         </div>
         <div className="grid gap-3 lg:grid-cols-2">
           <div className="space-y-1.5">
-            <Label className={proposalLabelClass} htmlFor="ct-includes">
-              Includes (one per line)
-            </Label>
+            <Label htmlFor="ct-includes">Includes (one per line)</Label>
             <textarea
               className={proposalTextareaClass}
               id="ct-includes"
@@ -126,9 +118,7 @@ export function ContractTermsEditor({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className={proposalLabelClass} htmlFor="ct-addons">
-              Also included (one per line)
-            </Label>
+            <Label htmlFor="ct-addons">Also included (one per line)</Label>
             <textarea
               className={proposalTextareaClass}
               id="ct-addons"
@@ -178,14 +168,16 @@ export function ContractTermsEditor({
               <span className="w-6 text-white/50 text-xs tabular-nums">
                 {i + 2}
               </span>
-              <Input
-                aria-label="Clause heading"
-                className={`${proposalInputClass} flex-1`}
-                onChange={(e) =>
-                  setClause(clause.id, { heading: e.target.value })
-                }
-                value={clause.heading}
-              />
+              <div className="flex-1">
+                <Input
+                  aria-label="Clause heading"
+                  onChange={(e) =>
+                    setClause(clause.id, { heading: e.target.value })
+                  }
+                  size="lg"
+                  value={clause.heading}
+                />
+              </div>
               <Button
                 aria-label="Move up"
                 disabled={i === 0}

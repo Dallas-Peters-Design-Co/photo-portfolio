@@ -16,7 +16,6 @@ import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
 import { EditorShell } from "./EditorShell";
-import { proposalLabelClass } from "./proposalStyles";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
@@ -326,14 +325,14 @@ export function ReviewEditor({
         >
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label className={proposalLabelClass}>Intro</Label>
+              <Label>Intro</Label>
               <PageEditor
                 onChange={(intro) => setDoc({ intro: intro as RichText })}
                 value={toEditorDoc(draft.doc.intro)}
               />
             </div>
             <div className="space-y-2">
-              <Label className={proposalLabelClass}>Headline findings</Label>
+              <Label>Headline findings</Label>
               <PageEditor
                 key={auditKey}
                 onChange={(summary) => setDoc({ summary: summary as RichText })}

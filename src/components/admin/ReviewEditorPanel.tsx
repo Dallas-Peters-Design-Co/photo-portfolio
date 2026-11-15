@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { PanelGroup } from "./EditorShell";
-import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { proposalInputClass } from "./proposalStyles";
 
 /**
  * What the review editor's side panel holds (EditorShell): saving and
@@ -64,54 +64,46 @@ export function ReviewEditorPanel({
 
       <PanelGroup title="Settings">
         <div className="editor-shell__field">
-          <Label className={proposalLabelClass} htmlFor="review-title">
-            Title
-          </Label>
+          <Label htmlFor="review-title">Title</Label>
           <Input
-            className={proposalInputClass}
             id="review-title"
             onChange={(e) => {
               const { value } = e.target;
               setDraft((d) => ({ ...d, title: value }));
             }}
+            size="lg"
             value={draft.title}
           />
         </div>
         <div className="editor-shell__field">
-          <Label className={proposalLabelClass} htmlFor="review-client">
-            Client label
-          </Label>
+          <Label htmlFor="review-client">Client label</Label>
           <Input
-            className={proposalInputClass}
             id="review-client"
             onChange={(e) => {
               const { value } = e.target;
               setDraft((d) => ({ ...d, clientName: value }));
             }}
             placeholder="Vin at Viaskai"
+            size="lg"
             value={draft.clientName}
           />
         </div>
         <div className="editor-shell__field">
-          <Label className={proposalLabelClass} htmlFor="review-email">
-            Client email
-          </Label>
+          <Label htmlFor="review-email">Client email</Label>
           <Input
-            className={proposalInputClass}
             id="review-email"
             onChange={(e) => {
               const value = e.target.value || null;
               setDraft((d) => ({ ...d, clientEmail: value }));
             }}
             placeholder="Gets the link"
+            size="lg"
             type="email"
             value={draft.clientEmail ?? ""}
           />
         </div>
         <div className="editor-shell__field">
-          <Label className={proposalLabelClass} htmlFor="review-kit">
-            Brand kit
-          </Label>
+          <Label htmlFor="review-kit">Brand kit</Label>
           <Select
             items={kitItems}
             onValueChange={(value) => {
@@ -137,16 +129,15 @@ export function ReviewEditorPanel({
           </Select>
         </div>
         <div className="editor-shell__field">
-          <Label className={proposalLabelClass} htmlFor="review-slug">
-            Address
-          </Label>
+          <Label htmlFor="review-slug">Address</Label>
           <Input
-            className={`${proposalInputClass} font-mono`}
+            face="mono"
             id="review-slug"
             onChange={(e) => {
               const { value } = e.target;
               setDraft((d) => ({ ...d, slug: value }));
             }}
+            size="lg"
             value={draft.slug}
           />
           <p className="font-mono text-micro-xs text-white/60">

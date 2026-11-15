@@ -29,7 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { proposalInputClass, proposalLabelClass } from "./proposalStyles";
+import { proposalInputClass } from "./proposalStyles";
 import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
 import { ReviewPinList } from "./ReviewPinList";
 import {
@@ -259,27 +259,17 @@ export function ReviewScreenEditor({
     <div className="space-y-4">
       <div className="review-screen-editor__address">
         <div className="space-y-2">
-          <Label
-            className={proposalLabelClass}
-            htmlFor={`screen-title-${screen.id}`}
-          >
-            Screen title
-          </Label>
+          <Label htmlFor={`screen-title-${screen.id}`}>Screen title</Label>
           <Input
-            className={proposalInputClass}
             id={`screen-title-${screen.id}`}
             onChange={(e) => patch({ title: e.target.value })}
             placeholder="Home page"
+            size="lg"
             value={screen.title}
           />
         </div>
         <div className="space-y-2">
-          <Label
-            className={proposalLabelClass}
-            htmlFor={`screen-viewport-${screen.id}`}
-          >
-            Viewport
-          </Label>
+          <Label htmlFor={`screen-viewport-${screen.id}`}>Viewport</Label>
           <Select
             items={VIEWPORT_ITEMS}
             onValueChange={(value) => {
@@ -318,18 +308,14 @@ export function ReviewScreenEditor({
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-64 flex-1 space-y-2">
-          <Label
-            className={proposalLabelClass}
-            htmlFor={`screen-url-${screen.id}`}
-          >
-            Page address
-          </Label>
+          <Label htmlFor={`screen-url-${screen.id}`}>Page address</Label>
           <Input
-            className={`${proposalInputClass} font-mono`}
+            face="mono"
             id={`screen-url-${screen.id}`}
             onBlur={() => patch({ sourceUrl: url.trim() })}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://"
+            size="lg"
             type="url"
             value={url}
           />
@@ -479,9 +465,7 @@ export function ReviewScreenEditor({
       )}
 
       <div className="space-y-2">
-        <Label className={proposalLabelClass}>
-          About this screen (optional)
-        </Label>
+        <Label>About this screen (optional)</Label>
         <PageEditor
           onChange={(note) => patch({ note: note as RichText })}
           value={toEditorDoc(screen.note)}

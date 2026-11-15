@@ -21,11 +21,7 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useConfirm } from "./ConfirmProvider";
 import { ContractTermsEditor } from "./ContractTermsEditor";
-import {
-  proposalInputClass,
-  proposalLabelClass,
-  proposalTextareaClass,
-} from "./proposalStyles";
+import { proposalTextareaClass } from "./proposalStyles";
 import { RecordAcceptance } from "./RecordAcceptance";
 
 /**
@@ -291,24 +287,20 @@ function DraftForm({
     <>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="ct-title">
-            Title
-          </Label>
+          <Label htmlFor="ct-title">Title</Label>
           <Input
-            className={proposalInputClass}
             id="ct-title"
             onChange={(e) => edit({ title: e.target.value })}
+            size="lg"
             value={contract.title}
           />
         </div>
         <div className="space-y-1.5">
-          <Label className={proposalLabelClass} htmlFor="ct-email">
-            Send to
-          </Label>
+          <Label htmlFor="ct-email">Send to</Label>
           <Input
-            className={proposalInputClass}
             id="ct-email"
             onChange={(e) => edit({ clientEmail: e.target.value || null })}
+            size="lg"
             type="email"
             value={contract.clientEmail ?? ""}
           />
@@ -319,9 +311,7 @@ function DraftForm({
         onChange={(doc) => edit({ doc })}
       />
       <div className="space-y-1.5">
-        <Label className={proposalLabelClass} htmlFor="ct-note">
-          Note with the email (optional)
-        </Label>
+        <Label htmlFor="ct-note">Note with the email (optional)</Label>
         <textarea
           className={proposalTextareaClass}
           id="ct-note"

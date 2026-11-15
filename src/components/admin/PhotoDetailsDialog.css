@@ -54,13 +54,6 @@
   gap: calc(var(--spacing) * 3);
 }
 
-.photo-details__field-label {
-  font-size: var(--text-micro-xs);
-  color: color-mix(in oklch, #fff 60%, transparent);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-widest);
-}
-
 /* The quietest thing in the dialog: a note about where these values came from. */
 .photo-details__hint {
   font-size: var(--text-micro-xs);

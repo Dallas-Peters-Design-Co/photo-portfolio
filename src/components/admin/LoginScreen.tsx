@@ -33,29 +33,25 @@ export const LoginScreen = ({
       onSubmit={(e) => void login.handleLogin(e)}
     >
       <div className="stack stack--tight">
-        <Label className="admin-caps" htmlFor="admin-email">
-          Email
-        </Label>
+        <Label htmlFor="admin-email">Email</Label>
         <Input
           autoComplete="username"
-          className="admin-control admin-control--touch"
           id="admin-email"
           onChange={(e) => login.setEmail(e.target.value)}
           required
+          size="lg"
           type="email"
           value={login.email}
         />
       </div>
       <div className="stack stack--tight">
-        <Label className="admin-caps" htmlFor="admin-password">
-          Password
-        </Label>
+        <Label htmlFor="admin-password">Password</Label>
         <Input
           autoComplete="current-password"
-          className="admin-control admin-control--touch"
           id="admin-password"
           onChange={(e) => login.setPassword(e.target.value)}
           required
+          size="lg"
           type="password"
           value={login.password}
         />

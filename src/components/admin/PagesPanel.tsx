@@ -31,7 +31,7 @@ import { BackButton } from "./BackButton";
 import { useConfirm } from "./ConfirmProvider";
 
 const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
 /** Mirrors slugify() in api/_lib/pages.ts so the suggested address matches. */
@@ -197,10 +197,10 @@ export function PagesPanel() {
             <CardContent>
               <Input
                 autoFocus
-                className={inputClass}
                 id="new-page-title"
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Page Title"
+                size="lg"
                 value={newTitle}
               />
               {newTitle.trim() ? (
@@ -326,31 +326,26 @@ function PageEditorPanel({
       <CardContent className="space-y-6">
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <Label className={labelClass} htmlFor="page-title">
-              Title
-            </Label>
+            <Label htmlFor="page-title">Title</Label>
             <Input
-              className={inputClass}
               id="page-title"
               onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+              size="lg"
               value={draft.title}
             />
           </div>
           <div className="space-y-2">
-            <Label className={labelClass} htmlFor="page-slug">
-              Address
-            </Label>
+            <Label htmlFor="page-slug">Address</Label>
             <Input
-              className={`${inputClass} font-mono`}
+              face="mono"
               id="page-slug"
               onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
+              size="lg"
               value={draft.slug}
             />
           </div>
           <div className="space-y-2">
-            <Label className={labelClass} htmlFor="page-icon">
-              Icon (optional)
-            </Label>
+            <Label htmlFor="page-icon">Icon (optional)</Label>
             <IconPicker
               id="page-icon"
               onChange={(icon) => setDraft({ ...draft, icon })}

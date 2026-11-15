@@ -47,8 +47,8 @@ const CREDENTIAL_FIELDS: { hint: string; key: string; label: string }[] = [
 /** Every site is this same repository with a different SITE. */
 const DEFAULT_REPO = "dallasbpeters/photo-portfolio";
 
-const labelClass = "text-sm uppercase tracking-widest text-white/90";
-const inputClass =
+const _labelClass = "text-sm uppercase tracking-widest text-white/90";
+const _inputClass =
   "min-h-11 text-base bg-black/40 border-white/10 focus:border-white/40 transition-colors";
 
 interface Field {
@@ -312,9 +312,9 @@ export function SitesPanel() {
                 {setupFor === project.id ? (
                   <div className="mt-2 space-y-2">
                     <Input
-                      className={inputClass}
                       onChange={(e) => setDatabaseUrl(e.target.value)}
                       placeholder="postgres://… (optional)"
+                      size="lg"
                       value={databaseUrl}
                     />
 
@@ -322,7 +322,6 @@ export function SitesPanel() {
                       <div className="space-y-1" key={field.key}>
                         <Input
                           aria-label={field.label}
-                          className={inputClass}
                           onChange={(e) =>
                             setCredentials((current) => ({
                               ...current,
@@ -330,6 +329,7 @@ export function SitesPanel() {
                             }))
                           }
                           placeholder={`${field.label} (optional)`}
+                          size="lg"
                           // Typed secrets should not sit on screen in the clear.
                           type="password"
                           value={credentials[field.key] ?? ""}
@@ -362,15 +362,15 @@ export function SitesPanel() {
             <div className="grid gap-4 sm:grid-cols-2">
               {FIELDS.map((field) => (
                 <div className="space-y-2" key={field.key}>
-                  <Label className={labelClass} htmlFor={`site-${field.key}`}>
+                  <Label htmlFor={`site-${field.key}`}>
                     {field.label}
                     {field.required ? " *" : ""}
                   </Label>
                   <Input
-                    className={inputClass}
                     id={`site-${field.key}`}
                     onChange={(e) => set(field.key, e.target.value)}
                     required={field.required}
+                    size="lg"
                     value={form[field.key]}
                   />
                   {field.hint ? (
