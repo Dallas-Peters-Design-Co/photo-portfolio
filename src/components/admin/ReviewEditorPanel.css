@@ -2,10 +2,10 @@
  * The review editor's side panel (ReviewEditorPanel.tsx) and the layout it
  * sits in: the panel on the left, the content beside it.
  *
- * On a wide window the panel sticks below the admin bar and scrolls on its
- * own, so its controls stay in reach however far down the screens go. Closed,
- * it is a narrow rail holding only the button that opens it. On a narrow
- * window it sits above the content instead.
+ * On a wide window the panel is pinned to the window's left edge below the
+ * admin bar and scrolls on its own, so its controls stay in reach however far
+ * down the screens go. Closed, it is a narrow rail holding only the button
+ * that opens it. On a narrow window it sits above the content instead.
  */
 
 .review-editor {
@@ -16,6 +16,8 @@
 }
 
 .review-editor-panel {
+  min-width: 0;
+  overflow-x: hidden;
   background: rgb(255 255 255 / 0.02);
   border: 1px solid rgb(255 255 255 / 0.1);
   border-radius: var(--radius-lg, var(--radius-md));
@@ -105,25 +107,34 @@
 }
 
 @media (min-width: 1024px) {
+  /*
+   * The panel is pinned to the window's left edge, from the admin bar down,
+   * and the content takes every pixel to its right. The editor stretches
+   * across the admin page instead of sitting centred at a capped width.
+   */
   .review-editor {
-    grid-template-columns: var(--container-panel) minmax(0, 1fr);
-    align-items: start;
+    --review-panel-width: var(--container-panel);
+
+    justify-self: stretch;
+    max-width: none;
+    padding-inline-start: calc(var(--review-panel-width) - var(--spacing) * 2);
   }
 
   .review-editor--panel-closed {
-    grid-template-columns: calc(var(--spacing) * 13) minmax(0, 1fr);
+    --review-panel-width: calc(var(--spacing) * 13);
   }
 
   .review-editor-panel {
-    position: sticky;
-    top: calc(var(--admin-bar-height, 0px) + var(--spacing) * 4);
-    max-height: calc(
-      100dvh -
-      var(--admin-bar-height, 0px) -
-      var(--spacing) *
-      8
-    );
+    position: fixed;
+    top: var(--admin-bar-height, 0px);
+    bottom: 0;
+    left: 0;
+    z-index: 40;
+    width: var(--review-panel-width);
     overflow-y: auto;
     overscroll-behavior: contain;
+    background: var(--background);
+    border-width: 0 1px 0 0;
+    border-radius: 0;
   }
 }
