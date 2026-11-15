@@ -22,8 +22,8 @@
 }
 
 .guide--message {
-  --guide-bg: #f6f6f3;
-  --guide-ink: #0b0f1a;
+  --guide-bg: oklch(25% 0.003 3deg);
+  --guide-ink: oklch(90% 0 4deg);
 
   display: grid;
   gap: 1rem;
