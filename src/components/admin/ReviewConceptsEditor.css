@@ -39,14 +39,8 @@
 }
 
 .review-concepts__title {
-  width: 100%;
+  flex: 1;
   max-width: 28rem;
-  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
-  font-size: var(--text-sm-ui);
-  font-weight: 600;
-  color: inherit;
-  background: color-mix(in oklch, currentColor 5%, transparent);
-  border: 1px solid color-mix(in oklch, currentColor 15%, transparent);
 }
 
 .review-concepts__workspace {
@@ -62,11 +56,14 @@
   min-width: 0;
 }
 
+/* Controls line up at the top and keep their own height: a field with two
+   controls (search over menu, menu beside swatch) never stretches its row. */
 .review-concepts__control-grid,
-.review-concepts__element-grid {
+.review-concepts__group-fields {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: calc(var(--spacing) * 2);
+  gap: calc(var(--spacing) * 3) calc(var(--spacing) * 2);
+  align-items: start;
 }
 
 .review-concepts__field {
@@ -80,11 +77,9 @@
   color: color-mix(in oklch, currentColor 65%, transparent);
 }
 
-.review-concepts__field input:not([type="color"]),
-.review-concepts__field select {
+.review-concepts__field textarea {
   min-width: 0;
-  min-height: calc(var(--spacing) * 9);
-  padding-inline: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
   font: inherit;
   color: inherit;
   background: color-mix(in oklch, currentColor 5%, transparent);
@@ -92,10 +87,16 @@
   border-radius: var(--radius-control);
 }
 
-.review-concepts__field--color input[type="color"] {
-  width: 100%;
-  min-height: calc(var(--spacing) * 9);
-  padding: calc(var(--spacing) * 1);
+.review-concepts__color-row {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+}
+
+.review-concepts__color-row input[type="color"] {
+  flex: none;
+  width: calc(var(--spacing) * 10);
+  height: calc(var(--spacing) * 7);
+  padding: 2px;
   background: color-mix(in oklch, currentColor 5%, transparent);
   border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
   border-radius: var(--radius-control);
@@ -107,34 +108,67 @@
 }
 
 .review-concepts__add-actions {
-  display: flex;
-  gap: calc(var(--spacing) * 1);
+  width: 12rem;
 }
 
 .review-concepts__element {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
   min-width: 0;
   padding: calc(var(--spacing) * 3);
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
 }
 
-.review-concepts__element legend {
-  padding-inline: calc(var(--spacing) * 1);
+/* The element's name, then its actions pushed to the far end. */
+.review-concepts__element-bar {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+  margin: calc(var(--spacing) * -1) calc(var(--spacing) * -1) 0 0;
+}
+
+.review-concepts__element-bar > span {
+  margin-inline-end: auto;
   font-size: var(--text-xs-ui);
-  color: color-mix(in oklch, currentColor 65%, transparent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+}
+
+/* A row name in a fixed column, so every row's fields start at one edge. */
+.review-concepts__group {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: calc(var(--spacing) * 2);
+  align-items: start;
+  padding-block-start: calc(var(--spacing) * 3);
+  border-block-start: 1px solid
+    color-mix(in oklch, currentColor 8%, transparent);
+}
+
+.review-concepts__group-name {
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 55%, transparent);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
 }
 
 .review-concepts__field--wide {
   grid-column: span 2;
 }
 
-.review-concepts__add-select {
-  min-height: calc(var(--spacing) * 8);
-  padding-inline: calc(var(--spacing) * 2);
-  font: inherit;
-  color: inherit;
-  background: color-mix(in oklch, currentColor 5%, transparent);
-  border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
-  border-radius: var(--radius-control);
+.review-concepts__field--full {
+  grid-column: 1 / -1;
+}
+
+/* Sits on the control line of its row, beside fields that have captions. */
+.review-concepts__check {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  align-self: end;
+  height: calc(var(--spacing) * 7);
+  font-size: var(--text-xs-ui);
 }
 
 .review-concepts__checkbox-preview {
@@ -165,6 +199,20 @@
   padding: calc(var(--spacing) * 2);
   text-align: start;
   border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.review-concepts__card-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, #000 12%, transparent);
+}
+
+.review-concepts__card-preview p {
+  margin: 0;
+  white-space: pre-line;
+  opacity: 0.8;
 }
 
 .review-concepts__dialog-preview {
@@ -242,7 +290,11 @@
   }
 
   .review-concepts__control-grid,
-  .review-concepts__element-grid {
+  .review-concepts__group-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .review-concepts__group {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

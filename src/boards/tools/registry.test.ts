@@ -175,16 +175,13 @@ describe("blockedReason", () => {
   });
 
   it("blocks a planned tool and says so", () => {
-    expect(blockedReason(toolById("crop") as never, ready)).toContain(
+    expect(blockedReason(toolById("describe") as never, ready)).toContain(
       "not built yet"
     );
   });
 
   it("says a planned tool is unbuilt before it says anything else", () => {
-    // Crop needs an image and is not built. "Not built yet" is the more useful
-    // of the two answers, so it must win — sending someone to find a picture
-    // for a tool that could not use one would be a small betrayal.
-    const reason = blockedReason(toolById("crop") as never, {
+    const reason = blockedReason(toolById("describe") as never, {
       ...ready,
       hasImage: false,
     });

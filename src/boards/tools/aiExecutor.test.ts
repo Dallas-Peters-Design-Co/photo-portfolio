@@ -58,6 +58,27 @@ describe("aiExecutor", () => {
     width: 512,
   };
 
+  it("refuses an empty restyle before making a paid request", async () => {
+    const sent: string[] = [];
+    const executor = createAiExecutor({
+      generate: (prompt) => {
+        sent.push(prompt);
+        return Promise.resolve(generated);
+      },
+    });
+    const outcome = await executor(invocation(toolNamed("restyle")));
+    expect(outcome.ok).toBe(false);
+    expect(sent).toEqual([]);
+    const success = await executor(
+      invocation(toolNamed("restyle"), {
+        config: { model: "lora/woodcut" },
+        prompt: "Use a woodcut style and keep the subject",
+      })
+    );
+    expect(success.ok).toBe(true);
+    expect(sent).toEqual(["Use a woodcut style and keep the subject"]);
+  });
+
   it("sends the item's image for an edit and appends what came back", async () => {
     const calls: { prompt: string; sourceImageUrl: string | null }[] = [];
     const executor = createAiExecutor({

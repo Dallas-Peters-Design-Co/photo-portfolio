@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../../_lib/auth.js";
+import {
+  sendBoardResultError,
+  updateBoardResult,
+} from "../../_lib/boardResult.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
 import {
@@ -167,12 +171,6 @@ const collect = async (
   }
 
   const sql = getSql();
-  const rows = (await sql`
-    SELECT result FROM board_items
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `) as { result: unknown }[];
-  const stored = (rows[0]?.result ?? null) as StoredResult | null;
-
   const variation = {
     description: null,
     height: null,
@@ -181,25 +179,27 @@ const collect = async (
     url,
     width: null,
   };
-  const history = [...(stored?.history ?? []), variation].slice(-MAX_HISTORY);
-  const result = {
-    history,
-    // A video is not an image, and saying so here is what lets the node render
-    // a <video> without inspecting the file extension.
-    kind: "video",
-    ranAt: new Date().toISOString(),
-    url,
-    variations: [variation],
-  };
-
-  await sql`
-    UPDATE board_items
-    SET result = ${JSON.stringify(result)}::jsonb,
-        run_state = 'succeeded',
-        run_error = NULL
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `;
-  return res.status(200).json({ result });
+  try {
+    const result = await updateBoardResult(
+      sql,
+      boardId,
+      itemId,
+      (previous) => {
+        const stored = previous as StoredResult | null;
+        return {
+          history: [...(stored?.history ?? []), variation].slice(-MAX_HISTORY),
+          kind: "video",
+          ranAt: new Date().toISOString(),
+          url,
+          variations: [variation],
+        };
+      },
+      true
+    );
+    return res.status(200).json({ result });
+  } catch (e) {
+    return sendBoardResultError(res, e, "Could not save the video");
+  }
 };
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

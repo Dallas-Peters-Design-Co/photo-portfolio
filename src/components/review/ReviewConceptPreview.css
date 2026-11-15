@@ -56,6 +56,20 @@
   border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
 }
 
+.review-page__concept-preview .review-concepts__card-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  box-shadow: 0 4px 14px color-mix(in srgb, #000 12%, transparent);
+}
+
+.review-page__concept-preview .review-concepts__card-preview p {
+  margin: 0;
+  white-space: pre-line;
+  opacity: 0.8;
+}
+
 .review-page__concept-preview .review-concepts__dialog-preview {
   display: grid;
   gap: calc(var(--spacing) * 3);

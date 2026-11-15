@@ -1,7 +1,10 @@
 import type { CSSProperties } from "react";
 import { useEffect } from "react";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
-import type { ReviewConcept } from "../../../config/reviewConcept.js";
+import {
+  ALIGN_ITEMS,
+  type ReviewConcept,
+} from "../../../config/reviewConcept.js";
 import { type FontId, findFont } from "../../../config/theme.js";
 import { loadFont } from "../../theme/fonts";
 import { loadFontRef } from "../../theme/remoteFonts";
@@ -13,13 +16,6 @@ const CONCEPT_FONTS: Partial<Record<ReviewConcept["fontFamily"], string>> = {
   sans: "var(--font-sans, Arial, sans-serif)",
   serif: "Georgia, serif",
 };
-
-const ALIGN_ITEMS = {
-  center: "center",
-  end: "flex-end",
-  start: "flex-start",
-  stretch: "stretch",
-} as const;
 
 const familyCss = (family: string, fontRef?: string): string => {
   const ref = fontRef ? parseFontRef(fontRef) : null;

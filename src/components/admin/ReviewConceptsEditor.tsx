@@ -6,44 +6,59 @@ import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
-import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
+import {
+  ALIGN_ITEMS,
+  MAX_REVIEW_CONCEPTS,
+} from "../../../config/reviewConcept.js";
 import { loadFontRef } from "../../theme/remoteFonts";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { ConceptFontField, conceptFontCss } from "./ConceptFontField";
+import { ConceptField, ConceptSelect, optionsOf } from "./ConceptSelect";
 import {
+  addConceptElement,
   ConceptColorField,
   createConcept,
-  createConceptElement,
+  duplicateConceptElement,
 } from "./ReviewConceptBrand";
-import { ReviewConceptContentField } from "./ReviewConceptContentField";
+import {
+  NumberField,
+  ReviewConceptElementFields,
+} from "./ReviewConceptElementFields";
 import "./ReviewConceptsEditor.css";
 
-const ALIGN_ITEMS = {
-  center: "center",
-  end: "flex-end",
-  start: "flex-start",
-  stretch: "stretch",
-} as const;
-
-const numberInput = (
-  label: string,
-  value: number,
-  onChange: (value: number) => void,
-  max: number
-) => (
-  <label className="review-concepts__field">
-    <span>{label}</span>
-    <input
-      max={max}
-      min={0}
-      onChange={(event) => onChange(Number(event.target.value))}
-      type="number"
-      value={value}
-    />
-  </label>
-);
+const DIRECTIONS = optionsOf([
+  ["column", "Vertical"],
+  ["row", "Horizontal"],
+]);
+const ALIGNS = optionsOf([
+  ["start", "Start"],
+  ["center", "Center"],
+  ["end", "End"],
+  ["stretch", "Stretch"],
+]);
+const KINDS = optionsOf([
+  ["text", "Text"],
+  ["icon", "Icon"],
+  ["button", "Button"],
+  ["input", "Input"],
+  ["textarea", "Text area"],
+  ["select", "Select"],
+  ["checkbox", "Checkbox"],
+  ["card", "Card"],
+  ["label", "Label"],
+  ["badge", "Badge"],
+  ["link", "Link"],
+  ["divider", "Divider"],
+  ["tabs", "Tabs"],
+  ["table", "Table"],
+  ["dialog", "Dialog"],
+  ["menu", "Dropdown menu"],
+  ["toast", "Toast"],
+  ["skeleton", "Skeleton loader"],
+]);
 
 function ConceptCard({
   brandDoc,
@@ -67,7 +82,7 @@ function ConceptCard({
   const addElement = (kind: ReviewConceptElementKind) =>
     onChange({
       ...concept,
-      elements: [...concept.elements, createConceptElement(kind, brandDoc)],
+      elements: addConceptElement(concept.elements, kind, brandDoc),
     });
 
   useEffect(() => {
@@ -100,15 +115,17 @@ function ConceptCard({
   return (
     <article className="review-concepts__card">
       <header className="review-concepts__card-head">
-        <input
-          aria-label="Concept name"
-          className="review-concepts__title"
-          onChange={(event) =>
-            onChange({ ...concept, title: event.target.value })
-          }
-          placeholder="Name this concept"
-          value={concept.title}
-        />
+        <div className="review-concepts__title">
+          <Input
+            aria-label="Concept name"
+            onChange={(event) =>
+              onChange({ ...concept, title: event.target.value })
+            }
+            placeholder="Name this concept"
+            size="sm"
+            value={concept.title}
+          />
+        </div>
         <Button
           aria-label={`Remove ${concept.title || "concept"}`}
           onClick={onRemove}
@@ -131,56 +148,50 @@ function ConceptCard({
         </div>
         <div className="review-concepts__controls">
           <div className="review-concepts__control-grid">
-            <label className="review-concepts__field">
-              <span>Auto layout</span>
-              <select
-                onChange={(event) =>
+            <ConceptField label="Auto layout">
+              <ConceptSelect
+                label="Auto layout"
+                onChange={(direction) =>
                   onChange({
                     ...concept,
-                    direction: event.target.value === "row" ? "row" : "column",
+                    direction: direction === "row" ? "row" : "column",
                   })
                 }
+                options={DIRECTIONS}
                 value={concept.direction}
-              >
-                <option value="column">Vertical</option>
-                <option value="row">Horizontal</option>
-              </select>
-            </label>
-            <label className="review-concepts__field">
-              <span>Align items</span>
-              <select
-                onChange={(event) =>
+              />
+            </ConceptField>
+            <ConceptField label="Align items">
+              <ConceptSelect
+                label="Align items"
+                onChange={(align) =>
                   onChange({
                     ...concept,
-                    align: event.target.value as ReviewConcept["align"],
+                    align: align as ReviewConcept["align"],
                   })
                 }
+                options={ALIGNS}
                 value={concept.align}
-              >
-                <option value="start">Start</option>
-                <option value="center">Center</option>
-                <option value="end">End</option>
-                <option value="stretch">Stretch</option>
-              </select>
-            </label>
-            {numberInput(
-              "Gap",
-              concept.gap,
-              (gap) => onChange({ ...concept, gap }),
-              64
-            )}
-            {numberInput(
-              "Padding",
-              concept.padding,
-              (padding) => onChange({ ...concept, padding }),
-              96
-            )}
-            {numberInput(
-              "Corner radius",
-              concept.radius,
-              (radius) => onChange({ ...concept, radius }),
-              64
-            )}
+              />
+            </ConceptField>
+            <NumberField
+              label="Gap"
+              max={64}
+              onChange={(gap) => onChange({ ...concept, gap })}
+              value={concept.gap}
+            />
+            <NumberField
+              label="Padding"
+              max={96}
+              onChange={(padding) => onChange({ ...concept, padding })}
+              value={concept.padding}
+            />
+            <NumberField
+              label="Corner radius"
+              max={64}
+              onChange={(radius) => onChange({ ...concept, radius })}
+              value={concept.radius}
+            />
             <ConceptFontField
               brandDoc={brandDoc}
               family={concept.fontFamily}
@@ -208,220 +219,41 @@ function ConceptCard({
             <div className="review-concepts__element-head">
               <Label>Elements</Label>
               <div className="review-concepts__add-actions">
-                <select
-                  aria-label="Add a component"
-                  className="review-concepts__add-select"
-                  onChange={(event) => {
-                    if (event.target.value) {
-                      addElement(
-                        event.target.value as ReviewConceptElementKind
-                      );
-                      event.target.value = "";
-                    }
-                  }}
+                <ConceptSelect
+                  label="Add a component"
+                  onChange={(kind) =>
+                    addElement(kind as ReviewConceptElementKind)
+                  }
+                  options={KINDS}
+                  placeholder="+ Add component"
                   value=""
-                >
-                  <option disabled value="">
-                    + Add component
-                  </option>
-                  <option value="text">Text</option>
-                  <option value="icon">Icon</option>
-                  <option value="button">Button</option>
-                  <option value="input">Input</option>
-                  <option value="textarea">Text area</option>
-                  <option value="select">Select</option>
-                  <option value="checkbox">Checkbox</option>
-                  <option value="card">Card</option>
-                  <option value="label">Label</option>
-                  <option value="badge">Badge</option>
-                  <option value="link">Link</option>
-                  <option value="divider">Divider</option>
-                  <option value="tabs">Tabs</option>
-                  <option value="table">Table</option>
-                  <option value="dialog">Dialog</option>
-                  <option value="menu">Dropdown menu</option>
-                  <option value="toast">Toast</option>
-                  <option value="skeleton">Skeleton loader</option>
-                </select>
+                />
               </div>
             </div>
             {concept.elements.map((element) => (
-              <fieldset className="review-concepts__element" key={element.id}>
-                <legend>{element.kind}</legend>
-                <div className="review-concepts__element-grid">
-                  <ReviewConceptContentField
-                    element={element}
-                    onChange={(patch) => updateElement(element.id, patch)}
-                  />
-                  {element.kind === "input" || element.kind === "textarea" ? (
-                    <label className="review-concepts__field review-concepts__field--wide">
-                      <span>Placeholder</span>
-                      <input
-                        onChange={(event) =>
-                          updateElement(element.id, {
-                            placeholder: event.target.value,
-                          })
-                        }
-                        value={element.placeholder ?? ""}
-                      />
-                    </label>
-                  ) : null}
-                  {["select", "tabs", "table", "menu"].includes(
-                    element.kind
-                  ) ? (
-                    <label className="review-concepts__field review-concepts__field--wide">
-                      <span>Options, comma separated</span>
-                      <input
-                        onChange={(event) =>
-                          updateElement(element.id, {
-                            options: event.target.value
-                              .split(",")
-                              .map((item) => item.trim())
-                              .filter(Boolean)
-                              .slice(0, 8),
-                          })
-                        }
-                        value={(element.options ?? []).join(", ")}
-                      />
-                    </label>
-                  ) : null}
-                  {element.kind === "input" ? (
-                    <label className="review-concepts__field">
-                      <span>Input type</span>
-                      <select
-                        onChange={(event) =>
-                          updateElement(element.id, {
-                            inputType: event.target
-                              .value as ReviewConceptElement["inputType"],
-                          })
-                        }
-                        value={element.inputType ?? "text"}
-                      >
-                        <option value="text">Text</option>
-                        <option value="email">Email</option>
-                        <option value="search">Search</option>
-                        <option value="url">URL</option>
-                        <option value="tel">Phone</option>
-                        <option value="password">Password</option>
-                      </select>
-                    </label>
-                  ) : null}
-                  <label className="review-concepts__field">
-                    <span>
-                      {element.kind === "icon" ? "Icon size" : "Type size"}
-                    </span>
-                    <input
-                      max={72}
-                      min={10}
-                      onChange={(event) =>
-                        updateElement(element.id, {
-                          fontSize: Number(event.target.value),
-                        })
-                      }
-                      type="number"
-                      value={element.fontSize}
-                    />
-                  </label>
-                  <label className="review-concepts__field">
-                    <span>Weight</span>
-                    <select
-                      onChange={(event) =>
-                        updateElement(element.id, {
-                          fontWeight: Number(
-                            event.target.value
-                          ) as ReviewConceptElement["fontWeight"],
-                        })
-                      }
-                      value={element.fontWeight}
-                    >
-                      <option value={400}>Regular</option>
-                      <option value={500}>Medium</option>
-                      <option value={600}>Semibold</option>
-                      <option value={700}>Bold</option>
-                    </select>
-                  </label>
-                  <ConceptFontField
-                    brandDoc={brandDoc}
-                    family={element.fontFamily}
-                    fontId={element.fontId}
-                    fontRef={element.fontRef}
-                    label="Typeface"
-                    onChange={(patch) => updateElement(element.id, patch)}
-                  />
-                  {numberInput(
-                    "Line height",
-                    element.lineHeight,
-                    (lineHeight) => updateElement(element.id, { lineHeight }),
-                    2.4
-                  )}
-                  {numberInput(
-                    "Radius",
-                    element.radius,
-                    (radius) => updateElement(element.id, { radius }),
-                    48
-                  )}
-                  {numberInput(
-                    "Horizontal padding",
-                    element.paddingX,
-                    (paddingX) => updateElement(element.id, { paddingX }),
-                    48
-                  )}
-                  {numberInput(
-                    "Vertical padding",
-                    element.paddingY,
-                    (paddingY) => updateElement(element.id, { paddingY }),
-                    32
-                  )}
-                  <ConceptColorField
-                    ariaLabel={`${element.kind} text color`}
-                    brandDoc={brandDoc}
-                    label="Text color"
-                    onChange={(color) => updateElement(element.id, { color })}
-                    value={element.color}
-                  />
-                  {element.background === "transparent" ? null : (
-                    <ConceptColorField
-                      ariaLabel={`${element.kind} background`}
-                      brandDoc={brandDoc}
-                      label="Fill"
-                      onChange={(background) =>
-                        updateElement(element.id, { background })
-                      }
-                      value={element.background}
-                    />
-                  )}
-                  {element.kind === "checkbox" ? (
-                    <label className="review-concepts__field">
-                      <span>Checked</span>
-                      <input
-                        checked={element.checked ?? false}
-                        onChange={(event) =>
-                          updateElement(element.id, {
-                            checked: event.target.checked,
-                          })
-                        }
-                        type="checkbox"
-                      />
-                    </label>
-                  ) : null}
-                  <Button
-                    aria-label={`Remove ${element.kind}`}
-                    onClick={() =>
-                      onChange({
-                        ...concept,
-                        elements: concept.elements.filter(
-                          (item) => item.id !== element.id
-                        ),
-                      })
-                    }
-                    size="icon-sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <Trash2 size={13} />
-                  </Button>
-                </div>
-              </fieldset>
+              <ReviewConceptElementFields
+                brandDoc={brandDoc}
+                element={element}
+                key={element.id}
+                onChange={(patch) => updateElement(element.id, patch)}
+                onDuplicate={() =>
+                  onChange({
+                    ...concept,
+                    elements: duplicateConceptElement(
+                      concept.elements,
+                      element.id
+                    ),
+                  })
+                }
+                onRemove={() =>
+                  onChange({
+                    ...concept,
+                    elements: concept.elements.filter(
+                      (item) => item.id !== element.id
+                    ),
+                  })
+                }
+              />
             ))}
           </div>
         </div>

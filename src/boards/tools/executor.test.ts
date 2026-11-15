@@ -290,6 +290,41 @@ const testImage = (
 };
 
 describe("transformExecutor", () => {
+  it("saves a flip as a new version with the original recoverable", async () => {
+    const executor = createTransformExecutor({
+      loadImage: () => testImage(4, 2),
+      persist: () => Promise.resolve("https://blob.example/flipped.png"),
+    });
+    const outcome = await executor(invocation(toolNamed("flip-horizontal")));
+    if (!outcome.ok) {
+      throw new Error(outcome.failure.message);
+    }
+    expect(outcome.variation).toMatchObject({ height: 2, width: 4 });
+    expect(historyOf(outcome.result).map((version) => version.url)).toEqual([
+      ORIGINAL_URL,
+      "https://blob.example/flipped.png",
+    ]);
+  });
+
+  it("saves a crop with the cropped pixel size", async () => {
+    const executor = createTransformExecutor({
+      loadImage: () => testImage(4, 2),
+      persist: () => Promise.resolve("https://blob.example/cropped.png"),
+    });
+    const outcome = await executor(
+      invocation(toolNamed("crop"), {
+        config: { crop: { height: 1, width: 0.5, x: 0.25, y: 0 } },
+      })
+    );
+    if (!outcome.ok) {
+      throw new Error(outcome.failure.message);
+    }
+    expect(outcome.variation).toMatchObject({ height: 2, width: 2 });
+    expect(historyOf(outcome.result).map((version) => version.url)).toEqual([
+      ORIGINAL_URL,
+      "https://blob.example/cropped.png",
+    ]);
+  });
   it("rotates a real image and stores the result as a new entry", async () => {
     const stored: Blob[] = [];
     const executor = createTransformExecutor({
@@ -362,7 +397,7 @@ describe("transformExecutor", () => {
       loadImage: () => testImage(4, 2),
       persist: () => Promise.resolve("https://blob.example/x.png"),
     });
-    const outcome = await executor(invocation(toolNamed("crop")));
+    const outcome = await executor(invocation(toolNamed("describe")));
     if (outcome.ok) {
       throw new Error("expected a failure");
     }

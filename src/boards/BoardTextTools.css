@@ -92,11 +92,7 @@
   background: color-mix(in oklch, var(--color-board-ink) 10%, transparent);
 }
 
-/* The two shadcn selects keep their own chrome; only their width is ours. */
-.board-text-tools__select-font {
-  width: calc(var(--spacing) * 40);
-}
-
+/* The weight select keeps its own chrome; only its width is ours. */
 .board-text-tools__select-weight {
   width: calc(var(--spacing) * 28);
 }

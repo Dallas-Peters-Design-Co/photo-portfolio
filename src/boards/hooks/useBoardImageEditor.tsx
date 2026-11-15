@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import type { ToolId } from "../../editor/ui/tools";
 import type { BoardItem, BoardItemResult } from "../../types";
 import { BoardImageEditor } from "../BoardImageEditor";
 
@@ -19,18 +20,27 @@ export function useBoardImageEditor(
   boardId: string,
   onSaved: (itemId: string, writeback: { result: BoardItemResult }) => void
 ) {
-  const [editing, setEditing] = useState<BoardItem | null>(null);
+  const [editing, setEditing] = useState<{
+    initialTool?: ToolId;
+    item: BoardItem;
+  } | null>(null);
+  const openEditor = useCallback(
+    (item: BoardItem, initialTool?: ToolId) =>
+      setEditing({ initialTool, item }),
+    []
+  );
 
   const close = useCallback(() => setEditing(null), []);
 
   const editorNode = editing ? (
     <BoardImageEditor
       boardId={boardId}
-      item={editing}
+      initialTool={editing.initialTool}
+      item={editing.item}
       onClose={close}
-      onSaved={(result) => onSaved(editing.id, { result })}
+      onSaved={(result) => onSaved(editing.item.id, { result })}
     />
   ) : null;
 
-  return { editorNode, openEditor: setEditing };
+  return { editorNode, openEditor };
 }

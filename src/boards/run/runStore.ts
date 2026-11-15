@@ -1,4 +1,5 @@
-import type { BoardItem } from "../../types";
+import { withoutResultVersion } from "../../../config/resultVersions";
+import type { BoardItem, BoardItemResult } from "../../types";
 
 /**
  * Every run in progress, for every board, owned by the app rather than by the
@@ -36,6 +37,7 @@ interface BoardRuns {
   listener: Listener | null;
   /** Latest merged patch per item, for replay into an editor opened later. */
   live: Map<string, Patch>;
+  removedVersions: Map<string, Set<string>>;
 }
 
 const boards = new Map<string, BoardRuns>();
@@ -46,7 +48,12 @@ let version = 0;
 const runsFor = (boardId: string): BoardRuns => {
   let runs = boards.get(boardId);
   if (!runs) {
-    runs = { controllers: new Map(), listener: null, live: new Map() };
+    runs = {
+      controllers: new Map(),
+      listener: null,
+      live: new Map(),
+      removedVersions: new Map(),
+    };
     boards.set(boardId, runs);
   }
   return runs;
@@ -60,6 +67,21 @@ const changed = () => {
 };
 
 const isSettled = (patch: Patch | undefined) => patch?.runState !== "running";
+
+const withoutRemovedVersions = (
+  runs: BoardRuns,
+  itemId: string,
+  patch: Patch
+): Patch => {
+  if (!patch.result) {
+    return patch;
+  }
+  let result: BoardItem["result"] = patch.result;
+  for (const url of runs.removedVersions.get(itemId) ?? []) {
+    result = withoutResultVersion(result, url);
+  }
+  return { ...patch, result };
+};
 
 export const runStore = {
   /** The open editor for a board starts receiving its patches. */
@@ -80,12 +102,29 @@ export const runStore = {
     }
   },
 
+  /** Filters a tool or editor response using confirmed removals. */
+  filterPatch(boardId: string, itemId: string, patch: Patch): Patch {
+    return withoutRemovedVersions(runsFor(boardId), itemId, patch);
+  },
+
   /** Releases a claim — only the one this controller made. */
   finish(boardId: string, key: string, controller: AbortController): void {
     const runs = boards.get(boardId);
     if (runs?.controllers.get(key) === controller) {
       runs.controllers.delete(key);
       changed();
+    }
+  },
+
+  /** A late run response or replay must not restore a confirmed deletion. */
+  forgetVersion(boardId: string, itemId: string, url: string): void {
+    const runs = runsFor(boardId);
+    const removed = runs.removedVersions.get(itemId) ?? new Set<string>();
+    removed.add(url);
+    runs.removedVersions.set(itemId, removed);
+    const live = runs.live.get(itemId);
+    if (live) {
+      runs.live.set(itemId, withoutRemovedVersions(runs, itemId, live));
     }
   },
 
@@ -96,8 +135,9 @@ export const runStore = {
   /** A change to one item, from a run. */
   patch(boardId: string, itemId: string, patch: Patch): void {
     const runs = runsFor(boardId);
-    const merged = { ...runs.live.get(itemId), ...patch };
-    runs.listener?.(itemId, patch);
+    const filtered = withoutRemovedVersions(runs, itemId, patch);
+    const merged = { ...runs.live.get(itemId), ...filtered };
+    runs.listener?.(itemId, filtered);
     // Delivered and settled: nothing left to replay for this item.
     if (runs.listener && isSettled(merged)) {
       runs.live.delete(itemId);
@@ -162,4 +202,26 @@ export const runStore = {
   version(): number {
     return version;
   },
+};
+
+/**
+ * Puts a fresh result on an item: drops any version removed while it ran, and
+ * selects the newest entry. Without a board there is nothing to filter against.
+ */
+export const withNewResult = (
+  boardId: string | null,
+  item: BoardItem,
+  next: BoardItemResult | null
+): BoardItem => {
+  const result = boardId
+    ? runStore.filterPatch(boardId, item.id, { result: next }).result
+    : next;
+  return {
+    ...item,
+    config: {
+      ...item.config,
+      selectedVersion: Math.max(0, (result?.history?.length ?? 0) - 1),
+    },
+    result: result ?? null,
+  };
 };

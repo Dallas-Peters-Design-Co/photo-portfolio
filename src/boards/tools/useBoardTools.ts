@@ -3,6 +3,8 @@ import { toast } from "sonner";
 import { boardsApi } from "../../services/portfolioService";
 import type { BoardItem } from "../../types.js";
 import { maskOf } from "../drawing/mask.js";
+import { keepResultWrite } from "../run/resultWrites.js";
+import { withNewResult } from "../run/runStore.js";
 import { promptOf } from "./itemContext.js";
 import { maskBitmapUrl } from "./maskBitmap.js";
 import type { RunTool } from "./types.js";
@@ -17,14 +19,8 @@ import { useToolRunner } from "./useToolRunner.js";
  * Kept out of BoardCanvas so the canvas gains a hook call rather than a
  * subsystem, and so this can be read without a 1500-line file around it.
  *
- * ## The result is in memory only
- *
- * `onChange` writes the new `result` onto the item, which is what makes the
- * picture change and what a wire downstream will carry. It does not survive a
- * reload: the board PATCH drops `result` on purpose — the server owns that
- * column — so a tool applied to a plain photo has, as ./history puts it,
- * "nowhere to put it". `api/boards/[id]/svg.ts` is the precedent for the narrow
- * endpoint that would fix this, and until it exists this is the honest limit.
+ * Results appear immediately and are saved through their own endpoint. Pending
+ * writes are tracked so deleting a just-produced image waits for that append.
  */
 
 export interface UseBoardToolsOptions {
@@ -38,6 +34,8 @@ export interface UseBoardToolsOptions {
   boardId: string | null;
   items: BoardItem[];
   onChange: (items: BoardItem[]) => void;
+  /** Opens the manual editor on its crop controls. */
+  onCrop?: (item: BoardItem) => void;
   /**
    * Arms the mask brush, for a tool that needs a painted area and has none.
    *
@@ -59,6 +57,7 @@ export const useBoardTools = ({
   boardId,
   items,
   onChange,
+  onCrop,
   onNeedsMask,
 }: UseBoardToolsOptions): BoardTools => {
   /**
@@ -83,7 +82,9 @@ export const useBoardTools = ({
     onResult: (itemId, success) => {
       onChange(
         latest.current.map((item) =>
-          item.id === itemId ? { ...item, result: success.result } : item
+          item.id === itemId
+            ? withNewResult(boardId, item, success.result)
+            : item
         )
       );
       // Written through its own endpoint, because a board save never carries
@@ -95,25 +96,31 @@ export const useBoardTools = ({
       // canvas on a write it cannot influence would make a slow save look like
       // a slow tool.
       if (boardId) {
-        void boardsApi
-          .saveToolResult(boardId, itemId, {
+        void keepResultWrite(
+          boardId,
+          itemId,
+          boardsApi.saveToolResult(boardId, itemId, {
             description: success.variation.description,
             height: success.variation.height,
             isVector: success.variation.isVector ?? false,
             url: success.variation.url,
             width: success.variation.width,
           })
-          .catch((e: unknown) => {
-            toast.warning("That result may not survive a reload", {
-              description: e instanceof Error ? e.message : undefined,
-            });
+        ).catch((e: unknown) => {
+          toast.warning("That result may not survive a reload", {
+            description: e instanceof Error ? e.message : undefined,
           });
+        });
       }
     },
   });
 
   const run = useCallback<RunTool>(
     (item, tool, prompt, config) => {
+      if (tool.id === "crop" && !config?.crop && onCrop) {
+        onCrop(item);
+        return;
+      }
       /*
        * Fire and forget. `start` resolves to the outcome, but both ends of
        * it are already handled — the result through `onResult`, the failure
@@ -169,7 +176,7 @@ export const useBoardTools = ({
         });
       })();
     },
-    [boardId, onNeedsMask, start]
+    [boardId, onCrop, onNeedsMask, start]
   );
 
   return { isRunning, run };

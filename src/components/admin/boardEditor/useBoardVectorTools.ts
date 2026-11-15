@@ -16,6 +16,7 @@ import { measureRaster } from "../../../boards/io/measureRaster";
 import { newItemId } from "../../../boards/io/newItemId";
 import { onSvgEdit } from "../../../boards/io/svgEditEvents";
 import { outputImageOf } from "../../../boards/itemOutput";
+import { withNewResult } from "../../../boards/run/runStore";
 import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardItemResult, BoardWire } from "../../../types";
 import { BLANK_ITEM, PORT_SPAWN_GAP } from "./placement";
@@ -84,16 +85,11 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
             return item;
           }
           if (writeback.result) {
-            const result = writeback.result as BoardItemResult;
-            const historyLength = result.history?.length ?? 0;
-            return {
-              ...item,
-              config: {
-                ...item.config,
-                selectedVersion: Math.max(0, historyLength - 1),
-              },
-              result,
-            };
+            return withNewResult(
+              boardId,
+              item,
+              writeback.result as BoardItemResult
+            );
           }
           if (writeback.imageUrl) {
             return {
@@ -107,7 +103,7 @@ export const useBoardVectorTools = (deps: BoardVectorDeps) => {
       );
       setIsDirty(true);
     },
-    [setIsDirty, setItems]
+    [boardId, setIsDirty, setItems]
   );
 
   const { openInAffinity } = useAffinityBridge(boardId, applyEditedSvg);

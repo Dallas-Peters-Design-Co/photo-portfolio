@@ -30,6 +30,7 @@
 
 import { aiApi, type GeneratedImage } from "../../services/portfolioService.js";
 import { appendVariation } from "./history.js";
+import { imageOf } from "./itemContext.js";
 import {
   failed,
   type ToolExecutor,
@@ -140,11 +141,6 @@ const serviceFailure = (cause: unknown) => {
   });
 };
 
-const sourceUrlOf = (invocation: ToolInvocation): string | null => {
-  const { item } = invocation.target;
-  return item.result?.url ?? item.imageUrl ?? null;
-};
-
 /** Injectable so the contract can be tested without spending anything. */
 export interface AiDeps {
   generate: (
@@ -218,7 +214,7 @@ const run = async (
   }
 
   const wantsImage = USES_SOURCE_IMAGE.has(tool.id);
-  const sourceImageUrl = wantsImage ? sourceUrlOf(invocation) : null;
+  const sourceImageUrl = wantsImage ? imageOf(invocation.target.item) : null;
   if (wantsImage && !sourceImageUrl) {
     return failed(
       "missing-input",

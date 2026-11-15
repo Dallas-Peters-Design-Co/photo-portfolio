@@ -979,19 +979,15 @@ export const boardsApi = {
     }
     return (await res.json()) as Board;
   },
-  /**
-   * Deletes one version from a node's history.
-   *
-   * Its own call because `result` is not written by the board save — see
-   * api/boards/[id]/version.ts for why that column is left alone.
-   */
+  /** Removes a version separately from the board save, which never writes results. */
   deleteVersion: async (
     boardId: string,
     itemId: string,
-    index: number
+    index: number,
+    url?: string
   ): Promise<BoardItemResult | null> => {
     const res = await fetch(`${apiBase()}/api/boards/${boardId}/version`, {
-      body: JSON.stringify({ index, itemId }),
+      body: JSON.stringify({ index, itemId, url }),
       headers: jsonHeaders(),
       method: "POST",
     });
@@ -1126,10 +1122,6 @@ export const boardsApi = {
     return (await res.json()) as RunNodeResponse;
   },
 
-  /**
-   * Writes an SVG edited in Affinity back onto a node as a new version. Its own
-   * call because `result` is not written by the board save — see svg.ts.
-   */
   /**
    * Keeps a tool's output on the item. Its own call because a board save never
    * writes `result` — see api/boards/[id]/result.ts. Without this a tool ran,

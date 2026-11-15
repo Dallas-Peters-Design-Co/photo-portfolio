@@ -15,7 +15,12 @@ import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 import type { BoardItemKind } from "../../types";
 import type { ToolContext } from "../tools/itemContext";
-import { blockedReason, searchTools, toolsForKind } from "../tools/registry";
+import {
+  asksForWords,
+  blockedReason,
+  searchTools,
+  toolsForKind,
+} from "../tools/registry";
 import { TOOL_GROUPS, type Tool, type ToolGroup } from "../tools/types";
 import { ToolPrompt } from "./ToolPrompt";
 import "../boardChrome.css";
@@ -292,7 +297,7 @@ export function ToolPicker({
     // A tool that needs words does not run yet: the rows above are enabled on
     // the promise that this step collects them, and picking straight through
     // would spend a paid generation on an empty prompt.
-    if (row.tool.needsPrompt && !context.hasPrompt) {
+    if (asksForWords(row.tool, context.hasPrompt)) {
       setPending(row.tool);
       return;
     }

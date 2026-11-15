@@ -228,11 +228,6 @@
   }
 }
 
-.creative__input--font,
-.creative__font-slot {
-  max-width: 12rem;
-}
-
 .creative__input--num {
   width: 4.5rem;
   font-variant-numeric: tabular-nums;

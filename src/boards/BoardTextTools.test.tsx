@@ -197,7 +197,13 @@ describe("BoardTextTools — what it edits", () => {
       }),
       400
     );
-    expect(box.textContent).toBe("Fraunces▼Medium▼58");
+    expect(box.querySelector('[aria-label="Font"]')?.textContent).toContain(
+      "Fraunces"
+    );
+    expect(box.querySelector('[aria-label="Weight"]')?.textContent).toContain(
+      "Medium"
+    );
+    expect(box.textContent).toContain("58");
   });
 
   it("writes a style property back through one patch", async () => {

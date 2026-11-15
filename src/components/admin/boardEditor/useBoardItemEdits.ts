@@ -4,6 +4,7 @@ import {
   DEFAULT_IMAGE_HEIGHT,
   DEFAULT_IMAGE_WIDTH,
 } from "../../../../config/canvas.js";
+import { withoutResultVersion } from "../../../../config/resultVersions";
 import type { Box } from "../../../boards/BoardCanvas";
 import {
   type DrawingConfig,
@@ -22,6 +23,9 @@ import {
 import { buildDataset, startTraining } from "../../../boards/io/dataset";
 import { isVideoUrl } from "../../../boards/io/isVideo";
 import { newItemId } from "../../../boards/io/newItemId";
+import { pickImages } from "../../../boards/itemImages";
+import { waitForResultWrites } from "../../../boards/run/resultWrites";
+import { runStore } from "../../../boards/run/runStore";
 import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../../types";
 import { useConfirm } from "../ConfirmProvider";
@@ -297,14 +301,29 @@ export const useBoardItemEdits = (deps: BoardItemEditDeps) => {
    * the canvas does own, so it is clamped here rather than there.
    */
   const removeVersion = async (itemId: string, index: number) => {
+    const url = pickImages(
+      items.find((item) => item.id === itemId)?.result ?? null
+    )[index]?.url;
+    if (!url) {
+      return;
+    }
     try {
-      const result = await boardsApi.deleteVersion(boardId, itemId, index);
+      await waitForResultWrites(boardId, itemId);
+      await boardsApi.deleteVersion(boardId, itemId, index, url);
+      runStore.forgetVersion(boardId, itemId, url);
       setItems((current) =>
         current.map((item) => {
           if (item.id !== itemId) {
             return item;
           }
           const selected = Number(item.config?.selectedVersion ?? 0);
+          const removedIndex = pickImages(item.result).findIndex(
+            (image) => image.url === url
+          );
+          if (removedIndex < 0) {
+            return item;
+          }
+          const result = withoutResultVersion(item.result, url);
           return {
             ...item,
             config: {
@@ -314,7 +333,7 @@ export const useBoardItemEdits = (deps: BoardItemEditDeps) => {
               selectedVersion: Math.max(
                 0,
                 Math.min(
-                  selected > index ? selected - 1 : selected,
+                  selected > removedIndex ? selected - 1 : selected,
                   (result?.history?.length ?? 1) - 1
                 )
               ),

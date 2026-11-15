@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../../_lib/auth.js";
+import { updateBoardResult } from "../../_lib/boardResult.js";
 import type { BoardItemRow, BoardWireRow } from "../../_lib/boards.js";
 import { brandVersionOf, withBrandKits } from "../../_lib/brandBrief.js";
 import { brandLogoOf } from "../../_lib/brandLogo.js";
@@ -14,7 +15,7 @@ import { paletteHexesOf } from "./run/outputs.js";
 import { prepare } from "./run/prepare.js";
 import { type Sql, saveFailure, setRunning } from "./run/replies.js";
 import { buildResult, stampProvenance } from "./run/results.js";
-import { asObject, toGraphWires } from "./run/rows.js";
+import { toGraphWires } from "./run/rows.js";
 
 /**
  * Runs exactly one node on a board.
@@ -188,40 +189,37 @@ const serve = async (req: VercelRequest, res: VercelResponse) => {
         variation,
       });
 
-      const previous = asObject(item.result);
-
-      const result = buildResult(
-        produced,
-        previous,
-        fingerprint,
-        variation,
-        jobs.length,
-        // FR-006. Recorded from what was actually sent rather than from what the
-        // node holds: an Iterate node upstream rewrites the prompt per run, and
-        // a stamp naming the typed one would describe a job nobody ran.
-        stampProvenance({
-          // Which brand governed this, so "what made this picture" stays
-          // answerable after the kit has been edited. Read off the rows the
-          // run resolved rather than the wires — see brandVersionOf.
-          brandKitVersionId: brandVersionOf(rows),
-          inputs: [
-            jobs[variation]?.image,
-            jobs[variation]?.mask,
-            ...sourceImageUrls,
-          ].filter((url): url is string => typeof url === "string"),
-          model,
-          prompt: jobs[variation]?.prompt ?? prompt ?? null,
-          settings: item.config,
-        })
+      const result = await updateBoardResult(
+        sql,
+        boardId,
+        itemId,
+        (previous) =>
+          buildResult(
+            produced,
+            previous ?? {},
+            fingerprint,
+            variation,
+            jobs.length,
+            // FR-006. Recorded from what was actually sent rather than from what the
+            // node holds: an Iterate node upstream rewrites the prompt per run, and
+            // a stamp naming the typed one would describe a job nobody ran.
+            stampProvenance({
+              // Which brand governed this, so "what made this picture" stays
+              // answerable after the kit has been edited. Read off the rows the
+              // run resolved rather than the wires — see brandVersionOf.
+              brandKitVersionId: brandVersionOf(rows),
+              inputs: [
+                jobs[variation]?.image,
+                jobs[variation]?.mask,
+                ...sourceImageUrls,
+              ].filter((url): url is string => typeof url === "string"),
+              model,
+              prompt: jobs[variation]?.prompt ?? prompt ?? null,
+              settings: item.config,
+            })
+          ),
+        true
       );
-
-      await sql`
-        UPDATE board_items
-        SET result = ${JSON.stringify(result)}::jsonb,
-            run_state = 'succeeded',
-            run_error = NULL
-        WHERE id = ${itemId}
-      `;
 
       return res.status(200).json({
         itemId,

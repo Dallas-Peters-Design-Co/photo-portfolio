@@ -2,6 +2,14 @@ import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
 
 export const MAX_REVIEW_CONCEPTS = 8;
+
+/** A concept's `align` as the CSS `align-items` value it draws with. */
+export const ALIGN_ITEMS = {
+  center: "center",
+  end: "flex-end",
+  start: "flex-start",
+  stretch: "stretch",
+} as const;
 const MAX_CONCEPT_ELEMENTS = 64;
 const MAX_TITLE = 160;
 const HEX_COLOR = /^#[\da-f]{3}(?:[\da-f]{3})?$/i;
@@ -132,6 +140,17 @@ export interface ReviewConcept {
   title: string;
 }
 
+/** A card keeps its title on the first line of `text` and its body below. */
+export const splitCardText = (
+  text: string
+): { body: string; title: string } => {
+  const [title = "", ...body] = text.split("\n");
+  return { body: body.join("\n"), title };
+};
+
+export const joinCardText = (title: string, body: string): string =>
+  body ? `${title.replace(/\n/g, " ")}\n${body}` : title.replace(/\n/g, " ");
+
 const str = (value: unknown, max: number): string =>
   typeof value === "string" ? value.slice(0, max) : "";
 
@@ -219,6 +238,12 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     fontWeight,
     id: str(raw.id, 64) || newItemId(),
     ...(kind === "icon" ? { iconName: cleanIconName(raw.iconName) } : {}),
+    // A card's icon is optional, so an unknown name drops it instead of
+    // defaulting to a star.
+    ...(kind === "card" &&
+    REVIEW_CONCEPT_ICONS.includes(raw.iconName as ReviewConceptIcon)
+      ? { iconName: raw.iconName }
+      : {}),
     kind,
     lineHeight: bounded(raw.lineHeight, 1, 2.4, 1.4),
     paddingX: bounded(raw.paddingX, 0, 48, 16),

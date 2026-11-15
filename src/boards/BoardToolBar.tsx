@@ -19,7 +19,7 @@ import { ToolPicker } from "./panels/ToolPicker";
 import { ToolPrompt } from "./panels/ToolPrompt";
 import { useAnchoredPanel } from "./panels/useAnchoredPanel";
 import { imageOf, toolContextOf } from "./tools/itemContext";
-import { blockedReason, toolsForKind } from "./tools/registry";
+import { asksForWords, blockedReason, toolsForKind } from "./tools/registry";
 import type { Tool } from "./tools/types";
 import "./BoardToolBar.css";
 
@@ -223,8 +223,7 @@ const needsWordsFirst = (
   context: { hasMask: boolean; hasPrompt: boolean }
 ): boolean =>
   !(tool.needsMask && !context.hasMask) &&
-  Boolean(tool.needsPrompt) &&
-  !context.hasPrompt;
+  asksForWords(tool, context.hasPrompt);
 
 export function BoardToolBar({
   anchor,
@@ -319,7 +318,11 @@ export function BoardToolBar({
       onClose={() => setPicking(false)}
       onPick={(tool, prompt, config) => {
         setPicking(false);
-        onRun(tool, prompt, config);
+        if (prompt) {
+          onRun(tool, prompt, config);
+        } else {
+          choose(tool);
+        }
       }}
     />
   );

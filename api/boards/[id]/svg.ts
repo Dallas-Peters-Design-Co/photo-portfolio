@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../../_lib/auth.js";
+import { updateBoardResult } from "../../_lib/boardResult.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
@@ -96,8 +97,7 @@ const writeVersionEdit = async (
   sql: Sql,
   itemId: string,
   boardId: string,
-  svg: string,
-  stored: StoredResult
+  svg: string
 ) => {
   const url = await persistSvgText(svg, "boards/svg");
   const size = svgDimensions(svg);
@@ -109,22 +109,16 @@ const writeVersionEdit = async (
     width: size.width,
   };
 
-  const history = Array.isArray(stored.history)
-    ? (stored.history as Variation[])
-    : [];
-  const result = {
-    ...stored,
-    history: [...history, edited].slice(-MAX_HISTORY),
-    kind: "image",
-  };
-
-  await sql`
-    UPDATE board_items
-    SET result = ${JSON.stringify(result)}::jsonb
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `;
-
-  return result;
+  return updateBoardResult(sql, boardId, itemId, (previous) => {
+    const stored = previous as StoredResult | null;
+    const history = Array.isArray(stored?.history) ? stored.history : [];
+    return {
+      ...stored,
+      history: [...history, edited].slice(-MAX_HISTORY),
+      kind: "image",
+      url: stored?.url ?? url,
+    };
+  });
 };
 
 /**
@@ -193,7 +187,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // than growing a history. The item owns its own source image, the same way
     // the canvas owns its config.
     if (stored) {
-      const result = await writeVersionEdit(sql, itemId, boardId, svg, stored);
+      const result = await writeVersionEdit(sql, itemId, boardId, svg);
       return res.status(200).json({ result });
     }
     const imageUrl = await writeReferenceEdit(sql, itemId, boardId, svg);

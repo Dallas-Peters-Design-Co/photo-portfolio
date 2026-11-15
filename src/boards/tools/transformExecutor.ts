@@ -14,13 +14,11 @@
  * image" in this file would be a second chance to get that wrong.
  */
 
-import {
-  applyTransform,
-  formatBytes,
-  MAX_UPLOAD_BYTES,
-} from "../../editor/engine/export.js";
+import { formatBytes, MAX_UPLOAD_BYTES } from "../../editor/engine/export.js";
 import { portfolioService } from "../../services/portfolioService.js";
 import { appendVariation } from "./history.js";
+import { transformImage } from "./imageTransforms.js";
+import { imageOf } from "./itemContext.js";
 import {
   failed,
   type ToolExecutor,
@@ -37,7 +35,12 @@ import {
  * through to a silent no-op. The registry and the executor are edited by
  * different hands and this is where they are made to agree.
  */
-const IMPLEMENTED = new Set(["rotate-right", "rotate-left"]);
+const IMPLEMENTED = new Set([
+  "rotate-right",
+  "rotate-left",
+  "flip-horizontal",
+  "crop",
+]);
 
 /** Where a tool's output is filed in the blob store. */
 const BLOB_PREFIX = "boards/tools";
@@ -91,12 +94,6 @@ const report = (invocation: ToolInvocation, progress: ToolProgress): void => {
   invocation.onProgress?.(progress);
 };
 
-/** The image a tool operates on: the newest version, or the item's own. */
-const sourceUrlOf = (invocation: ToolInvocation): string | null => {
-  const { item } = invocation.target;
-  return item.result?.url ?? item.imageUrl ?? null;
-};
-
 const toCanvas = (image: HTMLImageElement): HTMLCanvasElement => {
   const canvas = document.createElement("canvas");
   canvas.width = image.naturalWidth;
@@ -116,12 +113,6 @@ const encode = (
   new Promise((resolve) => {
     canvas.toBlob(resolve, type, JPEG_QUALITY);
   });
-
-/** Degrees from the tool's config, defaulted by `withDefaults` before it got here. */
-const degreesFrom = (config: Readonly<Record<string, unknown>>): number => {
-  const value = config.degrees;
-  return typeof value === "number" && Number.isFinite(value) ? value : 90;
-};
 
 /**
  * Whether the run was called off.
@@ -148,7 +139,7 @@ const run = async (
     });
   }
 
-  const sourceUrl = sourceUrlOf(invocation);
+  const sourceUrl = imageOf(invocation.target.item);
   if (!sourceUrl) {
     return failed(
       "missing-input",
@@ -191,15 +182,14 @@ const run = async (
   const type = ALPHA_FORMATS.test(sourceUrl) ? "image/png" : "image/jpeg";
   let output: HTMLCanvasElement;
   try {
-    output = applyTransform(source, {
-      crop: null,
-      rotation: degreesFrom(invocation.config),
-    });
+    output = transformImage(source, tool.id, invocation.config);
     blob = await encode(output, type);
   } catch (cause) {
     return failed(
       "internal",
-      `${tool.label} could not be applied to this image.`,
+      cause instanceof Error
+        ? cause.message
+        : `${tool.label} could not be applied to this image.`,
       { cause }
     );
   }
@@ -207,7 +197,7 @@ const run = async (
   if (!blob) {
     return failed(
       "internal",
-      "The rotated image could not be encoded by this browser."
+      "The edited image could not be encoded by this browser."
     );
   }
   if (blob.size > MAX_UPLOAD_BYTES) {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { BoardItemResult } from "../../types";
 import { BOARD_RUN, runStore } from "./runStore";
 
 let n = 0;
@@ -99,4 +100,35 @@ describe("runStore", () => {
     runStore.patch(board, "node-1", { runState: "succeeded" });
     expect(() => runStore.replay(board)).not.toThrow();
   });
+});
+
+it("filters a removed version out of a running patch before replay", () => {
+  const board = fresh();
+  const image = (url: string) => ({
+    description: null,
+    height: 100,
+    isVector: false,
+    url,
+    width: 100,
+  });
+  const result: BoardItemResult = {
+    ...image("removed"),
+    fingerprint: "f",
+    history: [image("removed"), image("kept")],
+    ranAt: "now",
+    variations: [image("removed")],
+  };
+  runStore.patch(board, "node", { result, runState: "running" });
+  runStore.forgetVersion(board, "node", "removed");
+  let replayed: BoardItemResult | null | undefined;
+  const detach = runStore.attach(board, (_id, patch) => {
+    replayed = patch.result;
+  });
+  runStore.replay(board);
+  expect(replayed?.history?.map((entry) => entry.url)).toEqual(["kept"]);
+  expect(replayed?.url).toBe("kept");
+  expect(replayed?.variations).toEqual([]);
+  runStore.forgetVersion(board, "node", "kept");
+  expect(runStore.filterPatch(board, "node", { result }).result).toBeNull();
+  detach();
 });

@@ -1,5 +1,14 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import {
+  resultVersions,
+  withoutResultVersion,
+} from "../../../config/resultVersions.js";
 import { getBearerUser } from "../../_lib/auth.js";
+import {
+  BoardResultError,
+  sendBoardResultError,
+  updateBoardResult,
+} from "../../_lib/boardResult.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
@@ -19,10 +28,10 @@ import { parseJsonBody } from "../../_lib/parseBody.js";
  * exactly the race the split exists to prevent.
  */
 
-interface StoredResult {
+interface StoredResult extends Record<string, unknown> {
   history?: { url?: string }[];
   url?: string;
-  variations?: unknown[];
+  variations?: { url?: string }[];
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -42,6 +51,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const body = parseJsonBody(req.body) as {
     index?: unknown;
     itemId?: unknown;
+    url?: unknown;
   };
   const itemId = typeof body.itemId === "string" ? body.itemId : "";
   const index = Number(body.index);
@@ -53,40 +63,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const sql = getSql();
-  const rows = (await sql`
-    SELECT result FROM board_items
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `) as { result: unknown }[];
+  // Resolve legacy index-only requests once; retries must keep the same target.
+  let targetUrl = typeof body.url === "string" ? body.url : null;
+  try {
+    const result = await updateBoardResult(sql, boardId, itemId, (previous) => {
+      const stored = previous as StoredResult | null;
+      targetUrl ??= resultVersions(stored)[index]?.url ?? null;
+      if (!targetUrl) {
+        throw new BoardResultError("No such version", 404);
+      }
+      return withoutResultVersion(stored, targetUrl);
+    });
 
-  const stored = rows[0]?.result as StoredResult | null;
-  const history = Array.isArray(stored?.history) ? stored.history : [];
-  if (!stored || index >= history.length) {
-    return res.status(404).json({ error: "No such version" });
+    return res.status(200).json({
+      count: resultVersions(result as StoredResult | null).length,
+      result,
+    });
+  } catch (error) {
+    return sendBoardResultError(res, error, "Could not remove that version");
   }
-
-  const kept = history.filter((_, i) => i !== index);
-  // The last one going means the node has produced nothing, which is a null
-  // result rather than a result holding an empty list — that is the shape the
-  // rest of the code already reads as "never run".
-  const result =
-    kept.length === 0
-      ? null
-      : {
-          ...stored,
-          history: kept,
-          // What a wire carries is the first surviving image, so a deleted
-          // version cannot go on feeding the node downstream of it.
-          url: kept[0]?.url ?? null,
-          // The batch grid is a view of one run; once a version has been
-          // removed by hand it no longer describes anything.
-          variations: undefined,
-        };
-
-  await sql`
-    UPDATE board_items
-    SET result = ${result === null ? null : JSON.stringify(result)}::jsonb
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `;
-
-  return res.status(200).json({ count: kept.length, result });
 }

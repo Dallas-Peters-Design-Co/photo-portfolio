@@ -39,6 +39,8 @@ const COPIED = [
   "borderStyle",
   "textTransform",
   "wordSpacing",
+  "wordBreak",
+  "hyphens",
   "tabSize",
   "fontStretch",
   "fontVariant",
@@ -70,10 +72,15 @@ export const measureText = (
     return null;
   }
   const css = getComputedStyle(el);
-  const mirror = document.createElement("div");
-  for (const key of COPIED) {
-    mirror.style[key] = css[key];
-  }
+  const copyOf = <T extends HTMLElement>(node: T): T => {
+    for (const key of COPIED) {
+      node.style[key] = css[key];
+    }
+    // Vertical alignment adds top padding for positioning, not for intrinsic size.
+    node.style.paddingTop = css.paddingBottom;
+    return node;
+  };
+  const mirror = copyOf(document.createElement("div"));
   mirror.style.position = "absolute";
   mirror.style.visibility = "hidden";
   mirror.style.left = "0";
@@ -89,11 +96,32 @@ export const measureText = (
   // as 312 and the box was a fraction too narrow: the last word wrapped onto
   // a line the fitted height had no room for, and was cut off.
   const rect = mirror.getBoundingClientRect();
-  const out = {
-    height: Math.ceil(rect.height),
-    width: Math.ceil(rect.width) + (fit === "both" ? SLACK : 0),
-  };
+  const fittedWidth = Math.ceil(rect.width) + (fit === "both" ? SLACK : 0);
   mirror.remove();
+  // Use a real textarea for height: its wrapping and trailing-line behavior
+  // differ from a div, especially at fractional widths and with tracking.
+  const field = copyOf(document.createElement("textarea"));
+  Object.assign(field.style, {
+    height: "0px",
+    left: "0px",
+    minHeight: "0px",
+    overflow: "hidden",
+    position: "absolute",
+    top: "0px",
+    visibility: "hidden",
+    width: `${fittedWidth}px`,
+  });
+  field.wrap = fit === "both" ? "off" : "soft";
+  field.value = el.value || " ";
+  host.append(field);
+  const borders =
+    (Number.parseFloat(css.borderTopWidth) || 0) +
+    (Number.parseFloat(css.borderBottomWidth) || 0);
+  const out = {
+    height: Math.ceil(Math.max(rect.height, field.scrollHeight + borders)),
+    width: fittedWidth,
+  };
+  field.remove();
   return out;
 };
 

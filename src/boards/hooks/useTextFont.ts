@@ -21,8 +21,8 @@ import { loadFontRef } from "../../theme/remoteFonts";
 export const useTextFont = (style: TextStyle | null | undefined): void => {
   const family = style?.family ?? null;
   useEffect(() => {
-    // A brand font (Google or Adobe) loads by stylesheet; anything else is
-    // one of the site's own families.
+    // Remote fonts (Google, Fontshare or Adobe) load by stylesheet; anything
+    // else is one of the site's own families.
     if (family && !loadFontRef(family)) {
       void loadFont(family as FontId);
     }

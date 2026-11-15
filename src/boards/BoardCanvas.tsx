@@ -180,7 +180,7 @@ interface BoardCanvasProps {
     point: { x: number; y: number }
   ) => void;
   /** Opens the manual photo editor on one item. */
-  onEditImage?: (item: BoardItem) => void;
+  onEditImage?: (item: BoardItem, initialTool?: "crop") => void;
   /** Downloads everything a node made, or a frame holds, as one archive. */
   onExportItem?: (itemId: string) => void;
   onGroupIntoFrame?: (items: BoardItem[]) => void;
@@ -378,12 +378,12 @@ export function BoardCanvas({
       run?.(value);
       setMenu(null);
     };
-  // Owned here rather than in CanvasMenu so a run outlives the menu that
-  // started it: the menu is dismissed the instant a tool is picked.
+  // Runs outlive the menu that starts them.
   const tools = useBoardTools({
     boardId,
     items,
     onChange,
+    onCrop: onEditImage ? (item) => onEditImage(item, "crop") : undefined,
     onNeedsMask: () => onDrawTool?.("mask"),
   });
 

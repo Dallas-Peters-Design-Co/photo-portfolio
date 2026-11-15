@@ -5,6 +5,7 @@ import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
+import { ConceptSelect } from "./ConceptSelect";
 
 const paletteColor = (
   doc: BrandKitDoc | null | undefined,
@@ -238,36 +239,83 @@ export function ConceptColorField({
 }) {
   const palette = brandDoc?.palette ?? [];
   return (
-    <label className="review-concepts__field review-concepts__field--color">
+    <div className="review-concepts__field review-concepts__field--color">
       <span>{label}</span>
-      {palette.length > 0 ? (
-        <select
-          aria-label={`${ariaLabel} brand color`}
-          onChange={(event) => {
-            if (event.target.value) {
-              onChange(event.target.value);
-            }
-          }}
-          value={palette.some((entry) => entry.value === value) ? value : ""}
-        >
-          <option value="">Custom color</option>
-          {palette.map((entry) => (
-            <option
-              key={`${entry.value}-${entry.name}-${entry.role}`}
-              value={entry.value}
-            >
-              {[entry.role, entry.name].filter(Boolean).join(" · ") ||
-                entry.value}
-            </option>
-          ))}
-        </select>
-      ) : null}
-      <input
-        aria-label={ariaLabel}
-        onChange={(event) => onChange(event.target.value)}
-        type="color"
-        value={value === "transparent" ? "#ffffff" : value}
-      />
-    </label>
+      <div className="review-concepts__color-row">
+        {palette.length > 0 ? (
+          <ConceptSelect
+            label={`${ariaLabel} brand color`}
+            onChange={onChange}
+            options={palette
+              .filter(
+                (entry, index) =>
+                  palette.findIndex((other) => other.value === entry.value) ===
+                  index
+              )
+              .map((entry) => ({
+                label:
+                  [entry.role, entry.name].filter(Boolean).join(" · ") ||
+                  entry.value,
+                value: entry.value,
+              }))}
+            placeholder="Custom color"
+            value={palette.some((entry) => entry.value === value) ? value : ""}
+          />
+        ) : null}
+        <input
+          aria-label={ariaLabel}
+          onChange={(event) => onChange(event.target.value)}
+          type="color"
+          value={value === "transparent" ? "#ffffff" : value}
+        />
+      </div>
+    </div>
   );
 }
+
+const STYLE_KEYS = [
+  "background",
+  "color",
+  "fontFamily",
+  "fontId",
+  "fontRef",
+  "fontSize",
+  "fontWeight",
+  "lineHeight",
+  "paddingX",
+  "paddingY",
+  "radius",
+] as const satisfies readonly (keyof ReviewConceptElement)[];
+
+/**
+ * A new element takes the look of the last one of its kind, so a second
+ * button matches the first without restyling it. Content stays the default.
+ */
+export const addConceptElement = (
+  elements: ReviewConceptElement[],
+  kind: ReviewConceptElementKind,
+  brandDoc?: BrandKitDoc | null
+): ReviewConceptElement[] => {
+  const fresh = createConceptElement(kind, brandDoc);
+  const model = elements.filter((element) => element.kind === kind).at(-1);
+  if (!model) {
+    return [...elements, fresh];
+  }
+  const isStyle = (key: string) =>
+    (STYLE_KEYS as readonly string[]).includes(key);
+  const content = Object.entries(fresh).filter(([key]) => !isStyle(key));
+  const style = Object.entries(model).filter(([key]) => isStyle(key));
+  return [
+    ...elements,
+    Object.fromEntries([...content, ...style]) as ReviewConceptElement,
+  ];
+};
+
+/** An exact copy, placed right after the original. */
+export const duplicateConceptElement = (
+  elements: ReviewConceptElement[],
+  id: string
+): ReviewConceptElement[] =>
+  elements.flatMap((element) =>
+    element.id === id ? [element, { ...element, id: newItemId() }] : [element]
+  );

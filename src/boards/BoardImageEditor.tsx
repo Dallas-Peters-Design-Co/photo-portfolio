@@ -1,5 +1,6 @@
 import { toast } from "sonner";
 import { PhotoEditorShell } from "../editor/ui/PhotoEditorShell";
+import type { ToolId } from "../editor/ui/tools";
 import { boardsApi, portfolioService } from "../services/portfolioService";
 import type { BoardItem, BoardItemResult } from "../types";
 import { imageOf } from "./tools/itemContext";
@@ -21,6 +22,7 @@ import { imageOf } from "./tools/itemContext";
 
 interface BoardImageEditorProps {
   boardId: string;
+  initialTool?: ToolId;
   item: BoardItem;
   onClose: () => void;
   /** The saved version, so the canvas can show it without a reload. */
@@ -30,6 +32,7 @@ interface BoardImageEditorProps {
 export function BoardImageEditor({
   boardId,
   item,
+  initialTool,
   onClose,
   onSaved,
 }: BoardImageEditorProps) {
@@ -45,12 +48,17 @@ export function BoardImageEditor({
         type: blob.type,
       });
       const { url } = await portfolioService.uploadImageFile(file);
+      const bitmap = await createImageBitmap(blob);
+      const { height, width } = bitmap;
+      bitmap.close();
       // Through the result endpoint, not the board save: a board save never
       // writes `result` — it replaces the whole arrangement on a debounce, so
       // one in flight would put the pre-edit copy back. See
       // api/boards/[id]/result.ts.
       const { result } = await boardsApi.saveToolResult(boardId, item.id, {
+        height,
         url,
+        width,
       });
       toast.success("Saved", { id: toastId });
       onSaved(result);
@@ -74,6 +82,7 @@ export function BoardImageEditor({
   return (
     <PhotoEditorShell
       imageUrl={source}
+      initialTool={initialTool}
       onClose={onClose}
       onSave={save}
       title={item.body?.trim() || "Board image"}

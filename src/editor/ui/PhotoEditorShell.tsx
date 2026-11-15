@@ -23,6 +23,7 @@ import { TOOLS, type ToolId } from "./tools";
 
 export interface PhotoEditorShellProps {
   imageUrl: string;
+  initialTool?: ToolId;
   onClose: () => void;
   /** Receives the graded image. Resolve to close, reject to keep the editor open. */
   onSave: (blob: Blob, extension: string) => Promise<void>;
@@ -38,11 +39,12 @@ export interface PhotoEditorShellProps {
  */
 export function PhotoEditorShell({
   imageUrl,
+  initialTool = "looks",
   title,
   onClose,
   onSave,
 }: PhotoEditorShellProps) {
-  const [tool, setTool] = useState<ToolId>("looks");
+  const [tool, setTool] = useState<ToolId>(initialTool);
   const [showOriginal, setShowOriginal] = useState(false);
   const [transform, setTransform] = useState<CanvasTransform>(NO_TRANSFORM);
 

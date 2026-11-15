@@ -23,24 +23,17 @@ import {
   WEIGHT_CHOICES,
   weightsFor,
 } from "../../config/textStyle.js";
-import {
-  FONT_CHOICES,
-  type FontId,
-  SANS_FONTS,
-  SERIF_FONTS,
-} from "../../config/theme.js";
 import { Button } from "../components/ui/button";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
 import type { BoardItem } from "../types";
-import { useActiveBrand } from "./brand/ActiveBrand";
+import { BoardFontPicker } from "./BoardFontPicker";
 import { ColorWell } from "./ColorWell";
 import { isTransparent, NO_FILL } from "./drawing/drawing";
 import { PANEL_GAP } from "./geometry/panelPlacement";
@@ -78,15 +71,6 @@ const FONT_STEP = 4;
 const LINE_HEIGHT_STEP = 0.05;
 const LETTER_SPACING_STEP = 0.01;
 
-/**
- * The Select's stand-in for "no family chosen".
- *
- * A select needs a value for every state, and null is a state: the text is set
- * in whatever the board surface is set in, and follows the site's theme when
- * an admin changes it.
- */
-const INHERIT = "inherit";
-
 const ALIGN_ICONS: Record<TextAlign, typeof TextAlignLeftIcon> = {
   center: TextAlignCenterIcon,
   left: TextAlignLeftIcon,
@@ -97,14 +81,9 @@ const ALIGN_ICONS: Record<TextAlign, typeof TextAlignLeftIcon> = {
  * What each control's trigger reads before its popup has ever been opened.
  *
  * A select only learns an item's label when that item mounts, and the popup is
- * lazy — so without these the toolbar would sit there saying "cormorant-garamond"
- * and "700" until someone opened each menu once.
+ * lazy — so without these the toolbar would sit there saying "700" until
+ * someone opened each menu once.
  */
-const FAMILY_LABELS: Record<string, string> = {
-  [INHERIT]: "Board default",
-  ...Object.fromEntries(FONT_CHOICES.map((font) => [font.id, font.label])),
-};
-
 const WEIGHT_LABELS: Record<string, string> = Object.fromEntries(
   WEIGHT_CHOICES.map((choice) => [String(choice.value), choice.label])
 );
@@ -188,11 +167,6 @@ export function BoardTextTools({
   const [showMore, setShowMore] = useState(false);
   const { panelRef, placement } = useAnchoredPanel(anchor);
   const style = item.textStyle ?? null;
-  // The active brand's fonts come first in the font menu.
-  const brandFaces = (
-    useActiveBrand()?.kit?.resolvedDoc.typefaces ?? []
-  ).filter((face): face is typeof face & { ref: string } => Boolean(face.ref));
-
   useTextFont(style);
 
   if (!(item.kind === "text" || item.kind === "note")) {
@@ -318,57 +292,10 @@ export function BoardTextTools({
           value={style?.color ?? NO_FILL}
         />
 
-        <Select
-          items={{
-            ...FAMILY_LABELS,
-            ...Object.fromEntries(brandFaces.map((f) => [f.ref, f.name])),
-          }}
-          onValueChange={(value) =>
-            set({
-              family: value === INHERIT ? null : ((value ?? null) as FontId),
-              // Brand fonts are refs (g:… / a:…); see config/fontRef.ts.
-            })
-          }
-          value={style?.family ?? INHERIT}
-        >
-          <div className="board-text-tools__select-font">
-            <SelectTrigger aria-label="Font" size="sm" tone="board">
-              <SelectValue />
-            </SelectTrigger>
-          </div>
-          <SelectContent>
-            <SelectGroup>
-              <SelectItem value={INHERIT}>Board default</SelectItem>
-            </SelectGroup>
-            {brandFaces.length > 0 ? (
-              <SelectGroup>
-                <SelectLabel>Brand</SelectLabel>
-                {brandFaces.map((face) => (
-                  <SelectItem key={face.ref} value={face.ref}>
-                    {face.name}
-                    {face.role ? ` · ${face.role}` : ""}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ) : null}
-            <SelectGroup>
-              <SelectLabel>Sans</SelectLabel>
-              {SANS_FONTS.map((font) => (
-                <SelectItem key={font.id} value={font.id}>
-                  {font.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-            <SelectGroup>
-              <SelectLabel>Serif</SelectLabel>
-              {SERIF_FONTS.map((font) => (
-                <SelectItem key={font.id} value={font.id}>
-                  {font.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <BoardFontPicker
+          onChange={(family) => set({ family })}
+          value={style?.family ?? null}
+        />
 
         <Select
           items={WEIGHT_LABELS}

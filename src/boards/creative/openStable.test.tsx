@@ -150,29 +150,15 @@ const open = async (items: BoardItem[]): Promise<BoardItem[]> => {
   return after;
 };
 
-/**
- * Opening the frame editor must not move anything. Text boxes set to fit
- * their words are the one thing it may resize, once, and about the point
- * their words are pinned to; after that every open leaves the board alone.
- */
-it("fits every text box on the first open, then changes nothing", async () => {
+/** Reopening a design is never a request to refit or save its text boxes. */
+it("preserves saved text boxes and writes nothing across repeated opens", async () => {
   await page.viewport(1440, 900);
-  const first = await open(start);
   const before = geo(start);
-  const settled = geo(first);
-  // Both boxes fitted in the one open (the second used to undo the first).
-  expect(settled.t1?.[2]).not.toBe(700);
-  expect(settled.t2?.[3]).not.toBe(90);
-  // The centred headline kept its centre.
-  const mid = (g: number[] | undefined) => (g?.[0] ?? 0) + (g?.[2] ?? 0) / 2;
-  expect(mid(settled.t1)).toBeCloseTo(mid(before.t1), 5);
-  // Nothing else moved: shapes, fixed text, the nested frame and its picture.
-  for (const id of ["f", "bg", "t3", "g", "logo"]) {
-    expect(settled[id]).toEqual(before[id]);
-  }
-  const wrote = writes;
+  const first = await open(start);
   const second = await open(first);
   const third = await open(second);
-  expect(geo(third)).toEqual(settled);
-  expect(writes).toBe(wrote);
+  expect(geo(first)).toEqual(before);
+  expect(geo(second)).toEqual(before);
+  expect(geo(third)).toEqual(before);
+  expect(writes).toBe(0);
 });

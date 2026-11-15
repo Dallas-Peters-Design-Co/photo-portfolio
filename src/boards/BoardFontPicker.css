@@ -1,0 +1,128 @@
+.board-font-picker__trigger {
+  display: flex;
+  gap: var(--spacing);
+  align-items: center;
+  justify-content: space-between;
+  width: calc(var(--spacing) * 40);
+  height: calc(var(--spacing) * 7);
+  padding-inline: calc(var(--spacing) * 1.5);
+  font-size: var(--text-micro-md);
+  color: var(--color-board-ink);
+  cursor: pointer;
+  background: color-mix(in oklch, var(--color-board-ink) 6%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.board-font-picker__trigger span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-font-picker__trigger svg {
+  flex-shrink: 0;
+}
+
+.board-font-picker__positioner {
+  z-index: var(--z-menu);
+}
+
+.board-font-picker {
+  display: flex;
+  flex-direction: column;
+  width: calc(var(--spacing) * 80);
+  max-width: calc(100vw - var(--spacing) * 4);
+  max-height: var(--available-height);
+  font-family: var(--font-sans);
+  color: var(--color-board-ink);
+  background: var(--color-board-panel);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 25%, transparent);
+}
+
+.board-font-picker__search {
+  width: 100%;
+  padding: calc(var(--spacing) * 3);
+  font-size: var(--text-micro-md);
+  color: inherit;
+  outline: none;
+  border-bottom: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
+}
+
+.board-font-picker__sources {
+  display: flex;
+  gap: var(--spacing);
+  padding: calc(var(--spacing) * 2);
+}
+
+.board-font-picker__sources button,
+.board-font-picker__status button {
+  padding: var(--spacing) calc(var(--spacing) * 2);
+  font-size: var(--text-micro-sm);
+  cursor: pointer;
+}
+
+.board-font-picker__sources [aria-pressed="true"] {
+  background: color-mix(in oklch, var(--color-board-ink) 12%, transparent);
+}
+
+.board-font-picker__status {
+  padding: var(--spacing) calc(var(--spacing) * 3);
+  font-size: var(--text-micro-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.board-font-picker__list {
+  min-height: 0;
+  max-height: calc(var(--spacing) * 72);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.board-font-picker__option {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 3);
+  font-size: var(--text-micro-xl);
+  text-align: left;
+  cursor: pointer;
+}
+
+.board-font-picker__option small {
+  flex-shrink: 0;
+  font-size: var(--text-micro-xs);
+  opacity: 0.6;
+}
+
+.board-font-picker__option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.board-font-picker__trigger:focus-visible,
+.board-font-picker__search:focus-visible,
+.board-font-picker button:focus-visible {
+  outline: var(--border-hairline) solid var(--color-board-ink);
+  outline-offset: calc(var(--spacing) * -0.5);
+}
+
+.board-font-picker__option:hover,
+.board-font-picker__option:focus-visible,
+.board-font-picker__option[aria-pressed="true"] {
+  background: color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+}
+
+.board-font-picker__more {
+  width: 100%;
+  padding: calc(var(--spacing) * 3);
+  font-size: var(--text-micro-md);
+  cursor: pointer;
+}

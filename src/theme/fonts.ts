@@ -1,4 +1,5 @@
 import { type FontId, findFont, isStaticFont } from "../../config/theme";
+import { loadFontStylesheet } from "./fontStylesheets";
 
 /**
  * Dynamic imports rather than top-level ones: Vite splits each font's CSS into
@@ -124,40 +125,33 @@ const loadStatic = async (id: FontId): Promise<unknown> => {
   return Promise.all(loads);
 };
 
-const loaded = new Set<FontId>();
+const loaded = new Map<FontId, Promise<void>>();
 
-const loadPublicFontStylesheet = (id: FontId): void => {
-  if (id !== "exposure" || typeof document === "undefined") {
-    return;
-  }
-  const href = "/fonts/exposure.css";
-  if (document.querySelector(`link[href="${href}"]`)) {
-    return;
-  }
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  document.head.append(link);
-};
-
-/** Loads a font's stylesheets once per session. Failures are non-fatal. */
-export const loadFont = async (id: FontId): Promise<void> => {
-  if (loaded.has(id)) {
-    return;
-  }
-  loaded.add(id);
+const loadStyles = async (id: FontId): Promise<void> => {
   try {
     const font = findFont(id);
     if (id === "exposure") {
-      loadPublicFontStylesheet(id);
+      if (!(await loadFontStylesheet("/fonts/exposure.css", false))) {
+        throw new Error("Could not load Exposure");
+      }
     } else if (font && isStaticFont(font)) {
       await loadStatic(id);
     } else {
       await VARIABLE_LOADERS[id]?.();
     }
   } catch {
-    // The stack in config/theme.ts ends in a system fallback, so a font that
-    // fails to load degrades to system UI rather than breaking the page.
+    // Failed loads keep the system fallback and can be retried later.
     loaded.delete(id);
   }
+};
+
+/** Concurrent callers wait on the same CSS import, including text measurement. */
+export const loadFont = (id: FontId): Promise<void> => {
+  const previous = loaded.get(id);
+  if (previous) {
+    return previous;
+  }
+  const loading = loadStyles(id);
+  loaded.set(id, loading);
+  return loading;
 };

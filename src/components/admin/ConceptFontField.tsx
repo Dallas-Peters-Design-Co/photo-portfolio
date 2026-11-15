@@ -14,36 +14,43 @@ import {
   loadFontRef,
   loadFontsharePreview,
 } from "../../theme/remoteFonts";
+import { Input } from "../ui/input";
+import {
+  type ConceptOptionGroup,
+  ConceptSelect,
+  optionsOf,
+} from "./ConceptSelect";
 import { conceptFontPatch, conceptFontSelection } from "./ReviewConceptBrand";
 
 const GOOGLE_RESULTS = 40;
 
-function CatalogFontOptions({
-  error,
-  fonts,
-  isLoading,
-  label,
-}: {
-  error: unknown;
-  fonts: { family: string; ref: string }[];
-  isLoading: boolean;
-  label: string;
-}) {
-  return (
-    <optgroup label={label}>
-      {isLoading ? <option disabled>Loading fonts…</option> : null}
-      {error ? <option disabled>{label} could not load</option> : null}
-      {!(isLoading || error) && fonts.length === 0 ? (
-        <option disabled>No matching fonts</option>
-      ) : null}
-      {fonts.map((font) => (
-        <option key={font.ref} value={`brand|${font.ref}`}>
-          {font.family}
-        </option>
-      ))}
-    </optgroup>
-  );
-}
+const catalogGroup = (
+  label: string,
+  fonts: { family: string; ref: string }[],
+  isLoading: boolean,
+  error: unknown
+): ConceptOptionGroup => {
+  let status: string | null = null;
+  if (isLoading) {
+    status = "Loading fonts…";
+  } else if (error) {
+    status = `${label} could not load`;
+  } else if (fonts.length === 0) {
+    status = "No matching fonts";
+  }
+  return {
+    label,
+    options: [
+      ...(status
+        ? [{ disabled: true, label: status, value: `status|${label}` }]
+        : []),
+      ...fonts.map((font) => ({
+        label: font.family,
+        value: `brand|${font.ref}`,
+      })),
+    ],
+  };
+};
 
 export function ConceptFontField({
   brandDoc,
@@ -170,64 +177,59 @@ export function ConceptFontField({
     selectedIsListed = appFonts.some((font) => font.id === fontId);
   }
 
-  return (
-    <label className="review-concepts__field review-concepts__font-field">
-      <span>{label}</span>
-      <input
-        aria-label={`Search Google Fonts and Fontshare for ${label.toLowerCase()}`}
-        autoComplete="off"
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search Google Fonts and Fontshare…"
-        type="search"
-        value={query}
-      />
-      <select
-        aria-label={label}
-        onChange={(event) => choose(event.target.value)}
-        value={selection}
-      >
-        {!selectedIsListed && currentRef ? (
-          <option value={`brand|${fontRef}`}>
-            {currentRef.family} · saved selection
-          </option>
-        ) : null}
-        <optgroup label="System">
-          <option value="sans">Sans serif</option>
-          <option value="serif">Serif</option>
-          <option value="mono">Monospace</option>
-        </optgroup>
-        {kitFaces.length > 0 ? (
-          <optgroup label="Brand kit">
-            {kitFaces.map((face) => (
-              <option key={face.ref} value={`brand|${face.ref}`}>
-                {face.name}
-                {face.role ? ` · ${face.role}` : ""}
-              </option>
-            ))}
-          </optgroup>
-        ) : null}
-        <optgroup label="Fonts in this app">
-          {appFonts.map((font) => (
-            <option key={font.id} value={`app|${font.id}`}>
-              {font.label}
-            </option>
-          ))}
-        </optgroup>
-        {searching ? (
-          <CatalogFontOptions
-            error={error}
-            fonts={matches.map((font) => ({
+  const groups: ConceptOptionGroup[] = [
+    ...(!selectedIsListed && currentRef
+      ? [
+          {
+            options: [
+              {
+                label: `${currentRef.family} · saved selection`,
+                value: `brand|${fontRef}`,
+              },
+            ],
+          },
+        ]
+      : []),
+    {
+      label: "System",
+      options: optionsOf([
+        ["sans", "Sans serif"],
+        ["serif", "Serif"],
+        ["mono", "Monospace"],
+      ]),
+    },
+    ...(kitFaces.length > 0
+      ? [
+          {
+            label: "Brand kit",
+            options: kitFaces.map((face) => ({
+              label: face.role ? `${face.name} · ${face.role}` : face.name,
+              value: `brand|${face.ref}`,
+            })),
+          },
+        ]
+      : []),
+    {
+      label: "Fonts in this app",
+      options: appFonts.map((font) => ({
+        label: font.label,
+        value: `app|${font.id}`,
+      })),
+    },
+    ...(searching
+      ? [
+          catalogGroup(
+            "Google Fonts",
+            matches.map((font) => ({
               family: font.family,
               ref: `g:${font.family}`,
-            }))}
-            isLoading={isLoading}
-            label="Google Fonts"
-          />
-        ) : null}
-        {searching ? (
-          <CatalogFontOptions
-            error={fontshareError}
-            fonts={fontshareMatches.map((font) => ({
+            })),
+            isLoading,
+            error
+          ),
+          catalogGroup(
+            "Fontshare",
+            fontshareMatches.map((font) => ({
               family: font.family,
               ref: fontRefId({
                 family: font.family,
@@ -235,13 +237,33 @@ export function ConceptFontField({
                 slug: font.slug,
                 source: "fontshare",
               }),
-            }))}
-            isLoading={fontshareIsLoading}
-            label="Fontshare"
-          />
-        ) : null}
-      </select>
-    </label>
+            })),
+            fontshareIsLoading,
+            fontshareError
+          ),
+        ]
+      : []),
+  ];
+
+  return (
+    <div className="review-concepts__field">
+      <span>{label}</span>
+      <Input
+        aria-label={`Search Google Fonts and Fontshare for ${label.toLowerCase()}`}
+        autoComplete="off"
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder="Search fonts…"
+        size="sm"
+        type="search"
+        value={query}
+      />
+      <ConceptSelect
+        groups={groups}
+        label={label}
+        onChange={choose}
+        value={selection}
+      />
+    </div>
   );
 }
 

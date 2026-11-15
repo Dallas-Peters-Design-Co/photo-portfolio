@@ -150,7 +150,7 @@ describe("ToolPicker — which tools are listed", () => {
 
   it("shows a planned tool, marked and unpickable", async () => {
     const box = await open();
-    const row = rowNamed(box, "Crop");
+    const row = rowNamed(box, "Describe");
 
     expect(row.textContent).toContain("Soon");
     expect(row.disabled).toBe(true);
@@ -231,7 +231,7 @@ describe("ToolPicker — keyboard", () => {
 
   it("picks nothing when Enter lands on a blocked row", async () => {
     const box = await open();
-    await type(box, "crop");
+    await type(box, "caption");
     await press(box, "Enter");
 
     expect(picked).toEqual([]);

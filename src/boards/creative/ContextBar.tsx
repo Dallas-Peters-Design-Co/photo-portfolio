@@ -23,17 +23,15 @@ import {
   textStyleCss,
   WEIGHT_CHOICES,
 } from "../../../config/textStyle";
-import { DISPLAY_FONTS } from "../../../config/theme";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
 import type { BoardItem } from "../../types";
+import { BoardFontPicker } from "../BoardFontPicker";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ColorWell } from "../ColorWell";
 import { isDrawingConfig } from "../drawing/drawing";
@@ -98,9 +96,6 @@ const ALIGN_ICON = {
   right: <AlignEndVertical size={15} />,
 };
 
-const faceLabel = (face: { name: string; role?: string | null }): string =>
-  face.role ? `${face.name} · ${face.role}` : face.name;
-
 export function TextControls({
   item,
   onPatch,
@@ -113,48 +108,14 @@ export function TextControls({
   const set = (next: Partial<TextStyle>) =>
     onPatch({ textStyle: normalizeTextStyle({ ...(style ?? {}), ...next }) });
   const kit = useActiveBrand()?.kit?.resolvedDoc;
-  const faces = (kit?.typefaces ?? []).filter((f) => f.ref);
   const accent = kit?.palette[0]?.value ?? "#111111";
-  const fontItems = [
-    { label: "Board default", value: null },
-    ...faces.map((f) => ({ label: faceLabel(f), value: f.ref ?? null })),
-    ...DISPLAY_FONTS.map((f) => ({ label: f.label, value: f.id })),
-  ];
   return (
     <>
       <Field label="Font">
-        <Select
-          items={fontItems}
-          onValueChange={(value) => set({ family: value || null })}
+        <BoardFontPicker
+          onChange={(family) => set({ family })}
           value={style?.family ?? null}
-        >
-          <div className="creative__font-slot">
-            <SelectTrigger aria-label="Font" size="sm" tone="board">
-              <SelectValue />
-            </SelectTrigger>
-          </div>
-          <SelectContent>
-            <SelectItem value={null}>Board default</SelectItem>
-            {faces.length > 0 ? (
-              <SelectGroup>
-                <SelectLabel>Brand</SelectLabel>
-                {faces.map((f) => (
-                  <SelectItem key={f.ref} value={f.ref ?? null}>
-                    {faceLabel(f)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ) : null}
-            <SelectGroup>
-              <SelectLabel>Site fonts</SelectLabel>
-              {DISPLAY_FONTS.map((f) => (
-                <SelectItem key={f.id} value={f.id}>
-                  {f.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        />
       </Field>
       <Field label="Size">
         <input

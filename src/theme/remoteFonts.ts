@@ -1,10 +1,12 @@
 import {
   adobeFontCss,
+  type FontRef,
   fontshareFontCss,
   fontshareFontPreviewCss,
   googleFontCss,
   parseFontRef,
 } from "../../config/fontRef.js";
+import { loadFontStylesheet } from "./fontStylesheets";
 
 /**
  * Loads a brand font (config/fontRef.ts) by adding its stylesheet to the page,
@@ -14,20 +16,14 @@ import {
  * out CSS, not files, and Adobe's CSS also carries the licence ping it needs.
  */
 
-const added = new Set<string>();
-
-const addStylesheet = (href: string, crossOrigin = true): void => {
-  if (added.has(href) || typeof document === "undefined") {
-    return;
+const stylesheetOf = (ref: FontRef): string => {
+  if (ref.source === "google") {
+    return googleFontCss(ref.family);
   }
-  added.add(href);
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  if (crossOrigin) {
-    link.crossOrigin = "anonymous";
+  if (ref.source === "fontshare") {
+    return fontshareFontCss(ref.slug ?? "");
   }
-  document.head.append(link);
+  return adobeFontCss(ref.kitId ?? "");
 };
 
 /** True when the value was a brand font ref (and is now loading). */
@@ -36,16 +32,16 @@ export const loadFontRef = (value: unknown): boolean => {
   if (!ref) {
     return false;
   }
-  let stylesheet: string;
-  if (ref.source === "google") {
-    stylesheet = googleFontCss(ref.family);
-  } else if (ref.source === "fontshare") {
-    stylesheet = fontshareFontCss(ref.slug ?? "");
-  } else {
-    stylesheet = adobeFontCss(ref.kitId ?? "");
-  }
-  addStylesheet(stylesheet, ref.source !== "fontshare");
+  void loadFontStylesheet(stylesheetOf(ref), ref.source !== "fontshare");
   return true;
+};
+
+/** Waits for the full family stylesheet, rather than a name-only preview. */
+export const loadFontRefReady = (value: unknown): Promise<boolean> => {
+  const ref = parseFontRef(value);
+  return ref
+    ? loadFontStylesheet(stylesheetOf(ref), ref.source !== "fontshare")
+    : Promise.resolve(false);
 };
 
 /**
@@ -53,17 +49,17 @@ export const loadFontRef = (value: unknown): boolean => {
  * `text=` parameter asks for only those glyphs, a few hundred bytes each.
  */
 export const loadFontPreview = (family: string): void => {
-  addStylesheet(
+  void loadFontStylesheet(
     `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, "+")}&text=${encodeURIComponent(family)}&display=swap`
   );
 };
 
 /** A single regular weight for the font names in search results. */
 export const loadFontsharePreview = (slug: string, weight = 400): void => {
-  addStylesheet(fontshareFontPreviewCss(slug, weight), false);
+  void loadFontStylesheet(fontshareFontPreviewCss(slug, weight), false);
 };
 
 /** The whole Adobe project, for previews in the kit editor. */
 export const loadAdobeKit = (kitId: string): void => {
-  addStylesheet(adobeFontCss(kitId));
+  void loadFontStylesheet(adobeFontCss(kitId));
 };

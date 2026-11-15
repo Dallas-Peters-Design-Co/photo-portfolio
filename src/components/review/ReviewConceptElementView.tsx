@@ -19,9 +19,10 @@ import {
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
-import type {
-  ReviewConceptElement,
-  ReviewConceptIcon,
+import {
+  type ReviewConceptElement,
+  type ReviewConceptIcon,
+  splitCardText,
 } from "../../../config/reviewConcept.js";
 import { findFont } from "../../../config/theme.js";
 
@@ -62,6 +63,30 @@ const CONCEPT_ICONS: Record<ReviewConceptIcon, LucideIcon> = {
   user: User,
   x: X,
 };
+
+function CardPreview({
+  element,
+  style,
+}: {
+  element: ReviewConceptElement;
+  style: CSSProperties;
+}) {
+  const card = splitCardText(element.text);
+  const CardIcon = element.iconName ? CONCEPT_ICONS[element.iconName] : null;
+  return (
+    <article className="review-concepts__card-preview" style={style}>
+      {CardIcon ? (
+        <CardIcon
+          aria-hidden
+          size={Math.round(element.fontSize * 1.5)}
+          strokeWidth={2}
+        />
+      ) : null}
+      <strong>{card.title || "Card title"}</strong>
+      {card.body ? <p>{card.body}</p> : null}
+    </article>
+  );
+}
 
 export function ReviewConceptElementView({
   element,
@@ -149,11 +174,7 @@ export function ReviewConceptElementView({
         </label>
       );
     case "card":
-      return (
-        <article style={{ ...style, whiteSpace: "pre-line", width: "100%" }}>
-          {text}
-        </article>
-      );
+      return <CardPreview element={element} style={style} />;
     case "label":
       return <span style={style}>{text}</span>;
     case "badge":

@@ -6,6 +6,7 @@ import type { BoardItem, BoardWire } from "../../types";
 import { framesToRender, withFrameRenders } from "../io/frameRender";
 import { videoInputsOf } from "../io/videoInputs";
 import { runVideo } from "../io/videoRun";
+import { runStore } from "../run/runStore";
 
 /**
  * Running a Video node, which the graph runner cannot do.
@@ -132,7 +133,9 @@ export const useVideoRunner = (
       const patch = (fields: Partial<BoardItem>) =>
         onChange(
           latest.current.map((it) =>
-            it.id === item.id ? { ...it, ...fields } : it
+            it.id === item.id
+              ? { ...it, ...runStore.filterPatch(boardId, item.id, fields) }
+              : it
           )
         );
       patch({ runError: null, runState: "running" });

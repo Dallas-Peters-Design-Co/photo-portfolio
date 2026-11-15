@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import { textStyleCss } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
 import { InstanceView } from "../components/InstanceView";
@@ -12,70 +12,14 @@ import { fitOf, objectPositionOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
 import { HANDLES, type Handle } from "./SelectionBox";
 import { TintedPicture } from "./TintedPicture";
-import { fitPatch, measureText, textFitOf } from "./textFit";
+import { textFitOf } from "./textFit";
+import { useFitText } from "./useFitText";
 
 /**
  * What the artboard draws for each layer (text, shape or picture), and the
  * outline around a multiple selection. Split from Artboard.tsx, which keeps
  * the pointer handling.
  */
-
-/**
- * A text box set to fit its words (textFit.ts) resized to them whenever the
- * words, the type or (fitting the height) the width change, and again when a
- * font finishes loading, since the stand-in face measures differently.
- */
-/** The face a text box is set in, as `document.fonts` asks for it. */
-const fontOf = (el: HTMLElement): string | null => {
-  const css = getComputedStyle(el);
-  return css.fontFamily
-    ? `${css.fontStyle} ${css.fontWeight} ${css.fontSize} ${css.fontFamily}`
-    : null;
-};
-
-const useFitText = (
-  own: React.RefObject<HTMLTextAreaElement | null>,
-  item: BoardItem,
-  onFit?: (patch: Partial<BoardItem>) => void
-) => {
-  const fit = textFitOf(item);
-  const [fonts, setFonts] = useState(0);
-  useEffect(() => {
-    if (fit === "fixed") {
-      return;
-    }
-    const done = () => setFonts((n) => n + 1);
-    document.fonts.addEventListener("loadingdone", done);
-    return () => document.fonts.removeEventListener("loadingdone", done);
-  }, [fit]);
-  const style = JSON.stringify(item.textStyle);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: measured again when the words, type, width or fonts change
-  useEffect(() => {
-    const el = own.current;
-    if (fit === "fixed" || !el || !onFit) {
-      return;
-    }
-    // Not measured in a stand-in face: the box would be fitted to the wrong
-    // words, saved, and fitted back when the real face arrived, so it changed
-    // size (and place) every time the editor opened. Measured once it loads.
-    const face = fontOf(el);
-    if (face && !document.fonts.check(face)) {
-      let alive = true;
-      document.fonts
-        .load(face)
-        .then(() => alive && setFonts((n) => n + 1))
-        .catch(() => undefined);
-      return () => {
-        alive = false;
-      };
-    }
-    const size = measureText(el, fit, item.width);
-    const patch = size ? fitPatch(item, fit, size) : null;
-    if (patch) {
-      onFit(patch);
-    }
-  }, [fit, item.body, item.fontSize, style, item.width, fonts]);
-};
 
 function LayerText({
   editing,
@@ -96,6 +40,7 @@ function LayerText({
   const own = useRef<HTMLTextAreaElement | null>(null);
   useVerticalAlign(own, item);
   useFitText(own, item, onFit);
+  const fit = textFitOf(item);
   return (
     <textarea
       className="creative__text text-body text-body--plain"
@@ -128,6 +73,7 @@ function LayerText({
         pointerEvents: editing ? "auto" : "none",
       }}
       value={item.body ?? ""}
+      wrap={fit === "both" ? "off" : "soft"}
     />
   );
 }

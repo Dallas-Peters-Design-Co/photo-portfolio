@@ -5,8 +5,9 @@ import { afterEach, beforeAll, expect, it } from "vitest";
 import { page } from "vitest/browser";
 import type { BoardItem } from "../../types";
 import { CreativeEditor } from "./CreativeEditor";
+import { textFitOf } from "./textFit";
 
-/** Text boxes set to fit their words resize to them in the frame editor. */
+/** Explicit fit choices resize text; reopening a frame keeps its saved boxes. */
 
 let root: Root | null = null;
 let host: HTMLDivElement | null = null;
@@ -59,9 +60,18 @@ const text = (autosize: string, body: string) =>
   }) as BoardItem;
 
 let latest: BoardItem[] = [];
+let requestFit: (fit: string) => void = () => undefined;
 function Harness({ start }: { start: BoardItem[] }) {
   const [items, setItems] = useState(start);
   latest = items;
+  requestFit = (fit) =>
+    setItems((current) =>
+      current.map((item) =>
+        item.id === "t"
+          ? { ...item, config: { ...item.config, autosize: fit } }
+          : item
+      )
+    );
   return (
     <CreativeEditor
       frameId="f"
@@ -76,7 +86,15 @@ const render = async (start: BoardItem[]) => {
   host.style.cssText = "width:1200px;height:800px";
   document.body.append(host);
   root = createRoot(host);
-  act(() => root?.render(<Harness start={start} />));
+  const target = start.find((item) => item.id === "t");
+  const fit = target ? textFitOf(target) : "fixed";
+  const fixed = start.map((item) =>
+    item.id === "t"
+      ? { ...item, config: { ...item.config, autosize: null } }
+      : item
+  );
+  act(() => root?.render(<Harness start={fixed} />));
+  act(() => requestFit(fit));
   await act(async () => await new Promise((r) => setTimeout(r, 50)));
   return latest.find((i) => i.id === "t") as BoardItem;
 };

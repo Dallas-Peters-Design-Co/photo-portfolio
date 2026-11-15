@@ -115,11 +115,11 @@ export const TOOLS: readonly Tool[] = [
     needsMask: false,
     needsPrompt: false,
     settings: [],
-    status: "planned",
+    status: "ready",
   },
   {
     appliesTo: IMAGE_KINDS,
-    description: "Trim the image to a rectangle or a fixed aspect ratio.",
+    description: "Trim the image to a rectangle.",
     executor: "transform",
     group: "transform",
     id: "crop",
@@ -127,16 +127,8 @@ export const TOOLS: readonly Tool[] = [
     label: "Crop",
     needsMask: false,
     needsPrompt: false,
-    settings: [
-      {
-        default: "free",
-        key: "aspect",
-        kind: "select",
-        label: "Aspect",
-        options: ["free", "1:1", "4:5", "3:2", "16:9"],
-      },
-    ],
-    status: "planned",
+    settings: [],
+    status: "ready",
   },
   {
     appliesTo: IMAGE_KINDS,
@@ -202,13 +194,12 @@ export const TOOLS: readonly Tool[] = [
     keywords: ["style", "lora", "look", "model", "filter"],
     label: "Restyle",
     needsMask: false,
-    needsPrompt: false,
+    needsPrompt: true,
     settings: [
-      // Where a LoRA is chosen: the table's style rows are models as far as fal
-      // is concerned, and that is how they reach the endpoint now that it
-      // forwards one. The prompt is optional, so a restyle can be the style
-      // alone or the style plus a note about what to keep.
-      { ...PROMPT_SETTING, placeholder: "Anything to keep or change…" },
+      {
+        ...PROMPT_SETTING,
+        placeholder: "Describe the style and what to keep…",
+      },
       { default: "auto", key: "model", kind: "model", label: "Style" },
     ],
     status: "ready",
@@ -350,6 +341,10 @@ export const withDefaults = (
   }
   return { ...config, ...provided };
 };
+
+/** Restyle always asks: the item's own prompt describes the picture, not a style. */
+export const asksForWords = (tool: Tool, hasPrompt: boolean): boolean =>
+  tool.id === "restyle" || (tool.needsPrompt && !hasPrompt);
 
 /**
  * Why this tool cannot run right now, or null when it can.

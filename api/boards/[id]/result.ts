@@ -1,5 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { getBearerUser } from "../../_lib/auth.js";
+import {
+  sendBoardResultError,
+  updateBoardResult,
+} from "../../_lib/boardResult.js";
 import { handleCors } from "../../_lib/cors.js";
 import { getSql } from "../../_lib/db.js";
 import { parsePublicHttpUrl } from "../../_lib/httpUrl.js";
@@ -80,17 +84,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const sql = getSql();
-  const rows = (await sql`
-    SELECT result FROM board_items
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `) as { result: unknown }[];
-  if (rows.length === 0) {
-    // Not found rather than created: a result belongs to an item, and writing
-    // one for an id that is not on this board would be someone else's row.
-    return res.status(404).json({ error: "Item not found on this board" });
-  }
-  const stored = (rows[0]?.result ?? null) as StoredResult | null;
-
   const kind = body.kind === "video" ? "video" : "image";
   const variation: Variation = {
     description:
@@ -104,22 +97,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     width: size(body.width),
   };
 
-  const history = Array.isArray(stored?.history) ? stored.history : [];
-  const result = {
-    ...stored,
-    history: [...history, variation].slice(-MAX_HISTORY),
-    kind,
-    // The newest picture is what the item shows and what a wire carries on.
-    url,
-    variations: [variation],
-  };
-
-  await sql`
-    UPDATE board_items
-    SET result = ${JSON.stringify(result)}::jsonb,
-        run_state = 'succeeded',
-        run_error = NULL
-    WHERE id = ${itemId} AND board_id = ${boardId}
-  `;
-  return res.status(200).json({ result });
+  try {
+    const result = await updateBoardResult(
+      sql,
+      boardId,
+      itemId,
+      (previous) => {
+        const stored = previous as StoredResult | null;
+        const history = Array.isArray(stored?.history) ? stored.history : [];
+        return {
+          ...stored,
+          history: [...history, variation].slice(-MAX_HISTORY),
+          kind,
+          url,
+          variations: [variation],
+        };
+      },
+      true
+    );
+    return res.status(200).json({ result });
+  } catch (error) {
+    return sendBoardResultError(res, error, "Could not save that result");
+  }
 }

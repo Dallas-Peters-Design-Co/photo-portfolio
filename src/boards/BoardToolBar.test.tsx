@@ -239,6 +239,58 @@ describe("saving the picture", () => {
   });
 });
 
+describe("Restyle from the image toolbar", () => {
+  it("collects the prompt and style before running", async () => {
+    const runs: {
+      id: string;
+      prompt?: string;
+      config?: Record<string, unknown>;
+    }[] = [];
+    const anchor = createRef<HTMLDivElement>();
+    const box = document.createElement("div");
+    document.body.append(box);
+    Object.assign(anchor, { current: box });
+    const el = await render(
+      <BoardToolBar
+        anchor={anchor}
+        chromeScale={{ transform: "scale(1)" }}
+        isRunning={false}
+        item={item({ imageUrl: "https://example.test/a.png" })}
+        onRun={(tool, prompt, config) =>
+          runs.push({ config, id: tool.id, prompt })
+        }
+      />
+    );
+    buttonSaying(el, "Tools")?.click();
+    await flush();
+    buttonSaying(el, "Restyle")?.click();
+    await flush();
+    const field = el.querySelector<HTMLTextAreaElement>(
+      '[aria-label="Prompt for Restyle"]'
+    );
+    expect(field).toBeTruthy();
+    const run = buttonSaying(el, "Run Restyle");
+    expect(run?.disabled).toBe(true);
+    expect(runs).toEqual([]);
+    Object.getOwnPropertyDescriptor(
+      HTMLTextAreaElement.prototype,
+      "value"
+    )?.set?.call(field, "Draw this as a linocut");
+    field?.dispatchEvent(new Event("input", { bubbles: true }));
+    await flush();
+    run?.click();
+    await flush();
+    expect(runs).toEqual([
+      {
+        config: { model: "auto" },
+        id: "restyle",
+        prompt: "Draw this as a linocut",
+      },
+    ]);
+    box.remove();
+  });
+});
+
 describe("a Clip node's bar", () => {
   it("offers Save for the clip it holds, and nothing that can't take an mp4", async () => {
     const anchor = createRef<HTMLDivElement>();
