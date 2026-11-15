@@ -14,8 +14,8 @@ const labelVariants = cva(
     defaultVariants: { variant: "field" },
     variants: {
       variant: {
-        field: "text-micro-xs text-white/90 uppercase tracking-widest",
-        inline: "text-sm text-white/80",
+        field: "text-white/90 text-xs uppercase tracking-widest",
+        inline: "text-white/80 text-xs",
       },
     },
   }
