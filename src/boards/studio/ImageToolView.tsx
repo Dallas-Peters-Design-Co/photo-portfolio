@@ -120,6 +120,7 @@ export function ImageToolView({
   onResizeReset,
   onValues,
   palette,
+  selectedImage,
   tool,
   values: stored,
 }: {
@@ -132,6 +133,7 @@ export function ImageToolView({
   onResizeReset?: () => void;
   onValues: (values: StudioValues) => void;
   palette: string[];
+  selectedImage?: string | null;
   tool: ImageTool;
   values: StudioValues | undefined;
 }) {
@@ -351,6 +353,7 @@ export function ImageToolView({
         }}
         palette={palette}
         params={tool.params}
+        selectedImage={selectedImage}
         sources={sources}
         values={values}
       />

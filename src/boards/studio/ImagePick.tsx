@@ -33,11 +33,14 @@ const toLocal = async (url: string): Promise<string> => {
 
 export function ImagePick({
   current,
+  selectedImage,
   fromFrame,
   label,
   onPick,
 }: {
   fromFrame?: FromFrame;
+  /** The image node currently selected on the board. */
+  selectedImage?: string | null;
   /** The picture in use, shown first and marked. */
   current?: string | null;
   label: string;
@@ -103,6 +106,25 @@ export function ImagePick({
             type="file"
           />
         </label>
+        {selectedImage ? (
+          <button
+            aria-label="Use the selected canvas image"
+            aria-pressed={chosen === selectedImage}
+            className="studio-pick__item studio-pick__selected"
+            onClick={() => void pick(selectedImage)}
+            title="Use the image selected on the canvas"
+            type="button"
+          >
+            <img
+              alt=""
+              height={48}
+              loading="lazy"
+              src={selectedImage}
+              width={48}
+            />
+            <small>Selected</small>
+          </button>
+        ) : null}
         {fromFrame ? (
           <button
             aria-label={`Use the frame: ${fromFrame.label}`}

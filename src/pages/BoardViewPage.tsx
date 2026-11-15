@@ -8,6 +8,9 @@ import { nodeTypeFor } from "../../config/nodeTypes";
 import { BoardCanvas } from "../boards/BoardCanvas";
 import { FrameOpenProvider, frameLink } from "../boards/FrameOpenContext";
 import { FrameViewer } from "../boards/FrameViewer";
+import { isDesignFrame } from "../boards/geometry/frameLock";
+import { renderFrameBlob } from "../boards/io/frameRender";
+import { currentFrameRender, frameKeyOf } from "../boards/io/frameRenderKey";
 import { currentImageUrl } from "../boards/itemOutput";
 import { CommentDialog } from "../boards/panels/CommentDialog";
 import { CommentsPanel } from "../boards/panels/CommentsPanel";
@@ -108,6 +111,11 @@ export function BoardViewPage() {
    * pushed a history entry, so leaving the viewer took eleven Backs.
    */
   const [shownIndex, setShownIndex] = useState(0);
+  const [localFrameRender, setLocalFrameRender] = useState<{
+    frameId: string;
+    key: string;
+    url: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!slug) {
@@ -205,17 +213,72 @@ export function BoardViewPage() {
         : null,
     [frames, frameSlug]
   );
+  const selectedFrame = openFrame
+    ? (frames.find((frame) => frame.id === openFrame.id) ?? null)
+    : null;
+  const selectedFrameKey = selectedFrame
+    ? frameKeyOf(selectedFrame, items)
+    : null;
+  const storedFrameRender = selectedFrame
+    ? currentFrameRender(selectedFrame, items)
+    : null;
+
+  useEffect(() => {
+    if (
+      !(selectedFrame && isDesignFrame(selectedFrame, items)) ||
+      storedFrameRender
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    let objectUrl: string | null = null;
+    void renderFrameBlob(selectedFrame, items)
+      .then((blob) => {
+        objectUrl = URL.createObjectURL(blob);
+        if (cancelled) {
+          URL.revokeObjectURL(objectUrl);
+          return;
+        }
+        setLocalFrameRender({
+          frameId: selectedFrame.id,
+          key: selectedFrameKey ?? "",
+          url: objectUrl,
+        });
+      })
+      .catch(() => {
+        // The existing picture list remains available if a layer cannot export.
+      });
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [items, selectedFrame, selectedFrameKey, storedFrameRender]);
+
   const framed = useMemo(() => {
     const frame = openFrame && frames.find((one) => one.id === openFrame.id);
     if (!frame) {
       return [];
+    }
+    if (isDesignFrame(frame, items)) {
+      const url =
+        currentFrameRender(frame, items) ??
+        (localFrameRender?.frameId === frame.id &&
+        localFrameRender.key === frameKeyOf(frame, items)
+          ? localFrameRender.url
+          : null);
+      if (url) {
+        return [{ ...frame, imageUrl: url }];
+      }
     }
     // Only what has a picture: a frame may also hold a note or a prompt node,
     // and paging onto one of those would look like the viewer breaking.
     return containedBy(frame, items).filter((item) =>
       Boolean(currentImageUrl(item))
     );
-  }, [items, frames, openFrame]);
+  }, [items, frames, localFrameRender, openFrame]);
 
   const openFrameSlug = useCallback(
     (frameId: string) => {

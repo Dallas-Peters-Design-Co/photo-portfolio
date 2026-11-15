@@ -95,6 +95,7 @@ export function StudioPanel({
   initialTool,
   onAdd,
   onAddMany,
+  selectedImage,
   onClose,
 }: {
   /** A placed Studio picture opened to be changed, or a shape to fill. */
@@ -106,6 +107,8 @@ export function StudioPanel({
    * an image tool made it.
    */
   onAddMany?: (files: File[]) => void;
+  /** The selected canvas image, for Studio tools that take a picture as input. */
+  selectedImage?: string | null;
   onAdd: (file: File, recipe?: StudioRecipe) => void;
   onClose: () => void;
 }) {
@@ -164,6 +167,7 @@ export function StudioPanel({
           setByTool((was) => ({ ...was, [tool.id]: values }));
         }}
         palette={palette}
+        selectedImage={selectedImage}
         tool={tool}
         values={byTool[tool.id] ?? lastOf(tool.id, tool.params)}
       />

@@ -19,6 +19,7 @@ import type { StudioParam, StudioValues } from "./types";
 export function StudioControls({
   fromFrame,
   image,
+  selectedImage,
   onChange,
   onImage,
   palette,
@@ -28,6 +29,7 @@ export function StudioControls({
 }: {
   /** The frame editor's selection, offered as a picture (ImagePick). */
   fromFrame?: FromFrame;
+  selectedImage?: string | null;
   image: string | null;
   onChange: (key: string, value: boolean | number | string) => void;
   /** A local URL for the picture chosen, and where it came from (ImagePick). */
@@ -197,6 +199,7 @@ export function StudioControls({
                 key={p.key}
                 label={p.label}
                 onPick={onImage}
+                selectedImage={selectedImage}
               />
             );
         }

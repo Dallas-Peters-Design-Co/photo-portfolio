@@ -32,6 +32,18 @@ export const framesToRender = (
       !currentFrameRender(frame, items)
   );
 
+/** Draws a frame exactly as it appears in the creative editor. */
+export const renderFrameBlob = async (
+  frame: BoardItem,
+  items: BoardItem[]
+): Promise<Blob> => {
+  const layers = layersOf(frame, items);
+  const width = Math.min(exportWidthFor(frame), MAX_WIDTH);
+  return await withTextGhosts(layers, (textElementFor) =>
+    renderCreative(frame, layers, width, textElementFor)
+  );
+};
+
 /**
  * The board with each frame's render drawn, uploaded and stored on it.
  * A frame that fails keeps what it had; `onError` hears why.
@@ -46,12 +58,8 @@ export const withFrameRenders = async (
   // One at a time: each is a full canvas, and posters are big.
   for (const frame of frames) {
     try {
-      const layers = layersOf(frame, items);
-      const width = Math.min(exportWidthFor(frame), MAX_WIDTH);
       // biome-ignore lint/performance/noAwaitInLoops: sequential for memory (above)
-      const png = await withTextGhosts(layers, (textElementFor) =>
-        renderCreative(frame, layers, width, textElementFor)
-      );
+      const png = await renderFrameBlob(frame, items);
       done.set(frame.id, {
         ...(frame.config ?? {}),
         renderKey: frameKeyOf(frame, items),

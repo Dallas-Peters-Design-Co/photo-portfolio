@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CreativeEditor } from "../../../boards/creative/CreativeEditor";
 import { markDesigned } from "../../../boards/geometry/frameLock";
+import { pickImages, selectedIndex } from "../../../boards/itemOutput";
 import {
   BoardImagesContext,
   boardImages,
@@ -25,7 +26,8 @@ export const useFrameDesign = (
     list: BoardItem[],
     width: number,
     height: number
-  ) => { x: number; y: number }
+  ) => { x: number; y: number },
+  selectedItem?: BoardItem | null
 ) => {
   const { duplicateFrame, fitFrame, resetScale } = useAdFrames(items, change);
   const [designing, setDesigning] = useState<string | null>(null);
@@ -43,6 +45,16 @@ export const useFrameDesign = (
       onDropFiles={(files, point) => void dropFiles(files, point)}
     />
   ) : null;
+  // Every Studio image picker, here or in the frame editor, offers these.
+  const pictures = useMemo(() => boardImages(items), [items]);
+  const selectedImage = selectedItem
+    ? (selectedItem.imageUrl ??
+      pickImages(selectedItem.result)[selectedIndex(selectedItem.config ?? {})]
+        ?.url ??
+      (typeof selectedItem.config?.renderUrl === "string"
+        ? selectedItem.config.renderUrl
+        : null))
+    : null;
   const studioPanel = studio ? (
     <StudioPanel
       initialTool={studio}
@@ -56,10 +68,9 @@ export const useFrameDesign = (
         void dropFiles(files, { x: point.x + 240, y: point.y + 240 });
       }}
       onClose={() => setStudio(null)}
+      selectedImage={selectedImage}
     />
   ) : null;
-  // Every Studio image picker, here or in the frame editor, offers these.
-  const pictures = useMemo(() => boardImages(items), [items]);
   return {
     designer: (
       <BoardImagesContext.Provider value={pictures}>
