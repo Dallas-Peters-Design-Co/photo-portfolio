@@ -1,22 +1,6 @@
 import type { ReactNode } from "react";
+import type { SocialPreviewId } from "../../../config/socialPreview";
 import "./SocialPreview.css";
-
-export const SOCIAL_PREVIEW_OPTIONS = [
-  { group: "Instagram", id: "instagram-post", label: "Post" },
-  { group: "Instagram", id: "instagram-story", label: "Story / Reel" },
-  { group: "Facebook", id: "facebook-post", label: "Post" },
-  { group: "Facebook", id: "facebook-cover", label: "Page cover" },
-  { group: "TikTok", id: "tiktok-post", label: "Video / photo post" },
-  { group: "LinkedIn", id: "linkedin-post", label: "Post" },
-  { group: "LinkedIn", id: "linkedin-page", label: "Company page" },
-  { group: "X", id: "x-post", label: "Post" },
-  { group: "Pinterest", id: "pinterest-pin", label: "Pin" },
-  { group: "YouTube", id: "youtube-video", label: "Video thumbnail" },
-] as const;
-
-export type SocialPreviewId =
-  | (typeof SOCIAL_PREVIEW_OPTIONS)[number]["id"]
-  | "artwork";
 
 export function SocialPreview({
   children,

@@ -1,0 +1,159 @@
+.review-concepts-editor {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  padding-block: calc(var(--spacing) * 5);
+  border-block: 1px solid color-mix(in oklch, currentColor 15%, transparent);
+}
+
+.review-concepts-editor__head,
+.review-concepts__card-head,
+.review-concepts__element-head {
+  display: flex;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+  justify-content: space-between;
+}
+
+.review-concepts-editor__head h3 {
+  font-size: var(--text-base);
+  font-weight: 650;
+}
+
+.review-concepts-editor__head p,
+.review-concepts-editor__empty {
+  margin-block-start: calc(var(--spacing) * 1);
+  font-size: var(--text-sm-ui);
+  color: color-mix(in oklch, currentColor 65%, transparent);
+}
+
+.review-concepts-editor__list {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+
+.review-concepts__card {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding: calc(var(--spacing) * 4);
+  border: 1px solid color-mix(in oklch, currentColor 16%, transparent);
+}
+
+.review-concepts__title {
+  width: 100%;
+  max-width: 28rem;
+  padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+  font-size: var(--text-sm-ui);
+  font-weight: 600;
+  color: inherit;
+  background: color-mix(in oklch, currentColor 5%, transparent);
+  border: 1px solid color-mix(in oklch, currentColor 15%, transparent);
+}
+
+.review-concepts__workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(14rem, 0.65fr);
+  gap: calc(var(--spacing) * 4);
+  align-items: start;
+}
+
+.review-concepts__controls {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  min-width: 0;
+}
+
+.review-concepts__control-grid,
+.review-concepts__element-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-concepts__field {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  min-width: 0;
+  font-size: var(--text-xs-ui);
+}
+
+.review-concepts__field > span {
+  color: color-mix(in oklch, currentColor 65%, transparent);
+}
+
+.review-concepts__field input:not([type="color"]),
+.review-concepts__field select {
+  min-width: 0;
+  min-height: calc(var(--spacing) * 9);
+  padding-inline: calc(var(--spacing) * 2);
+  font: inherit;
+  color: inherit;
+  background: color-mix(in oklch, currentColor 5%, transparent);
+  border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.review-concepts__field--color input[type="color"] {
+  width: 100%;
+  min-height: calc(var(--spacing) * 9);
+  padding: calc(var(--spacing) * 1);
+  background: color-mix(in oklch, currentColor 5%, transparent);
+  border: 1px solid color-mix(in oklch, currentColor 18%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.review-concepts__elements {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-concepts__add-actions {
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+}
+
+.review-concepts__element {
+  min-width: 0;
+  padding: calc(var(--spacing) * 3);
+  border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
+}
+
+.review-concepts__element legend {
+  padding-inline: calc(var(--spacing) * 1);
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 65%, transparent);
+}
+
+.review-concepts__field--wide {
+  grid-column: span 2;
+}
+
+.review-concepts__preview-wrap {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  min-width: 0;
+  padding: calc(var(--spacing) * 3);
+  background: color-mix(in oklch, currentColor 4%, transparent);
+}
+
+.review-concepts__preview-wrap > p {
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 65%, transparent);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro);
+}
+
+.review-concepts__preview {
+  min-height: 12rem;
+  overflow: hidden;
+}
+
+@media (max-width: 52rem) {
+  .review-concepts__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .review-concepts__control-grid,
+  .review-concepts__element-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

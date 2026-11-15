@@ -159,56 +159,35 @@ export const TEMPLATES: readonly Template[] = [
      * is not a mark but the entire field — a cover is judged as a rectangle of
      * artwork at arm's length, which nothing else here asks.
      */
-    area: { h: 0.628, w: 0.236, x: 0.386, y: 0.205 },
+    area: { h: 0.5, w: 0.3, x: 0.35, y: 0.25 },
     blend: "multiply",
     caption:
       "A paperback face up, lit from the left. The cover as a whole rectangle, at the distance it is picked up from.",
-    crop: { h: 0.9, w: 0.52, x: 0.24, y: 0.08 },
     id: "book-flat",
     image: bookFlat,
     label: "Book cover",
-    plate: "#ffffff",
   },
   {
     area: { h: 0.585, w: 0.185, x: 0.386, y: 0.205 },
     blend: "multiply",
     caption:
-      "The same cover standing on a shelf, seen slightly from the side. Where a spine-heavy design loses its front.",
-    crop: { h: 0.9, w: 0.52, x: 0.24, y: 0.06 },
+      "A blank hardback standing upright. See the cover at shelf height.",
     id: "book-standing",
     image: bookStanding,
     label: "Book, standing",
-    plate: "#ffffff",
   },
   {
-    /*
-     * A softcover flat lay, shot from above.
-     *
-     * The one that looks like a photograph of a finished book rather than a
-     * mockup of one, which is what a client is being asked to imagine. Only
-     * the front is plated: the back of the pair keeps the sample artwork on
-     * purpose, so the tile shows a cover in a pile of covers instead of a
-     * cover alone.
-     */
+    /* Two clean book forms, with the face-forward cover kept clear for artwork. */
     area: { h: 0.576, w: 0.271, x: 0.2, y: 0.21 },
     blend: "multiply",
     caption:
-      "A softcover flat on a table, front up, shot from above. The nearest thing on this sheet to a photograph of the finished book.",
-    crop: { h: 0.84, w: 0.52, x: 0.1, y: 0.08 },
+      "One book upright and one lying flat. See the cover in two everyday settings.",
     id: "book-soft",
     image: bookSoft,
-    label: "Softcover, flat",
-    plate: "#ffffff",
+    label: "Book, upright and flat",
   },
   {
-    /*
-     * Three on a shelf, the middle one plated.
-     *
-     * A cover is never met alone. The two beside it keep the mockup's own
-     * sample artwork, which is the point — the test is whether the design
-     * holds its own place in a row, and a row of three identical covers would
-     * not ask that.
-     */
+    /* One cover carries the design; its blank neighbors show it in a row. */
     area: { h: 0.435, w: 0.2, x: 0.402, y: 0.298 },
     blend: "multiply",
     caption:
@@ -217,6 +196,5 @@ export const TEMPLATES: readonly Template[] = [
     id: "book-row",
     image: bookRow,
     label: "Book, in a row",
-    plate: "#ffffff",
   },
 ];

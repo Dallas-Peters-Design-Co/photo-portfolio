@@ -4,6 +4,7 @@ import {
   bundleHeldImages,
 } from "../../config/nodes/bundle.js";
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
+import { isSocialPreviewId } from "../../config/socialPreview.js";
 import { UUID_RE } from "./boardItemParse.js";
 import { componentOf, parseStudioRecipe } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
@@ -349,18 +350,21 @@ const guideFractions = (raw: unknown): number[] =>
         .slice(0, MAX_GUIDES)
     : [];
 
-/**
- * A frame's own settings: whether it has been opened as a design, and the
- * guides dragged onto it (src/boards/creative/frameGuides.ts) as fractions of
- * the frame, with its safe zone switched off or not.
- */
+/** A frame's design state, platform preview, and bounded guides. */
 export const parseFrameConfig = (
   raw: unknown
 ): Record<string, unknown> | null => {
-  const source = (raw ?? {}) as { designed?: unknown; guides?: unknown };
+  const source = (raw ?? {}) as {
+    designed?: unknown;
+    guides?: unknown;
+    socialPreview?: unknown;
+  };
   const config: Record<string, unknown> = {};
   if (source.designed === true) {
     config.designed = true;
+  }
+  if (isSocialPreviewId(source.socialPreview)) {
+    config.socialPreview = source.socialPreview;
   }
   const guides = (source.guides ?? null) as {
     hideSafe?: unknown;

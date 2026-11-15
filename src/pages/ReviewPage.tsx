@@ -9,6 +9,7 @@ import {
 } from "../../config/proposal.js";
 import { PIN_LABELS, type ReviewScreen } from "../../config/review.js";
 import { PageContent } from "../cms/PageContent";
+import { ReviewConceptPreview } from "../components/review/ReviewConceptPreview";
 import {
   ReviewMarks,
   reviewAccentStyle,
@@ -204,6 +205,10 @@ function ReviewSheet({
         ))}
 
       <Recommendations firstNumbers={firstNumbers} screens={screens} />
+
+      {doc.concepts.map((concept) => (
+        <ReviewConceptPreview concept={concept} key={concept.id} />
+      ))}
 
       {screens.map((screen, i) => (
         <Screen

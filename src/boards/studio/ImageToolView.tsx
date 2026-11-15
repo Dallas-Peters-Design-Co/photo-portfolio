@@ -13,9 +13,7 @@ import { toast } from "sonner";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -23,11 +21,6 @@ import { paletteFor } from "./chosenColors";
 import { PresetBar } from "./PresetBar";
 import { saveBlob, svgToPngBlob } from "./render";
 import { newSeed } from "./rng";
-import {
-  SOCIAL_PREVIEW_OPTIONS,
-  SocialPreview,
-  type SocialPreviewId,
-} from "./SocialPreview";
 import { StudioControls } from "./StudioControls";
 import type { StudioFrame } from "./StudioPanel";
 import { StudioPreview } from "./StudioPreview";
@@ -149,8 +142,6 @@ export function ImageToolView({
   const [sizeIndex, setSizeIndex] = useState(() =>
     sizeIndexFor(sizes, recipeNow)
   );
-  const [platformPreview, setPlatformPreview] =
-    useState<SocialPreviewId>("artwork");
   const size = sizes[sizeIndex] ?? SIZES[0];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   // Where the picture came from, so the placed layer can be edited later.
@@ -287,13 +278,10 @@ export function ImageToolView({
 
   return (
     <>
-      <div {...paint.previewProps} data-social-preview={platformPreview}>
-        <SocialPreview platform={platformPreview}>
-          <StudioPreview ctx={ctx} tool={tool} values={values} />
-        </SocialPreview>
+      <div {...paint.previewProps}>
+        <StudioPreview ctx={ctx} tool={tool} values={values} />
         {paint.overlay}
         {onResize ? (
-          // biome-ignore lint/a11y/noStaticElementInteractions: a pointer drag handle; the preview works at its default size
           <span
             aria-hidden
             className="studio__corner studio__corner--preview"
@@ -305,41 +293,6 @@ export function ImageToolView({
       </div>
       {paint.bar}
       <p className="studio__blurb">{tool.blurb}</p>
-      <div className="studio__field">
-        <span>Preview as</span>
-        <Select
-          onValueChange={(next) => {
-            if (next !== null) {
-              setPlatformPreview(next as SocialPreviewId);
-            }
-          }}
-          value={platformPreview}
-        >
-          <SelectTrigger aria-label="Platform preview" size="sm" tone="board">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              <SelectLabel>Artwork</SelectLabel>
-              <SelectItem value="artwork">Original artwork</SelectItem>
-            </SelectGroup>
-            {[
-              ...new Set(SOCIAL_PREVIEW_OPTIONS.map((option) => option.group)),
-            ].map((group) => (
-              <SelectGroup key={group}>
-                <SelectLabel>{group}</SelectLabel>
-                {SOCIAL_PREVIEW_OPTIONS.filter(
-                  (option) => option.group === group
-                ).map((option) => (
-                  <SelectItem key={option.id} value={option.id}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       <div className="studio__field">
         <span>Size</span>
         <Select

@@ -62,6 +62,7 @@ const REVIEW: ReviewRecord = {
   doc: {
     boardId: null,
     closing: "",
+    concepts: [],
     intro: "",
     screens: [],
     sections: [],

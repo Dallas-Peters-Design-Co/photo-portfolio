@@ -17,6 +17,7 @@ import { Label } from "../ui/label";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
 import { EditorShell } from "./EditorShell";
 import { ReviewClientPanel } from "./ReviewClientPanel";
+import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
@@ -351,6 +352,11 @@ export function ReviewEditor({
             }))
           }
           sections={draft.doc.sections}
+        />
+
+        <ReviewConceptsEditor
+          concepts={draft.doc.concepts}
+          onChange={(concepts) => setDoc({ concepts })}
         />
 
         <section className="space-y-3">

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { sizeFromTitle } from "../../../config/adLayout";
+import type { SocialPreviewId } from "../../../config/socialPreview";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ColorWell } from "../ColorWell";
@@ -17,6 +18,7 @@ import { isDrawingConfig } from "../drawing/drawing";
 import { requestHistory } from "../hooks/historyRequest";
 import { BrandDock } from "../panels/BrandDock";
 import { useShortcuts } from "../shortcuts/useShortcuts";
+import { SocialPreview } from "../studio/SocialPreview";
 import { Artboard } from "./Artboard";
 import { BrandPanel } from "./BrandPanel";
 import { ContextBar } from "./ContextBar";
@@ -25,6 +27,7 @@ import { useComponents } from "./components/useComponents";
 import { layersOf, newImage, newShape } from "./creativeModel";
 import { EditorOverlays } from "./EditorOverlays";
 import { ExportMenu } from "./ExportMenu";
+import { FramePreviewPicker, socialPreviewOf } from "./FramePreviewPicker";
 import { frameSizeOf, frameStudioProps, useFrameStudio } from "./frameStudio";
 import { GenerateImage } from "./GenerateImage";
 import { LayersList } from "./LayersList";
@@ -153,6 +156,12 @@ export function CreativeEditor({
 
   const size = sizeFromTitle(frame.body);
   const name = frame.body?.trim() || "Untitled frame";
+  const socialPreview = socialPreviewOf(frame.config?.socialPreview);
+
+  const setSocialPreview = (value: SocialPreviewId) =>
+    patch(frame.id, {
+      config: { ...frame.config, socialPreview: value },
+    });
 
   const setBackground = (fill: string) => {
     if (background && isDrawingConfig(background.config)) {
@@ -199,6 +208,7 @@ export function CreativeEditor({
             </span>
           ) : null}
         </div>
+        <FramePreviewPicker onChange={setSocialPreview} value={socialPreview} />
         <div className="creative__actions">
           <div className="creative__history">
             <button
@@ -361,27 +371,29 @@ export function CreativeEditor({
             duplicate, hold ⌘ to drag without snapping.
           </div>
         ) : null}
-        <Artboard
-          editingId={editingId}
-          frame={frame}
-          layers={layers}
-          onCommit={patch}
-          onCommitMany={patchMany}
-          onCopyMoved={cmd.copyMoved}
-          onDropFiles={onDropFiles}
-          onEditText={setEditingId}
-          onSelect={selection.select}
-          onSelectMany={selection.setIds}
-          onTextChange={(id, body) => patch(id, { body })}
-          selectedIds={selection.ids}
-          textRef={(id, el) => {
-            if (el) {
-              textEls.current.set(id, el);
-            } else {
-              textEls.current.delete(id);
-            }
-          }}
-        />
+        <SocialPreview platform={socialPreview}>
+          <Artboard
+            editingId={editingId}
+            frame={frame}
+            layers={layers}
+            onCommit={patch}
+            onCommitMany={patchMany}
+            onCopyMoved={cmd.copyMoved}
+            onDropFiles={onDropFiles}
+            onEditText={setEditingId}
+            onSelect={selection.select}
+            onSelectMany={selection.setIds}
+            onTextChange={(id, body) => patch(id, { body })}
+            selectedIds={selection.ids}
+            textRef={(id, el) => {
+              if (el) {
+                textEls.current.set(id, el);
+              } else {
+                textEls.current.delete(id);
+              }
+            }}
+          />
+        </SocialPreview>
       </main>
 
       <BrandPanel
