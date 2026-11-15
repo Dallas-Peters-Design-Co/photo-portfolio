@@ -1,6 +1,28 @@
+import {
+  ArrowRight,
+  Bell,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  Heart,
+  Home,
+  type LucideIcon,
+  Mail,
+  Menu,
+  Plus,
+  Search,
+  Settings,
+  ShoppingBag,
+  Star,
+  User,
+  X,
+} from "lucide-react";
 import type { CSSProperties } from "react";
 import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
-import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import type {
+  ReviewConceptElement,
+  ReviewConceptIcon,
+} from "../../../config/reviewConcept.js";
 import { findFont } from "../../../config/theme.js";
 
 const familyCss = (element: ReviewConceptElement): string => {
@@ -20,6 +42,25 @@ const familyCss = (element: ReviewConceptElement): string => {
     return "ui-monospace, SFMono-Regular, Menlo, monospace";
   }
   return "var(--font-sans, Arial, sans-serif)";
+};
+
+const CONCEPT_ICONS: Record<ReviewConceptIcon, LucideIcon> = {
+  "arrow-right": ArrowRight,
+  bell: Bell,
+  check: Check,
+  "chevron-down": ChevronDown,
+  "chevron-right": ChevronRight,
+  heart: Heart,
+  home: Home,
+  mail: Mail,
+  menu: Menu,
+  plus: Plus,
+  search: Search,
+  settings: Settings,
+  "shopping-bag": ShoppingBag,
+  star: Star,
+  user: User,
+  x: X,
 };
 
 export function ReviewConceptElementView({
@@ -44,6 +85,25 @@ export function ReviewConceptElementView({
   const text = element.text || (element.kind === "button" ? "Button" : "Text");
 
   switch (element.kind) {
+    case "icon": {
+      const iconName = element.iconName ?? "star";
+      const Icon = CONCEPT_ICONS[iconName];
+      return (
+        <span
+          aria-label={`${iconName} icon`}
+          role="img"
+          style={{
+            ...style,
+            alignItems: "center",
+            display: "inline-flex",
+            justifyContent: "center",
+            lineHeight: 0,
+          }}
+        >
+          <Icon aria-hidden size={element.fontSize} strokeWidth={2} />
+        </span>
+      );
+    }
     case "button":
       return (
         <button style={style} type="button">

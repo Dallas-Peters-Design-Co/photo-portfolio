@@ -1,0 +1,9 @@
+@font-face {
+  font-family: "Exposure[0]";
+  src:
+    url("Exposure0-Regular.woff2") format("woff2"),
+    url("Exposure0-Regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}

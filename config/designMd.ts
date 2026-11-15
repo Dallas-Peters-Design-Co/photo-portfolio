@@ -114,6 +114,9 @@ const sourceOf = (face: TypefaceEntry): string => {
   if (ref?.source === "adobe") {
     return `Adobe Fonts (web project \`${ref.kitId}\`)`;
   }
+  if (ref?.source === "fontshare") {
+    return `[Fontshare](https://www.fontshare.com/fonts/${ref.slug})`;
+  }
   return "a licensed or local font";
 };
 

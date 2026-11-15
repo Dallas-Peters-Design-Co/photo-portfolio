@@ -129,7 +129,11 @@ export function ColourSection({ doc }: { doc: BrandKitDoc }) {
   );
 }
 
-const SOURCE = { adobe: "Adobe Fonts", google: "Google Fonts" } as const;
+const SOURCE = {
+  adobe: "Adobe Fonts",
+  fontshare: "Fontshare",
+  google: "Google Fonts",
+} as const;
 
 const SAMPLE = "Sphinx of black quartz, judge my vow.";
 const SAMPLE_FOR = { body: SAMPLE, headline: "The quick brown fox" } as const;

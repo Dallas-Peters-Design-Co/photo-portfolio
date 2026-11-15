@@ -14,18 +14,21 @@
  * render it).
  */
 
-export type FontSource = "adobe" | "google";
+export type FontSource = "adobe" | "fontshare" | "google";
 
 export interface FontRef {
   /** The CSS font-family name. */
   family: string;
   /** Adobe Fonts web project id; only for adobe. */
   kitId: string | null;
+  /** Fontshare family slug; only for fontshare. */
+  slug?: string | null;
   source: FontSource;
 }
 
 const FAMILY = /^[A-Za-z0-9][A-Za-z0-9 -]{0,63}$/;
 const KIT_ID = /^[a-z0-9]{5,16}$/;
+const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/i;
 
 export const isAdobeKitId = (value: unknown): value is string =>
   typeof value === "string" && KIT_ID.test(value);
@@ -33,8 +36,15 @@ export const isAdobeKitId = (value: unknown): value is string =>
 export const isFontFamilyName = (value: unknown): value is string =>
   typeof value === "string" && FAMILY.test(value);
 
-export const fontRefId = (ref: FontRef): string =>
-  ref.source === "google" ? `g:${ref.family}` : `a:${ref.kitId}:${ref.family}`;
+export const fontRefId = (ref: FontRef): string => {
+  if (ref.source === "google") {
+    return `g:${ref.family}`;
+  }
+  if (ref.source === "fontshare") {
+    return `f:${ref.slug}:${ref.family}`;
+  }
+  return `a:${ref.kitId}:${ref.family}`;
+};
 
 /** Reads a ref back, or null when the string is not one. */
 export const parseFontRef = (value: unknown): FontRef | null => {
@@ -51,6 +61,13 @@ export const parseFontRef = (value: unknown): FontRef | null => {
     const [, kitId, family] = value.split(":");
     return isAdobeKitId(kitId) && isFontFamilyName(family)
       ? { family, kitId, source: "adobe" }
+      : null;
+  }
+  if (value.startsWith("f:")) {
+    const [, slug, family] = value.split(":");
+    const validSlug = typeof slug === "string" && SLUG.test(slug);
+    return validSlug && isFontFamilyName(family)
+      ? { family, kitId: null, slug, source: "fontshare" }
       : null;
   }
   return null;
@@ -82,6 +99,13 @@ export const googleFontCss = (family: string): string =>
 export const adobeFontCss = (kitId: string): string =>
   `https://use.typekit.net/${kitId}.css`;
 
+/** The Fontshare stylesheet, served from Fontshare's own CDN. */
+export const fontshareFontCss = (slug: string): string =>
+  `https://api.fontshare.com/v2/css?f[]=${encodeURIComponent(`${slug}@100,200,300,400,500,600,700,800,900`)}&display=swap`;
+
+export const fontshareFontPreviewCss = (slug: string, weight = 400): string =>
+  `https://api.fontshare.com/v2/css?f[]=${encodeURIComponent(`${slug}@${weight}`)}&display=swap`;
+
 /** One family in the Google Fonts catalog, trimmed to what a picker needs. */
 export interface CatalogFont {
   /** serif | sans | display | handwriting | mono */
@@ -94,6 +118,12 @@ export interface CatalogFont {
   /** True when the family has a variable weight axis. */
   variable: boolean;
   weights: number[];
+}
+
+/** A family in Fontshare's catalog. */
+export interface FontshareFont extends CatalogFont {
+  licenseType: string;
+  slug: string;
 }
 
 /** A family in an Adobe Fonts web project. */

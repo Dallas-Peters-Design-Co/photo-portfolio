@@ -17,6 +17,7 @@ import {
   createConcept,
   createConceptElement,
 } from "./ReviewConceptBrand";
+import { ReviewConceptContentField } from "./ReviewConceptContentField";
 import "./ReviewConceptsEditor.css";
 
 const ALIGN_ITEMS = {
@@ -224,6 +225,7 @@ function ConceptCard({
                     + Add component
                   </option>
                   <option value="text">Text</option>
+                  <option value="icon">Icon</option>
                   <option value="button">Button</option>
                   <option value="input">Input</option>
                   <option value="textarea">Text area</option>
@@ -247,19 +249,10 @@ function ConceptCard({
               <fieldset className="review-concepts__element" key={element.id}>
                 <legend>{element.kind}</legend>
                 <div className="review-concepts__element-grid">
-                  <label className="review-concepts__field review-concepts__field--wide">
-                    <span>
-                      {element.kind === "input" || element.kind === "textarea"
-                        ? "Default value"
-                        : "Content"}
-                    </span>
-                    <input
-                      onChange={(event) =>
-                        updateElement(element.id, { text: event.target.value })
-                      }
-                      value={element.text}
-                    />
-                  </label>
+                  <ReviewConceptContentField
+                    element={element}
+                    onChange={(patch) => updateElement(element.id, patch)}
+                  />
                   {element.kind === "input" || element.kind === "textarea" ? (
                     <label className="review-concepts__field review-concepts__field--wide">
                       <span>Placeholder</span>
@@ -314,7 +307,9 @@ function ConceptCard({
                     </label>
                   ) : null}
                   <label className="review-concepts__field">
-                    <span>Type size</span>
+                    <span>
+                      {element.kind === "icon" ? "Icon size" : "Type size"}
+                    </span>
                     <input
                       max={72}
                       min={10}

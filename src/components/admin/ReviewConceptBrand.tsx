@@ -41,6 +41,7 @@ const PADDED_KINDS = new Set<ReviewConceptElementKind>([
 ]);
 const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
   "button",
+  "icon",
   "input",
   "textarea",
   "select",
@@ -55,6 +56,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   checkbox: "I agree to the terms",
   dialog: "Confirm changes?",
   divider: "",
+  icon: "",
   input: "",
   label: "Email address",
   link: "Learn more",
@@ -79,6 +81,23 @@ const elementOptions = (
   }
   if (kind === "select" || kind === "tabs") {
     return ["Overview", "Settings", "Activity"];
+  }
+};
+
+const elementState = (
+  kind: ReviewConceptElementKind
+): Partial<ReviewConceptElement> => {
+  switch (kind) {
+    case "icon":
+      return { iconName: "star" };
+    case "input":
+      return { inputType: "email", placeholder: "Enter your email" };
+    case "textarea":
+      return { placeholder: "Write a message…" };
+    case "checkbox":
+      return { checked: true };
+    default:
+      return {};
   }
 };
 
@@ -136,15 +155,8 @@ export const createConceptElement = (
     paddingY,
     radius: ROUNDED_KINDS.has(kind) ? 6 : 0,
     text: elementText[kind],
-    ...(kind === "input" || kind === "textarea"
-      ? {
-          placeholder:
-            kind === "input" ? "Enter your email" : "Write a message…",
-        }
-      : {}),
     ...(options ? { options } : {}),
-    ...(kind === "input" ? { inputType: "email" as const } : {}),
-    ...(kind === "checkbox" ? { checked: true } : {}),
+    ...elementState(kind),
   };
 };
 

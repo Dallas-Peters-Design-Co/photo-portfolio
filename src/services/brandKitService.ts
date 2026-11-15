@@ -1,5 +1,9 @@
 import type { BrandKitDoc } from "../../config/brandKit.js";
-import type { AdobeFamily, CatalogFont } from "../../config/fontRef.js";
+import type {
+  AdobeFamily,
+  CatalogFont,
+  FontshareFont,
+} from "../../config/fontRef.js";
 import { apiBase, jsonHeaders, readPageError } from "./portfolioService";
 
 /**
@@ -85,6 +89,19 @@ export const brandKitsApi = {
       throw new Error(await readPageError(res, "Couldn't make the DESIGN.md"));
     }
     return await res.text();
+  },
+
+  /** Every family in Fontshare's catalog. */
+  fontshareFonts: async (): Promise<FontshareFont[]> => {
+    const res = await fetch(`${apiBase()}/api/brand-kits?fonts=fontshare`, {
+      headers: jsonHeaders(),
+    });
+    if (!res.ok) {
+      throw new Error(
+        await readPageError(res, "Could not load Fontshare fonts")
+      );
+    }
+    return (await res.json()) as FontshareFont[];
   },
 
   /**

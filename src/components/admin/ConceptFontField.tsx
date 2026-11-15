@@ -9,10 +9,41 @@ import {
 import { FONT_CHOICES, type FontId, findFont } from "../../../config/theme.js";
 import { brandKitsApi } from "../../services/brandKitService";
 import { loadFont } from "../../theme/fonts";
-import { loadFontPreview, loadFontRef } from "../../theme/remoteFonts";
+import {
+  loadFontPreview,
+  loadFontRef,
+  loadFontsharePreview,
+} from "../../theme/remoteFonts";
 import { conceptFontPatch, conceptFontSelection } from "./ReviewConceptBrand";
 
 const GOOGLE_RESULTS = 40;
+
+function CatalogFontOptions({
+  error,
+  fonts,
+  isLoading,
+  label,
+}: {
+  error: unknown;
+  fonts: { family: string; ref: string }[];
+  isLoading: boolean;
+  label: string;
+}) {
+  return (
+    <optgroup label={label}>
+      {isLoading ? <option disabled>Loading fonts…</option> : null}
+      {error ? <option disabled>{label} could not load</option> : null}
+      {!(isLoading || error) && fonts.length === 0 ? (
+        <option disabled>No matching fonts</option>
+      ) : null}
+      {fonts.map((font) => (
+        <option key={font.ref} value={`brand|${font.ref}`}>
+          {font.family}
+        </option>
+      ))}
+    </optgroup>
+  );
+}
 
 export function ConceptFontField({
   brandDoc,
@@ -38,6 +69,15 @@ export function ConceptFontField({
   } = useSWR(searching ? "google-fonts" : null, brandKitsApi.googleFonts, {
     revalidateOnFocus: false,
   });
+  const {
+    data: fontshareFonts,
+    error: fontshareError,
+    isLoading: fontshareIsLoading,
+  } = useSWR(
+    searching ? "fontshare-fonts" : null,
+    brandKitsApi.fontshareFonts,
+    { revalidateOnFocus: false }
+  );
   const adobeKitId = brandDoc?.adobeKitId;
   const { data: adobeFonts } = useSWR(
     adobeKitId ? `adobe-fonts:${adobeKitId}` : null,
@@ -53,6 +93,15 @@ export function ConceptFontField({
       .filter((font) => font.family.toLowerCase().includes(needle))
       .slice(0, GOOGLE_RESULTS);
   }, [googleFonts, query]);
+  const fontshareMatches = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) {
+      return [];
+    }
+    return (fontshareFonts ?? [])
+      .filter((font) => font.family.toLowerCase().includes(needle))
+      .slice(0, GOOGLE_RESULTS);
+  }, [fontshareFonts, query]);
   const selection = conceptFontSelection(family, fontRef, fontId);
   const currentRef = parseFontRef(fontRef);
 
@@ -70,6 +119,12 @@ export function ConceptFontField({
       loadFontPreview(font.family);
     }
   }, [matches]);
+
+  useEffect(() => {
+    for (const font of fontshareMatches) {
+      loadFontsharePreview(font.slug, font.weights[0] ?? 400);
+    }
+  }, [fontshareMatches]);
 
   const choose = (value: string) => {
     const patch = conceptFontPatch(value);
@@ -119,10 +174,10 @@ export function ConceptFontField({
     <label className="review-concepts__field review-concepts__font-field">
       <span>{label}</span>
       <input
-        aria-label={`Search all Google Fonts for ${label.toLowerCase()}`}
+        aria-label={`Search Google Fonts and Fontshare for ${label.toLowerCase()}`}
         autoComplete="off"
         onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search Google Fonts…"
+        placeholder="Search Google Fonts and Fontshare…"
         type="search"
         value={query}
       />
@@ -159,20 +214,31 @@ export function ConceptFontField({
           ))}
         </optgroup>
         {searching ? (
-          <optgroup label="Google Fonts">
-            {isLoading ? <option disabled>Loading fonts…</option> : null}
-            {error ? (
-              <option disabled>Google Fonts could not load</option>
-            ) : null}
-            {!(isLoading || error) && matches.length === 0 ? (
-              <option disabled>No matching fonts</option>
-            ) : null}
-            {matches.map((font) => (
-              <option key={font.family} value={`brand|g:${font.family}`}>
-                {font.family}
-              </option>
-            ))}
-          </optgroup>
+          <CatalogFontOptions
+            error={error}
+            fonts={matches.map((font) => ({
+              family: font.family,
+              ref: `g:${font.family}`,
+            }))}
+            isLoading={isLoading}
+            label="Google Fonts"
+          />
+        ) : null}
+        {searching ? (
+          <CatalogFontOptions
+            error={fontshareError}
+            fonts={fontshareMatches.map((font) => ({
+              family: font.family,
+              ref: fontRefId({
+                family: font.family,
+                kitId: null,
+                slug: font.slug,
+                source: "fontshare",
+              }),
+            }))}
+            isLoading={fontshareIsLoading}
+            label="Fontshare"
+          />
         ) : null}
       </select>
     </label>

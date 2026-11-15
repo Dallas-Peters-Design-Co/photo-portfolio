@@ -24,12 +24,12 @@ import {
 } from "../../theme/remoteFonts";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { FontshareSearch } from "./FontshareSearch";
 import "./BrandFontsEditor.css";
 
 /**
- * A kit's typefaces, picked from fonts that actually load: any Google Fonts
- * family, or a family in the brand's Adobe Fonts web project. Each one is
- * stored with a font ref, which is what lets board text be set in it.
+ * A kit's typefaces, picked from Google Fonts, Fontshare, or a brand's Adobe
+ * Fonts project. Each one is stored with a font ref, so board text can use it.
  */
 
 const CATEGORIES = [
@@ -49,7 +49,13 @@ const sourceLabel = (ref: string | null): string => {
   if (!parsed) {
     return "Typed name — can't be used on boards";
   }
-  return parsed.source === "google" ? "Google Fonts" : "Adobe Fonts";
+  if (parsed.source === "google") {
+    return "Google Fonts";
+  }
+  if (parsed.source === "fontshare") {
+    return "Fontshare";
+  }
+  return "Adobe Fonts";
 };
 
 function GoogleSearch({
@@ -307,7 +313,9 @@ export function TypefaceEditor({
   doc: BrandKitDoc;
   onChange: (next: BrandKitDoc) => void;
 }) {
-  const [adding, setAdding] = useState<"adobe" | "google" | null>(null);
+  const [adding, setAdding] = useState<"adobe" | "fontshare" | "google" | null>(
+    null
+  );
   const taken = new Set(
     doc.typefaces.map((f) => f.ref).filter((r): r is string => Boolean(r))
   );
@@ -354,9 +362,9 @@ export function TypefaceEditor({
       ))}
       {doc.typefaces.length === 0 ? (
         <p className="brand-kit__hint">
-          No typefaces yet. Open Google Fonts or Adobe Fonts below and click a
-          font to add it. The brand's fonts then show up first in the font menu
-          on any board using this brand.
+          No typefaces yet. Open a font catalog below and click a font to add
+          it. The brand's fonts then show up first in the font menu on any board
+          using this brand.
         </p>
       ) : null}
       <div className="row row--snug">
@@ -369,6 +377,16 @@ export function TypefaceEditor({
         >
           <HugeiconsIcon icon={PlusSignIcon} size={14} />
           Google Fonts
+        </Button>
+        <Button
+          aria-pressed={adding === "fontshare"}
+          disabled={full}
+          onClick={() => setAdding(adding === "fontshare" ? null : "fontshare")}
+          type="button"
+          variant="outline"
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={14} />
+          Fontshare
         </Button>
         <Button
           aria-pressed={adding === "adobe"}
@@ -390,6 +408,24 @@ export function TypefaceEditor({
                 family: font.family,
                 kitId: null,
                 source: "google",
+              }),
+              role: "",
+              weights: font.weights,
+            })
+          }
+          taken={taken}
+        />
+      ) : null}
+      {adding === "fontshare" ? (
+        <FontshareSearch
+          onAdd={(font) =>
+            add({
+              name: font.family,
+              ref: fontRefId({
+                family: font.family,
+                kitId: null,
+                slug: font.slug,
+                source: "fontshare",
               }),
               role: "",
               weights: font.weights,

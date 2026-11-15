@@ -1,5 +1,6 @@
 import {
   adobeFontCss,
+  fontshareFontCss,
   googleFontCss,
   parseFontRef,
 } from "../../../config/fontRef";
@@ -161,6 +162,8 @@ export const fontLinksFor = (layers: BoardItem[]): string[] => {
     const ref = parseFontRef(item.textStyle?.family);
     if (ref?.source === "google") {
       links.add(googleFontCss(ref.family));
+    } else if (ref?.source === "fontshare") {
+      links.add(fontshareFontCss(ref.slug ?? ""));
     } else if (ref?.kitId) {
       links.add(adobeFontCss(ref.kitId));
     }

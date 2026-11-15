@@ -9,6 +9,7 @@ const FONT_ID = /^[a-z0-9-]{1,64}$/;
 const FONT_FAMILIES = ["sans", "serif", "mono", "brand", "app"] as const;
 const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "text",
+  "icon",
   "button",
   "input",
   "textarea",
@@ -38,6 +39,7 @@ const INPUT_TYPES = [
 
 export type ReviewConceptElementKind =
   | "text"
+  | "icon"
   | "button"
   | "input"
   | "textarea"
@@ -55,6 +57,43 @@ export type ReviewConceptElementKind =
   | "toast"
   | "skeleton";
 
+export type ReviewConceptIcon =
+  | "arrow-right"
+  | "bell"
+  | "check"
+  | "chevron-down"
+  | "chevron-right"
+  | "heart"
+  | "home"
+  | "mail"
+  | "menu"
+  | "plus"
+  | "search"
+  | "settings"
+  | "shopping-bag"
+  | "star"
+  | "user"
+  | "x";
+
+export const REVIEW_CONCEPT_ICONS: ReviewConceptIcon[] = [
+  "arrow-right",
+  "bell",
+  "check",
+  "chevron-down",
+  "chevron-right",
+  "heart",
+  "home",
+  "mail",
+  "menu",
+  "plus",
+  "search",
+  "settings",
+  "shopping-bag",
+  "star",
+  "user",
+  "x",
+];
+
 export interface ReviewConceptElement {
   background: string;
   checked?: boolean;
@@ -64,6 +103,7 @@ export interface ReviewConceptElement {
   fontRef?: string;
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
+  iconName?: ReviewConceptIcon;
   id: string;
   inputType?: "text" | "email" | "search" | "url" | "tel" | "password";
   kind: ReviewConceptElementKind;
@@ -146,6 +186,11 @@ const cleanKind = (value: unknown): ReviewConceptElementKind =>
     ? (value as ReviewConceptElementKind)
     : "text";
 
+const cleanIconName = (value: unknown): ReviewConceptIcon =>
+  REVIEW_CONCEPT_ICONS.includes(value as ReviewConceptIcon)
+    ? (value as ReviewConceptIcon)
+    : "star";
+
 const cleanOptions = (value: unknown): string[] | undefined => {
   if (!Array.isArray(value)) {
     return undefined;
@@ -165,6 +210,7 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     ? (raw.fontWeight as 400 | 500 | 600 | 700)
     : 400;
   const options = cleanOptions(raw.options);
+  const kind = cleanKind(raw.kind);
   return {
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
@@ -172,7 +218,8 @@ const cleanElement = (value: unknown): ReviewConceptElement => {
     fontSize: bounded(raw.fontSize, 10, 72, 16),
     fontWeight,
     id: str(raw.id, 64) || newItemId(),
-    kind: cleanKind(raw.kind),
+    ...(kind === "icon" ? { iconName: cleanIconName(raw.iconName) } : {}),
+    kind,
     lineHeight: bounded(raw.lineHeight, 1, 2.4, 1.4),
     paddingX: bounded(raw.paddingX, 0, 48, 16),
     paddingY: bounded(raw.paddingY, 0, 32, 10),

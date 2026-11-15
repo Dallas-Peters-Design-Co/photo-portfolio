@@ -17,7 +17,11 @@ import { readCopyRequest, writeCopy } from "../_lib/creativeCopy.js";
 import { brandImage, readImageRequest } from "../_lib/creativeImage.js";
 import { getSql } from "../_lib/db.js";
 import { isFalConfigured } from "../_lib/fal.js";
-import { adobeKitFamilies, googleCatalog } from "../_lib/fontCatalog.js";
+import {
+  adobeKitFamilies,
+  fontshareCatalog,
+  googleCatalog,
+} from "../_lib/fontCatalog.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { designMdOf } from "../_lib/mcpBrandTools.js";
 import { loadModelDefs } from "../_lib/modelStore.js";
@@ -77,6 +81,10 @@ async function handleGet(
   if (req.query.fonts === "google") {
     res.setHeader("Cache-Control", "private, max-age=86400");
     return res.status(200).json(await googleCatalog());
+  }
+  if (req.query.fonts === "fontshare") {
+    res.setHeader("Cache-Control", "private, max-age=86400");
+    return res.status(200).json(await fontshareCatalog());
   }
   if (req.query.typekit) {
     const families = await adobeKitFamilies(req.query.typekit);

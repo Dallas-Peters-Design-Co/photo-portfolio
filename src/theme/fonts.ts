@@ -126,6 +126,20 @@ const loadStatic = async (id: FontId): Promise<unknown> => {
 
 const loaded = new Set<FontId>();
 
+const loadPublicFontStylesheet = (id: FontId): void => {
+  if (id !== "exposure" || typeof document === "undefined") {
+    return;
+  }
+  const href = "/fonts/exposure.css";
+  if (document.querySelector(`link[href="${href}"]`)) {
+    return;
+  }
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.append(link);
+};
+
 /** Loads a font's stylesheets once per session. Failures are non-fatal. */
 export const loadFont = async (id: FontId): Promise<void> => {
   if (loaded.has(id)) {
@@ -134,7 +148,9 @@ export const loadFont = async (id: FontId): Promise<void> => {
   loaded.add(id);
   try {
     const font = findFont(id);
-    if (font && isStaticFont(font)) {
+    if (id === "exposure") {
+      loadPublicFontStylesheet(id);
+    } else if (font && isStaticFont(font)) {
       await loadStatic(id);
     } else {
       await VARIABLE_LOADERS[id]?.();

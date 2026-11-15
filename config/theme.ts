@@ -7,67 +7,11 @@
  */
 /** biome-ignore-all lint/suspicious/noUnnecessaryConditions: reasons */
 
+import type { FontId } from "./fontId.js";
 import { PIN_KINDS, type PinKind } from "./review.js";
 import { STATIC_FONTS } from "./staticFonts.js";
 
-export type FontId =
-  | "climate-crisis"
-  | "geist"
-  | "inter"
-  | "space-grotesk"
-  | "mulish"
-  | "plus-jakarta-sans"
-  | "figtree"
-  | "manrope"
-  | "playfair-display"
-  | "fraunces"
-  | "cormorant-garamond"
-  | "familjen-grotesk"
-  | "inclusive-sans"
-  | "open-sauce-sans"
-  | "oswald"
-  | "bebas-neue"
-  | "anton"
-  | "archivo-black"
-  | "archivo-narrow"
-  | "big-shoulders-display"
-  | "barlow-condensed"
-  | "saira-condensed"
-  | "saira-extra-condensed"
-  | "teko"
-  | "antonio"
-  | "league-gothic"
-  | "fjalla-one"
-  | "roboto-condensed"
-  | "sofia-sans-condensed"
-  | "rajdhani"
-  | "syne"
-  | "unbounded"
-  | "bricolage-grotesque"
-  | "chivo"
-  | "archivo"
-  | "outfit"
-  | "red-hat-display"
-  | "epilogue"
-  | "dm-serif-display"
-  | "instrument-serif"
-  | "bodoni-moda"
-  | "young-serif"
-  | "barlow-semi-condensed"
-  | "instrument-sans"
-  | "hanken-grotesk"
-  | "schibsted-grotesk"
-  | "public-sans"
-  | "ibm-plex-sans"
-  | "dm-sans"
-  | "inter-tight"
-  | "onest"
-  | "libre-franklin"
-  | "newsreader"
-  | "source-serif-4"
-  | "literata"
-  | "eb-garamond"
-  | "crimson-pro";
+export type { FontId } from "./fontId.js";
 
 export interface FontChoice {
   /**
@@ -116,6 +60,14 @@ export const FONT_CHOICES: FontChoice[] = [
     italic: false,
     label: "Climate Crisis",
     stack: '"Climate Crisis Variable", ui-sans-serif, system-ui, sans-serif',
+    weight: { max: 400, min: 400 },
+  },
+  {
+    category: "display",
+    id: "exposure",
+    italic: false,
+    label: "Exposure",
+    stack: '"Exposure[0]", ui-sans-serif, system-ui, sans-serif',
     weight: { max: 400, min: 400 },
   },
   {
