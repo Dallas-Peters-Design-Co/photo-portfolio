@@ -128,13 +128,11 @@ export function TextControls({
           onValueChange={(value) => set({ family: value || null })}
           value={style?.family ?? null}
         >
-          <SelectTrigger
-            aria-label="Font"
-            className="creative__input creative__input--font"
-            size="sm"
-          >
-            <SelectValue />
-          </SelectTrigger>
+          <div className="creative__font-slot">
+            <SelectTrigger aria-label="Font" size="sm" tone="board">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             <SelectItem value={null}>Board default</SelectItem>
             {faces.length > 0 ? (
@@ -185,11 +183,7 @@ export function TextControls({
           }}
           value={Math.round(css.fontWeight / 100) * 100}
         >
-          <SelectTrigger
-            aria-label="Weight"
-            className="creative__input"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Weight" size="sm" tone="board">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

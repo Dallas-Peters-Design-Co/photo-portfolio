@@ -180,11 +180,7 @@ export function BrandPanel({
           onValueChange={(value) => brand.setKitId(value || null)}
           value={kit?.id ?? null}
         >
-          <SelectTrigger
-            aria-label="Brand"
-            className="creative__input brand-panel__select"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Brand" size="sm" tone="board">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -212,11 +208,7 @@ export function BrandPanel({
             }}
             value={layout}
           >
-            <SelectTrigger
-              aria-label="Layout"
-              className="creative__input brand-panel__select"
-              size="sm"
-            >
+            <SelectTrigger aria-label="Layout" size="sm" tone="board">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

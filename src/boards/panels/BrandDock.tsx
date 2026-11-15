@@ -139,11 +139,7 @@ export function BrandDock({
           onValueChange={(next: string | null) => brand.setKitId(next || null)}
           value={brand.kit?.id ?? null}
         >
-          <SelectTrigger
-            aria-label="Brand"
-            className="brand-dock__select"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Brand" size="sm" tone="board">
             <SelectValue placeholder="Choose a brand…" />
           </SelectTrigger>
           <SelectContent>

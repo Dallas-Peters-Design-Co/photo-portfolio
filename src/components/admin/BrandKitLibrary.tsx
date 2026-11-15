@@ -62,11 +62,7 @@ export function LibraryPicker({
         }}
         value={doc.libraryCollectionId ?? ""}
       >
-        <SelectTrigger
-          aria-label="Image library"
-          className="admin-control w-full"
-          disabled={isLoading}
-        >
+        <SelectTrigger aria-label="Image library" disabled={isLoading}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

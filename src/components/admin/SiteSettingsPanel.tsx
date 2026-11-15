@@ -315,10 +315,7 @@ export function SiteSettingsPanel() {
                     }}
                     value={draft.theme[key]}
                   >
-                    <SelectTrigger
-                      className="min-h-11 w-full rounded-md border border-white/10 bg-black/40 px-3 text-base text-white transition-colors focus:border-white/40"
-                      id={`font-${key}`}
-                    >
+                    <SelectTrigger id={`font-${key}`} size="lg">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

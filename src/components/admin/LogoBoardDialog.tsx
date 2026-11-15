@@ -192,7 +192,7 @@ export function LogoBoardDialog({
               }}
               value={brandKitId}
             >
-              <SelectTrigger className="admin-field" id="logo-kit">
+              <SelectTrigger id="logo-kit" size="lg">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

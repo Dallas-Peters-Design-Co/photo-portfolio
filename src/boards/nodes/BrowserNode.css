@@ -36,22 +36,6 @@
 .browser-node__type input:not([type="checkbox"]),
 .browser-node__note-title,
 .browser-node__note-body,
-.browser-node__note-kind {
-  width: 100%;
-  min-width: 0;
-  padding: 4px 8px;
-  font: inherit;
-  color: inherit;
-  background: var(--color-board-surface);
-  border: var(--border-hairline) solid
-    color-mix(in oklch, var(--color-board-ink) 22%, transparent);
-  border-radius: var(--radius-inner);
-}
-
-.browser-node__viewport {
-  width: auto;
-}
-
 .browser-node__icon,
 .browser-node__button,
 .browser-node__tool {
@@ -247,10 +231,6 @@
   position: static;
   flex: none;
   transform: none;
-}
-
-.browser-node__note-kind {
-  flex: 1;
 }
 
 .browser-node__note-remove {

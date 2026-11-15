@@ -1,4 +1,5 @@
 import { Select as SelectPrimitive } from "@base-ui/react/select";
+import { cva, type VariantProps } from "class-variance-authority";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type * as React from "react";
 import { cn } from "@/lib/utils";
@@ -26,41 +27,56 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
 }
 
 /**
- * The trigger's height for each size, the same as an Input of that size
- * (Input is h-8, the default). Plain classes rather than data-[size]
- * variants: a variant outranks a height passed in `className`, so a select
- * would come out taller than the inputs beside it. As plain classes,
- * tailwind-merge lets the caller's height win.
+ * The closed select, drawn like the Input beside it: the same sizes, tones
+ * and corners, defined here rather than at the call site (@shadcn/lint
+ * no-restyle). It fills its container by default; a fixed width goes on a
+ * wrapper around it.
  */
-const TRIGGER_SIZE = {
-  default: "h-8",
-  lg: "h-10",
-  sm: "h-7",
-} as const;
+const selectTriggerVariants = cva(
+  "flex select-none items-center justify-between gap-1.5 whitespace-nowrap rounded-control border outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  {
+    defaultVariants: { size: "default", tone: "admin", width: "full" },
+    variants: {
+      size: {
+        default: "h-8 pr-2 pl-2.5 text-sm",
+        lg: "min-h-11 pr-2 pl-3 text-base",
+        sm: "h-7 pr-1 pl-1.5 text-xs",
+      },
+      tone: {
+        /** The admin's dark ground. */
+        admin:
+          "border-white/10 bg-black/40 text-white hover:border-white/25 focus-visible:border-white/40 data-placeholder:text-white/40",
+        /** The board's paper: the Studio, the frame editor, the nodes. */
+        board:
+          "border-board-ink/15 bg-board-ink/6 text-board-ink hover:border-board-ink/30 focus-visible:border-board-ink/40 data-placeholder:text-board-ink/50",
+        /** Whatever the text around it is, for an editor shown on both. */
+        inherit:
+          "border-current/15 bg-current/5 text-inherit hover:border-current/30 data-placeholder:opacity-60",
+      },
+      width: { fit: "w-fit", full: "w-full min-w-0" },
+    },
+  }
+);
 
 function SelectTrigger({
   className,
-  size = "default",
+  size,
+  tone,
+  width,
   children,
   ...props
-}: SelectPrimitive.Trigger.Props & {
-  size?: "sm" | "default" | "lg";
-}) {
+}: SelectPrimitive.Trigger.Props & VariantProps<typeof selectTriggerVariants>) {
   return (
     <SelectPrimitive.Trigger
-      className={cn(
-        "flex w-fit select-none items-center justify-between gap-1.5 whitespace-nowrap rounded-control border border-input bg-transparent py-2 pr-2 pl-2.5 text-base text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 dark:hover:bg-input/50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
-        TRIGGER_SIZE[size],
-        className
-      )}
-      data-size={size}
+      className={cn(selectTriggerVariants({ size, tone, width }), className)}
+      data-size={size ?? "default"}
       data-slot="select-trigger"
       {...props}
     >
       {children}
       <SelectPrimitive.Icon
         render={
-          <ChevronDownIcon className="pointer-events-none size-5 text-muted-foreground" />
+          <ChevronDownIcon className="pointer-events-none size-4 opacity-60" />
         }
       />
     </SelectPrimitive.Trigger>

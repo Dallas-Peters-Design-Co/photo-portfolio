@@ -331,13 +331,11 @@ export function BoardTextTools({
           }
           value={style?.family ?? INHERIT}
         >
-          <SelectTrigger
-            aria-label="Font"
-            className="board-text-tools__select-font"
-            size="sm"
-          >
-            <SelectValue />
-          </SelectTrigger>
+          <div className="board-text-tools__select-font">
+            <SelectTrigger aria-label="Font" size="sm" tone="board">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             <SelectGroup>
               <SelectItem value={INHERIT}>Board default</SelectItem>
@@ -377,13 +375,11 @@ export function BoardTextTools({
           onValueChange={(value) => set({ weight: Number(value) })}
           value={String(weight?.value ?? css.fontWeight)}
         >
-          <SelectTrigger
-            aria-label="Weight"
-            className="board-text-tools__select-weight"
-            size="sm"
-          >
-            <SelectValue />
-          </SelectTrigger>
+          <div className="board-text-tools__select-weight">
+            <SelectTrigger aria-label="Weight" size="sm" tone="board">
+              <SelectValue />
+            </SelectTrigger>
+          </div>
           <SelectContent>
             <SelectGroup>
               {weights.map((choice) => (

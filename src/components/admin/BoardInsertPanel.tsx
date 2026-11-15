@@ -193,7 +193,7 @@ export function BoardInsertPanel({
           }}
           value={tab}
         >
-          <SelectTrigger className="w-full" data-size="lg">
+          <SelectTrigger data-size="lg">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

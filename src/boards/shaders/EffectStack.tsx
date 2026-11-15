@@ -297,9 +297,9 @@ export function EffectStack({
                 >
                   <SelectTrigger
                     aria-label="Fit"
-                    className="effect-stack__fit-select"
                     onPointerDown={stop}
                     size="sm"
+                    tone="board"
                   >
                     <SelectValue />
                   </SelectTrigger>

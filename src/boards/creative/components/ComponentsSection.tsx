@@ -424,14 +424,16 @@ function JoinSelect({
       }}
       value={null}
     >
-      <SelectTrigger
-        aria-label="Share a property"
-        className="creative__input components__join"
-        size="sm"
-        title="Set this by a property that's already there"
-      >
-        <SelectValue placeholder="Share…" />
-      </SelectTrigger>
+      <div className="components__join">
+        <SelectTrigger
+          aria-label="Share a property"
+          size="sm"
+          title="Set this by a property that's already there"
+          tone="board"
+        >
+          <SelectValue placeholder="Share…" />
+        </SelectTrigger>
+      </div>
       <SelectContent>
         {same.map((p) => (
           <SelectItem key={p.id} value={p.id}>

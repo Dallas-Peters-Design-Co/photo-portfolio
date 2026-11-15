@@ -29,7 +29,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { proposalInputClass } from "./proposalStyles";
 import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
 import { ReviewPinList } from "./ReviewPinList";
 import {
@@ -279,10 +278,7 @@ export function ReviewScreenEditor({
             }}
             value={screen.viewport}
           >
-            <SelectTrigger
-              className={`${proposalInputClass} w-full rounded-md border px-3`}
-              id={`screen-viewport-${screen.id}`}
-            >
+            <SelectTrigger id={`screen-viewport-${screen.id}`} size="lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

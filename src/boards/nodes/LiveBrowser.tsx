@@ -253,9 +253,10 @@ export function LiveBrowser({
         >
           <SelectTrigger
             aria-label="Width"
-            className="browser-node__viewport"
             onPointerDown={stop}
             size="sm"
+            tone="board"
+            width="fit"
           >
             <SelectValue />
           </SelectTrigger>

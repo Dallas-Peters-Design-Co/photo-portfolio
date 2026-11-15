@@ -228,7 +228,7 @@ export function BrandKitSetting({
         }}
         value={value || NO_KIT}
       >
-        <SelectTrigger className="setting-field__trigger" data-size="lg">
+        <SelectTrigger tone="board">
           {/* Base UI renders the raw value unless handed the text, and here the
               raw value is a uuid. See the note on ModelSetting's trigger. */}
           <SelectValue>
@@ -365,7 +365,7 @@ export function ModelSetting({
         }}
         value={chosen}
       >
-        <SelectTrigger className="setting-field__trigger" data-size="lg">
+        <SelectTrigger tone="board">
           {/* The model's label, not its id. Base UI shows the raw value unless
               handed the text, and a model id is the one value on the board that
               is genuinely unreadable — "fal-ai/recraft/vectorize" where the row

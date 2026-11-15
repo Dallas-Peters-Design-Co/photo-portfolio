@@ -140,17 +140,3 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro);
 }
-
-.effect-stack__fit-select {
-  flex-grow: 1;
-  padding-block: var(--spacing);
-  padding-inline: calc(var(--spacing) * 1.5);
-  font-size: var(--text-micro-xs);
-  color: var(--color-board-ink);
-  text-transform: none;
-  letter-spacing: normal;
-  background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
-  border: var(--border-hairline) solid
-    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-control);
-}

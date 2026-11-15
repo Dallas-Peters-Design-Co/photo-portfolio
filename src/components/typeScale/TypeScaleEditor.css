@@ -83,21 +83,6 @@
   color: color-mix(in oklch, currentColor 55%, transparent);
 }
 
-/*
- * A select in the scale: the same box as the inputs beside it, so a row of
- * fields lines up. Plain CSS outranks the select's own utility classes.
- */
-.type-scale__select {
-  height: calc(var(--spacing) * 7);
-  padding-block: 0;
-  padding-inline: calc(var(--spacing) * 1.25) calc(var(--spacing) * 1);
-  font: inherit;
-  color: inherit;
-  background: color-mix(in oklch, currentColor 5%, transparent);
-  border: 1px solid color-mix(in oklch, currentColor 16%, transparent);
-  border-radius: var(--radius-control);
-}
-
 .type-scale__name {
   width: 100%;
   font-family: ui-monospace, monospace;

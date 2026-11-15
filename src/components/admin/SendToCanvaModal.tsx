@@ -102,10 +102,7 @@ function TemplatePicker({
             }}
             value={field}
           >
-            <SelectTrigger
-              aria-label="Image field"
-              className="h-auto w-full rounded-control border border-board-ink/15 bg-board-surface/30 px-2 py-1.5 text-[12px] text-board-ink outline-none focus:border-board-ink/45"
-            >
+            <SelectTrigger aria-label="Image field" size="sm" tone="board">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

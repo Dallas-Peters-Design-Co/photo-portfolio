@@ -199,18 +199,6 @@
   border-top: var(--border-hairline) solid var(--color-border);
 }
 
-/* photos.category_id is NOT NULL, so an import must name one — there is no
-   sensible default to invent server-side. */
-.lightroom__category {
-  padding-block: var(--spacing);
-  padding-inline: calc(var(--spacing) * 1.5);
-  font-size: var(--text-micro-sm);
-  color: var(--color-foreground);
-  background: transparent;
-  border: var(--border-hairline) solid var(--color-border);
-  border-radius: var(--radius-control);
-}
-
 /*
  * Setting the integration up: the steps, then the credentials.
  *

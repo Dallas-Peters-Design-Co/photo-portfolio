@@ -228,7 +228,8 @@
   }
 }
 
-.creative__input--font {
+.creative__input--font,
+.creative__font-slot {
   max-width: 12rem;
 }
 
@@ -641,11 +642,6 @@ button.creative-export__item:hover:not(:disabled) {
   gap: calc(var(--spacing) * 0.75);
   font-size: 0.75rem;
   color: color-mix(in oklch, var(--color-board-ink) 65%, transparent);
-}
-
-/* A grid item's trigger is fit-content by default; the native select stretched. */
-.creative-generate__model-select {
-  width: 100%;
 }
 
 .creative-generate__prompt {

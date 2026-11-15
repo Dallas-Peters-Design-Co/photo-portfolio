@@ -220,11 +220,7 @@ export function VideoExport({
             }}
             value={options.duration}
           >
-            <SelectTrigger
-              aria-label="Length"
-              className="creative__input creative-export__select"
-              size="sm"
-            >
+            <SelectTrigger aria-label="Length" size="sm" tone="board">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -252,9 +248,9 @@ export function VideoExport({
           >
             <SelectTrigger
               aria-label="Size"
-              className="creative__input creative-export__select"
               size="sm"
               title="The video's longer side, in pixels"
+              tone="board"
             >
               <SelectValue />
             </SelectTrigger>

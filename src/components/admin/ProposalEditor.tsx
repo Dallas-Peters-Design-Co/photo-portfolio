@@ -37,7 +37,7 @@ import { ProposalInvoices } from "./ProposalInvoices";
 import { ProposalPackagesEditor } from "./ProposalPackagesEditor";
 import { ProposalProcessEditor } from "./ProposalProcessEditor";
 import { ProposalSendPanel } from "./ProposalSendPanel";
-import { proposalInputClass, proposalTextareaClass } from "./proposalStyles";
+import { proposalTextareaClass } from "./proposalStyles";
 
 /**
  * The editor takes a TipTap document. Text written before the editor (seeded
@@ -213,10 +213,7 @@ export function ProposalEditor({
                 }}
                 value={draft.brandKitId ?? ""}
               >
-                <SelectTrigger
-                  className={`${proposalInputClass} w-full rounded-md border px-3`}
-                  id="proposal-kit"
-                >
+                <SelectTrigger id="proposal-kit" size="lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

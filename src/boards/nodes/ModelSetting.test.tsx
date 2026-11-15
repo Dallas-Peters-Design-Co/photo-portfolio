@@ -44,7 +44,7 @@ let root: Root | null = null;
 
 const trigger = (el: HTMLElement) =>
   // The chevron is a text glyph inside the trigger; only the label matters.
-  (el.querySelector(".setting-field__trigger")?.textContent ?? "")
+  (el.querySelector("[data-slot=select-trigger]")?.textContent ?? "")
     .replace("▼", "")
     .trim();
 

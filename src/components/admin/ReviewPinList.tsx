@@ -15,11 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import {
-  proposalInputClass,
-  proposalLabelClass,
-  proposalTextareaClass,
-} from "./proposalStyles";
+import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
 import { readingOrder } from "./reviewEditing";
 
 /** The note kinds with their labels, so the closed menu shows "Issue", not "issue". */
@@ -197,7 +193,8 @@ export function ReviewPinList({
               >
                 <SelectTrigger
                   aria-label={`Note ${firstNumber + i} kind`}
-                  className={`${proposalInputClass} shrink-0 rounded-md pr-3`}
+                  size="lg"
+                  width="fit"
                 >
                   <SelectValue />
                 </SelectTrigger>

@@ -72,11 +72,7 @@ export function StudioControls({
                   }}
                   value={String(v)}
                 >
-                  <SelectTrigger
-                    aria-label={p.label}
-                    className="studio__input studio__input--select"
-                    size="sm"
-                  >
+                  <SelectTrigger aria-label={p.label} size="sm" tone="board">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

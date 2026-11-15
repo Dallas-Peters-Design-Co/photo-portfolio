@@ -381,9 +381,9 @@ export function BrowserNotes({
             >
               <SelectTrigger
                 aria-label={`Kind of note ${i + 1}`}
-                className="browser-node__note-kind"
                 disabled={readOnly}
                 size="sm"
+                tone="board"
               >
                 <SelectValue />
               </SelectTrigger>

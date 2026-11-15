@@ -18,11 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import {
-  proposalInputClass,
-  proposalLabelClass,
-  proposalTextareaClass,
-} from "./proposalStyles";
+import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
 
 /**
  * A new invoice, from a template or from scratch: who it's for, its lines,
@@ -154,10 +150,7 @@ export function InvoiceComposer({
             }}
             value={templateId}
           >
-            <SelectTrigger
-              className={`${proposalInputClass} w-full rounded-md border px-3`}
-              id="inv-template"
-            >
+            <SelectTrigger id="inv-template" size="lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

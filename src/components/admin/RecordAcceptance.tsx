@@ -14,7 +14,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { proposalInputClass } from "./proposalStyles";
 
 /**
  * The agreement, drafted for the option the client chose when they said yes
@@ -79,10 +78,7 @@ export function RecordAcceptance({
             }}
             value={option}
           >
-            <SelectTrigger
-              className={`${proposalInputClass} w-full rounded-md border px-3`}
-              id="ra-option"
-            >
+            <SelectTrigger id="ra-option" size="lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

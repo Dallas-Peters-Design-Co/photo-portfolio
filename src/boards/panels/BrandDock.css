@@ -29,18 +29,6 @@
     color-mix(in oklch, var(--color-board-ink) 10%, transparent);
 }
 
-.brand-dock__select {
-  flex: 1;
-  min-width: 0;
-  padding: var(--spacing) calc(var(--spacing) * 2);
-  font-size: var(--text-sm-ui, 0.8125rem);
-  color: var(--color-board-ink);
-  background: color-mix(in oklch, var(--color-board-surface) 40%, transparent);
-  border: var(--border-hairline) solid
-    color-mix(in oklch, var(--color-board-ink) 15%, transparent);
-  border-radius: var(--radius-md);
-}
-
 .brand-dock__close {
   display: grid;
   place-content: center;

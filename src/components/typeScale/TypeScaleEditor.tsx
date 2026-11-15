@@ -56,8 +56,6 @@ const HEAD_WEIGHT_ITEMS = weightItems(WEIGHTS);
  * The look `.type-scale select` gave the native controls: compact, tinted from
  * the current colour, so the triggers sit level with the number inputs.
  */
-/** Selects drawn like the inputs beside them (TypeScaleEditor.css). */
-const triggerClass = "type-scale__select";
 const SAMPLES: Record<string, string> = {
   body: "Body copy sets the pace for everything else on the page, so it should read without effort at length.",
   label: "Section label",
@@ -136,7 +134,7 @@ function StyleRow({
           }}
           value={s.face}
         >
-          <SelectTrigger aria-label={`${s.name} face`} className={triggerClass}>
+          <SelectTrigger aria-label={`${s.name} face`} size="sm" tone="inherit">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -166,7 +164,8 @@ function StyleRow({
         >
           <SelectTrigger
             aria-label={`${s.name} weight`}
-            className={triggerClass}
+            size="sm"
+            tone="inherit"
           >
             <SelectValue />
           </SelectTrigger>
@@ -203,7 +202,7 @@ function StyleRow({
           }}
           value={s.case}
         >
-          <SelectTrigger aria-label={`${s.name} case`} className={triggerClass}>
+          <SelectTrigger aria-label={`${s.name} case`} size="sm" tone="inherit">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -303,7 +302,7 @@ export function TypeScaleEditor({
             }}
             value={ratio}
           >
-            <SelectTrigger aria-label="Ratio" className={triggerClass}>
+            <SelectTrigger aria-label="Ratio" size="sm" tone="inherit">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -326,7 +325,7 @@ export function TypeScaleEditor({
             }}
             value={headWeight}
           >
-            <SelectTrigger aria-label="Heading weight" className={triggerClass}>
+            <SelectTrigger aria-label="Heading weight" size="sm" tone="inherit">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

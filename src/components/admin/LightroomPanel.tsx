@@ -422,11 +422,7 @@ function AlbumAssets({ album }: { album: LightroomAlbum }) {
             }}
             value={categoryId}
           >
-            <SelectTrigger
-              className="lightroom__category"
-              id="lightroom-category"
-              size="sm"
-            >
+            <SelectTrigger id="lightroom-category" size="sm" width="fit">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

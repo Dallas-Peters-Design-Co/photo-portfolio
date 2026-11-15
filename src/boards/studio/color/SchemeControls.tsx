@@ -159,11 +159,7 @@ export function SchemeControls({
           }}
           value={vision}
         >
-          <SelectTrigger
-            aria-label="Colour vision"
-            className="studio__input studio__input--select"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Colour vision" size="sm" tone="board">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

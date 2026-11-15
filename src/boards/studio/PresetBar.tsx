@@ -113,11 +113,7 @@ export function PresetBar({
           }}
           value={current?.id ?? null}
         >
-          <SelectTrigger
-            aria-label="Saved settings"
-            className="studio__input studio__input--select"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Saved settings" size="sm" tone="board">
             <SelectValue
               placeholder={
                 presets.length + looks.length > 0 ? "Choose…" : "None saved yet"

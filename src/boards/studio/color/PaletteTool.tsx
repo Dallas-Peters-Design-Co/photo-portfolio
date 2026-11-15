@@ -230,11 +230,7 @@ export function PaletteTool({
             }}
             value={harmony}
           >
-            <SelectTrigger
-              aria-label="Harmony"
-              className="studio__input studio__input--select"
-              size="sm"
-            >
+            <SelectTrigger aria-label="Harmony" size="sm" tone="board">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

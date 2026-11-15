@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import { PanelGroup } from "./EditorShell";
-import { proposalInputClass } from "./proposalStyles";
 
 /**
  * What the review editor's side panel holds (EditorShell): saving and
@@ -113,10 +112,7 @@ export function ReviewEditorPanel({
             }}
             value={draft.brandKitId ?? ""}
           >
-            <SelectTrigger
-              className={`${proposalInputClass} w-full rounded-md border px-3`}
-              id="review-kit"
-            >
+            <SelectTrigger id="review-kit" size="lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

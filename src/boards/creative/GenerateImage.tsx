@@ -170,11 +170,7 @@ export function GenerateImage({
           }}
           value={model}
         >
-          <SelectTrigger
-            aria-label="Model"
-            className="creative__input creative-generate__model-select"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Model" size="sm" tone="board">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

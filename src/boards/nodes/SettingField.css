@@ -105,10 +105,6 @@
   gap: var(--spacing);
 }
 
-.setting-field__trigger {
-  width: 100%;
-}
-
 /*
  * A note under a control, saying why it is not doing anything yet.
  *

@@ -263,10 +263,11 @@ function BrowseBar({
       >
         <SelectTrigger
           aria-label="Width"
-          className="browser-node__viewport"
           disabled={readOnly || busy}
           onPointerDown={stop}
           size="sm"
+          tone="board"
+          width="fit"
         >
           <SelectValue />
         </SelectTrigger>

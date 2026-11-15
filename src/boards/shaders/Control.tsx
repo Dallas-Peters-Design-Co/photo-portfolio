@@ -95,9 +95,9 @@ function SelectControl({ onChange, prop, current }: ResolvedControlProps) {
       >
         <SelectTrigger
           aria-label={prop.label}
-          className="control__field"
           onPointerDown={(e) => e.stopPropagation()}
           size="sm"
+          tone="board"
         >
           <SelectValue />
         </SelectTrigger>
@@ -181,9 +181,9 @@ function OriginControl({ onChange, prop, current }: ResolvedControlProps) {
         >
           <SelectTrigger
             aria-label={prop.label}
-            className="control__field"
             onPointerDown={(e) => e.stopPropagation()}
             size="sm"
+            tone="board"
           >
             <SelectValue />
           </SelectTrigger>

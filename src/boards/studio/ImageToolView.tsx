@@ -305,11 +305,7 @@ export function ImageToolView({
           }}
           value={String(sizeIndex)}
         >
-          <SelectTrigger
-            aria-label="Size"
-            className="studio__input studio__input--select"
-            size="sm"
-          >
+          <SelectTrigger aria-label="Size" size="sm" tone="board">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
