@@ -284,6 +284,7 @@ const BOX_KINDS = new Set<ReviewConceptElementKind>([
   "card",
   "input",
   "select",
+  "table",
   "textarea",
 ]);
 

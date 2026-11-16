@@ -25,12 +25,14 @@ export function ConceptHover({
     <span
       className="concept-hover"
       data-hover-bg={on(hover.background)}
+      data-hover-icon={on(hover.iconColor)}
       data-hover-ink={on(hover.color)}
       data-hover-line={on(hover.borderColor)}
       data-hover-shadow={on(hover.shadow)}
       style={
         {
           "--hover-bg": hover.background,
+          "--hover-icon": hover.iconColor,
           "--hover-ink": hover.color,
           "--hover-line": hover.borderColor,
           "--hover-shadow": hover.shadow ? shadowCss(hover.shadow) : undefined,

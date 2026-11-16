@@ -20,6 +20,7 @@ import {
 import {
   iconSizeOf,
   type ReviewConceptElement,
+  takesIcon,
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
 import { Checkbox } from "../ui/checkbox";
@@ -308,7 +309,7 @@ export function HoverGroup({
     onChange({ hover: Object.keys(next).length > 0 ? next : undefined });
   };
   const color = (
-    key: "background" | "borderColor" | "color",
+    key: "background" | "borderColor" | "color" | "iconColor",
     label: string
   ) => (
     <ConceptColorField
@@ -328,6 +329,7 @@ export function HoverGroup({
       {color("background", "Fill")}
       {color("color", "Text")}
       {color("borderColor", "Border")}
+      {takesIcon(element.kind) ? color("iconColor", "Icon") : null}
       <ConceptField label="Shadow">
         <ConceptSelect
           label="Hover shadow"

@@ -55,12 +55,15 @@ function ConceptIcon({
   const map = useIconMap(!svg && Boolean(name));
   const Icon = svg ?? iconFrom(map, conceptIconName(name));
   return Icon ? (
+    // Drawn in currentColor and coloured by CSS, so a hover rule can change
+    // it; the library otherwise writes the colour into every stroke.
     <HugeiconsIcon
       aria-hidden
-      color={color}
+      color="currentColor"
       icon={Icon}
       size={size}
       strokeWidth={2}
+      style={{ color }}
     />
   ) : (
     <span aria-hidden style={{ height: size, width: size }} />

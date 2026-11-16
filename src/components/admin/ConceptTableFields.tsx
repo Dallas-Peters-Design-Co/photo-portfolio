@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-import { type CSSProperties, useId } from "react";
+import type { CSSProperties } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ConceptIconSvg,
@@ -36,7 +36,6 @@ import {
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
 import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import {
   ConceptField,
@@ -225,7 +224,6 @@ export function ConceptTableFields({
 }) {
   const table = tableOf(element);
   const borders = table.borders ?? DEFAULT_BORDERS;
-  const outlineId = useId();
   const set = (next: ConceptTable) => onChange({ table: next });
   const gridStyle = {
     "--table-columns": table.columns.length,
@@ -424,16 +422,6 @@ export function ConceptTableFields({
           onChange={(color) => set(updateBorders(table, { color }))}
           value={borders.color ?? "#d0d5dd"}
         />
-        <label className="review-concepts__check" htmlFor={outlineId}>
-          <Checkbox
-            checked={borders.outline}
-            id={outlineId}
-            onChange={(event) =>
-              set(updateBorders(table, { outline: event.target.checked }))
-            }
-          />
-          <span>Outline</span>
-        </label>
       </ConceptGroup>
     </>
   );

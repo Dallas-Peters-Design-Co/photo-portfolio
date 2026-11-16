@@ -10,6 +10,8 @@ export interface ConceptHover {
   background?: string;
   borderColor?: string;
   color?: string;
+  /** Cards and inputs with an icon: the icon's colour. */
+  iconColor?: string;
   shadow?: ConceptShadow;
 }
 
@@ -43,6 +45,7 @@ export const cleanHover = (value: unknown): ConceptHover | undefined => {
     ...hex("background", raw.background),
     ...hex("borderColor", raw.borderColor),
     ...hex("color", raw.color),
+    ...hex("iconColor", raw.iconColor),
     ...(shadow ? { shadow } : {}),
   };
   return Object.keys(hover).length > 0 ? hover : undefined;

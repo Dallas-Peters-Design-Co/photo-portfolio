@@ -296,3 +296,27 @@ it("colours a tab that is not selected under the pointer", async () => {
   );
   await userEvent.unhover(other);
 });
+
+it("colours a card's icon, and changes it under the pointer", async () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("card"),
+          hover: { iconColor: "#ff0000" },
+          iconColor: "#0000ff",
+          iconName: "StarIcon",
+          iconSvg: [["path", { d: "M1 1h2", stroke: "currentColor" }]],
+        }}
+      />
+    )
+  );
+  const card = host.querySelector("article") as HTMLElement;
+  const icon = card.querySelector("svg") as SVGElement;
+  expect(getComputedStyle(icon).color).toBe("rgb(0, 0, 255)");
+  await userEvent.hover(card);
+  await vi.waitFor(() =>
+    expect(getComputedStyle(icon).color).toBe("rgb(255, 0, 0)")
+  );
+  await userEvent.unhover(card);
+});

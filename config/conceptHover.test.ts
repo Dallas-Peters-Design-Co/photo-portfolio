@@ -28,3 +28,9 @@ describe("hover", () => {
     expect(divider?.hover).toBeUndefined();
   });
 });
+
+it("keeps a hover icon colour", () => {
+  expect(cleanHover({ iconColor: "#ff0000" })).toEqual({
+    iconColor: "#ff0000",
+  });
+});

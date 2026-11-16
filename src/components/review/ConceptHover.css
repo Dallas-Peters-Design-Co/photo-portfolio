@@ -13,6 +13,10 @@
     box-shadow 120ms ease-out;
 }
 
+.concept-hover > * svg {
+  transition: color 120ms ease-out;
+}
+
 .concept-hover[data-hover-bg] > :hover {
   background: var(--hover-bg) !important;
 }
@@ -29,8 +33,15 @@
   box-shadow: var(--hover-shadow) !important;
 }
 
+/* An icon inside the element (a card's, an input's): its own colour on hover.
+   Icons draw in currentColor (ConceptIcon), so the svg's colour is enough. */
+.concept-hover[data-hover-icon] > :hover svg {
+  color: var(--hover-icon) !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .concept-hover > * {
+  .concept-hover > *,
+  .concept-hover > * svg {
     transition: none;
   }
 }
