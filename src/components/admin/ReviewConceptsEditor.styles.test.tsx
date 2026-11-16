@@ -93,7 +93,9 @@ it("adds a kit style linked, marks an edit as its own, and resets it", async () 
   const reset = [...host.querySelectorAll("button")].find((button) =>
     button.textContent?.includes("Reset")
   );
-  expect(reset?.textContent).toContain("1 change");
+  expect(
+    host.querySelector(".review-concepts__style-changes")?.textContent
+  ).toBe("1 change of its own");
   await userEvent.click(reset as HTMLElement);
   expect(element()?.overrides).toBeUndefined();
   expect(element()?.fontSize).toBe(18);
