@@ -42,3 +42,20 @@ describe("copying a concept", () => {
     expect(pasted[1]?.trigger).toBe(pasted[1]?.elements[0]?.id);
   });
 });
+
+describe("starting colours", () => {
+  it("never sets a badge in a light accent it can't be read on", async () => {
+    const { badgeLook } = await import("./conceptStarters.js");
+    const { contrastRatio } = await import("./theme.js");
+    const look = badgeLook({
+      palette: [
+        { name: "Pale", role: "accent", value: "#f9eeb3" },
+        { name: "Night", role: "ink", value: "#0f172a" },
+      ],
+    } as never);
+    expect(look.color).toBe("#0f172a");
+    expect(
+      contrastRatio(look.color as string, look.background as string)
+    ).toBeGreaterThanOrEqual(4.5);
+  });
+});

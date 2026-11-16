@@ -4,6 +4,7 @@ import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "./reviewConcept.js";
+import { contrastRatio, inkOn } from "./theme.js";
 
 /**
  * Where new elements start: the kit's palette colour for a role, and the
@@ -43,20 +44,50 @@ export const tableFromKit = (brandDoc?: BrandKitDoc | null): ConceptTable => {
     : { ...DEFAULT_TABLE, columns };
 };
 
+/** WCAG AA for normal text: what a starting colour must reach on its fill. */
+const READABLE = 4.5;
+
+/**
+ * The first of the kit's colours for these roles that can be read on
+ * `ground`, then its ink, then the fallback; failing all, black or white.
+ * A kit's accent is often a light colour (a pale yellow), and a badge set in
+ * it on a light fill came out all but white.
+ */
+export const readableColor = (
+  doc: BrandKitDoc | null | undefined,
+  roles: string[],
+  ground: string,
+  fallback: string
+): string =>
+  [
+    ...roles.map((role) => paletteColor(doc, [role], "")),
+    paletteColor(doc, ["ink", "text"], ""),
+    fallback,
+  ].find((color) => color && contrastRatio(color, ground) >= READABLE) ??
+  inkOn(ground);
+
 /** A badge starts as a soft tinted pill: light fill, strong text, thin edge. */
 export const badgeLook = (
   brandDoc?: BrandKitDoc | null
-): Partial<ReviewConceptElement> => ({
-  background: paletteColor(
+): Partial<ReviewConceptElement> => {
+  const background = paletteColor(
     brandDoc,
     ["badge", "accent light", "tint"],
     "#eef4ff"
-  ),
-  borderColor: paletteColor(brandDoc, ["badge border", "border"], "#c7d7fe"),
-  borderWidth: 1,
-  color: paletteColor(brandDoc, ["badge ink", "accent", "primary"], "#3538cd"),
-  radius: 999,
-});
+  );
+  return {
+    background,
+    borderColor: paletteColor(brandDoc, ["badge border", "border"], "#c7d7fe"),
+    borderWidth: 1,
+    color: readableColor(
+      brandDoc,
+      ["badge ink", "accent", "primary"],
+      background,
+      "#3538cd"
+    ),
+    radius: 999,
+  };
+};
 
 /**
  * A tag starts as a quiet chip: no fill colour of its own, plain ink, a thin
@@ -64,13 +95,16 @@ export const badgeLook = (
  */
 export const tagLook = (
   brandDoc?: BrandKitDoc | null
-): Partial<ReviewConceptElement> => ({
-  background: paletteColor(brandDoc, ["surface", "muted"], "#f9fafb"),
-  borderColor: paletteColor(brandDoc, ["border"], "#d0d5dd"),
-  borderWidth: 1,
-  color: paletteColor(brandDoc, ["ink", "text"], "#344054"),
-  radius: 4,
-});
+): Partial<ReviewConceptElement> => {
+  const background = paletteColor(brandDoc, ["surface", "muted"], "#f9fafb");
+  return {
+    background,
+    borderColor: paletteColor(brandDoc, ["border"], "#d0d5dd"),
+    borderWidth: 1,
+    color: readableColor(brandDoc, ["ink", "text"], background, "#344054"),
+    radius: 4,
+  };
+};
 
 /** A progress bar starts in the kit's accent on a light grey track, rounded. */
 export const progressLook = (
