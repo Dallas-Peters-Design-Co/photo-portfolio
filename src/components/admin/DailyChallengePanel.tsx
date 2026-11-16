@@ -511,7 +511,7 @@ const TodayJournalForm = ({
   onSubmit,
   today,
 }: {
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.ChangeEvent) => void;
   today: TodayChallengeState;
 }) => (
   <form className="flex flex-col gap-3" onSubmit={onSubmit}>
@@ -686,7 +686,7 @@ export const DailyChallengePanel = () => {
 
   return (
     <Card tone="raised">
-      <CardHeader layout="bar">
+      <CardHeader layout="stack">
         <div className="space-y-1">
           <CardTitle>
             <Sparkles aria-hidden className="size-4 text-amber-200/80" />
