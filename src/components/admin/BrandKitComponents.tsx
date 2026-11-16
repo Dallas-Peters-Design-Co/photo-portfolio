@@ -1,6 +1,11 @@
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown, Code2, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
+import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import {
+  componentSource,
+  componentSourceText,
+} from "../../../config/componentSource.js";
 import {
   type ConceptStyle,
   lookOf,
@@ -16,6 +21,20 @@ import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
 import { createConceptElement, styleSample } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import "./ReviewConceptsEditor.css";
+
+/** The style as a React component and its CSS, on the clipboard. */
+const copySource = async (
+  sample: Parameters<typeof componentSource>[0],
+  name: string
+) => {
+  const source = componentSource(sample, name);
+  try {
+    await navigator.clipboard.writeText(componentSourceText(source));
+    toast.success(`Copied ${source.name}.tsx and ${source.name}.css`);
+  } catch {
+    toast.error("Couldn't copy. Allow clipboard access and try again.");
+  }
+};
 
 /** One style: a row (fold, type, name, remove) that opens to its sample and look. */
 function StyleEditor({
@@ -57,6 +76,16 @@ function StyleEditor({
           size="sm"
           value={style.name}
         />
+        <Button
+          aria-label={`Copy ${style.name} source code`}
+          onClick={() => copySource(sample, style.name)}
+          size="icon-sm"
+          title="Copy React + CSS"
+          type="button"
+          variant="ghost"
+        >
+          <Code2 size={13} />
+        </Button>
         <Button
           aria-label={`Remove ${style.name}`}
           onClick={onRemove}
