@@ -9,6 +9,7 @@ import { BoardCanvas } from "../boards/BoardCanvas";
 import { FrameOpenProvider, frameLink } from "../boards/FrameOpenContext";
 import { FrameViewer } from "../boards/FrameViewer";
 import { isDesignFrame } from "../boards/geometry/frameLock";
+import { downloadBlob, downloadImage } from "../boards/io/downloadImage";
 import { renderFrameBlob } from "../boards/io/frameRender";
 import { currentFrameRender, frameKeyOf } from "../boards/io/frameRenderKey";
 import { currentImageUrl } from "../boards/itemOutput";
@@ -19,6 +20,26 @@ import { type BoardComment, commentsApi } from "../services/comments";
 import { boardsApi } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import type { Board, BoardItem } from "../types";
+
+/**
+ * A designed frame as one picture, saved: its stored render when it is still
+ * current, else drawn here as the editor draws it.
+ */
+const downloadFrame = async (frame: BoardItem, items: BoardItem[]) => {
+  const name = frame.body?.trim() || "Frame";
+  const stored = currentFrameRender(frame, items);
+  if (stored) {
+    await downloadImage(stored, name);
+    return;
+  }
+  const id = toast.loading("Preparing the image…");
+  try {
+    downloadBlob(await renderFrameBlob(frame, items), name);
+    toast.dismiss(id);
+  } catch {
+    toast.error("Couldn't draw that frame. Try again in a moment.", { id });
+  }
+};
 
 const itemLabel = (item: BoardItem | undefined): string => {
   if (!item) {
@@ -342,6 +363,12 @@ export function BoardViewPage() {
         {/* Frames on a published board open as their own view; the provider is
             what tells them so. See FrameOpenContext. */}
         <FrameOpenProvider
+          downloadFor={(frameId) => {
+            const frame = items.find((i) => i.id === frameId);
+            return frame && isDesignFrame(frame, items)
+              ? () => void downloadFrame(frame, items)
+              : null;
+          }}
           linkFor={(frameId) =>
             frameLink(
               slug ? `${window.location.origin}/board/${slug}` : null,

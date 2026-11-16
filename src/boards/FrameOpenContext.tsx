@@ -30,6 +30,11 @@ const TRAILING_SLASH = /\/$/;
 interface FrameActions {
   /** Opens a frame in the full-screen creative editor. */
   designFrame?: (frameId: string) => void;
+  /**
+   * Downloads a designed frame as one picture, or null for a frame that
+   * isn't one (a plain group has no single picture to give).
+   */
+  downloadFor?: (frameId: string) => (() => void) | null;
   /** Copies the frame and everything on it, beside it. */
   duplicateFrame?: (frameId: string) => void;
   /** Resizes a frame to an ad size, or copies it out at several. */
@@ -57,6 +62,7 @@ const FrameContext = createContext<FrameActions>({});
 export function FrameOpenProvider({
   children,
   designFrame,
+  downloadFor,
   duplicateFrame,
   fitFrame,
   linkFor,
@@ -66,6 +72,7 @@ export function FrameOpenProvider({
 }: {
   children: ReactNode;
   designFrame?: FrameActions["designFrame"];
+  downloadFor?: FrameActions["downloadFor"];
   duplicateFrame?: FrameActions["duplicateFrame"];
   fitFrame?: FrameActions["fitFrame"];
   linkFor?: (frameId: string) => string | null;
@@ -77,6 +84,7 @@ export function FrameOpenProvider({
     <FrameContext.Provider
       value={{
         designFrame,
+        downloadFor,
         duplicateFrame,
         fitFrame,
         linkFor,

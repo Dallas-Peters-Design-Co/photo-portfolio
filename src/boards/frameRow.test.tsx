@@ -40,3 +40,44 @@ it("keeps Copy link on the frame when zoomed out", () => {
   act(() => root.unmount());
   host.remove();
 });
+
+it("offers a designed frame's Download on a published board, and runs it", () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  let downloaded = "";
+  const root = createRoot(host);
+  act(() =>
+    root.render(
+      <FrameOpenProvider
+        downloadFor={(id) =>
+          id === "f"
+            ? () => {
+                downloaded = id;
+              }
+            : null
+        }
+        onOpenFrame={() => undefined}
+      >
+        <FrameBody
+          item={{ body: "Poster", id: "f", kind: "frame" } as BoardItem}
+          onEditBody={() => undefined}
+          readOnly
+        />
+        <FrameBody
+          item={{ body: "Group", id: "g", kind: "frame" } as BoardItem}
+          onEditBody={() => undefined}
+          readOnly
+        />
+      </FrameOpenProvider>
+    )
+  );
+  const buttons = [...host.querySelectorAll("button")].filter(
+    (b) => b.textContent === "Download"
+  );
+  // The designed frame has one; the plain group has none.
+  expect(buttons).toHaveLength(1);
+  act(() => (buttons[0] as HTMLElement).click());
+  expect(downloaded).toBe("f");
+  act(() => root.unmount());
+  host.remove();
+});

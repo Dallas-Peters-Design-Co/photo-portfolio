@@ -83,7 +83,8 @@ export function FrameBody({
    * FrameOpenContext on why that is a context and not callbacks threaded
    * through the canvas.
    */
-  const { linkFor, open: openFrame } = useFrameActions();
+  const { downloadFor, linkFor, open: openFrame } = useFrameActions();
+  const download = readOnly ? (downloadFor?.(item.id) ?? null) : null;
   const rowStyle = frameRowStyle(chromeScale);
   const href = linkFor?.(item.id) ?? null;
 
@@ -134,6 +135,17 @@ export function FrameBody({
           >
             {item.body?.trim() || "Frame"}
           </button>
+          {download ? (
+            <button
+              className="frame-body__link"
+              onClick={download}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Download this frame as an image"
+              type="button"
+            >
+              Download
+            </button>
+          ) : null}
           {link}
         </div>
       </div>

@@ -2,11 +2,13 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import ArrowLeft01Icon from "@hugeicons-pro/core-stroke-standard/ArrowLeft01Icon";
 import ArrowRight01Icon from "@hugeicons-pro/core-stroke-standard/ArrowRight01Icon";
 import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
+import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import Link01Icon from "@hugeicons-pro/core-stroke-standard/Link01Icon";
 import { AnimatePresence, motion, type PanInfo } from "motion/react";
 import { useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import type { BoardItem } from "../types";
+import { downloadImage } from "./io/downloadImage";
 import { currentImageUrl } from "./itemOutput";
 import "./FrameViewer.css";
 
@@ -124,6 +126,7 @@ export function FrameViewer({
   }, [onClose, step]);
 
   const shown = items[index];
+  const shownUrl = shown ? currentImageUrl(shown) : null;
   const url = shown ? currentImageUrl(shown) : null;
 
   return (
@@ -153,6 +156,22 @@ export function FrameViewer({
           <span className="frame-viewer__actions">
             {/* The address bar already holds this, but somebody looking at a
                 picture is not looking at the address bar. */}
+            {shownUrl ? (
+              <button
+                aria-label="Download this image"
+                className="frame-viewer__button"
+                onClick={() =>
+                  void downloadImage(
+                    shownUrl,
+                    count > 1 ? `${name} ${index + 1}` : name
+                  )
+                }
+                title="Download"
+                type="button"
+              >
+                <HugeiconsIcon icon={Download01Icon} size={16} />
+              </button>
+            ) : null}
             {link ? (
               <button
                 aria-label="Copy this frame's link"

@@ -64,6 +64,12 @@ function Fit({ children, width }: { children: ReactNode; width: number }) {
   const box = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  // A box whose height comes from its content (a node sized to fit, on a
+  // published board) has none to fit to: there the mock-up fits the width
+  // and the box takes the height it needs. Without this it measured 0 tall
+  // and the preview vanished.
+  const [height, setHeight] = useState<number | null>(null);
+  const sizedByContent = useRef<boolean>(false);
   useLayoutEffect(() => {
     const outer = box.current;
     const inner = stage.current;
@@ -72,11 +78,20 @@ function Fit({ children, width }: { children: ReactNode; width: number }) {
     }
     const fit = () => {
       const w = outer.clientWidth;
-      const h = outer.clientHeight;
       const sh = inner.offsetHeight;
-      if (w > 0 && h > 0 && sh > 0) {
-        setScale(Math.min(w / width, h / sh));
+      if (!(w > 0 && sh > 0)) {
+        return;
       }
+      if (!sizedByContent.current && outer.clientHeight < 1) {
+        sizedByContent.current = true;
+      }
+      if (sizedByContent.current) {
+        const k = w / width;
+        setScale(k);
+        setHeight(Math.ceil(sh * k));
+        return;
+      }
+      setScale(Math.min(w / width, outer.clientHeight / sh));
     };
     fit();
     const observer = new ResizeObserver(fit);
@@ -85,7 +100,11 @@ function Fit({ children, width }: { children: ReactNode; width: number }) {
     return () => observer.disconnect();
   }, [width]);
   return (
-    <div className="social-mock" ref={box}>
+    <div
+      className="social-mock"
+      ref={box}
+      style={height === null ? undefined : { height }}
+    >
       <div
         className="social-mock__stage"
         ref={stage}
