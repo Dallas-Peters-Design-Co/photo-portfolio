@@ -55,7 +55,7 @@ const ICON_LABELS: Record<string, string> = {
 const CAMEL = /([a-z])([A-Z0-9])/g;
 const TRAILING_NUMBER = /\s*\d+$/;
 
-const iconLabel = (name: string): string =>
+export const iconLabel = (name: string): string =>
   ICON_LABELS[name] ??
   name
     .replace(ICON_SUFFIX, "")

@@ -21,7 +21,12 @@ export function ConceptHover({
    * target or animates in (conceptSequence.tsx). The same no-space wrapper
    * carries them, which the layout rules already look through.
    */
-  marks?: { enter?: string; id: string; trigger?: boolean } | null;
+  marks?: {
+    enter?: string;
+    id: string;
+    selected?: boolean;
+    trigger?: boolean;
+  } | null;
 }) {
   const hover = element.kind === "tabs" ? undefined : element.hover;
   if (!(hover || marks)) {
@@ -38,6 +43,7 @@ export function ConceptHover({
       data-hover-ink={on(hover?.color)}
       data-hover-line={on(hover?.borderColor)}
       data-hover-shadow={on(hover?.shadow)}
+      data-selected={marks?.selected ? "" : undefined}
       data-trigger={marks?.trigger ? "" : undefined}
       style={
         hover

@@ -1,7 +1,6 @@
 import { createContext, type RefObject, useContext, useEffect } from "react";
 import type { ConceptStep, StepEnter } from "../../../config/conceptSteps.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
-import { PANEL_HIDDEN } from "./ConceptPanelPreview";
 
 /**
  * What the step being shown asks of its elements: which one to click for the
@@ -9,8 +8,18 @@ import { PANEL_HIDDEN } from "./ConceptPanelPreview";
  * (ReviewConceptElementView), so a button inside a panel's slot or a group
  * can be the target as easily as one at the top.
  */
+/** Sent up from a panel once it has slid away: a sequence may move on. */
+export const PANEL_HIDDEN = "concept-panel-hidden";
+
 export interface SequenceMarks {
+  /**
+   * The editor's Edit mode: every element is marked with its id, so a click
+   * on it in the preview selects it; panels don't hide on their ✕.
+   */
+  editing?: boolean;
   enter?: StepEnter;
+  /** The element selected in the editor, outlined in the preview. */
+  selected?: string | null;
   trigger?: string;
 }
 
@@ -24,10 +33,23 @@ export const useSequenceMarks = () => useContext(SequenceContext);
 export const marksFor = (
   element: ReviewConceptElement,
   marks: SequenceMarks
-): { enter?: string; id: string; trigger?: boolean } | null => {
+): {
+  enter?: string;
+  id: string;
+  selected?: boolean;
+  trigger?: boolean;
+} | null => {
   const trigger = marks.trigger === element.id;
   const enter =
     marks.enter?.element === element.id ? marks.enter.animation : undefined;
+  if (marks.editing) {
+    return {
+      id: element.id,
+      ...(enter ? { enter } : {}),
+      ...(marks.selected === element.id ? { selected: true } : {}),
+      ...(trigger ? { trigger } : {}),
+    };
+  }
   return trigger || enter
     ? {
         id: element.id,

@@ -8,8 +8,7 @@ import {
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { ConceptSlotsView } from "./ConceptSlotsView";
 
-/** Sent up from a panel once it has slid away: a sequence may move on. */
-export const PANEL_HIDDEN = "concept-panel-hidden";
+import { PANEL_HIDDEN, useSequenceMarks } from "./conceptSequence";
 
 const prefersStill = () =>
   typeof window !== "undefined" &&
@@ -37,6 +36,8 @@ export function ConceptPanelPreview({
   const root = useRef<HTMLElement>(null);
   const hide = element.slots?.hide?.elements ?? [];
   const hideSlot = useRef<HTMLDivElement>(null);
+  // Editing: a click on the ✕ selects it, it doesn't hide the panel.
+  const { editing } = useSequenceMarks();
 
   const finish = () => {
     root.current?.dispatchEvent(
@@ -56,7 +57,7 @@ export function ConceptPanelPreview({
   // own click (or Enter on it) is what hides the panel.
   useEffect(() => {
     const slot = hideSlot.current;
-    if (!slot) {
+    if (!slot || editing) {
       return;
     }
     const onClick = () => close();

@@ -1,5 +1,5 @@
 import { ChevronDown, Copy, Trash2 } from "lucide-react";
-import { type ReactNode, useId } from "react";
+import { type ReactNode, useEffect, useId, useRef } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { takesHover } from "../../../config/conceptHover.js";
 import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
@@ -8,6 +8,7 @@ import { hasSlots, MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { useRememberedOpen } from "../../hooks/useRememberedOpen";
+import { iconLabel } from "../review/ConceptIcon";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
@@ -24,6 +25,7 @@ import { ConceptSlotFields, SlotFields } from "./ConceptSlotFields";
 import { StyleLink } from "./ConceptStyleLink";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
+import { useElementFocus } from "./elementFocus";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import {
   CheckboxGroup,
@@ -56,7 +58,13 @@ const SUMMARY_LENGTH = 48;
 
 /** What a folded element says about itself: its first line of text. */
 const summaryOf = (element: ReviewConceptElement): string => {
-  const text = (element.text || element.placeholder || "").split("\n")[0] ?? "";
+  // An icon-only button says what it is: "Close icon".
+  const icon =
+    element.iconName && !element.text.trim()
+      ? `${iconLabel(element.iconName)} icon`
+      : "";
+  const text =
+    (element.text || element.placeholder || icon).split("\n")[0] ?? "";
   return text.length > SUMMARY_LENGTH
     ? `${text.slice(0, SUMMARY_LENGTH)}…`
     : text;
@@ -388,8 +396,30 @@ export function ReviewConceptElementFields({
     depth === 0
   );
   const bodyId = useId();
+  // Picked in the preview: open, and if it's the one picked, scroll to it.
+  const focus = useElementFocus();
+  const section = useRef<HTMLElement>(null);
+  const inPath = focus.path.has(element.id);
+  const picked = focus.target === element.id;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only a new pick (nonce) acts
+  useEffect(() => {
+    if (!inPath) {
+      return;
+    }
+    setOpen(true);
+    if (picked) {
+      requestAnimationFrame(() =>
+        section.current?.scrollIntoView({ behavior: "smooth", block: "start" })
+      );
+    }
+  }, [focus.nonce]);
   return (
-    <section aria-label={element.kind} className="review-concepts__element">
+    <section
+      aria-label={element.kind}
+      className="review-concepts__element"
+      data-picked={picked || undefined}
+      ref={section}
+    >
       {lookOnly ? null : (
         <ElementBar
           actions={actions}

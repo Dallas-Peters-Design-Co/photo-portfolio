@@ -1,5 +1,5 @@
 import { ClipboardPaste, Copy, Plus, Trash2 } from "lucide-react";
-import { type CSSProperties, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConcept } from "../../../config/conceptDefaults.js";
@@ -34,6 +34,12 @@ import { ConceptElementList } from "./ConceptElementList";
 import { ConceptFontField } from "./ConceptFontField";
 import { ConceptStepsBar } from "./ConceptStepsBar";
 import { copyConcept, useCopiedConcept } from "./conceptClipboard";
+import {
+  type ElementFocus,
+  ElementFocusProvider,
+  NO_FOCUS,
+  pathTo,
+} from "./elementFocus";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
@@ -75,7 +81,33 @@ function ConceptCard({
   const live = at < steps.length - 1;
   // The preview plays: clicking the step's target opens the next step here,
   // as the viewer's click does on the review page.
-  useSequencePlayer(preview, step, live, () => setStepIndex(at + 1));
+  // Edit: a click in the preview picks the element and opens its settings.
+  // Play: the preview plays the sequence, as the review page does.
+  const [playing, setPlaying] = useState(false);
+  const [focus, setFocus] = useState<ElementFocus>(NO_FOCUS);
+  useSequencePlayer(preview, step, playing && live, () => setStepIndex(at + 1));
+  useEffect(() => {
+    const box = preview.current;
+    if (!box || playing) {
+      return;
+    }
+    const pick = (event: Event) => {
+      const id = (event.target as Element | null)
+        ?.closest?.("[data-concept-id]")
+        ?.getAttribute("data-concept-id");
+      if (!id) {
+        return;
+      }
+      event.preventDefault();
+      setFocus((was) => ({
+        nonce: was.nonce + 1,
+        path: new Set(pathTo(step?.elements ?? [], id)),
+        target: id,
+      }));
+    };
+    box.addEventListener("click", pick);
+    return () => box.removeEventListener("click", pick);
+  }, [playing, step]);
   const setElements = (next: ReviewConceptElement[]) => {
     if (step) {
       onChange(withStep(concept, at, { ...step, elements: next }));
@@ -153,7 +185,30 @@ function ConceptCard({
 
       <div className="review-concepts__workspace">
         <div className="review-concepts__preview-wrap">
-          <p>Live preview</p>
+          <div className="review-concepts__preview-head">
+            <p>Live preview</p>
+            <fieldset
+              aria-label="Preview mode"
+              className="review-concepts__mode"
+            >
+              <button
+                aria-pressed={!playing}
+                onClick={() => setPlaying(false)}
+                title="Click a part of the preview to edit it"
+                type="button"
+              >
+                Edit
+              </button>
+              <button
+                aria-pressed={playing}
+                onClick={() => setPlaying(true)}
+                title="Click through the sequence as a viewer would"
+                type="button"
+              >
+                Play
+              </button>
+            </fieldset>
+          </div>
           <div
             className="review-concepts__preview concept-canvas"
             data-direction={concept.direction}
@@ -164,7 +219,9 @@ function ConceptCard({
             <StepElements
               elements={elements}
               marks={{
+                editing: !playing,
                 enter: step?.enter,
+                selected: playing ? null : focus.target,
                 trigger: live ? step?.trigger : undefined,
               }}
             />
@@ -249,12 +306,14 @@ function ConceptCard({
             />
           </div>
 
-          <ConceptElementList
-            brandDoc={brandDoc}
-            elements={elements}
-            label="Elements"
-            onChange={setElements}
-          />
+          <ElementFocusProvider value={focus}>
+            <ConceptElementList
+              brandDoc={brandDoc}
+              elements={elements}
+              label="Elements"
+              onChange={setElements}
+            />
+          </ElementFocusProvider>
         </div>
       </div>
     </article>
