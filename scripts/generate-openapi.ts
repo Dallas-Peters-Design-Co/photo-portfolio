@@ -19,7 +19,7 @@
  * there is still published — marked as undescribed — so the document covers
  * everything and its gaps are visible rather than implied.
  */
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { stringify } from "yaml";
 import { z } from "zod";
@@ -41,6 +41,9 @@ const API_DIR = path.join(ROOT, "api");
 // a dependency. Neither is written by hand, so they cannot disagree.
 const OUT_JSON = path.join(ROOT, "openapi.json");
 const OUT_YAML = path.join(ROOT, "openapi.yaml");
+// A copy under `public/`, so the deployed site serves the document itself,
+// and Bruno's sync can fetch it from the dev server.
+const OUT_DOCS = path.join(ROOT, "public", "openapi.json");
 
 const METHODS = ["get", "post", "put", "patch", "delete"] as const;
 type Method = (typeof METHODS)[number];
@@ -276,6 +279,8 @@ const document = {
 };
 
 writeFileSync(OUT_JSON, `${JSON.stringify(document, null, 2)}\n`);
+mkdirSync(path.dirname(OUT_DOCS), { recursive: true });
+writeFileSync(OUT_DOCS, `${JSON.stringify(document, null, 2)}\n`);
 writeFileSync(
   OUT_YAML,
   stringify(document, { aliasDuplicateObjects: false, lineWidth: 0 })
