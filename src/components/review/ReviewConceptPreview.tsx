@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, RefObject } from "react";
 import { useEffect, useRef, useState } from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { everyElement } from "../../../config/conceptSlots.js";
@@ -59,6 +59,33 @@ export function StepElements({
     </SequenceMarksProvider>
   );
 }
+
+/**
+ * Whether the frame has been on screen: from then on its entrances play.
+ * True at once where nothing can tell (no IntersectionObserver).
+ */
+const useSeen = (frame: RefObject<Element | null>): boolean => {
+  const [seen, setSeen] = useState(
+    () => typeof IntersectionObserver === "undefined"
+  );
+  useEffect(() => {
+    const box = frame.current;
+    if (seen || !box) {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setSeen(true);
+        }
+      },
+      { threshold: 0.35 }
+    );
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [frame, seen]);
+  return seen;
+};
 
 /** Loads every face the concept and its elements name. */
 function useConceptFonts(concept: ReviewConcept) {
@@ -146,6 +173,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
   // The frame is a picture of an interface; its own trigger is the way on,
   // with Back and Next above for the keyboard (conceptSequence.tsx).
   const canvasRef = useRef<HTMLFieldSetElement>(null);
+  const seen = useSeen(canvasRef);
   const trigger = last ? undefined : step?.trigger;
   useSequencePlayer(canvasRef, step, sequence && !last, () => setAt(index + 1));
 
@@ -173,6 +201,9 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
           data-direction={concept.direction}
           data-scroll={concept.scroll || undefined}
           data-sequence
+          // Its entrances wait until it's on screen: played at page load,
+          // they'd be over before anyone scrolled down to see them.
+          data-waiting={seen ? undefined : ""}
           ref={canvasRef}
           style={{
             border: 0,

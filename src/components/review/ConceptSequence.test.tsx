@@ -1,6 +1,6 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
@@ -153,4 +153,32 @@ it("moves on from a button inside a panel's slot, and animates the next step's t
   expect(
     getComputedStyle(toast.firstElementChild as Element).animationName
   ).toBe("concept-enter");
+});
+
+it("holds a step's entrance until the concept is on screen, then plays it", async () => {
+  const concept = cleanConcept({
+    elements: [{ id: "toast", kind: "toast", text: "Saved" }],
+    stepEnter: { animation: "rise", element: "toast" },
+    steps: [{ caption: "Next", elements: [{ kind: "text", text: "Done" }] }],
+  });
+  const host = document.createElement("div");
+  host.innerHTML = '<div style="height: 3000px"></div>';
+  const mount = document.createElement("div");
+  host.append(mount);
+  document.body.append(host);
+  window.scrollTo(0, 0);
+  act(() =>
+    createRoot(mount).render(<ReviewConceptPreview concept={concept} />)
+  );
+  const child = () =>
+    mount.querySelector('[data-concept-id="toast"]')
+      ?.firstElementChild as HTMLElement;
+  await new Promise((done) => setTimeout(done, 100));
+  expect(getComputedStyle(child()).animationPlayState).toContain("paused");
+
+  mount.scrollIntoView();
+  await vi.waitFor(() =>
+    expect(getComputedStyle(child()).animationPlayState).not.toContain("paused")
+  );
+  host.remove();
 });
