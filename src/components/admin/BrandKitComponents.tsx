@@ -3,40 +3,18 @@ import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ConceptStyle,
-  linkStyle,
   lookOf,
   MAX_CONCEPT_STYLES,
 } from "../../../config/conceptStyle.js";
 import { newItemId } from "../../../config/proposal.js";
-import {
-  type ReviewConceptElement,
-  type ReviewConceptElementKind,
-  takesIcon,
-} from "../../../config/reviewConcept.js";
+import type { ReviewConceptElementKind } from "../../../config/reviewConcept.js";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
-import { createConceptElement } from "./ReviewConceptBrand";
+import { createConceptElement, styleSample } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import "./ReviewConceptsEditor.css";
-
-/**
- * What a style is drawn on: its kind's sample content, in the style's look.
- * A stand-in icon on kinds that take one, so the icon size and colour show.
- */
-const sampleOf = (
-  style: ConceptStyle,
-  brand: BrandKitDoc
-): ReviewConceptElement =>
-  linkStyle(
-    {
-      ...createConceptElement(style.kind, brand),
-      id: style.id,
-      ...(takesIcon(style.kind) ? { iconName: "StarIcon" } : {}),
-    },
-    style
-  );
 
 /** One style: a row (fold, type, name, remove) that opens to its sample and look. */
 function StyleEditor({
@@ -55,7 +33,7 @@ function StyleEditor({
   style: ConceptStyle;
 }) {
   const bodyId = useId();
-  const sample = sampleOf(style, brand);
+  const sample = styleSample(style, brand);
   return (
     <section className="brand-kit-components__style">
       <header className="brand-kit-components__head">

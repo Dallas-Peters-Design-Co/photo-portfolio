@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import useSWR from "swr";
 import { parseFontRef } from "../../config/fontRef.js";
+import { ComponentSection } from "../components/brandGuide/GuideComponents";
 import {
   ColourSection,
   ImagerySection,
@@ -30,6 +31,7 @@ const SECTIONS = [
   ["foundation", "Foundation"],
   ["colour", "Colour"],
   ["type", "Type"],
+  ["components", "Components"],
   ["logo", "Logo"],
   ["imagery", "Imagery"],
   ["references", "References"],
@@ -192,6 +194,11 @@ export function BrandGuidePage() {
         <section className="doc-band" id="type">
           <h2 className="doc-band__title">Type</h2>
           <TypeSection doc={doc} />
+        </section>
+
+        <section className="doc-band" id="components">
+          <h2 className="doc-band__title">Components</h2>
+          <ComponentSection doc={doc} />
         </section>
 
         <section className="doc-band" id="logo">

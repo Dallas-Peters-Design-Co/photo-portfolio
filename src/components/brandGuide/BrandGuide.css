@@ -471,3 +471,66 @@
     print-color-adjust: exact;
   }
 }
+
+/* Component styles: a sample on the brand's ground, then its facts. */
+.guide-components {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: calc(var(--spacing) * 6);
+}
+
+.guide-component {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  align-content: start;
+}
+
+.guide-component__sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 8rem;
+  padding: calc(var(--spacing) * 6);
+  background: var(--guide-surface);
+  border: 1px solid var(--guide-rule);
+}
+
+.guide-component__facts {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  margin: 0;
+  font-size: var(--text-sm-ui, 0.875rem);
+  font-variant-numeric: tabular-nums;
+}
+
+.guide-component__facts > div {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  gap: calc(var(--spacing) * 2);
+}
+
+.guide-component__facts dt {
+  color: var(--guide-muted);
+}
+
+.guide-component__facts dd {
+  display: flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.guide-component__dot {
+  flex: none;
+  width: 0.8em;
+  height: 0.8em;
+  border: 1px solid color-mix(in oklch, var(--guide-ink) 25%, transparent);
+  border-radius: 50%;
+}
+
+@media print {
+  .guide-component {
+    break-inside: avoid;
+  }
+}

@@ -1,5 +1,6 @@
 import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
 import { DEFAULT_SHADOW } from "../../../config/conceptShadow.js";
+import { type ConceptStyle, linkStyle } from "../../../config/conceptStyle.js";
 import {
   type ConceptTable,
   DEFAULT_TABLE,
@@ -10,6 +11,7 @@ import {
   type ReviewConcept,
   type ReviewConceptElement,
   type ReviewConceptElementKind,
+  takesIcon,
 } from "../../../config/reviewConcept.js";
 import { ColorWell } from "../../boards/ColorWell";
 import { ConceptSelect } from "./ConceptControls";
@@ -394,4 +396,21 @@ export const duplicateConceptElement = (
 ): ReviewConceptElement[] =>
   elements.flatMap((element) =>
     element.id === id ? [element, { ...element, id: newItemId() }] : [element]
+  );
+
+/**
+ * What a style is drawn on: its kind's sample content, in the style's look.
+ * A stand-in icon on kinds that take one, so the icon size and colour show.
+ */
+export const styleSample = (
+  style: ConceptStyle,
+  brand: BrandKitDoc
+): ReviewConceptElement =>
+  linkStyle(
+    {
+      ...createConceptElement(style.kind, brand),
+      id: style.id,
+      ...(takesIcon(style.kind) ? { iconName: "StarIcon" } : {}),
+    },
+    style
   );

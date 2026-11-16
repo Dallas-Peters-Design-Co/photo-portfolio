@@ -1,4 +1,5 @@
 import type { BrandKitDoc, PaletteEntry, TypefaceEntry } from "./brandKit.js";
+import { styleLines } from "./conceptStyleFacts.js";
 import {
   scaleLayout,
   scaleProse,
@@ -343,11 +344,19 @@ const typography = (doc: BrandKitDoc): string[] => {
 
 const components = (doc: BrandKitDoc): string[] => {
   const fromSites = scannedComponentLines(doc.scans);
-  if (doc.palette.length === 0 && fromSites.length === 0) {
+  const fromKit = styleLines(doc.componentStyles);
+  if (doc.palette.length === 0 && fromSites.length === 0 && !fromKit.length) {
     return [];
   }
   return [
     "## Components",
+    ...(fromKit.length > 0
+      ? [
+          "",
+          "The brand's own component styles. Use these as given.",
+          ...fromKit,
+        ]
+      : []),
     ...(fromSites.length > 0
       ? [
           "",
