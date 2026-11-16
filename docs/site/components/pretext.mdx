@@ -576,7 +576,7 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 
 <div className="bk-preview bk-pretext">
 <article className="card-primary">
-  <h3>Card title</h3>
+  <div role="heading" aria-level={3} className="card-primary__title">Card title</div>
   <p>Supporting copy goes here.</p>
 </article>
 </div>
@@ -596,7 +596,7 @@ interface CardPrimaryProps {
 export function CardPrimary({ className, children, title = "Card title" }: CardPrimaryProps) {
   return (
     <article className={className ? `card-primary ${className}` : "card-primary"}>
-      <h3>{title}</h3>
+      <h3 className="card-primary__title">{title}</h3>
       <p>{children}</p>
     </article>
   );
@@ -633,7 +633,7 @@ export function CardPrimary({ className, children, title = "Card title" }: CardP
   box-shadow: var(--card-primary-shadow);
 }
 
-.card-primary > h3 { margin: 0; font-size: inherit; font-weight: var(--card-primary-title-weight, 600); }
+.card-primary__title { margin: 0; font-size: inherit; font-weight: var(--card-primary-title-weight, 600); }
 .card-primary > p { margin: 0.25em 0 0; font-size: var(--card-primary-body-size, 0.875em); }
 ```
 </CodeGroup>
@@ -1041,7 +1041,7 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 
 <div className="bk-preview bk-pretext">
 <article className="card-stats">
-  <h3>Card title</h3>
+  <div role="heading" aria-level={3} className="card-stats__title">Card title</div>
   <p>Supporting copy goes here.</p>
 </article>
 </div>
@@ -1061,7 +1061,7 @@ interface CardStatsProps {
 export function CardStats({ className, children, title = "Card title" }: CardStatsProps) {
   return (
     <article className={className ? `card-stats ${className}` : "card-stats"}>
-      <h3>{title}</h3>
+      <h3 className="card-stats__title">{title}</h3>
       <p>{children}</p>
     </article>
   );
@@ -1099,7 +1099,7 @@ export function CardStats({ className, children, title = "Card title" }: CardSta
   box-shadow: var(--card-stats-shadow);
 }
 
-.card-stats > h3 { margin: 0; font-size: inherit; font-weight: var(--card-stats-title-weight, 600); }
+.card-stats__title { margin: 0; font-size: inherit; font-weight: var(--card-stats-title-weight, 600); }
 .card-stats > p { margin: 0.25em 0 0; font-size: var(--card-stats-body-size, 0.875em); }
 ```
 </CodeGroup>
@@ -1222,7 +1222,7 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
 
 <div className="bk-preview bk-pretext">
 <article className="card-plain">
-  <h3>Card title</h3>
+  <div role="heading" aria-level={3} className="card-plain__title">Card title</div>
   <p>Supporting copy goes here.</p>
 </article>
 </div>
@@ -1242,7 +1242,7 @@ interface CardPlainProps {
 export function CardPlain({ className, children, title = "Card title" }: CardPlainProps) {
   return (
     <article className={className ? `card-plain ${className}` : "card-plain"}>
-      <h3>{title}</h3>
+      <h3 className="card-plain__title">{title}</h3>
       <p>{children}</p>
     </article>
   );
@@ -1276,7 +1276,7 @@ export function CardPlain({ className, children, title = "Card title" }: CardPla
   box-shadow: var(--card-plain-shadow);
 }
 
-.card-plain > h3 { margin: 0; font-size: inherit; font-weight: var(--card-plain-title-weight, 600); }
+.card-plain__title { margin: 0; font-size: inherit; font-weight: var(--card-plain-title-weight, 600); }
 .card-plain > p { margin: 0.25em 0 0; font-size: var(--card-plain-body-size, 0.875em); }
 ```
 </CodeGroup>

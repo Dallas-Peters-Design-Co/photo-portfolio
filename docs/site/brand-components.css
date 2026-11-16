@@ -378,7 +378,7 @@
   box-shadow: var(--card-primary-shadow);
 }
 
-.bk-pretext .card-primary > h3 {
+.bk-pretext .card-primary__title {
   margin: 0;
   font-size: inherit;
   font-weight: var(--card-primary-title-weight, 600);
@@ -614,7 +614,7 @@
   box-shadow: var(--card-stats-shadow);
 }
 
-.bk-pretext .card-stats > h3 {
+.bk-pretext .card-stats__title {
   margin: 0;
   font-size: inherit;
   font-weight: var(--card-stats-title-weight, 600);
@@ -726,7 +726,7 @@
   box-shadow: var(--card-plain-shadow);
 }
 
-.bk-pretext .card-plain > h3 {
+.bk-pretext .card-plain__title {
   margin: 0;
   font-size: inherit;
   font-weight: var(--card-plain-title-weight, 600);

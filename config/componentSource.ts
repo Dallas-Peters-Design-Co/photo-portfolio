@@ -145,8 +145,8 @@ const markupOf = (el: ReviewConceptElement): Markup => {
       tag: "button",
     }),
     card: () => ({
-      body: "  <h3>{title}</h3>\n  <p>{children}</p>",
-      css: "& > h3 { margin: 0; font-size: inherit; font-weight: var(--&-title-weight, 600); }\n& > p { margin: 0.25em 0 0; font-size: var(--&-body-size, 0.875em); }",
+      body: '  <h3 className="&__title">{title}</h3>\n  <p>{children}</p>',
+      css: "&__title { margin: 0; font-size: inherit; font-weight: var(--&-title-weight, 600); }\n& > p { margin: 0.25em 0 0; font-size: var(--&-body-size, 0.875em); }",
       props: "title",
       tag: "article",
     }),
@@ -293,7 +293,9 @@ export const componentSource = (
     ...(markup.attrs ? [markup.attrs] : []),
     ...(markup.props?.includes("onClick") ? ["onClick={onClick}"] : []),
   ].join(" ");
-  const inner = markup.passChildren ? "  {children}" : markup.body;
+  const inner = markup.passChildren
+    ? "  {children}"
+    : markup.body?.replaceAll("&", className);
   const jsx = inner
     ? `    <${markup.tag} ${attrs}>\n${inner
         .split("\n")
@@ -327,8 +329,12 @@ ${jsx}
 }
 `;
   const { body: cardBody, title: cardTitle } = splitCardText(element.text);
+  // A heading in a docs page would join its table of contents; the preview
+  // says it is one to a screen reader instead.
   const previewInner = inner
-    ?.replaceAll("{children}", escapeJsx(cardBody || sampleText(element)))
+    ?.replaceAll("<h3 ", '<div role="heading" aria-level={3} ')
+    .replaceAll("</h3>", "</div>")
+    .replaceAll("{children}", escapeJsx(cardBody || sampleText(element)))
     .replaceAll("{title}", escapeJsx(cardTitle || sampleText(element)));
   const previewAttrs = [
     `className="${className}"`,

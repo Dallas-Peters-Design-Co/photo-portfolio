@@ -59,3 +59,20 @@ describe("componentSource", () => {
     expect(source.tsx).toContain("<td>Ada</td>");
   });
 });
+
+describe("componentSource card", () => {
+  it("styles the title by class, and keeps it out of a page's headings in the preview", () => {
+    const source = componentSource(
+      cleanConcept({
+        elements: [{ kind: "card", text: "Title\nBody" }],
+      }).elements[0] as ReviewConceptElement,
+      "Plain"
+    );
+    expect(source.tsx).toContain(
+      '<h3 className="card-plain__title">{title}</h3>'
+    );
+    expect(source.css).toContain(".card-plain__title {");
+    expect(source.preview).not.toContain("<h3");
+    expect(source.preview).toContain('role="heading"');
+  });
+});
