@@ -14,9 +14,11 @@ import {
   type ConceptTable,
   type ConceptTableColumn,
   DEFAULT_BORDERS,
+  joinProgressCell,
   MAX_BORDER_WIDTH,
   MAX_TABLE_COLUMNS,
   MAX_TABLE_ROWS,
+  progressLabelOf,
   removeColumn,
   removeRow,
   reorderColumns,
@@ -129,17 +131,32 @@ function CellInput({
     );
   }
   if (column.kind === "progress") {
+    const [percent = ""] = value.split("\n");
+    const line = progressLabelOf(value);
     return (
-      <Input
-        aria-label={`${label}, percent`}
-        face="numeric"
-        max={100}
-        min={0}
-        onChange={(event) => onChange(event.target.value)}
-        size="sm"
-        type="number"
-        value={value}
-      />
+      <div className="review-concepts__table-stack">
+        <Input
+          aria-label={`${label}, percent`}
+          face="numeric"
+          max={100}
+          min={0}
+          onChange={(event) =>
+            onChange(joinProgressCell(event.target.value, line))
+          }
+          size="sm"
+          type="number"
+          value={percent}
+        />
+        <Input
+          aria-label={`${label}, description`}
+          onChange={(event) =>
+            onChange(joinProgressCell(percent, event.target.value))
+          }
+          placeholder="Description"
+          size="sm"
+          value={line}
+        />
+      </div>
     );
   }
   return (

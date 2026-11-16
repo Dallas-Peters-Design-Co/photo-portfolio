@@ -7,6 +7,7 @@ import {
   cleanConcept,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
+import { IconPicker } from "../../cms/IconPicker";
 import { createConceptElement } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
@@ -114,4 +115,23 @@ it("keeps end icons on buttons, badges and tags, and a list look on selects", ()
   expect(text?.iconEndName).toBeUndefined();
   expect(select?.menuLook).toEqual({ highlight: "#ffe08a", radius: 32 });
   expect(button?.menuLook).toBeUndefined();
+});
+
+it("keeps a long icon name on one line in a narrow table cell", () => {
+  host.style.width = "120px";
+  act(() =>
+    root.render(
+      <IconPicker
+        label="Row 1, Actions"
+        onChange={() => undefined}
+        size="sm"
+        value="MoreHorizontalIcon"
+      />
+    )
+  );
+  const trigger = host.querySelector("button") as HTMLElement;
+  const name = trigger.querySelector("span span") as HTMLElement;
+  // One line: as tall as the trigger allows, and no wider than it.
+  expect(name.getBoundingClientRect().height).toBeLessThan(24);
+  expect(trigger.scrollWidth).toBeLessThanOrEqual(trigger.clientWidth + 1);
 });

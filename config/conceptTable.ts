@@ -19,6 +19,8 @@ import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
  *   icon     an icon's name ("FavouriteIcon"); its drawing is kept in
  *            `icons`, so the public page draws it without the library
  *   button   the button's label
+ *   progress "60\nDesign handoff" — the percent, then an optional line
+ *            that says what is in progress
  *
  * Tables made before this stored only `options` (the column names) and drew
  * one row of "Example"; `tableOf` reads those the same way.
@@ -318,6 +320,14 @@ export const progressOf = (cell: string): number => {
   return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
 };
 
+/** A Progress cell's line under or beside its bar: what is in progress. */
+export const progressLabelOf = (cell: string): string =>
+  cell.split("\n").slice(1).join(" ").trim();
+
+/** A Progress cell from its percent and its line ("" for none). */
+export const joinProgressCell = (percent: string, label: string): string =>
+  label.trim() ? `${percent}\n${label.replace(LINE_BREAKS, " ")}` : percent;
+
 /* Edits, each returning a new table. */
 
 export const updateColumn = (
@@ -377,12 +387,15 @@ export const setColumnKind = (
   if (kind === "stacked") {
     return retyped;
   }
-  // A Progress cell holds a number; words become a half-full bar to edit.
+  // A Progress cell holds a number; words become the line under a half-full
+  // bar, so nothing typed is lost.
   const retext = (cell: string): string => {
     if (kind !== "progress") {
       return cell.replace(LINE_BREAKS, " ");
     }
-    return Number.isFinite(Number.parseFloat(cell)) ? cell : "50";
+    return Number.isFinite(Number.parseFloat(cell))
+      ? cell
+      : joinProgressCell("50", cell);
   };
   return {
     ...retyped,

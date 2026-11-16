@@ -7,6 +7,7 @@ import {
   type ConceptTableColumn,
   chipsOf,
   DEFAULT_BORDERS,
+  progressLabelOf,
   progressOf,
   tableOf,
 } from "../../../config/conceptTable.js";
@@ -125,17 +126,29 @@ function Cell({
       ) : null;
     case "progress": {
       const percent = progressOf(value);
+      const label = progressLabelOf(value);
+      // With a line, it heads the bar with the percent at its end; without
+      // one, the percent sits beside the bar.
       return (
-        <span className="concept-table__progress">
+        <span
+          className="concept-table__progress"
+          data-labelled={label ? "" : undefined}
+        >
+          {label ? (
+            <span className="concept-table__progress-head">
+              <span>{label}</span>
+              <small>{Math.round(percent)}%</small>
+            </span>
+          ) : null}
           <ProgressBar
             color={tintOf(column)}
             height={6}
-            label={`${Math.round(percent)}%`}
+            label={label || `${Math.round(percent)}%`}
             radius={999}
             track="color-mix(in srgb, currentColor 12%, transparent)"
             value={percent}
           />
-          <small>{Math.round(percent)}%</small>
+          {label ? null : <small>{Math.round(percent)}%</small>}
         </span>
       );
     }

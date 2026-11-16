@@ -165,18 +165,23 @@ export function IconPicker({
         className={`flex ${TRIGGER_SIZES[size]} w-full items-center justify-between gap-2 rounded-control border border-white/10 bg-black/40 text-left transition-colors hover:border-white/25 focus:border-white/40 focus:outline-none`}
         id={id}
         onClick={() => setOpen((v) => !v)}
+        title={value ? labelFor(value) : undefined}
         type="button"
       >
-        <span className="flex items-center gap-2 text-sm text-white/80">
+        {/* One line, cut short with an ellipsis: in a narrow table cell a
+            long name ("More horizontal") wrapped over its own chevron. */}
+        <span className="flex min-w-0 items-center gap-2 text-sm text-white/80">
           {Selected ? (
             <>
-              <HugeiconsIcon icon={Selected} size={16} />
-              <span className="text-sm text-white/90 uppercase">
+              <HugeiconsIcon className="shrink-0" icon={Selected} size={16} />
+              <span className="truncate text-sm text-white/90 uppercase">
                 {labelFor(value ?? "")}
               </span>
             </>
           ) : (
-            <span className="text-sm text-white/90 uppercase">No icon</span>
+            <span className="truncate text-sm text-white/90 uppercase">
+              No icon
+            </span>
           )}
         </span>
         <HugeiconsIcon

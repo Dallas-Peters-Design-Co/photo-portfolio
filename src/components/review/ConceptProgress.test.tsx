@@ -79,3 +79,38 @@ it("draws a table's Progress column as bars, words turned to 50%", () => {
   expect(bars[0]).toBe("80");
   expect(bars.slice(1).every((value) => value === "50")).toBe(true);
 });
+
+it("heads a table's progress bar with its description, words kept as one", () => {
+  const table = createConceptElement("table");
+  const base = table.table;
+  if (!base) {
+    throw new Error("A new table has a sample");
+  }
+  const withColumn = addColumn(base);
+  const last = withColumn.columns.length - 1;
+  // Words already in the column become the description of a half-full bar.
+  const typed = setColumnKind(
+    setCell(setCell(withColumn, 0, last, "Design handoff"), 1, last, "80"),
+    last,
+    "progress"
+  );
+  draw({ ...table, table: typed });
+  const cells = [
+    ...host.querySelectorAll<HTMLElement>(".concept-table__progress"),
+  ];
+  expect(cells[0]?.textContent).toBe("Design handoff50%");
+  expect(
+    cells[0]
+      ?.querySelector('[role="progressbar"]')
+      ?.getAttribute("aria-valuenow")
+  ).toBe("50");
+  // The line sits above the bar.
+  const line = cells[0]?.querySelector("span > span") as HTMLElement;
+  const bar = cells[0]?.querySelector('[role="progressbar"]') as HTMLElement;
+  expect(line.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+    bar.getBoundingClientRect().top + 1
+  );
+  // No description: the percent beside the bar, as before.
+  expect(cells[1]?.hasAttribute("data-labelled")).toBe(false);
+  expect(cells[1]?.textContent).toBe("80%");
+});
