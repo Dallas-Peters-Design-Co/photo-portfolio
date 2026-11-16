@@ -27,6 +27,7 @@
    and the slot's elements sit together at the far end. */
 .concept-slot[data-led] {
   flex-direction: row;
+  flex-wrap: wrap;
   align-items: center;
 }
 
@@ -65,9 +66,11 @@
   min-width: 0;
 }
 
-/* The element's own text leads its header, taking the free width. */
+/* The element's own text leads its header, taking the free width. Below
+   8rem beside the slot's elements, they move under it rather than squeeze
+   it to a word a line and draw over it. */
 .concept-slot__lead {
-  flex: 1 1 auto;
+  flex: 1 1 8rem;
   min-width: 0;
 }
 

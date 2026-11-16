@@ -262,3 +262,37 @@ it("keeps a card's header row on one line beside long text", () => {
   expect(arrow?.left).toBeGreaterThanOrEqual(badge?.right ?? 0);
   expect(arrow?.top).toBeLessThan(badge?.bottom ?? 0);
 });
+
+it("moves a header's badge under a card's text when the card is narrow", () => {
+  host.style.width = "300px";
+  // As in the editor: a title, a body, and a long badge in the header.
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    iconName: undefined,
+    slots: {
+      header: {
+        elements: [
+          {
+            ...createConceptElement("badge"),
+            fontSize: 22,
+            text: "5 pending review",
+          },
+        ],
+        layout: "row",
+      },
+    },
+    text: "Results & Findings\nReview parsed results",
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  const text = host
+    .querySelector(".concept-slot__lead")
+    ?.getBoundingClientRect() as DOMRect;
+  const badge = host
+    .querySelector('[data-slot="header"] > .concept-slot__items')
+    ?.getBoundingClientRect() as DOMRect;
+  // No overlap: the badge is below the text, and the title keeps its width.
+  expect(badge.top).toBeGreaterThanOrEqual(text.bottom - 1);
+  const title = document.createRange();
+  title.selectNodeContents(host.querySelector("strong") as Node);
+  expect(title.getClientRects().length).toBeLessThanOrEqual(2);
+});
