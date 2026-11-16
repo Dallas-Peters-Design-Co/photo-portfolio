@@ -30,7 +30,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     }
   }, [concept]);
 
-  const style: CSSProperties = {
+  const style = {
     alignItems: ALIGN_ITEMS[concept.align],
     background: concept.background,
     borderRadius: concept.radius,
@@ -44,7 +44,10 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     ),
     gap: concept.gap,
     padding: concept.padding,
-  };
+    ...(concept.itemWidth
+      ? { "--concept-item-width": `${concept.itemWidth}px` }
+      : {}),
+  } as CSSProperties;
 
   return (
     <div className="review-page__concept">
@@ -56,6 +59,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
         aria-label={`${concept.title || "Interface concept"} preview`}
         className="review-page__concept-preview concept-canvas"
         data-direction={concept.direction}
+        data-scroll={concept.scroll || undefined}
         role="img"
         style={style}
       >

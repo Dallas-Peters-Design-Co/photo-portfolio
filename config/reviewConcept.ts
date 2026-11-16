@@ -259,10 +259,20 @@ export interface ReviewConcept {
   fontRef?: string;
   gap: number;
   id: string;
+  /** Scroll only: the width in px each card or panel keeps. */
+  itemWidth?: number;
   padding: number;
   radius: number;
+  /**
+   * Horizontal only: one line that scrolls sideways, rather than wrapping
+   * onto new lines when it runs out of width.
+   */
+  scroll?: boolean;
   title: string;
 }
+
+/** The width a card or panel keeps in a scrolling row: px. */
+export const ITEM_WIDTH = { default: 280, max: 640, min: 120 } as const;
 
 /** A card keeps its title on the first line of `text` and its body below. */
 export const splitCardText = (
@@ -407,8 +417,16 @@ export const cleanConcept = (value: unknown): ReviewConcept => {
     ...font,
     gap: bounded(raw.gap, 0, 64, 12),
     id: str(raw.id, 64) || newItemId(),
+    ...(typeof raw.itemWidth === "number"
+      ? {
+          itemWidth: Math.round(
+            bounded(raw.itemWidth, ITEM_WIDTH.min, ITEM_WIDTH.max, 0)
+          ),
+        }
+      : {}),
     padding: bounded(raw.padding, 0, 96, 24),
     radius: bounded(raw.radius, 0, 64, 12),
+    ...(raw.scroll === true && raw.direction === "row" ? { scroll: true } : {}),
     title: str(raw.title, MAX_TITLE),
   };
 };

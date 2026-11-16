@@ -1,5 +1,5 @@
 import { Plus, Trash2 } from "lucide-react";
-import { useEffect } from "react";
+import { type CSSProperties, useEffect } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { everyElement } from "../../../config/conceptSlots.js";
@@ -10,6 +10,7 @@ import type {
 } from "../../../config/reviewConcept.js";
 import {
   ALIGN_ITEMS,
+  ITEM_WIDTH,
   MAX_REVIEW_CONCEPTS,
 } from "../../../config/reviewConcept.js";
 import { loadFontRef } from "../../theme/remoteFonts";
@@ -30,6 +31,7 @@ import "./ReviewConceptsEditor.css";
 const DIRECTIONS = optionsOf([
   ["column", "Vertical"],
   ["row", "Horizontal"],
+  ["scroll", "Horizontal, scroll"],
 ]);
 const ALIGNS = optionsOf([
   ["start", "Start"],
@@ -83,7 +85,10 @@ function ConceptCard({
     ),
     gap: concept.gap,
     padding: concept.padding,
-  } as const;
+    ...(concept.itemWidth
+      ? { "--concept-item-width": `${concept.itemWidth}px` }
+      : {}),
+  } as CSSProperties;
 
   return (
     <article className="review-concepts__card">
@@ -116,6 +121,7 @@ function ConceptCard({
           <div
             className="review-concepts__preview concept-canvas"
             data-direction={concept.direction}
+            data-scroll={concept.scroll || undefined}
             style={previewStyle}
           >
             {elements.map((element) => (
@@ -128,16 +134,26 @@ function ConceptCard({
             <ConceptField label="Auto layout">
               <ConceptSelect
                 label="Auto layout"
-                onChange={(direction) =>
+                onChange={(layout) =>
                   onChange({
                     ...concept,
-                    direction: direction === "row" ? "row" : "column",
+                    direction: layout === "column" ? "column" : "row",
+                    scroll: layout === "scroll" || undefined,
                   })
                 }
                 options={DIRECTIONS}
-                value={concept.direction}
+                value={concept.scroll ? "scroll" : concept.direction}
               />
             </ConceptField>
+            {concept.scroll ? (
+              <NumberField
+                label="Card width"
+                max={ITEM_WIDTH.max}
+                min={ITEM_WIDTH.min}
+                onChange={(itemWidth) => onChange({ ...concept, itemWidth })}
+                value={concept.itemWidth ?? ITEM_WIDTH.default}
+              />
+            ) : null}
             <ConceptField label="Align items">
               <ConceptSelect
                 label="Align items"

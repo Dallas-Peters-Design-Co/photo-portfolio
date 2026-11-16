@@ -123,6 +123,29 @@
   width: auto;
 }
 
+/* Scrolling: one line that scrolls sideways instead of wrapping. Cards and
+   panels keep one set width; the rest keep their own. No scrollbar is drawn, as
+   on a table. */
+[data-direction="row"][data-scroll] {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+
+[data-direction="row"][data-scroll]::-webkit-scrollbar {
+  display: none;
+}
+
+[data-direction="row"][data-scroll] > .review-concepts__card-preview,
+[data-direction="row"][data-scroll]
+  > .concept-hover
+  > .review-concepts__card-preview,
+[data-direction="row"][data-scroll] > .concept-panel,
+[data-direction="row"][data-scroll] > .concept-hover > .concept-panel {
+  flex: 0 0 var(--concept-item-width, 280px);
+}
+
 /*
  * A select's or dropdown menu's open list, in the element's look (see
  * conceptMenuStyle.ts): its own fill, text, edge and corners, and the row

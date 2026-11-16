@@ -1,10 +1,14 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
-import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import {
+  cleanConcept,
+  type ReviewConceptElement,
+} from "../../../config/reviewConcept.js";
 import { createConceptElement } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
+import { ReviewConceptPreview } from "./ReviewConceptPreview";
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -295,4 +299,45 @@ it("moves a header's badge under a card's text when the card is narrow", () => {
   const title = document.createRange();
   title.selectNodeContents(host.querySelector("strong") as Node);
   expect(title.getClientRects().length).toBeLessThanOrEqual(2);
+});
+
+it("keeps a scrolling row of cards on one line, each its set width", () => {
+  host.style.width = "600px";
+  const card = (id: string): ReviewConceptElement => ({
+    ...createConceptElement("card"),
+    id,
+    text: "Evidence Screening\nSearch and screen literature",
+  });
+  act(() =>
+    root.render(
+      <ReviewConceptPreview
+        concept={cleanConcept({
+          direction: "row",
+          elements: ["a", "b", "c", "d", "e"].map(card),
+          itemWidth: 240,
+          scroll: true,
+        })}
+      />
+    )
+  );
+  const row = host.querySelector<HTMLElement>(".concept-canvas") as HTMLElement;
+  const cards = [...host.querySelectorAll<HTMLElement>("article")];
+  const tops = new Set(
+    cards.map((c) => Math.round(c.getBoundingClientRect().top))
+  );
+  // One line, each card 240px, scrolling rather than wrapping.
+  expect(tops.size).toBe(1);
+  for (const c of cards) {
+    expect(c.getBoundingClientRect().width).toBeCloseTo(240, 0);
+  }
+  expect(row.scrollWidth).toBeGreaterThan(row.clientWidth);
+  expect(getComputedStyle(row).overflowX).toBe("auto");
+});
+
+it("keeps scroll only on a horizontal row", () => {
+  const concept = cleanConcept({ direction: "row", scroll: true });
+  expect(concept.scroll).toBe(true);
+  expect(cleanConcept({ direction: "column", scroll: true }).scroll).toBe(
+    undefined
+  );
 });
