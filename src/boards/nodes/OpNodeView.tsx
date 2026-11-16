@@ -4,15 +4,10 @@ import PlayIcon from "@hugeicons-pro/core-stroke-standard/PlayIcon";
 import RefreshIcon from "@hugeicons-pro/core-stroke-standard/RefreshIcon";
 import StopIcon from "@hugeicons-pro/core-stroke-standard/StopIcon";
 import { nodeTypeFor } from "../../../config/nodeTypes.js";
-import {
-  isSocialPreviewId,
-  type SocialPreviewId,
-} from "../../../config/socialPreview";
 import type { BoardItem, BoardItemVariation } from "../../types";
 import { HalftonePreview } from "../canvas/HalftonePreview";
 import { pickImages } from "../itemImages";
 import { selectedIndex } from "../itemOutput";
-import { SocialPreview } from "../studio/SocialPreview";
 import { BrandPreview } from "./BrandPreview";
 import { ListRows } from "./ListRows";
 import { NodeHeader } from "./NodeHeader";
@@ -20,6 +15,7 @@ import { NodeNotes } from "./NodeNotes";
 import { PaletteSwatches } from "./PaletteSwatches";
 import { ResultImages } from "./ResultImages";
 import { SettingField } from "./SettingField";
+import { SocialNode } from "./SocialNode";
 import { VideoDurationField } from "./VideoDurationField";
 import "./OpNodeView.css";
 import { Button } from "@/components/ui/button";
@@ -106,54 +102,6 @@ function PublishedResult({
   );
 }
 
-function SocialNodePreview({
-  imageUrl,
-  platform,
-}: {
-  imageUrl?: string | null;
-  platform: SocialPreviewId;
-}) {
-  const preview = imageUrl ? (
-    <img
-      alt="Connected frame artwork"
-      decoding="async"
-      height={1200}
-      src={imageUrl}
-      width={1200}
-    />
-  ) : (
-    <div className="social-node__empty">Connect a frame to preview it</div>
-  );
-
-  return (
-    <div className="social-node">
-      <SocialPreview platform={platform}>{preview}</SocialPreview>
-    </div>
-  );
-}
-
-function PublishedNode({
-  imageUrl,
-  images,
-  item,
-  selected,
-  text,
-}: {
-  imageUrl?: string | null;
-  images: BoardItemVariation[];
-  item: BoardItem;
-  selected: number;
-  text: string | null;
-}) {
-  if (item.nodeType === "social") {
-    const platform = isSocialPreviewId(item.config?.platform)
-      ? item.config.platform
-      : "facebook-post";
-    return <SocialNodePreview imageUrl={imageUrl} platform={platform} />;
-  }
-  return <PublishedResult images={images} selected={selected} text={text} />;
-}
-
 export function OpNodeView({
   hasWiredPrompt,
   imageCount,
@@ -170,6 +118,10 @@ export function OpNodeView({
   wiredItems,
   wiredPrompt,
 }: OpNodeViewProps) {
+  // The mock-up alone, in the editor and published (SocialNode.tsx).
+  if (item.nodeType === "social") {
+    return <SocialNode imageUrl={imageUrl} item={item} />;
+  }
   const type = nodeTypeFor(item.nodeType);
   const state = item.runState ?? "idle";
   const config = item.config ?? {};
@@ -190,10 +142,8 @@ export function OpNodeView({
   // material, and a visitor came to look at the picture.
   if (readOnly) {
     return (
-      <PublishedNode
+      <PublishedResult
         images={images}
-        imageUrl={imageUrl}
-        item={item}
         selected={selectedIndex(config)}
         text={analysed}
       />
@@ -372,17 +322,6 @@ function NodeBody({
           config={config}
           imageCount={imageCount}
           imageUrl={imageUrl}
-        />
-      ) : null}
-
-      {item.nodeType === "social" ? (
-        <SocialNodePreview
-          imageUrl={imageUrl}
-          platform={
-            isSocialPreviewId(config.platform)
-              ? config.platform
-              : "facebook-post"
-          }
         />
       ) : null}
 

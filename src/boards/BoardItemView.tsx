@@ -2,7 +2,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Delete02Icon from "@hugeicons-pro/core-stroke-standard/Delete02Icon";
 import { type RefObject, useEffect, useRef } from "react";
 import type { BoardItem } from "../types";
-import { BoardTextTools } from "./BoardTextTools";
 import { BoardToolBar } from "./BoardToolBar";
 import { opacityCss } from "./creative/layerOpacity";
 import type { ResizeHandle } from "./geometry/alignmentGuides";
@@ -10,6 +9,7 @@ import { nearestInput } from "./geometry/portGeometry";
 import { fitsContent, useAutoHeight } from "./hooks/useAutoHeight";
 import { INV_SCALE_VAR } from "./hooks/useCanvasViewport";
 import { itemBoxClassName } from "./itemBodies";
+import { KindTools } from "./KindTools";
 import { ItemContent } from "./nodes/ItemContent";
 import { PortHandles } from "./PortHandles";
 import { ResizeHandles } from "./ResizeHandles";
@@ -462,14 +462,14 @@ export function BoardItemView({
         />
       ) : null}
 
-      {isSoleSelected && isWritable && !readOnly ? (
-        <BoardTextTools
-          anchor={boxRef}
-          chromeScale={chromeScale}
-          item={item}
-          onPatch={onPatch}
-        />
-      ) : null}
+      <KindTools
+        anchor={boxRef}
+        chromeScale={chromeScale}
+        item={item}
+        on={isSoleSelected && !readOnly}
+        onPatch={onPatch}
+        writable={isWritable}
+      />
 
       {isSelected && !readOnly ? (
         <ResizeHandles

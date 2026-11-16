@@ -289,7 +289,9 @@ export function ShaderItem({
 export function itemBoxClassName(item: BoardItem, isSelected: boolean) {
   const isText = item.kind === "text";
   const isDrawing = item.kind === "drawing";
-  const bare = isText || (isDrawing && !isSelected);
+  // A social mock-up is its own picture: no outline round it until chosen.
+  const isSocial = item.nodeType === "social";
+  const bare = isText || ((isDrawing || isSocial) && !isSelected);
   return [
     "group",
     "board-item",
