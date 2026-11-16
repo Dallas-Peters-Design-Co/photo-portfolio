@@ -66,16 +66,35 @@ export function StyleLink({
 
   return (
     <div className="review-concepts__style-link">
+      <span className="review-concepts__style-label">Kit style</span>
+      <div className="review-concepts__style-pick">
+        <ConceptSelect
+          label={`${element.kind} style`}
+          onChange={(id) =>
+            onLink(styles.find((style) => style.id === id) ?? null)
+          }
+          options={[
+            { label: "Custom", value: CUSTOM },
+            ...styles.map((style) => ({ label: style.name, value: style.id })),
+          ]}
+          value={linked?.id ?? CUSTOM}
+        />
+      </div>
       {linked && own > 0 ? (
-        <Button
-          onClick={() => onLink(linked)}
-          size="xs"
-          title="Hand these settings back to the kit style"
-          type="button"
-          variant="ghost"
-        >
-          {own} {own === 1 ? "change" : "changes"} · Reset
-        </Button>
+        <>
+          <span className="review-concepts__style-changes">
+            {own} {own === 1 ? "change" : "changes"} of its own
+          </span>
+          <Button
+            onClick={() => onLink(linked)}
+            size="xs"
+            title="Hand these settings back to the kit style"
+            type="button"
+            variant="ghost"
+          >
+            Reset
+          </Button>
+        </>
       ) : null}
       {kit && linked && own > 0 ? (
         <Button
@@ -99,19 +118,6 @@ export function StyleLink({
           {linked ? "Save as new style" : "Save as kit style"}
         </Button>
       ) : null}
-      <div className="review-concepts__style-pick">
-        <ConceptSelect
-          label={`${element.kind} style`}
-          onChange={(id) =>
-            onLink(styles.find((style) => style.id === id) ?? null)
-          }
-          options={[
-            { label: "Custom", value: CUSTOM },
-            ...styles.map((style) => ({ label: style.name, value: style.id })),
-          ]}
-          value={linked?.id ?? CUSTOM}
-        />
-      </div>
     </div>
   );
 }

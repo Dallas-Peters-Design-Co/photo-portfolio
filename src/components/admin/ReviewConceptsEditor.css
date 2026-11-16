@@ -120,19 +120,35 @@
 }
 
 /* The element's name, then its actions pushed to the far end. */
+/* An element's row: its name and quick actions, then its kit style. */
 .review-concepts__element-bar {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  margin: calc(var(--spacing) * -1) calc(var(--spacing) * -1) 0 0;
+}
+
+.review-concepts__element-main {
   display: flex;
   gap: calc(var(--spacing) * 1);
   align-items: center;
-  margin: calc(var(--spacing) * -1) calc(var(--spacing) * -1) 0 0;
+  min-width: 0;
 }
 
 /* The whole name is the fold control: a wide target, not a small chevron. */
 /* The kit style an element follows, beside its name. */
 .review-concepts__style-link {
   display: flex;
-  gap: calc(var(--spacing) * 1);
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
   align-items: center;
+  /* Under the name, past the drag handle and the chevron. */
+  padding-inline-start: calc(var(--spacing) * 9);
+}
+
+.review-concepts__style-label,
+.review-concepts__style-changes {
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 60%, transparent);
 }
 
 .review-concepts__style-pick {

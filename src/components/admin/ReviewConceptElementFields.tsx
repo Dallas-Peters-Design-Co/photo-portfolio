@@ -244,43 +244,47 @@ function ElementBar({
 }) {
   return (
     <header className="review-concepts__element-bar">
-      {handle}
-      <button
-        aria-controls={bodyId}
-        aria-expanded={open}
-        className="review-concepts__element-toggle"
-        onClick={onToggle}
-        type="button"
-      >
-        <ChevronDown aria-hidden size={14} />
-        <span>{element.kind}</span>
-        {open ? null : <small>{summaryOf(element)}</small>}
-      </button>
+      {/* The name and quick actions on one line; the kit style on its own
+          line below, where its buttons have room. */}
+      <div className="review-concepts__element-main">
+        {handle}
+        <button
+          aria-controls={bodyId}
+          aria-expanded={open}
+          className="review-concepts__element-toggle"
+          onClick={onToggle}
+          type="button"
+        >
+          <ChevronDown aria-hidden size={14} />
+          <span>{element.kind}</span>
+          {open ? null : <small>{summaryOf(element)}</small>}
+        </button>
+        {actions}
+        {onDuplicate ? (
+          <Button
+            aria-label={`Duplicate ${element.kind}`}
+            onClick={onDuplicate}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <Copy size={13} />
+          </Button>
+        ) : null}
+        {onRemove ? (
+          <Button
+            aria-label={`Remove ${element.kind}`}
+            onClick={onRemove}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 size={13} />
+          </Button>
+        ) : null}
+      </div>
       {onLink && styles.length > 0 ? (
         <StyleLink element={element} onLink={onLink} styles={styles} />
-      ) : null}
-      {actions}
-      {onDuplicate ? (
-        <Button
-          aria-label={`Duplicate ${element.kind}`}
-          onClick={onDuplicate}
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <Copy size={13} />
-        </Button>
-      ) : null}
-      {onRemove ? (
-        <Button
-          aria-label={`Remove ${element.kind}`}
-          onClick={onRemove}
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <Trash2 size={13} />
-        </Button>
       ) : null}
     </header>
   );
