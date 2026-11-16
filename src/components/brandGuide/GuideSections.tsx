@@ -131,6 +131,7 @@ export function ColourSection({ doc }: { doc: BrandKitDoc }) {
 
 const SOURCE = {
   adobe: "Adobe Fonts",
+  app: "App font",
   fontshare: "Fontshare",
   google: "Google Fonts",
 } as const;

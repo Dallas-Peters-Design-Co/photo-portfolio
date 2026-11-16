@@ -9,16 +9,21 @@
  *
  *   g:Playfair Display        a Google Fonts family
  *   a:abc1234:proxima-nova    an Adobe Fonts family (web project id, CSS name)
+ *   p:exposure                one of the app's own families (config/theme.ts)
  *
  * Shared by the API (to validate what is stored) and the client (to load and
  * render it).
  */
 
-export type FontSource = "adobe" | "fontshare" | "google";
+import { FONT_CHOICES } from "./theme.js";
+
+export type FontSource = "adobe" | "app" | "fontshare" | "google";
 
 export interface FontRef {
   /** The CSS font-family name. */
   family: string;
+  /** The app's own font id (config/theme.ts); only for app. */
+  fontId?: string;
   /** Adobe Fonts web project id; only for adobe. */
   kitId: string | null;
   /** Fontshare family slug; only for fontshare. */
@@ -37,6 +42,9 @@ export const isFontFamilyName = (value: unknown): value is string =>
   typeof value === "string" && FAMILY.test(value);
 
 export const fontRefId = (ref: FontRef): string => {
+  if (ref.source === "app") {
+    return `p:${ref.fontId ?? ""}`;
+  }
   if (ref.source === "google") {
     return `g:${ref.family}`;
   }
@@ -44,6 +52,21 @@ export const fontRefId = (ref: FontRef): string => {
     return `f:${ref.slug}:${ref.family}`;
   }
   return `a:${ref.kitId}:${ref.family}`;
+};
+
+const QUOTED_FAMILY = /^"([^"]+)"/;
+
+/**
+ * One of the app's own families as a ref, so a brand kit can name it beside
+ * Google, Fontshare and Adobe faces. Its CSS name is the first in its stack
+ * ("Exposure[0]"), which is what its @font-face declares.
+ */
+const appFontRef = (fontId: string): FontRef | null => {
+  const font = FONT_CHOICES.find((choice) => choice.id === fontId);
+  const family = font?.stack.match(QUOTED_FAMILY)?.[1];
+  return font && family
+    ? { family, fontId: font.id, kitId: null, source: "app" }
+    : null;
 };
 
 /** Reads a ref back, or null when the string is not one. */
@@ -62,6 +85,9 @@ export const parseFontRef = (value: unknown): FontRef | null => {
     return isAdobeKitId(kitId) && isFontFamilyName(family)
       ? { family, kitId, source: "adobe" }
       : null;
+  }
+  if (value.startsWith("p:")) {
+    return appFontRef(value.slice(2));
   }
   if (value.startsWith("f:")) {
     const [, slug, family] = value.split(":");

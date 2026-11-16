@@ -6,7 +6,9 @@ import {
   googleFontCss,
   parseFontRef,
 } from "../../config/fontRef.js";
+import type { FontId } from "../../config/theme.js";
 import { loadFontStylesheet } from "./fontStylesheets";
+import { loadFont } from "./fonts";
 
 /**
  * Loads a brand font (config/fontRef.ts) by adding its stylesheet to the page,
@@ -32,6 +34,10 @@ export const loadFontRef = (value: unknown): boolean => {
   if (!ref) {
     return false;
   }
+  if (ref.source === "app") {
+    void loadFont(ref.fontId as FontId);
+    return true;
+  }
   void loadFontStylesheet(stylesheetOf(ref), ref.source !== "fontshare");
   return true;
 };
@@ -39,6 +45,9 @@ export const loadFontRef = (value: unknown): boolean => {
 /** Waits for the full family stylesheet, rather than a name-only preview. */
 export const loadFontRefReady = (value: unknown): Promise<boolean> => {
   const ref = parseFontRef(value);
+  if (ref?.source === "app") {
+    return loadFont(ref.fontId as FontId).then(() => true);
+  }
   return ref
     ? loadFontStylesheet(stylesheetOf(ref), ref.source !== "fontshare")
     : Promise.resolve(false);

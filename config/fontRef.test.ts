@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { fontRefId, googleFontCss, parseFontRef } from "./fontRef";
+import {
+  type FontRef,
+  fontRefId,
+  fontRefStack,
+  googleFontCss,
+  parseFontRef,
+} from "./fontRef";
 import { normalizeTextStyle, textStyleCss } from "./textStyle";
 
 describe("font refs", () => {
@@ -16,6 +22,23 @@ describe("font refs", () => {
     } as const;
     expect(parseFontRef(fontRefId(g))).toEqual(g);
     expect(parseFontRef(fontRefId(a))).toEqual(a);
+  });
+
+  it("names the app's own fonts, such as Exposure, by id", () => {
+    expect(parseFontRef("p:exposure")).toEqual({
+      family: "Exposure[0]",
+      fontId: "exposure",
+      kitId: null,
+      source: "app",
+    });
+    expect(
+      fontRefId({ family: "", fontId: "exposure", kitId: null, source: "app" })
+    ).toBe("p:exposure");
+    expect(fontRefStack(parseFontRef("p:exposure") as FontRef)).toContain(
+      '"Exposure[0]"'
+    );
+    // Only a font the app has.
+    expect(parseFontRef("p:not-a-font")).toBeNull();
   });
 
   it("refuses anything that could break out of CSS or a URL", () => {

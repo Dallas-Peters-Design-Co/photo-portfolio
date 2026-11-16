@@ -24,12 +24,13 @@ import {
 } from "../../theme/remoteFonts";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { AppFontList } from "./AppFontList";
 import { FontshareSearch } from "./FontshareSearch";
 import "./BrandFontsEditor.css";
 
 /**
- * A kit's typefaces, picked from Google Fonts, Fontshare, or a brand's Adobe
- * Fonts project. Each one is stored with a font ref, so board text can use it.
+ * A kit's typefaces, picked from Google Fonts, Fontshare, a brand's Adobe
+ * Fonts project, or the app's own. Each one is stored with a font ref, so board text can use it.
  */
 
 const CATEGORIES = [
@@ -54,6 +55,9 @@ const sourceLabel = (ref: string | null): string => {
   }
   if (parsed.source === "fontshare") {
     return "Fontshare";
+  }
+  if (parsed.source === "app") {
+    return "App font";
   }
   return "Adobe Fonts";
 };
@@ -313,9 +317,9 @@ export function TypefaceEditor({
   doc: BrandKitDoc;
   onChange: (next: BrandKitDoc) => void;
 }) {
-  const [adding, setAdding] = useState<"adobe" | "fontshare" | "google" | null>(
-    null
-  );
+  const [adding, setAdding] = useState<
+    "adobe" | "app" | "fontshare" | "google" | null
+  >(null);
   const taken = new Set(
     doc.typefaces.map((f) => f.ref).filter((r): r is string => Boolean(r))
   );
@@ -398,7 +402,35 @@ export function TypefaceEditor({
           <HugeiconsIcon icon={PlusSignIcon} size={14} />
           Adobe Fonts
         </Button>
+        <Button
+          aria-pressed={adding === "app"}
+          disabled={full}
+          onClick={() => setAdding(adding === "app" ? null : "app")}
+          type="button"
+          variant="outline"
+        >
+          <HugeiconsIcon icon={PlusSignIcon} size={14} />
+          App fonts
+        </Button>
       </div>
+      {adding === "app" ? (
+        <AppFontList
+          onAdd={(font, weights) =>
+            add({
+              name: font.label,
+              ref: fontRefId({
+                family: font.label,
+                fontId: font.id,
+                kitId: null,
+                source: "app",
+              }),
+              role: "",
+              weights,
+            })
+          }
+          taken={taken}
+        />
+      ) : null}
       {adding === "google" ? (
         <GoogleSearch
           onAdd={(font) =>
