@@ -93,6 +93,7 @@ const BOX_KINDS = new Set<ReviewConceptElementKind>([
   "table",
   "tag",
   "textarea",
+  "upload",
 ]);
 
 export const takesBox = (kind: ReviewConceptElementKind): boolean =>

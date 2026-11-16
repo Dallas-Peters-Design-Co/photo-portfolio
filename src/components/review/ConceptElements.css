@@ -174,3 +174,23 @@
     color: inherit;
   }
 }
+
+/* A file upload: the prompt centred in a dashed drop area, the file below. */
+.concept-upload {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  place-items: center;
+  width: 100%;
+  min-width: 10rem;
+  text-align: center;
+}
+
+.concept-upload__file {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+  font-weight: 600;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  border-radius: 999px;
+}

@@ -1,8 +1,9 @@
 import { Plus, Trash2 } from "lucide-react";
-import type { CSSProperties } from "react";
+import { type CSSProperties, useRef, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConcept } from "../../../config/conceptDefaults.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
+import { stepsOf, withStep } from "../../../config/conceptSteps.js";
 import { styleElement } from "../../../config/conceptStyle.js";
 import type {
   ReviewConcept,
@@ -13,7 +14,7 @@ import {
   ITEM_WIDTH,
   MAX_REVIEW_CONCEPTS,
 } from "../../../config/reviewConcept.js";
-import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
+import { StepElements, useTriggerMark } from "../review/ReviewConceptPreview";
 import { useConceptFont } from "../review/useConceptFont";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -25,6 +26,7 @@ import {
 } from "./ConceptControls";
 import { ConceptElementList } from "./ConceptElementList";
 import { ConceptFontField } from "./ConceptFontField";
+import { ConceptStepsBar } from "./ConceptStepsBar";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
@@ -54,11 +56,25 @@ function ConceptCard({
   // Elements as their kit styles draw them: what the preview shows and the
   // fields edit. Saving them so keeps each one's own values current too.
   const styles = brandDoc?.componentStyles ?? [];
-  const elements = concept.elements.map((element) =>
+  // A sequence is edited one step at a time (ConceptStepsBar).
+  const [stepIndex, setStepIndex] = useState(0);
+  const steps = stepsOf(concept);
+  const at = Math.min(stepIndex, steps.length - 1);
+  const step = steps[at];
+  const elements = (step?.elements ?? []).map((element) =>
     styleElement(element, styles)
   );
-  const setElements = (next: ReviewConceptElement[]) =>
-    onChange({ ...concept, elements: next });
+  const preview = useRef<HTMLDivElement>(null);
+  useTriggerMark(
+    preview,
+    elements,
+    at < steps.length - 1 ? step?.trigger : undefined
+  );
+  const setElements = (next: ReviewConceptElement[]) => {
+    if (step) {
+      onChange(withStep(concept, at, { ...step, elements: next }));
+    }
+  };
 
   // Each element loads its own face where it is drawn.
   useConceptFont(concept.fontFamily, concept.fontRef, concept.fontId);
@@ -107,6 +123,13 @@ function ConceptCard({
         </Button>
       </header>
 
+      <ConceptStepsBar
+        concept={concept}
+        index={at}
+        onChange={onChange}
+        onIndex={setStepIndex}
+      />
+
       <div className="review-concepts__workspace">
         <div className="review-concepts__preview-wrap">
           <p>Live preview</p>
@@ -114,11 +137,10 @@ function ConceptCard({
             className="review-concepts__preview concept-canvas"
             data-direction={concept.direction}
             data-scroll={concept.scroll || undefined}
+            ref={preview}
             style={previewStyle}
           >
-            {elements.map((element) => (
-              <ReviewConceptElementView element={element} key={element.id} />
-            ))}
+            <StepElements elements={elements} />
           </div>
         </div>
         <div className="review-concepts__controls">

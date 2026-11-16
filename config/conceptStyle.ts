@@ -272,6 +272,17 @@ export const applyConceptStyles = (
         elements: concept.elements.map((element) =>
           styleElement(element, styles)
         ),
+        // A sequence's later steps are drawn from the same kit.
+        ...(concept.steps
+          ? {
+              steps: concept.steps.map((step) => ({
+                ...step,
+                elements: step.elements.map((element) =>
+                  styleElement(element, styles)
+                ),
+              })),
+            }
+          : {}),
       }));
 
 const same = (a: unknown, b: unknown): boolean =>

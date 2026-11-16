@@ -15,6 +15,11 @@ import {
 } from "./conceptMenu.js";
 import type { ConceptShadow } from "./conceptShadow.js";
 import { type ConceptSlots, cleanSlots, hasSlots } from "./conceptSlots.js";
+import {
+  type ConceptStep,
+  cleanFirstStep,
+  cleanSteps,
+} from "./conceptSteps.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
 import { bounded, cleanColor, str } from "./conceptValues.js";
@@ -61,6 +66,7 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "skeleton",
   "progress",
   "panel",
+  "upload",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -93,7 +99,8 @@ export type ReviewConceptElementKind =
   | "toast"
   | "skeleton"
   | "progress"
-  | "panel";
+  | "panel"
+  | "upload";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -268,6 +275,12 @@ export interface ReviewConcept {
    * onto new lines when it runs out of width.
    */
   scroll?: boolean;
+  /** Step one's caption, when the concept is a sequence (conceptSteps.ts). */
+  stepCaption?: string;
+  /** Steps after the first, each a full screen (conceptSteps.ts). */
+  steps?: ConceptStep[];
+  /** Step one's trigger: the element whose click shows step two. */
+  stepTrigger?: string;
   title: string;
 }
 
@@ -397,8 +410,15 @@ export const cleanElement = (
   };
 };
 
+const cleanElements = (value: unknown): ReviewConceptElement[] =>
+  (Array.isArray(value) ? value : [])
+    .slice(0, MAX_CONCEPT_ELEMENTS)
+    .map((element) => cleanElement(element));
+
 export const cleanConcept = (value: unknown): ReviewConcept => {
   const raw = (value ?? {}) as Partial<ReviewConcept>;
+  const elements = cleanElements(raw.elements);
+  const steps = cleanSteps(raw.steps, cleanElements, str);
   const font = fontSelection(raw.fontFamily, raw.fontRef, raw.fontId);
   const alignOptions = ["start", "center", "end", "stretch"] as const;
   const align = alignOptions.includes(
@@ -411,9 +431,8 @@ export const cleanConcept = (value: unknown): ReviewConcept => {
     background: cleanColor(raw.background, "#f2f4f7"),
     color: cleanColor(raw.color, "#172033"),
     direction: raw.direction === "row" ? "row" : "column",
-    elements: (Array.isArray(raw.elements) ? raw.elements : [])
-      .slice(0, MAX_CONCEPT_ELEMENTS)
-      .map((element) => cleanElement(element)),
+    elements,
+    ...cleanFirstStep(raw, elements, str),
     ...font,
     gap: bounded(raw.gap, 0, 64, 12),
     id: str(raw.id, 64) || newItemId(),
@@ -427,6 +446,7 @@ export const cleanConcept = (value: unknown): ReviewConcept => {
     padding: bounded(raw.padding, 0, 96, 24),
     radius: bounded(raw.radius, 0, 64, 12),
     ...(raw.scroll === true && raw.direction === "row" ? { scroll: true } : {}),
+    ...(steps.length > 0 ? { steps } : {}),
     title: str(raw.title, MAX_TITLE),
   };
 };

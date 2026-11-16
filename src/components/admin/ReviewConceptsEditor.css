@@ -393,3 +393,44 @@
     cursor: grabbing;
   }
 }
+
+/* A concept's steps: the step tabs, then the step's caption and trigger. */
+.concept-steps {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+
+.concept-steps__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+}
+
+.concept-steps__tab {
+  min-width: 1.75rem;
+  height: 1.75rem;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid color-mix(in oklch, currentColor 25%, transparent);
+  border-radius: var(--radius-control);
+}
+
+.concept-steps__tab[aria-selected="true"] {
+  color: var(--color-background);
+  background: var(--color-foreground);
+  border-color: var(--color-foreground);
+}
+
+.concept-steps__fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 16rem);
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.concept-steps__note {
+  font-size: var(--text-xs-ui);
+  opacity: 0.7;
+}

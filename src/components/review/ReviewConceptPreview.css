@@ -23,3 +23,62 @@
   min-height: 8rem;
   overflow: hidden;
 }
+
+/* The step's trigger: what to click, pulsing gently until it is. */
+.concept-canvas > [data-trigger] {
+  cursor: pointer;
+  outline: 2px solid color-mix(in srgb, #2563eb 70%, transparent);
+  outline-offset: 3px;
+  animation: concept-trigger 1.6s ease-in-out infinite;
+}
+
+@keyframes concept-trigger {
+  50% {
+    outline-color: color-mix(in srgb, #2563eb 20%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-canvas > [data-trigger] {
+    animation: none;
+  }
+}
+
+/* A sequence's step, what happens in it, and the way back and on. */
+.concept-sequence__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: var(--text-sm-ui);
+}
+
+.concept-sequence__count {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.concept-sequence__caption {
+  flex: 1 1 12rem;
+  color: var(--sheet-ink-soft, inherit);
+}
+
+.concept-sequence__controls {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1);
+}
+
+.concept-sequence__controls button {
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 999px;
+}
+
+.concept-sequence__controls button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}

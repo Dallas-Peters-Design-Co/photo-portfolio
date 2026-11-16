@@ -193,6 +193,18 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
       passChildren: true,
       tag: "div",
     }),
+    upload: () => ({
+      body: `<input className="@@__input" type="file" />\n<span>{children}</span>${
+        el.placeholder
+          ? `\n<span className="@@__file">${escapeJsx(el.placeholder)}</span>`
+          : ""
+      }`,
+      css: `& { display: grid; gap: 8px; place-items: center; text-align: center; border-style: dashed; cursor: pointer; }
+&:focus-within { outline: 2px solid var(--&-accent, currentColor); outline-offset: 2px; }
+&__input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+&__file { padding: 4px 10px; font-weight: 600; background: color-mix(in srgb, currentColor 8%, transparent); border-radius: 999px; }`,
+      tag: "label",
+    }),
   };
   return (byKind[el.kind]?.() ?? {
     passChildren: true,

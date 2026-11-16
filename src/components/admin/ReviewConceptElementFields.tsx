@@ -129,6 +129,17 @@ function ContentGroup({
           />
         </ConceptField>
       ) : null}
+      {element.kind === "upload" ? (
+        <ConceptField label="File after upload (leave empty before)" wide>
+          <Input
+            aria-label="File after upload"
+            onChange={(event) => onChange({ placeholder: event.target.value })}
+            placeholder="brief.pdf"
+            size="sm"
+            value={element.placeholder ?? ""}
+          />
+        </ConceptField>
+      ) : null}
       {OPTION_KINDS.has(element.kind) ? (
         <ConceptField label="Options, comma separated" wide>
           <Input

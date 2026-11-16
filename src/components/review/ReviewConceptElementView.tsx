@@ -29,6 +29,7 @@ import { ConceptSlotsView } from "./ConceptSlotsView";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
+import { ConceptUploadPreview } from "./ConceptUploadPreview";
 import { useConceptFont } from "./useConceptFont";
 
 const ICON_SUFFIX = /Icon$/;
@@ -404,6 +405,8 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       );
     case "menu":
       return <MenuPreview element={element} style={style} text={text} />;
+    case "upload":
+      return <ConceptUploadPreview element={element} style={style} />;
     case "toast":
       return (
         <ConceptToastPreview element={element} style={style} text={text} />

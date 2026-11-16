@@ -36,6 +36,7 @@ const TYPE_SIZES: Partial<Record<ReviewConceptElementKind, number>> = {
 };
 
 const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
+  "upload",
   "panel",
   "input",
   "textarea",
@@ -45,6 +46,7 @@ const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const PADDED_KINDS = new Set<ReviewConceptElementKind>([
+  "upload",
   "panel",
   "input",
   "textarea",
@@ -56,6 +58,7 @@ const PADDED_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
+  "upload",
   "panel",
   "button",
   "icon",
@@ -89,6 +92,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   text: "A better way to work",
   textarea: "",
   toast: "Changes saved",
+  upload: "Drop a file here, or browse",
 };
 
 const elementOptions = (

@@ -179,6 +179,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["skeleton", "Skeleton loader"],
   ["progress", "Progress bar"],
   ["panel", "Panel"],
+  ["upload", "File upload"],
 ]);
 
 /** A kind's menu label ("Dropdown menu" for menu), or the kind itself. */
