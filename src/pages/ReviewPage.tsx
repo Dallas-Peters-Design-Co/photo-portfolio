@@ -10,6 +10,7 @@ import {
 } from "../../config/proposal.js";
 import { PIN_LABELS, type ReviewScreen } from "../../config/review.js";
 import { PageContent } from "../cms/PageContent";
+import { PinWcagLinks } from "../components/review/PinWcagLinks";
 import { ReviewConceptPreview } from "../components/review/ReviewConceptPreview";
 import {
   ReviewMarks,
@@ -394,6 +395,10 @@ function Screen({
                 {pin.body ? (
                   <p className="review-page__note-body">{pin.body}</p>
                 ) : null}
+                <PinWcagLinks
+                  className="review-page__note-wcag"
+                  wcag={pin.wcag}
+                />
                 {pin.concepts?.map((concept) => (
                   <ReviewConceptPreview concept={concept} key={concept.id} />
                 ))}

@@ -495,6 +495,29 @@
   border-color: var(--review-pin-praise-ink);
 }
 
+.review-page__pin--accessibility,
+.review-page__note-n--accessibility,
+.review-page__legend-item--accessibility::before {
+  color: var(--review-pin-accessibility-ink);
+  background: var(--review-pin-accessibility);
+  border-color: var(--review-pin-accessibility-ink);
+}
+
+/* An accessibility note's WCAG criteria, each a link to how to meet it. */
+.review-page__note-wcag {
+  display: grid;
+  gap: calc(var(--spacing) * 1);
+  padding: 0;
+  margin-block-start: calc(var(--spacing) * 2);
+  list-style: none;
+}
+
+.review-page__note-wcag a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 /* In the key, the dot is the fill alone. */
 .review-page__legend-item::before {
   border-color: var(--sheet-rule);

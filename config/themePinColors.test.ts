@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PIN_KINDS } from "./review.js";
 import {
   DEFAULT_PIN_COLORS,
   DEFAULT_THEME,
@@ -10,7 +11,7 @@ describe("review note colors", () => {
   it("gives each kind its own color by default", () => {
     const theme = normalizeTheme({}, DEFAULT_THEME.addison);
     expect(theme.pinColors).toEqual(DEFAULT_PIN_COLORS);
-    expect(new Set(Object.values(theme.pinColors)).size).toBe(4);
+    expect(new Set(Object.values(theme.pinColors)).size).toBe(PIN_KINDS.length);
   });
 
   it("keeps a saved color and drops an invalid one", () => {

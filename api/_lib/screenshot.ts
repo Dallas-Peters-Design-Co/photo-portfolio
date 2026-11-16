@@ -55,6 +55,48 @@ export const launch = async (): Promise<Browser> => {
   }
 };
 
+/**
+ * A page opened at a width the way a capture opens it: the HTML first, then
+ * a bounded wait for the rest (see the notes inside). Shared by the capture
+ * and the accessibility scan, so a scan's markers land where the
+ * screenshot drew things.
+ */
+export const openPage = async (
+  browser: Browser,
+  url: string,
+  width: number
+): Promise<Page> => {
+  const page = await browser.newPage({
+    // The animation-stopping stylesheet below is inline; a site's CSP
+    // would refuse it otherwise.
+    bypassCSP: true,
+    deviceScaleFactor: 2,
+    viewport: { height: Math.round(width * 0.66), width },
+  });
+  // Functions this file hands to page.evaluate are compiled with it; run
+  // through tsx (local scripts, tests) esbuild wraps their inner functions
+  // in a `__name` helper the page does not have. A no-op one makes them run
+  // the same everywhere.
+  await page.addInitScript("globalThis.__name = (fn) => fn;");
+  // The HTML first, then a bounded wait for everything else; past either
+  // bound the shot is taken as the page stands. Waiting for networkidle
+  // outright failed whole captures: analytics, chat widgets and background
+  // video keep a page busy forever, and from Vercel's network some sites
+  // never fire "load" inside 25s at all — so a site that had drawn its page
+  // still timed out and the reviewer got nothing.
+  await page.goto(url, {
+    timeout: NAV_TIMEOUT_MS,
+    waitUntil: "domcontentloaded",
+  });
+  await page
+    .waitForLoadState("load", { timeout: LOAD_GRACE_MS })
+    .catch(() => undefined);
+  await page
+    .waitForLoadState("networkidle", { timeout: IDLE_GRACE_MS })
+    .catch(() => undefined);
+  return page;
+};
+
 export const captureScreenshot = async ({
   url,
   width,
@@ -62,29 +104,7 @@ export const captureScreenshot = async ({
 }: CaptureInput): Promise<CaptureResult> => {
   const browser = await launch();
   try {
-    const page = await browser.newPage({
-      // The animation-stopping stylesheet below is inline; a site's CSP
-      // would refuse it otherwise.
-      bypassCSP: true,
-      deviceScaleFactor: 2,
-      viewport: { height: Math.round(width * 0.66), width },
-    });
-    // The HTML first, then a bounded wait for everything else; past either
-    // bound the shot is taken as the page stands. Waiting for networkidle
-    // outright failed whole captures: analytics, chat widgets and background
-    // video keep a page busy forever, and from Vercel's network some sites
-    // never fire "load" inside 25s at all — so a site that had drawn its page
-    // still timed out and the reviewer got nothing.
-    await page.goto(url, {
-      timeout: NAV_TIMEOUT_MS,
-      waitUntil: "domcontentloaded",
-    });
-    await page
-      .waitForLoadState("load", { timeout: LOAD_GRACE_MS })
-      .catch(() => undefined);
-    await page
-      .waitForLoadState("networkidle", { timeout: IDLE_GRACE_MS })
-      .catch(() => undefined);
+    const page = await openPage(browser, url, width);
     return await captureFullPage(page, width, prefix);
   } finally {
     await browser.close();
@@ -146,11 +166,12 @@ export const shootPage = async (
   return { bytes: inView, height: view?.height ?? Math.round(width * 0.66) };
 };
 
-export const captureFullPage = async (
-  page: Page,
-  width: number,
-  prefix: string
-): Promise<CaptureResult> => {
+/**
+ * The page laid out for a full-page picture: animations cut, lazy sections
+ * walked into view, fixed and sticky headers put back at the top. The
+ * accessibility scan lays the page out the same way before it measures.
+ */
+export const preparePage = async (page: Page): Promise<void> => {
   // Reveal-on-scroll sections and lazy images: animations are cut so a
   // reveal completes the moment it fires, then the page is walked once so
   // every observer fires. The walk ends at the bottom on purpose; coming
@@ -214,6 +235,14 @@ export const captureFullPage = async (
     }
   });
   await page.waitForTimeout(SETTLE_MS);
+};
+
+export const captureFullPage = async (
+  page: Page,
+  width: number,
+  prefix: string
+): Promise<CaptureResult> => {
+  await preparePage(page);
   const fullHeight = await page.evaluate(
     () => document.documentElement.scrollHeight
   );

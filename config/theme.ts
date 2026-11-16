@@ -338,6 +338,9 @@ export interface SiteTheme {
  * and a compliment are told apart at a glance.
  */
 export const DEFAULT_PIN_COLORS: Record<PinKind, string> = {
+  // Violet: no other kind's hue, and not a traffic-light colour, so it reads
+  // as a category of finding rather than a grade.
+  accessibility: "#7c3aed",
   issue: "#dc2626",
   praise: "#16a34a",
   recommendation: "#2563eb",

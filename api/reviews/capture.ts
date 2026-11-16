@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { CAPTURE_WIDTHS } from "../../config/review.js";
+import { scanAccessibility } from "../_lib/a11yScan.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { parsePublicHttpUrl } from "../_lib/httpUrl.js";
@@ -11,11 +12,39 @@ import { captureScreenshot } from "../_lib/screenshot.js";
  * browser at whatever address it is given, which is not something to leave
  * open. Returns the stored image and its size; the editor puts it on the
  * screen and saves the review as usual.
+ *
+ * With `scan: "accessibility"` it scans the page instead and returns
+ * Accessibility notes to pin on the screen.
  */
 
 export const config = { maxDuration: 60 };
 
 const TIMEOUT = /timeout/i;
+
+async function scan(
+  res: VercelResponse,
+  url: string,
+  viewport: "desktop" | "mobile",
+  rawHeight: unknown
+) {
+  const height = typeof rawHeight === "number" && rawHeight > 0 ? rawHeight : 0;
+  if (!height) {
+    return res.status(400).json({ error: "Capture the page first" });
+  }
+  try {
+    const pins = await scanAccessibility({
+      height,
+      url,
+      width: CAPTURE_WIDTHS[viewport],
+    });
+    return res.status(200).json({ pins });
+  } catch (e) {
+    console.error("[review a11y scan]", e);
+    return res.status(502).json({
+      error: "Could not scan that page. Try again in a moment.",
+    });
+  }
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
@@ -37,6 +66,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const viewport = body.viewport === "mobile" ? "mobile" : "desktop";
   const slug =
     typeof body.slug === "string" ? body.slug.replace(/[^a-z0-9-]/g, "") : "";
+  // The accessibility scan rides here: the same page, browser and width as
+  // the capture it marks up (see _lib/a11yScan.ts).
+  if (body.scan === "accessibility") {
+    return scan(res, url, viewport, body.height);
+  }
   try {
     const image = await captureScreenshot({
       prefix: `reviews/${slug || "untitled"}`,

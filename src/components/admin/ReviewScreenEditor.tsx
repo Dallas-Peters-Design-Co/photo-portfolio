@@ -46,6 +46,7 @@ import {
   useMarkupHistory,
 } from "./reviewEditing";
 import "./ReviewScreenEditor.css";
+import { AccessibilityScanButton } from "./AccessibilityScanButton";
 import { useReviewMarkup } from "./useReviewMarkup";
 
 const VIEWPORT_ITEMS = [
@@ -347,6 +348,12 @@ export function ReviewScreenEditor({
           <Upload size={14} />
           {isUploading ? "Uploading…" : "Upload screenshot"}
         </Button>
+        <AccessibilityScanButton
+          live={live}
+          onChange={onChange}
+          record={history.record}
+          screen={screen}
+        />
         <input
           accept="image/png,image/jpeg,image/webp"
           className="hidden"

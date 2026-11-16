@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { PinWcagFields } from "./PinWcagFields";
 import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
 import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
 import { readingOrder } from "./reviewEditing";
@@ -239,6 +240,13 @@ export function ReviewPinList({
                 value={pin.body}
               />
             </div>
+            {pin.kind === "accessibility" ? (
+              <PinWcagFields
+                label={`note ${firstNumber + i}`}
+                onChange={(wcag) => onUpdate(pin.id, { wcag })}
+                wcag={pin.wcag}
+              />
+            ) : null}
             {pin.kind === "recommendation" ||
             (pin.concepts?.length ?? 0) > 0 ? (
               <ReviewConceptsEditor

@@ -1,6 +1,7 @@
 import type {
   ReviewDoc,
   ReviewImage,
+  ReviewPin,
   ReviewScreen,
   ReviewStatus,
 } from "../../config/review.js";
@@ -233,6 +234,24 @@ export const reviewsApi = {
         method: "PATCH",
       }),
       "Couldn't update that comment"
+    ),
+
+  /**
+   * Scans a captured page for WCAG failures; returns Accessibility notes
+   * placed on the failing elements. Slow, like a capture.
+   */
+  scanAccessibility: async (input: {
+    height: number;
+    url: string;
+    viewport: "desktop" | "mobile";
+  }): Promise<{ pins: ReviewPin[] }> =>
+    json(
+      await fetch(`${reviewsPath()}/capture`, {
+        body: JSON.stringify({ ...input, scan: "accessibility" }),
+        headers: jsonHeaders(),
+        method: "POST",
+      }),
+      "Could not scan that page"
     ),
 
   send: async (

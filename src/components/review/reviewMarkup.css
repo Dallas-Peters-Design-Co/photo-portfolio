@@ -103,6 +103,11 @@
   --pin-ink: var(--review-pin-praise-ink, #111);
 }
 
+.review-pin--accessibility {
+  --pin-fill: var(--review-pin-accessibility, #7c3aed);
+  --pin-ink: var(--review-pin-accessibility-ink, #fff);
+}
+
 /*
  * The selected mark's handles (MarkEditLayer): the mark itself, invisible and
  * wide, to drag it whole, and a dot on each end to reshape it.

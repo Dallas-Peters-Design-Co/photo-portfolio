@@ -21,6 +21,7 @@ import {
   MAX_REVIEW_CONCEPTS,
   type ReviewConcept,
 } from "./reviewConcept.js";
+import { wcagCriterion } from "./wcag.js";
 
 export type { RichText } from "./proposal.js";
 export const MAX_REVIEW_TITLE = MAX_PROPOSAL_TITLE;
@@ -28,16 +29,23 @@ export const MAX_REVIEW_TITLE = MAX_PROPOSAL_TITLE;
 export type ReviewStatus = "draft" | "published";
 
 /** What a note is: how its pin is drawn and how the list reads. */
-export type PinKind = "issue" | "recommendation" | "suggestion" | "praise";
+export type PinKind =
+  | "issue"
+  | "recommendation"
+  | "suggestion"
+  | "praise"
+  | "accessibility";
 export const PIN_KINDS: PinKind[] = [
   "issue",
   "recommendation",
   "suggestion",
   "praise",
+  "accessibility",
 ];
 
 /** How each kind is named wherever a note is listed. */
 export const PIN_LABELS: Record<PinKind, string> = {
+  accessibility: "Accessibility",
   issue: "Issue",
   praise: "Works well",
   recommendation: "Recommendation",
@@ -61,6 +69,19 @@ export interface ReviewMark {
   points: [number, number][];
 }
 
+/**
+ * What an accessibility note fails: the WCAG success criteria ("1.4.3"),
+ * each linked to the W3C's page on meeting it (config/wcag.ts), and, when
+ * the note came from a scan, the axe-core rule and its explanation.
+ */
+export interface PinWcag {
+  criteria: string[];
+  /** The axe-core rule id, e.g. "color-contrast". */
+  rule?: string;
+  /** The rule's own page, for rules no WCAG criterion covers. */
+  ruleUrl?: string;
+}
+
 export interface ReviewPin {
   body: string;
   /** Small interface concepts attached to this note, usually a recommendation. */
@@ -68,6 +89,8 @@ export interface ReviewPin {
   id: string;
   kind: PinKind;
   title: string;
+  /** Accessibility notes only: what fails and where to read how to fix it. */
+  wcag?: PinWcag;
   /** Fraction of the image width, 0 at the left edge. */
   x: number;
   /** Fraction of the image height, 0 at the top. */
@@ -178,6 +201,44 @@ const cleanImage = (v: unknown): ReviewImage | null => {
     : null;
 };
 
+const RULE_ID = /^[a-z0-9-]{1,64}$/;
+/** Rule pages a note may link to: the W3C's and axe-core's own. */
+const RULE_URL =
+  /^https:\/\/(www\.w3\.org|dequeuniversity\.com)\/[\w./?=&%-]{1,300}$/;
+
+/** A note's WCAG details, keeping only known criteria and safe links. */
+const cleanWcag = (value: unknown): { wcag?: PinWcag } => {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+  const raw = value as Partial<PinWcag>;
+  const criteria = [
+    ...new Set(
+      (Array.isArray(raw.criteria) ? raw.criteria : []).filter(
+        (n): n is string =>
+          typeof n === "string" && wcagCriterion(n) !== undefined
+      )
+    ),
+  ].slice(0, 8);
+  const rule =
+    typeof raw.rule === "string" && RULE_ID.test(raw.rule)
+      ? raw.rule
+      : undefined;
+  const ruleUrl =
+    typeof raw.ruleUrl === "string" && RULE_URL.test(raw.ruleUrl)
+      ? raw.ruleUrl
+      : undefined;
+  return criteria.length > 0 || rule
+    ? {
+        wcag: {
+          criteria,
+          ...(rule ? { rule } : {}),
+          ...(ruleUrl ? { ruleUrl } : {}),
+        },
+      }
+    : {};
+};
+
 export const cleanPin = (v: unknown): ReviewPin => {
   const raw = (v ?? {}) as Partial<ReviewPin>;
   const kind = PIN_KINDS.includes(raw.kind as PinKind)
@@ -191,6 +252,7 @@ export const cleanPin = (v: unknown): ReviewPin => {
     id: str(raw.id, 64) || newItemId(),
     kind,
     title: str(raw.title, MAX_TITLE),
+    ...(kind === "accessibility" ? cleanWcag(raw.wcag) : {}),
     x: fraction(raw.x),
     y: fraction(raw.y),
   };
