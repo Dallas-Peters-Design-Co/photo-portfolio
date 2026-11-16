@@ -105,6 +105,7 @@
   min-width: 0;
 }
 
-.concept-group[data-fill] {
+.concept-group[data-full] {
+  align-self: stretch;
   width: 100%;
 }

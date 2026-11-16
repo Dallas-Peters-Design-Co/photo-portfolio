@@ -307,6 +307,7 @@ function HolderFields({
       <SlotFields
         brandDoc={brandDoc}
         depth={depth}
+        group
         label="Group"
         listLabel="In the group"
         onChange={(group) => onChange({ group })}

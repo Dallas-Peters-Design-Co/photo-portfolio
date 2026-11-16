@@ -193,7 +193,7 @@ export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   return {
     body: items,
     childCss: css.join("\n"),
-    css: `& { display: flex; min-width: 0; }
+    css: `& { display: flex; min-width: 0;${group.full ? " width: 100%; align-self: stretch;" : ""} }
 & > .@@__items { flex: 1 1 auto; }
 ${SLOTS_CSS}`,
     tag: "div",

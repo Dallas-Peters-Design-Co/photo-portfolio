@@ -62,6 +62,7 @@ const SLIDES = optionsOf([
 export function SlotFields({
   brandDoc,
   depth,
+  group = false,
   label: named,
   listLabel,
   name = "body",
@@ -70,6 +71,8 @@ export function SlotFields({
 }: {
   brandDoc?: BrandKitDoc | null;
   depth: number;
+  /** A group's settings: it can span its row (Full width). */
+  group?: boolean;
   /** What the settings are headed: the slot's name, or "Group". */
   label?: string;
   /** What the list of elements is headed. */
@@ -79,6 +82,7 @@ export function SlotFields({
   slot: ConceptSlot;
 }) {
   const fillId = useId();
+  const fullId = useId();
   const label = named ?? `${SLOT_LABELS[name]} slot`;
   const set = (patch: Partial<ConceptSlot>) => onChange({ ...slot, ...patch });
   const layout = slot.layout ?? "column";
@@ -110,13 +114,23 @@ export function SlotFields({
             value={slot.align ?? "start"}
           />
         </ConceptField>
+        {group ? (
+          <label className="review-concepts__check" htmlFor={fullId}>
+            <Checkbox
+              checked={slot.full ?? false}
+              id={fullId}
+              onChange={(event) => set({ full: event.target.checked })}
+            />
+            <span>Full width</span>
+          </label>
+        ) : null}
         <label className="review-concepts__check" htmlFor={fillId}>
           <Checkbox
             checked={slot.fill ?? false}
             id={fillId}
             onChange={(event) => set({ fill: event.target.checked })}
           />
-          <span>Fill the width</span>
+          <span>Stretch items to share the width</span>
         </label>
         <ConceptField label="Justify">
           <ConceptSelect

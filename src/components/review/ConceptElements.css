@@ -270,8 +270,11 @@
   }
 }
 
-/* Room at the header's end for the hide slot's ✕, so it covers nothing.
+/* Room at the panel's own header's end for its ✕, so it covers nothing.
+   Its own header only: cards inside the panel keep theirs.
    !important: the slot's own padding is set inline. */
-.concept-panel[data-has-hide] .concept-slot[data-slot="header"] {
+.concept-panel[data-has-hide]
+  > .concept-slots
+  > .concept-slot[data-slot="header"] {
   padding-right: 48px !important;
 }

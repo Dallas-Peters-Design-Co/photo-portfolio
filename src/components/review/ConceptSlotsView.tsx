@@ -158,7 +158,7 @@ export function ConceptGroupView({
   return (
     <div
       className="concept-group"
-      data-fill={group.fill || undefined}
+      data-full={group.full || undefined}
       style={{ ...style, padding: padding(group) }}
     >
       <Items className="concept-group__items" draw={draw} slot={group} />

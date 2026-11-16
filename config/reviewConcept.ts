@@ -389,7 +389,15 @@ const cleanHolder = (
   depth: number
 ): Pick<ReviewConceptElement, "group" | "slideFrom"> => {
   if (kind === "group" && depth < MAX_GROUP_DEPTH) {
-    return { group: cleanSlot(raw.group, depth, cleanElement) };
+    const group = cleanSlot(raw.group, depth, cleanElement);
+    // Groups made before Full width existed had only Fill, labelled "Fill
+    // the width", and were set for the group to span its row.
+    const before = (raw.group as { full?: unknown } | undefined)?.full;
+    if (group.fill && before === undefined) {
+      const { fill: _f, ...spanning } = group;
+      return { group: { ...spanning, full: true } };
+    }
+    return { group };
   }
   if (kind === "panel" && SLIDE_SIDES.includes(raw.slideFrom as SlideSide)) {
     return { slideFrom: raw.slideFrom as SlideSide };

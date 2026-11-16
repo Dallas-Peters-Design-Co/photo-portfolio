@@ -46,6 +46,12 @@ export interface ConceptSlot {
   elements: ReviewConceptElement[];
   /** Each element grows to share the slot's full width. */
   fill?: boolean;
+  /**
+   * Groups only: the group spans its row, its elements keeping their own
+   * size, so Align and Justify place them (Fill, which stretches each one,
+   * is separate).
+   */
+  full?: boolean;
   gap?: number;
   /** Main-axis distribution: "between" pushes the first and last apart. */
   justify?: ConceptSlotJustify;
@@ -120,6 +126,7 @@ export const cleanSlot = (
       .slice(0, MAX_SLOT_ELEMENTS)
       .map((element) => cleanElement(element, depth + 1)),
     ...(slot.fill === true ? { fill: true } : {}),
+    ...(slot.full === true ? { full: true } : {}),
     ...number("gap", slot.gap),
     ...(justify ? { justify } : {}),
     ...(layout ? { layout } : {}),

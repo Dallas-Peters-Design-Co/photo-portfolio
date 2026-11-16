@@ -10,6 +10,7 @@ import {
 } from "../../../config/reviewConcept.js";
 import { ConceptElementList } from "../admin/ConceptElementList";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
+import { ReviewConceptPreview } from "./ReviewConceptPreview";
 
 (
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
@@ -94,4 +95,72 @@ it("groups an element, moves the next into the group, and ungroups", async () =>
   expect(latest[0]?.group?.elements.map((e) => e.id)).toEqual(["a", "b"]);
   await userEvent.click(button("Ungroup"));
   expect(latest.map((e) => e.id)).toEqual(["a", "b"]);
+});
+
+it("spans a full-width group across its row, its items aligned and pushed apart", () => {
+  const concept = cleanConcept({
+    elements: [
+      {
+        group: {
+          align: "center",
+          elements: [
+            { fontSize: 13, kind: "text", text: "Selected 0/12" },
+            { kind: "button", paddingX: 16, paddingY: 12, text: "Select All" },
+          ],
+          // Saved as the old "Fill the width": read as Full width.
+          fill: true,
+          justify: "between",
+          layout: "row",
+        },
+        kind: "group",
+      },
+    ],
+  });
+  expect(concept.elements[0]?.group?.full).toBe(true);
+  expect(concept.elements[0]?.group?.fill).toBeUndefined();
+  const host = document.createElement("div");
+  host.style.width = "700px";
+  document.body.append(host);
+  act(() =>
+    createRoot(host).render(<ReviewConceptPreview concept={concept} />)
+  );
+  const [text, button] = [
+    ...host.querySelectorAll(".concept-group__items > *"),
+  ].map((el) => el.getBoundingClientRect());
+  const group = (
+    host.querySelector(".concept-group") as HTMLElement
+  ).getBoundingClientRect();
+  // Each keeps its own width, at the two ends, centred on one line.
+  expect(Math.round((text as DOMRect).left)).toBe(Math.round(group.left));
+  expect(Math.round((button as DOMRect).right)).toBe(Math.round(group.right));
+  expect((text as DOMRect).width).toBeLessThan(group.width / 2);
+  const mid = (r: DOMRect) => r.top + r.height / 2;
+  expect(Math.abs(mid(text as DOMRect) - mid(button as DOMRect))).toBeLessThan(
+    1
+  );
+});
+
+it("leaves room for a panel's ✕ in its own header only, not in its cards'", () => {
+  const panel = {
+    ...createConceptElement("panel"),
+    slots: {
+      body: {
+        elements: [{ ...createConceptElement("card"), text: "Table 1\nBody" }],
+      },
+      header: { elements: [] },
+      hide: createConceptElement("panel").slots?.hide,
+    },
+    text: "Results",
+  } as ReviewConceptElement;
+  const host = document.createElement("div");
+  host.style.width = "600px";
+  document.body.append(host);
+  act(() =>
+    createRoot(host).render(<ReviewConceptElementView element={panel} />)
+  );
+  const headers = [
+    ...host.querySelectorAll('.concept-slot[data-slot="header"]'),
+  ].map((h) => getComputedStyle(h).paddingRight);
+  expect(headers[0]).toBe("48px");
+  expect(headers[1]).not.toBe("48px");
 });
