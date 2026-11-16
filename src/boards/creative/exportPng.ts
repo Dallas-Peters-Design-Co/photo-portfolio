@@ -25,7 +25,7 @@ import { rotationOf } from "./rotate";
 export const exportWidthFor = (frame: BoardItem): number =>
   sizeFromTitle(frame.body)?.w ?? Math.round(frame.width * 2);
 
-const loadImage = (url: string): Promise<HTMLImageElement> =>
+const imageAt = (url: string): Promise<HTMLImageElement> =>
   new Promise((resolve, reject) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -33,6 +33,59 @@ const loadImage = (url: string): Promise<HTMLImageElement> =>
     img.onerror = () => reject(new Error(`Couldn't load ${url}`));
     img.src = url;
   });
+
+const SVG_URL = /\.svg(?:[?#]|$)/i;
+const SVG_ROOT = /<svg\b[^>]*>/i;
+const VIEW_BOX =
+  /\bviewBox\s*=\s*["']\s*[-\d.]+[\s,]+[-\d.]+[\s,]+([\d.]+)[\s,]+([\d.]+)/i;
+const SVG_OPEN = /^<svg\b/i;
+const SIZE_ATTR = /\s(width|height)\s*=\s*["'][^"']*["']/gi;
+/** The longest side an SVG is drawn at before scaling: sharp at export size. */
+const SVG_RASTER = 2048;
+
+/**
+ * An SVG with the size it really has. One sized in percent (`width="100%"`,
+ * as many logo exports are) has no size of its own as an image, and the
+ * browser draws it at 300×150 — a different shape, so it came out cropped
+ * ("RoleModel software" as "Rolel"). Its viewBox says its real shape; it's
+ * given that shape, large enough to stay sharp, and drawn from a local copy.
+ */
+const sizedSvg = async (url: string): Promise<HTMLImageElement> => {
+  const text = await (await fetch(url)).text();
+  const root = SVG_ROOT.exec(text)?.[0];
+  const box = VIEW_BOX.exec(root ?? "");
+  const vw = Number(box?.[1]);
+  const vh = Number(box?.[2]);
+  if (!(root && vw > 0 && vh > 0)) {
+    return imageAt(url);
+  }
+  const k = SVG_RASTER / Math.max(vw, vh);
+  const sized = root
+    .replace(SIZE_ATTR, "")
+    .replace(
+      SVG_OPEN,
+      `<svg width="${Math.round(vw * k)}" height="${Math.round(vh * k)}"`
+    );
+  const local = URL.createObjectURL(
+    new Blob([text.replace(root, sized)], { type: "image/svg+xml" })
+  );
+  try {
+    return await imageAt(local);
+  } finally {
+    URL.revokeObjectURL(local);
+  }
+};
+
+export const loadImage = async (url: string): Promise<HTMLImageElement> => {
+  if (SVG_URL.test(url)) {
+    try {
+      return await sizedSvg(url);
+    } catch {
+      // Unreadable as text: drawn as the browser draws it.
+    }
+  }
+  return imageAt(url);
+};
 
 const SPACES = /(\s+)/;
 

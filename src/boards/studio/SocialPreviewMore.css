@@ -1,0 +1,162 @@
+/* Facebook event: the cover, a date tile beside the name, and the RSVPs. */
+.social-mock__event {
+  padding: 12px;
+}
+
+.social-mock__event-body {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 4px 10px;
+}
+
+.social-mock__event-date {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 60px;
+  overflow: hidden;
+  border: 1px solid #dadde1;
+  border-radius: 8px;
+}
+
+.social-mock__event-date small {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-align: center;
+  background: #e41e3f;
+}
+
+.social-mock__event-date strong {
+  font-size: 22px;
+}
+
+.social-mock__event-when {
+  font-size: 13px;
+  font-weight: 600;
+  color: #e41e3f;
+}
+
+.social-mock__event-buttons {
+  padding: 0 4px;
+}
+
+/* Google Business Profile: the cover over name, rating, hours, actions. */
+.social-mock__gbp-body {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px 6px;
+}
+
+.social-mock__gbp-name {
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.social-mock__gbp-rating,
+.social-mock__chatgpt-link,
+.social-mock__chatgpt-button,
+.social-mock__chatgpt-input {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.social-mock__gbp-open {
+  color: #188038;
+}
+
+.social-mock__gbp-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px 8px 16px;
+  font-size: 12px;
+  color: #1a73e8;
+}
+
+.social-mock__gbp-actions > span {
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+}
+
+.social-mock__gbp-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid #dadce0;
+  border-radius: 50%;
+}
+
+.social-mock__gbp-copy {
+  padding-top: 12px;
+}
+
+.social-mock__gbp-cta {
+  display: block;
+  margin: 0 12px 14px;
+  font-weight: 600;
+  color: #1a73e8;
+}
+
+/* ChatGPT: its own quiet surface, rounded and grey-on-white. */
+.social-mock__chatgpt {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", sans-serif;
+  color: #0d0d0d;
+  background: #fff;
+  border-radius: 20px;
+}
+
+.social-mock__chatgpt-who {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.social-mock__chatgpt-button {
+  padding: 8px 14px;
+  margin-left: auto;
+  font-weight: 600;
+  color: #fff;
+  background: #0d0d0d;
+  border-radius: 999px;
+}
+
+.social-mock__chatgpt-about,
+.social-mock__chatgpt-answer {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.social-mock__chatgpt-ad {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ececec;
+  border-radius: 16px;
+}
+
+.social-mock__chatgpt-ad-art {
+  flex: none;
+  width: 120px;
+}
+
+.social-mock__chatgpt-link {
+  font-size: 12px;
+  color: #5d5d5d;
+}
+
+.social-mock__chatgpt-input {
+  padding: 12px 16px;
+  color: #8f8f8f;
+  background: #f4f4f4;
+  border-radius: 999px;
+}
