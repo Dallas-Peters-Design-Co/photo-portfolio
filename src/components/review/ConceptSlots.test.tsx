@@ -155,38 +155,54 @@ it("puts a card's header elements beside its text, across the full card", () => 
   expect(iconBox?.bottom).toBeLessThan(badge?.getBoundingClientRect().top ?? 0);
 });
 
-it("fills a slot's width with its elements when asked", () => {
-  const card: ReviewConceptElement = {
-    ...createConceptElement("card"),
-    slots: {
-      footer: {
-        elements: [
-          createConceptElement("input"),
-          createConceptElement("select"),
-        ],
-        fill: true,
-        gap: 8,
-        layout: "row",
+it.each([
+  ["Awaiting Review", false],
+  // As saved in the editor: a space typed to clear the title.
+  [" ", true],
+])(
+  "fills a slot's width with its elements when asked (title %j)",
+  (text, edgeToEdge) => {
+    const card: ReviewConceptElement = {
+      ...createConceptElement("card"),
+      iconName: undefined,
+      slots: {
+        // As saved in the editor: two fields in a two-column grid header.
+        header: {
+          columns: 2,
+          elements: [
+            createConceptElement("input"),
+            createConceptElement("select"),
+          ],
+          fill: true,
+          gap: 14,
+          justify: "end",
+          layout: "grid",
+        },
       },
-    },
-    text: "Awaiting Review",
-  };
-  act(() => root.render(<ReviewConceptElementView element={card} />));
-  const footer = host.querySelector<HTMLElement>(
-    '[data-slot="footer"] > .concept-slot__items'
-  ) as HTMLElement;
-  const items = [...footer.children].map((child) =>
-    (child.classList.contains("concept-hover")
-      ? (child.firstElementChild as HTMLElement)
-      : (child as HTMLElement)
-    ).getBoundingClientRect()
-  );
-  const box = footer.getBoundingClientRect();
-  // Side by side, from edge to edge, sharing the width.
-  expect(items[0].left - box.left).toBeLessThan(1);
-  expect(box.right - items[1].right).toBeLessThan(1);
-  expect(Math.abs(items[0].width - items[1].width)).toBeLessThan(2);
-});
+      text,
+    };
+    act(() => root.render(<ReviewConceptElementView element={card} />));
+    const footer = host.querySelector<HTMLElement>(
+      '[data-slot="header"] > .concept-slot__items'
+    ) as HTMLElement;
+    const slot = footer.parentElement as HTMLElement;
+    const items = [...footer.children].map((child) =>
+      (child.classList.contains("concept-hover")
+        ? (child.firstElementChild as HTMLElement)
+        : (child as HTMLElement)
+      ).getBoundingClientRect()
+    );
+    const box = footer.getBoundingClientRect();
+    // With no text, the fields span the whole header; with a title, they
+    // share the width beside it.
+    const across = Math.abs(box.width - slot.getBoundingClientRect().width) < 1;
+    expect(across).toBe(edgeToEdge);
+    // Side by side, from edge to edge, sharing the width.
+    expect(items[0].left - box.left).toBeLessThan(1);
+    expect(box.right - items[1].right).toBeLessThan(1);
+    expect(Math.abs(items[0].width - items[1].width)).toBeLessThan(2);
+  }
+);
 
 it("draws no header for a card with no text and nothing in its header", () => {
   const card: ReviewConceptElement = {
