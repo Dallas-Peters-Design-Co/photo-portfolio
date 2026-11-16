@@ -9,6 +9,7 @@ import {
   addColumn,
   addRow,
   type ButtonStyle,
+  CELL_STYLE_KIND,
   type ConceptCellKind,
   type ConceptTable,
   type ConceptTableColumn,
@@ -132,6 +133,80 @@ function CellInput({
   );
 }
 
+const CUSTOM = "custom";
+
+/**
+ * A tinted column's look: a kit Badge or Button style its cells follow
+ * (tags and chips take badges, buttons take buttons), or, while it follows
+ * none, its own colour and a button column's solid or outline.
+ */
+function ColumnLook({
+  brandDoc,
+  column,
+  index,
+  onChange,
+  textColor,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  column: ConceptTableColumn;
+  index: number;
+  onChange: (patch: Partial<ConceptTableColumn>) => void;
+  textColor: string;
+}) {
+  const kind = CELL_STYLE_KIND[column.kind];
+  const styles = (brandDoc?.componentStyles ?? []).filter(
+    (style) => style.kind === kind
+  );
+  const linked = styles.find((style) => style.id === column.styleId);
+  return (
+    <div className="review-concepts__table-tint">
+      {styles.length > 0 ? (
+        <ConceptField label="Kit style">
+          <ConceptSelect
+            label={`Column ${index + 1} kit style`}
+            onChange={(id) =>
+              onChange(
+                id === CUSTOM
+                  ? { look: undefined, styleId: undefined }
+                  : { styleId: id }
+              )
+            }
+            options={[
+              { label: "Custom", value: CUSTOM },
+              ...styles.map((style) => ({
+                label: style.name,
+                value: style.id,
+              })),
+            ]}
+            value={linked?.id ?? CUSTOM}
+          />
+        </ConceptField>
+      ) : null}
+      {linked ? null : (
+        <ConceptColorField
+          ariaLabel={`Column ${index + 1} color`}
+          brandDoc={brandDoc}
+          label="Color"
+          onChange={(color) => onChange({ color })}
+          value={column.color ?? textColor}
+        />
+      )}
+      {!linked && column.kind === "button" ? (
+        <ConceptField label="Style">
+          <ConceptSelect
+            label={`Column ${index + 1} button style`}
+            onChange={(style) =>
+              onChange({ buttonStyle: style as ButtonStyle })
+            }
+            options={BUTTON_STYLES}
+            value={column.buttonStyle ?? "solid"}
+          />
+        </ConceptField>
+      ) : null}
+    </div>
+  );
+}
+
 /**
  * A table's columns (name, type, colour) and its rows, cell by cell. Every
  * edit goes through the pure functions in conceptTable.ts.
@@ -205,33 +280,15 @@ export function ConceptTableFields({
                       />
                     </ConceptField>
                     {TINTED.has(column.kind) ? (
-                      <div className="review-concepts__table-tint">
-                        <ConceptColorField
-                          ariaLabel={`Column ${index + 1} color`}
-                          brandDoc={brandDoc}
-                          label="Color"
-                          onChange={(color) =>
-                            set(updateColumn(table, index, { color }))
-                          }
-                          value={column.color ?? element.color}
-                        />
-                        {column.kind === "button" ? (
-                          <ConceptField label="Style">
-                            <ConceptSelect
-                              label={`Column ${index + 1} button style`}
-                              onChange={(style) =>
-                                set(
-                                  updateColumn(table, index, {
-                                    buttonStyle: style as ButtonStyle,
-                                  })
-                                )
-                              }
-                              options={BUTTON_STYLES}
-                              value={column.buttonStyle ?? "solid"}
-                            />
-                          </ConceptField>
-                        ) : null}
-                      </div>
+                      <ColumnLook
+                        brandDoc={brandDoc}
+                        column={column}
+                        index={index}
+                        onChange={(patch) =>
+                          set(updateColumn(table, index, patch))
+                        }
+                        textColor={element.color}
+                      />
                     ) : (
                       <span />
                     )}

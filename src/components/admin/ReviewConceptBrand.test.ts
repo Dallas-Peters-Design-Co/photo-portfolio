@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EMPTY_KIT } from "../../../config/brandKit.js";
 import {
   addConceptElement,
   createConceptElement,
@@ -70,5 +71,28 @@ describe("a new badge", () => {
     expect(badge.background).not.toBe("transparent");
     expect(badge.borderColor).toBeTruthy();
     expect(badge.borderWidth).toBe(1);
+  });
+});
+
+describe("a new table", () => {
+  it("starts with the kit's badge and button styles in its columns", () => {
+    const { table } = createConceptElement("table", {
+      ...EMPTY_KIT,
+      componentStyles: [
+        { id: "pill", kind: "badge", look: {}, name: "Pill" },
+        { id: "cta", kind: "button", look: {}, name: "CTA" },
+      ],
+    });
+    expect(table?.columns.map((c) => c.styleId)).toEqual([
+      undefined,
+      "pill",
+      "pill",
+      "cta",
+    ]);
+    expect(table?.rows[0]?.at(-1)).toBe("Open");
+  });
+
+  it("is the plain sample without a kit", () => {
+    expect(createConceptElement("table").table?.columns).toHaveLength(3);
   });
 });

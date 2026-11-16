@@ -1,4 +1,6 @@
 import {
+  CELL_STYLE_KIND,
+  type ConceptCellLook,
   type ConceptTableBorders,
   type ConceptTableHeader,
   tableOf,
@@ -182,6 +184,47 @@ export const applyConceptStyle = (
   return result;
 };
 
+/** The part of a badge or button style a table cell draws with. */
+const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
+  background: look.background,
+  borderColor: look.borderColor,
+  borderWidth: look.borderWidth,
+  color: look.color,
+  fontSize: look.fontSize,
+  fontWeight: look.fontWeight,
+  paddingX: look.paddingX,
+  paddingY: look.paddingY,
+  radius: look.radius,
+  shadow: look.shadow,
+});
+
+/**
+ * A table's columns that follow kit styles, each given its style's current
+ * look. A style that is gone leaves the column's last look in place.
+ */
+export const applyColumnStyles = (
+  element: ReviewConceptElement,
+  styles: ConceptStyle[]
+): ReviewConceptElement => {
+  if (!element.table?.columns.some((column) => column.styleId)) {
+    return element;
+  }
+  const columns = element.table.columns.map((column) => {
+    const style = styles.find(
+      (s) => s.id === column.styleId && s.kind === CELL_STYLE_KIND[column.kind]
+    );
+    return style ? { ...column, look: cellLookOf(style.look) } : column;
+  });
+  return { ...element, table: { ...element.table, columns } };
+};
+
+/** An element as the kit draws it: its own style, then its columns'. */
+export const styleElement = (
+  element: ReviewConceptElement,
+  styles: ConceptStyle[]
+): ReviewConceptElement =>
+  applyColumnStyles(applyConceptStyle(element, styles), styles);
+
 /** Every element of every concept, as its style draws it. */
 export const applyConceptStyles = (
   concepts: ReviewConcept[],
@@ -192,7 +235,7 @@ export const applyConceptStyles = (
     : concepts.map((concept) => ({
         ...concept,
         elements: concept.elements.map((element) =>
-          applyConceptStyle(element, styles)
+          styleElement(element, styles)
         ),
       }));
 

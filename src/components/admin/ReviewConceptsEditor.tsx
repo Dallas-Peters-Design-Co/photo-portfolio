@@ -2,9 +2,9 @@ import { Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
-  applyConceptStyle,
   type ConceptStyle,
   linkStyle,
+  styleElement,
   withOverrides,
 } from "../../../config/conceptStyle.js";
 import type {
@@ -66,7 +66,7 @@ function ConceptCard({
   // fields edit. Saving them so keeps each one's own values current too.
   const styles = brandDoc?.componentStyles ?? [];
   const elements = concept.elements.map((element) =>
-    applyConceptStyle(element, styles)
+    styleElement(element, styles)
   );
   const setElements = (next: ReviewConceptElement[]) =>
     onChange({ ...concept, elements: next });

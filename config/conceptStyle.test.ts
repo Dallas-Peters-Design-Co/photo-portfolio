@@ -6,6 +6,7 @@ import {
   type ConceptStyle,
   cleanConceptStyles,
   linkStyle,
+  styleElement,
   withOverrides,
 } from "./conceptStyle.js";
 import { DEFAULT_REVIEW_DOC } from "./review.js";
@@ -284,5 +285,45 @@ it("lets a checkbox style set the accent and box size", () => {
   expect(applyConceptStyle(box, [style as ConceptStyle])).toMatchObject({
     accentColor: "#12b76a",
     checkSize: 22,
+  });
+});
+
+describe("table cells that follow kit styles", () => {
+  const pill: ConceptStyle = {
+    id: "pill",
+    kind: "badge",
+    look: { background: "#ecfdf3", color: "#027a48", radius: 999 },
+    name: "Success",
+  };
+  const table = (styleId: string, kind = "tag") =>
+    cleanConcept({
+      elements: [
+        {
+          kind: "table",
+          table: {
+            columns: [{ kind, label: "Status", styleId }],
+            rows: [["Active"]],
+          },
+        },
+      ],
+    }).elements[0] as ReviewConceptElement;
+
+  it("gives a linked tag column its badge style's look", () => {
+    const drawn = styleElement(table("pill"), [pill]);
+    expect(drawn.table?.columns[0]?.look).toMatchObject({
+      background: "#ecfdf3",
+      color: "#027a48",
+      radius: 999,
+    });
+  });
+
+  it("ignores a style of the wrong kind, and keeps the last look when it is gone", () => {
+    expect(
+      styleElement(table("pill", "button"), [pill]).table?.columns[0]?.look
+    ).toBeUndefined();
+    const drawn = styleElement(table("pill"), [pill]);
+    expect(styleElement(drawn, []).table?.columns[0]?.look?.background).toBe(
+      "#ecfdf3"
+    );
   });
 });

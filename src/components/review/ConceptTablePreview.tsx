@@ -1,7 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties } from "react";
 import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
+import { shadowCss } from "../../../config/conceptShadow.js";
 import {
+  type ConceptCellLook,
   type ConceptTableColumn,
   chipsOf,
   DEFAULT_BORDERS,
@@ -20,10 +22,39 @@ const DEFAULT_LINE = "color-mix(in srgb, currentColor 14%, transparent)";
 
 /** A tinted column's colour (tag, chips, icon, button): its own, or the text's. */
 const tintOf = (column: ConceptTableColumn): string =>
-  column.color ?? "currentColor";
+  column.look?.color ?? column.color ?? "currentColor";
 
 const tint = (column: ConceptTableColumn): CSSProperties =>
   ({ "--concept-tint": tintOf(column) }) as CSSProperties;
+
+/**
+ * A cell drawn as its column's kit style draws: the badge's or button's own
+ * fill, border, corners, padding, type and shadow, over the tinted default.
+ */
+const lookStyle = (look?: ConceptCellLook): CSSProperties =>
+  look
+    ? {
+        background: look.background,
+        border: look.borderColor
+          ? `${look.borderWidth ?? 1}px solid ${look.borderColor}`
+          : undefined,
+        borderRadius: look.radius,
+        boxShadow: look.shadow ? shadowCss(look.shadow) : undefined,
+        color: look.color,
+        fontSize: look.fontSize,
+        fontWeight: look.fontWeight,
+        padding:
+          look.paddingY === undefined || look.paddingX === undefined
+            ? undefined
+            : `${look.paddingY}px ${look.paddingX}px`,
+      }
+    : {};
+
+/** A tag or button: its column's tint, and its kit style when it has one. */
+const pill = (column: ConceptTableColumn): CSSProperties => ({
+  ...tint(column),
+  ...lookStyle(column.look),
+});
 
 function Cell({
   column,
@@ -46,7 +77,7 @@ function Cell({
     }
     case "tag":
       return value ? (
-        <span className="concept-table__tag" style={tint(column)}>
+        <span className="concept-table__tag" style={pill(column)}>
           {value}
         </span>
       ) : null;
@@ -55,8 +86,12 @@ function Cell({
         // The tint is inherited, so it is set once on the group.
         <span className="concept-table__chips" style={tint(column)}>
           {chipsOf(value).map((chip, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: chips can repeat
-            <span className="concept-table__chip" key={`${index}-${chip}`}>
+            <span
+              className="concept-table__chip"
+              // biome-ignore lint/suspicious/noArrayIndexKey: chips can repeat
+              key={`${index}-${chip}`}
+              style={lookStyle(column.look)}
+            >
               {chip}
             </span>
           ))}
@@ -81,7 +116,7 @@ function Cell({
         <span
           className="concept-table__button"
           data-style={column.buttonStyle ?? "solid"}
-          style={tint(column)}
+          style={pill(column)}
         >
           {value}
         </span>

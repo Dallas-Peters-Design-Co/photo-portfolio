@@ -227,3 +227,30 @@ describe("column order and header None", () => {
     expect(updateHeader(red, { color: "transparent" }).header).toEqual({});
   });
 });
+
+describe("columns that follow kit styles", () => {
+  const linked = cleanTable({
+    columns: [
+      {
+        kind: "tag",
+        label: "Status",
+        look: { background: "#ffffff" },
+        styleId: "pill",
+      },
+      { kind: "text", label: "Name", styleId: "pill" },
+    ],
+    rows: [["Active", "x"]],
+  });
+
+  it("keeps a style link on tag, chip and button columns only", () => {
+    expect(linked?.columns[0]?.styleId).toBe("pill");
+    expect(linked?.columns[0]?.look).toEqual({ background: "#ffffff" });
+    expect(linked?.columns[1]?.styleId).toBeUndefined();
+  });
+
+  it("keeps the link from tags to chips, and drops it for another kind", () => {
+    const table = linked as NonNullable<typeof linked>;
+    expect(setColumnKind(table, 0, "chips").columns[0]?.styleId).toBe("pill");
+    expect(setColumnKind(table, 0, "text").columns[0]?.styleId).toBeUndefined();
+  });
+});

@@ -162,3 +162,32 @@ it("moves a column with its drag handle's arrow keys, cells and all", async () =
 it("keeps what a table draws inside its own box", () => {
   expect(getComputedStyle(preview()).contain).toBe("paint");
 });
+
+it("draws a linked column's tags with its kit style's look", () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("table"),
+          table: {
+            columns: [
+              {
+                kind: "tag",
+                label: "Status",
+                look: { background: "#ecfdf3", color: "#027a48", radius: 4 },
+                styleId: "pill",
+              },
+            ],
+            rows: [["Active"]],
+          },
+        }}
+      />
+    )
+  );
+  const tag = getComputedStyle(
+    host.querySelector(".concept-table__tag") as HTMLElement
+  );
+  expect(tag.backgroundColor).toBe("rgb(236, 253, 243)");
+  expect(tag.color).toBe("rgb(2, 122, 72)");
+  expect(tag.borderTopLeftRadius).toBe("4px");
+});

@@ -1,6 +1,9 @@
 import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
 import { DEFAULT_SHADOW } from "../../../config/conceptShadow.js";
-import { DEFAULT_TABLE } from "../../../config/conceptTable.js";
+import {
+  type ConceptTable,
+  DEFAULT_TABLE,
+} from "../../../config/conceptTable.js";
 import { newItemId } from "../../../config/proposal.js";
 import {
   ELEMENT_STYLE_KEYS,
@@ -92,6 +95,31 @@ const elementOptions = (
   }
 };
 
+/**
+ * A new table's sample, drawn with the kit's own components: its Status and
+ * Tags follow the first Badge style, and when there is a Button style an
+ * Action column of buttons follows it.
+ */
+const tableFromKit = (brandDoc?: BrandKitDoc | null): ConceptTable => {
+  const styles = brandDoc?.componentStyles ?? [];
+  const badge = styles.find((style) => style.kind === "badge");
+  const button = styles.find((style) => style.kind === "button");
+  const columns = DEFAULT_TABLE.columns.map((column) =>
+    badge && (column.kind === "tag" || column.kind === "chips")
+      ? { ...column, styleId: badge.id }
+      : column
+  );
+  return button
+    ? {
+        columns: [
+          ...columns,
+          { kind: "button", label: "Action", styleId: button.id },
+        ],
+        rows: DEFAULT_TABLE.rows.map((row) => [...row, "Open"]),
+      }
+    : { ...DEFAULT_TABLE, columns };
+};
+
 /** A badge starts as a soft tinted pill: light fill, strong text, thin edge. */
 const badgeLook = (
   brandDoc?: BrandKitDoc | null
@@ -180,7 +208,7 @@ export const createConceptElement = (
     text: elementText[kind],
     ...(options ? { options } : {}),
     ...elementState(kind),
-    ...(kind === "table" ? { table: DEFAULT_TABLE } : {}),
+    ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
     ...(kind === "checkbox"
       ? {

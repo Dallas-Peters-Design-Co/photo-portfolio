@@ -4,6 +4,7 @@ import {
   cleanIconSvg,
   conceptIconName,
 } from "./conceptIcon.js";
+import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
 
 /**
  * A concept table: typed columns, and rows of cell text.
@@ -32,6 +33,24 @@ export type ConceptCellKind =
 
 export type ButtonStyle = "solid" | "outline";
 
+/**
+ * How a tag, chip or button cell is drawn when its column follows a brand
+ * kit component style: that style's look, copied in whenever the review is
+ * drawn (config/conceptStyle.ts applyColumnStyles) and kept as a fallback.
+ */
+export interface ConceptCellLook {
+  background?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  color?: string;
+  fontSize?: number;
+  fontWeight?: number;
+  paddingX?: number;
+  paddingY?: number;
+  radius?: number;
+  shadow?: ConceptShadow;
+}
+
 export interface ConceptTableColumn {
   /** Button columns: filled with the colour, or outlined in it. */
   buttonStyle?: ButtonStyle;
@@ -39,7 +58,16 @@ export interface ConceptTableColumn {
   color?: string;
   kind: ConceptCellKind;
   label: string;
+  /** The kit style's look, while the column follows one. */
+  look?: ConceptCellLook;
+  /** The kit component style the cells follow: a badge or button style. */
+  styleId?: string;
 }
+
+/** Which kind of kit style a column's cells can follow. */
+export const CELL_STYLE_KIND: Partial<
+  Record<ConceptCellKind, "badge" | "button">
+> = { button: "button", chips: "badge", tag: "badge" };
 
 /** Where lines are drawn: none, between rows (the default), or every cell. */
 export type TableLines = "none" | "rows" | "grid";
@@ -120,11 +148,50 @@ const optionalHex = <K extends string>(
     ? ({ [key]: value } as Record<K, string>)
     : {};
 
+const STYLE_ID = /^[a-z0-9-]{1,64}$/i;
+
+const num = <K extends string>(
+  key: K,
+  value: unknown,
+  min: number,
+  max: number
+): Partial<Record<K, number>> =>
+  typeof value === "number" && Number.isFinite(value)
+    ? ({ [key]: Math.min(max, Math.max(min, value)) } as Record<K, number>)
+    : {};
+
+/** A cell look, checked on its own terms: colours, sizes and a shadow. */
+const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+  const raw = value as Record<string, unknown>;
+  const shadow = cleanShadow(raw.shadow);
+  const look: ConceptCellLook = {
+    ...optionalHex("background", raw.background),
+    ...optionalHex("borderColor", raw.borderColor),
+    ...num("borderWidth", raw.borderWidth, 0, 8),
+    ...optionalHex("color", raw.color),
+    ...num("fontSize", raw.fontSize, 8, 72),
+    ...num("fontWeight", raw.fontWeight, 100, 900),
+    ...num("paddingX", raw.paddingX, 0, 48),
+    ...num("paddingY", raw.paddingY, 0, 32),
+    ...num("radius", raw.radius, 0, 999),
+    ...(shadow ? { shadow } : {}),
+  };
+  return Object.keys(look).length > 0 ? look : undefined;
+};
+
 const cleanColumn = (value: unknown): ConceptTableColumn => {
   const raw = (value ?? {}) as Partial<ConceptTableColumn>;
   const kind = CELL_KINDS.includes(raw.kind as ConceptCellKind)
     ? (raw.kind as ConceptCellKind)
     : "text";
+  const linked =
+    CELL_STYLE_KIND[kind] !== undefined &&
+    typeof raw.styleId === "string" &&
+    STYLE_ID.test(raw.styleId);
+  const look = linked ? cleanCellLook(raw.look) : undefined;
   return {
     ...(kind === "button" && raw.buttonStyle === "outline"
       ? { buttonStyle: "outline" as const }
@@ -132,6 +199,8 @@ const cleanColumn = (value: unknown): ConceptTableColumn => {
     ...optionalHex("color", raw.color),
     kind,
     label: text(raw.label, MAX_LABEL),
+    ...(look ? { look } : {}),
+    ...(linked ? { styleId: raw.styleId } : {}),
   };
 };
 
@@ -287,7 +356,16 @@ export const setColumnKind = (
   index: number,
   kind: ConceptCellKind
 ): ConceptTable => {
-  const retyped = updateColumn(table, index, { kind });
+  const was = table.columns[index];
+  // A style follows a kind of cell; changing to another kind drops it.
+  const keepsStyle =
+    was?.styleId !== undefined &&
+    CELL_STYLE_KIND[kind] === CELL_STYLE_KIND[was.kind];
+  const retyped = updateColumn(
+    table,
+    index,
+    keepsStyle ? { kind } : { kind, look: undefined, styleId: undefined }
+  );
   return kind === "stacked"
     ? retyped
     : {
