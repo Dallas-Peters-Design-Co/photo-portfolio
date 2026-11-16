@@ -293,25 +293,21 @@
 
 @media (min-width: 60rem) {
   /*
-   * A heading on the left, its words on the right. The heading keeps at
-   * least two fifths of the band, so the words line up down the page; a
-   * heading too long for that takes the row, and its words go under it
-   * rather than being run into.
+   * A heading on the left, its words on the right, on one grid for every
+   * band: the heading takes two fifths, the words three, so the words line
+   * up down the whole page whatever the heading says. A long heading wraps
+   * in its column rather than pushing its words over.
    */
   .doc-band--split {
-    flex-flow: row wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     gap: calc(var(--spacing) * 6) calc(var(--spacing) * 10);
-    align-items: flex-start;
+    align-items: start;
   }
 
   .doc-band--split > .doc-band__title {
-    flex: 0 0 auto;
-    min-width: calc(40% - var(--spacing) * 10);
-    max-width: 100%;
-  }
-
-  .doc-band--split > .doc-band__body {
-    flex: 1 1 20rem;
+    hyphens: auto;
+    overflow-wrap: break-word;
   }
 }
 
