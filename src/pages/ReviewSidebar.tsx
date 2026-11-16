@@ -29,7 +29,7 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
     { id: reviewAnchor.overview, label: "Overview" },
   ];
   if (!isRichTextEmpty(doc.summary)) {
-    entries.push({ id: reviewAnchor.summary, label: "Headline findings" });
+    entries.push({ id: reviewAnchor.summary, label: "Findings" });
   }
   for (const section of doc.sections) {
     if (!isRichTextEmpty(section.body)) {

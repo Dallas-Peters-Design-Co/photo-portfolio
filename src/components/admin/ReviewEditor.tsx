@@ -338,7 +338,7 @@ export function ReviewEditor({
               />
             </div>
             <div className="space-y-2">
-              <Label>Headline findings</Label>
+              <Label>Findings</Label>
               <PageEditor
                 key={auditKey}
                 onChange={(summary) => setDoc({ summary: summary as RichText })}

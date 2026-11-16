@@ -183,7 +183,7 @@ function ReviewSheet({
 
       {isRichTextEmpty(doc.summary) ? null : (
         <section className="doc-band doc-band--split" id={reviewAnchor.summary}>
-          <h2 className="doc-band__title">Headline findings</h2>
+          <h2 className="doc-band__title">Findings</h2>
           <div className="doc-band__body">
             <Prose text={doc.summary} />
           </div>
