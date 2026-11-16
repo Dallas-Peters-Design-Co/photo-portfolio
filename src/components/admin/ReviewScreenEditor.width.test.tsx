@@ -63,6 +63,20 @@ it("caps a phone screenshot at 420px", async () => {
   expect(await canvasWidth("mobile")).toBeLessThanOrEqual(420);
 });
 
+it("centres a phone screenshot in its column", async () => {
+  await canvasWidth("mobile");
+  const canvas = host?.querySelector<HTMLElement>("[data-review-canvas]");
+  const column = host?.querySelector<HTMLElement>(
+    ".review-screen-editor__shot"
+  );
+  const box = canvas?.getBoundingClientRect();
+  const pane = column?.getBoundingClientRect();
+  const left = (box?.left ?? 0) - (pane?.left ?? 0);
+  const right = (pane?.right ?? 0) - (box?.right ?? 0);
+  expect(left).toBeGreaterThan(20);
+  expect(Math.abs(left - right)).toBeLessThan(2);
+});
+
 it("lets a desktop screenshot use the column", async () => {
   expect(await canvasWidth("desktop")).toBeGreaterThan(420);
 });

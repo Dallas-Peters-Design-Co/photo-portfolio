@@ -381,10 +381,10 @@ export function ReviewScreenEditor({
             {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer canvas */}
             <div
               // A phone capture is drawn no wider than a large phone (420px),
-              // as on the review page; pins are fractions of this box, so
-              // they stay on what they mark.
+              // as on the review page, centred in its column; pins are
+              // fractions of this box, so they stay on what they mark.
               className={`relative touch-none select-none overflow-hidden rounded-md border border-white/10 ${
-                screen.viewport === "mobile" ? "max-w-phone" : ""
+                screen.viewport === "mobile" ? "mx-auto max-w-phone" : ""
               } ${markup.cursor}`}
               data-review-canvas=""
               onClick={addPin}

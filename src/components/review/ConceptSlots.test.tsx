@@ -215,3 +215,21 @@ it("draws no header for a card with no text and nothing in its header", () => {
   expect(host.querySelector('[data-slot="header"]')).toBeNull();
   expect(host.querySelector('[data-slot="body"]')).not.toBeNull();
 });
+
+it("moves an element up or down its list with the handle's arrow keys", () => {
+  act(() => root.render(<Harness />));
+  const footerKinds = () =>
+    [...host.querySelectorAll<HTMLElement>(".review-concepts__element")]
+      .map((section) => section.getAttribute("aria-label"))
+      .filter((kind) => kind === "progress" || kind === "checkbox");
+  expect(footerKinds()).toEqual(["progress", "checkbox"]);
+  const handle = host.querySelector<HTMLButtonElement>(
+    'button[aria-label^="Move Checkbox"]'
+  );
+  act(() => {
+    handle?.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "ArrowUp" })
+    );
+  });
+  expect(footerKinds()).toEqual(["checkbox", "progress"]);
+});

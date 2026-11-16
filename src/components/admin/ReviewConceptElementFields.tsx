@@ -1,5 +1,5 @@
 import { ChevronDown, Copy, Trash2 } from "lucide-react";
-import { useId, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { takesHover } from "../../../config/conceptHover.js";
 import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
@@ -246,6 +246,7 @@ function KindGroups({
 function ElementBar({
   bodyId,
   element,
+  handle,
   onDuplicate,
   onLink,
   onRemove,
@@ -255,6 +256,8 @@ function ElementBar({
 }: {
   bodyId: string;
   element: ReviewConceptElement;
+  /** The control that moves the element within its list. */
+  handle?: ReactNode;
   onDuplicate?: () => void;
   onLink?: (style: ConceptStyle | null) => void;
   onRemove?: () => void;
@@ -264,6 +267,7 @@ function ElementBar({
 }) {
   return (
     <header className="review-concepts__element-bar">
+      {handle}
       <button
         aria-controls={bodyId}
         aria-expanded={open}
@@ -308,6 +312,7 @@ export function ReviewConceptElementFields({
   brandDoc,
   depth = 0,
   element,
+  handle,
   lookOnly = false,
   onChange,
   onDuplicate,
@@ -319,6 +324,8 @@ export function ReviewConceptElementFields({
   /** How many slots deep the element sits; past the limit it has none. */
   depth?: number;
   element: ReviewConceptElement;
+  /** The control that moves the element within its list. */
+  handle?: ReactNode;
   /**
    * The brand kit's style editor: only the look (type, box, border, shadow,
    * colour, a table's header and borders), none of the content.
@@ -341,6 +348,7 @@ export function ReviewConceptElementFields({
         <ElementBar
           bodyId={bodyId}
           element={element}
+          handle={handle}
           onDuplicate={onDuplicate}
           onLink={onLink}
           onRemove={onRemove}

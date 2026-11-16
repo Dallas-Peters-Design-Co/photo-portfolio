@@ -1,3 +1,5 @@
+import { GripVertical } from "lucide-react";
+import { type DragEvent, useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ConceptStyle,
@@ -16,6 +18,9 @@ import {
   duplicateConceptElement,
 } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
+
+/** What a dragged element carries: its list, then its place in it. */
+const DRAG_TYPE = "text/x-concept-element";
 
 /**
  * A list of elements to edit — a concept's, or what a card or panel holds —
@@ -37,6 +42,27 @@ export function ConceptElementList({
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
+  // Which list a drag started in: a slot's list sits inside its card's, and
+  // a drop moves an element only within the list it came from.
+  const listId = useId();
+  const [over, setOver] = useState<number | null>(null);
+
+  /** Order is the order drawn: move one element to another place. */
+  const move = (from: number, to: number) => {
+    if (to < 0 || to >= elements.length || from === to) {
+      return;
+    }
+    const next = [...elements];
+    const [element] = next.splice(from, 1);
+    if (element) {
+      next.splice(to, 0, element);
+      onChange(next);
+    }
+  };
+  const dragged = (event: DragEvent): number | null => {
+    const [list, index] = event.dataTransfer.getData(DRAG_TYPE).split("|");
+    return list === listId ? Number(index) : null;
+  };
 
   const update = (id: string, patch: Partial<ReviewConceptElement>) =>
     onChange(
@@ -104,22 +130,68 @@ export function ConceptElementList({
           />
         </div>
       </div>
-      {elements.map((element) => (
-        <ReviewConceptElementFields
-          brandDoc={brandDoc}
-          depth={depth}
-          element={element}
+      {elements.map((element, index) => (
+        // biome-ignore lint/a11y/noStaticElementInteractions: the row is a drop target; the handle inside it is the keyboard route
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
+        <div
+          className="review-concepts__sortable"
+          data-drop-over={over === index || undefined}
           key={element.id}
-          onChange={(patch) => update(element.id, patch)}
-          onDuplicate={() =>
-            onChange(duplicateConceptElement(elements, element.id))
-          }
-          onLink={(style) => link(element.id, style)}
-          onRemove={() =>
-            onChange(elements.filter((item) => item.id !== element.id))
-          }
-          styles={styles.filter((style) => style.kind === element.kind)}
-        />
+          onDragLeave={() => setOver(null)}
+          onDragOver={(event) => {
+            if (event.dataTransfer.types.includes(DRAG_TYPE)) {
+              event.preventDefault();
+              setOver(index);
+            }
+          }}
+          onDrop={(event) => {
+            setOver(null);
+            const from = dragged(event);
+            if (from !== null) {
+              // Handled here: the card's own list, around this one, keeps out.
+              event.preventDefault();
+              event.stopPropagation();
+              move(from, index);
+            }
+          }}
+        >
+          <ReviewConceptElementFields
+            brandDoc={brandDoc}
+            depth={depth}
+            element={element}
+            handle={
+              <button
+                aria-label={`Move ${kindLabel(element.kind)}: drag, or use the arrow keys`}
+                className="review-concepts__handle"
+                draggable
+                onDragStart={(event) => {
+                  event.stopPropagation();
+                  event.dataTransfer.setData(DRAG_TYPE, `${listId}|${index}`);
+                  event.dataTransfer.effectAllowed = "move";
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                    event.preventDefault();
+                    move(index, index + (event.key === "ArrowUp" ? -1 : 1));
+                  }
+                }}
+                title="Drag to reorder"
+                type="button"
+              >
+                <GripVertical aria-hidden size={14} />
+              </button>
+            }
+            onChange={(patch) => update(element.id, patch)}
+            onDuplicate={() =>
+              onChange(duplicateConceptElement(elements, element.id))
+            }
+            onLink={(style) => link(element.id, style)}
+            onRemove={() =>
+              onChange(elements.filter((item) => item.id !== element.id))
+            }
+            styles={styles.filter((style) => style.kind === element.kind)}
+          />
+        </div>
       ))}
     </div>
   );

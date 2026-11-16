@@ -358,3 +358,32 @@
   color: #172033;
   background: #f2f4f7;
 }
+
+/* Each element in a list can be dragged to a new place by its handle. */
+.review-concepts__sortable {
+  border-top: 2px solid transparent;
+
+  &[data-drop-over] {
+    border-top-color: color-mix(in oklch, #fff 70%, transparent);
+  }
+}
+
+.review-concepts__handle {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: calc(var(--spacing) * 6);
+  height: calc(var(--spacing) * 7);
+  color: color-mix(in oklch, #fff 45%, transparent);
+  cursor: grab;
+  border-radius: var(--radius-control);
+
+  &:hover,
+  &:focus-visible {
+    color: #fff;
+    background: color-mix(in oklch, #fff 8%, transparent);
+  }
+  &:active {
+    cursor: grabbing;
+  }
+}
