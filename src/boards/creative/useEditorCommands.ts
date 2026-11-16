@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { normalizeTextStyle, type TextStyle } from "../../../config/textStyle";
 import type { TypeScale } from "../../../config/typeScale.js";
@@ -25,6 +26,7 @@ import { editorCommandList } from "./editorCommandList";
 import { type AlignTo, alignLayers, type useLayerSelection } from "./selection";
 import { sendToBoard } from "./sendToBoard";
 import { keepOnFrame } from "./snap";
+import { outlineTextLayer } from "./textOutlines";
 
 /**
  * Everything the frame editor can do, as named commands with their keys:
@@ -178,6 +180,41 @@ export const useEditorCommands = ({
       add(newText(frame, items, role));
     }
   };
+  /**
+   * ⇧⌘O: each chosen text layer replaced by its letters as a vector shape,
+   * measured from the text box on the artboard (textOutlines.ts). One write,
+   * so one undo puts the text back.
+   */
+  const outline = async () => {
+    const texts = chosen.filter((l) => layerKind(l) === "text");
+    if (texts.length === 0) {
+      return;
+    }
+    try {
+      const converted = await Promise.all(
+        texts.map((layer) => {
+          const box = document.querySelector<HTMLTextAreaElement>(
+            `[data-layer-id="${CSS.escape(layer.id)}"] textarea`
+          );
+          if (!box) {
+            throw new Error("Open the frame to outline its text.");
+          }
+          return outlineTextLayer(layer, box);
+        })
+      );
+      const byId = new Map(converted.map((item) => [item.id, item]));
+      write(live.current.map((item) => byId.get(item.id) ?? item));
+      toast.success(
+        converted.length === 1
+          ? "Text converted to outlines."
+          : `${converted.length} text layers converted to outlines.`
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't convert to outlines."
+      );
+    }
+  };
   /** Arrow keys, stopping short of nudging a layer off the frame. */
   const nudge = (dx: number, dy: number) => {
     const step = frame ? keepOnFrame(chosen, frame, dx, dy) : { dx, dy };
@@ -235,6 +272,7 @@ export const useEditorCommands = ({
     nudge,
     one,
     order,
+    outline: () => void outline(),
     pasteLayers,
     patchMany,
     removeMany,

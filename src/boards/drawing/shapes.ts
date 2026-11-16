@@ -19,6 +19,7 @@ export const PATH_TOOLS = [
   "squircle",
   "line",
   "arrow",
+  "vector",
 ] as const;
 
 export type PathTool = (typeof PATH_TOOLS)[number];
@@ -111,6 +112,24 @@ const lineGeometry = (
   return { closed: false, d: path([start, shaftEnd], false), head };
 };
 
+const PATH_NUMBER = /-?\d*\.?\d+(?:e[-+]?\d+)?/gi;
+
+/**
+ * A path of absolute commands (M L Q C Z, as type outlines are written)
+ * scaled to a new box: every number alternates x then y.
+ */
+export const scalePath = (d: string, sx: number, sy: number): string => {
+  if (sx === 1 && sy === 1) {
+    return d;
+  }
+  let i = 0;
+  return d.replace(PATH_NUMBER, (value) => {
+    const scaled = Number(value) * (i % 2 === 0 ? sx : sy);
+    i += 1;
+    return String(Math.round(scaled * 100) / 100);
+  });
+};
+
 /**
  * The outline of a path shape at w × h, for a stroke of the given width (in the
  * same units). Null for tools this module doesn't draw.
@@ -153,6 +172,17 @@ export const shapeGeometry = (
     case "line":
     case "arrow":
       return lineGeometry(config, w, h, stroke);
+    case "vector":
+      return config.d
+        ? {
+            closed: true,
+            d: scalePath(
+              config.d,
+              w / (config.viewWidth || w),
+              h / (config.viewHeight || h)
+            ),
+          }
+        : null;
     default:
       return null;
   }

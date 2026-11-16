@@ -119,6 +119,37 @@ describe("parseDrawingConfig", () => {
   });
 });
 
+describe("parseDrawingConfig vector outlines", () => {
+  it("keeps an outlined path and the box it was drawn in", () => {
+    const config = parseDrawingConfig({
+      d: "M1.5 2L3 4Q5 6 7 8C1 2 3 4 5 6Z",
+      fill: "#112233",
+      stroke: "#00000000",
+      strokeWidth: 0,
+      tool: "vector",
+      viewHeight: 120,
+      viewWidth: 420,
+    });
+    expect(config).toMatchObject({
+      d: "M1.5 2L3 4Q5 6 7 8C1 2 3 4 5 6Z",
+      tool: "vector",
+      viewHeight: 120,
+      viewWidth: 420,
+    });
+  });
+
+  it("refuses a path with anything but outline commands and numbers", () => {
+    expect(
+      parseDrawingConfig({
+        d: "M0 0<script>",
+        stroke: "#000",
+        strokeWidth: 0,
+        tool: "vector",
+      })
+    ).toBeNull();
+  });
+});
+
 describe("parseImageConfig", () => {
   it("keeps a picture's corner radius and nothing else", () => {
     expect(parseImageConfig({ radius: 24, script: "x" })).toEqual({

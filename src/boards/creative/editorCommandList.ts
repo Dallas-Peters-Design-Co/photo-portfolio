@@ -27,6 +27,8 @@ export interface EditorOps {
   nudge: (dx: number, dy: number) => void;
   one: BoardItem | null;
   order: (id: string, how: Reorder) => void;
+  /** ⇧⌘O: the chosen text layers as vector outlines (textOutlines.ts). */
+  outline: () => void;
   /** ⌘V: what was copied, in a frame or on the board, into this frame. */
   pasteLayers: () => void;
   patchMany: (patches: Map<string, Partial<BoardItem>>) => void;
@@ -52,6 +54,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
     each,
     layers,
     one,
+    outline,
     pasteLayers,
     removeMany,
     selection,
@@ -214,6 +217,14 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       keys: ["mod+d"],
       label: "Duplicate",
       run: () => copyMany(chosen),
+    },
+    {
+      enabled: chosen.some((l) => layerKind(l) === "text"),
+      group: "Edit",
+      id: "outline-text",
+      keys: ["shift+mod+o"],
+      label: "Convert text to outlines",
+      run: outline,
     },
     {
       enabled: some,

@@ -28,6 +28,7 @@ const SHAPE_NAMES: Record<string, string> = {
   squircle: "Squircle",
   star: "Star",
   triangle: "Triangle",
+  vector: "Outlined text",
 };
 
 const labelOf = (item: BoardItem): string => {

@@ -25,6 +25,8 @@ export const DRAW_TOOLS = [
   "line",
   "arrow",
   "mask",
+  // Type converted to outlines (creative/textOutlines.ts): a filled path.
+  "vector",
 ] as const;
 
 export type DrawTool = (typeof DRAW_TOOLS)[number];
@@ -52,6 +54,11 @@ export interface DrawingConfig {
   /** Rect and rounded only: the sides the border runs along (shapePaint.ts);
    *  absent is all four. */
   borderSides?: ("top" | "right" | "bottom" | "left")[];
+  /**
+   * Vector only: the outline's SVG path, absolute commands only (M L Q C Z),
+   * drawn in a viewWidth × viewHeight box and stretched with the layer.
+   */
+  d?: string;
   fill: string | null;
   /** A Studio picture filling the shape, over the fill colour. */
   fillImage?: string;
@@ -70,6 +77,9 @@ export interface DrawingConfig {
   /** Zero draws no outline. */
   strokeWidth: number;
   tool: DrawTool;
+  /** Vector only: the box `d` was drawn in. */
+  viewHeight?: number;
+  viewWidth?: number;
 }
 
 export const DEFAULT_STROKE = "#ffffff";

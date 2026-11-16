@@ -27,6 +27,7 @@ import { sanitizeText } from "../_lib/httpUrl.js";
 import { designMdOf } from "../_lib/mcpBrandTools.js";
 import { loadModelDefs } from "../_lib/modelStore.js";
 import { getDb, schema } from "../_lib/orm.js";
+import { outlineFont } from "../_lib/outlineFont.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import { withRequestIdentity } from "../_lib/requestIdentity.js";
 import { deleteLook, listLooks, saveLook } from "../_lib/savedLooks.js";
@@ -54,6 +55,20 @@ import {
 
 type Sql = ReturnType<typeof getSql>;
 type User = ReturnType<typeof getBearerUser>;
+
+async function handleOutlineFont(req: VercelRequest, res: VercelResponse) {
+  const found = await outlineFont(
+    req.query.outlineFont,
+    req.query.weight,
+    req.query.italic
+  );
+  if (!found.ok) {
+    return res.status(found.status).json({ error: found.error });
+  }
+  res.setHeader("Cache-Control", "private, max-age=86400");
+  res.setHeader("Content-Type", found.contentType);
+  return res.status(200).send(Buffer.from(found.bytes));
+}
 
 async function handleGet(
   sql: Sql,
@@ -83,6 +98,10 @@ async function handleGet(
       .status(200)
       .json(await listComponents(sql, req.query.components));
   }
+  // A font file for Convert to outlines (see _lib/outlineFont.ts).
+  if (req.query.outlineFont !== undefined) {
+    return handleOutlineFont(req, res);
+  }
   // Brand font lookups ride here too (see _lib/fontCatalog.ts).
   if (req.query.fonts === "google") {
     res.setHeader("Cache-Control", "private, max-age=86400");
@@ -110,16 +129,18 @@ async function handleGet(
   }
   // A kit as DESIGN.md, for the guide's download (see _lib/mcpBrandTools.ts).
   if (typeof req.query.design === "string") {
-    const kit = UUID_RE.test(req.query.design)
-      ? await loadKit(sql, req.query.design)
-      : null;
-    if (!kit) {
-      return res.status(404).json({ error: "That brand kit wasn't found" });
-    }
-    res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-    return res.status(200).send(designMdOf(kit));
+    return handleDesignMd(sql, req.query.design, res);
   }
   return res.status(200).json(await loadKits(sql));
+}
+
+async function handleDesignMd(sql: Sql, id: string, res: VercelResponse) {
+  const kit = UUID_RE.test(id) ? await loadKit(sql, id) : null;
+  if (!kit) {
+    return res.status(404).json({ error: "That brand kit wasn't found" });
+  }
+  res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+  return res.status(200).send(designMdOf(kit));
 }
 
 async function handleLookAction(

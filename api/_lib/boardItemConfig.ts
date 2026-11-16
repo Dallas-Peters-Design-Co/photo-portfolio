@@ -395,6 +395,7 @@ export const DRAW_TOOLS = new Set([
   "squircle",
   "line",
   "arrow",
+  "vector",
 ]);
 
 /** A freehand path this long is a mistake or an attack, not a drawing. */
@@ -413,6 +414,35 @@ export const MAX_DRAW_POINTS = 4000;
  * unbounded row.
  */
 const BORDER_SIDES = ["top", "right", "bottom", "left"];
+
+/** An outline's path: the absolute commands type is written in, and numbers. */
+const VECTOR_PATH = /^[MLQCZ0-9.,\se+-]+$/;
+const MAX_VECTOR_PATH = 400_000;
+
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === "number" && Number.isFinite(value);
+
+// Appearance a shape can carry beyond its outline: set by the creative
+// editor, absent on everything drawn before it.
+const shapeAppearance = (
+  o: Record<string, unknown>
+): Record<string, number> => {
+  const appearance: Record<string, number> = {};
+  if (isFiniteNumber(o.opacity)) {
+    appearance.opacity = clamp(o.opacity, 0, 1);
+  }
+  if (isFiniteNumber(o.radius)) {
+    appearance.radius = clamp(o.radius, 0, 5000);
+  }
+  // Polygon sides or star points, and how deep a star's points go.
+  if (isFiniteNumber(o.sides)) {
+    appearance.sides = Math.round(clamp(o.sides, 3, 24));
+  }
+  if (isFiniteNumber(o.innerRatio)) {
+    appearance.innerRatio = clamp(o.innerRatio, 0.1, 0.95);
+  }
+  return appearance;
+};
 
 export const parseDrawingConfig = (
   raw: unknown
@@ -433,21 +463,7 @@ export const parseDrawingConfig = (
     strokeWidth: clamp(num(o.strokeWidth, 4), 0, 200),
     tool,
   };
-  // Appearance a shape can carry beyond its outline: set by the creative
-  // editor, absent on everything drawn before it.
-  if (typeof o.opacity === "number" && Number.isFinite(o.opacity)) {
-    config.opacity = clamp(o.opacity, 0, 1);
-  }
-  if (typeof o.radius === "number" && Number.isFinite(o.radius)) {
-    config.radius = clamp(o.radius, 0, 5000);
-  }
-  // Polygon sides or star points, and how deep a star's points go.
-  if (typeof o.sides === "number" && Number.isFinite(o.sides)) {
-    config.sides = Math.round(clamp(o.sides, 3, 24));
-  }
-  if (typeof o.innerRatio === "number" && Number.isFinite(o.innerRatio)) {
-    config.innerRatio = clamp(o.innerRatio, 0.1, 0.95);
-  }
+  Object.assign(config, shapeAppearance(o));
 
   // A box's border on only some sides, and a Studio picture as the fill with
   // how it was made (src/boards/drawing/shapePaint.ts).
@@ -463,6 +479,17 @@ export const parseDrawingConfig = (
     if (studio) {
       config.studio = studio;
     }
+  }
+
+  // Type converted to outlines: the path and the box it was drawn in.
+  if (tool === "vector") {
+    const d = typeof o.d === "string" ? o.d : "";
+    if (!(d.length <= MAX_VECTOR_PATH && VECTOR_PATH.test(d))) {
+      return null;
+    }
+    config.d = d;
+    config.viewWidth = clamp(num(o.viewWidth, 1), 1, 100_000);
+    config.viewHeight = clamp(num(o.viewHeight, 1), 1, 100_000);
   }
 
   Object.assign(config, componentOf(o));

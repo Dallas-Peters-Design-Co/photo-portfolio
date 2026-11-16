@@ -6,7 +6,7 @@ import { newShape } from "../creative/creativeModel";
 import { shapeHtml } from "../creative/shapeHtml";
 import { DrawingView } from "./DrawingView";
 import type { DrawingConfig } from "./drawing";
-import { PATH_TOOLS, shapeGeometry } from "./shapes";
+import { PATH_TOOLS, scalePath, shapeGeometry } from "./shapes";
 
 const COMMANDS = /[ML]/;
 const PATTERN_FILL = /^url\(#shape-fill-/;
@@ -37,7 +37,8 @@ const bbox = (d: string, w: number, h: number) => {
 };
 
 describe("path shapes", () => {
-  for (const tool of PATH_TOOLS) {
+  // Vector outlines carry their own path; scalePath is tested below.
+  for (const tool of PATH_TOOLS.filter((t) => t !== "vector")) {
     it(`${tool} stays inside its box`, () => {
       const shape = shapeGeometry(config(tool), 200, 120, 4);
       expect(shape?.d.startsWith("M")).toBe(true);
@@ -211,6 +212,14 @@ describe("a shape's border sides and Studio fill", () => {
     // All four sides is the plain border.
     expect(shapeHtml(config("rect"), place, 1)).toContain(
       "box-shadow:inset 0 0 0 4px #111111"
+    );
+  });
+});
+
+describe("scalePath", () => {
+  it("scales an outline's x and y numbers to a new box", () => {
+    expect(scalePath("M10 20L30 40Q1 2 3 4Z", 2, 0.5)).toBe(
+      "M20 10L60 20Q2 1 6 2Z"
     );
   });
 });
