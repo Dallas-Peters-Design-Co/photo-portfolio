@@ -108,8 +108,10 @@ function CardPreview({
 }) {
   const card = splitCardText(element.text);
   // The card's own icon, title and body lead its header slot, so whatever
-  // the header holds sits beside them, across the card's full width.
-  const lead = (
+  // the header holds sits beside them, across the card's full width. With
+  // none of them, there is no lead, and the header holds only its elements.
+  const hasLead = Boolean(element.iconName || card.title || card.body);
+  const lead = hasLead ? (
     <div className="concept-slot__lead review-concepts__card-text">
       {element.iconName ? (
         <ConceptIcon
@@ -119,7 +121,7 @@ function CardPreview({
           svg={element.iconSvg}
         />
       ) : null}
-      <strong>{card.title || "Card title"}</strong>
+      {card.title ? <strong>{card.title}</strong> : null}
       {card.body ? (
         // Cards saved before bodySize existed keep one size for both.
         <p style={{ fontSize: element.bodySize ?? element.fontSize }}>
@@ -127,7 +129,7 @@ function CardPreview({
         </p>
       ) : null}
     </div>
-  );
+  ) : undefined;
   return (
     <article className="review-concepts__card-preview" style={style}>
       <ConceptSlotsView

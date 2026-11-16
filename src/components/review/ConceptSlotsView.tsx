@@ -50,6 +50,7 @@ function Items({ draw, slot }: { draw: Draw; slot: ConceptSlot }) {
     <div
       className="concept-slot__items"
       data-direction={layout === "row" ? "row" : "column"}
+      data-fill={slot.fill || undefined}
       data-layout={layout}
       style={itemsStyle(slot)}
     >

@@ -58,6 +58,7 @@ function SlotFields({
   onChange: (slot: ConceptSlot) => void;
   slot: ConceptSlot;
 }) {
+  const fillId = useId();
   const label = `${SLOT_LABELS[name]} slot`;
   const set = (patch: Partial<ConceptSlot>) => onChange({ ...slot, ...patch });
   const layout = slot.layout ?? "column";
@@ -89,6 +90,14 @@ function SlotFields({
             value={slot.align ?? "start"}
           />
         </ConceptField>
+        <label className="review-concepts__check" htmlFor={fillId}>
+          <Checkbox
+            checked={slot.fill ?? false}
+            id={fillId}
+            onChange={(event) => set({ fill: event.target.checked })}
+          />
+          <span>Fill the width</span>
+        </label>
         <ConceptField label="Justify">
           <ConceptSelect
             label={`${label} justify`}

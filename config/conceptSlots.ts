@@ -9,9 +9,10 @@ import type {
  * slot has its own layout — a row, a column or a grid, with its gap, padding
  * and alignment — and its own list of elements, any kind, in any mix.
  *
- * A panel draws header, body and footer in that order, with its title at the
- * start of the header. A card draws its icon, title and body first, then the
- * same three slots. An empty slot is not drawn.
+ * A card or panel draws header, body and footer in that order. Its own text
+ * (a card's icon, title and body; a panel's title) leads the header. An
+ * empty slot is not drawn, and a header with no text and nothing in it is
+ * not drawn either.
  */
 
 export const SLOT_NAMES = ["header", "body", "footer"] as const;
@@ -32,6 +33,8 @@ export interface ConceptSlot {
   /** Grid only: how many equal columns. */
   columns?: number;
   elements: ReviewConceptElement[];
+  /** Each element grows to share the slot's full width. */
+  fill?: boolean;
   gap?: number;
   /** Main-axis distribution: "between" pushes the first and last apart. */
   justify?: ConceptSlotJustify;
@@ -119,6 +122,7 @@ export const cleanSlots = (
       elements: (Array.isArray(slot.elements) ? slot.elements : [])
         .slice(0, MAX_SLOT_ELEMENTS)
         .map((element) => cleanElement(element, depth + 1)),
+      ...(slot.fill === true ? { fill: true } : {}),
       ...number("gap", slot.gap),
       ...(justify ? { justify } : {}),
       ...(layout ? { layout } : {}),

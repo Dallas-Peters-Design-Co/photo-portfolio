@@ -154,3 +154,48 @@ it("puts a card's header elements beside its text, across the full card", () => 
   expect(inner.right - padding - (iconBox?.right ?? 0)).toBeLessThan(4);
   expect(iconBox?.bottom).toBeLessThan(badge?.getBoundingClientRect().top ?? 0);
 });
+
+it("fills a slot's width with its elements when asked", () => {
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    slots: {
+      footer: {
+        elements: [
+          createConceptElement("input"),
+          createConceptElement("select"),
+        ],
+        fill: true,
+        gap: 8,
+        layout: "row",
+      },
+    },
+    text: "Awaiting Review",
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  const footer = host.querySelector<HTMLElement>(
+    '[data-slot="footer"] > .concept-slot__items'
+  ) as HTMLElement;
+  const items = [...footer.children].map((child) =>
+    (child.classList.contains("concept-hover")
+      ? (child.firstElementChild as HTMLElement)
+      : (child as HTMLElement)
+    ).getBoundingClientRect()
+  );
+  const box = footer.getBoundingClientRect();
+  // Side by side, from edge to edge, sharing the width.
+  expect(items[0].left - box.left).toBeLessThan(1);
+  expect(box.right - items[1].right).toBeLessThan(1);
+  expect(Math.abs(items[0].width - items[1].width)).toBeLessThan(2);
+});
+
+it("draws no header for a card with no text and nothing in its header", () => {
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    iconName: undefined,
+    slots: { body: { elements: [createConceptElement("badge")] } },
+    text: "",
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  expect(host.querySelector('[data-slot="header"]')).toBeNull();
+  expect(host.querySelector('[data-slot="body"]')).not.toBeNull();
+});
