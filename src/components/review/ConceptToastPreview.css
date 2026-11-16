@@ -1,0 +1,35 @@
+/* A toast, in the editor's preview and on the review page alike: message,
+   then the action and the close button at the end. */
+.concept-toast {
+  display: flex;
+  gap: 0.75em;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  box-shadow: 0 6px 18px color-mix(in srgb, #000 16%, transparent);
+}
+
+.concept-toast__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.concept-toast__action,
+.concept-toast__close {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+}
+
+.concept-toast__action {
+  font-weight: 600;
+}
+
+/* The close button is quieter than the message and the action. */
+.concept-toast__close {
+  display: inline-flex;
+  opacity: 0.6;
+}

@@ -254,3 +254,26 @@ describe("colours with alpha", () => {
     expect(bad?.background).toBe("transparent");
   });
 });
+
+describe("toast action and close", () => {
+  it("keeps a toast's action, its colour and the close choice, on toasts only", () => {
+    const [toast, text] = cleanConcept({
+      elements: [
+        {
+          accentColor: "#3538cd",
+          kind: "toast",
+          toastAction: "Undo",
+          toastClose: false,
+        },
+        { kind: "text", toastAction: "Undo", toastClose: false },
+      ],
+    }).elements;
+    expect(toast).toMatchObject({
+      accentColor: "#3538cd",
+      toastAction: "Undo",
+      toastClose: false,
+    });
+    expect(text?.toastAction).toBeUndefined();
+    expect(text?.toastClose).toBeUndefined();
+  });
+});

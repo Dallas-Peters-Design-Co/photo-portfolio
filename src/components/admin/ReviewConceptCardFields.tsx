@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ConceptIconSvg,
@@ -20,6 +21,8 @@ import {
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
+import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
 import {
   ConceptField,
   ConceptGroup,
@@ -226,6 +229,47 @@ export function TabsGroup({
         onChange={(height) => set({ height })}
         value={look.height ?? 40}
       />
+    </ConceptGroup>
+  );
+}
+
+/** A toast's action (label and colour; none when empty) and its close button. */
+export function ToastGroup({
+  brandDoc,
+  element,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  const closeId = useId();
+  return (
+    <ConceptGroup name="Toast">
+      <ConceptField label="Action">
+        <Input
+          aria-label="Toast action"
+          onChange={(event) => onChange({ toastAction: event.target.value })}
+          placeholder="None"
+          size="sm"
+          value={element.toastAction ?? ""}
+        />
+      </ConceptField>
+      <ConceptColorField
+        ariaLabel="toast action color"
+        brandDoc={brandDoc}
+        label="Action color"
+        onChange={(accentColor) => onChange({ accentColor })}
+        value={element.accentColor ?? element.color}
+      />
+      <label className="review-concepts__check" htmlFor={closeId}>
+        <Checkbox
+          checked={element.toastClose !== false}
+          id={closeId}
+          onChange={(event) => onChange({ toastClose: event.target.checked })}
+        />
+        <span>Close button</span>
+      </label>
     </ConceptGroup>
   );
 }

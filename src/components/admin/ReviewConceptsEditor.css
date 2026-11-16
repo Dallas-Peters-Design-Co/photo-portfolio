@@ -307,11 +307,6 @@
   justify-content: end;
 }
 
-.review-concepts__toast-preview {
-  width: fit-content;
-  box-shadow: 0 6px 18px color-mix(in srgb, #000 16%, transparent);
-}
-
 .review-concepts__skeleton-preview {
   display: grid;
   gap: calc(var(--spacing) * 2);

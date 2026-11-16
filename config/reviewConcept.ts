@@ -80,7 +80,10 @@ export type ReviewConceptElementKind =
 export type ReviewConceptIcon = string;
 
 export interface ReviewConceptElement {
-  /** Checkboxes: the checked box's colour (CSS accent-color). */
+  /**
+   * Checkboxes: the checked box's colour (CSS accent-color). Toasts: the
+   * action's colour.
+   */
   accentColor?: string;
   background: string;
   /** Cards only: the body's type size. The title uses `fontSize`. */
@@ -126,6 +129,10 @@ export interface ReviewConceptElement {
   /** Tables only: typed columns and rows (see conceptTable.ts). */
   table?: ConceptTable;
   text: string;
+  /** Toasts: the action's label ("Undo"); none when empty. */
+  toastAction?: string;
+  /** Toasts: whether the close button shows. Default true. */
+  toastClose?: boolean;
 }
 
 /**
@@ -308,6 +315,23 @@ const cleanCheckbox = (
     : {}),
 });
 
+const MAX_TOAST_ACTION = 40;
+
+const cleanToast = (
+  raw: Partial<ReviewConceptElement>
+): Pick<
+  ReviewConceptElement,
+  "accentColor" | "toastAction" | "toastClose"
+> => ({
+  ...(isHex(raw.accentColor) ? { accentColor: raw.accentColor } : {}),
+  ...(typeof raw.toastAction === "string"
+    ? { toastAction: str(raw.toastAction, MAX_TOAST_ACTION) }
+    : {}),
+  ...(typeof raw.toastClose === "boolean"
+    ? { toastClose: raw.toastClose }
+    : {}),
+});
+
 const cleanCard = (
   raw: Partial<ReviewConceptElement>
 ): Pick<ReviewConceptElement, "bodySize"> =>
@@ -406,6 +430,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     ...(kind === "card" ? cleanCard(raw) : {}),
     ...cleanBox(kind, raw),
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
+    ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(tabLook ? { tabLook } : {}),
     ...(table ? { table } : {}),
     ...cleanLink(raw),

@@ -30,6 +30,7 @@ import {
 } from "../ui/select";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
+import { ConceptToastPreview } from "./ConceptToastPreview";
 
 const ICON_SUFFIX = /Icon$/;
 
@@ -404,14 +405,7 @@ export function ReviewConceptElementView({
       return <MenuPreview element={element} style={style} text={text} />;
     case "toast":
       return (
-        <div
-          aria-label="Toast preview"
-          className="review-concepts__toast-preview"
-          role="status"
-          style={style}
-        >
-          {text}
-        </div>
+        <ConceptToastPreview element={element} style={style} text={text} />
       );
     case "skeleton":
       return (

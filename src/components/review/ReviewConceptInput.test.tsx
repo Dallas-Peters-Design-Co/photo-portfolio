@@ -227,3 +227,28 @@ it("puts a tab element's side padding on each tab, not the row", () => {
   expect(tab.paddingLeft).toBe("20px");
   expect(tab.paddingRight).toBe("20px");
 });
+
+it("draws a toast's action in its colour and a close button, each optional", () => {
+  const toast = createConceptElement("toast");
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{ ...toast, accentColor: "#ff0000" }}
+      />
+    )
+  );
+  const action = host.querySelector(".concept-toast__action") as HTMLElement;
+  expect(action.textContent).toBe("Undo");
+  expect(getComputedStyle(action).color).toBe("rgb(255, 0, 0)");
+  expect(host.querySelector('[aria-label="Close"]')).not.toBeNull();
+
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{ ...toast, toastAction: "", toastClose: false }}
+      />
+    )
+  );
+  expect(host.querySelector(".concept-toast__action")).toBeNull();
+  expect(host.querySelector('[aria-label="Close"]')).toBeNull();
+});

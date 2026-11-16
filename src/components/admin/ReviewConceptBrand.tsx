@@ -210,6 +210,17 @@ export const createConceptElement = (
     ...elementState(kind),
     ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
+    ...(kind === "toast"
+      ? {
+          accentColor: paletteColor(
+            brandDoc,
+            ["accent", "primary", "button"],
+            "#3538cd"
+          ),
+          toastAction: "Undo",
+          toastClose: true,
+        }
+      : {}),
     ...(kind === "checkbox"
       ? {
           accentColor: paletteColor(
