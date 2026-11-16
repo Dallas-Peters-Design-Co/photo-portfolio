@@ -60,7 +60,9 @@ export const withStep = (
 };
 
 /** A copy of an element and everything in its slots, with new ids. */
-const freshIds = (element: ReviewConceptElement): ReviewConceptElement => ({
+export const freshIds = (
+  element: ReviewConceptElement
+): ReviewConceptElement => ({
   ...element,
   id: newItemId(),
   ...(element.slots
@@ -151,4 +153,66 @@ export const cleanFirstStep = (
     ...(caption ? { stepCaption: caption } : {}),
     ...(trigger ? { stepTrigger: trigger } : {}),
   };
+};
+
+/**
+ * A copy of a concept with new ids throughout, its triggers following the
+ * elements they named, so it can sit beside the original or in another note.
+ */
+export const freshConcept = (concept: ReviewConcept): ReviewConcept => {
+  const renamed = new Map<string, string>();
+  const copyAll = (list: ReviewConceptElement[]) =>
+    list.map((element) => {
+      const copy = freshIds(element);
+      renamed.set(element.id, copy.id);
+      return copy;
+    });
+  const elements = copyAll(concept.elements);
+  const steps = concept.steps?.map((step) => {
+    const stepElements = copyAll(step.elements);
+    const trigger = step.trigger ? renamed.get(step.trigger) : undefined;
+    return {
+      caption: step.caption,
+      elements: stepElements,
+      id: newItemId(),
+      ...(trigger ? { trigger } : {}),
+    };
+  });
+  const stepTrigger = concept.stepTrigger
+    ? renamed.get(concept.stepTrigger)
+    : undefined;
+  const { stepTrigger: _t, steps: _s, ...rest } = concept;
+  return {
+    ...rest,
+    elements,
+    id: newItemId(),
+    ...(stepTrigger ? { stepTrigger } : {}),
+    ...(steps && steps.length > 0 ? { steps } : {}),
+  };
+};
+
+/**
+ * Another concept's screens as steps after `index`: a copied
+ * recommendation shown again inside a sequence. The pasted concept's own
+ * caption goes on its first step, or its title when it has none.
+ */
+export const pasteStepsAfter = (
+  concept: ReviewConcept,
+  index: number,
+  pasted: ReviewConcept
+): ReviewConcept => {
+  const room = MAX_CONCEPT_STEPS - stepsOf(concept).length;
+  const incoming = stepsOf(freshConcept(pasted))
+    .slice(0, Math.max(0, room))
+    .map((step, i) => ({
+      ...step,
+      caption: i === 0 ? step.caption || pasted.title : step.caption,
+      id: newItemId(),
+    }));
+  if (incoming.length === 0) {
+    return concept;
+  }
+  const later = [...(concept.steps ?? [])];
+  later.splice(index, 0, ...incoming);
+  return { ...concept, steps: later };
 };

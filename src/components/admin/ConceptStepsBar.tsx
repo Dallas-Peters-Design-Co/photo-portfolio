@@ -1,8 +1,9 @@
-import { Plus, Trash2 } from "lucide-react";
+import { ClipboardPaste, Plus, Trash2 } from "lucide-react";
 import {
   addStepAfter,
   type ConceptStep,
   MAX_CONCEPT_STEPS,
+  pasteStepsAfter,
   removeStep,
   stepsOf,
   withStep,
@@ -11,6 +12,7 @@ import type { ReviewConcept } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ConceptSelect, kindLabel } from "./ConceptControls";
+import { useCopiedConcept } from "./conceptClipboard";
 
 const NO_TRIGGER = "none";
 
@@ -33,6 +35,7 @@ export function ConceptStepsBar({
 }) {
   const steps = stepsOf(concept);
   const step = steps[index];
+  const copied = useCopiedConcept();
   const last = index === steps.length - 1;
   const set = (patch: Partial<ConceptStep>) => {
     if (step) {
@@ -79,6 +82,22 @@ export function ConceptStepsBar({
           <Plus size={12} />{" "}
           {steps.length === 1 ? "Make it a sequence" : "Add step"}
         </Button>
+        {copied && copied.id !== concept.id ? (
+          <Button
+            disabled={steps.length >= MAX_CONCEPT_STEPS}
+            onClick={() => {
+              onChange(pasteStepsAfter(concept, index, copied));
+              onIndex(index + 1);
+            }}
+            size="xs"
+            title={`Paste ${copied.title || "the copied concept"} after step ${index + 1}`}
+            type="button"
+            variant="outline"
+          >
+            <ClipboardPaste size={12} /> Paste as{" "}
+            {stepsOf(copied).length === 1 ? "step" : "steps"}
+          </Button>
+        ) : null}
         {index > 0 ? (
           <Button
             aria-label={`Remove step ${index + 1}`}

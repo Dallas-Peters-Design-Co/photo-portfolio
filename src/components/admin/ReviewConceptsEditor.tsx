@@ -1,9 +1,14 @@
-import { Plus, Trash2 } from "lucide-react";
+import { ClipboardPaste, Copy, Plus, Trash2 } from "lucide-react";
 import { type CSSProperties, useRef, useState } from "react";
+import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConcept } from "../../../config/conceptDefaults.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
-import { stepsOf, withStep } from "../../../config/conceptSteps.js";
+import {
+  freshConcept,
+  stepsOf,
+  withStep,
+} from "../../../config/conceptSteps.js";
 import { styleElement } from "../../../config/conceptStyle.js";
 import type {
   ReviewConcept,
@@ -27,6 +32,7 @@ import {
 import { ConceptElementList } from "./ConceptElementList";
 import { ConceptFontField } from "./ConceptFontField";
 import { ConceptStepsBar } from "./ConceptStepsBar";
+import { copyConcept, useCopiedConcept } from "./conceptClipboard";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
@@ -112,6 +118,21 @@ function ConceptCard({
             value={concept.title}
           />
         </div>
+        <Button
+          aria-label={`Copy ${concept.title || "concept"}`}
+          onClick={() => {
+            copyConcept(concept);
+            toast.success(
+              "Concept copied. Paste it into any note, or into a sequence as steps."
+            );
+          }}
+          size="icon-sm"
+          title="Copy, to paste into another note or a sequence"
+          type="button"
+          variant="ghost"
+        >
+          <Copy size={14} />
+        </Button>
         <Button
           aria-label={`Remove ${concept.title || "concept"}`}
           onClick={onRemove}
@@ -245,6 +266,7 @@ export function ReviewConceptsEditor({
   maxConcepts?: number;
   onChange: (concepts: ReviewConcept[]) => void;
 }) {
+  const copied = useCopiedConcept();
   const update = (id: string, next: ReviewConcept) =>
     onChange(concepts.map((concept) => (concept.id === id ? next : concept)));
 
@@ -263,6 +285,17 @@ export function ReviewConceptsEditor({
         >
           <Plus size={14} /> Add concept
         </Button>
+        {copied ? (
+          <Button
+            disabled={concepts.length >= maxConcepts}
+            onClick={() => onChange([...concepts, freshConcept(copied)])}
+            title={`Paste ${copied.title || "the copied concept"}`}
+            type="button"
+            variant="outline"
+          >
+            <ClipboardPaste size={14} /> Paste concept
+          </Button>
+        ) : null}
       </div>
       {concepts.length >= maxConcepts ? (
         // Said, not left to a grey button.

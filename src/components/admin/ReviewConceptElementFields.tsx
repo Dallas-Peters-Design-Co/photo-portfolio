@@ -21,6 +21,7 @@ import {
 import { ConceptFontField } from "./ConceptFontField";
 import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields } from "./ConceptSlotFields";
+import { StyleLink } from "./ConceptStyleLink";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
@@ -50,53 +51,6 @@ const SIZE_LABELS: Partial<Record<ReviewConceptElement["kind"], string>> = {
   card: "Title size",
   icon: "Icon size",
 };
-
-const CUSTOM = "custom";
-
-/**
- * Which kit style the element follows, and how many settings it has set
- * itself; Reset hands those back to the style.
- */
-function StyleLink({
-  element,
-  onLink,
-  styles,
-}: {
-  element: ReviewConceptElement;
-  onLink: (style: ConceptStyle | null) => void;
-  styles: ConceptStyle[];
-}) {
-  const linked = styles.find((style) => style.id === element.styleId) ?? null;
-  const own = element.overrides?.length ?? 0;
-  return (
-    <div className="review-concepts__style-link">
-      {linked && own > 0 ? (
-        <Button
-          onClick={() => onLink(linked)}
-          size="xs"
-          title="Hand these settings back to the kit style"
-          type="button"
-          variant="ghost"
-        >
-          {own} {own === 1 ? "change" : "changes"} · Reset
-        </Button>
-      ) : null}
-      <div className="review-concepts__style-pick">
-        <ConceptSelect
-          label={`${element.kind} style`}
-          onChange={(id) =>
-            onLink(styles.find((style) => style.id === id) ?? null)
-          }
-          options={[
-            { label: "Custom", value: CUSTOM },
-            ...styles.map((style) => ({ label: style.name, value: style.id })),
-          ]}
-          value={linked?.id ?? CUSTOM}
-        />
-      </div>
-    </div>
-  );
-}
 
 const SUMMARY_LENGTH = 48;
 
