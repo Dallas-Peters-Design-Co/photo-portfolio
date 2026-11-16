@@ -104,6 +104,9 @@ it("scrolls a clicked pin's note to the top and marks it", async () => {
   const note = document.getElementById("note-c");
   expect(scrolled.mock.contexts[0]).toBe(note);
   expect(scrolled.mock.calls[0]?.[0]).toMatchObject({ block: "start" });
-  expect(note?.className).toContain("review-page__note--shown");
+  // Marked, and still laid out as a note: number beside the text.
+  expect(note?.classList.contains("review-page__note--shown")).toBe(true);
+  expect(note?.classList.contains("review-page__note")).toBe(true);
+  expect(getComputedStyle(note as HTMLElement).display).toBe("grid");
   scrolled.mockRestore();
 });

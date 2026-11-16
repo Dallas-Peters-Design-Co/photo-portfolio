@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import Cancel01Icon from "@hugeicons-pro/core-stroke-standard/Cancel01Icon";
 import { type DragEvent, type ReactNode, useRef, useState } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import { MAX_BUNDLE_HELD } from "../../../config/nodes/bundle.js";
 import { portfolioService } from "../../services/portfolioService.js";
 import { isImageDrop } from "../drawing/svgToRaster";
@@ -106,7 +107,7 @@ export function BundleDropZone({
     // biome-ignore lint/a11y/noStaticElementInteractions: a drop target; the button inside is the keyboard path to the same action
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same — dropping is a pointer gesture with a button beside it
     <div
-      className={`bundle-node__drop${over ? "bundle-node__drop--over" : ""}`}
+      className={cn("bundle-node__drop", over && "bundle-node__drop--over")}
       onDragLeave={() => setOver(false)}
       onDragOver={(e) => {
         if (!isOurDrag(e)) {

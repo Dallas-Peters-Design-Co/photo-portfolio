@@ -213,17 +213,17 @@
 }
 
 /*
- * The phone around a mobile capture, after an iPhone X: a 1 : 2 body, an
- * inset screen with its own edge, the notch with its curved shoulders, the
- * antenna lines and the side buttons. Every size is in em of a font-size set
- * from the phone's own width (5cqi = 1/20 of it), so it keeps its
- * proportions at any width.
+ * The phone around a mobile capture, after a current iPhone: a thin even
+ * bezel, the screen to the very top with the camera's pill floating over it
+ * (as a real one does), and slim side buttons in the frame's own colour.
+ * Every size is in em of a font-size taken from the phone's own width
+ * (5cqi = 1/20 of it), so it keeps its proportions at any width.
  */
 .review-page__phone {
   position: relative;
   width: 100%;
   max-width: var(--container-phone);
-  aspect-ratio: 1 / 2;
+  aspect-ratio: 1 / 2.05;
   container-type: inline-size;
 }
 
@@ -231,34 +231,19 @@
   font-size: 5cqi;
 }
 
+/* The frame: graphite, a fine lighter edge, a soft shadow beneath. */
 .review-page__phone-body {
   position: absolute;
-  inset: 0;
+  inset: 0 0.18em;
   z-index: 1;
   display: flex;
-  margin: 0.2em;
-  overflow: hidden;
-  background: #292c2d;
-  border-radius: 3em;
+  padding: 0.42em;
+  background: #1c1c1e;
+  border-radius: 2.9em;
   box-shadow:
-    0 0.1em 0.4em rgb(255 255 255 / 10%) inset,
-    0 0 4em rgb(0 0 0 / 25%);
-}
-
-/* The antenna lines, showing in the bezel above and below the screen. */
-.review-page__phone-body::before,
-.review-page__phone-body::after {
-  position: absolute;
-  top: 10%;
-  left: 0;
-  width: 100%;
-  height: 0.5em;
-  content: "";
-  background: linear-gradient(to right, #515455, #454748, #515455);
-}
-
-.review-page__phone-body::after {
-  top: 90%;
+    inset 0 0 0 0.09em #48484a,
+    0 0 0 0.04em rgb(0 0 0 / 60%),
+    0 1.2em 2.4em rgb(0 0 0 / 22%);
 }
 
 .review-page__phone-screen {
@@ -266,83 +251,44 @@
   z-index: 1;
   display: flex;
   flex: 1;
-  margin: 0.4em;
-  background: #191b1c;
-  border: 0.2em solid #121415;
-  border-radius: 2.6em;
+  min-width: 0;
+  background: #000;
+  border-radius: 2.5em;
 }
 
-/* The notch, with the curves where it meets the top of the screen. */
-.review-page__phone-notch {
+/* The camera's pill, over the top of the screen. Pins draw above it. */
+.review-page__phone-island {
   position: absolute;
-  top: 0;
-  right: 25%;
+  top: 0.55em;
+  left: 50%;
   z-index: 2;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 50%;
-  height: 1.8em;
-  padding-bottom: 0.3em;
-  margin-top: 0.5em;
-  background: #191b1c;
-  border-radius: 0 0 0.9em 0.9em;
-}
-
-.review-page__phone-notch::before,
-.review-page__phone-notch::after {
-  position: absolute;
-  top: -0.3em;
-  width: 10%;
-  height: 50%;
-  content: "";
-  border: 0.4em solid #191b1c;
-  border-bottom: 0;
-}
-
-.review-page__phone-notch::before {
-  right: 0.4em;
-  border-right: 0;
-  border-radius: 0.7em 0 0;
-  transform: translateX(100%);
-}
-
-.review-page__phone-notch::after {
-  left: 0.4em;
-  border-left: 0;
-  border-radius: 0 0.7em 0 0;
-  transform: translateX(-100%);
-}
-
-.review-page__phone-speaker {
-  width: 28%;
-  height: 0.35em;
-  background: #070808;
-  border-radius: 0.2em;
+  justify-content: flex-end;
+  width: 30%;
+  height: 1.05em;
+  padding-inline: 0.35em;
+  background: #000;
+  border-radius: 999px;
+  translate: -50% 0;
 }
 
 .review-page__phone-camera {
-  width: 0.35em;
-  height: 0.35em;
-  margin-inline: 0.5em -0.8em;
-  background: #272727;
+  width: 0.38em;
+  height: 0.38em;
+  background: radial-gradient(circle at 35% 35%, #2c3e66, #0b0d14 70%);
   border-radius: 50%;
 }
 
-/*
- * The screen's picture: a black status-bar strip as tall as the notch, then
- * the capture, clipped to the screen's corners and scrolling inside it.
- */
+/* The capture fills the screen, clipped to its corners, scrolling inside. */
 .review-page__phone-view {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-width: 0;
-  padding-top: 1.7em;
-  margin: 0.6em;
   overflow: hidden;
-  background: #000;
-  border-radius: 2em;
+  background: #fff;
+  border-radius: 2.5em;
 }
 
 .review-page__phone .review-page__figure {
@@ -358,37 +304,36 @@
   display: none;
 }
 
-/* The side buttons, behind the body: only their edge shows. */
+/* The side buttons: slim, in the frame's colour, just proud of its edge. */
 .review-page__phone-button {
   position: absolute;
-  width: 1em;
-  background: linear-gradient(to bottom, #212324, #2b2e31, #212324);
-  border-radius: 2px;
-  box-shadow: 0 0 0.4em rgb(255 255 255 / 10%) inset;
+  width: 0.3em;
+  background: #2c2c2e;
+  border-radius: 0.15em;
 }
 
 .review-page__phone-button--action {
-  top: 15%;
+  top: 17%;
   left: 0;
-  height: 3em;
+  height: 2.2em;
 }
 
 .review-page__phone-button--up {
   top: 25%;
   left: 0;
-  height: 5em;
+  height: 3.6em;
 }
 
 .review-page__phone-button--down {
-  top: calc(25% + 6em);
+  top: calc(25% + 4.4em);
   left: 0;
-  height: 5em;
+  height: 3.6em;
 }
 
 .review-page__phone-button--power {
-  top: 30%;
+  top: 28%;
   right: 0;
-  height: 6em;
+  height: 5.4em;
 }
 
 /*
@@ -488,7 +433,9 @@
   }
 }
 
+/* Above anything drawn over the screenshot, such as a phone's camera pill. */
 .review-page__pin {
+  z-index: 3;
   cursor: pointer;
 }
 
@@ -669,9 +616,7 @@
   }
 
   .review-page__phone-button,
-  .review-page__phone-notch,
-  .review-page__phone-body::before,
-  .review-page__phone-body::after {
+  .review-page__phone-island {
     display: none;
   }
 

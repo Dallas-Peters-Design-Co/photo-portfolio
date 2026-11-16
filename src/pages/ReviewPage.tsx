@@ -1,6 +1,7 @@
 import "./ReviewPage.css";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import {
   isRichTextEmpty,
   type RichText,
@@ -236,9 +237,9 @@ function ReviewSheet({
 const noteId = (pinId: string): string => `note-${pinId}`;
 
 /**
- * A phone capture is shown in a phone: body, screen, notch, side buttons.
- * The capture starts below the notch (a status-bar strip), so the notch never
- * covers it or its pins, and it scrolls inside the screen as the page would.
+ * A phone capture is shown in a phone: frame, screen, the camera's pill and
+ * side buttons. The capture fills the screen to the top, as on a real phone,
+ * with the pins drawn above the pill, and scrolls inside the screen.
  * A desktop capture is shown as it is.
  */
 function Device({
@@ -271,8 +272,7 @@ function Device({
       />
       <div className="review-page__phone-body">
         <div className="review-page__phone-screen">
-          <span aria-hidden className="review-page__phone-notch">
-            <span className="review-page__phone-speaker" />
+          <span aria-hidden className="review-page__phone-island">
             <span className="review-page__phone-camera" />
           </span>
           <div className="review-page__phone-view">{children}</div>
@@ -372,7 +372,10 @@ function Screen({
         <ol className="review-page__notes">
           {screen.pins.map((pin, i) => (
             <li
-              className={`review-page__note${shown === pin.id ? "review-page__note--shown" : ""}`}
+              className={cn(
+                "review-page__note",
+                shown === pin.id && "review-page__note--shown"
+              )}
               id={noteId(pin.id)}
               key={pin.id}
             >
