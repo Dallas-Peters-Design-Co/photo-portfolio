@@ -19,6 +19,7 @@ export interface ConceptHover {
 const HOVER_KINDS = new Set([
   "badge",
   "button",
+  "tag",
   "card",
   "checkbox",
   "input",

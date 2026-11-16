@@ -61,6 +61,20 @@ export const badgeLook = (
   radius: 999,
 });
 
+/**
+ * A tag starts as a quiet chip: no fill colour of its own, plain ink, a thin
+ * grey edge and small square-ish corners, so it reads as a label, not a state.
+ */
+export const tagLook = (
+  brandDoc?: BrandKitDoc | null
+): Partial<ReviewConceptElement> => ({
+  background: paletteColor(brandDoc, ["surface", "muted"], "#f9fafb"),
+  borderColor: paletteColor(brandDoc, ["border"], "#d0d5dd"),
+  borderWidth: 1,
+  color: paletteColor(brandDoc, ["ink", "text"], "#344054"),
+  radius: 4,
+});
+
 /** A progress bar starts in the kit's accent on a light grey track, rounded. */
 export const progressLook = (
   brandDoc?: BrandKitDoc | null

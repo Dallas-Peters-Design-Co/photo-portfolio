@@ -1,18 +1,12 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import { ChevronDown } from "lucide-react";
 import type { CSSProperties } from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
-import {
-  type ConceptIconSvg,
-  conceptIconName,
-} from "../../../config/conceptIcon.js";
 import { iconSizeOf, takesBox } from "../../../config/conceptKinds.js";
 import { shadowCss, shadowOf } from "../../../config/conceptShadow.js";
 import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
-import { iconFrom, useIconMap } from "../../cms/useIconMap";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +21,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { ConceptHover } from "./ConceptHover";
+import { ConceptIcon, ConceptIconText } from "./ConceptIcon";
 import "./ConceptElements.css";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
 import { ConceptSlotsView } from "./ConceptSlotsView";
@@ -35,41 +30,6 @@ import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
 
 const ICON_SUFFIX = /Icon$/;
-
-/**
- * One icon from the site's Hugeicons set. The map loads in its own chunk, so
- * the public review page does not carry it; until it arrives the icon's box
- * holds its place.
- */
-function ConceptIcon({
-  color,
-  name,
-  size,
-  svg,
-}: {
-  color?: string;
-  name?: string;
-  size: number;
-  /** The saved drawing; without one (older concepts) the name is looked up. */
-  svg?: ConceptIconSvg;
-}) {
-  const map = useIconMap(!svg && Boolean(name));
-  const Icon = svg ?? iconFrom(map, conceptIconName(name));
-  return Icon ? (
-    // Drawn in currentColor and coloured by CSS, so a hover rule can change
-    // it; the library otherwise writes the colour into every stroke.
-    <HugeiconsIcon
-      aria-hidden
-      color="currentColor"
-      icon={Icon}
-      size={size}
-      strokeWidth={2}
-      style={{ color }}
-    />
-  ) : (
-    <span aria-hidden style={{ height: size, width: size }} />
-  );
-}
 
 /** A panel: its slots, its title at the start of the header. */
 function PanelPreview({
@@ -350,11 +310,7 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       );
     }
     case "button":
-      return (
-        <button style={style} type="button">
-          {text}
-        </button>
-      );
+      return <ConceptIconText as="button" element={element} style={style} />;
     case "input":
       return <InputPreview element={element} style={style} text={text} />;
     case "textarea":
@@ -392,7 +348,8 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
     case "label":
       return <span style={style}>{text}</span>;
     case "badge":
-      return <span style={{ ...style, display: "inline-flex" }}>{text}</span>;
+    case "tag":
+      return <ConceptIconText as="span" element={element} style={style} />;
     case "link":
       return (
         <button

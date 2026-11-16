@@ -8,6 +8,7 @@ import {
 import {
   iconSizeOf,
   PROGRESS_LIMITS,
+  takesEndIcon,
   takesIcon,
 } from "../../../config/conceptKinds.js";
 import {
@@ -52,11 +53,13 @@ export function ElementIconGroup({
   onChange: (patch: Patch) => void;
 }) {
   const kind = element.kind[0]?.toUpperCase() + element.kind.slice(1);
+  // Buttons, badges and tags have a slot each side of their text.
+  const twoSlots = takesEndIcon(element.kind);
   return (
-    <ConceptGroup name="Icon">
-      <ConceptField label="Icon" wide>
+    <ConceptGroup name={twoSlots ? "Icons" : "Icon"}>
+      <ConceptField label={twoSlots ? "Start icon" : "Icon"} wide>
         <IconPicker
-          label={`${kind} icon`}
+          label={twoSlots ? `${kind} start icon` : `${kind} icon`}
           library="full"
           onChange={(icon, svg) =>
             onChange({
@@ -69,7 +72,24 @@ export function ElementIconGroup({
           value={conceptIconName(element.iconName)}
         />
       </ConceptField>
-      {element.iconName || lookOnly ? (
+      {twoSlots ? (
+        <ConceptField label="End icon" wide>
+          <IconPicker
+            label={`${kind} end icon`}
+            library="full"
+            onChange={(icon, svg) =>
+              onChange({
+                iconEndName: icon ?? undefined,
+                iconEndSvg: svg as ConceptIconSvg | undefined,
+              })
+            }
+            size="sm"
+            svg={element.iconEndSvg}
+            value={conceptIconName(element.iconEndName)}
+          />
+        </ConceptField>
+      ) : null}
+      {element.iconName || element.iconEndName || lookOnly ? (
         <>
           <NumberField
             label="Icon size"

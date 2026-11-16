@@ -16,6 +16,7 @@ import {
   panelLook,
   progressLook,
   tableFromKit,
+  tagLook,
 } from "./conceptStarters";
 
 const brandTypeface = (
@@ -48,6 +49,7 @@ const PADDED_KINDS = new Set<ReviewConceptElementKind>([
   "select",
   "card",
   "badge",
+  "tag",
   "tabs",
   "table",
 ]);
@@ -60,6 +62,7 @@ const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
   "select",
   "card",
   "badge",
+  "tag",
 ]);
 
 const elementText: Record<ReviewConceptElementKind, string> = {
@@ -80,6 +83,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   skeleton: "",
   table: "Project name",
   tabs: "Overview",
+  tag: "Design",
   text: "A better way to work",
   textarea: "",
   toast: "Changes saved",
@@ -146,6 +150,9 @@ const elementWeight = (
   }
   if (kind === "button" || kind === "label" || kind === "badge") {
     return 600;
+  }
+  if (kind === "tag") {
+    return 500;
   }
   return 400;
 };
@@ -223,6 +230,7 @@ export const createConceptElement = (
     ...elementState(kind),
     ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
+    ...(kind === "tag" ? tagLook(brandDoc) : {}),
     ...(kind === "progress" ? progressLook(brandDoc) : {}),
     ...(kind === "panel" ? panelLook(brandDoc, createConceptElement) : {}),
     ...controlLook(kind, brandDoc),

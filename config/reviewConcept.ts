@@ -40,6 +40,7 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "card",
   "label",
   "badge",
+  "tag",
   "link",
   "divider",
   "tabs",
@@ -72,6 +73,7 @@ export type ReviewConceptElementKind =
   | "card"
   | "label"
   | "badge"
+  | "tag"
   | "link"
   | "divider"
   | "tabs"
@@ -117,8 +119,15 @@ export interface ReviewConceptElement {
   fontWeight: 400 | 500 | 600 | 700;
   /** How it changes under the pointer (see conceptHover.ts). */
   hover?: ConceptHover;
-  /** Cards only: the icon's colour and size; default to text colour, 1.5× type. */
+  /**
+   * The icon's colour and size (both icons, where there are two); default to
+   * the text colour, and to 1.5× type on a card, type size elsewhere.
+   */
   iconColor?: string;
+  /** Buttons, badges and tags: an icon after the text (a chevron, a ×). */
+  iconEndName?: ReviewConceptIcon;
+  /** The drawing of `iconEndName`. */
+  iconEndSvg?: ConceptIconSvg;
   iconName?: ReviewConceptIcon;
   iconSize?: number;
   /** The drawing of `iconName`, so any library icon renders anywhere. */

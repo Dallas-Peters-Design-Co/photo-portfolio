@@ -168,6 +168,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["card", "Card"],
   ["label", "Label"],
   ["badge", "Badge"],
+  ["tag", "Tag"],
   ["link", "Link"],
   ["divider", "Divider"],
   ["tabs", "Tabs"],

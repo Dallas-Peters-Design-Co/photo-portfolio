@@ -14,12 +14,25 @@ import type {
 
 /** Kinds that may carry an icon beside their text; an icon element always has one. */
 const OPTIONAL_ICON_KINDS = new Set<ReviewConceptElementKind>([
+  "badge",
+  "button",
   "card",
   "input",
+  "tag",
 ]);
 
 export const takesIcon = (kind: ReviewConceptElementKind): boolean =>
   OPTIONAL_ICON_KINDS.has(kind);
+
+/** Kinds with an icon slot on each side of their text: before and after. */
+const END_ICON_KINDS = new Set<ReviewConceptElementKind>([
+  "badge",
+  "button",
+  "tag",
+]);
+
+export const takesEndIcon = (kind: ReviewConceptElementKind): boolean =>
+  END_ICON_KINDS.has(kind);
 
 /** A card's icon leads at 1.5× its title; an input's sits at text size. */
 export const iconSizeOf = (element: ReviewConceptElement): number =>
@@ -33,18 +46,30 @@ export const cleanIcon = (
   raw: Partial<ReviewConceptElement>
 ): Pick<
   ReviewConceptElement,
-  "iconColor" | "iconName" | "iconSize" | "iconSvg"
+  | "iconColor"
+  | "iconEndName"
+  | "iconEndSvg"
+  | "iconName"
+  | "iconSize"
+  | "iconSvg"
 > => {
   // An optional icon with an unknown name is dropped, not made a star.
-  const iconName =
+  const named =
     conceptIconName(raw.iconName) ?? (kind === "icon" ? "StarIcon" : null);
-  if (!(iconName && (kind === "icon" || takesIcon(kind)))) {
+  const iconName = named && (kind === "icon" || takesIcon(kind)) ? named : null;
+  const iconEndName = takesEndIcon(kind)
+    ? conceptIconName(raw.iconEndName)
+    : null;
+  if (!(iconName || iconEndName)) {
     return {};
   }
-  const iconSvg = cleanIconSvg(raw.iconSvg);
+  const iconSvg = iconName ? cleanIconSvg(raw.iconSvg) : undefined;
+  const iconEndSvg = iconEndName ? cleanIconSvg(raw.iconEndSvg) : undefined;
   return {
-    iconName,
+    ...(iconName ? { iconName } : {}),
     ...(iconSvg ? { iconSvg } : {}),
+    ...(iconEndName ? { iconEndName } : {}),
+    ...(iconEndSvg ? { iconEndSvg } : {}),
     ...(takesIcon(kind) && isHex(raw.iconColor)
       ? { iconColor: raw.iconColor }
       : {}),
@@ -66,6 +91,7 @@ const BOX_KINDS = new Set<ReviewConceptElementKind>([
   "panel",
   "select",
   "table",
+  "tag",
   "textarea",
 ]);
 
