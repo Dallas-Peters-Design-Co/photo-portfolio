@@ -425,7 +425,7 @@
 
 .concept-steps__fields {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 16rem);
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: calc(var(--spacing) * 2);
   align-items: center;
 }

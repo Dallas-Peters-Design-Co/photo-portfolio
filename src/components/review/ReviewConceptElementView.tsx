@@ -23,6 +23,7 @@ import {
 import { ConceptHover } from "./ConceptHover";
 import { ConceptIcon, ConceptIconText } from "./ConceptIcon";
 import { conceptMenuProps } from "./conceptMenuStyle";
+import { marksFor, useSequenceMarks } from "./conceptSequence";
 import "./ConceptElements.css";
 import { ConceptPanelPreview } from "./ConceptPanelPreview";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
@@ -421,8 +422,9 @@ export function ReviewConceptElementView({
 }: {
   element: ReviewConceptElement;
 }) {
+  const marks = marksFor(element, useSequenceMarks());
   return (
-    <ConceptHover element={element}>
+    <ConceptHover element={element} marks={marks}>
       <ElementBody element={element} />
     </ConceptHover>
   );

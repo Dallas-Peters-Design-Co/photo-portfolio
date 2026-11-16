@@ -101,3 +101,56 @@ it("drops a trigger that names an element the step doesn't have", () => {
   expect(concept.stepTrigger).toBeUndefined();
   expect(concept.steps?.[0]?.trigger).toBeUndefined();
 });
+
+it("moves on from a button inside a panel's slot, and animates the next step's toast in", async () => {
+  const concept = cleanConcept({
+    elements: [
+      {
+        kind: "panel",
+        slots: {
+          footer: {
+            elements: [
+              {
+                group: {
+                  elements: [{ id: "send", kind: "button", text: "Send" }],
+                  layout: "row",
+                },
+                kind: "group",
+              },
+            ],
+          },
+        },
+        text: "Share",
+      },
+    ],
+    steps: [
+      {
+        caption: "Sent",
+        elements: [{ id: "done", kind: "toast", text: "Shared with the team" }],
+        enter: { animation: "rise", element: "done" },
+      },
+    ],
+    stepTrigger: "send",
+  });
+  expect(concept.stepTrigger).toBe("send");
+  expect(concept.steps?.[0]?.enter).toEqual({
+    animation: "rise",
+    element: "done",
+  });
+  const host = document.createElement("div");
+  host.style.width = "560px";
+  document.body.append(host);
+  act(() =>
+    createRoot(host).render(<ReviewConceptPreview concept={concept} />)
+  );
+
+  const target = host.querySelector('[data-concept-id="send"]') as HTMLElement;
+  expect(target.hasAttribute("data-trigger")).toBe(true);
+  await userEvent.click(target.querySelector("button") as HTMLElement);
+  expect(host.textContent).toContain("Shared with the team");
+  const toast = host.querySelector('[data-concept-id="done"]') as HTMLElement;
+  expect(toast.dataset.enter).toBe("rise");
+  expect(
+    getComputedStyle(toast.firstElementChild as Element).animationName
+  ).toBe("concept-enter");
+});

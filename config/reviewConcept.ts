@@ -28,6 +28,7 @@ import {
   type ConceptStep,
   cleanFirstStep,
   cleanSteps,
+  type StepEnter,
 } from "./conceptSteps.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
@@ -298,6 +299,8 @@ export interface ReviewConcept {
   scroll?: boolean;
   /** Step one's caption, when the concept is a sequence (conceptSteps.ts). */
   stepCaption?: string;
+  /** What animates in when step one is shown again (conceptSteps.ts). */
+  stepEnter?: StepEnter;
   /** Steps after the first, each a full screen (conceptSteps.ts). */
   steps?: ConceptStep[];
   /** Step one's trigger: the element whose click shows step two. */

@@ -1,5 +1,5 @@
-import type { CSSProperties, RefObject } from "react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { everyElement } from "../../../config/conceptSlots.js";
 import { stepsOf } from "../../../config/conceptSteps.js";
@@ -11,7 +11,11 @@ import {
 import type { FontId } from "../../../config/theme.js";
 import { loadFont } from "../../theme/fonts";
 import { loadFontRef } from "../../theme/remoteFonts";
-import { PANEL_HIDDEN } from "./ConceptPanelPreview";
+import {
+  type SequenceMarks,
+  SequenceMarksProvider,
+  useSequencePlayer,
+} from "./conceptSequence";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import "./ReviewConceptPreview.css";
 
@@ -37,52 +41,22 @@ export const conceptFrameStyle = (concept: ReviewConcept): CSSProperties =>
   }) as CSSProperties;
 
 /**
- * Which of the step's elements a click landed in: the frame's direct child
- * that holds it, by position. The elements are the frame's children with
- * nothing between them, which the layout rules rely on, so position is
- * identity.
+ * One step's elements, drawn as the frame's children, with the step's click
+ * target and entrance marked wherever those elements sit (conceptSequence).
  */
-export const clickedIndex = (
-  frame: Element,
-  target: EventTarget | null
-): number => {
-  let node = target instanceof Element ? target : null;
-  while (node && node.parentElement !== frame) {
-    node = node.parentElement;
-  }
-  return node ? [...frame.children].indexOf(node) : -1;
-};
-
-/** Marks the step's trigger on the drawn element, to be drawn as clickable. */
-export const useTriggerMark = (
-  frame: RefObject<Element | null>,
-  elements: ReviewConceptElement[],
-  trigger?: string
-) => {
-  useLayoutEffect(() => {
-    const box = frame.current;
-    if (!box) {
-      return;
-    }
-    const at = elements.findIndex((e) => e.id === trigger);
-    [...box.children].forEach((child, i) => {
-      child.toggleAttribute("data-trigger", i === at);
-    });
-  });
-};
-
-/** One step's elements, drawn as the frame's children. */
 export function StepElements({
   elements,
+  marks = {},
 }: {
   elements: ReviewConceptElement[];
+  marks?: SequenceMarks;
 }) {
   return (
-    <>
+    <SequenceMarksProvider value={marks}>
       {elements.map((element) => (
         <ReviewConceptElementView element={element} key={element.id} />
       ))}
-    </>
+    </SequenceMarksProvider>
   );
 }
 
@@ -169,52 +143,11 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
 
   useConceptFonts(concept);
 
-  // A native listener rather than onClick: the frame is a picture of an
-  // interface, not a control. Back and Next above are the keyboard route.
+  // The frame is a picture of an interface; its own trigger is the way on,
+  // with Back and Next above for the keyboard (conceptSequence.tsx).
   const canvasRef = useRef<HTMLFieldSetElement>(null);
   const trigger = last ? undefined : step?.trigger;
-  useTriggerMark(canvasRef, step?.elements ?? [], trigger);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!(canvas && sequence && trigger)) {
-      return;
-    }
-    const moveOnFrom = (target: EventTarget | null) => {
-      const hit = step?.elements[clickedIndex(canvas, target)];
-      if (hit?.id === trigger) {
-        setAt(index + 1);
-        return true;
-      }
-      return false;
-    };
-    const advance = (event: MouseEvent) => {
-      // A panel's hide slot slides the panel away first; it moves the
-      // sequence on once it has gone (PANEL_HIDDEN, below).
-      if (
-        event.target instanceof Element &&
-        event.target.closest("[data-concept-hide]")
-      ) {
-        return;
-      }
-      // A panel with a hide button moves on when hidden, not when clicked.
-      const hit = step?.elements[clickedIndex(canvas, event.target)];
-      if (hit?.kind === "panel" && hit.slots?.hide?.elements.length) {
-        return;
-      }
-      if (moveOnFrom(event.target)) {
-        event.preventDefault();
-      }
-    };
-    const hidden = (event: Event) => {
-      moveOnFrom(event.target);
-    };
-    canvas.addEventListener("click", advance);
-    canvas.addEventListener(PANEL_HIDDEN, hidden);
-    return () => {
-      canvas.removeEventListener("click", advance);
-      canvas.removeEventListener(PANEL_HIDDEN, hidden);
-    };
-  }, [index, sequence, step, trigger]);
+  useSequencePlayer(canvasRef, step, sequence && !last, () => setAt(index + 1));
 
   return (
     <div className="review-page__concept">
@@ -248,7 +181,10 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
             minInlineSize: 0,
           }}
         >
-          <StepElements elements={step?.elements ?? []} />
+          <StepElements
+            elements={step?.elements ?? []}
+            marks={{ enter: step?.enter, trigger }}
+          />
         </fieldset>
       ) : (
         <div

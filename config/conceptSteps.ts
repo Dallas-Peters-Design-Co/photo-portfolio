@@ -1,4 +1,4 @@
-import { mapChildren } from "./conceptSlots.js";
+import { everyElement, mapChildren } from "./conceptSlots.js";
 import { newItemId } from "./proposal.js";
 import type { ReviewConcept, ReviewConceptElement } from "./reviewConcept.js";
 
@@ -16,12 +16,34 @@ import type { ReviewConcept, ReviewConceptElement } from "./reviewConcept.js";
  * review page the viewer clicks that element in the mock-up itself.
  */
 
+/** How an element arrives when its step is shown. */
+export const ENTER_ANIMATIONS = [
+  "fade",
+  "rise",
+  "drop",
+  "from-right",
+  "from-left",
+  "pop",
+] as const;
+export type EnterAnimation = (typeof ENTER_ANIMATIONS)[number];
+
+/** The element that animates in as the step appears, and how. */
+export interface StepEnter {
+  animation: EnterAnimation;
+  element: string;
+}
+
 export interface ConceptStep {
   /** What the viewer does or sees at this step: "Clicks Upload". */
   caption: string;
   elements: ReviewConceptElement[];
+  /** What animates in when this step is shown: the toast, the panel. */
+  enter?: StepEnter;
   id: string;
-  /** The element in this step whose click shows the next step. */
+  /**
+   * The element in this step whose click shows the next step: any element
+   * in it, a button in a panel's slot or a group included.
+   */
   trigger?: string;
 }
 
@@ -35,6 +57,7 @@ export const stepsOf = (concept: ReviewConcept): ConceptStep[] => [
     elements: concept.elements,
     id: `${concept.id}-1`,
     ...(concept.stepTrigger ? { trigger: concept.stepTrigger } : {}),
+    ...(concept.stepEnter ? { enter: concept.stepEnter } : {}),
   },
   ...(concept.steps ?? []),
 ];
@@ -46,12 +69,13 @@ export const withStep = (
   step: ConceptStep
 ): ReviewConcept => {
   if (index === 0) {
-    const { stepTrigger: _t, ...rest } = concept;
+    const { stepEnter: _e, stepTrigger: _t, ...rest } = concept;
     return {
       ...rest,
       elements: step.elements,
       stepCaption: step.caption,
       ...(step.trigger ? { stepTrigger: step.trigger } : {}),
+      ...(step.enter ? { stepEnter: step.enter } : {}),
     };
   }
   return {
@@ -104,14 +128,26 @@ export const removeStep = (
   return steps.length > 0 ? { ...rest, steps } : rest;
 };
 
-/** A trigger only while it names an element the step still has. */
-const triggerIn = (
-  trigger: unknown,
+/** Whether the step holds an element with this id, at any depth. */
+const holds = (elements: ReviewConceptElement[], id: unknown): id is string =>
+  typeof id === "string" && everyElement(elements).some((e) => e.id === id);
+
+/** A trigger and an entrance only while they name an element the step has. */
+const linksIn = (
+  raw: { enter?: unknown; trigger?: unknown },
   elements: ReviewConceptElement[]
-): { trigger?: string } =>
-  typeof trigger === "string" && elements.some((e) => e.id === trigger)
-    ? { trigger }
-    : {};
+): Pick<ConceptStep, "enter" | "trigger"> => {
+  const enter = (raw.enter ?? {}) as Partial<StepEnter>;
+  const animation = ENTER_ANIMATIONS.includes(enter.animation as EnterAnimation)
+    ? (enter.animation as EnterAnimation)
+    : null;
+  return {
+    ...(holds(elements, raw.trigger) ? { trigger: raw.trigger } : {}),
+    ...(animation && holds(elements, enter.element)
+      ? { enter: { animation, element: enter.element } }
+      : {}),
+  };
+};
 
 /** Steps from the request or the database, cleaned like elements are. */
 export const cleanSteps = (
@@ -128,21 +164,25 @@ export const cleanSteps = (
         caption: str(step.caption, MAX_STEP_CAPTION),
         elements,
         id: str(step.id, 64) || newItemId(),
-        ...triggerIn(step.trigger, elements),
+        ...linksIn(step, elements),
       };
     });
 
-/** The first step's caption and trigger, cleaned. */
+/** The first step's caption, trigger and entrance, cleaned. */
 export const cleanFirstStep = (
   raw: Partial<ReviewConcept>,
   elements: ReviewConceptElement[],
   str: (value: unknown, max: number) => string
-): Pick<ReviewConcept, "stepCaption" | "stepTrigger"> => {
+): Pick<ReviewConcept, "stepCaption" | "stepEnter" | "stepTrigger"> => {
   const caption = str(raw.stepCaption, MAX_STEP_CAPTION);
-  const { trigger } = triggerIn(raw.stepTrigger, elements);
+  const { enter, trigger } = linksIn(
+    { enter: raw.stepEnter, trigger: raw.stepTrigger },
+    elements
+  );
   return {
     ...(caption ? { stepCaption: caption } : {}),
     ...(trigger ? { stepTrigger: trigger } : {}),
+    ...(enter ? { stepEnter: enter } : {}),
   };
 };
 
@@ -152,32 +192,42 @@ export const cleanFirstStep = (
  */
 export const freshConcept = (concept: ReviewConcept): ReviewConcept => {
   const renamed = new Map<string, string>();
-  const copyAll = (list: ReviewConceptElement[]) =>
-    list.map((element) => {
-      const copy = freshIds(element);
-      renamed.set(element.id, copy.id);
-      return copy;
-    });
-  const elements = copyAll(concept.elements);
-  const steps = concept.steps?.map((step) => {
-    const stepElements = copyAll(step.elements);
+  const fresh = (element: ReviewConceptElement): ReviewConceptElement => {
+    const copy = { ...mapChildren(element, fresh), id: newItemId() };
+    renamed.set(element.id, copy.id);
+    return copy;
+  };
+  const relink = (step: Pick<ConceptStep, "enter" | "trigger">) => {
     const trigger = step.trigger ? renamed.get(step.trigger) : undefined;
+    const enterAt = step.enter ? renamed.get(step.enter.element) : undefined;
+    return {
+      ...(trigger ? { trigger } : {}),
+      ...(step.enter && enterAt
+        ? { enter: { ...step.enter, element: enterAt } }
+        : {}),
+    };
+  };
+  const elements = concept.elements.map(fresh);
+  const steps = concept.steps?.map((step) => {
+    const stepElements = step.elements.map(fresh);
     return {
       caption: step.caption,
       elements: stepElements,
       id: newItemId(),
-      ...(trigger ? { trigger } : {}),
+      ...relink(step),
     };
   });
-  const stepTrigger = concept.stepTrigger
-    ? renamed.get(concept.stepTrigger)
-    : undefined;
-  const { stepTrigger: _t, steps: _s, ...rest } = concept;
+  const first = relink({
+    enter: concept.stepEnter,
+    trigger: concept.stepTrigger,
+  });
+  const { stepEnter: _e, stepTrigger: _t, steps: _s, ...rest } = concept;
   return {
     ...rest,
     elements,
     id: newItemId(),
-    ...(stepTrigger ? { stepTrigger } : {}),
+    ...(first.trigger ? { stepTrigger: first.trigger } : {}),
+    ...(first.enter ? { stepEnter: first.enter } : {}),
     ...(steps && steps.length > 0 ? { steps } : {}),
   };
 };

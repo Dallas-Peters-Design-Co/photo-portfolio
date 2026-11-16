@@ -25,7 +25,7 @@
 }
 
 /* The step's trigger: what to click, pulsing gently until it is. */
-.concept-canvas > [data-trigger] {
+.concept-hover[data-trigger] > * {
   cursor: pointer;
   outline: 2px solid color-mix(in srgb, #2563eb 70%, transparent);
   outline-offset: 3px;
@@ -39,7 +39,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .concept-canvas > [data-trigger] {
+  .concept-hover[data-trigger] > * {
     animation: none;
   }
 }
@@ -85,12 +85,65 @@
 
 /* A sliding panel that is the trigger: it slides in, then pulses; hidden,
    it only slides out. Both, because one animation would replace the other. */
-.concept-canvas > [data-trigger][data-slide] {
+.concept-hover[data-trigger] > [data-slide] {
   animation:
     concept-slide-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
     concept-trigger 1.6s ease-in-out 320ms infinite;
 }
 
-.concept-canvas > [data-trigger][data-slide][data-closing] {
+.concept-hover[data-trigger] > [data-slide][data-closing] {
   animation: concept-slide-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+/*
+ * How a step's chosen element arrives (conceptSteps ENTER_ANIMATIONS): set
+ * on the step, drawn as the element mounts with the step.
+ */
+.concept-hover[data-enter] > * {
+  animation: concept-enter 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.concept-hover[data-enter="fade"] > * {
+  --enter-from: none;
+}
+
+.concept-hover[data-enter="rise"] > * {
+  --enter-from: translateY(24px);
+}
+
+.concept-hover[data-enter="drop"] > * {
+  --enter-from: translateY(-24px);
+}
+
+.concept-hover[data-enter="from-right"] > * {
+  --enter-from: translateX(48px);
+}
+
+.concept-hover[data-enter="from-left"] > * {
+  --enter-from: translateX(-48px);
+}
+
+.concept-hover[data-enter="pop"] > * {
+  --enter-from: scale(0.85);
+}
+
+@keyframes concept-enter {
+  from {
+    opacity: 0;
+    transform: var(--enter-from);
+  }
+}
+
+/* Arriving and to be clicked: it arrives, then pulses. */
+.concept-hover[data-enter][data-trigger] > * {
+  animation:
+    concept-enter 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both,
+    concept-trigger 1.6s ease-in-out 340ms infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-hover[data-enter] > *,
+  .concept-hover[data-enter][data-trigger] > * {
+    animation: none;
+  }
 }

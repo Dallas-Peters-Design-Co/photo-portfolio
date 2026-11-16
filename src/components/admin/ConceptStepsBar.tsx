@@ -2,19 +2,60 @@ import { ClipboardPaste, Plus, Trash2 } from "lucide-react";
 import {
   addStepAfter,
   type ConceptStep,
+  type EnterAnimation,
   MAX_CONCEPT_STEPS,
   pasteStepsAfter,
   removeStep,
   stepsOf,
   withStep,
 } from "../../../config/conceptSteps.js";
-import type { ReviewConcept } from "../../../config/reviewConcept.js";
+import type {
+  ReviewConcept,
+  ReviewConceptElement,
+} from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { ConceptSelect, kindLabel } from "./ConceptControls";
+import {
+  ConceptField,
+  ConceptSelect,
+  kindLabel,
+  optionsOf,
+} from "./ConceptControls";
 import { useCopiedConcept } from "./conceptClipboard";
 
-const NO_TRIGGER = "none";
+const NONE = "none";
+
+const ANIMATIONS = optionsOf([
+  ["fade", "Fades in"],
+  ["rise", "Rises up"],
+  ["drop", "Drops down"],
+  ["from-right", "Slides in from the right"],
+  ["from-left", "Slides in from the left"],
+  ["pop", "Pops in"],
+]);
+
+/**
+ * Every element in the step, nested ones too, named by where they sit:
+ * "Panel › Button · Save". Any of them can be clicked, or animate in.
+ */
+const listed = (
+  elements: ReviewConceptElement[],
+  path = ""
+): { label: string; value: string }[] =>
+  elements.flatMap((element) => {
+    const text = element.text?.split("\n")[0]?.slice(0, 30);
+    const name = `${kindLabel(element.kind)}${text ? ` · ${text}` : ""}`;
+    const children = [
+      ...Object.values(element.slots ?? {}).flatMap(
+        (slot) => slot?.elements ?? []
+      ),
+      ...(element.group?.elements ?? []),
+    ];
+    return [
+      { label: `${path}${name}`, value: element.id },
+      ...listed(children, `${path}${kindLabel(element.kind)} › `),
+    ];
+  });
 
 /**
  * A concept's steps, for showing a sequence of events: pick the step to edit,
@@ -46,14 +87,14 @@ export function ConceptStepsBar({
     onChange(addStepAfter(concept, index));
     onIndex(index + 1);
   };
+  const everything = listed(step?.elements ?? []);
   const triggers = [
-    { label: "None — the viewer presses Next", value: NO_TRIGGER },
-    ...(step?.elements ?? []).map((element) => ({
-      label: `${kindLabel(element.kind)}${
-        element.text ? ` · ${element.text.split("\n")[0]?.slice(0, 30)}` : ""
-      }`,
-      value: element.id,
-    })),
+    { label: "None — the viewer presses Next", value: NONE },
+    ...everything,
+  ];
+  const entering = [
+    { label: "Nothing animates in", value: NONE },
+    ...everything,
   ];
 
   return (
@@ -131,15 +172,52 @@ export function ConceptStepsBar({
               The last step: the viewer can start over from here.
             </span>
           ) : (
-            <ConceptSelect
-              label={`Step ${index + 1}: what to click for the next step`}
-              onChange={(value) =>
-                set({ trigger: value === NO_TRIGGER ? undefined : value })
-              }
-              options={triggers}
-              value={step.trigger ?? NO_TRIGGER}
-            />
+            <ConceptField label="Click to go on">
+              <ConceptSelect
+                label={`Step ${index + 1}: what to click for the next step`}
+                onChange={(value) =>
+                  set({ trigger: value === NONE ? undefined : value })
+                }
+                options={triggers}
+                value={step.trigger ?? NONE}
+              />
+            </ConceptField>
           )}
+          <ConceptField label="Animates in">
+            <ConceptSelect
+              label={`Step ${index + 1}: what animates in`}
+              onChange={(value) =>
+                set({
+                  enter:
+                    value === NONE
+                      ? undefined
+                      : {
+                          animation: step.enter?.animation ?? "rise",
+                          element: value,
+                        },
+                })
+              }
+              options={entering}
+              value={step.enter?.element ?? NONE}
+            />
+          </ConceptField>
+          {step.enter ? (
+            <ConceptField label="How">
+              <ConceptSelect
+                label={`Step ${index + 1}: how it animates in`}
+                onChange={(value) =>
+                  set({
+                    enter: {
+                      animation: value as EnterAnimation,
+                      element: step.enter?.element ?? "",
+                    },
+                  })
+                }
+                options={ANIMATIONS}
+                value={step.enter.animation}
+              />
+            </ConceptField>
+          ) : null}
         </div>
       ) : null}
     </div>

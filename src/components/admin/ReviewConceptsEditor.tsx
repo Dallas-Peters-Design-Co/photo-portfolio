@@ -19,7 +19,8 @@ import {
   ITEM_WIDTH,
   MAX_REVIEW_CONCEPTS,
 } from "../../../config/reviewConcept.js";
-import { StepElements, useTriggerMark } from "../review/ReviewConceptPreview";
+import { useSequencePlayer } from "../review/conceptSequence";
+import { StepElements } from "../review/ReviewConceptPreview";
 import { useConceptFont } from "../review/useConceptFont";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -71,11 +72,10 @@ function ConceptCard({
     styleElement(element, styles)
   );
   const preview = useRef<HTMLDivElement>(null);
-  useTriggerMark(
-    preview,
-    elements,
-    at < steps.length - 1 ? step?.trigger : undefined
-  );
+  const live = at < steps.length - 1;
+  // The preview plays: clicking the step's target opens the next step here,
+  // as the viewer's click does on the review page.
+  useSequencePlayer(preview, step, live, () => setStepIndex(at + 1));
   const setElements = (next: ReviewConceptElement[]) => {
     if (step) {
       onChange(withStep(concept, at, { ...step, elements: next }));
@@ -161,7 +161,13 @@ function ConceptCard({
             ref={preview}
             style={previewStyle}
           >
-            <StepElements elements={elements} />
+            <StepElements
+              elements={elements}
+              marks={{
+                enter: step?.enter,
+                trigger: live ? step?.trigger : undefined,
+              }}
+            />
           </div>
         </div>
         <div className="review-concepts__controls">
