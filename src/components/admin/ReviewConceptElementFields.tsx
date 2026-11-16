@@ -2,12 +2,9 @@ import { ChevronDown, Copy, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { takesHover } from "../../../config/conceptHover.js";
+import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
-import {
-  type ReviewConceptElement,
-  takesBox,
-  takesIcon,
-} from "../../../config/reviewConcept.js";
+import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";

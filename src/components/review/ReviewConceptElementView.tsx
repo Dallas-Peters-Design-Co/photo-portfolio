@@ -6,12 +6,11 @@ import {
   type ConceptIconSvg,
   conceptIconName,
 } from "../../../config/conceptIcon.js";
+import { iconSizeOf, takesBox } from "../../../config/conceptKinds.js";
 import { shadowCss, shadowOf } from "../../../config/conceptShadow.js";
 import {
-  iconSizeOf,
   type ReviewConceptElement,
   splitCardText,
-  takesBox,
 } from "../../../config/reviewConcept.js";
 import { iconFrom, useIconMap } from "../../cms/useIconMap";
 import {

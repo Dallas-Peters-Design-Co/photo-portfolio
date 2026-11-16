@@ -1,13 +1,16 @@
-import { CONCEPT_HEX } from "./conceptColor.js";
 import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
+import type { ConceptIconSvg } from "./conceptIcon.js";
 import {
-  type ConceptIconSvg,
-  cleanIconSvg,
-  conceptIconName,
-} from "./conceptIcon.js";
-import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
+  cleanBox,
+  cleanCard,
+  cleanCheckbox,
+  cleanIcon,
+  cleanToast,
+} from "./conceptKinds.js";
+import type { ConceptShadow } from "./conceptShadow.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
+import { bounded, cleanColor, str } from "./conceptValues.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
 
@@ -225,143 +228,6 @@ export const splitCardText = (
 
 export const joinCardText = (title: string, body: string): string =>
   body ? `${title.replace(/\n/g, " ")}\n${body}` : title.replace(/\n/g, " ");
-
-const str = (value: unknown, max: number): string =>
-  typeof value === "string" ? value.slice(0, max) : "";
-
-const isHex = (value: unknown): value is string =>
-  typeof value === "string" && CONCEPT_HEX.test(value);
-
-/** Kinds that may carry an icon beside their text; an icon element always has one. */
-const OPTIONAL_ICON_KINDS = new Set<ReviewConceptElementKind>([
-  "card",
-  "input",
-]);
-
-export const takesIcon = (kind: ReviewConceptElementKind): boolean =>
-  OPTIONAL_ICON_KINDS.has(kind);
-
-/** A card's icon leads at 1.5× its title; an input's sits at text size. */
-export const iconSizeOf = (element: ReviewConceptElement): number =>
-  element.iconSize ??
-  (element.kind === "card"
-    ? Math.round(element.fontSize * 1.5)
-    : element.fontSize);
-
-const cleanIcon = (
-  kind: ReviewConceptElementKind,
-  raw: Partial<ReviewConceptElement>
-): Pick<
-  ReviewConceptElement,
-  "iconColor" | "iconName" | "iconSize" | "iconSvg"
-> => {
-  // An optional icon with an unknown name is dropped, not made a star.
-  const iconName =
-    conceptIconName(raw.iconName) ?? (kind === "icon" ? "StarIcon" : null);
-  if (!(iconName && (kind === "icon" || takesIcon(kind)))) {
-    return {};
-  }
-  const iconSvg = cleanIconSvg(raw.iconSvg);
-  return {
-    iconName,
-    ...(iconSvg ? { iconSvg } : {}),
-    ...(takesIcon(kind) && isHex(raw.iconColor)
-      ? { iconColor: raw.iconColor }
-      : {}),
-    ...(takesIcon(kind) && typeof raw.iconSize === "number"
-      ? { iconSize: bounded(raw.iconSize, 8, 96, 24) }
-      : {}),
-  };
-};
-
-/**
- * Kinds drawn as a box, with an editable border (colour or none, width) and
- * shadow: the controls, the surfaces and the pills.
- */
-const BOX_KINDS = new Set<ReviewConceptElementKind>([
-  "badge",
-  "button",
-  "card",
-  "input",
-  "select",
-  "table",
-  "textarea",
-]);
-
-export const takesBox = (kind: ReviewConceptElementKind): boolean =>
-  BOX_KINDS.has(kind);
-
-const cleanBox = (
-  kind: ReviewConceptElementKind,
-  raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "borderColor" | "borderWidth" | "shadow"> => {
-  if (!takesBox(kind)) {
-    return {};
-  }
-  const shadow = cleanShadow(raw.shadow);
-  return {
-    // "transparent" is the editor's None: kept, so it is not a fallback.
-    ...(isHex(raw.borderColor) || raw.borderColor === "transparent"
-      ? { borderColor: raw.borderColor }
-      : {}),
-    ...(typeof raw.borderWidth === "number"
-      ? { borderWidth: bounded(raw.borderWidth, 0, 8, 1) }
-      : {}),
-    ...(shadow ? { shadow } : {}),
-  };
-};
-
-const cleanCheckbox = (
-  raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "accentColor" | "checkSize"> => ({
-  ...(isHex(raw.accentColor) ? { accentColor: raw.accentColor } : {}),
-  ...(typeof raw.checkSize === "number"
-    ? { checkSize: bounded(raw.checkSize, 10, 40, 18) }
-    : {}),
-});
-
-const MAX_TOAST_ACTION = 40;
-
-const cleanToast = (
-  raw: Partial<ReviewConceptElement>
-): Pick<
-  ReviewConceptElement,
-  "accentColor" | "toastAction" | "toastClose"
-> => ({
-  ...(isHex(raw.accentColor) ? { accentColor: raw.accentColor } : {}),
-  ...(typeof raw.toastAction === "string"
-    ? { toastAction: str(raw.toastAction, MAX_TOAST_ACTION) }
-    : {}),
-  ...(typeof raw.toastClose === "boolean"
-    ? { toastClose: raw.toastClose }
-    : {}),
-});
-
-const cleanCard = (
-  raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "bodySize"> =>
-  typeof raw.bodySize === "number"
-    ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
-    : {};
-
-const cleanColor = (value: unknown, fallback: string): string => {
-  if (value === "transparent") {
-    return value;
-  }
-  return typeof value === "string" && CONCEPT_HEX.test(value)
-    ? value
-    : fallback;
-};
-
-const bounded = (
-  value: unknown,
-  min: number,
-  max: number,
-  fallback: number
-): number =>
-  typeof value === "number" && Number.isFinite(value)
-    ? Math.min(max, Math.max(min, value))
-    : fallback;
 
 const fontSelection = (
   familyValue: unknown,

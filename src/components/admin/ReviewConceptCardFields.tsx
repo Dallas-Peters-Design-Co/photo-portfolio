@@ -5,6 +5,7 @@ import {
   type ConceptIconSvg,
   conceptIconName,
 } from "../../../config/conceptIcon.js";
+import { iconSizeOf, takesIcon } from "../../../config/conceptKinds.js";
 import {
   type ConceptShadow,
   presetOf,
@@ -17,11 +18,7 @@ import {
   type ConceptTabLook,
   TAB_LIMITS,
 } from "../../../config/conceptTabs.js";
-import {
-  iconSizeOf,
-  type ReviewConceptElement,
-  takesIcon,
-} from "../../../config/reviewConcept.js";
+import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
