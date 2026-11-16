@@ -88,12 +88,12 @@ function PanelPreview({
       <ConceptSlotsView
         dividers={element.dividers}
         draw={drawElement}
-        slots={element.slots}
-        title={
+        lead={
           element.text ? (
-            <strong className="concept-panel__title">{element.text}</strong>
+            <strong className="concept-slot__lead">{element.text}</strong>
           ) : undefined
         }
+        slots={element.slots}
       />
     </section>
   );
@@ -107,8 +107,10 @@ function CardPreview({
   style: CSSProperties;
 }) {
   const card = splitCardText(element.text);
-  return (
-    <article className="review-concepts__card-preview" style={style}>
+  // The card's own icon, title and body lead its header slot, so whatever
+  // the header holds sits beside them, across the card's full width.
+  const lead = (
+    <div className="concept-slot__lead review-concepts__card-text">
       {element.iconName ? (
         <ConceptIcon
           color={element.iconColor}
@@ -124,9 +126,14 @@ function CardPreview({
           {card.body}
         </p>
       ) : null}
+    </div>
+  );
+  return (
+    <article className="review-concepts__card-preview" style={style}>
       <ConceptSlotsView
         dividers={element.dividers}
         draw={drawElement}
+        lead={lead}
         slots={element.slots}
       />
     </article>

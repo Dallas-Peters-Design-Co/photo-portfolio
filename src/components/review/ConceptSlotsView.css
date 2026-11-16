@@ -10,18 +10,36 @@
   display: none;
 }
 
-.concept-slot {
+.concept-slot,
+.concept-slot__items {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.concept-slot[data-layout="row"] {
+/* Stacked elements keep their own width (a badge stays a pill); those that
+   fill a line — progress bars, cards — set their own 100%. */
+.concept-slot__items {
+  align-items: flex-start;
+}
+
+/* A header led by the element's own text: the text takes the free width,
+   and the slot's elements sit together at the far end. */
+.concept-slot[data-led] {
   flex-direction: row;
   align-items: center;
 }
 
-.concept-slot[data-layout="grid"] {
+.concept-slot[data-led] > .concept-slot__items {
+  flex: 0 1 auto;
+}
+
+.concept-slot__items[data-layout="row"] {
+  flex-direction: row;
+  align-items: center;
+}
+
+.concept-slot__items[data-layout="grid"] {
   display: grid;
 }
 
@@ -31,8 +49,19 @@
 }
 
 /* In a grid, a card or progress bar fills its cell. */
-.concept-slot[data-layout="grid"] > *,
-.concept-slot[data-layout="grid"] > .concept-hover > * {
+.concept-slot__items[data-layout="grid"] > *,
+.concept-slot__items[data-layout="grid"] > .concept-hover > * {
   width: auto;
   min-width: 0;
+}
+
+/* The element's own text leads its header, taking the free width. */
+.concept-slot__lead {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Without lines, slots are spaced apart; with lines, their padding does it. */
+.concept-slots:not([data-dividers]) {
+  gap: calc(var(--spacing) * 3);
 }

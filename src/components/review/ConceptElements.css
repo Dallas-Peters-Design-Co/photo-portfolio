@@ -38,6 +38,13 @@
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
 
+/* A card's icon, title and body, stacked, at the head of its header slot. */
+.review-concepts__card-text {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  align-content: start;
+}
+
 .review-concepts__card-preview p {
   margin: 0;
   white-space: pre-line;
@@ -53,10 +60,6 @@
   min-width: 0;
   /* Fallback for a panel given no border of its own. */
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
-}
-
-.concept-panel__title {
-  margin-inline-end: auto;
 }
 
 /* A progress bar beside other things takes a share of the row. */

@@ -27,8 +27,8 @@ const LAYOUTS = optionsOf([
   ["grid", "Grid"],
 ]);
 const ALIGNS = optionsOf([
-  ["stretch", "Stretch"],
   ["start", "Start"],
+  ["stretch", "Stretch"],
   ["center", "Center"],
   ["end", "End"],
 ]);
@@ -86,7 +86,7 @@ function SlotFields({
             label={`${label} align`}
             onChange={(next) => set({ align: next as ConceptSlotAlign })}
             options={ALIGNS}
-            value={slot.align ?? "stretch"}
+            value={slot.align ?? "start"}
           />
         </ConceptField>
         <ConceptField label="Justify">

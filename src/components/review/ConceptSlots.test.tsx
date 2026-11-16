@@ -116,3 +116,41 @@ it("edits each slot's layout and lists what it holds", () => {
   });
   expect(host.querySelector('[data-testid="gap"]')?.textContent).toBe("20");
 });
+
+it("puts a card's header elements beside its text, across the full card", () => {
+  // As saved in the editor: the header slot set to a one-column grid,
+  // holding an arrow icon.
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    slots: {
+      body: { elements: [createConceptElement("badge")] },
+      header: {
+        columns: 1,
+        elements: [
+          { ...createConceptElement("icon"), iconName: "ArrowRight01Icon" },
+        ],
+        layout: "grid",
+      },
+    },
+    text: "LMX-318\nLab based project test",
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  const article = host.querySelector("article") as HTMLElement;
+  const header = host.querySelector<HTMLElement>('[data-slot="header"]');
+  const icon = host.querySelector<HTMLElement>('[role="img"]');
+  const title = host.querySelector("strong") as HTMLElement;
+  const badge = host.querySelector<HTMLElement>('[data-slot="body"]');
+  const inner = article.getBoundingClientRect();
+  const padding = Number.parseFloat(getComputedStyle(article).paddingRight);
+  // The header spans the card.
+  expect(header?.getBoundingClientRect().width).toBeCloseTo(
+    inner.width - 2 * padding - 2,
+    0
+  );
+  // The icon is in the header: right of the text, at the card's far edge,
+  // above the body slot.
+  const iconBox = icon?.getBoundingClientRect();
+  expect(iconBox?.left).toBeGreaterThan(title.getBoundingClientRect().right);
+  expect(inner.right - padding - (iconBox?.right ?? 0)).toBeLessThan(4);
+  expect(iconBox?.bottom).toBeLessThan(badge?.getBoundingClientRect().top ?? 0);
+});

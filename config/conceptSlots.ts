@@ -27,7 +27,7 @@ export const SLOT_JUSTIFIES = ["start", "center", "end", "between"] as const;
 export type ConceptSlotJustify = (typeof SLOT_JUSTIFIES)[number];
 
 export interface ConceptSlot {
-  /** Cross-axis alignment of the slot's elements. Default stretch in a column. */
+  /** Cross-axis alignment of the slot's elements. Default start. */
   align?: ConceptSlotAlign;
   /** Grid only: how many equal columns. */
   columns?: number;

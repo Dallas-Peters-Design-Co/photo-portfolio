@@ -25,16 +25,17 @@ const ALIGN = {
   stretch: "stretch",
 } as const;
 
-/** A slot's layout as CSS: flex for a row or column, grid for a grid. */
-const slotStyle = (slot: ConceptSlot): CSSProperties => {
-  const layout = slot.layout ?? "column";
+const padding = (slot: ConceptSlot): string =>
+  `${slot.paddingY ?? SLOT_DEFAULTS.paddingY}px ${slot.paddingX ?? SLOT_DEFAULTS.paddingX}px`;
+
+/** How a slot lays out its elements: flex for a row or column, else grid. */
+const itemsStyle = (slot: ConceptSlot): CSSProperties => {
   const base: CSSProperties = {
     alignItems: slot.align ? ALIGN[slot.align] : undefined,
     gap: slot.gap ?? SLOT_DEFAULTS.gap,
     justifyContent: slot.justify ? JUSTIFY[slot.justify] : undefined,
-    padding: `${slot.paddingY ?? SLOT_DEFAULTS.paddingY}px ${slot.paddingX ?? SLOT_DEFAULTS.paddingX}px`,
   };
-  return layout === "grid"
+  return slot.layout === "grid"
     ? {
         ...base,
         gridTemplateColumns: `repeat(${slot.columns ?? SLOT_DEFAULTS.columns}, minmax(0, 1fr))`,
@@ -42,6 +43,27 @@ const slotStyle = (slot: ConceptSlot): CSSProperties => {
     : base;
 };
 
+/** A slot's elements, laid out the slot's way. */
+function Items({ draw, slot }: { draw: Draw; slot: ConceptSlot }) {
+  const layout = slot.layout ?? "column";
+  return (
+    <div
+      className="concept-slot__items"
+      data-direction={layout === "row" ? "row" : "column"}
+      data-layout={layout}
+      style={itemsStyle(slot)}
+    >
+      {/* draw keys each element by its id. */}
+      {slot.elements.map(draw)}
+    </div>
+  );
+}
+
+/**
+ * One slot, with its padding. In a header that has a lead (the element's
+ * own text), the lead takes the start of the full width and the slot's
+ * elements sit together at the end, laid out the slot's way.
+ */
 function Slot({
   draw,
   lead,
@@ -49,26 +71,27 @@ function Slot({
   slot,
 }: {
   draw: Draw;
-  /** Drawn first in the slot: a panel's title in its header. */
+  /** A card's or panel's own text, at the start of its header. */
   lead?: ReactNode;
   name: ConceptSlotName;
   slot?: ConceptSlot;
 }) {
-  if (!(lead || slot?.elements.length)) {
+  const filled = slot?.elements.length ? slot : undefined;
+  if (!(lead || filled)) {
     return null;
   }
-  const layout = slot?.layout ?? (lead ? "row" : "column");
   return (
     <div
       className="concept-slot"
-      data-direction={layout === "row" ? "row" : "column"}
-      data-layout={layout}
+      data-led={lead ? true : undefined}
       data-slot={name}
-      style={slot ? slotStyle(slot) : undefined}
+      style={{
+        gap: slot?.gap ?? SLOT_DEFAULTS.gap,
+        padding: slot ? padding(slot) : undefined,
+      }}
     >
       {lead}
-      {/* draw keys each element by its id. */}
-      {slot?.elements.map(draw)}
+      {filled ? <Items draw={draw} slot={filled} /> : null}
     </div>
   );
 }
@@ -81,13 +104,16 @@ export function ConceptSlotsView({
   dividers = false,
   draw,
   slots = {},
-  title,
+  lead,
 }: {
   dividers?: boolean;
   draw: Draw;
   slots?: ConceptSlots;
-  /** A panel's title, at the start of its header. */
-  title?: ReactNode;
+  /**
+   * A card's icon, title and body, or a panel's title: the start of the
+   * header, which then spans the element even with nothing else in it.
+   */
+  lead?: ReactNode;
 }) {
   return (
     <div className="concept-slots" data-dividers={dividers || undefined}>
@@ -95,7 +121,7 @@ export function ConceptSlotsView({
         <Slot
           draw={draw}
           key={name}
-          lead={name === "header" ? title : undefined}
+          lead={name === "header" ? lead : undefined}
           name={name}
           slot={slots[name]}
         />
