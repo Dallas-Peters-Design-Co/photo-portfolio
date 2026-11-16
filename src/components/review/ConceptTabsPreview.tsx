@@ -71,9 +71,9 @@ export function ConceptTabsPreview({
       ? `${look.indicatorSize}px`
       : undefined,
     "--tab-padding-x": `${element.paddingX}px`,
-    // Side padding belongs to each tab (so the indicator spans it), not the
-    // row; the row keeps the top and bottom.
-    padding: `${element.paddingY}px 0`,
+    // Padding X belongs to each tab (so the indicator spans it). The row's
+    // own side padding is set apart, as Row padding X.
+    padding: `${element.paddingY}px ${look?.rowPaddingX ?? 0}px`,
   } as CSSProperties;
   return (
     <nav

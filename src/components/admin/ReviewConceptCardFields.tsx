@@ -255,6 +255,12 @@ export function TabsGroup({
         onChange={(height) => set({ height })}
         value={look.height ?? 40}
       />
+      <NumberField
+        label="Row padding X"
+        max={TAB_LIMITS.rowPaddingX[1]}
+        onChange={(rowPaddingX) => set({ rowPaddingX })}
+        value={look.rowPaddingX ?? 0}
+      />
     </ConceptGroup>
   );
 }

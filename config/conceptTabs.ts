@@ -13,11 +13,14 @@ export interface ConceptTabLook {
   indicatorColor?: string;
   /** The indicator's thickness in px. */
   indicatorSize?: number;
+  /** Space at the row's two ends, before the first tab and after the last. */
+  rowPaddingX?: number;
 }
 
 export const TAB_LIMITS = {
   height: [20, 96],
   indicatorSize: [1, 8],
+  rowPaddingX: [0, 48],
 } as const;
 
 const hex = <K extends string>(key: K, value: unknown) =>
@@ -47,6 +50,7 @@ export const cleanTabLook = (value: unknown): ConceptTabLook | undefined => {
     ...hex("inactiveColor", raw.inactiveColor),
     ...hex("indicatorColor", raw.indicatorColor),
     ...size("indicatorSize", raw.indicatorSize),
+    ...size("rowPaddingX", raw.rowPaddingX),
   };
   return Object.keys(look).length > 0 ? look : undefined;
 };

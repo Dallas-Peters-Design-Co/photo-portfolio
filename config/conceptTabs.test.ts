@@ -12,12 +12,14 @@ describe("tab look", () => {
         inactiveColor: "nope",
         indicatorColor: "#ff0000",
         indicatorSize: 0,
+        rowPaddingX: 90,
       })
     ).toEqual({
       activeColor: "#111111",
       height: 96,
       indicatorColor: "#ff0000",
       indicatorSize: 1,
+      rowPaddingX: 48,
     });
     expect(cleanTabLook({})).toBeUndefined();
   });

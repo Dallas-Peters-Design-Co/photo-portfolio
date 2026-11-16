@@ -208,6 +208,30 @@ it("slides the tab indicator to the tab clicked", async () => {
   expect(indicator()?.style.width).toBe(`${tab("Settings").offsetWidth}px`);
 });
 
+it("pads the tab row's ends apart from each tab's own padding", () => {
+  const tabs: ReviewConceptElement = {
+    ...createConceptElement("tabs"),
+    options: ["Overview", "Activity"],
+    paddingX: 12,
+    tabLook: { rowPaddingX: 24 },
+    text: "Overview",
+  };
+  act(() => root.render(<ReviewConceptElementView element={tabs} />));
+  const row = host.querySelector<HTMLElement>(".concept-tabs") as HTMLElement;
+  const first = host.querySelector<HTMLElement>(
+    ".concept-tabs__tab"
+  ) as HTMLElement;
+  expect(getComputedStyle(row).paddingInline).toBe("24px");
+  expect(getComputedStyle(first).paddingInline).toBe("12px");
+  // The first tab starts after the row's padding, and the indicator with it.
+  expect(
+    first.getBoundingClientRect().left - row.getBoundingClientRect().left
+  ).toBeCloseTo(24, 0);
+  expect(
+    host.querySelector<HTMLElement>(".concept-tabs__indicator")?.style.transform
+  ).toBe("translateX(24px)");
+});
+
 it("draws a card's title in its own weight, bolder than the body without one", () => {
   const card: ReviewConceptElement = {
     ...createConceptElement("card"),
