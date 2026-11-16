@@ -131,3 +131,19 @@ describe("componentSource cards, panels and tabs", () => {
     expect(source.tsx).toContain("useState");
   });
 });
+
+describe("componentSource names what a screen reader needs named", () => {
+  const one = (raw: Record<string, unknown>) =>
+    cleanConcept({ elements: [raw] }).elements[0] as ReviewConceptElement;
+
+  it("labels a select and a dialog", () => {
+    expect(
+      componentSource(one({ kind: "select", placeholder: "Country" }), "A")
+        .preview
+    ).toContain('aria-label="Country"');
+    expect(
+      componentSource(one({ kind: "dialog", text: "Delete file?\nBody" }), "A")
+        .preview
+    ).toContain('aria-label="Delete file?"');
+  });
+});

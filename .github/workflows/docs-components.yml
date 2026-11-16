@@ -3,7 +3,8 @@ name: Docs components
 # Rebuilds the docs site's Components tab from the brand kits, so a kit's
 # component styles show up in the docs without anyone running a script.
 # Reads the public feed on www.dallaspeters.com (/api/brand-kits?docs=components)
-# and commits only when a page changed; Mintlify deploys from that commit.
+# scans each component for accessibility (axe-core in Chromium), and commits
+# only when a page changed; Mintlify deploys from that commit.
 on:
   schedule:
     - cron: "17 * * * *"
@@ -22,11 +23,26 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11
+
       - uses: actions/setup-node@v5
         with:
           node-version: 22
+          cache: pnpm
 
-      # Plain Node and no dependencies: nothing to install.
+      # The accessibility scan needs Playwright and axe-core, so the app's
+      # dependencies are installed as in CI (Hugeicons Pro needs its token).
+      - run: pnpm config set //npm.hugeicons.com/:_authToken "$HUGEICONS_TOKEN"
+        env:
+          HUGEICONS_TOKEN: ${{ secrets.HUGEICONS_TOKEN }}
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for the accessibility scan
+        run: pnpm exec playwright install --with-deps chromium
+
       - run: node scripts/docs-components.mjs
 
       - name: Commit changed pages

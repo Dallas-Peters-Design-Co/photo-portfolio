@@ -11,6 +11,7 @@ import {
   googleFontCss,
   parseFontRef,
 } from "../../config/fontRef.js";
+import { jsxToHtml } from "../../config/jsxToHtml.js";
 import type { ReviewConceptElement } from "../../config/reviewConcept.js";
 import { ICON_COMPONENTS } from "../../src/cms/iconMap.js";
 import { loadKits } from "./brandKitStore.js";
@@ -30,6 +31,8 @@ export interface ComponentDocsKit {
   components: {
     id: string;
     kind: string;
+    /** The preview as plain HTML, for the docs script's accessibility scan. */
+    html: string;
     name: string;
     source: ComponentSource;
   }[];
@@ -100,7 +103,13 @@ export const componentDocs = async (
           source = componentSource(sample, name);
         }
         classes.add(source.className);
-        return { id: style.id, kind: style.kind, name, source };
+        return {
+          html: jsxToHtml(source.preview),
+          id: style.id,
+          kind: style.kind,
+          name,
+          source,
+        };
       });
       return {
         components,

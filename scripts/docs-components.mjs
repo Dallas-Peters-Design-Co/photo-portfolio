@@ -21,6 +21,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
+import { scanKits } from "./docs-components-scan.mjs";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const SITE = path.join(ROOT, "docs", "site");
@@ -95,12 +96,54 @@ const widgetOf = (source) =>
     .map((line) => `    ${line}`)
     .join("\n")}\n  </div>\n);`;
 
-const kitPage = (kit) => {
+/** axe writes a required ratio as "4.5:1". */
+const RATIO_SUFFIX = /:1$/;
+
+const unique = (items) => [...new Set(items)];
+
+/** One component's accessibility result, as a callout under its preview. */
+const a11yBlock = (result, version) => {
+  if (!result) {
+    return "";
+  }
+  const manual = result.incomplete.length
+    ? `\n\nNeeds a person to check: ${result.incomplete.map((rule) => mdxText(rule.help)).join("; ")}.`
+    : "";
+  if (result.violations.length === 0) {
+    return `<Check>\n**Accessibility: no issues found.** axe-core ${version} passed ${result.passes} WCAG 2.2 AA ${result.passes === 1 ? "check" : "checks"} on this component.${manual}\n</Check>`;
+  }
+  const lines = result.violations.map((rule) => {
+    const contrast = unique(
+      rule.nodes
+        .filter((node) => node.ratio)
+        .map(
+          (node) =>
+            `${node.ratio}:1, needs ${node.expected.replace(RATIO_SUFFIX, "")}:1 (${node.foreground} on ${node.background})`
+        )
+    );
+    const detail = contrast.length
+      ? contrast.join("; ")
+      : `${rule.nodes.length} ${rule.nodes.length === 1 ? "element" : "elements"}`;
+    return `- **${mdxText(rule.help)}** (${rule.impact}): ${mdxText(detail)}. [About this rule](${rule.helpUrl})`;
+  });
+  const count = result.violations.length;
+  return `<Warning>\n**Accessibility: ${count} ${count === 1 ? "issue" : "issues"}** found by axe-core ${version} (WCAG 2.2 AA).\n\n${lines.join("\n")}${manual}\n</Warning>`;
+};
+
+const passing = (kit, scan) =>
+  kit.components.filter(
+    ({ source }) =>
+      scan.results[kit.slug]?.[source.className]?.violations.length === 0
+  ).length;
+
+const kitPage = (kit, scan) => {
   const sections = kit.components.map(({ kind, name, source }) =>
     [
       `## ${mdxText(`${KIND_LABEL[kind] ?? kind} · ${name}`)}`,
       "",
       `<Preview${source.name} />`,
+      "",
+      a11yBlock(scan.results[kit.slug]?.[source.className], scan.version),
       "",
       "<CodeGroup>",
       fence("tsx", `${source.name}.tsx`, source.tsx),
@@ -122,26 +165,28 @@ ${MARK}
 
 Each component below is drawn with the ${mdxText(kit.name)} brand kit's style. Copy the React file and its CSS into your project. The look is in the custom properties at the top of the CSS.
 
+**Accessibility:** ${passing(kit, scan)} of ${count} components pass an automated scan with axe-core ${scan.version} against WCAG 2.2 AA. Each component is scanned in a browser as drawn here, at rest. Hover and focus states, keyboard use and screen reader output still need a person to check.
+
 ${sections.join("\n\n")}
 
 ${widgets.join("\n\n")}
 `;
 };
 
-const indexPage = (kits) => `---
+const indexPage = (kits, scan) => `---
 title: "Components"
 description: "Brand kit components as React and CSS, ready to copy."
 ---
 
 ${MARK}
 
-Every brand kit with component styles has a page here. A kit's page updates when its styles change in Studio.
+Every brand kit with component styles has a page here. A kit's page updates when its styles change in Studio, and each component is scanned for accessibility (axe-core ${scan.version}, WCAG 2.2 AA) every time.
 
 <CardGroup cols={2}>
 ${kits
   .map(
     (kit) =>
-      `  <Card title=${yamlString(kit.name)} href="/components/${kit.slug}">\n    ${kit.components.length} ${kit.components.length === 1 ? "component" : "components"}\n  </Card>`
+      `  <Card title=${yamlString(kit.name)} href="/components/${kit.slug}">\n    ${kit.components.length} ${kit.components.length === 1 ? "component" : "components"}. ${passing(kit, scan)} pass the accessibility scan.\n  </Card>`
   )
   .join("\n")}
 </CardGroup>
@@ -208,23 +253,24 @@ const main = async () => {
       rmSync(full);
     }
   }
-  for (const kit of kits) {
-    writeFileSync(path.join(DIR, `${kit.slug}.mdx`), kitPage(kit));
-  }
-  writeFileSync(path.join(DIR, "index.mdx"), indexPage(kits));
   // @import has to come first in a stylesheet.
   const fonts = [...new Set(kits.flatMap((kit) => kit.fonts ?? []))]
     .map((href) => `@import url(${JSON.stringify(href)});`)
     .join("\n");
-  writeFileSync(
-    CSS,
-    `${fonts ? `${fonts}\n\n` : ""}${BASE_CSS}\n${kits.map(scopedCss).join("\n")}`
-  );
+  const css = `${fonts ? `${fonts}\n\n` : ""}${BASE_CSS}\n${kits.map(scopedCss).join("\n")}`;
+  // Scanned with the same CSS the pages load, so the result is the page's.
+  const scan = await scanKits(kits, { css });
+  for (const kit of kits) {
+    writeFileSync(path.join(DIR, `${kit.slug}.mdx`), kitPage(kit, scan));
+  }
+  writeFileSync(path.join(DIR, "index.mdx"), indexPage(kits, scan));
+  writeFileSync(CSS, css);
   setNavigation(kits);
 
   const total = kits.reduce((n, kit) => n + kit.components.length, 0);
+  const passed = kits.reduce((n, kit) => n + passing(kit, scan), 0);
   process.stdout.write(
-    `docs components: ${kits.length} kits, ${total} components.\n`
+    `docs components: ${kits.length} kits, ${total} components, ${passed} pass the accessibility scan.\n`
   );
 };
 

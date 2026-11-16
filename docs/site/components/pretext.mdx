@@ -7,9 +7,15 @@ description: "21 components from the Pretext brand kit, as React and CSS to copy
 
 Each component below is drawn with the Pretext brand kit's style. Copy the React file and its CSS into your project. The look is in the custom properties at the top of the CSS.
 
+**Accessibility:** 21 of 21 components pass an automated scan with axe-core 4.14.0 against WCAG 2.2 AA. Each component is scanned in a browser as drawn here, at rest. Hover and focus states, keyboard use and screen reader output still need a person to check.
+
 ## Button · Primary
 
 <PreviewButtonPrimary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx ButtonPrimary.tsx
@@ -77,6 +83,10 @@ export function ButtonPrimary({ className, children = "Get started", onClick }: 
 
 <PreviewInputSearch />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 5 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx InputSearch.tsx
 import type * as React from "react";
@@ -134,6 +144,10 @@ export function InputSearch({ className }: InputSearchProps) {
 ## Button · Secondary
 
 <PreviewButtonSecondary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx ButtonSecondary.tsx
@@ -202,6 +216,10 @@ export function ButtonSecondary({ className, children = "Get started", onClick }
 
 <PreviewTextareaPrimary />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 5 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx TextareaPrimary.tsx
 import type * as React from "react";
@@ -255,6 +273,10 @@ export function TextareaPrimary({ className }: TextareaPrimaryProps) {
 ## Checkbox · Primary
 
 <PreviewCheckboxPrimary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 6 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx CheckboxPrimary.tsx
@@ -314,6 +336,10 @@ export function CheckboxPrimary({ className, children = "I agree to the terms" }
 
 <PreviewSelectPrimary />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 11 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx SelectPrimary.tsx
 import type * as React from "react";
@@ -326,7 +352,7 @@ interface SelectPrimaryProps {
 /** Primary select, from the brand kit. */
 export function SelectPrimary({ className }: SelectPrimaryProps) {
   return (
-    <select className={className ? `select-primary ${className}` : "select-primary"}>
+    <select className={className ? `select-primary ${className}` : "select-primary"} aria-label="Choose an option">
       <option>Overview</option>
       <option>Settings</option>
       <option>Activity</option>
@@ -371,6 +397,10 @@ export function SelectPrimary({ className }: SelectPrimaryProps) {
 ## Button · Secondary 2
 
 <PreviewButtonSecondary2 />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx ButtonSecondary2.tsx
@@ -437,6 +467,10 @@ export function ButtonSecondary2({ className, children = "Get started", onClick 
 
 <PreviewBadgeWarning />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+</Check>
+
 <CodeGroup>
 ```tsx BadgeWarning.tsx
 import type * as React from "react";
@@ -489,6 +523,10 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
 
 <PreviewBadgeNotes />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+</Check>
+
 <CodeGroup>
 ```tsx BadgeNotes.tsx
 import type * as React from "react";
@@ -540,6 +578,10 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 ## Card · Primary
 
 <PreviewCardPrimary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx CardPrimary.tsx
@@ -635,6 +677,10 @@ export function CardPrimary({ className, children = "Supporting copy goes here."
 
 <PreviewTabsPrimary />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 10 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx TabsPrimary.tsx
 import { useState } from "react";
@@ -723,6 +769,10 @@ export function TabsPrimary({
 
 <PreviewTablePrimary />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 6 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx TablePrimary.tsx
 import type * as React from "react";
@@ -801,6 +851,10 @@ export function TablePrimary({ className }: TablePrimaryProps) {
 
 <PreviewBadgeSuccess />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+</Check>
+
 <CodeGroup>
 ```tsx BadgeSuccess.tsx
 import type * as React from "react";
@@ -852,6 +906,10 @@ export function BadgeSuccess({ className, children = "New" }: BadgeSuccessProps)
 ## Menu · Primary
 
 <PreviewMenuPrimary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 9 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx MenuPrimary.tsx
@@ -909,6 +967,10 @@ export function MenuPrimary({ className }: MenuPrimaryProps) {
 
 <PreviewDialogPrimary />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 11 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx DialogPrimary.tsx
 import type * as React from "react";
@@ -922,7 +984,7 @@ interface DialogPrimaryProps {
 /** Primary dialog, from the brand kit. */
 export function DialogPrimary({ className, children = "Confirm changes?" }: DialogPrimaryProps) {
   return (
-    <div className={className ? `dialog-primary ${className}` : "dialog-primary"} role="dialog" aria-modal="true">
+    <div className={className ? `dialog-primary ${className}` : "dialog-primary"} role="dialog" aria-modal="true" aria-label="Confirm changes?">
       {children}
     </div>
   );
@@ -960,6 +1022,10 @@ export function DialogPrimary({ className, children = "Confirm changes?" }: Dial
 ## Toast · Primary
 
 <PreviewToastPrimary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 5 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx ToastPrimary.tsx
@@ -1012,6 +1078,10 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 ## Card · Stats
 
 <PreviewCardStats />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx CardStats.tsx
@@ -1105,6 +1175,12 @@ export function CardStats({ className, children = "Supporting copy goes here.", 
 ## Panel · Primary
 
 <PreviewPanelPrimary />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 19 WCAG 2.2 AA checks on this component.
+
+Needs a person to check: Elements must meet minimum color contrast ratio thresholds.
+</Check>
 
 <CodeGroup>
 ```tsx PanelPrimary.tsx
@@ -1327,6 +1403,10 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 
 <PreviewProgressPrimary />
 
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 12 WCAG 2.2 AA checks on this component.
+</Check>
+
 <CodeGroup>
 ```tsx ProgressPrimary.tsx
 import type * as React from "react";
@@ -1391,6 +1471,10 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
 ## Card · Plain
 
 <PreviewCardPlain />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+</Check>
 
 <CodeGroup>
 ```tsx CardPlain.tsx
@@ -1477,6 +1561,10 @@ export function CardPlain({ className, children = "Supporting copy goes here.", 
 ## Tag · Default
 
 <PreviewTagDefault />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+</Check>
 
 <CodeGroup>
 ```tsx TagDefault.tsx
@@ -1567,7 +1655,7 @@ export const PreviewCheckboxPrimary = () => (
 
 export const PreviewSelectPrimary = () => (
   <div className="not-prose bk-preview bk-pretext">
-    <select className="select-primary">
+    <select className="select-primary" aria-label="Choose an option">
       <option>Overview</option>
       <option>Settings</option>
       <option>Activity</option>
@@ -1680,7 +1768,7 @@ export const PreviewMenuPrimary = () => (
 
 export const PreviewDialogPrimary = () => (
   <div className="not-prose bk-preview bk-pretext">
-    <div className="dialog-primary" role="dialog" aria-modal="true">
+    <div className="dialog-primary" role="dialog" aria-modal="true" aria-label="Confirm changes?">
       Confirm changes?
     </div>
   </div>

@@ -156,7 +156,8 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
     card: () => cardMarkup(el, draw),
     checkbox: () => checkboxMarkup(el),
     dialog: () => ({
-      attrs: 'role="dialog" aria-modal="true"',
+      // A dialog is announced by its name: the first line of its text.
+      attrs: `role="dialog" aria-modal="true" aria-label=${quote(sampleText(el))}`,
       passChildren: true,
       tag: "div",
     }),
@@ -190,6 +191,8 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
     panel: () => panelMarkup(el, draw),
     progress: () => progressMarkup(el),
     select: () => ({
+      // A select shows its value, not its purpose; the label says that.
+      attrs: `aria-label=${quote(el.placeholder || sampleText(el))}`,
       body: optionsOf(el, ["First", "Second"])
         .map((o) => `<option>${escapeJsx(o)}</option>`)
         .join("\n"),
