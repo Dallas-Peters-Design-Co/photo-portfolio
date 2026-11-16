@@ -95,7 +95,7 @@ it("makes a button with an icon and no text icon-only, named by its icon", () =>
   };
   act(() => root.render(<ReviewConceptElementView element={button} />));
   const el = host.querySelector("button") as HTMLElement;
-  expect(el.getAttribute("aria-label")).toBe("Delete02");
+  expect(el.getAttribute("aria-label")).toBe("Delete");
   expect(el.textContent).toBe("");
 });
 
