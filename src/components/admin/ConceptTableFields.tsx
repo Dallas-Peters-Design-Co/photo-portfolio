@@ -54,6 +54,7 @@ const KIND_OPTIONS = optionsOf([
   ["chips", "Chips"],
   ["icon", "Icon"],
   ["button", "Button"],
+  ["progress", "Progress"],
 ]);
 
 const BUTTON_STYLES = optionsOf([
@@ -67,7 +68,13 @@ const LINE_OPTIONS = optionsOf([
   ["grid", "Grid"],
 ]);
 
-const TINTED = new Set<ConceptCellKind>(["tag", "chips", "icon", "button"]);
+const TINTED = new Set<ConceptCellKind>([
+  "tag",
+  "chips",
+  "icon",
+  "button",
+  "progress",
+]);
 
 /** One cell's editor, shaped by its column: two boxes for two lines. */
 function CellInput({
@@ -119,6 +126,20 @@ function CellInput({
           value={body}
         />
       </div>
+    );
+  }
+  if (column.kind === "progress") {
+    return (
+      <Input
+        aria-label={`${label}, percent`}
+        face="numeric"
+        max={100}
+        min={0}
+        onChange={(event) => onChange(event.target.value)}
+        size="sm"
+        type="number"
+        value={value}
+      />
     );
   }
   return (

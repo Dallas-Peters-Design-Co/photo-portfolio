@@ -5,6 +5,7 @@ import {
   cleanCard,
   cleanCheckbox,
   cleanIcon,
+  cleanProgress,
   cleanToast,
 } from "./conceptKinds.js";
 import type { ConceptShadow } from "./conceptShadow.js";
@@ -46,6 +47,7 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "menu",
   "toast",
   "skeleton",
+  "progress",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -75,7 +77,8 @@ export type ReviewConceptElementKind =
   | "dialog"
   | "menu"
   | "toast"
-  | "skeleton";
+  | "skeleton"
+  | "progress";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -90,6 +93,8 @@ export interface ReviewConceptElement {
    */
   accentColor?: string;
   background: string;
+  /** Progress bars: the bar's height in px. The track is `background`. */
+  barHeight?: number;
   /** Cards only: the body's type size. The title uses `fontSize`. */
   bodySize?: number;
   /** Badges and cards: the outline colour; "transparent" draws none. */
@@ -126,8 +131,12 @@ export interface ReviewConceptElement {
   paddingX: number;
   paddingY: number;
   placeholder?: string;
+  /** Progress bars: how far along, 0–100. The bar is `accentColor`. */
+  progress?: number;
   radius: number;
   shadow?: ConceptShadow;
+  /** Progress bars: whether the percentage shows beside the label. */
+  showValue?: boolean;
   /** The brand kit component style this element follows, if any. */
   styleId?: string;
   /** Tabs only: indicator, active and inactive colours, height. */
@@ -170,6 +179,7 @@ export const ELEMENT_STYLE_KEYS = [
   "iconSvg",
   "accentColor",
   "checkSize",
+  "barHeight",
   "tabLook",
   "hover",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
@@ -303,6 +313,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     ...cleanBox(kind, raw),
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(kind === "toast" ? cleanToast(raw) : {}),
+    ...(kind === "progress" ? cleanProgress(raw) : {}),
     ...(tabLook ? { tabLook } : {}),
     ...(hover ? { hover } : {}),
     ...(table ? { table } : {}),

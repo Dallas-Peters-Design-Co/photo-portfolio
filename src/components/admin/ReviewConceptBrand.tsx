@@ -76,6 +76,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   label: "Email address",
   link: "Learn more",
   menu: "Actions",
+  progress: "Upload progress",
   select: "Choose an option",
   skeleton: "",
   table: "Project name",
@@ -134,6 +135,22 @@ const badgeLook = (
   borderWidth: 1,
   color: paletteColor(brandDoc, ["badge ink", "accent", "primary"], "#3538cd"),
   radius: 999,
+});
+
+/** A progress bar starts in the kit's accent on a light grey track, rounded. */
+const progressLook = (
+  brandDoc?: BrandKitDoc | null
+): Partial<ReviewConceptElement> => ({
+  accentColor: paletteColor(
+    brandDoc,
+    ["accent", "primary", "button"],
+    "#3538cd"
+  ),
+  background: paletteColor(brandDoc, ["track", "muted"], "#e4e7ec"),
+  barHeight: 8,
+  progress: 60,
+  radius: 999,
+  showValue: true,
 });
 
 const elementState = (
@@ -211,6 +228,7 @@ export const createConceptElement = (
     ...elementState(kind),
     ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
+    ...(kind === "progress" ? progressLook(brandDoc) : {}),
     ...(kind === "toast"
       ? {
           accentColor: paletteColor(

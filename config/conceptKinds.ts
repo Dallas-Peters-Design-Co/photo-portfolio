@@ -123,3 +123,21 @@ export const cleanCard = (
   typeof raw.bodySize === "number"
     ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
     : {};
+
+/** A progress bar's limits: its value in percent and its bar's height in px. */
+export const PROGRESS_LIMITS = {
+  barHeight: [2, 24],
+  progress: [0, 100],
+} as const;
+
+export const cleanProgress = (
+  raw: Partial<ReviewConceptElement>
+): Pick<
+  ReviewConceptElement,
+  "accentColor" | "barHeight" | "progress" | "showValue"
+> => ({
+  ...(isHex(raw.accentColor) ? { accentColor: raw.accentColor } : {}),
+  barHeight: bounded(raw.barHeight, ...PROGRESS_LIMITS.barHeight, 8),
+  progress: bounded(raw.progress, ...PROGRESS_LIMITS.progress, 60),
+  ...(typeof raw.showValue === "boolean" ? { showValue: raw.showValue } : {}),
+});

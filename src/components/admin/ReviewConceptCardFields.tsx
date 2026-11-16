@@ -5,7 +5,11 @@ import {
   type ConceptIconSvg,
   conceptIconName,
 } from "../../../config/conceptIcon.js";
-import { iconSizeOf, takesIcon } from "../../../config/conceptKinds.js";
+import {
+  iconSizeOf,
+  PROGRESS_LIMITS,
+  takesIcon,
+} from "../../../config/conceptKinds.js";
 import {
   type ConceptShadow,
   presetOf,
@@ -271,6 +275,60 @@ export function ToastGroup({
           onChange={(event) => onChange({ toastClose: event.target.checked })}
         />
         <span>Close button</span>
+      </label>
+    </ConceptGroup>
+  );
+}
+
+/**
+ * A progress bar: how far along (content, so not in a kit style), the bar's
+ * colour and height, and whether the percentage shows. The track is the
+ * Color group's fill.
+ */
+export function ProgressGroup({
+  brandDoc,
+  element,
+  lookOnly = false,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  lookOnly?: boolean;
+  onChange: (patch: Patch) => void;
+}) {
+  const valueId = useId();
+  return (
+    <ConceptGroup name="Progress">
+      {lookOnly ? null : (
+        <NumberField
+          label="Value %"
+          max={PROGRESS_LIMITS.progress[1]}
+          min={PROGRESS_LIMITS.progress[0]}
+          onChange={(progress) => onChange({ progress })}
+          value={element.progress ?? 60}
+        />
+      )}
+      <NumberField
+        label="Bar height"
+        max={PROGRESS_LIMITS.barHeight[1]}
+        min={PROGRESS_LIMITS.barHeight[0]}
+        onChange={(barHeight) => onChange({ barHeight })}
+        value={element.barHeight ?? 8}
+      />
+      <ConceptColorField
+        ariaLabel="progress bar color"
+        brandDoc={brandDoc}
+        label="Bar"
+        onChange={(accentColor) => onChange({ accentColor })}
+        value={element.accentColor ?? element.color}
+      />
+      <label className="review-concepts__check" htmlFor={valueId}>
+        <Checkbox
+          checked={element.showValue !== false}
+          id={valueId}
+          onChange={(event) => onChange({ showValue: event.target.checked })}
+        />
+        <span>Show %</span>
       </label>
     </ConceptGroup>
   );

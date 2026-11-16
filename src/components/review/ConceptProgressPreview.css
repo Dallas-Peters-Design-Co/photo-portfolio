@@ -1,0 +1,36 @@
+/* A progress element: label row over the bar, filling its row's width. */
+.concept-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  width: 100%;
+  min-width: 8rem;
+}
+
+.concept-progress__label {
+  display: flex;
+  gap: 1em;
+  justify-content: space-between;
+}
+
+.concept-progress__label > span:last-child {
+  font-variant-numeric: tabular-nums;
+}
+
+.concept-progress__track {
+  display: block;
+  inline-size: 100%;
+  min-inline-size: 3rem;
+  block-size: var(--progress-height);
+  overflow: hidden;
+  background: var(--progress-track);
+  border-radius: var(--progress-radius);
+}
+
+.concept-progress__fill {
+  display: block;
+  inline-size: var(--progress-value);
+  block-size: 100%;
+  background: var(--progress-color);
+  border-radius: inherit;
+}

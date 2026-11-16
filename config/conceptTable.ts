@@ -29,7 +29,8 @@ export type ConceptCellKind =
   | "tag"
   | "chips"
   | "icon"
-  | "button";
+  | "button"
+  | "progress";
 
 export type ButtonStyle = "solid" | "outline";
 
@@ -106,6 +107,7 @@ export const CELL_KINDS: readonly ConceptCellKind[] = [
   "chips",
   "icon",
   "button",
+  "progress",
 ];
 
 export const TABLE_LINES: readonly TableLines[] = ["none", "rows", "grid"];
@@ -310,6 +312,12 @@ export const tableOf = ({
 export const chipsOf = (cell: string): string[] =>
   cell.split(CHIP_SPLIT).filter(Boolean);
 
+/** A Progress cell's percentage: the number in its text, held to 0–100. */
+export const progressOf = (cell: string): number => {
+  const value = Number.parseFloat(cell);
+  return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : 0;
+};
+
 /* Edits, each returning a new table. */
 
 export const updateColumn = (
@@ -366,16 +374,22 @@ export const setColumnKind = (
     index,
     keepsStyle ? { kind } : { kind, look: undefined, styleId: undefined }
   );
-  return kind === "stacked"
-    ? retyped
-    : {
-        ...retyped,
-        rows: retyped.rows.map((row) =>
-          row.map((cell, at) =>
-            at === index ? cell.replace(LINE_BREAKS, " ") : cell
-          )
-        ),
-      };
+  if (kind === "stacked") {
+    return retyped;
+  }
+  // A Progress cell holds a number; words become a half-full bar to edit.
+  const retext = (cell: string): string => {
+    if (kind !== "progress") {
+      return cell.replace(LINE_BREAKS, " ");
+    }
+    return Number.isFinite(Number.parseFloat(cell)) ? cell : "50";
+  };
+  return {
+    ...retyped,
+    rows: retyped.rows.map((row) =>
+      row.map((cell, at) => (at === index ? retext(cell) : cell))
+    ),
+  };
 };
 
 export const setCell = (

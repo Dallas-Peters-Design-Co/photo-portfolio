@@ -28,6 +28,7 @@ import {
 } from "../ui/select";
 import { ConceptHover } from "./ConceptHover";
 import "./ConceptElements.css";
+import { ConceptProgressPreview } from "./ConceptProgressPreview";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
@@ -397,6 +398,8 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       return (
         <ConceptToastPreview element={element} style={style} text={text} />
       );
+    case "progress":
+      return <ConceptProgressPreview element={element} style={style} />;
     case "skeleton":
       return (
         <div

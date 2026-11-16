@@ -7,12 +7,14 @@ import {
   type ConceptTableColumn,
   chipsOf,
   DEFAULT_BORDERS,
+  progressOf,
   tableOf,
 } from "../../../config/conceptTable.js";
 import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { ProgressBar } from "./ConceptProgressPreview";
 import "./ConceptTablePreview.css";
 
 const ICON_SUFFIX = /Icon$/;
@@ -121,6 +123,22 @@ function Cell({
           {value}
         </span>
       ) : null;
+    case "progress": {
+      const percent = progressOf(value);
+      return (
+        <span className="concept-table__progress">
+          <ProgressBar
+            color={tintOf(column)}
+            height={6}
+            label={`${Math.round(percent)}%`}
+            radius={999}
+            track="color-mix(in srgb, currentColor 12%, transparent)"
+            value={percent}
+          />
+          <small>{Math.round(percent)}%</small>
+        </span>
+      );
+    }
     default:
       return <>{value}</>;
   }

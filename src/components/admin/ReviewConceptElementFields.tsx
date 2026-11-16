@@ -22,6 +22,7 @@ import {
   CheckboxGroup,
   ElementIconGroup,
   HoverGroup,
+  ProgressGroup,
   ShadowGroup,
   TabsGroup,
   ToastGroup,
@@ -208,6 +209,14 @@ function KindGroups({
       ) : null}
       {element.kind === "toast" ? (
         <ToastGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      ) : null}
+      {element.kind === "progress" ? (
+        <ProgressGroup
+          brandDoc={brandDoc}
+          element={element}
+          lookOnly={lookOnly}
+          onChange={onChange}
+        />
       ) : null}
       {element.kind === "tabs" ? (
         <TabsGroup brandDoc={brandDoc} element={element} onChange={onChange} />
@@ -426,7 +435,7 @@ export function ReviewConceptElementFields({
               allowNone
               ariaLabel={`${element.kind} background`}
               brandDoc={brandDoc}
-              label="Fill"
+              label={element.kind === "progress" ? "Track" : "Fill"}
               onChange={(background) => onChange({ background })}
               value={element.background}
             />

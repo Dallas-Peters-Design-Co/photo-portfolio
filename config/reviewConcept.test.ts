@@ -277,3 +277,34 @@ describe("toast action and close", () => {
     expect(text?.toastClose).toBeUndefined();
   });
 });
+
+describe("progress bars", () => {
+  it("keeps a bar's value, height and colour, clamped, and only on progress", () => {
+    const [bar, text] = cleanConcept({
+      elements: [
+        {
+          accentColor: "#00aa00",
+          barHeight: 90,
+          kind: "progress",
+          progress: 140,
+          showValue: false,
+        },
+        { barHeight: 6, kind: "text", progress: 40 },
+      ],
+    }).elements;
+    expect(bar).toMatchObject({
+      accentColor: "#00aa00",
+      barHeight: 24,
+      kind: "progress",
+      progress: 100,
+      showValue: false,
+    });
+    expect(text?.progress).toBeUndefined();
+    expect(text?.barHeight).toBeUndefined();
+  });
+
+  it("gives a bar with no value 60% at 8px", () => {
+    const [bar] = cleanConcept({ elements: [{ kind: "progress" }] }).elements;
+    expect(bar).toMatchObject({ barHeight: 8, progress: 60 });
+  });
+});
