@@ -49,3 +49,42 @@ it("keeps cards in a row inside the preview, sharing its width", () => {
   }
   host.remove();
 });
+
+it("wraps cards to a new line rather than squeezing them, all one height", () => {
+  const host = document.createElement("div");
+  host.style.width = "380px";
+  document.body.append(host);
+  const card = (title: string) => ({
+    ...createConceptElement("card"),
+    text: `2\n${title}`,
+  });
+  act(() =>
+    createRoot(host).render(
+      <ReviewConceptPreview
+        concept={{
+          ...createConcept(),
+          direction: "row",
+          elements: [
+            card("Total Projects"),
+            card("In Progress"),
+            card("Manuscripts Complete and a much longer label"),
+            card("Awaiting Review"),
+          ],
+        }}
+      />
+    )
+  );
+  const cards = [...host.querySelectorAll("article")].map((a) =>
+    a.getBoundingClientRect()
+  );
+  // Not squeezed: each at least 10rem wide.
+  for (const box of cards) {
+    expect(box.width).toBeGreaterThanOrEqual(160);
+  }
+  // Two lines of two, each line one height.
+  expect(cards[0]?.top).toBe(cards[1]?.top);
+  expect(cards[2]?.top).toBeGreaterThan(cards[0]?.top ?? 0);
+  expect(cards[0]?.height).toBe(cards[1]?.height);
+  expect(cards[2]?.height).toBe(cards[3]?.height);
+  host.remove();
+});

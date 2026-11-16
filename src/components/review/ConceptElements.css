@@ -73,11 +73,19 @@
   width: 58%;
 }
 
-/* Side by side, cards share the row instead of each claiming all of it,
-   which pushed the last one past the edge. Stacked, they stay full width.
-   Any concept container marks its direction (data-direction). */
+/* A row of elements wraps when it runs out of width, rather than squeezing
+   everything into it. */
+[data-direction="row"] {
+  flex-wrap: wrap;
+}
+
+/* Side by side, cards share the row at a readable width (wrapping to a
+   new line below 10rem rather than squeezing their text), and stretch to
+   the tallest card so a row of them reads as one set. Stacked, they stay
+   full width. Any concept container marks its direction (data-direction). */
 [data-direction="row"] > .review-concepts__card-preview,
 [data-direction="row"] > .concept-hover > .review-concepts__card-preview {
-  flex: 1 1 0;
+  flex: 1 1 10rem;
+  align-self: stretch;
   width: auto;
 }
