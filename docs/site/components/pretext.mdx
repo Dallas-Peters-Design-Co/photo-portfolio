@@ -9,11 +9,7 @@ Each component below is drawn with the Pretext brand kit's style. Copy the React
 
 ## Button · Primary
 
-<div className="bk-preview bk-pretext">
-<button className="button-primary" type="button">
-  Get started
-</button>
-</div>
+<PreviewButtonPrimary />
 
 <CodeGroup>
 ```tsx ButtonPrimary.tsx
@@ -79,9 +75,7 @@ export function ButtonPrimary({ className, children = "Get started", onClick }: 
 
 ## Input · Search
 
-<div className="bk-preview bk-pretext">
-<input className="input-search" type="email" placeholder="Enter your email" />
-</div>
+<PreviewInputSearch />
 
 <CodeGroup>
 ```tsx InputSearch.tsx
@@ -139,11 +133,7 @@ export function InputSearch({ className }: InputSearchProps) {
 
 ## Button · Secondary
 
-<div className="bk-preview bk-pretext">
-<button className="button-secondary" type="button">
-  Get started
-</button>
-</div>
+<PreviewButtonSecondary />
 
 <CodeGroup>
 ```tsx ButtonSecondary.tsx
@@ -210,9 +200,7 @@ export function ButtonSecondary({ className, children = "Get started", onClick }
 
 ## Text area · Primary
 
-<div className="bk-preview bk-pretext">
-<textarea className="textarea-primary" placeholder="Write a message…" />
-</div>
+<PreviewTextareaPrimary />
 
 <CodeGroup>
 ```tsx TextareaPrimary.tsx
@@ -266,12 +254,7 @@ export function TextareaPrimary({ className }: TextareaPrimaryProps) {
 
 ## Checkbox · Primary
 
-<div className="bk-preview bk-pretext">
-<label className="checkbox-primary">
-  <input type="checkbox" defaultChecked />
-  I agree to the terms
-</label>
-</div>
+<PreviewCheckboxPrimary />
 
 <CodeGroup>
 ```tsx CheckboxPrimary.tsx
@@ -329,13 +312,7 @@ export function CheckboxPrimary({ className, children = "I agree to the terms" }
 
 ## Select · Primary
 
-<div className="bk-preview bk-pretext">
-<select className="select-primary">
-  <option>Overview</option>
-  <option>Settings</option>
-  <option>Activity</option>
-</select>
-</div>
+<PreviewSelectPrimary />
 
 <CodeGroup>
 ```tsx SelectPrimary.tsx
@@ -393,11 +370,7 @@ export function SelectPrimary({ className }: SelectPrimaryProps) {
 
 ## Button · Secondary 2
 
-<div className="bk-preview bk-pretext">
-<button className="button-secondary-2" type="button">
-  Get started
-</button>
-</div>
+<PreviewButtonSecondary2 />
 
 <CodeGroup>
 ```tsx ButtonSecondary2.tsx
@@ -462,11 +435,7 @@ export function ButtonSecondary2({ className, children = "Get started", onClick 
 
 ## Badge · Warning
 
-<div className="bk-preview bk-pretext">
-<span className="badge-warning">
-  New
-</span>
-</div>
+<PreviewBadgeWarning />
 
 <CodeGroup>
 ```tsx BadgeWarning.tsx
@@ -518,11 +487,7 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
 
 ## Badge · Notes
 
-<div className="bk-preview bk-pretext">
-<span className="badge-notes">
-  New
-</span>
-</div>
+<PreviewBadgeNotes />
 
 <CodeGroup>
 ```tsx BadgeNotes.tsx
@@ -574,23 +539,7 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 
 ## Card · Primary
 
-<div className="bk-preview bk-pretext">
-<article className="card-primary">
-  <div className="card-primary__slots">
-    <div className="card-primary__slot" data-slot="header" data-led>
-      <div className="card-primary__lead card-primary__text">
-        <svg className="card-primary__icon" width={20} height={20} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M10.002 11H13.502M10.002 7H17.002" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-          <path d="M19.002 2L6.50195 2C5.39738 2 4.50195 2.89543 4.50195 4V20C4.50195 21.1046 5.39738 22 6.50195 22H19.002C20.1065 22 21.002 21.1046 21.002 20V4C21.002 2.89543 20.1065 2 19.002 2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-          <path d="M6.00195 6H3.00195M6.00195 12H3.00195M6.00195 18H3.00195" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        </svg>
-        <strong className="card-primary__title">Card title</strong>
-        <p className="card-primary__body">Supporting copy goes here.</p>
-      </div>
-    </div>
-  </div>
-</article>
-</div>
+<PreviewCardPrimary />
 
 <CodeGroup>
 ```tsx CardPrimary.tsx
@@ -684,13 +633,7 @@ export function CardPrimary({ className, children = "Supporting copy goes here."
 
 ## Tabs · Primary
 
-<div className="bk-preview bk-pretext">
-<nav className="tabs-primary" aria-label="Tabs">
-  <button className="tabs-primary__tab" type="button" aria-current="page">Overview</button>
-  <button className="tabs-primary__tab" type="button">Settings</button>
-  <button className="tabs-primary__tab" type="button">Activity</button>
-</nav>
-</div>
+<PreviewTabsPrimary />
 
 <CodeGroup>
 ```tsx TabsPrimary.tsx
@@ -778,34 +721,7 @@ export function TabsPrimary({
 
 ## Table · Primary
 
-<div className="bk-preview bk-pretext">
-<table className="table-primary">
-  <thead>
-    <tr>
-        <th scope="col">Project</th>
-        <th scope="col">Status</th>
-        <th scope="col">Tags</th>
-        <th scope="col">Action</th>
-    </tr>
-  </thead>
-  <tbody>
-      <tr>
-        <td>Website redesign
-  Acme Co.</td>
-        <td>Active</td>
-        <td>Design, Web</td>
-        <td>Open</td>
-      </tr>
-      <tr>
-        <td>Brand refresh
-  Northwind</td>
-        <td>Paused</td>
-        <td>Brand</td>
-        <td>Open</td>
-      </tr>
-  </tbody>
-</table>
-</div>
+<PreviewTablePrimary />
 
 <CodeGroup>
 ```tsx TablePrimary.tsx
@@ -883,11 +799,7 @@ export function TablePrimary({ className }: TablePrimaryProps) {
 
 ## Badge · Success
 
-<div className="bk-preview bk-pretext">
-<span className="badge-success">
-  New
-</span>
-</div>
+<PreviewBadgeSuccess />
 
 <CodeGroup>
 ```tsx BadgeSuccess.tsx
@@ -939,13 +851,7 @@ export function BadgeSuccess({ className, children = "New" }: BadgeSuccessProps)
 
 ## Menu · Primary
 
-<div className="bk-preview bk-pretext">
-<div className="menu-primary" role="menu">
-  <button role="menuitem" type="button">Rename</button>
-  <button role="menuitem" type="button">Duplicate</button>
-  <button role="menuitem" type="button">Delete</button>
-</div>
-</div>
+<PreviewMenuPrimary />
 
 <CodeGroup>
 ```tsx MenuPrimary.tsx
@@ -1001,11 +907,7 @@ export function MenuPrimary({ className }: MenuPrimaryProps) {
 
 ## Dialog · Primary
 
-<div className="bk-preview bk-pretext">
-<div className="dialog-primary" role="dialog" aria-modal="true">
-  Confirm changes?
-</div>
-</div>
+<PreviewDialogPrimary />
 
 <CodeGroup>
 ```tsx DialogPrimary.tsx
@@ -1057,11 +959,7 @@ export function DialogPrimary({ className, children = "Confirm changes?" }: Dial
 
 ## Toast · Primary
 
-<div className="bk-preview bk-pretext">
-<div className="toast-primary" role="status">
-  Changes saved
-</div>
-</div>
+<PreviewToastPrimary />
 
 <CodeGroup>
 ```tsx ToastPrimary.tsx
@@ -1113,21 +1011,7 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 
 ## Card · Stats
 
-<div className="bk-preview bk-pretext">
-<article className="card-stats">
-  <div className="card-stats__slots">
-    <div className="card-stats__slot" data-slot="header" data-led>
-      <div className="card-stats__lead card-stats__text">
-        <svg className="card-stats__icon" width={22} height={22} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M11.109 3.74829C11.48 3.02037 12.52 3.02037 12.891 3.74829L15.0785 8.0407C15.2237 8.32561 15.4964 8.5239 15.8122 8.5742L20.5671 9.33147C21.373 9.45983 21.6941 10.4474 21.1178 11.0252L17.7138 14.4383C17.4883 14.6644 17.3844 14.9846 17.4341 15.3001L18.1843 20.0635C18.3114 20.8702 17.4703 21.4808 16.7426 21.1102L12.4539 18.9254C12.1687 18.7801 11.8313 18.7801 11.5461 18.9254L7.25739 21.1102C6.52973 21.4808 5.68859 20.8702 5.81565 20.0635L6.56594 15.3001C6.61562 14.9846 6.51167 14.6644 6.28617 14.4383L2.88217 11.0252C2.3059 10.4474 2.62703 9.45983 3.43294 9.33147L8.18782 8.5742C8.50362 8.5239 8.77632 8.32561 8.92151 8.0407L11.109 3.74829Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
-        </svg>
-        <strong className="card-stats__title">Card title</strong>
-        <p className="card-stats__body">Supporting copy goes here.</p>
-      </div>
-    </div>
-  </div>
-</article>
-</div>
+<PreviewCardStats />
 
 <CodeGroup>
 ```tsx CardStats.tsx
@@ -1220,44 +1104,7 @@ export function CardStats({ className, children = "Supporting copy goes here.", 
 
 ## Panel · Primary
 
-<div className="bk-preview bk-pretext">
-<section className="panel-primary" aria-label="Panel title">
-  <div className="panel-primary__slots" data-dividers>
-    <div className="panel-primary__slot" data-slot="header" data-led style={{ gap: 8, padding: "12px 16px" }}>
-      <strong className="panel-primary__lead">Panel title</strong>
-      <div className="panel-primary__items" data-layout="row" style={{ gap: 8, alignItems: "center" }}>
-        <span className="panel-primary__header-1">
-          3
-        </span>
-      </div>
-    </div>
-    <div className="panel-primary__slot" data-slot="body" style={{ gap: 12, padding: "16px 16px" }}>
-      <div className="panel-primary__items" data-layout="column" style={{ gap: 12 }}>
-        <div className="panel-primary__body-1">
-          <span className="panel-primary__body-1__label">
-            <span>Review progress</span>
-            <span>60%</span>
-          </span>
-          <span className="panel-primary__body-1__track" role="progressbar" aria-label="Review progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
-            <span className="panel-primary__body-1__fill" style={{ inlineSize: "60%" }} />
-          </span>
-        </div>
-        <label className="panel-primary__body-2">
-          <input type="checkbox" defaultChecked />
-          Select all
-        </label>
-      </div>
-    </div>
-    <div className="panel-primary__slot" data-slot="footer" style={{ gap: 8, padding: "12px 16px" }}>
-      <div className="panel-primary__items" data-layout="row" style={{ gap: 8 }}>
-        <button className="panel-primary__footer-1" type="button">
-          + New item
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-</div>
+<PreviewPanelPrimary />
 
 <CodeGroup>
 ```tsx PanelPrimary.tsx
@@ -1478,17 +1325,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 
 ## Progress · Primary
 
-<div className="bk-preview bk-pretext">
-<div className="progress-primary">
-  <span className="progress-primary__label">
-    <span>Upload progress</span>
-    <span>60%</span>
-  </span>
-  <span className="progress-primary__track" role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
-    <span className="progress-primary__fill" style={{ inlineSize: "60%" }} />
-  </span>
-</div>
-</div>
+<PreviewProgressPrimary />
 
 <CodeGroup>
 ```tsx ProgressPrimary.tsx
@@ -1553,18 +1390,7 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
 
 ## Card · Plain
 
-<div className="bk-preview bk-pretext">
-<article className="card-plain">
-  <div className="card-plain__slots">
-    <div className="card-plain__slot" data-slot="header" data-led>
-      <div className="card-plain__lead card-plain__text">
-        <strong className="card-plain__title">Card title</strong>
-        <p className="card-plain__body">Supporting copy goes here.</p>
-      </div>
-    </div>
-  </div>
-</article>
-</div>
+<PreviewCardPlain />
 
 <CodeGroup>
 ```tsx CardPlain.tsx
@@ -1650,11 +1476,7 @@ export function CardPlain({ className, children = "Supporting copy goes here.", 
 
 ## Tag · Default
 
-<div className="bk-preview bk-pretext">
-<span className="tag-default">
-  Design
-</span>
-</div>
+<PreviewTagDefault />
 
 <CodeGroup>
 ```tsx TagDefault.tsx
@@ -1705,3 +1527,265 @@ export function TagDefault({ className, children = "Design" }: TagDefaultProps) 
 }
 ```
 </CodeGroup>
+
+export const PreviewButtonPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <button className="button-primary" type="button">
+      Get started
+    </button>
+  </div>
+);
+
+export const PreviewInputSearch = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <input className="input-search" type="email" placeholder="Enter your email" />
+  </div>
+);
+
+export const PreviewButtonSecondary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <button className="button-secondary" type="button">
+      Get started
+    </button>
+  </div>
+);
+
+export const PreviewTextareaPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <textarea className="textarea-primary" placeholder="Write a message…" />
+  </div>
+);
+
+export const PreviewCheckboxPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <label className="checkbox-primary">
+      <input type="checkbox" defaultChecked />
+      I agree to the terms
+    </label>
+  </div>
+);
+
+export const PreviewSelectPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <select className="select-primary">
+      <option>Overview</option>
+      <option>Settings</option>
+      <option>Activity</option>
+    </select>
+  </div>
+);
+
+export const PreviewButtonSecondary2 = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <button className="button-secondary-2" type="button">
+      Get started
+    </button>
+  </div>
+);
+
+export const PreviewBadgeWarning = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <span className="badge-warning">
+      New
+    </span>
+  </div>
+);
+
+export const PreviewBadgeNotes = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <span className="badge-notes">
+      New
+    </span>
+  </div>
+);
+
+export const PreviewCardPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <article className="card-primary">
+      <div className="card-primary__slots">
+        <div className="card-primary__slot" data-slot="header" data-led>
+          <div className="card-primary__lead card-primary__text">
+            <svg className="card-primary__icon" width={20} height={20} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10.002 11H13.502M10.002 7H17.002" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              <path d="M19.002 2L6.50195 2C5.39738 2 4.50195 2.89543 4.50195 4V20C4.50195 21.1046 5.39738 22 6.50195 22H19.002C20.1065 22 21.002 21.1046 21.002 20V4C21.002 2.89543 20.1065 2 19.002 2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              <path d="M6.00195 6H3.00195M6.00195 12H3.00195M6.00195 18H3.00195" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+            <strong className="card-primary__title">Card title</strong>
+            <p className="card-primary__body">Supporting copy goes here.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+);
+
+export const PreviewTabsPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <nav className="tabs-primary" aria-label="Tabs">
+      <button className="tabs-primary__tab" type="button" aria-current="page">Overview</button>
+      <button className="tabs-primary__tab" type="button">Settings</button>
+      <button className="tabs-primary__tab" type="button">Activity</button>
+    </nav>
+  </div>
+);
+
+export const PreviewTablePrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <table className="table-primary">
+      <thead>
+        <tr>
+            <th scope="col">Project</th>
+            <th scope="col">Status</th>
+            <th scope="col">Tags</th>
+            <th scope="col">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+            <td>Website redesign
+      Acme Co.</td>
+            <td>Active</td>
+            <td>Design, Web</td>
+            <td>Open</td>
+          </tr>
+          <tr>
+            <td>Brand refresh
+      Northwind</td>
+            <td>Paused</td>
+            <td>Brand</td>
+            <td>Open</td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+);
+
+export const PreviewBadgeSuccess = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <span className="badge-success">
+      New
+    </span>
+  </div>
+);
+
+export const PreviewMenuPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <div className="menu-primary" role="menu">
+      <button role="menuitem" type="button">Rename</button>
+      <button role="menuitem" type="button">Duplicate</button>
+      <button role="menuitem" type="button">Delete</button>
+    </div>
+  </div>
+);
+
+export const PreviewDialogPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <div className="dialog-primary" role="dialog" aria-modal="true">
+      Confirm changes?
+    </div>
+  </div>
+);
+
+export const PreviewToastPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <div className="toast-primary" role="status">
+      Changes saved
+    </div>
+  </div>
+);
+
+export const PreviewCardStats = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <article className="card-stats">
+      <div className="card-stats__slots">
+        <div className="card-stats__slot" data-slot="header" data-led>
+          <div className="card-stats__lead card-stats__text">
+            <svg className="card-stats__icon" width={22} height={22} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M11.109 3.74829C11.48 3.02037 12.52 3.02037 12.891 3.74829L15.0785 8.0407C15.2237 8.32561 15.4964 8.5239 15.8122 8.5742L20.5671 9.33147C21.373 9.45983 21.6941 10.4474 21.1178 11.0252L17.7138 14.4383C17.4883 14.6644 17.3844 14.9846 17.4341 15.3001L18.1843 20.0635C18.3114 20.8702 17.4703 21.4808 16.7426 21.1102L12.4539 18.9254C12.1687 18.7801 11.8313 18.7801 11.5461 18.9254L7.25739 21.1102C6.52973 21.4808 5.68859 20.8702 5.81565 20.0635L6.56594 15.3001C6.61562 14.9846 6.51167 14.6644 6.28617 14.4383L2.88217 11.0252C2.3059 10.4474 2.62703 9.45983 3.43294 9.33147L8.18782 8.5742C8.50362 8.5239 8.77632 8.32561 8.92151 8.0407L11.109 3.74829Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+            <strong className="card-stats__title">Card title</strong>
+            <p className="card-stats__body">Supporting copy goes here.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+);
+
+export const PreviewPanelPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <section className="panel-primary" aria-label="Panel title">
+      <div className="panel-primary__slots" data-dividers>
+        <div className="panel-primary__slot" data-slot="header" data-led style={{ gap: 8, padding: "12px 16px" }}>
+          <strong className="panel-primary__lead">Panel title</strong>
+          <div className="panel-primary__items" data-layout="row" style={{ gap: 8, alignItems: "center" }}>
+            <span className="panel-primary__header-1">
+              3
+            </span>
+          </div>
+        </div>
+        <div className="panel-primary__slot" data-slot="body" style={{ gap: 12, padding: "16px 16px" }}>
+          <div className="panel-primary__items" data-layout="column" style={{ gap: 12 }}>
+            <div className="panel-primary__body-1">
+              <span className="panel-primary__body-1__label">
+                <span>Review progress</span>
+                <span>60%</span>
+              </span>
+              <span className="panel-primary__body-1__track" role="progressbar" aria-label="Review progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
+                <span className="panel-primary__body-1__fill" style={{ inlineSize: "60%" }} />
+              </span>
+            </div>
+            <label className="panel-primary__body-2">
+              <input type="checkbox" defaultChecked />
+              Select all
+            </label>
+          </div>
+        </div>
+        <div className="panel-primary__slot" data-slot="footer" style={{ gap: 8, padding: "12px 16px" }}>
+          <div className="panel-primary__items" data-layout="row" style={{ gap: 8 }}>
+            <button className="panel-primary__footer-1" type="button">
+              + New item
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+);
+
+export const PreviewProgressPrimary = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <div className="progress-primary">
+      <span className="progress-primary__label">
+        <span>Upload progress</span>
+        <span>60%</span>
+      </span>
+      <span className="progress-primary__track" role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
+        <span className="progress-primary__fill" style={{ inlineSize: "60%" }} />
+      </span>
+    </div>
+  </div>
+);
+
+export const PreviewCardPlain = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <article className="card-plain">
+      <div className="card-plain__slots">
+        <div className="card-plain__slot" data-slot="header" data-led>
+          <div className="card-plain__lead card-plain__text">
+            <strong className="card-plain__title">Card title</strong>
+            <p className="card-plain__body">Supporting copy goes here.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+);
+
+export const PreviewTagDefault = () => (
+  <div className="not-prose bk-preview bk-pretext">
+    <span className="tag-default">
+      Design
+    </span>
+  </div>
+);

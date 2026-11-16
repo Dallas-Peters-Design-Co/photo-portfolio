@@ -83,14 +83,24 @@ const scopedCss = (kit) =>
 const fence = (lang, title, code) =>
   `\`\`\`${lang} ${title}\n${code.trimEnd()}\n\`\`\``;
 
+/**
+ * Each preview is a page widget: the page's own HTML keeps only a few tags
+ * (a card's <article>, tabs' <nav>, <select> and <textarea> came out empty),
+ * and a widget renders any element. `not-prose` keeps the docs' typography
+ * off the component.
+ */
+const widgetOf = (source) =>
+  `export const Preview${source.name} = () => (\n  <div className="not-prose bk-preview bk-${source.slug}">\n${source.preview
+    .split("\n")
+    .map((line) => `    ${line}`)
+    .join("\n")}\n  </div>\n);`;
+
 const kitPage = (kit) => {
   const sections = kit.components.map(({ kind, name, source }) =>
     [
       `## ${mdxText(`${KIND_LABEL[kind] ?? kind} · ${name}`)}`,
       "",
-      `<div className="bk-preview bk-${kit.slug}">`,
-      source.preview,
-      "</div>",
+      `<Preview${source.name} />`,
       "",
       "<CodeGroup>",
       fence("tsx", `${source.name}.tsx`, source.tsx),
@@ -98,6 +108,9 @@ const kitPage = (kit) => {
       fence("css", `${source.name}.css`, source.css),
       "</CodeGroup>",
     ].join("\n")
+  );
+  const widgets = kit.components.map(({ source }) =>
+    widgetOf({ ...source, slug: kit.slug })
   );
   const count = kit.components.length;
   return `---
@@ -110,6 +123,8 @@ ${MARK}
 Each component below is drawn with the ${mdxText(kit.name)} brand kit's style. Copy the React file and its CSS into your project. The look is in the custom properties at the top of the CSS.
 
 ${sections.join("\n\n")}
+
+${widgets.join("\n\n")}
 `;
 };
 
