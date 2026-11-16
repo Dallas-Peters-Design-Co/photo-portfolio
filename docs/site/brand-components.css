@@ -210,7 +210,7 @@
   outline-offset: 2px;
 }
 .bk-pretext .button-secondary-2 {
-  --button-secondary-2-background: #f2f2f2;
+  --button-secondary-2-background: transparent;
   --button-secondary-2-color: #00289d;
   --button-secondary-2-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-secondary-2-font-size: 14px;
@@ -246,8 +246,8 @@
   outline-offset: 2px;
 }
 .bk-pretext .badge-warning {
-  --badge-warning-background: #f5e1c7;
-  --badge-warning-color: #6c4a00;
+  --badge-warning-background: #f9ca8a;
+  --badge-warning-color: #382500;
   --badge-warning-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-warning-font-size: 14px;
   --badge-warning-font-weight: 500;
@@ -270,7 +270,7 @@
   box-shadow: var(--badge-warning-shadow);
 }
 .bk-pretext .badge-notes {
-  --badge-notes-background: #3f0b2021;
+  --badge-notes-background: #c0acb1;
   --badge-notes-color: #3f0b20;
   --badge-notes-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-notes-font-size: 14px;
