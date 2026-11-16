@@ -1,0 +1,91 @@
+---
+title: "Photo portfolio and studio"
+description: "One codebase that runs three portfolio sites and a private studio with a node canvas, brand kits, proposals, invoices, design reviews and an MCP server."
+sidebarTitle: "Introduction"
+keywords: ["photo portfolio", "studio", "admin", "canvas", "boards", "brand kits", "design reviews", "MCP"]
+---
+
+This documentation covers one codebase that runs three portfolio sites, and the private studio behind them. The studio holds a node-based design canvas, brand kits, client proposals, contracts and invoices, UX design reviews with an AI audit, and an MCP server so Claude can read and act on all of it. This page explains how the pieces fit together and where to go next.
+
+## The three sites
+
+Each site is its own Vercel project with its own Neon Postgres database. Photos, users and categories are never shared between sites.
+
+| Site key | Domain | What it is |
+| --- | --- | --- |
+| `addison` | addisonsphotos.com | Photo portfolio |
+| `cyan` | cyansphotos.com | Photo portfolio |
+| `dallas-images` | dallaspeters.com | Product design portfolio |
+
+Every site serves the same public pages: a gallery with category filters and a lightbox, a page per photo, published boards, design reviews, proposals, contracts and CMS pages. Each site is themed from its own saved settings, so its name, tagline, colours, fonts and shader background are edited per site rather than in code.
+
+<Note>
+The site key must match exactly. An unrecognised key falls back to the default site's configuration and serves that site's branding instead of failing, so a typo looks like a styling bug.
+</Note>
+
+## The studio
+
+Every site has its own studio at `/admin`, where you sign in with email and password or Google. Each section has its own address:
+
+- **Photos**: the library, batch upload, categories, photo details and a WebGL darkroom editor.
+- **Moodboards**: the node canvas, where pictures are wired into nodes that generate, halftone, composite and describe them.
+- **Collections**: assets kept for use in boards and pages. Nothing in a collection appears on the public site.
+- **Brand kits**: palettes, type, logos, voice, dated references and website scans.
+- **Lightroom**: browse an Adobe Lightroom catalogue and copy pictures in.
+- **Pages**: CMS pages with media, icons and video.
+- **Proposals**: proposals, packages, process, sending, contracts and invoices.
+- **Reviews**: client-facing UX critiques of websites, with an AI audit.
+- **Invoices**: Stripe invoices whose status follows Stripe webhooks.
+- **Models**: the fal.ai models a Generate node may use.
+- **Settings**: the site's name, tagline, colours, fonts, shader background and review note colours.
+
+## Where things are published
+
+Work made in the studio is shared through public routes on the site:
+
+| Route | What it shows |
+| --- | --- |
+| `/board/:slug` | A published board, shown dark |
+| `/board/:slug/present` | A full-screen slide deck of a board's frames |
+| `/review/:slug` | A design review, optionally password locked |
+| `/proposal/:slug` | A client proposal, with acceptance |
+| `/contract/:id` | A contract to sign |
+
+## Guides
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/guide/quickstart">
+    Sign in to the studio and find your way around the sections.
+  </Card>
+  <Card title="Photos" icon="image" href="/guide/photos">
+    Upload, categorise and edit photos in the library.
+  </Card>
+  <Card title="Site settings" icon="sliders" href="/guide/site-settings">
+    Set each site's name, colours, fonts and background.
+  </Card>
+  <Card title="Canvas" icon="diagram-project" href="/guide/canvas">
+    Wire pictures into nodes, run the graph and publish boards.
+  </Card>
+  <Card title="Proposals, contracts and invoices" icon="file-signature" href="/guide/proposals-contracts-invoices">
+    Send proposals, draft agreements and bill through Stripe.
+  </Card>
+  <Card title="Design reviews" icon="magnifying-glass" href="/guide/design-reviews">
+    Capture screens, add notes and run the UX audit.
+  </Card>
+  <Card title="Brand kits" icon="palette" href="/guide/brand-kits">
+    Keep palettes, type, logos, voice and references in one place.
+  </Card>
+  <Card title="MCP server" icon="plug" href="/guide/mcp">
+    Connect Claude to read and update proposals, invoices and brand kits.
+  </Card>
+</Columns>
+
+## For developers
+
+<Card title="Developer overview" icon="code" href="/developers/overview">
+  The stack, the repository layout, local setup, databases, deploying and the API.
+</Card>
+
+<Warning>
+Local development reads and writes the live database for the site you run. Read the developer pages before running anything destructive.
+</Warning>
