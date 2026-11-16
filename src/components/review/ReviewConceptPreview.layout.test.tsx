@@ -119,3 +119,35 @@ it("keeps a stretched card's content packed at the top", () => {
   expect(gap).toBeLessThan(16);
   host.remove();
 });
+
+it("makes a row of cards as tall as the tallest card, not the whole preview", () => {
+  const host = document.createElement("div");
+  host.style.width = "900px";
+  document.body.append(host);
+  act(() =>
+    createRoot(host).render(
+      <ReviewConceptPreview
+        concept={{
+          ...createConcept(),
+          direction: "row",
+          elements: ["Total Projects", "In Progress"].map((label) => ({
+            ...createConceptElement("card"),
+            text: `2\n${label}`,
+          })),
+        }}
+      />
+    )
+  );
+  const preview = host.querySelector(
+    ".review-page__concept-preview"
+  ) as HTMLElement;
+  preview.style.minHeight = "600px";
+  const card = host.querySelector("article") as HTMLElement;
+  // Fits its content (well under the preview's 600px), and both match.
+  expect(card.getBoundingClientRect().height).toBeLessThan(200);
+  const [a, b] = [...host.querySelectorAll("article")].map(
+    (el) => el.getBoundingClientRect().height
+  );
+  expect(a).toBe(b);
+  host.remove();
+});

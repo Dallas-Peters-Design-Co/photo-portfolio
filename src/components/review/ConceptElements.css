@@ -80,6 +80,9 @@
    everything into it. */
 [data-direction="row"] {
   flex-wrap: wrap;
+  /* Lines pack at the top: a line is as tall as its tallest element, not
+     stretched to fill the container's minimum height. */
+  align-content: flex-start;
 }
 
 /* Side by side, cards share the row at a readable width (wrapping to a
