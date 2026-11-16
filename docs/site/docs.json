@@ -41,17 +41,11 @@
         "pages": [
           {
             "group": "Get started",
-            "pages": [
-              "index",
-              "guide/quickstart"
-            ]
+            "pages": ["index", "guide/quickstart"]
           },
           {
             "group": "Sites and photos",
-            "pages": [
-              "guide/photos",
-              "guide/site-settings"
-            ]
+            "pages": ["guide/photos", "guide/site-settings"]
           },
           {
             "group": "Studio",
@@ -70,11 +64,7 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": [
-              "developers/overview",
-              "developers/local-setup",
-              "developers/api"
-            ]
+            "pages": ["developers/overview", "developers/local-setup"]
           },
           {
             "group": "Operations",
@@ -83,6 +73,22 @@
               "developers/deploying",
               "developers/testing"
             ]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["developers/api"]
+          },
+          {
+            "group": "Endpoints",
+            "openapi": {
+              "source": "https://raw.githubusercontent.com/Dallas-Peters-Design-Co/photo-portfolio/main/openapi.json",
+              "directory": "api-reference"
+            }
           }
         ]
       }
