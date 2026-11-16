@@ -83,6 +83,7 @@ export function ConceptPanelPreview({
       aria-label={element.text || "Panel"}
       className="concept-panel"
       data-closing={state === "closing" || undefined}
+      data-has-hide={hide.length > 0 || undefined}
       data-slide={element.slideFrom}
       onAnimationEnd={() => {
         if (state === "closing") {

@@ -94,6 +94,23 @@ export const progressLook = (
  * the title, a progress bar and a checkbox in the body, an action below.
  * The slots carry the spacing, so the panel itself has no padding.
  */
+/** A panel's close control: an ✕ for its hide slot, in the panel's ink. */
+export const closeIcon = (
+  make: (
+    kind: ReviewConceptElementKind,
+    brandDoc?: BrandKitDoc | null
+  ) => ReviewConceptElement,
+  brandDoc?: BrandKitDoc | null
+): ReviewConceptElement => ({
+  ...make("icon", brandDoc),
+  background: "transparent",
+  iconName: "Cancel01Icon",
+  iconSize: 18,
+  paddingX: 4,
+  paddingY: 4,
+  text: "Close",
+});
+
 export const panelLook = (
   brandDoc: BrandKitDoc | null | undefined,
   /** createConceptElement, passed in: it calls this. */
@@ -140,6 +157,8 @@ export const panelLook = (
         paddingX: 16,
         paddingY: 12,
       },
+      // Its ✕, in the top-right corner: a click slides the panel away.
+      hide: { elements: [closeIcon(make, brandDoc)] },
     },
   };
 };

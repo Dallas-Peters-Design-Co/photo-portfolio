@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   type ConceptSlot,
   type ConceptSlotAlign,
@@ -12,7 +13,9 @@ import {
   SLOT_NAMES,
   type SlideSide,
 } from "../../../config/conceptSlots.js";
+import { closeIcon } from "../../../config/conceptStarters.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import {
   ConceptField,
@@ -142,6 +145,18 @@ export function SlotFields({
           value={slot.paddingY ?? SLOT_DEFAULTS.paddingY}
         />
       </ConceptGroup>
+      {name === "hide" && slot.elements.length === 0 ? (
+        <Button
+          onClick={() =>
+            set({ elements: [closeIcon(createConceptElement, brandDoc)] })
+          }
+          size="xs"
+          type="button"
+          variant="outline"
+        >
+          Add ✕ close button
+        </Button>
+      ) : null}
       <ConceptElementList
         brandDoc={brandDoc}
         depth={depth + 1}

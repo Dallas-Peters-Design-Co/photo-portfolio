@@ -269,3 +269,9 @@
     animation: none;
   }
 }
+
+/* Room at the header's end for the hide slot's ✕, so it covers nothing.
+   !important: the slot's own padding is set inline. */
+.concept-panel[data-has-hide] .concept-slot[data-slot="header"] {
+  padding-right: 48px !important;
+}
