@@ -2,8 +2,8 @@
   "theme": "mint",
   "name": "Photo portfolio and studio",
   "colors": {
-    "primary": "#041045",
-    "light": "#8EA2E8",
+    "primary": "#0730E9",
+    "light": "#A7B8F4",
     "dark": "#041045"
   },
   "favicon": "/favicon.svg",
@@ -93,5 +93,11 @@
         ]
       }
     ]
+  },
+  "background": {
+    "color": {
+      "light": "#F7F6ED",
+      "dark": "#232321"
+    }
   }
 }
