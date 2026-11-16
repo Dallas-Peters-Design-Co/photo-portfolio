@@ -131,3 +131,26 @@ describe("review sections", () => {
     expect(doc.sections[1]).toMatchObject({ body: "", title: "" });
   });
 });
+
+describe("concepts across a review", () => {
+  it("keeps far more than eight, up to the review's limit", () => {
+    const pins = Array.from({ length: 12 }, (_, n) => ({
+      body: "",
+      concepts: Array.from({ length: 5 }, () => ({ elements: [] })),
+      id: `p${n}`,
+      kind: "recommendation",
+      title: `Note ${n + 1}`,
+      x: 0.5,
+      y: 0.5,
+    }));
+    const doc = sanitizeReviewDoc({ screens: [screen({ pins })] });
+    const kept = doc.screens[0]?.pins.reduce(
+      (total, pin) => total + (pin.concepts?.length ?? 0),
+      0
+    );
+    // 60 sent: the first 48 are kept, in order.
+    expect(kept).toBe(48);
+    expect(doc.screens[0]?.pins[8]?.concepts).toHaveLength(5);
+    expect(doc.screens[0]?.pins[9]?.concepts).toHaveLength(3);
+  });
+});

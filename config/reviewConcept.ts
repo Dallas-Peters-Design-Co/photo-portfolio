@@ -21,7 +21,12 @@ import { bounded, cleanColor, str } from "./conceptValues.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
 
-export const MAX_REVIEW_CONCEPTS = 8;
+/**
+ * Concepts in one whole review, across every note. 8 was too few: a review
+ * with one sketch per recommendation reached it and the Add button went grey.
+ * A concept is a few KB, so 48 keeps a full review well inside a request.
+ */
+export const MAX_REVIEW_CONCEPTS = 48;
 
 /** A concept's `align` as the CSS `align-items` value it draws with. */
 export const ALIGN_ITEMS = {

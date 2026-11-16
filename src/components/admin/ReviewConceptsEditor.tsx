@@ -234,6 +234,13 @@ export function ReviewConceptsEditor({
           <Plus size={14} /> Add concept
         </Button>
       </div>
+      {concepts.length >= maxConcepts ? (
+        // Said, not left to a grey button.
+        <p className="review-concepts-editor__empty" role="status">
+          This review holds the most concepts it can ({MAX_REVIEW_CONCEPTS}).
+          Remove one here or on another note to add another.
+        </p>
+      ) : null}
       {concepts.length === 0 ? (
         <p className="review-concepts-editor__empty">
           No concepts yet. Add one to sketch a component, call to action, or
