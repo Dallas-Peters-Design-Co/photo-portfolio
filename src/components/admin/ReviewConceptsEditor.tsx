@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import { conceptFontStack } from "../../../config/conceptFont.js";
 import {
   type ConceptStyle,
   linkStyle,
@@ -29,7 +30,7 @@ import {
   NumberField,
   optionsOf,
 } from "./ConceptControls";
-import { ConceptFontField, conceptFontCss } from "./ConceptFontField";
+import { ConceptFontField } from "./ConceptFontField";
 import {
   addConceptElement,
   ConceptColorField,
@@ -136,7 +137,7 @@ function ConceptCard({
     color: concept.color,
     display: "flex",
     flexDirection: concept.direction,
-    fontFamily: conceptFontCss(
+    fontFamily: conceptFontStack(
       concept.fontFamily,
       concept.fontRef,
       concept.fontId
@@ -174,7 +175,7 @@ function ConceptCard({
         <div className="review-concepts__preview-wrap">
           <p>Live preview</p>
           <div
-            className="review-concepts__preview"
+            className="review-concepts__preview concept-canvas"
             data-direction={concept.direction}
             style={previewStyle}
           >

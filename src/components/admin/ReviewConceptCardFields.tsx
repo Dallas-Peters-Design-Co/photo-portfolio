@@ -40,10 +40,13 @@ const CUSTOM = "custom";
 export function ElementIconGroup({
   brandDoc,
   element,
+  lookOnly = false,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
+  /** A kit style: its icon's size and colour are set even without an icon. */
+  lookOnly?: boolean;
   onChange: (patch: Patch) => void;
 }) {
   const kind = element.kind[0]?.toUpperCase() + element.kind.slice(1);
@@ -64,7 +67,7 @@ export function ElementIconGroup({
           value={conceptIconName(element.iconName)}
         />
       </ConceptField>
-      {element.iconName ? (
+      {element.iconName || lookOnly ? (
         <>
           <NumberField
             label="Icon size"

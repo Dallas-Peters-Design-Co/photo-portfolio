@@ -16,7 +16,7 @@ function GuideComponent({
   return (
     <article className="guide-component">
       <h3 className="guide-subhead">{styleTitle(style)}</h3>
-      <div className="guide-component__sample">
+      <div className="guide-component__sample concept-canvas">
         <ReviewConceptElementView element={styleSample(style, doc)} />
       </div>
       <dl className="guide-component__facts">

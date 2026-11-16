@@ -1,19 +1,18 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ChevronDown } from "lucide-react";
 import type { CSSProperties } from "react";
+import { conceptFontStack } from "../../../config/conceptFont.js";
 import {
   type ConceptIconSvg,
   conceptIconName,
 } from "../../../config/conceptIcon.js";
 import { shadowCss, shadowOf } from "../../../config/conceptShadow.js";
-import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
 import {
   iconSizeOf,
   type ReviewConceptElement,
   splitCardText,
   takesBox,
 } from "../../../config/reviewConcept.js";
-import { findFont } from "../../../config/theme.js";
 import { iconFrom, useIconMap } from "../../cms/useIconMap";
 import {
   DropdownMenu,
@@ -29,30 +28,12 @@ import {
   SelectValue,
 } from "../ui/select";
 import { ConceptHover } from "./ConceptHover";
+import "./ConceptElements.css";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
 
 const ICON_SUFFIX = /Icon$/;
-
-const familyCss = (element: ReviewConceptElement): string => {
-  if (element.fontFamily === "app" && element.fontId) {
-    return (
-      findFont(element.fontId)?.stack ?? "var(--font-sans, Arial, sans-serif)"
-    );
-  }
-  const ref = element.fontRef ? parseFontRef(element.fontRef) : null;
-  if (element.fontFamily === "brand" && ref) {
-    return fontRefStack(ref);
-  }
-  if (element.fontFamily === "serif") {
-    return "Georgia, serif";
-  }
-  if (element.fontFamily === "mono") {
-    return "ui-monospace, SFMono-Regular, Menlo, monospace";
-  }
-  return "var(--font-sans, Arial, sans-serif)";
-};
 
 /**
  * One icon from the site's Hugeicons set. The map loads in its own chunk, so
@@ -278,7 +259,11 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
     borderRadius: element.radius,
     boxSizing: "border-box",
     color: element.color,
-    fontFamily: familyCss(element),
+    fontFamily: conceptFontStack(
+      element.fontFamily,
+      element.fontRef,
+      element.fontId
+    ),
     fontSize: element.fontSize,
     fontWeight: element.fontWeight,
     lineHeight: element.lineHeight,

@@ -1,12 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
-import {
-  fontRefId,
-  fontRefStack,
-  parseFontRef,
-} from "../../../config/fontRef.js";
-import { FONT_CHOICES, type FontId, findFont } from "../../../config/theme.js";
+import { fontRefId, parseFontRef } from "../../../config/fontRef.js";
+import { FONT_CHOICES, type FontId } from "../../../config/theme.js";
 import { brandKitsApi } from "../../services/brandKitService";
 import { loadFont } from "../../theme/fonts";
 import {
@@ -266,24 +262,3 @@ export function ConceptFontField({
     </div>
   );
 }
-
-export const conceptFontCss = (
-  family: string,
-  fontRef?: string,
-  fontId?: string
-): string => {
-  if (family === "app" && fontId) {
-    return findFont(fontId)?.stack ?? "var(--font-sans, Arial, sans-serif)";
-  }
-  if (family === "brand" && fontRef) {
-    const ref = parseFontRef(fontRef);
-    return ref ? fontRefStack(ref) : "var(--font-sans, Arial, sans-serif)";
-  }
-  if (family === "serif") {
-    return "Georgia, serif";
-  }
-  if (family === "mono") {
-    return "ui-monospace, SFMono-Regular, Menlo, monospace";
-  }
-  return "var(--font-sans, Arial, sans-serif)";
-};

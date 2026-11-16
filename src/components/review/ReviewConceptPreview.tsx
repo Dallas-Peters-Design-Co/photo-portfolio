@@ -1,32 +1,15 @@
 import type { CSSProperties } from "react";
 import { useEffect } from "react";
-import { fontRefStack, parseFontRef } from "../../../config/fontRef.js";
+import { conceptFontStack } from "../../../config/conceptFont.js";
 import {
   ALIGN_ITEMS,
   type ReviewConcept,
 } from "../../../config/reviewConcept.js";
-import { type FontId, findFont } from "../../../config/theme.js";
+import type { FontId } from "../../../config/theme.js";
 import { loadFont } from "../../theme/fonts";
 import { loadFontRef } from "../../theme/remoteFonts";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import "./ReviewConceptPreview.css";
-
-const CONCEPT_FONTS: Partial<Record<ReviewConcept["fontFamily"], string>> = {
-  mono: "ui-monospace, SFMono-Regular, Menlo, monospace",
-  sans: "var(--font-sans, Arial, sans-serif)",
-  serif: "Georgia, serif",
-};
-
-const familyCss = (family: string, fontRef?: string): string => {
-  const ref = fontRef ? parseFontRef(fontRef) : null;
-  if (family === "brand" && ref) {
-    return fontRefStack(ref);
-  }
-  return (
-    CONCEPT_FONTS[family as keyof typeof CONCEPT_FONTS] ??
-    "var(--font-sans, Arial, sans-serif)"
-  );
-};
 
 export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
   useEffect(() => {
@@ -53,11 +36,11 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     color: concept.color,
     display: "flex",
     flexDirection: concept.direction,
-    fontFamily:
-      concept.fontFamily === "app" && concept.fontId
-        ? (findFont(concept.fontId)?.stack ??
-          "var(--font-sans, Arial, sans-serif)")
-        : familyCss(concept.fontFamily, concept.fontRef),
+    fontFamily: conceptFontStack(
+      concept.fontFamily,
+      concept.fontRef,
+      concept.fontId
+    ),
     gap: concept.gap,
     padding: concept.padding,
   };
@@ -70,7 +53,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
       </h4>
       <div
         aria-label={`${concept.title || "Interface concept"} preview`}
-        className="review-page__concept-preview"
+        className="review-page__concept-preview concept-canvas"
         data-direction={concept.direction}
         role="img"
         style={style}

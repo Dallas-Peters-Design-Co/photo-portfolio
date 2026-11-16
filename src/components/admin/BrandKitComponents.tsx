@@ -68,7 +68,7 @@ function StyleEditor({
       </header>
       {open ? (
         <div className="brand-kit-components__body" id={bodyId}>
-          <div className="brand-kit-components__sample">
+          <div className="brand-kit-components__sample concept-canvas">
             <ReviewConceptElementView element={sample} />
           </div>
           <ReviewConceptElementFields

@@ -11,7 +11,6 @@ import {
   type ReviewConcept,
   type ReviewConceptElement,
   type ReviewConceptElementKind,
-  takesIcon,
 } from "../../../config/reviewConcept.js";
 import { ColorWell } from "../../boards/ColorWell";
 import { ConceptSelect } from "./ConceptControls";
@@ -400,17 +399,14 @@ export const duplicateConceptElement = (
 
 /**
  * What a style is drawn on: its kind's sample content, in the style's look.
- * A stand-in icon on kinds that take one, so the icon size and colour show.
+ * Exactly as a concept linked to it draws — no stand-in content of its own,
+ * so the kit, the guide and every review show the same thing.
  */
 export const styleSample = (
   style: ConceptStyle,
   brand: BrandKitDoc
 ): ReviewConceptElement =>
   linkStyle(
-    {
-      ...createConceptElement(style.kind, brand),
-      id: style.id,
-      ...(takesIcon(style.kind) ? { iconName: "StarIcon" } : {}),
-    },
+    { ...createConceptElement(style.kind, brand), id: style.id },
     style
   );

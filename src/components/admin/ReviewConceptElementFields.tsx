@@ -226,6 +226,7 @@ function KindGroups({
         <ElementIconGroup
           brandDoc={brandDoc}
           element={element}
+          lookOnly={lookOnly}
           onChange={onChange}
         />
       ) : null}

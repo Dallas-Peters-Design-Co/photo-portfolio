@@ -1,0 +1,83 @@
+/*
+ * Every place a concept is drawn — the editor's preview, the review page,
+ * the brand kit's samples, the brand guide — starts from the same neutral
+ * type, so nothing the page around it sets (its tracking, capitals, line
+ * height, alignment) leaks into the elements and makes one place differ.
+ */
+.concept-canvas {
+  font-style: normal;
+  line-height: normal;
+  text-align: start;
+  text-transform: none;
+  word-spacing: normal;
+  letter-spacing: normal;
+}
+
+/*
+ * The look of the element kinds drawn by plain markup (checkbox, card,
+ * dialog, skeleton), in one place for every place a concept is shown: the
+ * brand kit's samples, the editor's preview and the review page. Loaded by
+ * the renderer itself, as tabs, toasts, tables and hover are, so there is no
+ * second copy to drift.
+ */
+.review-concepts__checkbox-preview {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.review-concepts__card-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  width: 100%;
+  min-width: 0;
+  /* Fallbacks for cards saved before these were settings. */
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.review-concepts__card-preview p {
+  margin: 0;
+  white-space: pre-line;
+  opacity: 0.8;
+}
+
+.review-concepts__dialog-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  width: min(100%, 24rem);
+  box-shadow: 0 12px 32px color-mix(in srgb, #000 20%, transparent);
+}
+
+.review-concepts__dialog-preview p {
+  margin: 0;
+}
+
+.review-concepts__dialog-preview > div {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  justify-content: end;
+}
+
+.review-concepts__skeleton-preview {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  width: min(100%, 24rem);
+}
+
+.review-concepts__skeleton-preview span {
+  height: calc(var(--spacing) * 4);
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.review-concepts__skeleton-preview span:first-child {
+  width: 58%;
+}
+
+/* Side by side, cards share the row instead of each claiming all of it,
+   which pushed the last one past the edge. Stacked, they stay full width.
+   Any concept container marks its direction (data-direction). */
+[data-direction="row"] > .review-concepts__card-preview,
+[data-direction="row"] > .concept-hover > .review-concepts__card-preview {
+  flex: 1 1 0;
+  width: auto;
+}
