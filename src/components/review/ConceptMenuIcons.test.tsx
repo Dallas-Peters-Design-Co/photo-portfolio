@@ -260,6 +260,27 @@ it("puts each tab's padding in the Tabs group, beside the row's", () => {
   expect(patches.at(-1)).toEqual({ paddingX: 18 });
 });
 
+it("takes a tab's line height in pixels as well as a multiple", async () => {
+  const patches: Partial<ReviewConceptElement>[] = [];
+  act(() =>
+    root.render(
+      <ReviewConceptElementFields
+        element={{ ...createConceptElement("tabs"), fontSize: 14 }}
+        onChange={(patch) => patches.push(patch)}
+      />
+    )
+  );
+  const field = host.querySelector<HTMLInputElement>(
+    'input[aria-label="Line height"]'
+  ) as HTMLInputElement;
+  await userEvent.clear(field);
+  await userEvent.type(field, "21{Enter}");
+  expect(patches.at(-1)).toEqual({ lineHeight: 1.5 });
+  await userEvent.clear(field);
+  await userEvent.type(field, "1.15{Enter}");
+  expect(patches.at(-1)).toEqual({ lineHeight: 1.15 });
+});
+
 it("draws a card's title in its own weight, bolder than the body without one", () => {
   const card: ReviewConceptElement = {
     ...createConceptElement("card"),

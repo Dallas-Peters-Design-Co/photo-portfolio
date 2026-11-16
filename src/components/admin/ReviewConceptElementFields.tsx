@@ -22,7 +22,7 @@ import { ConceptFontField } from "./ConceptFontField";
 import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields } from "./ConceptSlotFields";
 import { ConceptTableFields } from "./ConceptTableFields";
-import { CardTypeFields, WEIGHTS } from "./ConceptTypeFields";
+import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import {
   CheckboxGroup,
@@ -439,13 +439,7 @@ export function ReviewConceptElementFields({
                 value={String(element.fontWeight)}
               />
             </ConceptField>
-            <NumberField
-              label="Line height"
-              max={2.4}
-              onChange={(lineHeight) => onChange({ lineHeight })}
-              step={0.05}
-              value={element.lineHeight}
-            />
+            <LineHeightField element={element} onChange={onChange} />
           </ConceptGroup>
           <BoxGroup element={element} onChange={onChange} />
           {takesBox(element.kind) ? (

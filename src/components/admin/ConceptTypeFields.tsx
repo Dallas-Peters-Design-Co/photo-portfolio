@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { lineHeightFrom } from "../../../config/conceptValues.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import { Input } from "../ui/input";
 import {
   ConceptField,
   ConceptSelect,
@@ -46,5 +49,47 @@ export function CardTypeFields({
         />
       </ConceptField>
     </>
+  );
+}
+
+/**
+ * Line height, as a multiple (1.4) or in pixels (24). Pixels are turned
+ * into the multiple when the field is left or Enter is pressed, so typing
+ * "24" is not cut to 2.4 on the way.
+ */
+export function LineHeightField({
+  element,
+  onChange,
+}: {
+  element: ReviewConceptElement;
+  onChange: (patch: Partial<ReviewConceptElement>) => void;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = () => {
+    const typed = Number(draft);
+    if (draft !== null && draft !== "" && Number.isFinite(typed)) {
+      onChange({ lineHeight: lineHeightFrom(typed, element.fontSize) });
+    }
+    setDraft(null);
+  };
+  return (
+    <ConceptField label="Line height">
+      <Input
+        aria-label="Line height"
+        face="numeric"
+        inputMode="decimal"
+        onBlur={commit}
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            commit();
+          }
+        }}
+        size="sm"
+        title="A multiple of the type size (1.4), or pixels (24)"
+        type="text"
+        value={draft ?? String(element.lineHeight)}
+      />
+    </ConceptField>
   );
 }
