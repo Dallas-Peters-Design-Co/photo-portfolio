@@ -1,8 +1,8 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
+import { createConceptElement } from "../../config/conceptDefaults.js";
 import type { ReviewConceptElement } from "../../config/reviewConcept.js";
-import { createConceptElement } from "../components/admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../components/admin/ReviewConceptElementFields";
 import { rememberedOpen, rememberOpen } from "./useRememberedOpen";
 

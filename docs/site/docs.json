@@ -91,6 +91,19 @@
             }
           }
         ]
+      },
+      {
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["components/index"]
+          },
+          {
+            "group": "Brands",
+            "pages": ["components/pretext"]
+          }
+        ],
+        "tab": "Components"
       }
     ]
   },

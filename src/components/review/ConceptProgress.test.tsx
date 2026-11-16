@@ -1,13 +1,13 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   addColumn,
   setCell,
   setColumnKind,
 } from "../../../config/conceptTable.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
-import { createConceptElement } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
 (

@@ -35,6 +35,7 @@
     "dev:cyan": "cross-env VITE_SITE=cyan node scripts/dev-stack.mjs",
     "dev:dallas-images": "cross-env VITE_SITE=dallas-images node scripts/dev-stack.mjs",
     "dev:vercel": "cross-env VITE_SITE=dallas-images node scripts/dev-stack.mjs --vercel",
+    "docs:components": "node scripts/docs-components.mjs",
     "electron:build": "electron-builder --mac",
     "electron:dev": "electron .",
     "electron:dev-temp": "ELECTRON_ORIGIN=https://dallas-images-git-cover-node-dallaspeters.vercel.app electron .",

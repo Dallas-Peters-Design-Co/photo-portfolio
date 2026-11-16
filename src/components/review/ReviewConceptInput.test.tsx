@@ -2,7 +2,7 @@ import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
-import { createConceptElement } from "../admin/ReviewConceptBrand";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
 (

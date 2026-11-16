@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import {
   createConcept,
   createConceptElement,
-} from "../admin/ReviewConceptBrand";
+} from "../../../config/conceptDefaults.js";
 import { ReviewConceptPreview } from "./ReviewConceptPreview";
 
 (

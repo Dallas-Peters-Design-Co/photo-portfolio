@@ -3,9 +3,9 @@ import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
+import { createConcept } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import type { ReviewConcept } from "../../../config/reviewConcept.js";
-import { createConcept } from "./ReviewConceptBrand";
 import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
 
 (

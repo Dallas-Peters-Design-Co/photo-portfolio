@@ -26,6 +26,17 @@ describe("componentSource", () => {
     expect(source.tsx).toContain("<button className=");
     expect(source.tsx).toContain('type="button"');
     expect(source.tsx).toContain('children = "Save"');
+    expect(source.preview).toBe(
+      '<button className="button-primary" type="button">\n  Save\n</button>'
+    );
+  });
+
+  it("keeps braces in sample text from being read as code in a preview", () => {
+    const source = componentSource(
+      element({ kind: "badge", text: "{new}" }),
+      "Info"
+    );
+    expect(source.preview).toContain('{"{"}new{"}"}');
   });
 
   it("does not repeat the kind when the style's name already starts with it", () => {

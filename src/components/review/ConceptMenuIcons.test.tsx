@@ -3,12 +3,12 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   cleanConcept,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
-import { createConceptElement } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 

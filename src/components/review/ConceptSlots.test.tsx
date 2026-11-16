@@ -1,11 +1,11 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   cleanConcept,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
-import { createConceptElement } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import { ReviewConceptPreview } from "./ReviewConceptPreview";

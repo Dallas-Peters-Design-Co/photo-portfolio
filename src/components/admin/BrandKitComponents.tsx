@@ -7,6 +7,10 @@ import {
   componentSourceText,
 } from "../../../config/componentSource.js";
 import {
+  createConceptElement,
+  styleSample,
+} from "../../../config/conceptDefaults.js";
+import {
   type ConceptStyle,
   lookOf,
   MAX_CONCEPT_STYLES,
@@ -18,7 +22,6 @@ import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
-import { createConceptElement, styleSample } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import "./ReviewConceptsEditor.css";
 

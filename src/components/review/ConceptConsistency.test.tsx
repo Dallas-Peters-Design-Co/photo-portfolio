@@ -6,17 +6,17 @@ import "../../pages/ReviewPage.css";
 import "../admin/ReviewConceptsEditor.css";
 import "../brandGuide/BrandGuide.css";
 import { type BrandKitDoc, EMPTY_KIT } from "../../../config/brandKit.js";
+import {
+  createConcept,
+  createConceptElement,
+  styleSample,
+} from "../../../config/conceptDefaults.js";
 import { SHADOW_PRESETS } from "../../../config/conceptShadow.js";
 import {
   applyConceptStyles,
   type ConceptStyle,
   linkStyle,
 } from "../../../config/conceptStyle.js";
-import {
-  createConcept,
-  createConceptElement,
-  styleSample,
-} from "../admin/ReviewConceptBrand";
 import { ReviewConceptsEditor } from "../admin/ReviewConceptsEditor";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import { ReviewConceptPreview } from "./ReviewConceptPreview";

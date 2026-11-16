@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { CSSProperties } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import { createConcept } from "../../../config/conceptDefaults.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { styleElement } from "../../../config/conceptStyle.js";
 import type {
@@ -24,7 +25,7 @@ import {
 } from "./ConceptControls";
 import { ConceptElementList } from "./ConceptElementList";
 import { ConceptFontField } from "./ConceptFontField";
-import { ConceptColorField, createConcept } from "./ReviewConceptBrand";
+import { ConceptColorField } from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
 const DIRECTIONS = optionsOf([

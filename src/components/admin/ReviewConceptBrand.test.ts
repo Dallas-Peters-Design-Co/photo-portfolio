@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   addConceptElement,
-  createConceptElement,
   duplicateConceptElement,
 } from "./ReviewConceptBrand";
 

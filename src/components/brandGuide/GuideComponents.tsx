@@ -1,7 +1,7 @@
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import { styleSample } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { styleFacts, styleTitle } from "../../../config/conceptStyleFacts.js";
-import { styleSample } from "../admin/ReviewConceptBrand";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import "../admin/ReviewConceptsEditor.css";
 

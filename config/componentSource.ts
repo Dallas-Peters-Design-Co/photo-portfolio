@@ -1,9 +1,10 @@
 import { conceptFontStack } from "./conceptFont.js";
 import { shadowCss } from "./conceptShadow.js";
 import { DEFAULT_BORDERS, tableOf } from "./conceptTable.js";
-import type {
-  ReviewConceptElement,
-  ReviewConceptElementKind,
+import {
+  type ReviewConceptElement,
+  type ReviewConceptElementKind,
+  splitCardText,
 } from "./reviewConcept.js";
 
 /**
@@ -23,6 +24,12 @@ export interface ComponentSource {
   css: string;
   /** The component's name, e.g. `ButtonPrimary`. */
   name: string;
+  /**
+   * The component drawn once with its sample content, as JSX with no
+   * expressions but literals: for a page (MDX) that has the CSS but cannot
+   * import the component.
+   */
+  preview: string;
   tsx: string;
 }
 
@@ -225,6 +232,10 @@ const markupOf = (el: ReviewConceptElement): Markup => {
   }) satisfies Markup;
 };
 
+/** Text set inside JSX: braces and angle brackets would be read as code. */
+const escapeJsx = (value: string): string =>
+  value.replace(/[{}<>]/g, (c) => `{${JSON.stringify(c)}}`);
+
 /** Default text for components that take children, shown in the usage line. */
 const sampleText = (el: ReviewConceptElement): string =>
   el.text.split("\n")[0]?.trim() || "Label";
@@ -315,7 +326,18 @@ ${jsx}
   );
 }
 `;
-  return { className, css, name, tsx };
+  const { body: cardBody, title: cardTitle } = splitCardText(element.text);
+  const previewInner = inner
+    ?.replaceAll("{children}", escapeJsx(cardBody || sampleText(element)))
+    .replaceAll("{title}", escapeJsx(cardTitle || sampleText(element)));
+  const previewAttrs = [
+    `className="${className}"`,
+    ...(markup.attrs ? [markup.attrs] : []),
+  ].join(" ");
+  const preview = previewInner
+    ? `<${markup.tag} ${previewAttrs}>\n${previewInner}\n</${markup.tag}>`
+    : `<${markup.tag} ${previewAttrs} />`;
+  return { className, css, name, preview, tsx };
 };
 
 /** Both files in one paste, each under its file name. */

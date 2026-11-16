@@ -12,6 +12,7 @@ import {
   saveComponent,
 } from "../_lib/brandComponents.js";
 import { loadKit, loadKits, writeKitVersion } from "../_lib/brandKitStore.js";
+import { componentDocs } from "../_lib/componentDocs.js";
 import { handleCors } from "../_lib/cors.js";
 import { readCopyRequest, writeCopy } from "../_lib/creativeCopy.js";
 import { brandImage, readImageRequest } from "../_lib/creativeImage.js";
@@ -60,6 +61,11 @@ async function handleGet(
   req: VercelRequest,
   res: VercelResponse
 ) {
+  // The docs site's component pages: public by design (see _lib/componentDocs.ts).
+  if (req.query.docs === "components") {
+    res.setHeader("Cache-Control", "public, s-maxage=300");
+    return res.status(200).json({ kits: await componentDocs(sql) });
+  }
   if (!user) {
     return res.status(401).json({ error: "Unauthorized" });
   }

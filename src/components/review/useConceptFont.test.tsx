@@ -1,7 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it } from "vitest";
-import { createConceptElement } from "../admin/ReviewConceptBrand";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
 (

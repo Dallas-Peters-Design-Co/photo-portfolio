@@ -1,0 +1,42 @@
+name: Docs components
+
+# Rebuilds the docs site's Components tab from the brand kits, so a kit's
+# component styles show up in the docs without anyone running a script.
+# Reads the public feed on www.dallaspeters.com (/api/brand-kits?docs=components)
+# and commits only when a page changed; Mintlify deploys from that commit.
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: docs-components
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      # Plain Node and no dependencies: nothing to install.
+      - run: node scripts/docs-components.mjs
+
+      - name: Commit changed pages
+        run: |
+          git add docs/site
+          if git diff --cached --quiet; then
+            echo "No component changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: update brand kit components"
+          git push

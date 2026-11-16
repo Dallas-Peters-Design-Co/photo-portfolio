@@ -1,12 +1,9 @@
-import type { BrandKitDoc } from "../../../config/brandKit.js";
-import {
-  type ConceptTable,
-  DEFAULT_TABLE,
-} from "../../../config/conceptTable.js";
+import type { BrandKitDoc } from "./brandKit.js";
+import { type ConceptTable, DEFAULT_TABLE } from "./conceptTable.js";
 import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
-} from "../../../config/reviewConcept.js";
+} from "./reviewConcept.js";
 
 /**
  * Where new elements start: the kit's palette colour for a role, and the

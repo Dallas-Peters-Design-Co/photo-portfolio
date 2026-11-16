@@ -1,6 +1,7 @@
 import { GripVertical } from "lucide-react";
 import { type DragEvent, useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   type ConceptStyle,
   linkStyle,
@@ -14,7 +15,6 @@ import { Label } from "../ui/label";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
 import {
   addConceptElement,
-  createConceptElement,
   duplicateConceptElement,
 } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
