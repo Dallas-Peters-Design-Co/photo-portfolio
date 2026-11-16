@@ -116,7 +116,7 @@ function FalTab({
           </Button>
         </div>
       ) : null}
-      {!(error || loading) && images.length === 0 ? (
+      {!(error || loading || hasMore) && images.length === 0 ? (
         <p className="brand-images__note">
           Nothing generated on this fal account in the last 90 days.
         </p>

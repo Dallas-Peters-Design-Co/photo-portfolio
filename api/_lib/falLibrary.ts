@@ -19,6 +19,9 @@ import { hostMatches } from "./httpUrl.js";
 
 const REQUESTS_URL = "https://rest.alpha.fal.ai/requests/";
 
+/** Where a finished request's result can be read back, by app and id. */
+const QUEUE_URL = "https://queue.fal.run";
+
 /** Where fal serves generated output. Checked before any URL is fetched. */
 const MEDIA_HOSTS = ["fal.media", "fal.ai", "fal.run"];
 
@@ -131,6 +134,46 @@ const toItem = (entry: FalRequest): LibraryItem | null => {
   };
 };
 
+/**
+ * The request with its output, read from the queue when the listing left it
+ * out.
+ *
+ * The listing used to carry each request's output; it now returns
+ * `json_output: null` even for successes, which emptied the library ("nothing
+ * generated in the last 90 days" on an account busy that day). The queue
+ * still serves the result, under the app (owner/name) rather than the full
+ * endpoint path. A request it no longer keeps stays without output and is
+ * skipped, as before.
+ */
+const withOutput = async (
+  key: string,
+  entry: FalRequest
+): Promise<FalRequest> => {
+  if (entry.json_output || entry.status_code !== 200) {
+    return entry;
+  }
+  const app = entry.endpoint?.split("/").slice(0, 2);
+  if (!(app?.length === 2 && entry.request_id)) {
+    return entry;
+  }
+  try {
+    const res = await fetch(
+      `${QUEUE_URL}/${app.map(encodeURIComponent).join("/")}/requests/${encodeURIComponent(entry.request_id)}`,
+      {
+        headers: { Authorization: `Key ${key}` },
+        signal: AbortSignal.timeout(PREVIEW_TIMEOUT_MS),
+      }
+    );
+    if (!res.ok) {
+      return entry;
+    }
+    const output = (await res.json()) as FalRequest["json_output"];
+    return { ...entry, json_output: output };
+  } catch {
+    return entry;
+  }
+};
+
 /** Matches vector output by extension, ignoring any query string. */
 const SVG_URL = /\.svg(\?|$)/i;
 
@@ -207,7 +250,11 @@ export const fetchFalLibrary = async (
 
   const json = (await res.json().catch(() => ({}))) as { items?: FalRequest[] };
   const raw = Array.isArray(json.items) ? json.items : [];
-  const items = raw
+  // All at once: each is a small read, and in turn they would add up.
+  const complete = await Promise.all(
+    raw.map((entry) => withOutput(key, entry))
+  );
+  const items = complete
     .map(toItem)
     .filter((item): item is LibraryItem => item !== null);
 

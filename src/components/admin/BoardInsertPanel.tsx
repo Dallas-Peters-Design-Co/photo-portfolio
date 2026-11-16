@@ -866,7 +866,7 @@ function FalLibraryTab({ onAdd }: { onAdd: (image: ExternalImage) => void }) {
 
   return (
     <div className="space-y-2">
-      {items.length === 0 && !isLoading ? (
+      {items.length === 0 && !(isLoading || hasMore) ? (
         <p className="text-board-ink/40 text-micro-sm">
           Nothing generated on this fal account in the last 90 days.
         </p>
