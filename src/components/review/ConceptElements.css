@@ -29,6 +29,9 @@
 .review-concepts__card-preview {
   display: grid;
   gap: calc(var(--spacing) * 1.5);
+  /* Stretched to the tallest card in a row, its content stays packed at
+     the top rather than spread over the extra height. */
+  align-content: start;
   width: 100%;
   min-width: 0;
   /* Fallbacks for cards saved before these were settings. */

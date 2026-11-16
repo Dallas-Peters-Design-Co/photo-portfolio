@@ -88,3 +88,34 @@ it("wraps cards to a new line rather than squeezing them, all one height", () =>
   expect(cards[2]?.height).toBe(cards[3]?.height);
   host.remove();
 });
+
+it("keeps a stretched card's content packed at the top", () => {
+  const host = document.createElement("div");
+  host.style.width = "600px";
+  document.body.append(host);
+  act(() =>
+    createRoot(host).render(
+      <ReviewConceptPreview
+        concept={{
+          ...createConcept(),
+          direction: "row",
+          elements: [
+            { ...createConceptElement("card"), text: "2\nShort" },
+            {
+              ...createConceptElement("card"),
+              text: "2\nA much longer label that wraps over several lines here",
+            },
+          ],
+        }}
+      />
+    )
+  );
+  const short = host.querySelector("article") as HTMLElement;
+  const title = short.querySelector("strong") as HTMLElement;
+  const body = short.querySelector("p") as HTMLElement;
+  // The body sits right under the title, not pushed down the card.
+  const gap =
+    body.getBoundingClientRect().top - title.getBoundingClientRect().bottom;
+  expect(gap).toBeLessThan(16);
+  host.remove();
+});
