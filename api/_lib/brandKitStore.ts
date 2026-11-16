@@ -232,3 +232,53 @@ export const writeKitVersion = async (
   `;
   return row;
 };
+
+/** How long a version stays open to the edits that follow it. */
+export const DRAFT_WINDOW_MINUTES = 30;
+
+/**
+ * An edit from the editor, which saves itself a moment after each change.
+ *
+ * Writing a version per change would bury the history under one version per
+ * keystroke, so a change folds into the kit's current version while that
+ * version is still a working draft: the latest one, made in the last
+ * DRAFT_WINDOW_MINUTES, and not yet used. "Used" is anything that recorded
+ * this version's id — a verdict (brand_verdicts) or a board run's stamp
+ * (board_items.result / config) — because each of those claims "made against
+ * this document", and that document must not change under it. Otherwise a
+ * new version is written, as a deliberate save always was.
+ */
+export const writeKitEdit = async (
+  sql: Sql,
+  kitId: string,
+  doc: BrandKitDoc
+) => {
+  const folded = (await sql`
+    UPDATE brand_kit_versions v
+    SET doc = ${JSON.stringify(doc)}::jsonb
+    FROM brand_kits k
+    WHERE k.id = ${kitId}::uuid
+      AND v.id = k.current_version_id
+      AND v.version = (
+        SELECT MAX(version) FROM brand_kit_versions
+        WHERE brand_kit_id = ${kitId}::uuid
+      )
+      AND v.created_at > NOW() - make_interval(mins => ${DRAFT_WINDOW_MINUTES}::int)
+      AND NOT EXISTS (
+        SELECT 1 FROM brand_verdicts b WHERE b.brand_kit_version_id = v.id
+      )
+      AND NOT EXISTS (
+        SELECT 1 FROM board_items i
+        WHERE position(
+          v.id::text IN coalesce(i.result::text, '') || coalesce(i.config::text, '')
+        ) > 0
+      )
+    RETURNING v.id, v.version
+  `) as { id: string; version: number }[];
+  const [row] = folded;
+  if (!row) {
+    return writeKitVersion(sql, kitId, doc);
+  }
+  await sql`UPDATE brand_kits SET updated_at = NOW() WHERE id = ${kitId}`;
+  return row;
+};

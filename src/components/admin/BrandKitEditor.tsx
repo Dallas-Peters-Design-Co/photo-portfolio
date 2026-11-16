@@ -1,7 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import { type ReactNode, useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   inheritedParts,
@@ -12,7 +11,7 @@ import {
   sanitizeKitDoc,
 } from "../../../config/brandKit.js";
 import { useProofBoard } from "../../boards/brand/useProofBoard";
-import { type BrandKit, brandKitsApi } from "../../services/brandKitService";
+import type { BrandKit } from "../../services/brandKitService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { BrandKitComponents } from "./BrandKitComponents";
@@ -28,6 +27,7 @@ import { BrandSources } from "./BrandKitWebsites";
 import { useConfirm } from "./ConfirmProvider";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
 import { EditorShell, PanelGroup } from "./EditorShell";
+import { type KitSaveState, useKitAutosave } from "./useKitAutosave";
 import "../../styles/primitives.css";
 import "../../styles/adminChrome.css";
 import { TypefaceEditor } from "./BrandFontsEditor";
@@ -43,18 +43,23 @@ import "./BrandKitsPanel.css";
  * Its limits were chosen so that every part can be shown at once; this is the
  * screen that was assumed.
  *
- * Editing is local until Save. Every save writes a *version*, so autosaving a
- * keystroke would mint a version per character and make the history useless for
- * the one question it exists to answer.
+ * It saves itself a moment after each change, and on the way out; there is
+ * no Save button (useKitAutosave). Once, every save wrote a version, so
+ * saving per keystroke would have made the history useless — the server now
+ * folds the editor's saves into the kit's working version while nothing has
+ * been made against it (writeKitEdit), and starts a new one after that.
  *
- * That rule is right, and on its own it lost a kit. Local-until-Save means the
- * editor holds the only copy of everything typed into it, and leaving discarded
- * that copy without a word — a whole brand built up, a click on "Back to kits",
- * and a card still reading "0 colours". So every way out of a dirty editor is
- * now guarded: the button asks, and the browser asks on unload. The dirty state
- * is also said out loud rather than left implied by an enabled button, because
- * "there is unsaved work here" is exactly what nobody could see.
+ * Before this, local-until-Save lost a kit: a whole brand built up, a click
+ * on "Back to kits", and a card still reading "0 colours". Saving on its own
+ * closes that, and the browser still asks on unload while a save is pending.
  */
+
+const SAVE_LABELS: Record<KitSaveState, string> = {
+  failed: "Not saved",
+  saved: "Saved",
+  saving: "Saving…",
+  unsaved: "Saving soon",
+};
 
 /** The editor's blocks, for Collapse all. */
 const BLOCK_IDS = [
@@ -86,29 +91,15 @@ export function KitEditor({
   const { proofHandlerFor } = useProofBoard();
   const [doc, setDoc] = useState<BrandKitDoc>(kit.doc);
   const [name, setName] = useState(kit.name);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // A different kit in the same slot is a different document.
-  useEffect(() => {
-    setDoc(kit.doc);
-    setName(kit.name);
-  }, [kit.doc, kit.name]);
-
-  const isDirty =
-    JSON.stringify(sanitizeKitDoc(doc)) !== JSON.stringify(kit.doc) ||
-    name.trim() !== kit.name;
+  const { flush, state } = useKitAutosave({ doc, kit, name, onSaved });
+  const pending = state !== "saved";
 
   /*
-   * The browser's own guard, for the exits this component cannot see.
-   *
-   * Closing the tab, reloading, and following one of the admin's nav links all
-   * unmount the editor without going through its own button. The router here is
-   * a plain <Routes> with no navigation blocker to hook, so this is the only
-   * thing that covers a reload or a close — and it is the case that matters
-   * most, because there is nothing to come back to.
+   * The browser's own guard, for the exits this component cannot see: a
+   * reload or a closed tab while a save is still pending or has failed.
    */
   useEffect(() => {
-    if (!isDirty) {
+    if (!pending) {
       return;
     }
     const warn = (event: BeforeUnloadEvent) => {
@@ -120,40 +111,26 @@ export function KitEditor({
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
-  }, [isDirty]);
+  }, [pending]);
 
-  /** Leaving, having asked first if there is anything to lose. */
+  /** Leaving: the last change saved first, and asked about only if it failed. */
   const close = async () => {
     if (
-      isDirty &&
-      !(await confirm({
-        cancelLabel: "Keep editing",
-        confirmLabel: "Discard changes",
-        description:
-          "This kit has edits that have not been saved as a version. Leaving now throws them away.",
-        destructive: true,
-        title: "Discard unsaved changes?",
-      }))
+      !(
+        (await flush()) ||
+        (await confirm({
+          cancelLabel: "Keep editing",
+          confirmLabel: "Leave anyway",
+          description:
+            "The last changes to this kit could not be saved. Leaving now throws them away.",
+          destructive: true,
+          title: "Changes not saved",
+        }))
+      )
     ) {
       return;
     }
     onClose();
-  };
-
-  const save = async () => {
-    setIsSaving(true);
-    try {
-      if (name.trim() && name.trim() !== kit.name) {
-        await brandKitsApi.rename(kit.id, name.trim());
-      }
-      await brandKitsApi.save(kit.id, sanitizeKitDoc(doc));
-      toast.success("Kit saved");
-      onSaved();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Could not save the kit");
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   /* What the kit means as edited: the parent's parts still showing through
@@ -192,27 +169,28 @@ export function KitEditor({
             {name.trim() || kit.name}
           </h2>
 
-          <PanelGroup title="Save">
-            {/* Said, not implied. An enabled Save button was the only sign
-                that this screen held the sole copy of the work — see the note
-                at the top of the file. */}
+          <PanelGroup title="Version">
+            {/* Said, not implied: whether what is on screen is saved yet. */}
             <p className="brand-kit__version">
               {kit.version === null
                 ? "No version yet"
                 : `v${kit.version} of ${kit.versionCount}`}
-              {isDirty ? (
-                <span className="brand-kit__unsaved"> · Unsaved changes</span>
-              ) : null}
-            </p>
-            <div className="editor-shell__buttons">
-              <Button
-                disabled={!isDirty || isSaving}
-                onClick={() => void save()}
-                type="button"
+              <span
+                className="brand-kit__unsaved"
+                data-state={state}
+                role="status"
               >
-                {isSaving ? "Saving…" : "Save a new version"}
-              </Button>
-            </div>
+                {" · "}
+                {SAVE_LABELS[state]}
+              </span>
+            </p>
+            {state === "failed" ? (
+              <div className="editor-shell__buttons">
+                <Button onClick={() => void flush()} type="button">
+                  Try saving again
+                </Button>
+              </div>
+            ) : null}
           </PanelGroup>
 
           <PanelGroup title="Settings">

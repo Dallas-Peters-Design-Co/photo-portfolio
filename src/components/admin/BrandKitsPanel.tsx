@@ -104,6 +104,9 @@ export function BrandKitsPanel() {
   if (open) {
     return (
       <KitEditor
+        // One editor per kit: a different kit is a different document, and
+        // the kit's own refresh after each autosave must not reset the edit.
+        key={open.id}
         kit={open}
         onClose={() => setOpenId(null)}
         onSaved={() => void refresh()}

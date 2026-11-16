@@ -466,6 +466,13 @@
   color: color-mix(in oklch, oklch(87.9% 0.169 91.605) 85%, transparent);
   text-transform: uppercase;
   letter-spacing: var(--tracking-micro-caps);
+
+  /* Saved, or on its way: quiet. Only a failed save is a warning. */
+  &[data-state="saved"],
+  &[data-state="saving"],
+  &[data-state="unsaved"] {
+    color: color-mix(in oklch, #fff 50%, transparent);
+  }
 }
 
 .brand-kit__hint {

@@ -8,6 +8,7 @@ import { getBearerUser } from "../_lib/auth.js";
 import {
   loadKit,
   loadKitVersions,
+  writeKitEdit,
   writeKitVersion,
 } from "../_lib/brandKitStore.js";
 import { handleCors } from "../_lib/cors.js";
@@ -93,7 +94,10 @@ async function handlePatch(
   }
 
   if (body.doc !== undefined) {
-    const written = await writeKitVersion(sql, id, sanitizeKitDoc(body.doc));
+    // The editor's own saves fold into a working version; anything else (an
+    // MCP tool, an import) writes a new one.
+    const write = body.autosave === true ? writeKitEdit : writeKitVersion;
+    const written = await write(sql, id, sanitizeKitDoc(body.doc));
     if (!written) {
       return res.status(500).json({ error: "Could not save the kit" });
     }

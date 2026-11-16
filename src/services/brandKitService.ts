@@ -199,10 +199,20 @@ export const brandKitsApi = {
     return (await res.json()) as BrandKit;
   },
 
-  /** A new version. Renaming is separate, and deliberately not one. */
-  save: async (id: string, doc: BrandKitDoc): Promise<BrandKit> => {
+  /**
+   * A new version, or with `autosave` the editor's own save, which folds into
+   * the kit's working version while it is one. Renaming is separate, and
+   * deliberately not a version.
+   */
+  save: async (
+    id: string,
+    doc: BrandKitDoc,
+    options: { autosave?: boolean } = {}
+  ): Promise<BrandKit> => {
     const res = await fetch(`${apiBase()}/api/brand-kits/${id}`, {
-      body: JSON.stringify({ doc }),
+      body: JSON.stringify(
+        options.autosave ? { autosave: true, doc } : { doc }
+      ),
       headers: jsonHeaders(),
       method: "PATCH",
     });
