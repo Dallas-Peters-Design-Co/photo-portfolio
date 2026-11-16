@@ -1,8 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
-import { type CSSProperties, useEffect } from "react";
+import type { CSSProperties } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
-import { everyElement } from "../../../config/conceptSlots.js";
 import { styleElement } from "../../../config/conceptStyle.js";
 import type {
   ReviewConcept,
@@ -13,8 +12,8 @@ import {
   ITEM_WIDTH,
   MAX_REVIEW_CONCEPTS,
 } from "../../../config/reviewConcept.js";
-import { loadFontRef } from "../../theme/remoteFonts";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
+import { useConceptFont } from "../review/useConceptFont";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -60,16 +59,8 @@ function ConceptCard({
   const setElements = (next: ReviewConceptElement[]) =>
     onChange({ ...concept, elements: next });
 
-  useEffect(() => {
-    if (concept.fontRef) {
-      loadFontRef(concept.fontRef);
-    }
-    for (const element of everyElement(concept.elements)) {
-      if (element.fontRef) {
-        loadFontRef(element.fontRef);
-      }
-    }
-  }, [concept]);
+  // Each element loads its own face where it is drawn.
+  useConceptFont(concept.fontFamily, concept.fontRef, concept.fontId);
 
   const previewStyle = {
     alignItems: ALIGN_ITEMS[concept.align],

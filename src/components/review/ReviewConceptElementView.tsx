@@ -29,6 +29,7 @@ import { ConceptSlotsView } from "./ConceptSlotsView";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
+import { useConceptFont } from "./useConceptFont";
 
 const ICON_SUFFIX = /Icon$/;
 
@@ -273,6 +274,7 @@ const boxOf = (element: ReviewConceptElement): CSSProperties => {
 };
 
 function ElementBody({ element }: { element: ReviewConceptElement }) {
+  useConceptFont(element.fontFamily, element.fontRef, element.fontId);
   const style: CSSProperties = {
     background: element.background,
     ...boxOf(element),
