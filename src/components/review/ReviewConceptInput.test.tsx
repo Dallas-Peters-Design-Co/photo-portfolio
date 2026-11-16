@@ -202,7 +202,9 @@ it("draws tabs with their indicator, active and inactive colours and height", ()
   ) as HTMLElement;
   expect(getComputedStyle(active).color).toBe("rgb(0, 0, 255)");
   expect(getComputedStyle(other).color).toBe("rgb(153, 153, 153)");
-  const line = getComputedStyle(active, "::after");
+  const line = getComputedStyle(
+    host.querySelector(".concept-tabs__indicator") as HTMLElement
+  );
   expect(line.height).toBe("4px");
   expect(line.backgroundColor).toBe("rgb(255, 0, 0)");
   expect(

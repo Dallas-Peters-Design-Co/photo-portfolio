@@ -2,6 +2,7 @@
    Every colour and size falls back to the look tabs had before they were
    settings. */
 .concept-tabs {
+  position: relative;
   display: flex;
   align-items: stretch;
   min-height: var(--tab-height, auto);
@@ -15,24 +16,38 @@
   display: flex;
   flex-shrink: 0;
   align-items: center;
+  padding-block: 0;
   padding-inline: var(--tab-padding-x, 0);
+  font: inherit;
   color: var(--tab-inactive, currentColor);
   white-space: nowrap;
+  cursor: pointer;
+  background: none;
+  border: 0;
 }
 
 .concept-tabs__tab[aria-current="page"] {
   color: var(--tab-active, currentColor);
 }
 
-/* The indicator, over the row's base line. */
-.concept-tabs__tab[aria-current="page"]::after {
+/* The indicator, over the row's base line: one line for the whole row,
+   which slides and resizes to the tab clicked. */
+.concept-tabs__indicator {
   position: absolute;
-  right: 0;
   bottom: -1px;
   left: 0;
   height: var(--tab-indicator-size, 2px);
-  content: "";
+  pointer-events: none;
   background: var(--tab-indicator, currentColor);
+  transition:
+    transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-tabs__indicator {
+    transition: none;
+  }
 }
 
 /* A tab that is not the current one, under the pointer: the hover colour,

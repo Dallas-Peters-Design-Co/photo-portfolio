@@ -178,3 +178,32 @@ it("keeps each tab's label on one line in a narrow row", () => {
     expect(range.getClientRects()).toHaveLength(1);
   }
 });
+
+it("slides the tab indicator to the tab clicked", async () => {
+  const tabs: ReviewConceptElement = {
+    ...createConceptElement("tabs"),
+    options: ["Overview", "Activity", "Settings"],
+    text: "Overview",
+  };
+  act(() => root.render(<ReviewConceptElementView element={tabs} />));
+  const indicator = () =>
+    host.querySelector<HTMLElement>(".concept-tabs__indicator");
+  const tab = (name: string) =>
+    [...host.querySelectorAll<HTMLElement>(".concept-tabs__tab")].find(
+      (button) => button.textContent === name
+    ) as HTMLElement;
+  // Under the starting tab, its full width.
+  expect(indicator()?.style.width).toBe(`${tab("Overview").offsetWidth}px`);
+  // It moves by animating, not by jumping.
+  expect(
+    getComputedStyle(indicator() as HTMLElement).transitionProperty
+  ).toContain("transform");
+
+  await userEvent.click(tab("Settings"));
+  expect(tab("Settings").getAttribute("aria-current")).toBe("page");
+  expect(tab("Overview").hasAttribute("aria-current")).toBe(false);
+  expect(indicator()?.style.transform).toBe(
+    `translateX(${tab("Settings").offsetLeft}px)`
+  );
+  expect(indicator()?.style.width).toBe(`${tab("Settings").offsetWidth}px`);
+});
