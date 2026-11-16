@@ -30,8 +30,10 @@
   align-items: center;
 }
 
+/* They keep their full width: the text wraps instead. Squeezed, a row of
+   them wrapped, and an arrow dropped under its badge. */
 .concept-slot[data-led] > .concept-slot__items {
-  flex: 0 1 auto;
+  flex: 0 0 auto;
 }
 
 .concept-slot__items[data-layout="row"] {

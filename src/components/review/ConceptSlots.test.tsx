@@ -233,3 +233,32 @@ it("moves an element up or down its list with the handle's arrow keys", () => {
   });
   expect(footerKinds()).toEqual(["checkbox", "progress"]);
 });
+
+it("keeps a card's header row on one line beside long text", () => {
+  // As saved: a header row (stretched) holding a badge and an arrow, on a
+  // card whose body runs long.
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    slots: {
+      header: {
+        align: "stretch",
+        elements: [
+          { ...createConceptElement("badge"), text: "In Progress" },
+          { ...createConceptElement("icon"), iconName: "ArrowRight01Icon" },
+        ],
+        layout: "row",
+      },
+    },
+    text: "RA DMARD Vin Thesis\nObservational pharmacoeconomic study of DMARD therapies in newly diagnosed RA patients",
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  const items = host.querySelector<HTMLElement>(
+    "[data-slot=header] > .concept-slot__items"
+  );
+  const [badge, arrow] = [...(items?.children ?? [])].map((child) =>
+    child.getBoundingClientRect()
+  );
+  // The arrow sits beside the badge, not under it.
+  expect(arrow?.left).toBeGreaterThanOrEqual(badge?.right ?? 0);
+  expect(arrow?.top).toBeLessThan(badge?.bottom ?? 0);
+});
