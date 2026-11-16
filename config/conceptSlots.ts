@@ -103,6 +103,53 @@ const number = (
       }
     : {};
 
+/** One slot (or a group, which is laid out the same way), its elements cleaned. */
+export const cleanSlot = (
+  value: unknown,
+  depth: number,
+  cleanElement: (value: unknown, depth: number) => ReviewConceptElement
+): ConceptSlot => {
+  const slot = (value ?? {}) as Partial<ConceptSlot>;
+  const align = oneOf(SLOT_ALIGNS, slot.align);
+  const justify = oneOf(SLOT_JUSTIFIES, slot.justify);
+  const layout = oneOf(SLOT_LAYOUTS, slot.layout);
+  return {
+    ...(align ? { align } : {}),
+    ...number("columns", slot.columns),
+    elements: (Array.isArray(slot.elements) ? slot.elements : [])
+      .slice(0, MAX_SLOT_ELEMENTS)
+      .map((element) => cleanElement(element, depth + 1)),
+    ...(slot.fill === true ? { fill: true } : {}),
+    ...number("gap", slot.gap),
+    ...(justify ? { justify } : {}),
+    ...(layout ? { layout } : {}),
+    ...number("paddingX", slot.paddingX),
+    ...number("paddingY", slot.paddingY),
+  };
+};
+
+/**
+ * How deep groups go: a group in a panel's slot can hold a group, and so on
+ * a few levels, but not without end.
+ */
+export const MAX_GROUP_DEPTH = 4;
+
+/**
+ * An element with each element it holds, in its slots or its group, changed
+ * by `map`. The one walk every pass over a concept's tree uses (styling,
+ * copying, icons), so a new kind of holder is added here once.
+ */
+export const mapChildren = (
+  element: ReviewConceptElement,
+  map: (child: ReviewConceptElement) => ReviewConceptElement
+): ReviewConceptElement => ({
+  ...element,
+  ...(element.slots ? { slots: mapSlotElements(element.slots, map) } : {}),
+  ...(element.group
+    ? { group: { ...element.group, elements: element.group.elements.map(map) } }
+    : {}),
+});
+
 /**
  * A card's or panel's slots, each element cleaned one level deeper by the
  * cleaner passed in (cleanElement, which calls this — so it is passed rather
@@ -121,25 +168,9 @@ export const cleanSlots = (
   for (const name of SLOT_NAMES) {
     const slot = raw[name];
     // A slot set up before anything is put in it keeps its layout.
-    if (!slot || typeof slot !== "object") {
-      continue;
+    if (slot && typeof slot === "object") {
+      slots[name] = cleanSlot(slot, depth, cleanElement);
     }
-    const align = oneOf(SLOT_ALIGNS, slot.align);
-    const justify = oneOf(SLOT_JUSTIFIES, slot.justify);
-    const layout = oneOf(SLOT_LAYOUTS, slot.layout);
-    slots[name] = {
-      ...(align ? { align } : {}),
-      ...number("columns", slot.columns),
-      elements: (Array.isArray(slot.elements) ? slot.elements : [])
-        .slice(0, MAX_SLOT_ELEMENTS)
-        .map((element) => cleanElement(element, depth + 1)),
-      ...(slot.fill === true ? { fill: true } : {}),
-      ...number("gap", slot.gap),
-      ...(justify ? { justify } : {}),
-      ...(layout ? { layout } : {}),
-      ...number("paddingX", slot.paddingX),
-      ...number("paddingY", slot.paddingY),
-    };
   }
   return Object.keys(slots).length > 0 ? slots : undefined;
 };
@@ -162,7 +193,10 @@ export const everyElement = (
 ): ReviewConceptElement[] =>
   elements.flatMap((element) => [
     element,
-    ...everyElement(
-      Object.values(element.slots ?? {}).flatMap((slot) => slot?.elements ?? [])
-    ),
+    ...everyElement([
+      ...Object.values(element.slots ?? {}).flatMap(
+        (slot) => slot?.elements ?? []
+      ),
+      ...(element.group?.elements ?? []),
+    ]),
   ]);

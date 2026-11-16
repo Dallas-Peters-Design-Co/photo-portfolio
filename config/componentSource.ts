@@ -3,6 +3,7 @@ import {
   checkboxMarkup,
   type Draw,
   escapeJsx,
+  groupMarkup,
   HOVER_CSS,
   type Markup,
   panelMarkup,
@@ -140,6 +141,7 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
       css: "& { border: 0; border-top: var(--&-border); padding: 0; margin: 0; }",
       tag: "hr",
     }),
+    group: () => groupMarkup(el, draw),
     input: () => ({
       attrs: `type=${quote(el.inputType ?? "text")} placeholder=${quote(el.placeholder ?? "")}`,
       css: FOCUS_CSS,

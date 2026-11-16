@@ -92,3 +92,19 @@
   > * {
   flex: 1 1 0;
 }
+
+/* A group: its own row, column or grid, as wide as its contents ask, or
+   the full width with Fill. */
+.concept-group {
+  display: flex;
+  min-width: 0;
+}
+
+.concept-group__items {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.concept-group[data-fill] {
+  width: 100%;
+}

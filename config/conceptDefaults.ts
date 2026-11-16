@@ -77,6 +77,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   checkbox: "I agree to the terms",
   dialog: "Confirm changes?",
   divider: "",
+  group: "",
   icon: "",
   input: "",
   label: "Email address",
@@ -240,6 +241,16 @@ export const createConceptElement = (
     ...(kind === "progress" ? progressLook(brandDoc) : {}),
     ...(kind === "panel" ? panelLook(brandDoc, createConceptElement) : {}),
     ...controlLook(kind, brandDoc),
+    // A group is layout, not a surface: clear, and empty to fill.
+    ...(kind === "group"
+      ? {
+          background: "transparent",
+          group: { align: "center", elements: [], gap: 8, layout: "row" },
+          paddingX: 0,
+          paddingY: 0,
+          radius: 0,
+        }
+      : {}),
   };
 };
 

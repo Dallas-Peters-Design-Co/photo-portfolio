@@ -4,6 +4,7 @@ import {
   type ConceptSlot,
   type ConceptSlotName,
   LAYOUT_SLOTS,
+  mapChildren,
   SLOT_DEFAULTS,
 } from "./conceptSlots.js";
 import { type ReviewConceptElement, splitCardText } from "./reviewConcept.js";
@@ -22,23 +23,9 @@ export const withIconDrawings = (
 ): ReviewConceptElement => {
   const name = element.iconSvg ? null : conceptIconName(element.iconName);
   const svg = name ? lookup(name) : undefined;
-  const slots = element.slots
-    ? (Object.fromEntries(
-        Object.entries(element.slots).map(([key, slot]) => [
-          key,
-          slot && {
-            ...slot,
-            elements: slot.elements.map((child) =>
-              withIconDrawings(child, lookup)
-            ),
-          },
-        ])
-      ) as ReviewConceptElement["slots"])
-    : undefined;
   return {
-    ...element,
+    ...mapChildren(element, (child) => withIconDrawings(child, lookup)),
     ...(svg ? { iconSvg: svg } : {}),
-    ...(slots ? { slots } : {}),
   };
 };
 
@@ -195,6 +182,27 @@ const slotsOf = (
   return {
     css: css.join("\n"),
     jsx: `<div className="@@__slots"${element.dividers ? " data-dividers" : ""}>\n${indent(slots.join("\n"))}\n</div>`,
+  };
+};
+
+/** A group: its elements laid out as a slot lays out its own. */
+export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
+  const group = el.group ?? { elements: [] };
+  const css: string[] = [];
+  const items = slotItems(group, "@@__item", draw, css);
+  return {
+    body: items,
+    childCss: css.join("\n"),
+    css: `& { display: flex; min-width: 0; }
+& > .@@__items { flex: 1 1 auto; }
+${SLOTS_CSS}`,
+    tag: "div",
+    tokens: [
+      [
+        "padding",
+        `${group.paddingY ?? SLOT_DEFAULTS.paddingY}px ${group.paddingX ?? SLOT_DEFAULTS.paddingX}px`,
+      ],
+    ],
   };
 };
 

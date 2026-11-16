@@ -180,6 +180,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["progress", "Progress bar"],
   ["panel", "Panel"],
   ["upload", "File upload"],
+  ["group", "Group"],
 ]);
 
 /** A kind's menu label ("Dropdown menu" for menu), or the kind itself. */

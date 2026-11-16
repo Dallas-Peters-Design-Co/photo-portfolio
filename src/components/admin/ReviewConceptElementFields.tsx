@@ -20,7 +20,7 @@ import {
 } from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
 import { MenuGroup } from "./ConceptMenuFields";
-import { ConceptSlotFields } from "./ConceptSlotFields";
+import { ConceptSlotFields, SlotFields } from "./ConceptSlotFields";
 import { StyleLink } from "./ConceptStyleLink";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
@@ -210,6 +210,7 @@ function KindGroups({
 
 /** The element's name (the fold control), its kit style, and its actions. */
 function ElementBar({
+  actions,
   bodyId,
   element,
   handle,
@@ -220,6 +221,8 @@ function ElementBar({
   open,
   styles,
 }: {
+  /** Actions the list offers on this element (group, ungroup). */
+  actions?: ReactNode;
   bodyId: string;
   element: ReviewConceptElement;
   /** The control that moves the element within its list. */
@@ -248,6 +251,7 @@ function ElementBar({
       {onLink && styles.length > 0 ? (
         <StyleLink element={element} onLink={onLink} styles={styles} />
       ) : null}
+      {actions}
       {onDuplicate ? (
         <Button
           aria-label={`Duplicate ${element.kind}`}
@@ -272,6 +276,40 @@ function ElementBar({
       ) : null}
     </header>
   );
+}
+
+/** What a group or a card or panel holds, and how it lays it out. */
+function HolderFields({
+  brandDoc,
+  depth,
+  element,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  depth: number;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  if (element.kind === "group") {
+    return (
+      <SlotFields
+        brandDoc={brandDoc}
+        depth={depth}
+        label="Group"
+        listLabel="In the group"
+        onChange={(group) => onChange({ group })}
+        slot={element.group ?? { elements: [] }}
+      />
+    );
+  }
+  return hasSlots(element.kind) && depth < MAX_SLOT_DEPTH ? (
+    <ConceptSlotFields
+      brandDoc={brandDoc}
+      depth={depth}
+      element={element}
+      onChange={onChange}
+    />
+  ) : null;
 }
 
 /** The element's corner radius and its padding. */
@@ -310,6 +348,7 @@ function BoxGroup({
 }
 
 export function ReviewConceptElementFields({
+  actions,
   brandDoc,
   depth = 0,
   element,
@@ -321,6 +360,8 @@ export function ReviewConceptElementFields({
   onRemove,
   styles = [],
 }: {
+  /** Actions the list offers on this element (group, ungroup). */
+  actions?: ReactNode;
   brandDoc?: BrandKitDoc | null;
   /** How many slots deep the element sits; past the limit it has none. */
   depth?: number;
@@ -351,6 +392,7 @@ export function ReviewConceptElementFields({
     <section aria-label={element.kind} className="review-concepts__element">
       {lookOnly ? null : (
         <ElementBar
+          actions={actions}
           bodyId={bodyId}
           element={element}
           handle={handle}
@@ -449,14 +491,14 @@ export function ReviewConceptElementFields({
               />
             </ConceptGroup>
           ) : null}
-          {hasSlots(element.kind) && depth < MAX_SLOT_DEPTH && !lookOnly ? (
-            <ConceptSlotFields
+          {lookOnly ? null : (
+            <HolderFields
               brandDoc={brandDoc}
               depth={depth}
               element={element}
               onChange={onChange}
             />
-          ) : null}
+          )}
         </div>
       ) : null}
     </section>

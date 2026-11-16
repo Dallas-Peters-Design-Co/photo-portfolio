@@ -44,11 +44,21 @@ const itemsStyle = (slot: ConceptSlot): CSSProperties => {
 };
 
 /** A slot's elements, laid out the slot's way. */
-function Items({ draw, slot }: { draw: Draw; slot: ConceptSlot }) {
+function Items({
+  className,
+  draw,
+  slot,
+}: {
+  className?: string;
+  draw: Draw;
+  slot: ConceptSlot;
+}) {
   const layout = slot.layout ?? "column";
   return (
     <div
-      className="concept-slot__items"
+      className={
+        className ? `concept-slot__items ${className}` : "concept-slot__items"
+      }
       data-direction={layout === "row" ? "row" : "column"}
       data-fill={slot.fill || undefined}
       data-layout={layout}
@@ -127,6 +137,31 @@ export function ConceptSlotsView({
           slot={slots[name]}
         />
       ))}
+    </div>
+  );
+}
+
+/**
+ * A group: elements kept together in a slot (or anywhere), laid out the way
+ * a slot lays out its own — row, column or grid, gap, alignment, padding.
+ */
+export function ConceptGroupView({
+  draw,
+  element,
+  style,
+}: {
+  draw: Draw;
+  element: ReviewConceptElement;
+  style: CSSProperties;
+}) {
+  const group = element.group ?? { elements: [] };
+  return (
+    <div
+      className="concept-group"
+      data-fill={group.fill || undefined}
+      style={{ ...style, padding: padding(group) }}
+    >
+      <Items className="concept-group__items" draw={draw} slot={group} />
     </div>
   );
 }

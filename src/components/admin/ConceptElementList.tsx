@@ -11,6 +11,7 @@ import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
+import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
 import {
@@ -27,6 +28,120 @@ const DRAG_TYPE = "text/x-concept-element";
  * with the menu that adds to it. The elements arrive styled (as the kit
  * draws them), so what is saved keeps each one's own values current.
  */
+/** This element in a new group, in its place: the group to add more to. */
+const wrapInGroup = (
+  elements: ReviewConceptElement[],
+  index: number,
+  brandDoc?: BrandKitDoc | null
+): ReviewConceptElement[] => {
+  const element = elements[index];
+  if (!element) {
+    return elements;
+  }
+  const group = createConceptElement("group", brandDoc);
+  return elements.map((e, i) =>
+    i === index
+      ? {
+          ...group,
+          group: {
+            ...(group.group ?? { elements: [] }),
+            elements: [element],
+          },
+        }
+      : e
+  );
+};
+
+/** A group's elements back in the list where the group was. */
+const ungroup = (
+  elements: ReviewConceptElement[],
+  index: number
+): ReviewConceptElement[] =>
+  elements.flatMap((e, i) =>
+    i === index && e.kind === "group" ? (e.group?.elements ?? []) : [e]
+  );
+
+/** This element moved to the end of the group just above it. */
+const moveIntoGroupAbove = (
+  elements: ReviewConceptElement[],
+  index: number
+): ReviewConceptElement[] => {
+  const above = elements[index - 1];
+  const element = elements[index];
+  if (!(above?.kind === "group" && element)) {
+    return elements;
+  }
+  return elements.flatMap((e, i) => {
+    if (i === index) {
+      return [];
+    }
+    if (i === index - 1) {
+      return [
+        {
+          ...e,
+          group: {
+            ...(e.group ?? { elements: [] }),
+            elements: [...(e.group?.elements ?? []), element],
+          },
+        },
+      ];
+    }
+    return [e];
+  });
+};
+
+/** Group, Ungroup, and Into the group above, as each applies. */
+function GroupActions({
+  above,
+  element,
+  onGroup,
+  onIntoAbove,
+  onUngroup,
+}: {
+  above?: ReviewConceptElement;
+  element: ReviewConceptElement;
+  onGroup: () => void;
+  onIntoAbove: () => void;
+  onUngroup: () => void;
+}) {
+  return (
+    <>
+      {above?.kind === "group" ? (
+        <Button
+          onClick={onIntoAbove}
+          size="xs"
+          title="Move into the group above"
+          type="button"
+          variant="ghost"
+        >
+          Into group above
+        </Button>
+      ) : null}
+      {element.kind === "group" ? (
+        <Button
+          onClick={onUngroup}
+          size="xs"
+          title="Put its elements back in this list"
+          type="button"
+          variant="ghost"
+        >
+          Ungroup
+        </Button>
+      ) : (
+        <Button
+          onClick={onGroup}
+          size="xs"
+          title="Put this in a group, to lay it out with others"
+          type="button"
+          variant="ghost"
+        >
+          Group
+        </Button>
+      )}
+    </>
+  );
+}
+
 export function ConceptElementList({
   brandDoc,
   depth = 0,
@@ -156,6 +271,17 @@ export function ConceptElementList({
           }}
         >
           <ReviewConceptElementFields
+            actions={
+              <GroupActions
+                above={elements[index - 1]}
+                element={element}
+                onGroup={() => onChange(wrapInGroup(elements, index, brandDoc))}
+                onIntoAbove={() =>
+                  onChange(moveIntoGroupAbove(elements, index))
+                }
+                onUngroup={() => onChange(ungroup(elements, index))}
+              />
+            }
             brandDoc={brandDoc}
             depth={depth}
             element={element}

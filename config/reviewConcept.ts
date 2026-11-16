@@ -15,9 +15,12 @@ import {
 } from "./conceptMenu.js";
 import type { ConceptShadow } from "./conceptShadow.js";
 import {
+  type ConceptSlot,
   type ConceptSlots,
+  cleanSlot,
   cleanSlots,
   hasSlots,
+  MAX_GROUP_DEPTH,
   SLIDE_SIDES,
   type SlideSide,
 } from "./conceptSlots.js";
@@ -73,6 +76,7 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "progress",
   "panel",
   "upload",
+  "group",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -106,7 +110,8 @@ export type ReviewConceptElementKind =
   | "skeleton"
   | "progress"
   | "panel"
-  | "upload";
+  | "upload"
+  | "group";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -140,6 +145,11 @@ export interface ReviewConceptElement {
   fontRef?: string;
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
+  /**
+   * Groups only: the elements it holds and how it lays them out (row,
+   * column or grid, gap, alignment, padding), as a slot does.
+   */
+  group?: ConceptSlot;
   /** How it changes under the pointer (see conceptHover.ts). */
   hover?: ConceptHover;
   /**
@@ -369,6 +379,21 @@ const cleanSlotted = (
   };
 };
 
+/** A group's elements and layout; a panel's slide. */
+const cleanHolder = (
+  kind: ReviewConceptElementKind,
+  raw: Partial<ReviewConceptElement>,
+  depth: number
+): Pick<ReviewConceptElement, "group" | "slideFrom"> => {
+  if (kind === "group" && depth < MAX_GROUP_DEPTH) {
+    return { group: cleanSlot(raw.group, depth, cleanElement) };
+  }
+  if (kind === "panel" && SLIDE_SIDES.includes(raw.slideFrom as SlideSide)) {
+    return { slideFrom: raw.slideFrom as SlideSide };
+  }
+  return {};
+};
+
 export const cleanElement = (
   value: unknown,
   /** How many slots deep this element sits. */
@@ -406,9 +431,7 @@ export const cleanElement = (
     ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(kind === "progress" ? cleanProgress(raw) : {}),
     ...cleanSlotted(kind, raw, depth),
-    ...(kind === "panel" && SLIDE_SIDES.includes(raw.slideFrom as SlideSide)
-      ? { slideFrom: raw.slideFrom as SlideSide }
-      : {}),
+    ...cleanHolder(kind, raw, depth),
     ...(tabLook ? { tabLook } : {}),
     ...(menuLook ? { menuLook } : {}),
     ...(hover ? { hover } : {}),

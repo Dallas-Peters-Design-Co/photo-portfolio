@@ -56,21 +56,27 @@ const SLIDES = optionsOf([
 ]);
 
 /** One slot: how it lays out what it holds, then what it holds. */
-function SlotFields({
+export function SlotFields({
   brandDoc,
   depth,
-  name,
+  label: named,
+  listLabel,
+  name = "body",
   onChange,
   slot,
 }: {
   brandDoc?: BrandKitDoc | null;
   depth: number;
-  name: ConceptSlotName;
+  /** What the settings are headed: the slot's name, or "Group". */
+  label?: string;
+  /** What the list of elements is headed. */
+  listLabel?: string;
+  name?: ConceptSlotName;
   onChange: (slot: ConceptSlot) => void;
   slot: ConceptSlot;
 }) {
   const fillId = useId();
-  const label = `${SLOT_LABELS[name]} slot`;
+  const label = named ?? `${SLOT_LABELS[name]} slot`;
   const set = (patch: Partial<ConceptSlot>) => onChange({ ...slot, ...patch });
   const layout = slot.layout ?? "column";
   return (
@@ -140,7 +146,7 @@ function SlotFields({
         brandDoc={brandDoc}
         depth={depth + 1}
         elements={slot.elements}
-        label={`In the ${name}`}
+        label={listLabel ?? `In the ${name}`}
         onChange={(elements) => set({ elements })}
       />
     </div>

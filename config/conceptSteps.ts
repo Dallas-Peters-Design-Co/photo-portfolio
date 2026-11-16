@@ -1,3 +1,4 @@
+import { mapChildren } from "./conceptSlots.js";
 import { newItemId } from "./proposal.js";
 import type { ReviewConcept, ReviewConceptElement } from "./reviewConcept.js";
 
@@ -63,18 +64,8 @@ export const withStep = (
 export const freshIds = (
   element: ReviewConceptElement
 ): ReviewConceptElement => ({
-  ...element,
+  ...mapChildren(element, freshIds),
   id: newItemId(),
-  ...(element.slots
-    ? {
-        slots: Object.fromEntries(
-          Object.entries(element.slots).map(([name, slot]) => [
-            name,
-            slot && { ...slot, elements: slot.elements.map(freshIds) },
-          ])
-        ),
-      }
-    : {}),
 });
 
 /**

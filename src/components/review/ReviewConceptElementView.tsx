@@ -26,7 +26,7 @@ import { conceptMenuProps } from "./conceptMenuStyle";
 import "./ConceptElements.css";
 import { ConceptPanelPreview } from "./ConceptPanelPreview";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
-import { ConceptSlotsView } from "./ConceptSlotsView";
+import { ConceptGroupView, ConceptSlotsView } from "./ConceptSlotsView";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
@@ -378,6 +378,10 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       );
     case "menu":
       return <MenuPreview element={element} style={style} text={text} />;
+    case "group":
+      return (
+        <ConceptGroupView draw={drawElement} element={element} style={style} />
+      );
     case "upload":
       return <ConceptUploadPreview element={element} style={style} />;
     case "toast":

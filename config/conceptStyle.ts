@@ -1,4 +1,4 @@
-import { mapSlotElements } from "./conceptSlots.js";
+import { mapChildren } from "./conceptSlots.js";
 import {
   CELL_STYLE_KIND,
   type ConceptCellLook,
@@ -250,13 +250,8 @@ export const styleElement = (
   styles: ConceptStyle[]
 ): ReviewConceptElement => {
   const styled = applyColumnStyles(applyConceptStyle(element, styles), styles);
-  return styled.slots
-    ? {
-        ...styled,
-        slots: mapSlotElements(styled.slots, (child) =>
-          styleElement(child, styles)
-        ),
-      }
+  return styled.slots || styled.group
+    ? mapChildren(styled, (child) => styleElement(child, styles))
     : styled;
 };
 
