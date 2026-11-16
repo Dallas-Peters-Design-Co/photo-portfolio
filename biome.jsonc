@@ -19,6 +19,10 @@
       "!openapi.json",
       "!openapi.yaml",
       "!bruno",
+      // The docs' Components tab, written by `pnpm docs:components` and by
+      // its hourly workflow, which does not format: same reason as above.
+      "!docs/site/brand-components.css",
+      "!docs/site/components",
       "!src/vendor",
       // The eve audit agent: its own package, install and lint (npm, not pnpm).
       "!agents"

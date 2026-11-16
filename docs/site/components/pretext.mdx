@@ -176,7 +176,7 @@ export function ButtonSecondary({ className, children = "Get started", onClick }
   --button-secondary-line-height: 1.25;
   --button-secondary-padding: 11px 18px;
   --button-secondary-radius: 33px;
-  --button-secondary-border: none;
+  --button-secondary-border: 0px solid transparent;
   --button-secondary-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 16%, transparent);
   --button-secondary-hover-background: #212121;
   --button-secondary-hover-color: #f9eeb3;
@@ -241,7 +241,7 @@ export function TextareaPrimary({ className }: TextareaPrimaryProps) {
   --textarea-primary-line-height: 1.25;
   --textarea-primary-padding: 8px 12px;
   --textarea-primary-radius: 6px;
-  --textarea-primary-border: none;
+  --textarea-primary-border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
   --textarea-primary-shadow: none;
 
   box-sizing: border-box;
@@ -268,7 +268,7 @@ export function TextareaPrimary({ className }: TextareaPrimaryProps) {
 
 <div className="bk-preview bk-pretext">
 <label className="checkbox-primary">
-  <input type="checkbox" />
+  <input type="checkbox" defaultChecked />
   I agree to the terms
 </label>
 </div>
@@ -284,10 +284,10 @@ interface CheckboxPrimaryProps {
 }
 
 /** Primary checkbox, from the brand kit. */
-export function CheckboxPrimary({ className, children }: CheckboxPrimaryProps) {
+export function CheckboxPrimary({ className, children = "I agree to the terms" }: CheckboxPrimaryProps) {
   return (
     <label className={className ? `checkbox-primary ${className}` : "checkbox-primary"}>
-      <input type="checkbox" />
+      <input type="checkbox" defaultChecked />
       {children}
     </label>
   );
@@ -322,7 +322,7 @@ export function CheckboxPrimary({ className, children }: CheckboxPrimaryProps) {
   box-shadow: var(--checkbox-primary-shadow);
 }
 
-.checkbox-primary { display: inline-flex; align-items: center; gap: 0.5em; cursor: pointer; }
+.checkbox-primary { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .checkbox-primary > input { accent-color: var(--checkbox-primary-accent); inline-size: var(--checkbox-primary-check-size, 1em); block-size: var(--checkbox-primary-check-size, 1em); margin: 0; }
 ```
 </CodeGroup>
@@ -576,8 +576,19 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 
 <div className="bk-preview bk-pretext">
 <article className="card-primary">
-  <div role="heading" aria-level={3} className="card-primary__title">Card title</div>
-  <p>Supporting copy goes here.</p>
+  <div className="card-primary__slots">
+    <div className="card-primary__slot" data-slot="header" data-led>
+      <div className="card-primary__lead card-primary__text">
+        <svg className="card-primary__icon" width={20} height={20} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M10.002 11H13.502M10.002 7H17.002" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          <path d="M19.002 2L6.50195 2C5.39738 2 4.50195 2.89543 4.50195 4V20C4.50195 21.1046 5.39738 22 6.50195 22H19.002C20.1065 22 21.002 21.1046 21.002 20V4C21.002 2.89543 20.1065 2 19.002 2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          <path d="M6.00195 6H3.00195M6.00195 12H3.00195M6.00195 18H3.00195" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+        </svg>
+        <strong className="card-primary__title">Card title</strong>
+        <p className="card-primary__body">Supporting copy goes here.</p>
+      </div>
+    </div>
+  </div>
 </article>
 </div>
 
@@ -593,11 +604,22 @@ interface CardPrimaryProps {
 }
 
 /** Primary card, from the brand kit. */
-export function CardPrimary({ className, children, title = "Card title" }: CardPrimaryProps) {
+export function CardPrimary({ className, children = "Supporting copy goes here.", title = "Card title" }: CardPrimaryProps) {
   return (
     <article className={className ? `card-primary ${className}` : "card-primary"}>
-      <h3 className="card-primary__title">{title}</h3>
-      <p>{children}</p>
+      <div className="card-primary__slots">
+        <div className="card-primary__slot" data-slot="header" data-led>
+          <div className="card-primary__lead card-primary__text">
+            <svg className="card-primary__icon" width={20} height={20} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10.002 11H13.502M10.002 7H17.002" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              <path d="M19.002 2L6.50195 2C5.39738 2 4.50195 2.89543 4.50195 4V20C4.50195 21.1046 5.39738 22 6.50195 22H19.002C20.1065 22 21.002 21.1046 21.002 20V4C21.002 2.89543 20.1065 2 19.002 2Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              <path d="M6.00195 6H3.00195M6.00195 12H3.00195M6.00195 18H3.00195" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+            <strong className="card-primary__title">{title}</strong>
+            <p className="card-primary__body">{children}</p>
+          </div>
+        </div>
+      </div>
     </article>
   );
 }
@@ -633,38 +655,80 @@ export function CardPrimary({ className, children, title = "Card title" }: CardP
   box-shadow: var(--card-primary-shadow);
 }
 
-.card-primary__title { margin: 0; font-size: inherit; font-weight: var(--card-primary-title-weight, 600); }
-.card-primary > p { margin: 0.25em 0 0; font-size: var(--card-primary-body-size, 0.875em); }
+.card-primary { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-primary:hover {
+  background: var(--card-primary-hover-background, var(--card-primary-background));
+  color: var(--card-primary-hover-color, var(--card-primary-color));
+  border-color: var(--card-primary-hover-border-color, currentColor);
+  box-shadow: var(--card-primary-hover-shadow, var(--card-primary-shadow));
+}
+.card-primary__text { display: grid; gap: 6px; align-content: start; }
+.card-primary__icon { color: var(--card-primary-icon-color, currentColor); }
+.card-primary__title { font-weight: var(--card-primary-title-weight, bolder); }
+.card-primary__body { margin: 0; white-space: pre-line; opacity: 0.8; font-size: var(--card-primary-body-size, inherit); }
+.card-primary__slots { display: flex; flex-direction: column; min-width: 0; }
+.card-primary__slots:not([data-dividers]) { gap: 12px; }
+.card-primary__slots[data-dividers] > .card-primary__slot + .card-primary__slot { border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.card-primary__slot, .card-primary__items { display: flex; flex-direction: column; min-width: 0; }
+.card-primary__items { align-items: flex-start; }
+.card-primary__slot[data-led] { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.card-primary__slot[data-led] > .card-primary__items { flex: 0 0 auto; }
+.card-primary__items[data-layout="row"] { flex-direction: row; align-items: center; }
+.card-primary__items[data-layout="grid"] { display: grid; }
+.card-primary__items[data-fill] > * { align-self: stretch; width: auto; min-width: 0; }
+.card-primary__items[data-fill][data-layout="row"] > * { flex: 1 1 0; }
+.card-primary__slot[data-led] > .card-primary__items[data-fill] { flex: 1 1 0; }
+.card-primary__lead { flex: 1 1 8rem; min-width: 0; }
 ```
 </CodeGroup>
 
 ## Tabs · Primary
 
 <div className="bk-preview bk-pretext">
-<div className="tabs-primary" role="tablist">
-  <button role="tab" type="button" aria-selected={true}>Overview</button>
-  <button role="tab" type="button" aria-selected={false}>Settings</button>
-  <button role="tab" type="button" aria-selected={false}>Activity</button>
-</div>
+<nav className="tabs-primary" aria-label="Tabs">
+  <button className="tabs-primary__tab" type="button" aria-current="page">Overview</button>
+  <button className="tabs-primary__tab" type="button">Settings</button>
+  <button className="tabs-primary__tab" type="button">Activity</button>
+</nav>
 </div>
 
 <CodeGroup>
 ```tsx TabsPrimary.tsx
-import type * as React from "react";
+import { useState } from "react";
 import "./TabsPrimary.css";
 
 interface TabsPrimaryProps {
   className?: string;
+  onChange?: (tab: string) => void;
+  tabs?: string[];
+  value?: string;
 }
 
-/** Primary tabs, from the brand kit. */
-export function TabsPrimary({ className }: TabsPrimaryProps) {
+/** Tabs from the brand kit: the open one is marked, and a click moves it. */
+export function TabsPrimary({
+  className,
+  onChange,
+  tabs = ["Overview","Settings","Activity"],
+  value = "Overview",
+}: TabsPrimaryProps) {
+  const [open, setOpen] = useState(value);
   return (
-    <div className={className ? `tabs-primary ${className}` : "tabs-primary"} role="tablist">
-      <button role="tab" type="button" aria-selected={true}>Overview</button>
-      <button role="tab" type="button" aria-selected={false}>Settings</button>
-      <button role="tab" type="button" aria-selected={false}>Activity</button>
-    </div>
+    <nav aria-label="Tabs" className={className ? `tabs-primary ${className}` : "tabs-primary"}>
+      {tabs.map((tab) => (
+        <button
+          aria-current={tab === open ? "page" : undefined}
+          className="tabs-primary__tab"
+          key={tab}
+          onClick={() => {
+            setOpen(tab);
+            onChange?.(tab);
+          }}
+          type="button"
+        >
+          {tab}
+        </button>
+      ))}
+    </nav>
   );
 }
 ```
@@ -677,11 +741,18 @@ export function TabsPrimary({ className }: TabsPrimaryProps) {
   --tabs-primary-font-size: 14px;
   --tabs-primary-font-weight: 600;
   --tabs-primary-line-height: 2.4;
-  --tabs-primary-padding: 0px 13px;
+  --tabs-primary-padding: 0px 0px;
   --tabs-primary-radius: 0px;
   --tabs-primary-border: none;
   --tabs-primary-shadow: none;
   --tabs-primary-hover-color: #00289d;
+  --tabs-primary-tab-padding-x: 13px;
+  --tabs-primary-tab-height: 52px;
+  --tabs-primary-tab-active: #00289d;
+  --tabs-primary-tab-inactive: #5b5952;
+  --tabs-primary-tab-indicator: #00289d;
+  --tabs-primary-tab-indicator-size: 5px;
+  --tabs-primary-tab-hover: #00289d;
 
   box-sizing: border-box;
   background: var(--tabs-primary-background);
@@ -696,9 +767,12 @@ export function TabsPrimary({ className }: TabsPrimaryProps) {
   box-shadow: var(--tabs-primary-shadow);
 }
 
-.tabs-primary { display: flex; gap: 1em; }
-.tabs-primary > [role=tab] { all: unset; cursor: pointer; }
-.tabs-primary > [aria-selected=true] { box-shadow: inset 0 -2px 0 var(--tabs-primary-accent, currentColor); }
+.tabs-primary { position: relative; display: flex; align-items: stretch; min-height: var(--tabs-primary-tab-height, auto); border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent); }
+.tabs-primary__tab { position: relative; display: flex; flex-shrink: 0; align-items: center; padding: 0 var(--tabs-primary-tab-padding-x, 0); font: inherit; color: var(--tabs-primary-tab-inactive, currentColor); white-space: nowrap; cursor: pointer; background: none; border: 0; }
+.tabs-primary__tab[aria-current="page"] { color: var(--tabs-primary-tab-active, currentColor); }
+.tabs-primary__tab[aria-current="page"]::after { content: ""; position: absolute; right: 0; bottom: -1px; left: 0; height: var(--tabs-primary-tab-indicator-size, 2px); background: var(--tabs-primary-tab-indicator, currentColor); }
+.tabs-primary__tab:not([aria-current]):hover { color: var(--tabs-primary-tab-hover, var(--tabs-primary-tab-active, currentColor)); }
+.tabs-primary__tab:focus-visible { outline: 2px solid var(--tabs-primary-tab-indicator, currentColor); outline-offset: -2px; }
 ```
 </CodeGroup>
 
@@ -717,14 +791,14 @@ export function TabsPrimary({ className }: TabsPrimaryProps) {
   <tbody>
       <tr>
         <td>Website redesign
-Acme Co.</td>
+  Acme Co.</td>
         <td>Active</td>
         <td>Design, Web</td>
         <td>Open</td>
       </tr>
       <tr>
         <td>Brand refresh
-Northwind</td>
+  Northwind</td>
         <td>Paused</td>
         <td>Brand</td>
         <td>Open</td>
@@ -757,14 +831,14 @@ export function TablePrimary({ className }: TablePrimaryProps) {
       <tbody>
           <tr>
             <td>Website redesign
-    Acme Co.</td>
+      Acme Co.</td>
             <td>Active</td>
             <td>Design, Web</td>
             <td>Open</td>
           </tr>
           <tr>
             <td>Brand refresh
-    Northwind</td>
+      Northwind</td>
             <td>Paused</td>
             <td>Brand</td>
             <td>Open</td>
@@ -1041,8 +1115,17 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 
 <div className="bk-preview bk-pretext">
 <article className="card-stats">
-  <div role="heading" aria-level={3} className="card-stats__title">Card title</div>
-  <p>Supporting copy goes here.</p>
+  <div className="card-stats__slots">
+    <div className="card-stats__slot" data-slot="header" data-led>
+      <div className="card-stats__lead card-stats__text">
+        <svg className="card-stats__icon" width={22} height={22} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M11.109 3.74829C11.48 3.02037 12.52 3.02037 12.891 3.74829L15.0785 8.0407C15.2237 8.32561 15.4964 8.5239 15.8122 8.5742L20.5671 9.33147C21.373 9.45983 21.6941 10.4474 21.1178 11.0252L17.7138 14.4383C17.4883 14.6644 17.3844 14.9846 17.4341 15.3001L18.1843 20.0635C18.3114 20.8702 17.4703 21.4808 16.7426 21.1102L12.4539 18.9254C12.1687 18.7801 11.8313 18.7801 11.5461 18.9254L7.25739 21.1102C6.52973 21.4808 5.68859 20.8702 5.81565 20.0635L6.56594 15.3001C6.61562 14.9846 6.51167 14.6644 6.28617 14.4383L2.88217 11.0252C2.3059 10.4474 2.62703 9.45983 3.43294 9.33147L8.18782 8.5742C8.50362 8.5239 8.77632 8.32561 8.92151 8.0407L11.109 3.74829Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+        </svg>
+        <strong className="card-stats__title">Card title</strong>
+        <p className="card-stats__body">Supporting copy goes here.</p>
+      </div>
+    </div>
+  </div>
 </article>
 </div>
 
@@ -1058,11 +1141,20 @@ interface CardStatsProps {
 }
 
 /** Stats card, from the brand kit. */
-export function CardStats({ className, children, title = "Card title" }: CardStatsProps) {
+export function CardStats({ className, children = "Supporting copy goes here.", title = "Card title" }: CardStatsProps) {
   return (
     <article className={className ? `card-stats ${className}` : "card-stats"}>
-      <h3 className="card-stats__title">{title}</h3>
-      <p>{children}</p>
+      <div className="card-stats__slots">
+        <div className="card-stats__slot" data-slot="header" data-led>
+          <div className="card-stats__lead card-stats__text">
+            <svg className="card-stats__icon" width={22} height={22} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M11.109 3.74829C11.48 3.02037 12.52 3.02037 12.891 3.74829L15.0785 8.0407C15.2237 8.32561 15.4964 8.5239 15.8122 8.5742L20.5671 9.33147C21.373 9.45983 21.6941 10.4474 21.1178 11.0252L17.7138 14.4383C17.4883 14.6644 17.3844 14.9846 17.4341 15.3001L18.1843 20.0635C18.3114 20.8702 17.4703 21.4808 16.7426 21.1102L12.4539 18.9254C12.1687 18.7801 11.8313 18.7801 11.5461 18.9254L7.25739 21.1102C6.52973 21.4808 5.68859 20.8702 5.81565 20.0635L6.56594 15.3001C6.61562 14.9846 6.51167 14.6644 6.28617 14.4383L2.88217 11.0252C2.3059 10.4474 2.62703 9.45983 3.43294 9.33147L8.18782 8.5742C8.50362 8.5239 8.77632 8.32561 8.92151 8.0407L11.109 3.74829Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+            </svg>
+            <strong className="card-stats__title">{title}</strong>
+            <p className="card-stats__body">{children}</p>
+          </div>
+        </div>
+      </div>
     </article>
   );
 }
@@ -1099,17 +1191,72 @@ export function CardStats({ className, children, title = "Card title" }: CardSta
   box-shadow: var(--card-stats-shadow);
 }
 
-.card-stats__title { margin: 0; font-size: inherit; font-weight: var(--card-stats-title-weight, 600); }
-.card-stats > p { margin: 0.25em 0 0; font-size: var(--card-stats-body-size, 0.875em); }
+.card-stats { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-stats:hover {
+  background: var(--card-stats-hover-background, var(--card-stats-background));
+  color: var(--card-stats-hover-color, var(--card-stats-color));
+  border-color: var(--card-stats-hover-border-color, currentColor);
+  box-shadow: var(--card-stats-hover-shadow, var(--card-stats-shadow));
+}
+.card-stats__text { display: grid; gap: 6px; align-content: start; }
+.card-stats__icon { color: var(--card-stats-icon-color, currentColor); }
+.card-stats__title { font-weight: var(--card-stats-title-weight, bolder); }
+.card-stats__body { margin: 0; white-space: pre-line; opacity: 0.8; font-size: var(--card-stats-body-size, inherit); }
+.card-stats__slots { display: flex; flex-direction: column; min-width: 0; }
+.card-stats__slots:not([data-dividers]) { gap: 12px; }
+.card-stats__slots[data-dividers] > .card-stats__slot + .card-stats__slot { border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.card-stats__slot, .card-stats__items { display: flex; flex-direction: column; min-width: 0; }
+.card-stats__items { align-items: flex-start; }
+.card-stats__slot[data-led] { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.card-stats__slot[data-led] > .card-stats__items { flex: 0 0 auto; }
+.card-stats__items[data-layout="row"] { flex-direction: row; align-items: center; }
+.card-stats__items[data-layout="grid"] { display: grid; }
+.card-stats__items[data-fill] > * { align-self: stretch; width: auto; min-width: 0; }
+.card-stats__items[data-fill][data-layout="row"] > * { flex: 1 1 0; }
+.card-stats__slot[data-led] > .card-stats__items[data-fill] { flex: 1 1 0; }
+.card-stats__lead { flex: 1 1 8rem; min-width: 0; }
 ```
 </CodeGroup>
 
 ## Panel · Primary
 
 <div className="bk-preview bk-pretext">
-<div className="panel-primary">
-  Panel title
-</div>
+<section className="panel-primary" aria-label="Panel title">
+  <div className="panel-primary__slots" data-dividers>
+    <div className="panel-primary__slot" data-slot="header" data-led style={{ gap: 8, padding: "12px 16px" }}>
+      <strong className="panel-primary__lead">Panel title</strong>
+      <div className="panel-primary__items" data-layout="row" style={{ gap: 8, alignItems: "center" }}>
+        <span className="panel-primary__header-1">
+          3
+        </span>
+      </div>
+    </div>
+    <div className="panel-primary__slot" data-slot="body" style={{ gap: 12, padding: "16px 16px" }}>
+      <div className="panel-primary__items" data-layout="column" style={{ gap: 12 }}>
+        <div className="panel-primary__body-1">
+          <span className="panel-primary__body-1__label">
+            <span>Review progress</span>
+            <span>60%</span>
+          </span>
+          <span className="panel-primary__body-1__track" role="progressbar" aria-label="Review progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
+            <span className="panel-primary__body-1__fill" style={{ inlineSize: "60%" }} />
+          </span>
+        </div>
+        <label className="panel-primary__body-2">
+          <input type="checkbox" defaultChecked />
+          Select all
+        </label>
+      </div>
+    </div>
+    <div className="panel-primary__slot" data-slot="footer" style={{ gap: 8, padding: "12px 16px" }}>
+      <div className="panel-primary__items" data-layout="row" style={{ gap: 8 }}>
+        <button className="panel-primary__footer-1" type="button">
+          + New item
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
 </div>
 
 <CodeGroup>
@@ -1119,15 +1266,47 @@ import "./PanelPrimary.css";
 
 interface PanelPrimaryProps {
   className?: string;
-  children?: React.ReactNode;
 }
 
 /** Primary panel, from the brand kit. */
-export function PanelPrimary({ className, children = "Panel title" }: PanelPrimaryProps) {
+export function PanelPrimary({ className }: PanelPrimaryProps) {
   return (
-    <div className={className ? `panel-primary ${className}` : "panel-primary"}>
-      {children}
-    </div>
+    <section className={className ? `panel-primary ${className}` : "panel-primary"} aria-label="Panel title">
+      <div className="panel-primary__slots" data-dividers>
+        <div className="panel-primary__slot" data-slot="header" data-led style={{ gap: 8, padding: "12px 16px" }}>
+          <strong className="panel-primary__lead">Panel title</strong>
+          <div className="panel-primary__items" data-layout="row" style={{ gap: 8, alignItems: "center" }}>
+            <span className="panel-primary__header-1">
+              3
+            </span>
+          </div>
+        </div>
+        <div className="panel-primary__slot" data-slot="body" style={{ gap: 12, padding: "16px 16px" }}>
+          <div className="panel-primary__items" data-layout="column" style={{ gap: 12 }}>
+            <div className="panel-primary__body-1">
+              <span className="panel-primary__body-1__label">
+                <span>Review progress</span>
+                <span>60%</span>
+              </span>
+              <span className="panel-primary__body-1__track" role="progressbar" aria-label="Review progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
+                <span className="panel-primary__body-1__fill" style={{ inlineSize: "60%" }} />
+              </span>
+            </div>
+            <label className="panel-primary__body-2">
+              <input type="checkbox" defaultChecked />
+              Select all
+            </label>
+          </div>
+        </div>
+        <div className="panel-primary__slot" data-slot="footer" style={{ gap: 8, padding: "12px 16px" }}>
+          <div className="panel-primary__items" data-layout="row" style={{ gap: 8 }}>
+            <button className="panel-primary__footer-1" type="button">
+              + New item
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 ```
@@ -1157,13 +1336,158 @@ export function PanelPrimary({ className, children = "Panel title" }: PanelPrima
   border: var(--panel-primary-border);
   box-shadow: var(--panel-primary-shadow);
 }
+
+.panel-primary { display: flex; flex-direction: column; width: 100%; min-width: 0; }
+.panel-primary__slots { display: flex; flex-direction: column; min-width: 0; }
+.panel-primary__slots:not([data-dividers]) { gap: 12px; }
+.panel-primary__slots[data-dividers] > .panel-primary__slot + .panel-primary__slot { border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.panel-primary__slot, .panel-primary__items { display: flex; flex-direction: column; min-width: 0; }
+.panel-primary__items { align-items: flex-start; }
+.panel-primary__slot[data-led] { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.panel-primary__slot[data-led] > .panel-primary__items { flex: 0 0 auto; }
+.panel-primary__items[data-layout="row"] { flex-direction: row; align-items: center; }
+.panel-primary__items[data-layout="grid"] { display: grid; }
+.panel-primary__items[data-fill] > * { align-self: stretch; width: auto; min-width: 0; }
+.panel-primary__items[data-fill][data-layout="row"] > * { flex: 1 1 0; }
+.panel-primary__slot[data-led] > .panel-primary__items[data-fill] { flex: 1 1 0; }
+.panel-primary__lead { flex: 1 1 8rem; min-width: 0; }
+
+.panel-primary__header-1 {
+  --panel-primary__header-1-background: #eef4ff;
+  --panel-primary__header-1-color: #f9eeb3;
+  --panel-primary__header-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --panel-primary__header-1-font-size: 14px;
+  --panel-primary__header-1-font-weight: 600;
+  --panel-primary__header-1-line-height: 1.25;
+  --panel-primary__header-1-padding: 8px 12px;
+  --panel-primary__header-1-radius: 999px;
+  --panel-primary__header-1-border: 1px solid #bdbcbb;
+  --panel-primary__header-1-shadow: none;
+
+  box-sizing: border-box;
+  background: var(--panel-primary__header-1-background);
+  color: var(--panel-primary__header-1-color);
+  font-family: var(--panel-primary__header-1-font-family);
+  font-size: var(--panel-primary__header-1-font-size);
+  font-weight: var(--panel-primary__header-1-font-weight);
+  line-height: var(--panel-primary__header-1-line-height);
+  padding: var(--panel-primary__header-1-padding);
+  border-radius: var(--panel-primary__header-1-radius);
+  border: var(--panel-primary__header-1-border);
+  box-shadow: var(--panel-primary__header-1-shadow);
+}
+.panel-primary__body-1 {
+  --panel-primary__body-1-background: #e4e7ec;
+  --panel-primary__body-1-color: #000000;
+  --panel-primary__body-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --panel-primary__body-1-font-size: 14px;
+  --panel-primary__body-1-font-weight: 400;
+  --panel-primary__body-1-line-height: 1.25;
+  --panel-primary__body-1-padding: 0px 0px;
+  --panel-primary__body-1-radius: 999px;
+  --panel-primary__body-1-border: none;
+  --panel-primary__body-1-shadow: none;
+  --panel-primary__body-1-accent: #2759cc;
+  --panel-primary__body-1-bar-height: 8px;
+
+  box-sizing: border-box;
+  background: var(--panel-primary__body-1-background);
+  color: var(--panel-primary__body-1-color);
+  font-family: var(--panel-primary__body-1-font-family);
+  font-size: var(--panel-primary__body-1-font-size);
+  font-weight: var(--panel-primary__body-1-font-weight);
+  line-height: var(--panel-primary__body-1-line-height);
+  padding: var(--panel-primary__body-1-padding);
+  border-radius: var(--panel-primary__body-1-radius);
+  border: var(--panel-primary__body-1-border);
+  box-shadow: var(--panel-primary__body-1-shadow);
+}
+
+.panel-primary__body-1 { display: flex; flex-direction: column; gap: 0.5em; width: 100%; min-width: 8rem; background: transparent; border-radius: 0; }
+.panel-primary__body-1__label { display: flex; gap: 1em; justify-content: space-between; }
+.panel-primary__body-1__label > span:last-child { font-variant-numeric: tabular-nums; }
+.panel-primary__body-1__track { display: block; inline-size: 100%; min-inline-size: 3rem; block-size: var(--panel-primary__body-1-bar-height, 6px); overflow: hidden; background: var(--panel-primary__body-1-background); border-radius: var(--panel-primary__body-1-radius); }
+.panel-primary__body-1__fill { display: block; block-size: 100%; background: var(--panel-primary__body-1-accent, currentColor); border-radius: inherit; }
+.panel-primary__body-2 {
+  --panel-primary__body-2-background: transparent;
+  --panel-primary__body-2-color: #000000;
+  --panel-primary__body-2-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --panel-primary__body-2-font-size: 14px;
+  --panel-primary__body-2-font-weight: 400;
+  --panel-primary__body-2-line-height: 1.25;
+  --panel-primary__body-2-padding: 0px 0px;
+  --panel-primary__body-2-radius: 0px;
+  --panel-primary__body-2-border: none;
+  --panel-primary__body-2-shadow: none;
+  --panel-primary__body-2-accent: #2759cc;
+  --panel-primary__body-2-check-size: 18px;
+
+  box-sizing: border-box;
+  background: var(--panel-primary__body-2-background);
+  color: var(--panel-primary__body-2-color);
+  font-family: var(--panel-primary__body-2-font-family);
+  font-size: var(--panel-primary__body-2-font-size);
+  font-weight: var(--panel-primary__body-2-font-weight);
+  line-height: var(--panel-primary__body-2-line-height);
+  padding: var(--panel-primary__body-2-padding);
+  border-radius: var(--panel-primary__body-2-radius);
+  border: var(--panel-primary__body-2-border);
+  box-shadow: var(--panel-primary__body-2-shadow);
+}
+
+.panel-primary__body-2 { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.panel-primary__body-2 > input { accent-color: var(--panel-primary__body-2-accent); inline-size: var(--panel-primary__body-2-check-size, 1em); block-size: var(--panel-primary__body-2-check-size, 1em); margin: 0; }
+.panel-primary__footer-1 {
+  --panel-primary__footer-1-background: #2759cc;
+  --panel-primary__footer-1-color: #ffffff;
+  --panel-primary__footer-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --panel-primary__footer-1-font-size: 14px;
+  --panel-primary__footer-1-font-weight: 600;
+  --panel-primary__footer-1-line-height: 1.25;
+  --panel-primary__footer-1-padding: 11px 18px;
+  --panel-primary__footer-1-radius: 6px;
+  --panel-primary__footer-1-border: none;
+  --panel-primary__footer-1-shadow: none;
+
+  box-sizing: border-box;
+  background: var(--panel-primary__footer-1-background);
+  color: var(--panel-primary__footer-1-color);
+  font-family: var(--panel-primary__footer-1-font-family);
+  font-size: var(--panel-primary__footer-1-font-size);
+  font-weight: var(--panel-primary__footer-1-font-weight);
+  line-height: var(--panel-primary__footer-1-line-height);
+  padding: var(--panel-primary__footer-1-padding);
+  border-radius: var(--panel-primary__footer-1-radius);
+  border: var(--panel-primary__footer-1-border);
+  box-shadow: var(--panel-primary__footer-1-shadow);
+}
+
+.panel-primary__footer-1 { cursor: pointer; }
+.panel-primary__footer-1:hover {
+  background: var(--panel-primary__footer-1-hover-background, var(--panel-primary__footer-1-background));
+  color: var(--panel-primary__footer-1-hover-color, var(--panel-primary__footer-1-color));
+  border-color: var(--panel-primary__footer-1-hover-border-color, currentColor);
+  box-shadow: var(--panel-primary__footer-1-hover-shadow, var(--panel-primary__footer-1-shadow));
+}
+.panel-primary__footer-1:focus-visible {
+  outline: 2px solid var(--panel-primary__footer-1-accent, currentColor);
+  outline-offset: 2px;
+}
 ```
 </CodeGroup>
 
 ## Progress · Primary
 
 <div className="bk-preview bk-pretext">
-<progress className="progress-primary" max={100} value={60} />
+<div className="progress-primary">
+  <span className="progress-primary__label">
+    <span>Upload progress</span>
+    <span>60%</span>
+  </span>
+  <span className="progress-primary__track" role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
+    <span className="progress-primary__fill" style={{ inlineSize: "60%" }} />
+  </span>
+</div>
 </div>
 
 <CodeGroup>
@@ -1178,7 +1502,15 @@ interface ProgressPrimaryProps {
 /** Primary progress, from the brand kit. */
 export function ProgressPrimary({ className }: ProgressPrimaryProps) {
   return (
-    <progress className={className ? `progress-primary ${className}` : "progress-primary"} max={100} value={60} />
+    <div className={className ? `progress-primary ${className}` : "progress-primary"}>
+      <span className="progress-primary__label">
+        <span>Upload progress</span>
+        <span>60%</span>
+      </span>
+      <span className="progress-primary__track" role="progressbar" aria-label="Upload progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={60}>
+        <span className="progress-primary__fill" style={{ inlineSize: "60%" }} />
+      </span>
+    </div>
   );
 }
 ```
@@ -1211,10 +1543,11 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
   box-shadow: var(--progress-primary-shadow);
 }
 
-.progress-primary { appearance: none; inline-size: 100%; block-size: var(--progress-primary-bar-height, 6px); padding: 0; border: 0; }
-.progress-primary::-webkit-progress-bar { background: var(--progress-primary-background); border-radius: var(--progress-primary-radius); }
-.progress-primary::-webkit-progress-value { background: var(--progress-primary-accent); border-radius: var(--progress-primary-radius); }
-.progress-primary::-moz-progress-bar { background: var(--progress-primary-accent); border-radius: var(--progress-primary-radius); }
+.progress-primary { display: flex; flex-direction: column; gap: 0.5em; width: 100%; min-width: 8rem; background: transparent; border-radius: 0; }
+.progress-primary__label { display: flex; gap: 1em; justify-content: space-between; }
+.progress-primary__label > span:last-child { font-variant-numeric: tabular-nums; }
+.progress-primary__track { display: block; inline-size: 100%; min-inline-size: 3rem; block-size: var(--progress-primary-bar-height, 6px); overflow: hidden; background: var(--progress-primary-background); border-radius: var(--progress-primary-radius); }
+.progress-primary__fill { display: block; block-size: 100%; background: var(--progress-primary-accent, currentColor); border-radius: inherit; }
 ```
 </CodeGroup>
 
@@ -1222,8 +1555,14 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
 
 <div className="bk-preview bk-pretext">
 <article className="card-plain">
-  <div role="heading" aria-level={3} className="card-plain__title">Card title</div>
-  <p>Supporting copy goes here.</p>
+  <div className="card-plain__slots">
+    <div className="card-plain__slot" data-slot="header" data-led>
+      <div className="card-plain__lead card-plain__text">
+        <strong className="card-plain__title">Card title</strong>
+        <p className="card-plain__body">Supporting copy goes here.</p>
+      </div>
+    </div>
+  </div>
 </article>
 </div>
 
@@ -1239,11 +1578,17 @@ interface CardPlainProps {
 }
 
 /** Plain card, from the brand kit. */
-export function CardPlain({ className, children, title = "Card title" }: CardPlainProps) {
+export function CardPlain({ className, children = "Supporting copy goes here.", title = "Card title" }: CardPlainProps) {
   return (
     <article className={className ? `card-plain ${className}` : "card-plain"}>
-      <h3 className="card-plain__title">{title}</h3>
-      <p>{children}</p>
+      <div className="card-plain__slots">
+        <div className="card-plain__slot" data-slot="header" data-led>
+          <div className="card-plain__lead card-plain__text">
+            <strong className="card-plain__title">{title}</strong>
+            <p className="card-plain__body">{children}</p>
+          </div>
+        </div>
+      </div>
     </article>
   );
 }
@@ -1259,7 +1604,7 @@ export function CardPlain({ className, children, title = "Card title" }: CardPla
   --card-plain-line-height: 1.25;
   --card-plain-padding: 0px 0px;
   --card-plain-radius: 0px;
-  --card-plain-border: none;
+  --card-plain-border: 1px solid transparent;
   --card-plain-shadow: none;
   --card-plain-body-size: 14px;
 
@@ -1276,8 +1621,30 @@ export function CardPlain({ className, children, title = "Card title" }: CardPla
   box-shadow: var(--card-plain-shadow);
 }
 
-.card-plain__title { margin: 0; font-size: inherit; font-weight: var(--card-plain-title-weight, 600); }
-.card-plain > p { margin: 0.25em 0 0; font-size: var(--card-plain-body-size, 0.875em); }
+.card-plain { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-plain:hover {
+  background: var(--card-plain-hover-background, var(--card-plain-background));
+  color: var(--card-plain-hover-color, var(--card-plain-color));
+  border-color: var(--card-plain-hover-border-color, currentColor);
+  box-shadow: var(--card-plain-hover-shadow, var(--card-plain-shadow));
+}
+.card-plain__text { display: grid; gap: 6px; align-content: start; }
+.card-plain__icon { color: var(--card-plain-icon-color, currentColor); }
+.card-plain__title { font-weight: var(--card-plain-title-weight, bolder); }
+.card-plain__body { margin: 0; white-space: pre-line; opacity: 0.8; font-size: var(--card-plain-body-size, inherit); }
+.card-plain__slots { display: flex; flex-direction: column; min-width: 0; }
+.card-plain__slots:not([data-dividers]) { gap: 12px; }
+.card-plain__slots[data-dividers] > .card-plain__slot + .card-plain__slot { border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.card-plain__slot, .card-plain__items { display: flex; flex-direction: column; min-width: 0; }
+.card-plain__items { align-items: flex-start; }
+.card-plain__slot[data-led] { flex-direction: row; flex-wrap: wrap; align-items: center; }
+.card-plain__slot[data-led] > .card-plain__items { flex: 0 0 auto; }
+.card-plain__items[data-layout="row"] { flex-direction: row; align-items: center; }
+.card-plain__items[data-layout="grid"] { display: grid; }
+.card-plain__items[data-fill] > * { align-self: stretch; width: auto; min-width: 0; }
+.card-plain__items[data-fill][data-layout="row"] > * { flex: 1 1 0; }
+.card-plain__slot[data-led] > .card-plain__items[data-fill] { flex: 1 1 0; }
+.card-plain__lead { flex: 1 1 8rem; min-width: 0; }
 ```
 </CodeGroup>
 

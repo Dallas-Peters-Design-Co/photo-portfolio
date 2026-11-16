@@ -2,7 +2,9 @@ import {
   type ComponentSource,
   componentSource,
 } from "../../config/componentSource.js";
+import { withIconDrawings } from "../../config/componentSourceParts.js";
 import { styleSample } from "../../config/conceptDefaults.js";
+import type { ConceptIconSvg } from "../../config/conceptIcon.js";
 import {
   adobeFontCss,
   fontshareFontCss,
@@ -10,6 +12,7 @@ import {
   parseFontRef,
 } from "../../config/fontRef.js";
 import type { ReviewConceptElement } from "../../config/reviewConcept.js";
+import { ICON_COMPONENTS } from "../../src/cms/iconMap.js";
 import { loadKits } from "./brandKitStore.js";
 import type { getSql } from "./db.js";
 
@@ -42,6 +45,10 @@ const WORD = /[a-z0-9]+/g;
 
 const slugOf = (name: string): string =>
   name.toLowerCase().match(WORD)?.join("-") || "brand";
+
+/** The site's icon set, by name: what the app draws a named icon with. */
+const iconDrawing = (name: string): ConceptIconSvg | undefined =>
+  ICON_COMPONENTS[name] as unknown as ConceptIconSvg | undefined;
 
 /** The stylesheet that serves an element's brand typeface, if it has one. */
 const fontCssOf = (element: ReviewConceptElement): string | null => {
@@ -78,7 +85,10 @@ export const componentDocs = async (
       const classes = new Set<string>();
       const fonts = new Set<string>();
       const components = kit.doc.componentStyles.map((style) => {
-        const sample = styleSample(style, kit.resolvedDoc);
+        const sample = withIconDrawings(
+          styleSample(style, kit.resolvedDoc),
+          iconDrawing
+        );
         const font = fontCssOf(sample);
         if (font) {
           fonts.add(font);

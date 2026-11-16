@@ -1,5 +1,17 @@
+import {
+  cardMarkup,
+  checkboxMarkup,
+  type Draw,
+  escapeJsx,
+  HOVER_CSS,
+  type Markup,
+  panelMarkup,
+  progressMarkup,
+  tabsMarkup,
+} from "./componentSourceParts.js";
 import { conceptFontStack } from "./conceptFont.js";
-import { shadowCss } from "./conceptShadow.js";
+import { takesBox } from "./conceptKinds.js";
+import { shadowCss, shadowOf } from "./conceptShadow.js";
 import { DEFAULT_BORDERS, tableOf } from "./conceptTable.js";
 import {
   type ReviewConceptElement,
@@ -50,12 +62,26 @@ const slugOf = (kind: string, name: string): string[] => {
 const px = (n: number | undefined): string | undefined =>
   n === undefined ? undefined : `${n}px`;
 
+/** Kinds outlined by default, and how strongly (percent of the text colour). */
+const FAINT: Partial<Record<string, number>> = {
+  card: 30,
+  input: 25,
+  panel: 30,
+  select: 25,
+  textarea: 25,
+};
+
 /** The look as custom properties, in a fixed order; unset ones are left out. */
 const tokensOf = (el: ReviewConceptElement): [string, string][] => {
-  const border =
-    el.borderColor && el.borderColor !== "transparent"
-      ? `${el.borderWidth ?? 1}px solid ${el.borderColor}`
-      : "none";
+  // As the app draws the box: a border and shadow only on kinds that take
+  // one, the form fields and cards outlined faintly when given no colour.
+  const boxed = takesBox(el.kind);
+  let border = "none";
+  if (boxed && el.borderColor) {
+    border = `${el.borderWidth ?? 1}px solid ${el.borderColor}`;
+  } else if (boxed && FAINT[el.kind]) {
+    border = `1px solid color-mix(in srgb, currentColor ${FAINT[el.kind]}%, transparent)`;
+  }
   const entries: [string, string | undefined][] = [
     ["background", el.background],
     ["color", el.color],
@@ -66,7 +92,7 @@ const tokensOf = (el: ReviewConceptElement): [string, string][] => {
     ["padding", `${el.paddingY}px ${el.paddingX}px`],
     ["radius", px(el.radius)],
     ["border", border],
-    ["shadow", el.shadow ? shadowCss(el.shadow) : "none"],
+    ["shadow", boxed ? shadowCss(shadowOf(el)) : "none"],
     ["accent", el.accentColor],
     ["check-size", px(el.checkSize)],
     ["bar-height", px(el.barHeight)],
@@ -82,26 +108,6 @@ const tokensOf = (el: ReviewConceptElement): [string, string][] => {
   return entries.filter((e): e is [string, string] => e[1] !== undefined);
 };
 
-/** Per kind: the element, its attributes and what goes inside. */
-interface Markup {
-  attrs?: string;
-  /** Inner JSX, indented by the caller. */
-  body?: string;
-  /** Extra CSS rules after the base rule; `&` is the block class. */
-  css?: string;
-  /** Children are passed through instead of a fixed body. */
-  passChildren?: boolean;
-  props?: string;
-  tag: string;
-}
-
-const HOVER_CSS = `&:hover {
-  background: var(--&-hover-background, var(--&-background));
-  color: var(--&-hover-color, var(--&-color));
-  border-color: var(--&-hover-border-color, currentColor);
-  box-shadow: var(--&-hover-shadow, var(--&-shadow));
-}`;
-
 const FOCUS_CSS = `&:focus-visible {
   outline: 2px solid var(--&-accent, currentColor);
   outline-offset: 2px;
@@ -113,20 +119,20 @@ const tableMarkup = (el: ReviewConceptElement): Markup => {
   const table = tableOf(el);
   const borders = table.borders ?? DEFAULT_BORDERS;
   const head = table.columns
-    .map((c) => `        <th scope="col">${c.label}</th>`)
+    .map((c) => `      <th scope="col">${escapeJsx(c.label)}</th>`)
     .join("\n");
   const rows = table.rows
     .slice(0, 3)
     .map(
       (row) =>
-        `      <tr>\n${table.columns
-          .map((_, i) => `        <td>${row[i] ?? ""}</td>`)
-          .join("\n")}\n      </tr>`
+        `    <tr>\n${table.columns
+          .map((_, i) => `      <td>${escapeJsx(row[i] ?? "")}</td>`)
+          .join("\n")}\n    </tr>`
     )
     .join("\n");
   const line = `${borders.width}px solid ${borders.color ?? "color-mix(in srgb, currentColor 14%, transparent)"}`;
   return {
-    body: `  <thead>\n    <tr>\n${head}\n    </tr>\n  </thead>\n  <tbody>\n${rows}\n  </tbody>`,
+    body: `<thead>\n  <tr>\n${head}\n  </tr>\n</thead>\n<tbody>\n${rows}\n</tbody>`,
     css: `& { border-collapse: collapse; padding: 0; }
 & th, & td { padding: var(--&-padding); text-align: start; ${borders.lines === "none" ? "" : `border-bottom: ${line};`} }
 & thead { background: ${table.header?.background ?? "transparent"}; color: ${table.header?.color ?? "inherit"}; }`,
@@ -134,7 +140,10 @@ const tableMarkup = (el: ReviewConceptElement): Markup => {
   };
 };
 
-const markupOf = (el: ReviewConceptElement): Markup => {
+const optionsOf = (el: ReviewConceptElement, fallback: string[]): string[] =>
+  el.options?.length ? el.options : fallback;
+
+const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
   const byKind: Partial<Record<ReviewConceptElementKind, () => Markup>> = {
     badge: () => ({ passChildren: true, tag: "span" }),
     button: () => ({
@@ -144,17 +153,8 @@ const markupOf = (el: ReviewConceptElement): Markup => {
       props: "onClick",
       tag: "button",
     }),
-    card: () => ({
-      body: '  <h3 className="&__title">{title}</h3>\n  <p>{children}</p>',
-      css: "&__title { margin: 0; font-size: inherit; font-weight: var(--&-title-weight, 600); }\n& > p { margin: 0.25em 0 0; font-size: var(--&-body-size, 0.875em); }",
-      props: "title",
-      tag: "article",
-    }),
-    checkbox: () => ({
-      body: `  <input type="checkbox" />\n  {children}`,
-      css: "& { display: inline-flex; align-items: center; gap: 0.5em; cursor: pointer; }\n& > input { accent-color: var(--&-accent); inline-size: var(--&-check-size, 1em); block-size: var(--&-check-size, 1em); margin: 0; }",
-      tag: "label",
-    }),
+    card: () => cardMarkup(el, draw),
+    checkbox: () => checkboxMarkup(el),
     dialog: () => ({
       attrs: 'role="dialog" aria-modal="true"',
       passChildren: true,
@@ -178,20 +178,20 @@ const markupOf = (el: ReviewConceptElement): Markup => {
     }),
     menu: () => ({
       attrs: 'role="menu"',
-      body: (el.options ?? ["First", "Second"])
-        .map((o) => `  <button role="menuitem" type="button">${o}</button>`)
+      body: optionsOf(el, ["First", "Second"])
+        .map(
+          (o) =>
+            `<button role="menuitem" type="button">${escapeJsx(o)}</button>`
+        )
         .join("\n"),
       css: "& { display: grid; }\n& > button { all: unset; cursor: pointer; padding: var(--&-padding); }",
       tag: "div",
     }),
-    progress: () => ({
-      attrs: `max={100} value={${el.progress ?? 60}}`,
-      css: "& { appearance: none; inline-size: 100%; block-size: var(--&-bar-height, 6px); padding: 0; border: 0; }\n&::-webkit-progress-bar { background: var(--&-background); border-radius: var(--&-radius); }\n&::-webkit-progress-value { background: var(--&-accent); border-radius: var(--&-radius); }\n&::-moz-progress-bar { background: var(--&-accent); border-radius: var(--&-radius); }",
-      tag: "progress",
-    }),
+    panel: () => panelMarkup(el, draw),
+    progress: () => progressMarkup(el),
     select: () => ({
-      body: (el.options ?? ["First", "Second"])
-        .map((o) => `  <option>${o}</option>`)
+      body: optionsOf(el, ["First", "Second"])
+        .map((o) => `<option>${escapeJsx(o)}</option>`)
         .join("\n"),
       css: FOCUS_CSS,
       tag: "select",
@@ -202,17 +202,7 @@ const markupOf = (el: ReviewConceptElement): Markup => {
       tag: "div",
     }),
     table: () => tableMarkup(el),
-    tabs: () => ({
-      attrs: 'role="tablist"',
-      body: (el.options ?? ["One", "Two"])
-        .map(
-          (o, i) =>
-            `  <button role="tab" type="button" aria-selected={${i === 0}}>${o}</button>`
-        )
-        .join("\n"),
-      css: "& { display: flex; gap: 1em; }\n& > [role=tab] { all: unset; cursor: pointer; }\n& > [aria-selected=true] { box-shadow: inset 0 -2px 0 var(--&-accent, currentColor); }",
-      tag: "div",
-    }),
+    tabs: () => tabsMarkup(el),
     tag: () => ({ passChildren: true, tag: "span" }),
     text: () => ({ passChildren: true, tag: "p" }),
     textarea: () => ({
@@ -232,13 +222,84 @@ const markupOf = (el: ReviewConceptElement): Markup => {
   }) satisfies Markup;
 };
 
-/** Text set inside JSX: braces and angle brackets would be read as code. */
-const escapeJsx = (value: string): string =>
-  value.replace(/[{}<>]/g, (c) => `{${JSON.stringify(c)}}`);
-
 /** Default text for components that take children, shown in the usage line. */
 const sampleText = (el: ReviewConceptElement): string =>
   el.text.split("\n")[0]?.trim() || "Label";
+
+/** The element's CSS under a class: its tokens, the base rule, its own rules. */
+const cssOf = (
+  element: ReviewConceptElement,
+  markup: Markup,
+  cls: string
+): string => {
+  const own = new Map(markup.tokens ?? []);
+  const tokens = [
+    ...tokensOf(element).map(([k, v]): [string, string] => [
+      k,
+      own.get(k) ?? v,
+    ]),
+    ...[...own].filter(([k]) => !tokensOf(element).some(([t]) => t === k)),
+  ];
+  const vars = tokens.map(([k, v]) => `  --${cls}-${k}: ${v};`);
+  const base = [
+    "box-sizing: border-box;",
+    "background: var(--&-background);",
+    "color: var(--&-color);",
+    "font-family: var(--&-font-family);",
+    "font-size: var(--&-font-size);",
+    "font-weight: var(--&-font-weight);",
+    "line-height: var(--&-line-height);",
+    "padding: var(--&-padding);",
+    "border-radius: var(--&-radius);",
+    "border: var(--&-border);",
+    "box-shadow: var(--&-shadow);",
+  ].map((line) => `  ${line.replaceAll("--&-", `--${cls}-`)}`);
+  // `&` stands for the block: `--&-x` is a token, a bare `&` is the selector.
+  const extra = (markup.css ?? "")
+    .replaceAll("--&-", `--${cls}-`)
+    .replaceAll("&", `.${cls}`);
+  const children = (markup.childCss ?? "").replaceAll("@@", cls);
+  return [
+    `.${cls} {\n${vars.join("\n")}\n\n${base.join("\n")}\n}`,
+    extra,
+    children,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+};
+
+/** The inner JSX with its props filled in from the sample, for a page. */
+const literalInner = (element: ReviewConceptElement, inner: string): string => {
+  const { body, title } = splitCardText(element.text);
+  const isCard = element.kind === "card";
+  return inner
+    .replaceAll(
+      "{children}",
+      escapeJsx(isCard ? body : body || sampleText(element))
+    )
+    .replaceAll("{title}", escapeJsx(title || sampleText(element)));
+};
+
+const wrap = (tag: string, attrs: string, inner?: string): string =>
+  inner
+    ? `<${tag} ${attrs}>\n${inner
+        .split("\n")
+        .map((l) => (l ? `  ${l}` : l))
+        .join("\n")}\n</${tag}>`
+    : `<${tag} ${attrs} />`;
+
+/** An element drawn once, statically, under a class: for previews and slots. */
+const drawStatic: Draw = (element, cls) => {
+  const markup = markupOf(element, drawStatic);
+  const inner = markup.passChildren
+    ? escapeJsx(element.text || sampleText(element))
+    : markup.body && literalInner(element, markup.body);
+  const attrs = [`className="${cls}"`, ...(markup.attrs ? [markup.attrs] : [])];
+  return {
+    css: cssOf(element, markup, cls),
+    jsx: wrap(markup.tag, attrs.join(" "), inner?.replaceAll("@@", cls)),
+  };
+};
 
 export const componentSource = (
   element: ReviewConceptElement,
@@ -247,35 +308,19 @@ export const componentSource = (
   const slug = slugOf(element.kind, styleName);
   const className = slug.join("-");
   const name = pascal(slug);
-  const markup = markupOf(element);
-  const tokens = tokensOf(element);
-
-  const vars = tokens.map(([k, v]) => `  --${className}-${k}: ${v};`);
-  const base = [
-    "  box-sizing: border-box;",
-    `  background: var(--${className}-background);`,
-    `  color: var(--${className}-color);`,
-    `  font-family: var(--${className}-font-family);`,
-    `  font-size: var(--${className}-font-size);`,
-    `  font-weight: var(--${className}-font-weight);`,
-    `  line-height: var(--${className}-line-height);`,
-    `  padding: var(--${className}-padding);`,
-    `  border-radius: var(--${className}-radius);`,
-    `  border: var(--${className}-border);`,
-    `  box-shadow: var(--${className}-shadow);`,
-  ];
-  // `&` stands for the block: `--&-x` is a token, a bare `&` is the selector.
-  const extra = (markup.css ?? "")
-    .replaceAll("--&-", `--${className}-`)
-    .replaceAll("&", `.${className}`);
-  const css = `.${className} {\n${vars.join("\n")}\n\n${base.join("\n")}\n}\n${extra ? `\n${extra}\n` : ""}`;
+  const markup = markupOf(element, drawStatic);
+  const { css, jsx: preview } = drawStatic(element, className);
+  if (markup.tsx) {
+    return { className, css, name, preview, tsx: markup.tsx(name, className) };
+  }
 
   const props = [
     "className",
     ...(markup.passChildren || markup.body?.includes("{children}")
       ? ["children"]
       : []),
-    ...(markup.props ? markup.props.split(",") : []),
+    ...(markup.body?.includes("{title}") ? ["title"] : []),
+    ...(markup.props === "onClick" ? ["onClick"] : []),
   ];
   const propTypes = props
     .map((p) => {
@@ -291,24 +336,24 @@ export const componentSource = (
   const attrs = [
     `className={className ? \`${className} \${className}\` : "${className}"}`,
     ...(markup.attrs ? [markup.attrs] : []),
-    ...(markup.props?.includes("onClick") ? ["onClick={onClick}"] : []),
+    ...(props.includes("onClick") ? ["onClick={onClick}"] : []),
   ].join(" ");
   const inner = markup.passChildren
-    ? "  {children}"
-    : markup.body?.replaceAll("&", className);
-  const jsx = inner
-    ? `    <${markup.tag} ${attrs}>\n${inner
-        .split("\n")
-        .map((l) => `    ${l}`)
-        .join("\n")}\n    </${markup.tag}>`
-    : `    <${markup.tag} ${attrs} />`;
+    ? "{children}"
+    : markup.body?.replaceAll("@@", className);
+  const jsx = wrap(markup.tag, attrs, inner)
+    .split("\n")
+    .map((l) => (l ? `    ${l}` : l))
+    .join("\n");
+  const { body, title } = splitCardText(element.text);
   const defaults = props
     .map((p) => {
-      if (p === "children" && markup.passChildren) {
-        return `children = ${quote(sampleText(element))}`;
+      if (p === "children") {
+        const text = element.kind === "card" ? body : sampleText(element);
+        return text ? `children = ${quote(text)}` : p;
       }
       if (p === "title") {
-        return `title = ${quote(sampleText(element))}`;
+        return `title = ${quote(title || sampleText(element))}`;
       }
       return p;
     })
@@ -328,21 +373,6 @@ ${jsx}
   );
 }
 `;
-  const { body: cardBody, title: cardTitle } = splitCardText(element.text);
-  // A heading in a docs page would join its table of contents; the preview
-  // says it is one to a screen reader instead.
-  const previewInner = inner
-    ?.replaceAll("<h3 ", '<div role="heading" aria-level={3} ')
-    .replaceAll("</h3>", "</div>")
-    .replaceAll("{children}", escapeJsx(cardBody || sampleText(element)))
-    .replaceAll("{title}", escapeJsx(cardTitle || sampleText(element)));
-  const previewAttrs = [
-    `className="${className}"`,
-    ...(markup.attrs ? [markup.attrs] : []),
-  ].join(" ");
-  const preview = previewInner
-    ? `<${markup.tag} ${previewAttrs}>\n${previewInner}\n</${markup.tag}>`
-    : `<${markup.tag} ${previewAttrs} />`;
   return { className, css, name, preview, tsx };
 };
 

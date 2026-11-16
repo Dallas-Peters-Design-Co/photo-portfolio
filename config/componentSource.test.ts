@@ -60,19 +60,74 @@ describe("componentSource", () => {
   });
 });
 
-describe("componentSource card", () => {
-  it("styles the title by class, and keeps it out of a page's headings in the preview", () => {
+describe("componentSource cards, panels and tabs", () => {
+  const one = (raw: Record<string, unknown>) =>
+    cleanConcept({ elements: [raw] }).elements[0] as ReviewConceptElement;
+
+  it("leads a card with its icon, title and body, as the app does", () => {
     const source = componentSource(
-      cleanConcept({
-        elements: [{ kind: "card", text: "Title\nBody" }],
-      }).elements[0] as ReviewConceptElement,
+      one({
+        iconName: "StarIcon",
+        iconSvg: [["path", { d: "M1 1", stroke: "currentColor" }]],
+        kind: "card",
+        text: "Title\nBody",
+      }),
       "Plain"
     );
     expect(source.tsx).toContain(
-      '<h3 className="card-plain__title">{title}</h3>'
+      '<strong className="card-plain__title">{title}</strong>'
     );
+    expect(source.tsx).toContain('<svg className="card-plain__icon"');
     expect(source.css).toContain(".card-plain__title {");
     expect(source.preview).not.toContain("<h3");
-    expect(source.preview).toContain('role="heading"');
+    expect(source.preview).toContain(">Title</strong>");
+  });
+
+  it("draws a panel's slot elements with their own classes and CSS", () => {
+    const source = componentSource(
+      one({
+        dividers: true,
+        kind: "panel",
+        slots: {
+          footer: {
+            elements: [{ background: "#2759cc", kind: "button", text: "Go" }],
+            layout: "row",
+          },
+        },
+        text: "Panel title",
+      }),
+      "Primary"
+    );
+    expect(source.preview).toContain("data-dividers");
+    expect(source.preview).toContain('className="panel-primary__footer-1"');
+    expect(source.css).toContain(
+      "--panel-primary__footer-1-background: #2759cc;"
+    );
+    expect(source.preview).not.toContain("@@");
+    expect(source.css).not.toContain("@@");
+  });
+
+  it("gives tabs their indicator, colours and height, and keeps the open tab", () => {
+    const source = componentSource(
+      one({
+        kind: "tabs",
+        options: ["Overview", "Settings"],
+        tabLook: {
+          activeColor: "#00289d",
+          height: 52,
+          indicatorColor: "#00289d",
+          indicatorSize: 5,
+        },
+        text: "Overview",
+      }),
+      "Primary"
+    );
+    expect(source.css).toContain("--tabs-primary-tab-height: 52px;");
+    expect(source.css).toContain("--tabs-primary-tab-indicator-size: 5px;");
+    expect(source.css).toContain(
+      '.tabs-primary__tab[aria-current="page"]::after'
+    );
+    expect(source.preview).toContain('aria-current="page">Overview</button>');
+    expect(source.tsx).toContain("useState");
   });
 });

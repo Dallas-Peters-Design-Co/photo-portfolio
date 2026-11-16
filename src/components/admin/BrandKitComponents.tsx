@@ -6,10 +6,12 @@ import {
   componentSource,
   componentSourceText,
 } from "../../../config/componentSource.js";
+import { withIconDrawings } from "../../../config/componentSourceParts.js";
 import {
   createConceptElement,
   styleSample,
 } from "../../../config/conceptDefaults.js";
+import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import {
   type ConceptStyle,
   lookOf,
@@ -30,8 +32,17 @@ const copySource = async (
   sample: Parameters<typeof componentSource>[0],
   name: string
 ) => {
-  const source = componentSource(sample, name);
   try {
+    // Icons saved by name only are drawn from the site's set, as the app
+    // draws them; loaded here, on demand, like everywhere else.
+    const { ICON_COMPONENTS } = await import("../../cms/iconMap");
+    const source = componentSource(
+      withIconDrawings(
+        sample,
+        (icon) => ICON_COMPONENTS[icon] as unknown as ConceptIconSvg | undefined
+      ),
+      name
+    );
     await navigator.clipboard.writeText(componentSourceText(source));
     toast.success(`Copied ${source.name}.tsx and ${source.name}.css`);
   } catch {

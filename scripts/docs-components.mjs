@@ -61,14 +61,22 @@ const mdxText = (value) =>
   value.replace(/[{}<>]/g, (c) => `&#${c.charCodeAt(0)};`);
 const yamlString = (value) => JSON.stringify(value);
 
-/** Every rule of a kit's CSS, scoped under its page's wrapper class. */
+/**
+ * A kit's CSS with every selector put under its page's wrapper class, once
+ * per selector: `.a > .b` becomes `.bk-kit .a > .b`, not a prefix on each.
+ * The generated CSS is flat rules only, so a rule's selector is the text
+ * between one block and the next brace.
+ */
 const scopedCss = (kit) =>
   kit.components
     .map(({ source }) =>
-      source.css.replaceAll(
-        `.${source.className}`,
-        `.bk-${kit.slug} .${source.className}`
-      )
+      source.css.replace(/(^|})(\s*)([^{}]+)\{/g, (_, end, space, selector) => {
+        const scoped = selector
+          .split(",")
+          .map((part) => `.bk-${kit.slug} ${part.trim()}`)
+          .join(", ");
+        return `${end}${space}${scoped} {`;
+      })
     )
     .join("\n");
 
@@ -151,6 +159,11 @@ const setNavigation = (kits) => {
       ],
       tab: TAB,
     });
+  }
+  // Written only when the tab changed: the formatter lays this file out its
+  // own way, and rewriting it unchanged would commit on every run.
+  if (JSON.stringify(tabs) === JSON.stringify(config.navigation.tabs)) {
+    return;
   }
   config.navigation.tabs = tabs;
   writeFileSync(CONFIG, `${JSON.stringify(config, null, 2)}\n`);
