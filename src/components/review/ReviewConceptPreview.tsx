@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { useEffect } from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
+import { everyElement } from "../../../config/conceptSlots.js";
 import {
   ALIGN_ITEMS,
   type ReviewConcept,
@@ -19,7 +20,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     if (concept.fontId) {
       void loadFont(concept.fontId as FontId);
     }
-    for (const element of concept.elements) {
+    for (const element of everyElement(concept.elements)) {
       if (element.fontRef) {
         loadFontRef(element.fontRef);
       }

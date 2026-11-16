@@ -2,16 +2,11 @@ import { Plus, Trash2 } from "lucide-react";
 import { useEffect } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
-import {
-  type ConceptStyle,
-  linkStyle,
-  styleElement,
-  withOverrides,
-} from "../../../config/conceptStyle.js";
+import { everyElement } from "../../../config/conceptSlots.js";
+import { styleElement } from "../../../config/conceptStyle.js";
 import type {
   ReviewConcept,
   ReviewConceptElement,
-  ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
 import {
   ALIGN_ITEMS,
@@ -21,24 +16,15 @@ import { loadFontRef } from "../../theme/remoteFonts";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import {
   ConceptField,
   ConceptSelect,
-  ELEMENT_KINDS,
-  kindLabel,
   NumberField,
   optionsOf,
 } from "./ConceptControls";
+import { ConceptElementList } from "./ConceptElementList";
 import { ConceptFontField } from "./ConceptFontField";
-import {
-  addConceptElement,
-  ConceptColorField,
-  createConcept,
-  createConceptElement,
-  duplicateConceptElement,
-} from "./ReviewConceptBrand";
-import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
+import { ConceptColorField, createConcept } from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
 const DIRECTIONS = optionsOf([
@@ -72,58 +58,11 @@ function ConceptCard({
   const setElements = (next: ReviewConceptElement[]) =>
     onChange({ ...concept, elements: next });
 
-  const updateElement = (id: string, patch: Partial<ReviewConceptElement>) =>
-    setElements(
-      elements.map((element) =>
-        element.id === id
-          ? { ...element, ...withOverrides(element, patch) }
-          : element
-      )
-    );
-
-  const linkElement = (id: string, style: ConceptStyle | null) =>
-    setElements(
-      elements.map((element) =>
-        element.id === id ? linkStyle(element, style) : element
-      )
-    );
-
-  /** A kind ("button"), or a kit style ("style:<id>") to add already linked. */
-  const addElement = (choice: string) => {
-    const style = styles.find((s) => `style:${s.id}` === choice);
-    setElements(
-      style
-        ? [
-            ...elements,
-            linkStyle(createConceptElement(style.kind, brandDoc), style),
-          ]
-        : addConceptElement(
-            elements,
-            choice as ReviewConceptElementKind,
-            brandDoc
-          )
-    );
-  };
-  const addGroups = [
-    { label: "Components", options: ELEMENT_KINDS },
-    ...(styles.length > 0
-      ? [
-          {
-            label: "From the brand kit",
-            options: styles.map((style) => ({
-              label: `${kindLabel(style.kind)} · ${style.name}`,
-              value: `style:${style.id}`,
-            })),
-          },
-        ]
-      : []),
-  ];
-
   useEffect(() => {
     if (concept.fontRef) {
       loadFontRef(concept.fontRef);
     }
-    for (const element of concept.elements) {
+    for (const element of everyElement(concept.elements)) {
       if (element.fontRef) {
         loadFontRef(element.fontRef);
       }
@@ -253,36 +192,12 @@ function ConceptCard({
             />
           </div>
 
-          <div className="review-concepts__elements">
-            <div className="review-concepts__element-head">
-              <Label>Elements</Label>
-              <div className="review-concepts__add-actions">
-                <ConceptSelect
-                  groups={addGroups}
-                  label="Add a component"
-                  onChange={addElement}
-                  placeholder="+ Add component"
-                  value=""
-                />
-              </div>
-            </div>
-            {elements.map((element) => (
-              <ReviewConceptElementFields
-                brandDoc={brandDoc}
-                element={element}
-                key={element.id}
-                onChange={(patch) => updateElement(element.id, patch)}
-                onDuplicate={() =>
-                  setElements(duplicateConceptElement(elements, element.id))
-                }
-                onLink={(style) => linkElement(element.id, style)}
-                onRemove={() =>
-                  setElements(elements.filter((item) => item.id !== element.id))
-                }
-                styles={styles.filter((style) => style.kind === element.kind)}
-              />
-            ))}
-          </div>
+          <ConceptElementList
+            brandDoc={brandDoc}
+            elements={elements}
+            label="Elements"
+            onChange={setElements}
+          />
         </div>
       </div>
     </article>

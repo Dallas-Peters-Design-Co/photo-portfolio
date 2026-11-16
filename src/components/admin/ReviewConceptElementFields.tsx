@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { takesHover } from "../../../config/conceptHover.js";
 import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
+import { hasSlots, MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
@@ -16,6 +17,7 @@ import {
   optionsOf,
 } from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
+import { ConceptSlotFields } from "./ConceptSlotFields";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import {
@@ -304,6 +306,7 @@ function ElementBar({
 
 export function ReviewConceptElementFields({
   brandDoc,
+  depth = 0,
   element,
   lookOnly = false,
   onChange,
@@ -313,6 +316,8 @@ export function ReviewConceptElementFields({
   styles = [],
 }: {
   brandDoc?: BrandKitDoc | null;
+  /** How many slots deep the element sits; past the limit it has none. */
+  depth?: number;
   element: ReviewConceptElement;
   /**
    * The brand kit's style editor: only the look (type, box, border, shadow,
@@ -327,7 +332,8 @@ export function ReviewConceptElementFields({
   /** The kit styles this element could follow: those of its kind. */
   styles?: ConceptStyle[];
 }) {
-  const [open, setOpen] = useState(true);
+  // Elements inside a slot start folded, so a panel's list stays short.
+  const [open, setOpen] = useState(depth === 0);
   const bodyId = useId();
   return (
     <section aria-label={element.kind} className="review-concepts__element">
@@ -457,6 +463,14 @@ export function ReviewConceptElementFields({
                 value={element.borderWidth ?? 1}
               />
             </ConceptGroup>
+          ) : null}
+          {hasSlots(element.kind) && depth < MAX_SLOT_DEPTH && !lookOnly ? (
+            <ConceptSlotFields
+              brandDoc={brandDoc}
+              depth={depth}
+              element={element}
+              onChange={onChange}
+            />
           ) : null}
         </div>
       ) : null}

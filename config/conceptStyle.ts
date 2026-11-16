@@ -1,3 +1,4 @@
+import { mapSlotElements } from "./conceptSlots.js";
 import {
   CELL_STYLE_KIND,
   type ConceptCellLook,
@@ -218,12 +219,24 @@ export const applyColumnStyles = (
   return { ...element, table: { ...element.table, columns } };
 };
 
-/** An element as the kit draws it: its own style, then its columns'. */
+/**
+ * An element as the kit draws it: its own style, then its columns', then
+ * each element in its slots.
+ */
 export const styleElement = (
   element: ReviewConceptElement,
   styles: ConceptStyle[]
-): ReviewConceptElement =>
-  applyColumnStyles(applyConceptStyle(element, styles), styles);
+): ReviewConceptElement => {
+  const styled = applyColumnStyles(applyConceptStyle(element, styles), styles);
+  return styled.slots
+    ? {
+        ...styled,
+        slots: mapSlotElements(styled.slots, (child) =>
+          styleElement(child, styles)
+        ),
+      }
+    : styled;
+};
 
 /** Every element of every concept, as its style draws it. */
 export const applyConceptStyles = (

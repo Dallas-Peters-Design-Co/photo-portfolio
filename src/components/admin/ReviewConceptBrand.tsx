@@ -1,10 +1,6 @@
 import type { BrandKitDoc, TypefaceEntry } from "../../../config/brandKit.js";
 import { DEFAULT_SHADOW } from "../../../config/conceptShadow.js";
 import { type ConceptStyle, linkStyle } from "../../../config/conceptStyle.js";
-import {
-  type ConceptTable,
-  DEFAULT_TABLE,
-} from "../../../config/conceptTable.js";
 import { newItemId } from "../../../config/proposal.js";
 import {
   ELEMENT_STYLE_KEYS,
@@ -14,14 +10,13 @@ import {
 } from "../../../config/reviewConcept.js";
 import { ColorWell } from "../../boards/ColorWell";
 import { ConceptSelect } from "./ConceptControls";
-
-const paletteColor = (
-  doc: BrandKitDoc | null | undefined,
-  roles: string[],
-  fallback: string
-): string =>
-  doc?.palette.find((entry) => roles.includes(entry.role.trim().toLowerCase()))
-    ?.value ?? fallback;
+import {
+  badgeLook,
+  paletteColor,
+  panelLook,
+  progressLook,
+  tableFromKit,
+} from "./conceptStarters";
 
 const brandTypeface = (
   doc: BrandKitDoc | null | undefined,
@@ -38,6 +33,7 @@ const TYPE_SIZES: Partial<Record<ReviewConceptElementKind, number>> = {
 };
 
 const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
+  "panel",
   "input",
   "textarea",
   "select",
@@ -46,6 +42,7 @@ const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const PADDED_KINDS = new Set<ReviewConceptElementKind>([
+  "panel",
   "input",
   "textarea",
   "select",
@@ -55,6 +52,7 @@ const PADDED_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
+  "panel",
   "button",
   "icon",
   "input",
@@ -76,6 +74,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   label: "Email address",
   link: "Learn more",
   menu: "Actions",
+  panel: "Panel title",
   progress: "Upload progress",
   select: "Choose an option",
   skeleton: "",
@@ -97,61 +96,17 @@ const elementOptions = (
   }
 };
 
-/**
- * A new table's sample, drawn with the kit's own components: its Status and
- * Tags follow the first Badge style, and when there is a Button style an
- * Action column of buttons follows it.
- */
-const tableFromKit = (brandDoc?: BrandKitDoc | null): ConceptTable => {
-  const styles = brandDoc?.componentStyles ?? [];
-  const badge = styles.find((style) => style.kind === "badge");
-  const button = styles.find((style) => style.kind === "button");
-  const columns = DEFAULT_TABLE.columns.map((column) =>
-    badge && (column.kind === "tag" || column.kind === "chips")
-      ? { ...column, styleId: badge.id }
-      : column
-  );
-  return button
-    ? {
-        columns: [
-          ...columns,
-          { kind: "button", label: "Action", styleId: button.id },
-        ],
-        rows: DEFAULT_TABLE.rows.map((row) => [...row, "Open"]),
-      }
-    : { ...DEFAULT_TABLE, columns };
+const elementPadding = (
+  kind: ReviewConceptElementKind
+): { paddingX: number; paddingY: number } => {
+  if (kind === "button") {
+    return { paddingX: 18, paddingY: 11 };
+  }
+  if (PADDED_KINDS.has(kind)) {
+    return { paddingX: 12, paddingY: 8 };
+  }
+  return { paddingX: 0, paddingY: 0 };
 };
-
-/** A badge starts as a soft tinted pill: light fill, strong text, thin edge. */
-const badgeLook = (
-  brandDoc?: BrandKitDoc | null
-): Partial<ReviewConceptElement> => ({
-  background: paletteColor(
-    brandDoc,
-    ["badge", "accent light", "tint"],
-    "#eef4ff"
-  ),
-  borderColor: paletteColor(brandDoc, ["badge border", "border"], "#c7d7fe"),
-  borderWidth: 1,
-  color: paletteColor(brandDoc, ["badge ink", "accent", "primary"], "#3538cd"),
-  radius: 999,
-});
-
-/** A progress bar starts in the kit's accent on a light grey track, rounded. */
-const progressLook = (
-  brandDoc?: BrandKitDoc | null
-): Partial<ReviewConceptElement> => ({
-  accentColor: paletteColor(
-    brandDoc,
-    ["accent", "primary", "button"],
-    "#3538cd"
-  ),
-  background: paletteColor(brandDoc, ["track", "muted"], "#e4e7ec"),
-  barHeight: 8,
-  progress: 60,
-  radius: 999,
-  showValue: true,
-});
 
 const elementState = (
   kind: ReviewConceptElementKind
@@ -170,42 +125,82 @@ const elementState = (
   }
 };
 
+const elementBackground = (
+  kind: ReviewConceptElementKind,
+  brandDoc?: BrandKitDoc | null
+): string => {
+  if (kind === "button") {
+    return paletteColor(brandDoc, ["button", "accent", "primary"], "#172033");
+  }
+  if (SURFACE_KINDS.has(kind)) {
+    return paletteColor(brandDoc, ["surface", "background"], "#ffffff");
+  }
+  return "transparent";
+};
+
+const elementWeight = (
+  kind: ReviewConceptElementKind
+): ReviewConceptElement["fontWeight"] => {
+  if (kind === "text") {
+    return 700;
+  }
+  if (kind === "button" || kind === "label" || kind === "badge") {
+    return 600;
+  }
+  return 400;
+};
+
+/** The starting look a toast, checkbox or card adds on top of the base. */
+const controlLook = (
+  kind: ReviewConceptElementKind,
+  brandDoc?: BrandKitDoc | null
+): Partial<ReviewConceptElement> => {
+  if (kind === "toast") {
+    return {
+      accentColor: paletteColor(
+        brandDoc,
+        ["accent", "primary", "button"],
+        "#3538cd"
+      ),
+      toastAction: "Undo",
+      toastClose: true,
+    };
+  }
+  if (kind === "checkbox") {
+    return {
+      accentColor: paletteColor(
+        brandDoc,
+        ["accent", "primary", "button"],
+        "#3538cd"
+      ),
+      checkSize: 18,
+    };
+  }
+  if (kind === "card") {
+    return {
+      bodySize: 14,
+      borderColor: paletteColor(
+        brandDoc,
+        ["border", "outline", "stroke"],
+        "#d0d5dd"
+      ),
+      shadow: DEFAULT_SHADOW,
+    };
+  }
+  return {};
+};
+
 export const createConceptElement = (
   kind: ReviewConceptElementKind,
   brandDoc?: BrandKitDoc | null
 ): ReviewConceptElement => {
-  const isButton = kind === "button";
-  const isText = kind === "text";
-  const isPadded = PADDED_KINDS.has(kind);
   const face = brandTypeface(
     brandDoc,
-    isText ? ["headline", "heading", "display"] : ["body", "text"]
+    kind === "text" ? ["headline", "heading", "display"] : ["body", "text"]
   );
-  let background = "transparent";
-  if (isButton) {
-    background = paletteColor(
-      brandDoc,
-      ["button", "accent", "primary"],
-      "#172033"
-    );
-  } else if (SURFACE_KINDS.has(kind)) {
-    background = paletteColor(brandDoc, ["surface", "background"], "#ffffff");
-  }
-  let weight: ReviewConceptElement["fontWeight"] = 400;
-  if (isText) {
-    weight = 700;
-  } else if (isButton || kind === "label" || kind === "badge") {
-    weight = 600;
-  }
-  let paddingX = 0;
-  let paddingY = 0;
-  if (isButton) {
-    paddingX = 18;
-    paddingY = 11;
-  } else if (isPadded) {
-    paddingX = 12;
-    paddingY = 8;
-  }
+  const background = elementBackground(kind, brandDoc);
+  const weight = elementWeight(kind);
+  const { paddingX, paddingY } = elementPadding(kind);
   const options = elementOptions(kind);
   return {
     background,
@@ -229,38 +224,8 @@ export const createConceptElement = (
     ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
     ...(kind === "progress" ? progressLook(brandDoc) : {}),
-    ...(kind === "toast"
-      ? {
-          accentColor: paletteColor(
-            brandDoc,
-            ["accent", "primary", "button"],
-            "#3538cd"
-          ),
-          toastAction: "Undo",
-          toastClose: true,
-        }
-      : {}),
-    ...(kind === "checkbox"
-      ? {
-          accentColor: paletteColor(
-            brandDoc,
-            ["accent", "primary", "button"],
-            "#3538cd"
-          ),
-          checkSize: 18,
-        }
-      : {}),
-    ...(kind === "card"
-      ? {
-          bodySize: 14,
-          borderColor: paletteColor(
-            brandDoc,
-            ["border", "outline", "stroke"],
-            "#d0d5dd"
-          ),
-          shadow: DEFAULT_SHADOW,
-        }
-      : {}),
+    ...(kind === "panel" ? panelLook(brandDoc, createConceptElement) : {}),
+    ...controlLook(kind, brandDoc),
   };
 };
 

@@ -44,6 +44,28 @@
   opacity: 0.8;
 }
 
+/* A panel: a surface whose slots hold other elements. Its own padding is
+   usually 0, so the slots' padding and dividers run edge to edge. */
+.concept-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  /* Fallback for a panel given no border of its own. */
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.concept-panel__title {
+  margin-inline-end: auto;
+}
+
+/* A progress bar beside other things takes a share of the row. */
+[data-direction="row"] > .concept-progress,
+[data-direction="row"] > .concept-hover > .concept-progress {
+  flex: 1 1 8rem;
+  width: auto;
+}
+
 .review-concepts__dialog-preview {
   display: grid;
   gap: calc(var(--spacing) * 3);
@@ -90,7 +112,9 @@
    the tallest card so a row of them reads as one set. Stacked, they stay
    full width. Any concept container marks its direction (data-direction). */
 [data-direction="row"] > .review-concepts__card-preview,
-[data-direction="row"] > .concept-hover > .review-concepts__card-preview {
+[data-direction="row"] > .concept-hover > .review-concepts__card-preview,
+[data-direction="row"] > .concept-panel,
+[data-direction="row"] > .concept-hover > .concept-panel {
   flex: 1 1 10rem;
   align-self: stretch;
   width: auto;

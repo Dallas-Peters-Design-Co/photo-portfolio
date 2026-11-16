@@ -29,6 +29,7 @@ import {
 import { ConceptHover } from "./ConceptHover";
 import "./ConceptElements.css";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
+import { ConceptSlotsView } from "./ConceptSlotsView";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
@@ -70,6 +71,34 @@ function ConceptIcon({
   );
 }
 
+/** A panel: its slots, its title at the start of the header. */
+function PanelPreview({
+  element,
+  style,
+}: {
+  element: ReviewConceptElement;
+  style: CSSProperties;
+}) {
+  return (
+    <section
+      aria-label={element.text || "Panel"}
+      className="concept-panel"
+      style={style}
+    >
+      <ConceptSlotsView
+        dividers={element.dividers}
+        draw={drawElement}
+        slots={element.slots}
+        title={
+          element.text ? (
+            <strong className="concept-panel__title">{element.text}</strong>
+          ) : undefined
+        }
+      />
+    </section>
+  );
+}
+
 function CardPreview({
   element,
   style,
@@ -95,6 +124,11 @@ function CardPreview({
           {card.body}
         </p>
       ) : null}
+      <ConceptSlotsView
+        dividers={element.dividers}
+        draw={drawElement}
+        slots={element.slots}
+      />
     </article>
   );
 }
@@ -398,6 +432,8 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       return (
         <ConceptToastPreview element={element} style={style} text={text} />
       );
+    case "panel":
+      return <PanelPreview element={element} style={style} />;
     case "progress":
       return <ConceptProgressPreview element={element} style={style} />;
     case "skeleton":
@@ -429,3 +465,8 @@ export function ReviewConceptElementView({
     </ConceptHover>
   );
 }
+
+/** How a slot draws each element it holds: as the element draws anywhere. */
+const drawElement = (element: ReviewConceptElement) => (
+  <ReviewConceptElementView element={element} key={element.id} />
+);

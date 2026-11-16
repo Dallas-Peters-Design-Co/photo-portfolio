@@ -9,6 +9,7 @@ import {
   cleanToast,
 } from "./conceptKinds.js";
 import type { ConceptShadow } from "./conceptShadow.js";
+import { type ConceptSlots, cleanSlots, hasSlots } from "./conceptSlots.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
 import { bounded, cleanColor, str } from "./conceptValues.js";
@@ -48,6 +49,7 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "toast",
   "skeleton",
   "progress",
+  "panel",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -78,7 +80,8 @@ export type ReviewConceptElementKind =
   | "menu"
   | "toast"
   | "skeleton"
-  | "progress";
+  | "progress"
+  | "panel";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -105,6 +108,8 @@ export interface ReviewConceptElement {
   /** Checkboxes: the box's size in px. */
   checkSize?: number;
   color: string;
+  /** Cards and panels: a line between their slots. */
+  dividers?: boolean;
   fontFamily: "sans" | "serif" | "mono" | "brand" | "app";
   fontId?: string;
   fontRef?: string;
@@ -137,6 +142,11 @@ export interface ReviewConceptElement {
   shadow?: ConceptShadow;
   /** Progress bars: whether the percentage shows beside the label. */
   showValue?: boolean;
+  /**
+   * Cards and panels: header, body and footer, each with its own layout and
+   * elements (see conceptSlots.ts).
+   */
+  slots?: ConceptSlots;
   /** The brand kit component style this element follows, if any. */
   styleId?: string;
   /** Tabs only: indicator, active and inactive colours, height. */
@@ -180,6 +190,7 @@ export const ELEMENT_STYLE_KEYS = [
   "accentColor",
   "checkSize",
   "barHeight",
+  "dividers",
   "tabLook",
   "hover",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
@@ -283,7 +294,27 @@ const cleanOptions = (value: unknown): string[] | undefined => {
     .map((option) => str(option, 100));
 };
 
-export const cleanElement = (value: unknown): ReviewConceptElement => {
+/** A card's or panel's slots and whether lines divide them. */
+const cleanSlotted = (
+  kind: ReviewConceptElementKind,
+  raw: Partial<ReviewConceptElement>,
+  depth: number
+): Pick<ReviewConceptElement, "dividers" | "slots"> => {
+  if (!hasSlots(kind)) {
+    return {};
+  }
+  const slots = cleanSlots(raw.slots, depth, cleanElement);
+  return {
+    ...(typeof raw.dividers === "boolean" ? { dividers: raw.dividers } : {}),
+    ...(slots ? { slots } : {}),
+  };
+};
+
+export const cleanElement = (
+  value: unknown,
+  /** How many slots deep this element sits. */
+  depth = 0
+): ReviewConceptElement => {
   const raw = (value ?? {}) as Partial<ReviewConceptElement>;
   const font = fontSelection(raw.fontFamily, raw.fontRef, raw.fontId);
   const fontWeight = FONT_WEIGHTS.includes(
@@ -314,6 +345,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(kind === "progress" ? cleanProgress(raw) : {}),
+    ...cleanSlotted(kind, raw, depth),
     ...(tabLook ? { tabLook } : {}),
     ...(hover ? { hover } : {}),
     ...(table ? { table } : {}),
@@ -344,7 +376,7 @@ export const cleanConcept = (value: unknown): ReviewConcept => {
     direction: raw.direction === "row" ? "row" : "column",
     elements: (Array.isArray(raw.elements) ? raw.elements : [])
       .slice(0, MAX_CONCEPT_ELEMENTS)
-      .map(cleanElement),
+      .map((element) => cleanElement(element)),
     ...font,
     gap: bounded(raw.gap, 0, 64, 12),
     id: str(raw.id, 64) || newItemId(),

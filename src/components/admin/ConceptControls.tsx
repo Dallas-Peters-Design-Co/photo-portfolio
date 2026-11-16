@@ -177,6 +177,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["toast", "Toast"],
   ["skeleton", "Skeleton loader"],
   ["progress", "Progress bar"],
+  ["panel", "Panel"],
 ]);
 
 /** A kind's menu label ("Dropdown menu" for menu), or the kind itself. */

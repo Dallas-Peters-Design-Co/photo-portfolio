@@ -1,0 +1,38 @@
+/* A card's or panel's slots: header, body and footer, stacked. */
+.concept-slots {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Empty when no slot has anything; then it takes no room. */
+.concept-slots:empty {
+  display: none;
+}
+
+.concept-slot {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.concept-slot[data-layout="row"] {
+  flex-direction: row;
+  align-items: center;
+}
+
+.concept-slot[data-layout="grid"] {
+  display: grid;
+}
+
+/* Lines between slots run edge to edge; the slots' padding spaces them. */
+.concept-slots[data-dividers] > .concept-slot + .concept-slot {
+  border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+
+/* In a grid, a card or progress bar fills its cell. */
+.concept-slot[data-layout="grid"] > *,
+.concept-slot[data-layout="grid"] > .concept-hover > * {
+  width: auto;
+  min-width: 0;
+}

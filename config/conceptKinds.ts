@@ -63,6 +63,7 @@ const BOX_KINDS = new Set<ReviewConceptElementKind>([
   "button",
   "card",
   "input",
+  "panel",
   "select",
   "table",
   "textarea",
