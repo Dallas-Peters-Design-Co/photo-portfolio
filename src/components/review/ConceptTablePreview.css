@@ -129,8 +129,8 @@
 /* A Progress cell: a slim bar in the column's tint, its percent beside it. */
 .concept-table__progress {
   display: flex;
-  gap: 0.5em;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.35em;
   min-inline-size: 6rem;
 }
 
@@ -139,13 +139,7 @@
   opacity: 0.7;
 }
 
-/* With a line saying what is in progress: the line and percent over the bar. */
-.concept-table__progress[data-labelled] {
-  flex-direction: column;
-  gap: 0.35em;
-  align-items: stretch;
-}
-
+/* Over the bar: what is in progress at the start, the percent at the end. */
 .concept-table__progress-head {
   display: flex;
   gap: 0.5em;

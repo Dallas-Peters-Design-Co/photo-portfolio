@@ -110,7 +110,19 @@ it("heads a table's progress bar with its description, words kept as one", () =>
   expect(line.getBoundingClientRect().bottom).toBeLessThanOrEqual(
     bar.getBoundingClientRect().top + 1
   );
-  // No description: the percent beside the bar, as before.
-  expect(cells[1]?.hasAttribute("data-labelled")).toBe(false);
+  // No description: the percent still sits above the bar, at its end.
   expect(cells[1]?.textContent).toBe("80%");
+  const percent = cells[1]?.querySelector("small") as HTMLElement;
+  const plainBar = cells[1]?.querySelector(
+    '[role="progressbar"]'
+  ) as HTMLElement;
+  expect(percent.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+    plainBar.getBoundingClientRect().top + 1
+  );
+  expect(
+    Math.abs(
+      percent.getBoundingClientRect().right -
+        plainBar.getBoundingClientRect().right
+    )
+  ).toBeLessThan(2);
 });

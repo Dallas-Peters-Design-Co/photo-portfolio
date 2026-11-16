@@ -127,19 +127,14 @@ function Cell({
     case "progress": {
       const percent = progressOf(value);
       const label = progressLabelOf(value);
-      // With a line, it heads the bar with the percent at its end; without
-      // one, the percent sits beside the bar.
+      // The description and the percent head the bar: the text at the
+      // start, the percent at the end.
       return (
-        <span
-          className="concept-table__progress"
-          data-labelled={label ? "" : undefined}
-        >
-          {label ? (
-            <span className="concept-table__progress-head">
-              <span>{label}</span>
-              <small>{Math.round(percent)}%</small>
-            </span>
-          ) : null}
+        <span className="concept-table__progress">
+          <span className="concept-table__progress-head">
+            <span>{label}</span>
+            <small>{Math.round(percent)}%</small>
+          </span>
           <ProgressBar
             color={tintOf(column)}
             height={6}
@@ -148,7 +143,6 @@ function Cell({
             track="color-mix(in srgb, currentColor 12%, transparent)"
             value={percent}
           />
-          {label ? null : <small>{Math.round(percent)}%</small>}
         </span>
       );
     }
