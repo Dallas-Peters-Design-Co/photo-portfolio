@@ -14,7 +14,7 @@ Each component below is drawn with the Pretext brand kit's style. Copy the React
 <PreviewButtonPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -84,7 +84,7 @@ export function ButtonPrimary({ className, children = "Get started", onClick }: 
 <PreviewInputSearch />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 5 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -146,7 +146,7 @@ export function InputSearch({ className }: InputSearchProps) {
 <PreviewButtonSecondary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -217,7 +217,7 @@ export function ButtonSecondary({ className, children = "Get started", onClick }
 <PreviewTextareaPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 5 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -275,7 +275,7 @@ export function TextareaPrimary({ className }: TextareaPrimaryProps) {
 <PreviewCheckboxPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 6 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -337,7 +337,7 @@ export function CheckboxPrimary({ className, children = "I agree to the terms" }
 <PreviewSelectPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 11 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -352,7 +352,7 @@ interface SelectPrimaryProps {
 /** Primary select, from the brand kit. */
 export function SelectPrimary({ className }: SelectPrimaryProps) {
   return (
-    <select className={className ? `select-primary ${className}` : "select-primary"}>
+    <select className={className ? `select-primary ${className}` : "select-primary"} aria-label="Choose an option">
       <option>Overview</option>
       <option>Settings</option>
       <option>Activity</option>
@@ -399,7 +399,7 @@ export function SelectPrimary({ className }: SelectPrimaryProps) {
 <PreviewButtonSecondary2 />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -497,7 +497,7 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
   --badge-warning-color: #382500;
   --badge-warning-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-warning-font-size: 14px;
-  --badge-warning-font-weight: 500;
+  --badge-warning-font-weight: 600;
   --badge-warning-line-height: 1;
   --badge-warning-padding: 4px 12px;
   --badge-warning-radius: 48px;
@@ -580,7 +580,7 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 <PreviewCardPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -678,7 +678,7 @@ export function CardPrimary({ className, children = "Supporting copy goes here."
 <PreviewTabsPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 10 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -770,7 +770,7 @@ export function TabsPrimary({
 <PreviewTablePrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 9 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -788,27 +788,25 @@ export function TablePrimary({ className }: TablePrimaryProps) {
     <table className={className ? `table-primary ${className}` : "table-primary"}>
       <thead>
         <tr>
-            <th scope="col">Project</th>
-            <th scope="col">Status</th>
-            <th scope="col">Tags</th>
-            <th scope="col">Action</th>
+          <th scope="col">Project</th>
+          <th scope="col">Status</th>
+          <th scope="col">Tags</th>
+          <th scope="col">Action</th>
         </tr>
       </thead>
       <tbody>
-          <tr>
-            <td>Website redesign
-      Acme Co.</td>
-            <td>Active</td>
-            <td>Design, Web</td>
-            <td>Open</td>
-          </tr>
-          <tr>
-            <td>Brand refresh
-      Northwind</td>
-            <td>Paused</td>
-            <td>Brand</td>
-            <td>Open</td>
-          </tr>
+        <tr>
+          <td><span className="table-primary__stack"><span>Website redesign</span><small>Acme Co.</small></span></td>
+          <td><span className="table-primary__tag">Active</span></td>
+          <td><span className="table-primary__chips"><span className="table-primary__chip">Design</span><span className="table-primary__chip">Web</span></span></td>
+          <td><button className="table-primary__button" type="button" data-style="solid">Open</button></td>
+        </tr>
+        <tr>
+          <td><span className="table-primary__stack"><span>Brand refresh</span><small>Northwind</small></span></td>
+          <td><span className="table-primary__tag">Paused</span></td>
+          <td><span className="table-primary__chips"><span className="table-primary__chip">Brand</span></span></td>
+          <td><button className="table-primary__button" type="button" data-style="solid">Open</button></td>
+        </tr>
       </tbody>
     </table>
   );
@@ -823,10 +821,12 @@ export function TablePrimary({ className }: TablePrimaryProps) {
   --table-primary-font-size: 14px;
   --table-primary-font-weight: 500;
   --table-primary-line-height: 1.25;
-  --table-primary-padding: 19px 26px;
+  --table-primary-padding: 0;
   --table-primary-radius: 8px;
   --table-primary-border: 1px solid #bdbcbb;
   --table-primary-shadow: 0px 0px 0px 3px color-mix(in srgb, #000000 7%, transparent);
+  --table-primary-head-background: #1c1b1b;
+  --table-primary-head-color: #f2f0e7;
 
   box-sizing: border-box;
   background: var(--table-primary-background);
@@ -841,9 +841,31 @@ export function TablePrimary({ className }: TablePrimaryProps) {
   box-shadow: var(--table-primary-shadow);
 }
 
-.table-primary { border-collapse: collapse; padding: 0; }
-.table-primary th, .table-primary td { padding: var(--table-primary-padding); text-align: start; border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
-.table-primary thead { background: #1c1b1b; color: #f2f0e7; }
+.table-primary { width: 100%; border-spacing: 0; border-collapse: separate; padding: 0; }
+.table-primary th, .table-primary td { padding: 8px 12px; vertical-align: middle; text-align: start; }
+.table-primary th { font-size: 0.85em; font-weight: 600; color: var(--table-primary-head-color, color-mix(in srgb, currentColor 65%, transparent)); }
+.table-primary thead { background: var(--table-primary-head-background, transparent); }
+.table-primary__stack { display: grid; gap: 0.15em; }
+.table-primary__stack > small { font-size: 0.85em; color: color-mix(in srgb, currentColor 60%, transparent); }
+.table-primary__tag, .table-primary__chip { display: inline-flex; align-items: center; padding: 0.15em 0.6em; font-size: 0.8em; font-weight: 600; line-height: 1.4; color: var(--table-primary-tint); white-space: nowrap; border-radius: 999px; }
+.table-primary__tag { background: color-mix(in srgb, var(--table-primary-tint) 16%, transparent); }
+.table-primary__chip { border: 1px solid color-mix(in srgb, var(--table-primary-tint) 40%, transparent); }
+.table-primary__chips { display: inline-flex; flex-wrap: wrap; gap: 0.35em; }
+.table-primary__button { display: inline-flex; align-items: center; padding: 0.35em 0.9em; font: inherit; font-size: 0.85em; font-weight: 600; line-height: 1.3; white-space: nowrap; cursor: pointer; border: 1px solid var(--table-primary-tint); border-radius: 0.4em; }
+.table-primary__button[data-style="solid"] { color: #fff; background: var(--table-primary-tint); }
+.table-primary__button[data-style="outline"] { color: var(--table-primary-tint); background: transparent; }
+.table-primary__progress { display: flex; flex-direction: column; gap: 0.35em; min-inline-size: 6rem; }
+.table-primary__progress small { font-variant-numeric: tabular-nums; opacity: 0.7; }
+.table-primary__progress-head { display: flex; gap: 0.5em; align-items: baseline; justify-content: space-between; }
+.table-primary__bar { display: block; block-size: 6px; overflow: hidden; background: color-mix(in srgb, currentColor 12%, transparent); border-radius: 999px; }
+.table-primary__bar > span { display: block; block-size: 100%; background: var(--table-primary-tint); border-radius: inherit; }
+.table-primary th, .table-primary td { border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
+.table-primary td:nth-child(2) { --table-primary-tint: #382500; }
+.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9ca8a; border: 1px solid #af7b07; border-radius: 48px; color: #382500; font-size: 14px; font-weight: 600; padding: 4px 12px; }
+.table-primary td:nth-child(3) { --table-primary-tint: #382500; }
+.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9ca8a; border: 1px solid #af7b07; border-radius: 48px; color: #382500; font-size: 14px; font-weight: 600; padding: 4px 12px; }
+.table-primary td:nth-child(4) { --table-primary-tint: #f2f0e7; }
+.table-primary td:nth-child(4) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #00289d; border-radius: 39px; box-shadow: 0px 0px 0px 3px color-mix(in srgb, #00289d 40%, transparent); color: #f2f0e7; font-size: 15px; font-weight: 500; padding: 11px 18px; }
 ```
 </CodeGroup>
 
@@ -908,7 +930,7 @@ export function BadgeSuccess({ className, children = "New" }: BadgeSuccessProps)
 <PreviewMenuPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 9 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -968,7 +990,7 @@ export function MenuPrimary({ className }: MenuPrimaryProps) {
 <PreviewDialogPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 11 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -984,7 +1006,7 @@ interface DialogPrimaryProps {
 /** Primary dialog, from the brand kit. */
 export function DialogPrimary({ className, children = "Confirm changes?" }: DialogPrimaryProps) {
   return (
-    <div className={className ? `dialog-primary ${className}` : "dialog-primary"} role="dialog" aria-modal="true">
+    <div className={className ? `dialog-primary ${className}` : "dialog-primary"} role="dialog" aria-modal="true" aria-label="Confirm changes?">
       {children}
     </div>
   );
@@ -1024,7 +1046,7 @@ export function DialogPrimary({ className, children = "Confirm changes?" }: Dial
 <PreviewToastPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 5 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -1080,7 +1102,7 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 <PreviewCardStats />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -1177,7 +1199,9 @@ export function CardStats({ className, children = "Supporting copy goes here.", 
 <PreviewPanelPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 19 WCAG 2.2 AA checks on this component.
+
+Needs a person to check: Elements must meet minimum color contrast ratio thresholds.
 </Check>
 
 <CodeGroup>
@@ -1402,7 +1426,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 <PreviewProgressPrimary />
 
 <Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+**Accessibility: no issues found.** axe-core 4.14.0 passed 12 WCAG 2.2 AA checks on this component.
 </Check>
 
 <CodeGroup>
@@ -1653,7 +1677,7 @@ export const PreviewCheckboxPrimary = () => (
 
 export const PreviewSelectPrimary = () => (
   <div className="not-prose bk-preview bk-pretext">
-    <select className="select-primary">
+    <select className="select-primary" aria-label="Choose an option">
       <option>Overview</option>
       <option>Settings</option>
       <option>Activity</option>
@@ -1720,27 +1744,25 @@ export const PreviewTablePrimary = () => (
     <table className="table-primary">
       <thead>
         <tr>
-            <th scope="col">Project</th>
-            <th scope="col">Status</th>
-            <th scope="col">Tags</th>
-            <th scope="col">Action</th>
+          <th scope="col">Project</th>
+          <th scope="col">Status</th>
+          <th scope="col">Tags</th>
+          <th scope="col">Action</th>
         </tr>
       </thead>
       <tbody>
-          <tr>
-            <td>Website redesign
-      Acme Co.</td>
-            <td>Active</td>
-            <td>Design, Web</td>
-            <td>Open</td>
-          </tr>
-          <tr>
-            <td>Brand refresh
-      Northwind</td>
-            <td>Paused</td>
-            <td>Brand</td>
-            <td>Open</td>
-          </tr>
+        <tr>
+          <td><span className="table-primary__stack"><span>Website redesign</span><small>Acme Co.</small></span></td>
+          <td><span className="table-primary__tag">Active</span></td>
+          <td><span className="table-primary__chips"><span className="table-primary__chip">Design</span><span className="table-primary__chip">Web</span></span></td>
+          <td><button className="table-primary__button" type="button" data-style="solid">Open</button></td>
+        </tr>
+        <tr>
+          <td><span className="table-primary__stack"><span>Brand refresh</span><small>Northwind</small></span></td>
+          <td><span className="table-primary__tag">Paused</span></td>
+          <td><span className="table-primary__chips"><span className="table-primary__chip">Brand</span></span></td>
+          <td><button className="table-primary__button" type="button" data-style="solid">Open</button></td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -1766,7 +1788,7 @@ export const PreviewMenuPrimary = () => (
 
 export const PreviewDialogPrimary = () => (
   <div className="not-prose bk-preview bk-pretext">
-    <div className="dialog-primary" role="dialog" aria-modal="true">
+    <div className="dialog-primary" role="dialog" aria-modal="true" aria-label="Confirm changes?">
       Confirm changes?
     </div>
   </div>

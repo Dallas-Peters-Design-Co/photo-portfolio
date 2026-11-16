@@ -339,11 +339,16 @@
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
 }
 
+/* Handle, type, name and copy at the start; remove at the far end. */
 .brand-kit-components__head {
   display: grid;
-  grid-template-columns: 9rem minmax(0, 18rem) auto;
+  grid-template-columns: auto 9rem minmax(0, 18rem) auto minmax(0, 1fr);
   gap: calc(var(--spacing) * 2);
   align-items: center;
+}
+
+.brand-kit-components__remove {
+  justify-self: end;
 }
 
 .brand-kit-components__body {

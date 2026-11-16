@@ -9,10 +9,10 @@ import {
   progressMarkup,
   tabsMarkup,
 } from "./componentSourceParts.js";
+import { tableMarkup } from "./componentSourceTable.js";
 import { conceptFontStack } from "./conceptFont.js";
 import { takesBox } from "./conceptKinds.js";
 import { shadowCss, shadowOf } from "./conceptShadow.js";
-import { DEFAULT_BORDERS, tableOf } from "./conceptTable.js";
 import {
   type ReviewConceptElement,
   type ReviewConceptElementKind,
@@ -114,31 +114,6 @@ const FOCUS_CSS = `&:focus-visible {
 }`;
 
 const quote = (value: string): string => JSON.stringify(value);
-
-const tableMarkup = (el: ReviewConceptElement): Markup => {
-  const table = tableOf(el);
-  const borders = table.borders ?? DEFAULT_BORDERS;
-  const head = table.columns
-    .map((c) => `      <th scope="col">${escapeJsx(c.label)}</th>`)
-    .join("\n");
-  const rows = table.rows
-    .slice(0, 3)
-    .map(
-      (row) =>
-        `    <tr>\n${table.columns
-          .map((_, i) => `      <td>${escapeJsx(row[i] ?? "")}</td>`)
-          .join("\n")}\n    </tr>`
-    )
-    .join("\n");
-  const line = `${borders.width}px solid ${borders.color ?? "color-mix(in srgb, currentColor 14%, transparent)"}`;
-  return {
-    body: `<thead>\n  <tr>\n${head}\n  </tr>\n</thead>\n<tbody>\n${rows}\n</tbody>`,
-    css: `& { border-collapse: collapse; padding: 0; }
-& th, & td { padding: var(--&-padding); text-align: start; ${borders.lines === "none" ? "" : `border-bottom: ${line};`} }
-& thead { background: ${table.header?.background ?? "transparent"}; color: ${table.header?.color ?? "inherit"}; }`,
-    tag: "table",
-  };
-};
 
 const optionsOf = (el: ReviewConceptElement, fallback: string[]): string[] =>
   el.options?.length ? el.options : fallback;

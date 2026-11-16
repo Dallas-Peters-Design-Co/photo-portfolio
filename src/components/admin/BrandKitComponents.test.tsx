@@ -98,3 +98,48 @@ it("keeps the icon picked for a style", async () => {
   );
   host.remove();
 });
+
+const kitStyles: ConceptStyle[] = [
+  { id: "s1", kind: "button", look: {}, name: "Primary" },
+  { id: "s2", kind: "badge", look: {}, name: "Warning" },
+  { id: "s3", kind: "card", look: {}, name: "Plain" },
+];
+
+function Kit() {
+  const [doc, setDoc] = useState<BrandKitDoc>({
+    ...EMPTY_KIT,
+    componentStyles: kitStyles,
+  });
+  saved = doc;
+  return <BrandKitComponents doc={doc} effective={doc} onChange={setDoc} />;
+}
+
+it("reorders a kit's styles from a style's handle, and keeps remove at the row's end", async () => {
+  const host = document.createElement("div");
+  host.style.width = "900px";
+  document.body.append(host);
+  act(() => createRoot(host).render(<Kit />));
+
+  const row = host.querySelector(".brand-kit-components__head") as HTMLElement;
+  const remove = row.querySelector(
+    '[aria-label="Remove Primary"]'
+  ) as HTMLElement;
+  // One line, the remove button at its far right.
+  expect(remove.getBoundingClientRect().top).toBeLessThan(
+    row.getBoundingClientRect().top + 20
+  );
+  expect(
+    row.getBoundingClientRect().right - remove.getBoundingClientRect().right
+  ).toBeLessThan(4);
+
+  const handle = host.querySelector(
+    '[aria-label^="Move Button Primary"]'
+  ) as HTMLElement;
+  handle.focus();
+  await userEvent.keyboard("{ArrowDown}");
+  expect(saved.componentStyles.map((style) => style.id)).toEqual([
+    "s2",
+    "s1",
+    "s3",
+  ]);
+});

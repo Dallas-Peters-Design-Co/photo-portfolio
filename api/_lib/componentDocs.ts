@@ -5,6 +5,7 @@ import {
 import { withIconDrawings } from "../../config/componentSourceParts.js";
 import { styleSample } from "../../config/conceptDefaults.js";
 import type { ConceptIconSvg } from "../../config/conceptIcon.js";
+import { applyColumnStyles } from "../../config/conceptStyle.js";
 import {
   adobeFontCss,
   fontshareFontCss,
@@ -88,8 +89,12 @@ export const componentDocs = async (
       const classes = new Set<string>();
       const fonts = new Set<string>();
       const components = kit.doc.componentStyles.map((style) => {
+        // A table's tag, chip and button columns in the kit's own styles.
         const sample = withIconDrawings(
-          styleSample(style, kit.resolvedDoc),
+          applyColumnStyles(
+            styleSample(style, kit.resolvedDoc),
+            kit.resolvedDoc.componentStyles
+          ),
           iconDrawing
         );
         const font = fontCssOf(sample);

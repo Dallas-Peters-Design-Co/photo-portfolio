@@ -1,5 +1,5 @@
 import { ChevronDown, Code2, Trash2 } from "lucide-react";
-import { useId, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
@@ -13,6 +13,7 @@ import {
 } from "../../../config/conceptDefaults.js";
 import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import {
+  applyColumnStyles,
   type ConceptStyle,
   lookOf,
   MAX_CONCEPT_STYLES,
@@ -25,6 +26,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
+import { SortableList } from "./SortableList";
 import "./ReviewConceptsEditor.css";
 
 /** The style as a React component and its CSS, on the clipboard. */
@@ -53,6 +55,7 @@ const copySource = async (
 /** One style: a row (fold, type, name, remove) that opens to its sample and look. */
 function StyleEditor({
   brand,
+  handle,
   onChange,
   onRemove,
   onToggle,
@@ -60,6 +63,8 @@ function StyleEditor({
   style,
 }: {
   brand: BrandKitDoc;
+  /** The drag handle that moves the style in the list. */
+  handle: ReactNode;
   onChange: (next: ConceptStyle) => void;
   onRemove: () => void;
   onToggle: () => void;
@@ -71,6 +76,7 @@ function StyleEditor({
   return (
     <section className="brand-kit-components__style">
       <header className="brand-kit-components__head">
+        {handle}
         <button
           aria-controls={bodyId}
           aria-expanded={open}
@@ -92,7 +98,13 @@ function StyleEditor({
         />
         <Button
           aria-label={`Copy ${style.name} source code`}
-          onClick={() => copySource(sample, style.name)}
+          onClick={() =>
+            copySource(
+              // A table's columns in the kit's badge and button styles.
+              applyColumnStyles(sample, brand.componentStyles),
+              style.name
+            )
+          }
           size="icon-sm"
           title="Copy React + CSS"
           type="button"
@@ -100,15 +112,17 @@ function StyleEditor({
         >
           <Code2 size={13} />
         </Button>
-        <Button
-          aria-label={`Remove ${style.name}`}
-          onClick={onRemove}
-          size="icon-sm"
-          type="button"
-          variant="ghost"
-        >
-          <Trash2 size={13} />
-        </Button>
+        <span className="brand-kit-components__remove">
+          <Button
+            aria-label={`Remove ${style.name}`}
+            onClick={onRemove}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 size={13} />
+          </Button>
+        </span>
       </header>
       {open ? (
         <div className="brand-kit-components__body" id={bodyId}>
@@ -227,19 +241,32 @@ export function BrandKitComponents({
           value=""
         />
       </div>
-      {styles.map((style) => (
-        <StyleEditor
-          brand={effective}
-          key={style.id}
-          onChange={(next) =>
-            set(styles.map((s) => (s.id === style.id ? next : s)))
-          }
-          onRemove={() => set(styles.filter((s) => s.id !== style.id))}
-          onToggle={() => toggle(style.id)}
-          open={open.has(style.id)}
-          style={style}
-        />
-      ))}
+      <SortableList
+        itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
+        items={styles}
+        onReorder={(ids) =>
+          set(
+            ids
+              .map((id) => styles.find((s) => s.id === id))
+              .filter((s): s is ConceptStyle => s !== undefined)
+          )
+        }
+      >
+        {(style, { compact, handle }) => (
+          <StyleEditor
+            brand={effective}
+            handle={handle}
+            onChange={(next) =>
+              set(styles.map((s) => (s.id === style.id ? next : s)))
+            }
+            onRemove={() => set(styles.filter((s) => s.id !== style.id))}
+            onToggle={() => toggle(style.id)}
+            // Folded while a style is dragged, so it is easy to carry.
+            open={open.has(style.id) && !compact}
+            style={style}
+          />
+        )}
+      </SortableList>
     </div>
   );
 }
