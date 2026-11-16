@@ -20,6 +20,7 @@ export function ConceptTabsPreview({
     ...style,
     "--tab-active": look?.activeColor,
     "--tab-height": look?.height ? `${look.height}px` : undefined,
+    "--tab-hover": element.hover?.color,
     "--tab-inactive": look?.inactiveColor,
     "--tab-indicator": look?.indicatorColor,
     "--tab-indicator-size": look?.indicatorSize

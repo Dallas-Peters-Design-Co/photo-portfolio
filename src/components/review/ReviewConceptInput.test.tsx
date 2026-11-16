@@ -252,3 +252,47 @@ it("draws a toast's action in its colour and a close button, each optional", () 
   expect(host.querySelector(".concept-toast__action")).toBeNull();
   expect(host.querySelector('[aria-label="Close"]')).toBeNull();
 });
+
+it("changes a button's fill and text under the pointer, and only then", async () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("button"),
+          background: "#000000",
+          color: "#ffffff",
+          hover: { background: "#ff0000", color: "#000000" },
+        }}
+      />
+    )
+  );
+  const button = host.querySelector("button") as HTMLElement;
+  expect(getComputedStyle(button).backgroundColor).toBe("rgb(0, 0, 0)");
+  await userEvent.hover(button);
+  await vi.waitFor(() =>
+    expect(getComputedStyle(button).backgroundColor).toBe("rgb(255, 0, 0)")
+  );
+  expect(getComputedStyle(button).color).toBe("rgb(0, 0, 0)");
+  await userEvent.unhover(button);
+});
+
+it("colours a tab that is not selected under the pointer", async () => {
+  act(() =>
+    root.render(
+      <ReviewConceptElementView
+        element={{
+          ...createConceptElement("tabs"),
+          hover: { color: "#ff0000" },
+        }}
+      />
+    )
+  );
+  const other = host.querySelector(
+    ".concept-tabs__tab:not([aria-current])"
+  ) as HTMLElement;
+  await userEvent.hover(other);
+  await vi.waitFor(() =>
+    expect(getComputedStyle(other).color).toBe("rgb(255, 0, 0)")
+  );
+  await userEvent.unhover(other);
+});

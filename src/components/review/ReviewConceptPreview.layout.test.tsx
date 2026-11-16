@@ -16,8 +16,10 @@ it("keeps cards in a row inside the preview, sharing its width", () => {
   const host = document.createElement("div");
   host.style.width = "500px";
   document.body.append(host);
+  // One with a hover look, so the row is checked through its wrapper too.
   const card = (title: string) => ({
     ...createConceptElement("card"),
+    hover: { background: "#eeeeee" },
     iconName: "StarIcon",
     text: `2\n${title}`,
   });

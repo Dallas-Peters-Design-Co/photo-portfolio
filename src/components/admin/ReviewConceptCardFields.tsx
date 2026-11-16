@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import type { ConceptHover } from "../../../config/conceptHover.js";
 import {
   type ConceptIconSvg,
   conceptIconName,
@@ -270,6 +271,75 @@ export function ToastGroup({
         />
         <span>Close button</span>
       </label>
+    </ConceptGroup>
+  );
+}
+
+const HOVER_SHADOWS = [
+  { label: "Same", value: "same" },
+  { label: "None", value: "none" },
+  { label: "Soft", value: "soft" },
+  { label: "Strong", value: "strong" },
+];
+
+/**
+ * How the element changes under the pointer. "None" leaves a colour as it
+ * is; a tab row offers only the text colour, for the tabs not selected.
+ */
+export function HoverGroup({
+  brandDoc,
+  element,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  const hover = element.hover ?? {};
+  const set = (patch: Partial<ConceptHover>) => {
+    const next = Object.fromEntries(
+      Object.entries({ ...hover, ...patch }).filter(
+        ([, value]) => value !== undefined && value !== "transparent"
+      )
+    ) as ConceptHover;
+    onChange({ hover: Object.keys(next).length > 0 ? next : undefined });
+  };
+  const color = (
+    key: "background" | "borderColor" | "color",
+    label: string
+  ) => (
+    <ConceptColorField
+      allowNone
+      ariaLabel={`hover ${label.toLowerCase()}`}
+      brandDoc={brandDoc}
+      label={label}
+      onChange={(value) => set({ [key]: value })}
+      value={hover[key] ?? "transparent"}
+    />
+  );
+  if (element.kind === "tabs") {
+    return <ConceptGroup name="Hover">{color("color", "Text")}</ConceptGroup>;
+  }
+  return (
+    <ConceptGroup name="Hover">
+      {color("background", "Fill")}
+      {color("color", "Text")}
+      {color("borderColor", "Border")}
+      <ConceptField label="Shadow">
+        <ConceptSelect
+          label="Hover shadow"
+          onChange={(name) =>
+            set({
+              shadow:
+                name === "same"
+                  ? undefined
+                  : SHADOW_PRESETS[name as ShadowPreset],
+            })
+          }
+          options={HOVER_SHADOWS}
+          value={(hover.shadow && presetOf(hover.shadow)) ?? "same"}
+        />
+      </ConceptField>
     </ConceptGroup>
   );
 }

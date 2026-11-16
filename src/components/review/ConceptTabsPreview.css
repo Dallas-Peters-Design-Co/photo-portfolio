@@ -30,3 +30,13 @@
   content: "";
   background: var(--tab-indicator, currentColor);
 }
+
+/* A tab that is not the current one, under the pointer: the hover colour,
+   else the active colour, so it reads as reachable. */
+.concept-tabs__tab:not([aria-current]) {
+  transition: color 120ms ease-out;
+}
+
+.concept-tabs__tab:not([aria-current]):hover {
+  color: var(--tab-hover, var(--tab-active, currentColor));
+}

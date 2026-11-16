@@ -1,4 +1,5 @@
 import { CONCEPT_HEX } from "./conceptColor.js";
+import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
 import {
   type ConceptIconSvg,
   cleanIconSvg,
@@ -101,6 +102,8 @@ export interface ReviewConceptElement {
   fontRef?: string;
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
+  /** How it changes under the pointer (see conceptHover.ts). */
+  hover?: ConceptHover;
   /** Cards only: the icon's colour and size; default to text colour, 1.5× type. */
   iconColor?: string;
   iconName?: ReviewConceptIcon;
@@ -165,6 +168,7 @@ export const ELEMENT_STYLE_KEYS = [
   "accentColor",
   "checkSize",
   "tabLook",
+  "hover",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 export const CONCEPT_STYLE_KEYS = [
@@ -414,6 +418,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
   const kind = cleanKind(raw.kind);
   const table = kind === "table" ? cleanTable(raw.table) : undefined;
   const tabLook = kind === "tabs" ? cleanTabLook(raw.tabLook) : undefined;
+  const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
@@ -432,6 +437,7 @@ export const cleanElement = (value: unknown): ReviewConceptElement => {
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(tabLook ? { tabLook } : {}),
+    ...(hover ? { hover } : {}),
     ...(table ? { table } : {}),
     ...cleanLink(raw),
     text: str(raw.text, 500),

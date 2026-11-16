@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { ConceptHover } from "./ConceptHover";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
@@ -270,11 +271,7 @@ const boxOf = (element: ReviewConceptElement): CSSProperties => {
   return { border, boxShadow: shadowCss(shadowOf(element)) };
 };
 
-export function ReviewConceptElementView({
-  element,
-}: {
-  element: ReviewConceptElement;
-}) {
+function ElementBody({ element }: { element: ReviewConceptElement }) {
   const style: CSSProperties = {
     background: element.background,
     ...boxOf(element),
@@ -422,4 +419,17 @@ export function ReviewConceptElementView({
     default:
       return <div style={{ ...style, whiteSpace: "pre-line" }}>{text}</div>;
   }
+}
+
+/** An element as a concept draws it, with its hover look when it has one. */
+export function ReviewConceptElementView({
+  element,
+}: {
+  element: ReviewConceptElement;
+}) {
+  return (
+    <ConceptHover element={element}>
+      <ElementBody element={element} />
+    </ConceptHover>
+  );
 }

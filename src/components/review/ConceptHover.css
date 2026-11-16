@@ -1,0 +1,36 @@
+/* An element's hover look (ConceptHover). The wrapper takes no space; what
+   it wraps changes on hover, only in what was set. !important because the
+   element's own look is set inline. */
+.concept-hover {
+  display: contents;
+}
+
+.concept-hover > * {
+  transition:
+    background-color 120ms ease-out,
+    color 120ms ease-out,
+    border-color 120ms ease-out,
+    box-shadow 120ms ease-out;
+}
+
+.concept-hover[data-hover-bg] > :hover {
+  background: var(--hover-bg) !important;
+}
+
+.concept-hover[data-hover-ink] > :hover {
+  color: var(--hover-ink) !important;
+}
+
+.concept-hover[data-hover-line] > :hover {
+  border-color: var(--hover-line) !important;
+}
+
+.concept-hover[data-hover-shadow] > :hover {
+  box-shadow: var(--hover-shadow) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-hover > * {
+    transition: none;
+  }
+}

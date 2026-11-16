@@ -1,6 +1,7 @@
 import { ChevronDown, Copy, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import { takesHover } from "../../../config/conceptHover.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import {
   type ReviewConceptElement,
@@ -23,6 +24,7 @@ import { ConceptColorField } from "./ReviewConceptBrand";
 import {
   CheckboxGroup,
   ElementIconGroup,
+  HoverGroup,
   ShadowGroup,
   TabsGroup,
   ToastGroup,
@@ -204,6 +206,9 @@ function KindGroups({
       {element.kind === "table" || lookOnly ? null : (
         <ContentGroup element={element} onChange={onChange} />
       )}
+      {takesHover(element.kind) ? (
+        <HoverGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      ) : null}
       {element.kind === "toast" ? (
         <ToastGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
