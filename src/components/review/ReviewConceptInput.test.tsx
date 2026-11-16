@@ -64,6 +64,9 @@ it("draws a select with the project Select: it opens, picks, and keeps the desig
   );
   const trigger = host.querySelector('[data-slot="select-trigger"]');
   expect(trigger?.textContent).toContain("Choose an option");
+  // Shown as the value, at full strength: not a faded placeholder.
+  expect(trigger?.hasAttribute("data-placeholder")).toBe(false);
+  expect(getComputedStyle(trigger as HTMLElement).opacity).toBe("1");
   expect(getComputedStyle(trigger as HTMLElement).backgroundColor).toBe(
     "rgb(255, 238, 221)"
   );

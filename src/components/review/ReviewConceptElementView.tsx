@@ -161,9 +161,15 @@ function SelectPreview({
   text: string;
 }) {
   const options = element.options ?? [];
+  // The element's text is what the select shows, as a chosen value — not a
+  // placeholder, which the Select draws at 60% and which made a select look
+  // faded beside an input in the same look.
   return (
     <Select
-      items={Object.fromEntries(options.map((option) => [option, option]))}
+      defaultValue={text}
+      items={Object.fromEntries(
+        [text, ...options].map((option) => [option, option])
+      )}
     >
       <SelectTrigger
         aria-label={text}
@@ -171,7 +177,7 @@ function SelectPreview({
         tone="inherit"
         width="fit"
       >
-        <SelectValue placeholder={text} />
+        <SelectValue />
       </SelectTrigger>
       <SelectContent>
         {options.map((option) => (
