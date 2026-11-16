@@ -11,6 +11,7 @@ import {
 import type { FontId } from "../../../config/theme.js";
 import { loadFont } from "../../theme/fonts";
 import { loadFontRef } from "../../theme/remoteFonts";
+import { PANEL_HIDDEN } from "./ConceptPanelPreview";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import "./ReviewConceptPreview.css";
 
@@ -178,15 +179,41 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
     if (!(canvas && sequence && trigger)) {
       return;
     }
-    const advance = (event: MouseEvent) => {
-      const hit = step?.elements[clickedIndex(canvas, event.target)];
+    const moveOnFrom = (target: EventTarget | null) => {
+      const hit = step?.elements[clickedIndex(canvas, target)];
       if (hit?.id === trigger) {
-        event.preventDefault();
         setAt(index + 1);
+        return true;
+      }
+      return false;
+    };
+    const advance = (event: MouseEvent) => {
+      // A panel's hide slot slides the panel away first; it moves the
+      // sequence on once it has gone (PANEL_HIDDEN, below).
+      if (
+        event.target instanceof Element &&
+        event.target.closest("[data-concept-hide]")
+      ) {
+        return;
+      }
+      // A panel with a hide button moves on when hidden, not when clicked.
+      const hit = step?.elements[clickedIndex(canvas, event.target)];
+      if (hit?.kind === "panel" && hit.slots?.hide?.elements.length) {
+        return;
+      }
+      if (moveOnFrom(event.target)) {
+        event.preventDefault();
       }
     };
+    const hidden = (event: Event) => {
+      moveOnFrom(event.target);
+    };
     canvas.addEventListener("click", advance);
-    return () => canvas.removeEventListener("click", advance);
+    canvas.addEventListener(PANEL_HIDDEN, hidden);
+    return () => {
+      canvas.removeEventListener("click", advance);
+      canvas.removeEventListener(PANEL_HIDDEN, hidden);
+    };
   }, [index, sequence, step, trigger]);
 
   return (

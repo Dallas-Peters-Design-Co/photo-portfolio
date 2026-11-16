@@ -24,6 +24,7 @@ import { ConceptHover } from "./ConceptHover";
 import { ConceptIcon, ConceptIconText } from "./ConceptIcon";
 import { conceptMenuProps } from "./conceptMenuStyle";
 import "./ConceptElements.css";
+import { ConceptPanelPreview } from "./ConceptPanelPreview";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
 import { ConceptSlotsView } from "./ConceptSlotsView";
 import { ConceptTablePreview } from "./ConceptTablePreview";
@@ -33,34 +34,6 @@ import { ConceptUploadPreview } from "./ConceptUploadPreview";
 import { useConceptFont } from "./useConceptFont";
 
 const ICON_SUFFIX = /Icon$/;
-
-/** A panel: its slots, its title at the start of the header. */
-function PanelPreview({
-  element,
-  style,
-}: {
-  element: ReviewConceptElement;
-  style: CSSProperties;
-}) {
-  return (
-    <section
-      aria-label={element.text || "Panel"}
-      className="concept-panel"
-      style={style}
-    >
-      <ConceptSlotsView
-        dividers={element.dividers}
-        draw={drawElement}
-        lead={
-          element.text ? (
-            <strong className="concept-slot__lead">{element.text}</strong>
-          ) : undefined
-        }
-        slots={element.slots}
-      />
-    </section>
-  );
-}
 
 function CardPreview({
   element,
@@ -412,7 +385,13 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
         <ConceptToastPreview element={element} style={style} text={text} />
       );
     case "panel":
-      return <PanelPreview element={element} style={style} />;
+      return (
+        <ConceptPanelPreview
+          draw={drawElement}
+          element={element}
+          style={style}
+        />
+      );
     case "progress":
       return <ConceptProgressPreview element={element} style={style} />;
     case "skeleton":

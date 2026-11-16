@@ -14,7 +14,13 @@ import {
   takesMenu,
 } from "./conceptMenu.js";
 import type { ConceptShadow } from "./conceptShadow.js";
-import { type ConceptSlots, cleanSlots, hasSlots } from "./conceptSlots.js";
+import {
+  type ConceptSlots,
+  cleanSlots,
+  hasSlots,
+  SLIDE_SIDES,
+  type SlideSide,
+} from "./conceptSlots.js";
 import {
   type ConceptStep,
   cleanFirstStep,
@@ -170,6 +176,11 @@ export interface ReviewConceptElement {
   shadow?: ConceptShadow;
   /** Progress bars: whether the percentage shows beside the label. */
   showValue?: boolean;
+  /**
+   * Panels only: the side it slides in from when it appears, and out to
+   * when its hide slot is clicked. Absent: it just appears.
+   */
+  slideFrom?: SlideSide;
   /**
    * Cards and panels: header, body and footer, each with its own layout and
    * elements (see conceptSlots.ts).
@@ -395,6 +406,9 @@ export const cleanElement = (
     ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(kind === "progress" ? cleanProgress(raw) : {}),
     ...cleanSlotted(kind, raw, depth),
+    ...(kind === "panel" && SLIDE_SIDES.includes(raw.slideFrom as SlideSide)
+      ? { slideFrom: raw.slideFrom as SlideSide }
+      : {}),
     ...(tabLook ? { tabLook } : {}),
     ...(menuLook ? { menuLook } : {}),
     ...(hover ? { hover } : {}),

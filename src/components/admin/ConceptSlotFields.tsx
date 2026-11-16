@@ -6,9 +6,11 @@ import {
   type ConceptSlotJustify,
   type ConceptSlotLayout,
   type ConceptSlotName,
+  SLIDE_SIDES,
   SLOT_DEFAULTS,
   SLOT_LIMITS,
   SLOT_NAMES,
+  type SlideSide,
 } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Checkbox } from "../ui/checkbox";
@@ -42,7 +44,16 @@ const SLOT_LABELS: Record<ConceptSlotName, string> = {
   body: "Body",
   footer: "Footer",
   header: "Header",
+  hide: "Hide button",
 };
+
+const SLIDES = optionsOf([
+  ["none", "Just appears"],
+  ["right", "Slides in from the right"],
+  ["left", "Slides in from the left"],
+  ["top", "Slides down from the top"],
+  ["bottom", "Slides up from the bottom"],
+]);
 
 /** One slot: how it lays out what it holds, then what it holds. */
 function SlotFields({
@@ -166,7 +177,31 @@ export function ConceptSlotFields({
           <span>Lines between slots</span>
         </label>
       </ConceptGroup>
-      {SLOT_NAMES.map((name) => (
+      {element.kind === "panel" ? (
+        <ConceptGroup name="Motion">
+          <ConceptField label="Appears" wide>
+            <ConceptSelect
+              label="How the panel appears"
+              onChange={(value) =>
+                onChange({
+                  slideFrom: SLIDE_SIDES.includes(value as SlideSide)
+                    ? (value as SlideSide)
+                    : undefined,
+                })
+              }
+              options={SLIDES}
+              value={element.slideFrom ?? "none"}
+            />
+          </ConceptField>
+          <p className="review-concepts__hint">
+            Put a close button or ✕ in the Hide button slot: it sits in the
+            top-right corner, and clicking it slides the panel away.
+          </p>
+        </ConceptGroup>
+      ) : null}
+      {SLOT_NAMES.filter(
+        (name) => name !== "hide" || element.kind === "panel"
+      ).map((name) => (
         <SlotFields
           brandDoc={brandDoc}
           depth={depth}

@@ -15,8 +15,19 @@ import type {
  * not drawn either.
  */
 
-export const SLOT_NAMES = ["header", "body", "footer"] as const;
+export const SLOT_NAMES = ["header", "body", "footer", "hide"] as const;
 export type ConceptSlotName = (typeof SLOT_NAMES)[number];
+
+/**
+ * The slots laid out top to bottom. `hide` is a panel's own: what it holds
+ * (a close button, an ✕) sits in the panel's top-right corner, and a click
+ * on it slides the panel away (src/components/review/ConceptPanelPreview).
+ */
+export const LAYOUT_SLOTS = ["header", "body", "footer"] as const;
+
+/** Where a panel slides in from as it appears, and back out to. */
+export const SLIDE_SIDES = ["right", "left", "top", "bottom"] as const;
+export type SlideSide = (typeof SLIDE_SIDES)[number];
 
 export const SLOT_LAYOUTS = ["column", "row", "grid"] as const;
 export type ConceptSlotLayout = (typeof SLOT_LAYOUTS)[number];

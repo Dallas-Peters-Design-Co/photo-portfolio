@@ -54,6 +54,7 @@
 /* A panel: a surface whose slots hold other elements. Its own padding is
    usually 0, so the slots' padding and dividers run edge to edge. */
 .concept-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -193,4 +194,78 @@
   font-weight: 600;
   background: color-mix(in srgb, currentColor 8%, transparent);
   border-radius: 999px;
+}
+
+/* A panel's hide slot: its close button or ✕, in the top-right corner. */
+.concept-panel__hide {
+  position: absolute;
+  top: calc(var(--spacing) * 2);
+  right: calc(var(--spacing) * 2);
+  display: flex;
+  gap: calc(var(--spacing) * 1);
+  cursor: pointer;
+}
+
+.concept-panel--closed {
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  border: 0;
+}
+
+.concept-panel__show {
+  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
+  font: inherit;
+  font-size: 0.8em;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 1px dashed color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 999px;
+}
+
+/* Sliding in as it appears, and back out when hidden. */
+.concept-panel[data-slide] {
+  animation: concept-slide-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.concept-panel[data-slide][data-closing] {
+  animation: concept-slide-out 260ms cubic-bezier(0.4, 0, 1, 1) both;
+}
+
+.concept-panel[data-slide="right"] {
+  --slide-from: translateX(110%);
+}
+
+.concept-panel[data-slide="left"] {
+  --slide-from: translateX(-110%);
+}
+
+.concept-panel[data-slide="top"] {
+  --slide-from: translateY(-110%);
+}
+
+.concept-panel[data-slide="bottom"] {
+  --slide-from: translateY(110%);
+}
+
+@keyframes concept-slide-in {
+  from {
+    opacity: 0;
+    transform: var(--slide-from);
+  }
+}
+
+@keyframes concept-slide-out {
+  to {
+    opacity: 0;
+    transform: var(--slide-from);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-panel[data-slide],
+  .concept-panel[data-slide][data-closing] {
+    animation: none;
+  }
 }

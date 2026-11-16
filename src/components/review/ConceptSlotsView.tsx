@@ -3,8 +3,8 @@ import {
   type ConceptSlot,
   type ConceptSlotName,
   type ConceptSlots,
+  LAYOUT_SLOTS,
   SLOT_DEFAULTS,
-  SLOT_NAMES,
 } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import "./ConceptSlotsView.css";
@@ -118,7 +118,7 @@ export function ConceptSlotsView({
 }) {
   return (
     <div className="concept-slots" data-dividers={dividers || undefined}>
-      {SLOT_NAMES.map((name) => (
+      {LAYOUT_SLOTS.map((name) => (
         <Slot
           draw={draw}
           key={name}

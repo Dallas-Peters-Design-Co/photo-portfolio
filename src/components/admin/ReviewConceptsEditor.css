@@ -434,3 +434,9 @@
   font-size: var(--text-xs-ui);
   opacity: 0.7;
 }
+
+.review-concepts__hint {
+  margin: 0;
+  font-size: var(--text-xs-ui);
+  opacity: 0.7;
+}

@@ -3,8 +3,8 @@ import { iconSizeOf } from "./conceptKinds.js";
 import {
   type ConceptSlot,
   type ConceptSlotName,
+  LAYOUT_SLOTS,
   SLOT_DEFAULTS,
-  SLOT_NAMES,
 } from "./conceptSlots.js";
 import { type ReviewConceptElement, splitCardText } from "./reviewConcept.js";
 
@@ -178,7 +178,7 @@ const slotsOf = (
   lead: string
 ): { css: string; jsx: string } => {
   const css: string[] = [];
-  const slots = SLOT_NAMES.map((name: ConceptSlotName) => {
+  const slots = LAYOUT_SLOTS.map((name: ConceptSlotName) => {
     const slot = element.slots?.[name];
     const filled = slot?.elements.length ? slot : undefined;
     const led = name === "header" && lead;
@@ -224,16 +224,32 @@ ${SLOTS_CSS}`,
   };
 };
 
-export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => ({
-  attrs: `aria-label=${JSON.stringify(el.text || "Panel")}`,
-  css: `& { display: flex; flex-direction: column; width: 100%; min-width: 0; }\n${SLOTS_CSS}`,
-  tag: "section",
-  ...withSlots(
+export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
+  const slotted = withSlots(
     el,
     draw,
     el.text ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>` : ""
-  ),
-});
+  );
+  // The hide slot: its close button or ✕, in the top-right corner.
+  const hidden = (el.slots?.hide?.elements ?? []).map((child, i) =>
+    draw(child, `@@__hide-${i + 1}`)
+  );
+  const hide =
+    hidden.length > 0
+      ? `\n<div className="@@__hide">\n${hidden.map((h) => indent(h.jsx)).join("\n")}\n</div>`
+      : "";
+  return {
+    attrs: `aria-label=${JSON.stringify(el.text || "Panel")}`,
+    body: `${slotted.body ?? ""}${hide}`,
+    childCss: [slotted.childCss, ...hidden.map((h) => h.css)]
+      .filter(Boolean)
+      .join("\n"),
+    css: `& { position: relative; display: flex; flex-direction: column; width: 100%; min-width: 0; }
+&__hide { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+${SLOTS_CSS}`,
+    tag: "section",
+  };
+};
 
 /** The slots' body and their children's CSS; the class is filled in later. */
 const withSlots = (
