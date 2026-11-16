@@ -1,0 +1,121 @@
+---
+title: "Databases, schema patches and migrations"
+description: "How the three photo sites keep separate Postgres databases, where the schema and Drizzle layer live, and how to migrate every database safely before a deploy."
+sidebarTitle: "Databases"
+keywords: ["database", "postgres", "neon", "drizzle", "migrations", "db:migrate", "patches", "site_settings", "PHOTO_COLUMNS"]
+---
+
+This page covers the database layer: how the three sites keep their data apart, where the schema is defined, how the Drizzle query layer relates to it, and how to run migrations so a deploy does not take a site down.
+
+## One database per site
+
+`addison`, `cyan` and `dallas-images` are separate Vercel projects, and each has its own Neon Postgres database. Nothing is shared between them, so `photos`, `users` and `categories` have no site column.
+
+The one exception is `site_settings`, which is keyed by `site_key` and holds each site's configuration.
+
+<Warning>
+Within a single project, the Development and Production environments point at the same database. The two connection strings differ by password, so they look like two databases, but they are one instance. `pnpm dev` reads and writes live data.
+</Warning>
+
+### Check which database you are on
+
+Run `pnpm db:info` before anything destructive.
+
+```bash
+pnpm db:info                      # whatever the env resolves to
+DATABASE_URL='...' pnpm db:info   # a specific database
+```
+
+It prints the host, database, user, the Postgres `system_identifier`, row counts for `photos`, `site_settings` and `users`, and the site keys present in `site_settings`. The `system_identifier` comes from the Postgres control file and is unique per instance, so two connection strings that report the same identifier are the same database however different the URLs look.
+
+## Where the schema lives
+
+| Path | Role |
+| --- | --- |
+| `db/schema.sql` | Base schema, applied first on every migration |
+| `db/patches/*.sql` | Numbered patches, applied in filename order. The source of truth for every table and column |
+| `db/schema.ts`, `db/relations.ts` | Drizzle schema, generated from a real database with `pnpm db:pull` |
+| `drizzle.config.ts` | `drizzle-kit` configuration, used only for `pnpm db:pull` |
+| `api/_lib/orm.ts` | The Drizzle client used by the API |
+| `api/_lib/db.ts` | The raw SQL client (`getSql`) used by older code |
+
+Drizzle is a typed query layer over the shape the patches create. It does not create or alter anything: `drizzle-kit generate` and `drizzle-kit migrate` are deliberately not wired up, so DDL has exactly one owner.
+
+### Querying
+
+Use Drizzle for new or edited code.
+
+```ts
+import { eq } from "drizzle-orm";
+import { getDb, schema } from "../_lib/orm.js";
+
+const db = getDb();
+const rows = await db
+  .select()
+  .from(schema.boards)
+  .where(eq(schema.boards.id, id))
+  .limit(1);
+```
+
+Existing files that use `getSql` with tagged-template SQL can stay as they are. Convert one when you are already editing it for another reason. Both clients use the same driver and connection string, so you can mix them inside one request.
+
+## Adding a column or table
+
+<Steps>
+<Step title="Write a patch">
+Add the next numbered `.sql` file to `db/patches`. Make it idempotent, for example `ADD COLUMN IF NOT EXISTS` or `CREATE TABLE IF NOT EXISTS`. No edit to the migration script is needed.
+</Step>
+<Step title="Run the safety check">
+`pnpm lint` runs the same check as `pnpm check:migrations`. It fails on `DELETE FROM`, `TRUNCATE`, `DROP TABLE` and `DROP COLUMN`, and on `INSERT` without `ON CONFLICT`. An `UPDATE` also fails unless the comment block directly above it contains a `-- migration-safety:` marker explaining why it is safe. The same marker can waive a destructive statement, and the check then lists it as explicitly waived.
+</Step>
+<Step title="Migrate every database">
+Run `pnpm db:migrate` once per site, as described below.
+</Step>
+<Step title="Regenerate the Drizzle schema">
+Run `DATABASE_URL='...' pnpm db:pull` against a migrated database, then reapply the two manual edits described in the note below.
+</Step>
+</Steps>
+
+<Note>
+`pnpm db:pull` overwrites `db/schema.ts` and `db/relations.ts`. Afterwards, add the `.js` extension to the `./schema` import in `db/relations.ts`, or every ORM endpoint fails in production with `ERR_MODULE_NOT_FOUND`. Then re-apply the edit that breaks the reference cycle between `recipes`, `recipeVersions`, `brandKits` and `brandKitVersions`, without which `db/schema.ts` does not compile; the comment at the top of `db/schema.ts` describes it. The pull also writes a `db/meta/` folder and a `db/0000_*.sql` file, which are gitignored and safe to delete.
+</Note>
+
+## Running migrations
+
+`pnpm db:migrate` applies `db/schema.sql`, then every file in `db/patches` in filename order. Every patch is idempotent, so re-running the whole set is safe.
+
+With no `DATABASE_URL` on the command line, it migrates whatever your local env files point at, which is one site. To target a specific site, pass that site's production connection string:
+
+```bash
+DATABASE_URL='<that site production string>' pnpm db:migrate
+```
+
+A `DATABASE_URL` given on the command line takes precedence over `.env.local`. To loop over all three sites from local env files:
+
+```bash
+for s in addison cyan dallas-images; do
+  url=$(grep -o '^DATABASE_URL=.*' .env.$s.local | cut -d= -f2- | tr -d '"')
+  DATABASE_URL="$url" pnpm db:migrate
+done
+```
+
+<Tip>
+`vercel env pull` defaults to the Development environment. Pass `--environment=production` when you need a site's production connection string. Development and Production share a database within a project, so Development is not a substitute for checking with `pnpm db:info`.
+</Tip>
+
+## Migrate before you deploy
+
+Migrate every database before you deploy code that reads a new column.
+
+The reason is `PHOTO_COLUMNS` in `api/_lib/photos.ts`. It is the column list selected by both `api/photos/index.ts` and `api/shell.ts`. If you add a column to it and deploy before a site's database has that column, every query built from it fails, and every photo endpoint on that site returns errors until the database is migrated.
+
+The Vercel build command runs `pnpm db:migrate` before `pnpm build` on production deploys only; preview deploys skip it. Treat that as a backstop for the site being built, not as a substitute for migrating all three databases first. See [Deploying](/developers/deploying) for the release steps.
+
+<Columns cols={2}>
+  <Card title="Local setup" href="/developers/local-setup">
+    Environment files and the dev stack that reads them.
+  </Card>
+  <Card title="Site settings" href="/guide/site-settings">
+    The per-site configuration stored in `site_settings`.
+  </Card>
+</Columns>

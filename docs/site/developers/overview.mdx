@@ -1,0 +1,105 @@
+---
+title: "Developer overview: architecture and repository map"
+description: "How one codebase runs three photo sites and the studio: a Vite React SPA, Vercel serverless functions, a Neon database per site, and site resolution."
+sidebarTitle: "Overview"
+keywords: ["architecture", "repository map", "Vite", "React", "Vercel", "serverless functions", "Neon", "Drizzle", "VITE_SITE", "SITE", "resolveSite"]
+---
+
+This page describes how the codebase is put together for developers. One repository runs three photography sites (`addison`, `cyan` and `dallas-images`) and the private studio behind them. It covers the front end and back end, how each deployment knows which site it is, how the databases are split, and where things live in the repository.
+
+## Architecture
+
+The project has three layers, and every site runs the same code in each of them.
+
+| Layer | What it is | Where |
+| --- | --- | --- |
+| Front end | A single-page app built with Vite, React 19, react-router-dom 7 and Tailwind CSS v4. UI primitives are shadcn on Base UI. | `src/` |
+| Back end | Vercel serverless functions in TypeScript, laid out with Vercel file routing. Shared server code lives in `api/_lib/`, which is not a route. | `api/` |
+| Database | Neon Postgres, one database per site. Drizzle (`getDb()`) is the typed query layer; older endpoints still use raw SQL through `getSql()`. | `db/`, `api/_lib/orm.ts`, `api/_lib/db.ts` |
+
+Code that both the browser and the server need, such as site configuration, node types, the review model and theme rules, lives in `config/`. Server-side relative imports use `.js` extensions because the serverless functions run as real ESM; `pnpm check:esm` enforces this for `api/` and `db/`.
+
+There is no app-wide state library. Services in `src/services/*` call `/api` with a bearer token, and components use React state, context, small module-level stores and SWR. Board runs are driven from the browser, one request per variation, so a long run never sits inside a single function call. The review UX audit runs on the server, where one whole-review Claude call and one call per screen start together.
+
+## One codebase, three sites
+
+Each site is its own Vercel project with its own Neon database. Nothing is shared between sites at runtime. Only the `site_settings` table is keyed by site; `photos`, `users` and `categories` have no site column.
+
+A deployment learns which site it is from two environment variables:
+
+- `VITE_SITE` is read by the browser bundle and inlined at build time, so each Vercel project ships a bundle for exactly one site.
+- `SITE` is read at runtime by the serverless functions and by scripts.
+
+Both values go through `resolveSite()` in `config/sites.ts`, which looks the key up in the `SITES` table. The match is exact after trimming whitespace.
+
+<Warning>
+An unmatched key does not fail. `resolveSite()` falls back to the default site's configuration and keeps the unknown key, so a typo shows up as the wrong branding rather than as an error. The deployed keys are `addison`, `cyan` and `dallas-images`.
+</Warning>
+
+On the server, `getSite()` in `api/_lib/site.ts` layers `SITE_*` environment variables over the resolved site with `applySiteOverrides()`. This is how a site created from the admin, which has no entry in `config/sites.ts`, gets its own name, domain, origins and email sender. Unset variables keep the compiled value.
+
+There are two layers of site identity:
+
+- **Identity and security** (`siteConfig` in `src/site.ts`): canonical domain, CORS origins and the email From address. It is fixed at build time and not editable at runtime.
+- **Content and theme** (`useSiteSettings()`): name, tagline, colours, fonts and the shader background, loaded from `/api/site-settings` and edited by an admin in **Settings**. See [Site settings](/guide/site-settings).
+
+<Note>
+Locally, `scripts/dev-stack.mjs` copies `VITE_SITE` into `SITE`, so `pnpm dev`, `pnpm dev:addison` and `pnpm dev:cyan` set both from one value.
+</Note>
+
+## Repository map
+
+```text
+api/                 Serverless endpoints, one file per route
+  _lib/              Shared server code: auth, db, blob, email, AI, MCP, audits
+agents/audit/        The audit agent (its own package and Vercel project)
+bruno/               Generated Bruno API collection
+chrome-extension/    Board capture Chrome extension
+config/              Code shared by browser and server: sites, theme,
+                     node types, review model, fal models, social sizes
+db/                  schema.sql, patches/*.sql (migrations), Drizzle schema
+docs/                Design and pipeline notes
+electron/            Desktop app
+schemas/             Zod models that generate openapi.json and openapi.yaml
+scripts/             Dev stack, migrations, seeds, checks, bridges, scanners
+skills/              Agent skills shipped with the repo
+specs/               spec-kit specs for the canvas
+src/
+  boards/            The canvas: nodes, wires, tools, studio, creative editor
+  cms/               Page editor and renderer
+  components/        admin/, review/, brandGuide/, ui/ (shadcn)
+  editor/            WebGL photo darkroom
+  hooks/ lib/ services/ theme/
+  pages/             Route pages (public and admin shells)
+middleware.ts        Sends crawlers to /api/shell for share cards
+vercel.json          Build, headers, rewrites, image hosts
+```
+
+Public routes are defined in `src/App.tsx`, and admin sections in `src/pages/AdminPage.tsx`. The database schema is `db/schema.sql` plus the patches in `db/patches/`; `db/schema.ts` is generated from a site's database with `pnpm db:pull`, and the patches remain the only thing that creates or alters a table.
+
+<Tip>
+The repository is indexed by CodeGraph. Run `codegraph explore "<symbols or question>"` before searching by hand, and read the blast radius before changing a shared symbol such as `PHOTO_COLUMNS`.
+</Tip>
+
+## Developer guides
+
+<Columns cols={2}>
+  <Card title="Local setup" href="/developers/local-setup">
+    Install, pull environment variables and run the dev stack for one site.
+  </Card>
+  <Card title="Databases" href="/developers/databases">
+    The per-site Neon databases, migrations, Drizzle, and why local dev uses live data.
+  </Card>
+  <Card title="Deploying" href="/developers/deploying">
+    Vercel projects, the production build, and migrating before you ship.
+  </Card>
+  <Card title="Testing" href="/developers/testing">
+    Vitest in real Chromium, the node project, and the lint gates.
+  </Card>
+  <Card title="API" href="/developers/api">
+    Every route under `api/`, the auth model, and the generated OpenAPI docs.
+  </Card>
+  <Card title="MCP server" href="/guide/mcp">
+    Connect Claude or another MCP client to read and update the studio.
+  </Card>
+</Columns>

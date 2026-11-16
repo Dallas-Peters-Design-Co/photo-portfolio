@@ -1,0 +1,104 @@
+---
+title: "Proposals, contracts and invoices in the studio"
+description: "Write a client proposal, send its link, record acceptance, draft and sign a services agreement, then bill the client through Stripe invoices."
+sidebarTitle: "Proposals and invoices"
+keywords: ["proposal", "contract", "services agreement", "invoice", "Stripe", "acceptance", "countersign", "deposit"]
+---
+
+The studio takes a piece of client work from offer to payment. You write a proposal with priced options, send the client a link, and they accept it by typing their name. Accepting drafts the first invoice, and from there you draft a services agreement. Both of you sign the agreement, and Stripe emails the invoices and tracks payment.
+
+## How the pieces connect
+
+<Columns cols={2}>
+  <Card title="Proposal" icon="file-lines">
+    Public at `/proposal/<address>` once published. Statuses: draft or published.
+  </Card>
+  <Card title="Agreement" icon="file-signature">
+    Public at `/contract/<id>` once sent. Statuses: draft, sent, signed, countersigned.
+  </Card>
+  <Card title="Invoice" icon="receipt">
+    Created in Stripe when sent. Statuses: draft, open, paid, void, uncollectible.
+  </Card>
+  <Card title="Activity" icon="bell">
+    Views, sends, signatures and payments, on the proposal and in the bell.
+  </Card>
+</Columns>
+
+## Write a proposal
+
+<Steps>
+  <Step title="Create a draft">
+    In the admin, open **Proposals** and select **New proposal**. Enter a **Title** and the **Client (as it should read on the page)**, then select **Create draft**. The address is made from the title and shown below it as `/proposal/<address>`. The editor shows the same client name as **Client label**.
+  </Step>
+  <Step title="Fill in the editor">
+    Set the **Client email** (it gets the signed copy), an optional [brand kit](/guide/brand-kits) under **Brand kit** to theme the page (or **None (site accent)**), and the **Address**. Under **Opening**, write the **Intro** and **What you asked for**, then any **Sections**, **Terms (one per line)**, the **Closing line** and **Valid until (optional)**.
+  </Step>
+  <Step title="Price the options">
+    Under **Packages**, each option has a **Name**, **Price**, **Price note**, **Timeline**, **Best for**, included items, **Revisions** and **Payment**. Add extras under **Add-ons** and describe the steps after acceptance under **What happens next**.
+  </Step>
+  <Step title="Publish">
+    Select **Publish**. A draft is readable at its real address only while you are signed in, so you can preview it first. **Unpublish** takes it offline again.
+  </Step>
+</Steps>
+
+<Tip>
+A new proposal starts with the standard sections already written. Packages start empty.
+</Tip>
+
+## Send it to the client
+
+In the **Send to client** panel, select **Copy link** to share it yourself, or add an optional **Note (optional, goes above the link)** and select **Send to**. The email goes to the address saved on the proposal. Sending requires that:
+
+- The proposal is published. Otherwise the panel shows **Publish first**.
+- The client email is saved. Otherwise it shows **Add the client email and save**.
+
+After a send, the button reads **Send again to**. Delivery, open, click and bounce events come back from Resend and appear in **Activity**. Views of the public page by a signed-out visitor are also recorded, with repeat views folded into one per six hours, so your own previews never count.
+
+## Acceptance
+
+On the public page the client picks one option under **Option accepted** (shown when there is more than one), types their name, optionally a title, and selects **Accept and sign**. An acceptance is recorded once, and a second attempt is refused. **Reset acceptance** in the **Send to client** panel clears it.
+
+When the client accepts:
+
+1. The client gets a signed copy by email, and you get a notice.
+2. The first invoice is drafted from the chosen option's **Payment** text. If it contains a percentage, such as `50% to start`, the draft is that share of the price and its description ends in `deposit`. Otherwise it is the full price. If the price has no figure, no invoice is drafted.
+3. Nothing is sent to Stripe or the client yet.
+
+<Note>
+If the client accepted by email or on a call, use the form in the **Agreement** section of the proposal. Choose **Option they chose**, fill in **Agreed by** and **How they told you**, then select **Draft agreement and invoice**. No emails go out for an acceptance you record this way.
+</Note>
+
+## Draft and sign the agreement
+
+After acceptance, select **Draft agreement** (or it is drafted for you when you record an acceptance). The agreement takes its scope, price and payment from the chosen option, with the standard terms. While it is a draft you can edit its **Title**, **Send to**, parties, scope and clauses, and add a **Note with the email (optional)**.
+
+<Steps>
+  <Step title="Sign and send">
+    Select **Sign and send**. You sign as the Designer named on the agreement, and the client gets a link to read and sign it. The **Send the drafted invoice with it** box is ticked by default, so Stripe emails every drafted invoice on the proposal at the same time. Untick it to send the agreement alone.
+  </Step>
+  <Step title="The client signs">
+    On `/contract/<id>` the client types their full name, ticks the agreement box and selects **Sign agreement**. The time and the address the request came from are recorded with the name.
+  </Step>
+  <Step title="Executed copy">
+    Once both signatures are on it, the status reads **Signed by both** and the executed copy is emailed to the client and to you. If the client signs an agreement that does not carry your signature yet, the status asks you to countersign; select **Countersign** to complete it.
+  </Step>
+</Steps>
+
+**Reopen to edit** returns a sent, unsigned agreement to draft and removes your signature. Only a draft or sent agreement can be deleted; once the client signs, the text is frozen.
+
+## Invoice and get paid
+
+Invoices live in the proposal's **Invoices** section and in the **Invoices** panel in the admin.
+
+- **New invoice** on a proposal drafts the balance: the chosen option's price minus every invoice already drafted or sent, not counting void or uncollectible ones.
+- A draft row has **Amount (USD)**, **What it's for**, **Send to** and **Due in (days)**. Drafts default to 14 days.
+- **Send** creates the invoice in Stripe, and Stripe emails the client a link to pay. The row then reads **Sent, unpaid**.
+- **Void** cancels a sent, unpaid invoice and the pay link stops working. A sent amount is not edited: void it and draft another. A draft can be deleted instead.
+
+The **Invoices** panel also drafts standalone invoices. Select **New invoice**, choose **Blank invoice** or a saved template under **Start from**, and add one or more **Lines**. **Save as template** keeps the layout for next time.
+
+Status follows Stripe webhooks: `invoice.paid` marks it **Paid**, `invoice.voided` marks it **Void**, `invoice.marked_uncollectible` marks it **Uncollectible**, and `invoice.payment_failed` leaves it open. Each one is added to **Activity**. The [MCP server](/guide/mcp) can also list invoices and save drafts.
+
+<Warning>
+Drafts work without Stripe. Sending needs `STRIPE_SECRET_KEY` set on the site's Vercel project; until then the **Invoices** section says Stripe isn't connected. See [Deploying](/developers/deploying).
+</Warning>

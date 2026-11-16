@@ -1,0 +1,105 @@
+---
+title: "Brand kits: palettes, fonts, references and previews"
+sidebarTitle: "Brand kits"
+description: "Build a brand kit with a palette, typefaces including app fonts such as Exposure, logos, voice and references, then preview it and use it in reviews."
+keywords: ["brand kit", "palette", "typefaces", "Exposure", "app fonts", "sub-brand", "DESIGN.md", "review concepts", "brand guide"]
+---
+
+A brand kit writes down an identity so it can be checked rather than remembered. This page covers creating kits and sub-brands, filling in the palette, typefaces (including the app's own fonts such as Exposure), logos, voice and references, reading the previews, and how a kit feeds review concepts, proposals and boards.
+
+## Create a kit
+
+Open **Brand kits** in the admin (`/admin/brand-kits`). Type a name into **New kit…** and click **New kit**.
+
+To make a sub-brand, click the plus icon on a parent kit's row (its label reads **Add a sub-brand of** and the kit's name), type a name, and click **Add**. Sub-brands sit indented under their parent. Kits go only two levels deep; the database rejects a sub-brand of a sub-brand.
+
+<Note>
+A sub-brand's empty parts take the parent's values. The editor lists which parts it inherits under **Settings**; fill a part in to override it.
+</Note>
+
+## Edit a kit
+
+Click a kit to open it. The side panel shows:
+
+- **Version**: `v3 of 5` style numbering and a save state (**Saving soon**, **Saving…**, **Saved** or **Not saved**, with **Try saving again**).
+- **Settings**: the kit **Name**. Renaming does not create a new version.
+- **What this sends to a model**: the text a wired kit adds to a generation prompt.
+
+The main column holds collapsible blocks, with **Expand all** / **Collapse all** at the top.
+
+<AccordionGroup>
+  <Accordion title="Palette">
+    Click **Add colour**, then set the colour, a **Colour name** and a role: **Background**, **Ink / text**, **Surface**, **Accent**, **Button**, **Button text**, **Muted text**, **Border**, **Success**, **Warning**, **Error**, **Info** or **Decorative / other**. Drag the handle (or focus it and use the arrow keys) to reorder; the guide shows colours in this order. A kit holds up to 24 colours.
+  </Accordion>
+  <Accordion title="Colours from CSS">
+    Paste a tokens file, a theme block or any CSS rule to read colours from it into the palette.
+  </Accordion>
+  <Accordion title="Logos">
+    Upload a logo and give it a label. Each logo stores a minimum width and clear space. Once the kit has a saved version, **Proof** draws a proof sheet for that logo on a new board. Up to 8 logos.
+  </Accordion>
+  <Accordion title="Look, Components and Voice">
+    **Look** picks one of the photo editor's looks as the brand's grade, with a strength. **Components** styles a button, badge, card or table once; review concepts that pick a style follow it, so a change shows on every review. **Voice** is free text up to 2,000 characters.
+  </Accordion>
+  <Accordion title="Image library">
+    Choose a collection as the brand's photos and past work. Its images appear in the Brand panel on every board.
+  </Accordion>
+</AccordionGroup>
+
+## Add typefaces
+
+The **Typefaces** block takes fonts from four sources. Click one to open its catalog, then click a font to add it. A kit holds up to 8 typefaces, and the first one added gets the role `headline`.
+
+<Tabs>
+  <Tab title="Google Fonts">
+    Search the catalog and filter by **All**, **Sans**, **Serif**, **Display**, **Script** or **Mono**.
+  </Tab>
+  <Tab title="Fontshare">
+    Search Fontshare's catalog.
+  </Tab>
+  <Tab title="Adobe Fonts">
+    Enter your Adobe Fonts web project id (in Adobe Fonts, **Manage fonts** then **Web projects**) and click **Connect**. The project's families are listed to add. Add this site's domain to the project so its fonts load.
+  </Tab>
+  <Tab title="App fonts">
+    Lists the app's own self-hosted families, such as Exposure, each drawn in its own face.
+  </Tab>
+</Tabs>
+
+Give each typeface a role in **What it is for** (headline, body, accent). A kit's fonts then show first in the font menu on any board using that brand, and under **Brand kit** in a review concept's font picker. Concept previews load app fonts like Exposure as well as Google, Fontshare and Adobe ones.
+
+## Websites, DESIGN.md and references
+
+The **Websites and sources** block has four parts.
+
+<Steps>
+  <Step title="Websites">
+    Add the brand's live sites and click **Scan**. The scan reads buttons, links, inputs, cards, nav, type, corner radii and spacing. It adds the site's colour variables to the palette and its logo to the logos without replacing what is there.
+  </Step>
+  <Step title="Type & spacing scale">
+    Named text styles and spacing steps. After a scan you can start from the sizes the site already uses. A sub-brand inherits the parent's scale until you edit it.
+  </Step>
+  <Step title="DESIGN.md">
+    The kit rendered as a `DESIGN.md` file, with **Copy** and **Download**.
+  </Step>
+  <Step title="References">
+    Click **Add** for a dated note: a title, a date, what was decided or learned, and a source. Newest first, up to 60.
+  </Step>
+</Steps>
+
+<Tip>
+You can add and remove references from Claude with the `add_brand_reference` and `remove_brand_reference` tools. See [MCP server](/guide/mcp).
+</Tip>
+
+## Read the previews
+
+The **Preview** block draws the resolved kit, so a sub-brand shows its parent's values where it has none of its own. **Colours** shows the palette as swatches. **In the formats it will be used in** mocks the brand at 9:16, 1:1 and 4:5 with its ground, accent, first logo and first typeface.
+
+## Use a kit elsewhere
+
+- **Design reviews**: pick a kit in the review's **Brand kit** field. New concepts start from its palette, typefaces and component styles. See [Design reviews](/guide/design-reviews).
+- **Proposals**: the proposal editor has its own **Brand kit** field. See [Proposals, contracts and invoices](/guide/proposals-contracts-invoices).
+- **Boards**: the kit's colours, fonts and image library appear on the [canvas](/guide/canvas).
+- **Brand guide**: the book icon on a kit's row opens `/admin/brand-kits/<id>/guide`, a printable page with Foundation, Colour, Type, Components, Logo, Imagery and References sections. Every value copies on click.
+
+<Note>
+The editor saves itself a moment after each change. Those saves fold into the current version while it is a recent draft (made in the last 30 minutes) that nothing has been made against yet; otherwise a new version is written. Changes made through the MCP tools always write a new version, so earlier versions stay intact.
+</Note>

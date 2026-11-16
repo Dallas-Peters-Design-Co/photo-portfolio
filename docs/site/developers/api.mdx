@@ -1,0 +1,128 @@
+---
+title: "Using the HTTP API: base URLs, tokens and errors"
+description: "Call the studio's HTTP API: pick a base URL, sign in for a seven-day bearer token, read the error shape, and regenerate the OpenAPI spec from source."
+sidebarTitle: "HTTP API"
+keywords: ["api", "openapi", "bearer token", "jwt", "authentication", "error response", "pnpm api:docs", "schemas/routes.ts"]
+---
+
+The HTTP API is the set of serverless functions under `api/` that the photo sites and the studio call. This page covers which base URL to use, how to get and send a bearer token, the error shape every failure returns, and how the OpenAPI document is built. For individual endpoints, see the [API reference](/api-reference).
+
+## Base URLs
+
+The generated document lists two servers:
+
+| Server | URL |
+| --- | --- |
+| Local | `http://localhost:3006` |
+| Production | `https://app.dallaspeters.com` |
+
+Every path begins with `/api`. Vercel routes by filename, so the file path is the URL: `api/photos/[id].ts` serves `/api/photos/{id}`.
+
+<Note>
+Each site is a separate Vercel project with its own database and its own users, so sign in against the deployment you mean to call. See [Databases](/developers/databases).
+</Note>
+
+## Authentication
+
+Protected endpoints need an `Authorization: Bearer <token>` header. In the reference, a protected operation lists the `bearerAuth` security scheme and a `401` response; a public one has an empty security list.
+
+<Steps>
+  <Step title="Sign in">
+    Send your email and password to `POST /api/auth/login`.
+
+    ```bash
+    curl -X POST https://app.dallaspeters.com/api/auth/login \
+      -H "Content-Type: application/json" \
+      -d '{"email":"you@example.com","password":"your-password"}'
+    ```
+  </Step>
+  <Step title="Read the token">
+    A successful sign-in returns the token and the user:
+
+    ```json
+    {
+      "token": "<jwt>",
+      "user": { "email": "you@example.com", "id": "<uuid>" }
+    }
+    ```
+
+    The token is a JWT signed with `JWT_SECRET`, carrying the user id as `sub` and the email. It expires after seven days.
+  </Step>
+  <Step title="Send it">
+    Put the token in the `Authorization` header with the `Bearer ` prefix.
+
+    ```bash
+    curl https://app.dallaspeters.com/api/auth/me \
+      -H "Authorization: Bearer <jwt>"
+    ```
+
+    `GET /api/auth/me` returns the signed-in user, or `401` with `Unauthorized` when the token is missing, malformed, expired or signed with another secret.
+  </Step>
+</Steps>
+
+<AccordionGroup>
+  <Accordion title="Signing in with Google">
+    `POST /api/auth/google` takes `{ "credential": "<Google ID token>" }` and returns the same `token` and `user` shape. It only signs in existing users: a Google account with an unverified email, or whose verified email has no matching user, gets `403`. If `GOOGLE_CLIENT_ID` is not set, it answers `503`.
+  </Accordion>
+  <Accordion title="Creating the first user">
+    `POST /api/auth/register` is closed unless `ADMIN_SETUP_SECRET` is set on the project, and returns `503` while it is unset. When it is set, the request body needs `email`, `password` (at least 8 characters) and a matching `setupSecret`; a wrong secret gets `403`.
+  </Accordion>
+  <Accordion title="Passwords">
+    `POST /api/auth/change-password` (authenticated) takes `currentPassword` and `newPassword`. `POST /api/auth/forgot-password` takes `email` and answers `200` whether or not the address has an account, so the response never reveals which addresses exist. It returns `503` when outgoing email is not configured. `POST /api/auth/reset-password` takes the emailed `token` and a new `password`. New passwords must be at least 8 characters.
+  </Accordion>
+</AccordionGroup>
+
+<Warning>
+Sign-in fails with `500` and `JWT_SECRET is not configured.` when `JWT_SECRET` is missing or shorter than 16 characters. Set it per project, never in code.
+</Warning>
+
+## Errors
+
+Failures are documented with one shape, `ErrorResponse`:
+
+```json
+{ "error": "Invalid email or password" }
+```
+
+The reference documents `4XX` and `5XX` responses with this schema on every operation. The auth handlers, called with the wrong method, return `405` with `Method not allowed` and an `Allow` header naming the methods it accepts. A few responses add fields beside `error`, such as a `hint` when Google sign-in is not configured, so read `error` and ignore what you do not expect.
+
+## How the spec is generated
+
+The OpenAPI 3.1 document is generated, not written. Regenerate it after adding or changing an endpoint:
+
+```bash
+pnpm api:docs
+```
+
+`pnpm openapi` runs the same script, `scripts/generate-openapi.ts`. It writes `openapi.json` and `openapi.yaml` at the repo root and a copy at `public/openapi.json`, which the deployed site serves.
+
+<Columns cols={2}>
+  <Card title="Paths from the filesystem" icon="folder-tree">
+    The script walks `api/` and turns each file into a path. It reads methods from each handler's `req.method` comparisons and `Allow` header without importing the module, so no database is needed to build the document.
+  </Card>
+  <Card title="Bodies from schemas/routes.ts" icon="file-code">
+    `OPERATIONS` in `schemas/routes.ts` (and `INTEGRATION_OPERATIONS` in `schemas/routes.integrations.ts`) adds a summary, request body, response body and `auth` flag, keyed as `"<METHOD> <path>"`.
+  </Card>
+</Columns>
+
+### Undescribed endpoints
+
+An endpoint with no entry in the registry is still published. It carries `x-undocumented: true`, a summary of just its method and path, and a description saying it is not yet described in `schemas/routes.ts` and that its path and method were read from the handler. Treat its body as unknown and check the handler source. The script ends by printing how many operations have described bodies and how many are left.
+
+To describe one, add an entry to `OPERATIONS` shaped like this existing one:
+
+```ts
+"DELETE /api/photos/{id}": { auth: true, summary: "Delete a photograph." },
+```
+
+Set `auth: true` for any endpoint that checks the bearer token. Without it, the reference shows the endpoint as public. Schemas listed in `NAMED_SCHEMAS` (`schemas/domain.ts`), `BOARD_SCHEMAS` and `INTEGRATION_SCHEMAS` become named components under `#/components/schemas/` and are referenced rather than inlined.
+
+<Tip>
+The repo also has a Bruno collection in `bruno/` with **Local** and **Production** environments. Each defines `baseUrl` and keeps `token` as a secret variable, so you paste your own token in.
+</Tip>
+
+## Related pages
+
+- [Local setup](/developers/local-setup) for running the API on port 3006
+- [Deploying](/developers/deploying) for shipping endpoint changes
+- [MCP server](/guide/mcp) for the tool interface to the same data

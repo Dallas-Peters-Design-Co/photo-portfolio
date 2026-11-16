@@ -1,0 +1,100 @@
+---
+title: "Deploying the photo sites and the audit agent"
+description: "How the three Vercel projects deploy from main, how to confirm a build is live, why migrations run before the build, and how the audit agent deploys."
+sidebarTitle: "Deploying"
+keywords: ["deploy", "vercel", "main branch", "db:migrate", "audit agent", "root directory", "site key", "VITE_SITE", "SITE"]
+---
+
+Deploying covers the four Vercel projects this repository feeds: one project per photo site (`addison`, `cyan` and `dallas-images`) and a separate `audit-agent` project for the capture agent. This page explains what a push to `main` builds, how to tell when a build is actually serving, the order of migrating and deploying, how the audit agent's project is set up, and why the site key has to match exactly.
+
+## What a push to main does
+
+There is no feature-branch workflow. Pushing `main` is the deploy. Each photo site is its own Vercel project with its own Neon database, and all three build from the same commit.
+
+`vercel.json` defines the build for every photo site:
+
+```json
+{
+  "framework": "vite",
+  "installCommand": "pnpm config set //npm.hugeicons.com/:_authToken \"$HUGEICONS_TOKEN\" && pnpm install",
+  "buildCommand": "{ [ \"$VERCEL_ENV\" != production ] || pnpm db:migrate; } && pnpm build"
+}
+```
+
+- **Install** writes the Hugeicons Pro registry token from `HUGEICONS_TOKEN` and runs `pnpm install`.
+- **Build** runs `pnpm db:migrate` first on production builds only, then `pnpm build`. Preview builds skip the migration.
+- **Routing** in the same file sets security headers, rewrites `/robots.txt` and `/sitemap.xml` to `/api/robots` and `/api/sitemap`, sends crawlers to `/api/shell` for share cards, and serves `index.html` for everything else.
+
+<Note>
+In the past a push to `main` has built only `dallas-images` while the other two projects received nothing. If a site stops getting builds, deploy it by hand from the Vercel dashboard or API against the same `main` commit.
+</Note>
+
+## Check that a deploy is live
+
+A push is not a release until each project's build has finished. Check the commit's statuses rather than reloading the site.
+
+<Steps>
+  <Step title="Find the commit">
+    Note the SHA you pushed with `git log -1 --format=%H`.
+  </Step>
+  <Step title="Read its statuses">
+    ```bash
+    gh api repos/{owner}/{repo}/commits/<sha>/statuses
+    ```
+    Each Vercel project posts its own status.
+  </Step>
+  <Step title="Wait for every site">
+    Treat the change as live only when the status for each photo site reports `success`. A build takes a few minutes.
+  </Step>
+</Steps>
+
+<Tip>
+The `audit-agent` status usually shows a skipped build. That is expected for any push that does not touch `agents/audit`.
+</Tip>
+
+## Migrate before deploying
+
+Code that reads a new column must never reach a database that lacks it. `PHOTO_COLUMNS` is consumed by both `api/photos/index.ts` and `api/shell.ts`, so one added column returns 503 from every photo endpoint on any un-migrated database.
+
+Production builds handle this for you: `pnpm db:migrate` runs against that project's own database before `pnpm build`. The migration applies `db/schema.sql`, then every file in `db/patches/` in filename order. Patches are idempotent (`ADD COLUMN IF NOT EXISTS`), so re-running is safe.
+
+To migrate a site's database ahead of a deploy, run the migration with that site's production connection string:
+
+```bash
+DATABASE_URL='<that site production string>' pnpm db:migrate
+```
+
+`scripts/migrate.ts` captures a `DATABASE_URL` set on the command line before it loads `.env.local`, so the database you name is the one that gets migrated.
+
+<Warning>
+`vercel env pull` defaults to the **development** environment. Pass `--environment=production`, or you migrate a database the live site never reads, and the failure looks unchanged. Run `pnpm db:info` first to confirm which database you are pointed at. See [Databases](/developers/databases).
+</Warning>
+
+## The audit agent project
+
+The agent behind **Capture behind login** lives in `agents/audit` and deploys as its own Vercel project, `audit-agent`.
+
+- **Root Directory** is `agents/audit`. Its own `vercel.json` runs `npm ci` and `npm run build`.
+- **Ignored build step** skips the build unless something under `agents/audit` changed, so a push to `main` builds the agent only when its own files moved.
+- **Environment** names: `ANTHROPIC_API_KEY`, `EVE_API_TOKEN`, `LOGIN_USER`, `LOGIN_PASS`, `REVIEW_BLOB_READ_WRITE_TOKEN`, with optional `LOGIN_URL` and `LOGIN_*_SELECTOR` overrides. The site reaches the agent through `EVE_AGENT_URL` and `EVE_API_TOKEN`.
+
+<Warning>
+Never clear the Root Directory. An empty one makes every push build the repository root, which is the photo site, and puts it live on the agent's address. Captures then fail because the agent URL no longer answers as the agent.
+</Warning>
+
+`npx eve deploy` does not work with this setup. To rebuild the agent without changing `agents/audit`, create a production deployment from the `main` commit and bypass the ignored build step for that one build.
+
+## The site key must match exactly
+
+Each project tells the code which site it is through two variables: `VITE_SITE` for the browser bundle and `SITE` for the serverless functions. On Vercel both are set on the project. Locally, `scripts/dev-stack.mjs` copies `VITE_SITE` into `SITE`.
+
+`resolveSite()` in `config/sites.ts` trims the value and compares it literally against `addison`, `cyan` and `dallas-images`. A value that does not match takes the default site's configuration (`addison`) instead of failing, keeping only the unmatched key, so a typo shows up as the wrong branding rather than an error.
+
+<AccordionGroup>
+  <Accordion title="Symptoms of a mismatched key">
+    The site renders, but with another site's name, tagline and theme. Check the project's `VITE_SITE` and `SITE` values for spelling and stray characters before debugging styles.
+  </Accordion>
+  <Accordion title="Building one site locally">
+    `pnpm build:addison`, `pnpm build:cyan` and `pnpm build:dallas-images` set `VITE_SITE` for a local build. See [Local setup](/developers/local-setup).
+  </Accordion>
+</AccordionGroup>

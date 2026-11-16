@@ -1,0 +1,115 @@
+---
+title: "Testing, linting and quality gates"
+description: "How the repo is checked: Vitest in real Chromium, the pnpm lint chain and 500-line ceiling, shadcn UI rules, Ultracite, the pre-commit hook and CI."
+sidebarTitle: "Testing"
+keywords: ["vitest", "playwright", "chromium", "pnpm lint", "oxlint", "shadcn lint", "ultracite", "biome", "pre-commit", "ci"]
+---
+
+This page covers every check the repository runs before code ships: the Vitest suite, which runs in a real browser, the `pnpm lint` chain of type and structure checks, the shadcn UI lint rules, Ultracite formatting, the pre-commit hook and the CI workflow that runs them all on every push to `main` and every pull request.
+
+## Commands at a glance
+
+```bash
+pnpm test        # vitest run, browser and node projects
+pnpm test:watch  # vitest in watch mode
+pnpm shots       # shader captures in Google Chrome (local only)
+pnpm lint        # tsc, structural checks, then oxlint
+pnpm lint:ui     # oxlint src on its own
+pnpm dlx ultracite check  # Biome lint and format check
+pnpm dlx ultracite fix    # apply Biome fixes
+```
+
+## Tests run in real Chromium
+
+`pnpm test` runs `vitest run` against `vitest.config.ts`, which uses Vitest browser mode with the Playwright provider and a headless Chromium instance. It does not use jsdom.
+
+The reason is the canvas. The code most worth testing is canvas work, such as the crop and rotate maths in `src/editor/engine`. jsdom has no canvas implementation, so `getContext` returns null and every assertion passes without checking anything. Running in Chromium means tests assert on real pixels and real geometry.
+
+<Note>
+Tailwind runs inside the test build as well. Hit-testing assertions depend on elements having their real size; without the utilities, a checkbox rendered at 414x69 instead of 16x16.
+</Note>
+
+Install Chromium once before your first run:
+
+```bash
+pnpm exec playwright install --with-deps chromium
+```
+
+### Two test projects
+
+The config splits tests into two named projects, chosen by file name.
+
+| Project | Environment | Files |
+| --- | --- | --- |
+| `browser` | Headless Chromium | `api/**/*.test.ts`, `config/**/*.test.ts`, `src/**/*.test.ts`, `src/**/*.test.tsx` |
+| `node` | Node | `api/**/*.node.test.ts` |
+
+Pure helpers in `api/` and `config/` touch neither the database nor the network, so they run in the browser project like any other test. Code that reads `process.env`, imports `node:fs` or calls `fetch` and the database belongs in a file ending in `.node.test.ts`, with those seams stubbed. That suffix is the switch: such files run only in the `node` project.
+
+### Pre-bundled dependencies
+
+`vitest.config.ts` lists dependencies under `optimizeDeps.include`. In browser mode, a dependency Vite discovers mid-run triggers a re-bundle and page reload, and test files loading at that moment fail with "Failed to fetch dynamically imported module", a different file each run. If you add an import that a test pulls in and see that error, add the package to the list.
+
+### Shader captures
+
+Shaders draw through WebGPU, and Playwright's bundled Chromium has no adapter, so captures come back blank in the main suite. `pnpm shots` uses `vitest.shader.config.ts`, which launches Google Chrome instead and runs only `src/**/*.shot.tsx` files. It is not part of CI, because CI installs Chromium and has no GPU. Run it by hand when you need to see a shader.
+
+## The lint chain
+
+`pnpm lint` runs these steps in order and stops at the first failure.
+
+<Steps>
+  <Step title="Type check">
+    `tsc --noEmit` across the project.
+  </Step>
+  <Step title="ESM import extensions">
+    `scripts/check-esm-imports.ts` requires every relative import under `api/` and `db/` to name a file extension. Those directories deploy as serverless functions running real ESM, where an extensionless specifier does not resolve, even though `tsc`, Vitest and `vercel dev` all accept it. `src/` is not checked because Vite bundles it.
+  </Step>
+  <Step title="500-line ceiling">
+    `scripts/check-file-size.ts` scans `.ts` and `.tsx` files in `src`, `api`, `config` and `scripts`. A new file may not exceed 500 lines. Files already over the limit are listed in `file-size-baseline.json` and may not grow past their recorded size; once one drops under 500 lines it must leave the baseline.
+  </Step>
+  <Step title="Schema-only migrations">
+    `scripts/check-migrations.ts` reads `db/schema.sql` and `db/patches/*.sql`. It rejects data-destroying statements (`DELETE FROM`, `TRUNCATE`, `DROP TABLE`, `DROP DATABASE`, `DROP SCHEMA`, `DROP COLUMN`) and any `UPDATE` unless the comment block directly above the statement contains a `-- migration-safety: <reason>` marker. `INSERT` is allowed only with `ON CONFLICT` or that marker. `DROP INDEX` and `DROP CONSTRAINT` are allowed, since they hold no data.
+  </Step>
+  <Step title="No utility classes">
+    `scripts/check-utilities.ts` runs on `src/boards` and `src/pages` and fails on any Tailwind utility left in a `className`. Allowed tokens are BEM names and the primitives in `src/styles/primitives.css`. `src/components/ui` is excluded.
+  </Step>
+  <Step title="UI lint">
+    `oxlint src`, the same command as `pnpm lint:ui`.
+  </Step>
+</Steps>
+
+<Tip>
+After you shrink a baselined file, run `pnpm check:size --update` to record its new size.
+</Tip>
+
+## shadcn UI rules
+
+`.oxlintrc.json` loads the `@shadcn/lint` plugin with two rules set to error:
+
+- `shadcn/no-arbitrary-values` rejects bracketed values such as `[13px]`. If a token is missing, add it to `src/index.css` in `@theme` or as an `@utility`.
+- `shadcn/no-restyle` stops call sites restyling a component from `src/components/ui`. Layout classes are allowed everywhere. `Button` also accepts `w-full`, `mt-*` and `mb-*`; `CardTitle` accepts layout and typography but not `font-*`; `CardContent` accepts layout and spacing.
+
+A component's appearance belongs in `src/components/ui` as a variant. Call sites pick a variant and put layout on a wrapper.
+
+## Ultracite and Biome
+
+Formatting and general linting use Ultracite, a preset over Biome, configured in `biome.jsonc` on top of `ultracite/biome/core` and `ultracite/biome/react`. Generated and vendored paths are excluded, including `openapi.json`, `openapi.yaml`, `bruno`, `src/vendor`, `skills` and `agents`. The project turns off `noJsxPropsBind`, `useFilenamingConvention` and `noVoid`.
+
+## Pre-commit hook
+
+`.husky/pre-commit` runs `pnpm dlx ultracite fix` on the staged files only, then re-stages them. If Ultracite finds issues it cannot fix, the commit fails.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on pushes to `main` and on pull requests:
+
+1. Installs dependencies with `pnpm install --frozen-lockfile`.
+2. Installs Chromium for Vitest.
+3. Runs `pnpm lint`.
+4. Runs `pnpm exec ultracite check`.
+5. Runs `pnpm test`.
+6. Runs `pnpm build`.
+7. Runs `pnpm api:docs` and fails if `openapi.json` or `openapi.yaml` changed. Regenerate and commit them whenever you add a route. See [the API reference](/developers/api).
+
+CI does not run migrations. See [Deploying](/developers/deploying) for how each site migrates its own database.

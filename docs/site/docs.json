@@ -1,0 +1,91 @@
+{
+  "theme": "mint",
+  "name": "Photo portfolio and studio",
+  "colors": {
+    "primary": "#041045",
+    "light": "#8EA2E8",
+    "dark": "#041045"
+  },
+  "favicon": "/favicon.svg",
+  "navbar": {
+    "links": [
+      {
+        "href": "https://github.com/Dallas-Peters-Design-Co/photo-portfolio",
+        "label": "GitHub"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/Dallas-Peters-Design-Co/photo-portfolio"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ],
+    "display": "header"
+  },
+  "description": "Guides and developer docs for a three-site photo portfolio and the private studio behind it: canvas, brand kits, proposals, invoices, design reviews and an MCP server.",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guide",
+        "pages": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "guide/quickstart"
+            ]
+          },
+          {
+            "group": "Sites and photos",
+            "pages": [
+              "guide/photos",
+              "guide/site-settings"
+            ]
+          },
+          {
+            "group": "Studio",
+            "pages": [
+              "guide/canvas",
+              "guide/brand-kits",
+              "guide/proposals-contracts-invoices",
+              "guide/design-reviews",
+              "guide/mcp"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Developers",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "developers/overview",
+              "developers/local-setup",
+              "developers/api"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "developers/databases",
+              "developers/deploying",
+              "developers/testing"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

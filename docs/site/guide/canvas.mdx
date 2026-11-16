@@ -1,0 +1,92 @@
+---
+title: "The canvas: nodes, wires and running a board"
+description: "Build image pipelines on the canvas: add nodes from the insert palette, wire ports together, run the graph, tune settings in the side panel and publish a board."
+sidebarTitle: "Canvas"
+keywords: ["canvas", "boards", "nodes", "wires", "generate", "halftone", "composite", "insert palette", "publish board", "present"]
+---
+
+The canvas is the studio's node-based board. Pictures, notes and frames sit on it alongside operation nodes, and wires carry images, text and video from one to the next. This page covers adding nodes, wiring them, running a single node or the whole board, the Generate, Halftone and Composite nodes, the settings panel, and publishing a board.
+
+## Add things to the board
+
+You have two ways to insert items:
+
+- **The tool rail** on the left of the board has buttons for the most used items, such as **Note**, **Image**, **Generate** and **Prompt**.
+- **The insert palette** lists everything that can be inserted in one searchable list. Press `⌘` + `/` (`Ctrl` + `/` on Windows) to open or close it.
+
+Its sections are **Board**, **Nodes**, **Recipes** (saved setups expanded as real nodes), **Studio** and **Shaders**. Type in the **Insert…** field to filter, then use the arrow keys and `Enter`, or `Escape` to dismiss.
+
+## Wire nodes together
+
+Ports carry one of three types: `image`, `text` or `video`. Photos, notes, references, text items and frames have output ports too, so a picture already on the board can feed a node directly. A wired frame hands over everything on it.
+
+<Steps>
+  <Step title="Drag from an output port">
+    Drag from an output handle and drop it on a matching input handle. The canvas refuses an invalid drop.
+  </Step>
+  <Step title="Or click a port to create the next node">
+    Clicking a port opens a **Send image to** menu (or text, or video). Pick a node to create it already wired.
+  </Step>
+  <Step title="Remove a wire">
+    Hover a wire until it turns red, then click the badge at its midpoint, labelled **Remove this connection**.
+  </Step>
+</Steps>
+
+A one-wire input replaces its wire when you drop a second. A many-wire input keeps every wire; on a Generate node, each wired picture becomes its own run by default.
+
+## Run a node or the board
+
+Each runnable node has a **Run** button, which reads **Stop** while running. If nothing has changed since the last success, Run returns the stored result without spending again; the **Run again, ignoring the stored result** button beside it forces a fresh run.
+
+**Run the board** in the header (shown once the board has a node) runs every node in dependency order, from the browser. It becomes **Cancel the run** while running.
+
+- If the wires form a loop, the run is refused: "Those connections form a loop, which cannot run."
+- A failing node does not stop the run. Nodes downstream of it are marked skipped without a request being sent, and independent branches carry on.
+- Closing the tab abandons whatever has not started. Results already produced are kept.
+
+The pip in each node's title bar shows **Ready**, **Running…**, **Done**, **Failed** or **Unchanged**.
+
+<Warning>
+Every generation is billed. Wired inputs, **Iterations** and **Loops** multiply each other, so check the settings panel's "generations per run" line before pressing Run.
+</Warning>
+
+## Generate, Halftone and Composite
+
+<AccordionGroup>
+  <Accordion title="Generate">
+    Makes an image from a prompt, or reworks wired pictures. It is refused when there is neither a wired nor a typed prompt (up to 1,200 characters). The panel holds **Model** (default Auto), **Iterations** (1 to 8 variations per input), **Loops** (1 to 8; feeds its own output back in), **Restyle %** (10 to 100, default 80; only applies to models with a trained style when a picture is wired), **Several pictures** (**One run each** by default, or **Blended into one**), **Size**, **Quality** and **Output format**.
+  </Accordion>
+  <Accordion title="Halftone">
+    Halftones one required wired image and outputs an image other nodes can use. Settings: **Ink** (default `#27444D`), **Paper** (default `#FAFAFA`), **Dot size** (1 to 40 pixels, default 3) and **Tone** (0.2 to 3, default 1.25; above 1 lightens midtones). Swap ink and paper to invert it.
+  </Accordion>
+  <Accordion title="Composite">
+    Flattens several pictures into one. Images are drawn where they sit on the board, layered in the z-order you see, so bringing one to the front reorders the result. **Background** is `transparent` by default, or `white` or `black`. It renders in the browser and costs nothing beyond storage.
+  </Accordion>
+</AccordionGroup>
+
+## The settings panel
+
+Selecting a node opens its settings panel on the right. It names the node, model and provider, then lists the settings set once and left alone; frequently changed ones, such as the prompt, stay on the node. When a run will make more than one generation, the panel says how many and why.
+
+## Publish and present a board
+
+<Steps>
+  <Step title="Publish">
+    Click **Publish** in the header. The button then reads **Published · click to unpublish**.
+  </Step>
+  <Step title="Share the link">
+    Use **Copy the link** in the header. The board is public at `/board/:slug`, dark and read-only. Running nodes stays admin-only.
+  </Step>
+  <Step title="Present">
+    **Present** opens `/board/:slug/present`: the board's title, then each frame as a slide in reading order. Unframed items are left out unless nothing is framed. Use the arrow keys or space to move, `F` for full screen, `P` to autoplay and `Escape` to leave.
+  </Step>
+</Steps>
+
+<Columns cols={2}>
+  <Card title="Brand kits" href="/guide/brand-kits">
+    Feed a brand's colours, type and voice into the canvas.
+  </Card>
+  <Card title="API reference" href="/developers/api">
+    The board endpoints, including one-node runs.
+  </Card>
+</Columns>

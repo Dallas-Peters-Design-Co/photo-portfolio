@@ -1,0 +1,103 @@
+---
+title: "Design reviews and the AI UX audit"
+description: "Create a client-facing UX review, capture or upload screens, run the Claude UX audit, capture apps behind a login with the audit agent, and share it."
+sidebarTitle: "Design reviews"
+keywords: ["design review", "UX audit", "audit agent", "Laws of UX", "screenshots", "pins", "markup", "client review"]
+---
+
+A design review is a client-facing UX critique of a website or app. This page covers creating a review, adding screens and notes, running the AI UX audit, capturing pages behind a login with the audit agent, and sharing the finished review with a client.
+
+## Create a review
+
+<Steps>
+  <Step title="Start a draft">
+    In the admin, open **Reviews** and select **New review**. Enter a **Title** and, optionally, a **Client (as it should read on the page)**. The address preview below the title shows the public path, `/review/<slug>`. Select **Create draft**.
+  </Step>
+  <Step title="Fill in the settings">
+    In the editor's side panel, the **Settings** group holds **Title**, **Client label**, **Client email**, **Brand kit** and **Address**. The draft saves itself 1.2 seconds after each change. A new **Address** is kept only when you select **Save**.
+  </Step>
+  <Step title="Add screens and sections">
+    Select **Add screen** and **Add section** to build the body. Every block folds away, and you drag sections and screens into a new order by their handles.
+  </Step>
+</Steps>
+
+## Add screens
+
+Each screen has a **Screen title**, a **Viewport** (**Desktop (1440)** or **Mobile (390)**) and a **Page address**.
+
+- Select **Capture** to screenshot the page address. Once a screen has a picture, the button reads **Recapture**; pins and markup stay where they are on the page.
+- Select **Upload screenshot** to use your own PNG, JPEG or WebP image instead.
+
+An address typed without `https://` has it added before the capture.
+
+## Notes and markup
+
+Notes are numbered pins placed on a screenshot. Each note is one of four kinds: **Issue**, **Recommendation**, **Suggestion** or **Works well**.
+
+Markup draws over the screenshot with four kinds of mark: box, highlight, arrow and pen. With the Edit tool, click a mark to select it, drag it or its ends to move or reshape it, and press Delete to remove it.
+
+## Run the UX audit
+
+The **Audit** group in the side panel has two buttons.
+
+<Columns cols={2}>
+  <Card title="Run UX audit">
+    Audits every screen that has a picture. If no screen has one yet, it asks which page to capture, screenshots it at desktop and phone width, then audits those.
+  </Card>
+  <Card title="Capture behind login">
+    Sends the audit agent to sign in to an app with a stored test account, capture its key pages, then runs the same audit on them.
+  </Card>
+</Columns>
+
+The audit scales each screen to a readable width and cuts it into tiles for Claude, together with the page's HTML when the source address is reachable. Claude judges the screens against the vendored references: the heuristic audit, all 21 Laws of UX, the design references and the severity model.
+
+An audit usually takes one to three minutes. It adds to the review without changing anything already there:
+
+- The executive summary is appended to the **Findings** text.
+- New sections are added: **Strengths**, **Laws of UX** (grouped as **Needs attention**, **Opportunity** and **Working**), **Recommendations**, and **Further findings** for points no screenshot shows.
+- Each screen gets 10 to 18 pinned findings, spread over the whole screen, including at least two **Works well** pins where they are earned.
+
+## Capture behind login
+
+**Capture behind login** is for apps that need an account. The audit agent drives its own browser.
+
+<Steps>
+  <Step title="Name the app">
+    Enter the app's address in **Which app should the agent sign in to?** and select **Capture and audit**.
+  </Step>
+  <Step title="Name the sign-in page">
+    In **Where is the sign-in page?**, leave the app's address if the app shows its sign-in page there, or enter the sign-in page. Select **Start**.
+  </Step>
+  <Step title="Wait for the agent">
+    The button label shows the agent's current step. It captures the start page and up to three more key pages, each at desktop and phone width. This takes a few minutes, and the editor stops waiting after 30 minutes.
+  </Step>
+</Steps>
+
+When the agent finishes, its screens join the review. It also returns a check against every reference, added as **Validation: Heuristic audit**, **Validation: Laws of UX** and **Validation: Design references** sections. The UX audit then runs on the new screens and adds its pins.
+
+<Warning>
+The agent looks but never changes anything. It only navigates, scrolls, opens menus and read-only views. It never submits a form, saves, deletes, sends, pays, changes settings or logs out.
+</Warning>
+
+The test account's credentials are stored on the agent and are never shown to the model or typed into the editor. Each session has a $5 cost cap.
+
+## Share with the client
+
+<AccordionGroup>
+  <Accordion title="Publish and preview">
+    **Save and share** holds save, **Publish** (or **Unpublish**), preview, **PDF** and **Send to board**. A draft is not visible to the client.
+  </Accordion>
+  <Accordion title="Client access">
+    Under **Client access**, a review is open to **Anyone with the link** until you select **Set password**. Passwords need at least 4 characters. Screenshots live in a private store and are only served through signed links that expire.
+  </Accordion>
+  <Accordion title="Send to client">
+    Under **Send to client**, select **Copy link**, or add an optional note and send the link to the **Client email**. Sending requires a published review and a saved client email.
+  </Accordion>
+  <Accordion title="Client comments">
+    On the public page the client reads the review, adds comments, pins and drawings, and downloads a PDF. Their comments appear under **Client access**, where you can mark each resolved, reopen it or remove it.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+**Send to board** turns each screen into a Browser node on the [canvas](/guide/canvas), with its markup and notes. Work on it there and publish it back; the pictures stay private in the review.
+</Tip>

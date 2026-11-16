@@ -1,0 +1,103 @@
+---
+title: "Connect Claude to the studio with the MCP server"
+description: "Connect Claude or any MCP client to the studio's MCP server: the endpoint, token authentication, and the site and brand kit tools it exposes."
+sidebarTitle: "MCP server"
+keywords: ["mcp", "model context protocol", "claude connector", "MCP_ACCESS_TOKEN", "tools", "brand kits", "invoices", "proposals"]
+---
+
+The studio runs its own Model Context Protocol (MCP) server, so Claude or any other MCP client can read and update the business: proposals, agreements, invoices, design reviews, activity, the photo library and brand kits. This page covers the endpoint, how to authenticate, how the server behaves, and every tool it exposes.
+
+## How the server works
+
+The server lives at `/api/mcp/` on each deployment. It speaks the Streamable HTTP transport as stateless JSON-RPC 2.0 and answers `POST` only. There are no sessions and no server-initiated stream, so an authenticated `GET` or `DELETE` returns `405`.
+
+It supports four methods: `initialize`, `ping`, `tools/list` and `tools/call`. A request can be a single message or a batch, and a batch is answered in the order it was sent. Notifications get no response; a request made only of notifications returns `202`.
+
+During `initialize` the server negotiates one of the protocol versions `2025-06-18`, `2025-03-26` or `2024-11-05`, falling back to the newest when the client asks for another.
+
+## Authenticate
+
+Access is controlled by one environment variable, `MCP_ACCESS_TOKEN`. It must be at least 32 characters long. If it is missing or shorter, every request is refused with `401`, so the endpoint is effectively off.
+
+<Tabs>
+  <Tab title="Claude custom connector">
+    Claude's custom connector takes a URL only, so the token goes in the path:
+
+    ```text
+    https://<site>/api/mcp/<MCP_ACCESS_TOKEN>
+    ```
+  </Tab>
+  <Tab title="Clients that send headers">
+    Clients that can set a header post to the fixed `connect` path and send the token as a bearer token:
+
+    ```http
+    POST /api/mcp/connect
+    Authorization: Bearer <MCP_ACCESS_TOKEN>
+    Content-Type: application/json
+    ```
+  </Tab>
+</Tabs>
+
+The token is compared in constant time.
+
+<Warning>
+The URL form is a password. Anyone with the full address can read proposals and invoices. To revoke every copy at once, rotate `MCP_ACCESS_TOKEN` in Vercel and redeploy.
+</Warning>
+
+## Connect Claude
+
+<Steps>
+  <Step title="Set the token">
+    Set `MCP_ACCESS_TOKEN` on the deployment to a value of 32 characters or more, then redeploy so the function reads it.
+  </Step>
+  <Step title="Add the connector">
+    In Claude, add a custom connector with the URL form above, using your site's domain and the token.
+  </Step>
+  <Step title="Check the tools">
+    Claude calls `tools/list` and shows the tools below. Tools that change data are annotated as not read-only, so Claude can ask before calling them.
+  </Step>
+</Steps>
+
+## Site tools
+
+| Tool | Writes | What it does |
+| --- | :---: | --- |
+| `site_overview` | | Proposals by status and accepted count, invoices outstanding and paid in the last 90 days, unread activity, reviews and photo library size |
+| `list_proposals` | | Every proposal, newest first, with status, whether it was sent and accepted, and the chosen option; filter by `draft` or `published` |
+| `get_proposal` | | One proposal in full as readable text, by `slug` from `list_proposals` |
+| `get_agreement` | | The services agreement drafted from a proposal, by its slug in `proposal`, or null when none has been drafted |
+| `list_invoices` | | Invoices with lines, total, status and the client's pay link once sent; `limit` up to 200 |
+| `draft_invoice` | Yes | Saves a draft invoice with amounts in cents; nothing is sent |
+| `list_reviews` | | Design reviews with screen and note counts and whether each was sent |
+| `recent_activity` | | The activity feed, newest first; `limit` up to 100, optionally `unreadOnly` |
+| `search_photos` | | Searches photo titles and alt text, optionally within one category slug; `limit` up to 100 |
+
+<Note>
+`draft_invoice` only saves a draft. You review and send it from **Admin → Invoices**, which creates it in Stripe and emails the client a pay link. See [Proposals, contracts and invoices](/guide/proposals-contracts-invoices).
+</Note>
+
+## Brand tools
+
+Every brand tool except `list_brand_kits` takes `kit`, which accepts a brand kit's id or its name (an exact match first, then a unique prefix, ignoring case). Each write saves a new version of the kit, so earlier versions stay in its history.
+
+| Tool | Writes | What it does |
+| --- | :---: | --- |
+| `list_brand_kits` | | Every kit with its parent brand, reference count and current version |
+| `get_brand_kit` | | One kit in full with the parent folded in; `inherited` lists the parts that come from the parent |
+| `get_design_md` | | The kit as a `DESIGN.md` file |
+| `set_brand_palette` | Yes | Replaces the palette, in order, with up to 24 six-digit hex colours, each with an optional name and role |
+| `set_brand_scan` | Yes | Saves website scan results (components, type scale, radii, spacing) and replaces earlier scans of the same sites |
+| `add_brand_reference` | Yes | Adds a dated note with its source; skips an exact duplicate with the same title, date and source |
+| `remove_brand_reference` | Yes | Removes one reference by the id shown in `get_brand_kit` |
+
+<Tip>
+A kit holds at most 60 references. When `add_brand_reference` reports the kit is full, remove some with `remove_brand_reference` first. For more on kits, see [Brand kits](/guide/brand-kits).
+</Tip>
+
+## Errors
+
+A problem you can fix, such as a bad input or a kit that cannot be found, comes back as a tool result with `isError` set and a message Claude can read. Any other failure returns "The site couldn't do that just now." An unknown tool or method is a JSON-RPC error.
+
+## Calling the tools from scripts
+
+`scripts/siteConnector.mjs` calls these tools from local scripts, including the `DESIGN.md` sync and the website scan. It reads `MCP_ACCESS_TOKEN` from `.env.local`, and `DESIGN_MD_SITE` points it at another deployment. The repo's own `.mcp.json` is unrelated: it gives local coding agents a `chrome-devtools` MCP server. For environment setup, see [Local setup](/developers/local-setup).

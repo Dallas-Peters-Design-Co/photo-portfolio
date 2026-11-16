@@ -1,0 +1,138 @@
+---
+title: "Local development setup for the photo sites"
+sidebarTitle: "Local setup"
+description: "Install dependencies, pull env from Vercel, check which database you are on with pnpm db:info, and run one site locally with pnpm dev and the dev stack script."
+keywords: ["local development", "pnpm dev", "db:info", "vercel env pull", "VITE_SITE", "dev-stack", "Neon branch"]
+---
+
+This page covers running the codebase on your own machine: what you need installed, how to pull environment variables from Vercel, how to confirm which database you are connected to, how to start one of the three sites with `pnpm dev`, and what the dev stack script does behind that command.
+
+<Warning>
+**Local development uses the live database.** Within each Vercel project, the Development and Production `DATABASE_URL` values point at the same Neon instance. The two connection strings differ only by password, so they look like two databases, but they are one. `pnpm dev` reads and writes real site data, and a destructive statement aimed at "the dev database" runs against the live site. Run `pnpm db:info` before anything destructive, and set up a Neon dev branch (below) to separate them.
+</Warning>
+
+## Requirements
+
+- Node 22, the version CI runs
+- pnpm
+- A Hugeicons Pro registry token, needed to install the icon package. pnpm ignores tokens in a project `.npmrc`, so write it to your user config with `pnpm config set //npm.hugeicons.com/:_authToken "$HUGEICONS_TOKEN"`
+- The Vercel CLI linked to the site's Vercel project, for pulling env
+
+## Install and run
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    pnpm install
+    ```
+  </Step>
+  <Step title="Pull environment variables">
+    ```bash
+    pnpm vercel:env:pull
+    ```
+    This runs `vercel env pull .env.development.local`, which pulls the **Development** environment. The local scripts (`pnpm db:info`, the API dev server, migrations) read `.env`, `.env.local` and `.env.development.local` in that order, later files overriding earlier ones, then `.env.<site>.local` when `SITE` or `VITE_SITE` is set on the command line. A variable already set in your shell beats every file. `.env.example` documents the variables and where each one is set.
+  </Step>
+  <Step title="Check which database you are on">
+    ```bash
+    pnpm db:info
+    ```
+    See [Checking the database](#checking-the-database) for what it prints.
+  </Step>
+  <Step title="Start a site">
+    ```bash
+    pnpm dev
+    ```
+    This starts `dallas-images` on `http://localhost:3006`.
+  </Step>
+</Steps>
+
+<Note>
+`vercel env pull` defaults to the Development environment. When you need a production connection string, for example to migrate a site, pass `--environment=production`. See [Databases](/developers/databases).
+</Note>
+
+## Checking the database
+
+`pnpm db:info` connects with `DATABASE_URL` (falling back to `POSTGRES_URL`, then `POSTGRES_PRISMA_URL`) and prints the host, database name, user, and the Postgres `system_identifier`, followed by row counts for `photos`, `site_settings` and `users` and the site keys present in `site_settings`.
+
+The `system_identifier` comes from the Postgres control file and is unique per instance. Two connection strings that report the same identifier are the same database, however different the URLs look. To check a specific string, pass it inline:
+
+```bash
+DATABASE_URL='<connection string>' pnpm db:info
+```
+
+Missing tables are reported rather than treated as errors, so the command also works on a fresh Neon branch before migrations have run.
+
+## Choosing a site key
+
+Each command sets `VITE_SITE` to one site key:
+
+| Command | Site key |
+| --- | --- |
+| `pnpm dev` or `pnpm dev:dallas-images` | `dallas-images` |
+| `pnpm dev:addison` | `addison` |
+| `pnpm dev:cyan` | `cyan` |
+| `pnpm dev:vercel` | `dallas-images`, on `vercel dev` |
+| `pnpm dev:api` | `dallas-images`, API server only |
+
+`resolveSite()` matches the key exactly, after trimming whitespace. An unmatched key does not error: it falls back to the default site, `addison`, and serves that site's branding. A typo in the key looks like a styling bug, so check it first when a local site shows the wrong theme. Each site also has its own database, so pull env from the matching Vercel project.
+
+## What the dev stack script does
+
+`pnpm dev` runs `scripts/dev-stack.mjs`, which:
+
+1. Frees the ports the stack owns: `PORT` (default 3006), the vector bridge port (default 4123), and 5173 to 5175. It also frees `API_PORT` (default 3007) in the default mode.
+2. Prints the database host it is about to use, or a hint to run `pnpm db:info` when the URL comes from env files.
+3. Copies `VITE_SITE` into `SITE` if `SITE` is not set. The browser bundle reads `VITE_SITE`; the serverless functions read `SITE`. Without this, `/api` would resolve to the default site.
+4. Starts Vite on `PORT` and `scripts/api-dev.ts` on `API_PORT` under `tsx watch`. `api-dev.ts` imitates Vercel's file routing and loads each handler once, so an `/api` call skips the per-request bundling `vercel dev` does. Vite proxies `/api` to it through `VITE_API_PROXY_TARGET`. Editing a file under `api/` restarts the API process.
+5. Starts the vector-editor bridge (`scripts/affinity-bridge.mjs`), which the canvas uses to open SVGs in a desktop editor. A bridge crash does not stop the app.
+
+<Tabs>
+  <Tab title="Default stack">
+    ```bash
+    pnpm dev
+    ```
+    Vite plus `api-dev.ts`, as described above.
+  </Tab>
+  <Tab title="vercel dev">
+    ```bash
+    pnpm dev:vercel
+    ```
+    Runs real `vercel dev` on `PORT` for both the front end and `/api`. Setting `DEV_STACK=vercel` does the same. Use this when you need Vercel's own runtime behaviour.
+  </Tab>
+</Tabs>
+
+<Tip>
+To run alongside other local apps, override the port: `PORT=3005 pnpm dev`. The bridge reads `VECTOR_APP` and `VECTOR_PORT` from the shell or from `.env.local`.
+</Tip>
+
+## Giving local development its own database
+
+Until you do this, `pnpm dev` writes to the live site.
+
+<Steps>
+  <Step title="Create a Neon branch">
+    In the Neon console, open the site's project, go to **Branches**, and create a branch from `main` named `dev`. Branches are copy-on-write, so it is created instantly and starts with a full copy of the real data.
+  </Step>
+  <Step title="Copy its connection string">
+    Copy the `dev` branch's pooled connection string.
+  </Step>
+  <Step title="Set it for Development only">
+    In Vercel, open the project, go to **Settings**, then **Environment Variables**, and set `DATABASE_URL` for **Development** only to that string. Then run `pnpm vercel:env:pull` again.
+  </Step>
+  <Step title="Confirm the split">
+    Run `pnpm db:info`. The `system_identifier` must now differ from production's.
+  </Step>
+</Steps>
+
+When the branch drifts from production, delete it and create it again. Repeat these steps for each site you develop against, since each site has its own Neon database.
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Databases" href="/developers/databases">
+    Schema, patches, and migrating each site's database.
+  </Card>
+  <Card title="Testing" href="/developers/testing">
+    Run Vitest in real Chromium and the Node project.
+  </Card>
+</Columns>

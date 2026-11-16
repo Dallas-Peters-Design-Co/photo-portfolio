@@ -1,0 +1,122 @@
+---
+title: "Manage photos, categories and collections"
+description: "Upload photos to the admin, edit titles and shooting details, reorder and hide them, organize categories, and keep unpublished assets in collections."
+sidebarTitle: "Photos"
+keywords: ["photos", "upload", "batch upload", "categories", "collections", "reorder", "hide photo", "homepage slideshow", "EXIF", "admin"]
+---
+
+The **Photos** section of the admin is where each site's gallery is built: you upload pictures, give them titles and categories, set their order, and decide which ones visitors see. This page covers uploading, editing details, ordering, hiding and featuring photos, managing categories, and the separate **Collections** library for material that never appears on the site.
+
+**Photos** is the first section at `/admin`; **Collections** is at `/admin/collections`. Each site has its own database, so nothing here is shared between sites.
+
+## Upload photos
+
+The **Add New Item** card takes one photo at a time or a batch. Either way the file goes straight from your browser to storage, and its dimensions and EXIF data are read before the photo is saved.
+
+<Tabs>
+  <Tab title="One photo">
+    <Steps>
+      <Step title="Choose the file">
+        Under **Image**, pick a JPEG, PNG, WebP or GIF from your device.
+      </Step>
+      <Step title="Name it">
+        Enter a **Title**. A title is required.
+      </Step>
+      <Step title="Pick a category">
+        Choose one under **Category**, or type a new name in the picker to create it.
+      </Step>
+      <Step title="Save">
+        Click **Add Item**. The new photo goes to the front of the library and is highlighted for a few seconds.
+      </Step>
+    </Steps>
+  </Tab>
+  <Tab title="Batch">
+    <Steps>
+      <Step title="Add files">
+        Drag pictures onto **Drop photos here**, click it to browse, or use **Upload from Google** to pick from Google Drive. JPEG, PNG, WebP, AVIF and GIF are accepted; anything else is skipped with a message saying how many files were left out.
+      </Step>
+      <Step title="Check the titles">
+        Each title is made from the filename. Edit it under the thumbnail, or remove the file.
+      </Step>
+      <Step title="Upload">
+        Choose a **Category**, then click **Upload** with the count shown. Files transfer three at a time, each with a progress bar.
+      </Step>
+    </Steps>
+    <Note>
+      If a file fails, it stays in the list marked as an error. Clicking upload again retries only the failed and queued files.
+    </Note>
+  </Tab>
+</Tabs>
+
+## Work with the library
+
+The **Current Items** card lists every photo, including hidden ones. The view button in its header switches between grid and stacked views; it is labelled **Stack** while you are in grid view and **Grid** while you are in stacked view. Grid shows each photo as a card, and stacked view groups photos by category so you can select a whole category with one click.
+
+Each card in grid view has a column of action buttons down its right edge:
+
+| Action | What it does |
+| --- | --- |
+| Edit details | Opens **Edit details** for title, category, order and shooting details |
+| Image editor | Opens the photo in the in-browser image editor |
+| Rotate | Rotates the image 90 degrees clockwise and saves the rotated file |
+| Star | Adds the photo to, or removes it from, the homepage slideshow |
+| Restore | Puts back the image as it was before the first rotate or editor save. Only shown on edited photos |
+| Eye | Shows or hides the photo on the public site |
+| Delete | Removes the photo after you confirm |
+
+<Tip>
+  Edits are non-destructive. The first rotate or editor save keeps a copy of the original image and its dimensions, so **Restore** can always undo them. Restoring makes that image the new starting point for later edits.
+</Tip>
+
+### Hide or publish a photo
+
+The eye button toggles whether visitors can see a photo. A hidden photo is absent from the public gallery but stays in the admin library.
+
+### Reorder photos
+
+In grid view, drag a card to a new position. The order saves when you let go, and reverts if the save fails. You can also set **Order** in **Edit details**.
+
+### Edit details
+
+**Edit details** holds the photo's **Title**, **Category** and **Order**, plus two optional groups:
+
+- **Browser chrome**: tick **Show browser chrome** to frame a screenshot in a browser window that scrolls in the lightbox. **Address bar** sets the text shown in the bar; it is display only and never linked. Leave it empty to hide the bar.
+- **Shooting details**: **Make**, **Model**, **Lens**, **Focal length**, **Aperture**, **Shutter**, **ISO** and **Taken at**. These are read from the file at upload, and you can correct or clear any of them here.
+
+### Act on several photos at once
+
+Tick the checkbox on each card, or **Select all**. A batch bar appears with the number selected, where you can choose a category and click **Set category**, **Delete** the selection, or **Clear** it.
+
+## Manage categories
+
+Every photo belongs to one category. Click **Categories** in the **Current Items** header to open the categories dialog.
+
+- Type in **Find or add** to filter. If nothing matches exactly, **Add category** creates one with that name.
+- Each category shows its photo count, and the remove button is disabled while any photo still uses the category. Move those photos to another category first, for example with **Set category** in the batch bar.
+
+## Collections
+
+A collection is a working library of images and video clips kept for use on boards. Nothing in a collection appears on the site just by being there.
+
+<AccordionGroup>
+  <Accordion title="Create and rename a collection">
+    Click **New collection**, enter a **Name** and click **Create**. Use **Rename** on a row to change the name; press Enter to save or Escape to cancel. Names are capped at 120 characters.
+  </Accordion>
+  <Accordion title="Add and remove assets">
+    Assets are saved into a collection from a board. Click a collection's row to expand it and see its thumbnails, then use **Remove from collection** on a tile to take one out. Saving the same asset twice does not create a duplicate. A collection holds up to 500 items; past that, start another one.
+  </Accordion>
+  <Accordion title="Delete a collection">
+    Click **Delete** on the row and confirm. The collection is removed, but the pictures are kept, since they may sit on a board or in another collection.
+  </Accordion>
+</AccordionGroup>
+
+## Related pages
+
+<Columns cols={2}>
+  <Card title="Canvas" href="/guide/canvas">
+    Wire photos into nodes and save results into a collection.
+  </Card>
+  <Card title="Site settings" href="/guide/site-settings">
+    Per-site settings stored in each site's database.
+  </Card>
+</Columns>

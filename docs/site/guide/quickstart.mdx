@@ -1,0 +1,104 @@
+---
+title: "Quickstart: sign in and publish your first photo"
+description: "Sign in to the admin at /admin, upload a photo or a batch, give it a category, and see it live on the public site, with each control named as it appears."
+sidebarTitle: "Quickstart"
+keywords: ["quickstart", "admin", "sign in", "upload", "categories", "publish", "batch upload", "Google sign-in"]
+---
+
+This quickstart takes you from a signed-out browser to a photo on your public site. You sign in to the admin, upload one picture or a batch, put it in a category, and check that visitors can see it. The steps are the same on every site that runs from this codebase. Each site has its own database, so you sign in to each one separately.
+
+## Before you start
+
+You need an admin account on the site you are publishing to. Accounts are not created from the sign-in screen, and Google sign-in only signs in existing admins; it never creates an account. Someone with access to the site's database has to create yours first.
+
+<Note>
+  Passwords must be at least 8 characters. If you do not know your password, use **Forgot password?** on the sign-in screen to set one.
+</Note>
+
+## Sign in
+
+<Steps>
+  <Step title="Open the admin">
+    Go to `/admin` on your site. If you are signed out, you see the **Admin Access** screen.
+  </Step>
+  <Step title="Enter your email and password">
+    Fill in **Email** and **Password**, then select **Sign in**. A "Signed in" message confirms it, and the section links (**Photos**, **Moodboards**, **Settings** and the rest) appear at the top of the page.
+  </Step>
+  <Step title="Or use Google">
+    If the site has Google sign-in configured, the Google button appears below the form. It works only when Google has verified the account's email address and that address matches an existing admin. An unverified address shows "That Google account has no verified email address." and an address with no admin account shows "That Google account is not authorized for this site."
+  </Step>
+</Steps>
+
+Your session lasts 7 days and is kept in this browser. When it expires, or when the server rejects the stored session, the admin sends you back to the sign-in screen. **Sign out** in the top bar ends the session straight away.
+
+<AccordionGroup>
+  <Accordion title="Forgot your password">
+    Select **Forgot password?**, enter your **Email** and select **Send reset link**. The screen changes to **Check your email**. Follow the link in the email to set a new password.
+  </Accordion>
+</AccordionGroup>
+
+## Add a category
+
+Every photo belongs to exactly one category, and the upload buttons stay disabled until at least one category exists. You can create one in two places:
+
+- In the **Category** field of **Add New Item**, type a name that does not exist yet and select **Add “name”** from the list.
+- Select **Categories** in the **Current Items** header to open the **Categories** dialog, then type into **Find or add**.
+
+## Upload a photo
+
+The **Photos** section (the first link in the top bar) holds the photo library. The **Add New Item** card offers two ways in.
+
+<Tabs>
+  <Tab title="One photo">
+    1. Under **Image**, choose a JPEG, PNG, WebP or GIF file of up to 8 MB.
+    2. Enter a **Title**.
+    3. Pick a **Category**.
+    4. Select **Add Item**. The button reads **Uploading…** while the file transfers, and "Photo added successfully" confirms it. The new photo is highlighted briefly at the top of **Current Items**.
+  </Tab>
+  <Tab title="A batch">
+    1. Drag pictures onto **Drop photos here**, or click it to browse. JPEG, PNG, WebP, AVIF and GIF are accepted, and other files are skipped with a message.
+    2. To pull from Google Drive instead, select **Upload from Google**.
+    3. Each file gets a title from its file name, with dashes and underscores turned into spaces. Edit any title on its thumbnail before uploading.
+    4. Pick the **Category** in the same card. Every photo in the batch goes into it. If you have not picked one, the batch goes into the first category in the list.
+    5. Select **Upload** (it shows the number of files waiting). Three files transfer at a time, and uploaded files leave the list once they are added.
+  </Tab>
+</Tabs>
+
+<Tip>
+  If some files in a batch fail, they stay in the list so you can select **Upload** again to retry only those. Select **Clear** to empty the list.
+</Tip>
+
+The browser reads each picture's dimensions and camera data before uploading, so you do not need to enter them.
+
+## See it live
+
+New photos are published by default. As soon as the upload finishes, the photo is in the public gallery for its category and has its own page at `/photo/<id>`. Select **Back to site** in the top bar to check.
+
+Each card in **Current Items** has controls for what happens next:
+
+| Control | What it does |
+| --- | --- |
+| Eye icon | Hides the photo from the site, or shows it again. Hidden photos stay in the admin. |
+| Star icon | Adds the photo to the homepage slideshow, or removes it. |
+| Document-and-pencil icon | Edits the title and category. |
+| Pencil icon | Opens the image editor. |
+| Rotate icon | Rotates the photo 90 degrees. |
+| Restore icon | Appears only on an edited photo, and restores the original image. |
+| Trash icon | Deletes the photo. |
+
+Drag cards to change their order. New uploads go to the front.
+
+<Warning>
+  Hiding is not deleting. A hidden photo disappears from the public site but signed-in admins still see it in the library. Use the trash icon only when you want it gone.
+</Warning>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Photos" href="/guide/photos">
+    Editing, the darkroom editor, batch actions and ordering.
+  </Card>
+  <Card title="Site settings" href="/guide/site-settings">
+    Change the site's name, look and homepage.
+  </Card>
+</Columns>

@@ -1,0 +1,109 @@
+---
+title: "Site settings: names, colors, fonts and pages"
+description: "Change a photo site's name, wordmark, Instagram link, colors, fonts and animated background from the admin, and publish editorial pages under the site title."
+sidebarTitle: "Site settings"
+keywords: ["site settings", "theme", "branding", "colors", "fonts", "pages", "site_settings", "admin"]
+---
+
+Site settings control how one photo site presents itself: its names, wordmark, footer text, Instagram link, colors, fonts and animated background. This page covers the **Site settings** card under **Settings** in the admin, how saved values relate to the built-in defaults, and the **Pages** section, where you publish editorial pages that appear under the site title.
+
+Each of the three sites keeps its own settings. They are stored in the `site_settings` table, keyed by site, in that site's own database, so a change on one site never affects another.
+
+## Edit the site settings
+
+<Steps>
+  <Step title="Open the settings">
+    Sign in to `/admin` and choose **Settings** in the section bar. The **Site settings** card is the first card on that page.
+  </Step>
+  <Step title="Change the text fields">
+    Edit any of the fields described below. Each field holds up to 200 characters.
+  </Step>
+  <Step title="Pick colors and fonts">
+    Set the theme under **Colors**, **Review note colors** and **Fonts**, and turn the **Animated shader** on or off under **Background**. The **Preview** box shows the hero wordmark and tagline in your colors as you edit.
+  </Step>
+  <Step title="Save">
+    Choose **Save settings**. The admin applies the saved theme at once, without a reload. **Reset to defaults** fills the form with the site's built-in values; nothing changes until you save.
+  </Step>
+</Steps>
+
+## Text fields
+
+| Field | Where it appears |
+| --- | --- |
+| **Site name** | Browser tab and install prompt |
+| **Short name** | Admin header and app launcher |
+| **Hero wordmark** | Top left of the gallery |
+| **Owner name** | Footer and copyright line |
+| **Tagline** | Line under the footer wordmark |
+| **Instagram URL** | Full `https://` link |
+| **Instagram handle** | Display only, for example `@yourname` |
+
+Enter the **Instagram URL** as a full `https://` link. If you paste an address without a scheme, the server adds `https://` for you. An address it cannot read as a web link, or one that contains a username or password, is rejected with "Instagram URL must be a full https:// link".
+
+## Theme
+
+<AccordionGroup>
+  <Accordion title="Colors">
+    Three colors drive the whole public site: **Background**, **Text** and **Accent**. The accent colors the hero wordmark and highlights. Choose each one with the color picker or paste a hex value such as `#1a1a1a`. The server accepts six-digit hex colors only and rejects anything else when you save.
+
+    If text on the background falls below the 4.5:1 WCAG AA contrast ratio, or the accent on the background falls below 3:1, a warning appears under the colors with the measured ratio. The warning does not block saving.
+  </Accordion>
+  <Accordion title="Review note colors">
+    Sets the fill of each kind of note on a design review: **Issue**, **Works well**, **Recommendation** and **Suggestion**. The number and ring on each note are drawn in black or white, whichever reads better on the fill you choose. See [Design reviews](/guide/design-reviews).
+  </Accordion>
+  <Accordion title="Fonts">
+    Pick a **Sans**, a **Serif** and a **Display (titles)** face from the lists offered. The display face sets titles such as a proposal's title and clause headings; when it is unset, titles use the sans.
+  </Accordion>
+  <Accordion title="Background">
+    **Animated shader** draws a dithered gradient behind the gallery, tinted with the accent color.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+A site's theme can also name a brand kit. When it does, the kit's headline and body faces replace the theme's display and sans fonts, and the kit's type scale sets the text sizes on the public pages. Saving the settings form keeps whichever kit the theme already names. See [Brand kits](/guide/brand-kits).
+</Note>
+
+## How saved values and defaults combine
+
+Every site ships with built-in defaults for each field and color. A saved value overrides its default; a blank field falls back to the default rather than showing nothing. If the settings table is missing or cannot be reached, the site still renders with its defaults.
+
+The public site paints the defaults first, then fetches the saved settings and applies them. Responses are cached for about 30 seconds, so a visitor may see the previous values briefly after you save.
+
+<Warning>
+If saving fails with "Database schema is out of date. Run pnpm db:migrate against this deployment.", the site's database has not been migrated to match the code. See [Databases](/developers/databases).
+</Warning>
+
+## Pages
+
+The **Pages** section of the admin holds editorial pages, such as an about page. Published pages appear under the site title.
+
+<Steps>
+  <Step title="Create a draft">
+    Choose **New page**, enter a **Title**, and choose **Create draft**. The address is derived from the title and shown below it.
+  </Step>
+  <Step title="Write the page">
+    Set the **Title**, **Address** and an optional **Icon**, then write the body in the editor. Choose **Save** to keep your changes.
+  </Step>
+  <Step title="Publish">
+    Choose **Publish** to make the page public, or **Unpublish** to take it back to a draft.
+  </Step>
+</Steps>
+
+A draft is only reachable at its address while you are signed in, so you can preview it before publishing.
+
+<AccordionGroup>
+  <Accordion title="Address rules">
+    An address uses lowercase letters, numbers and single hyphens, up to 60 characters. Addresses the site already uses are reserved and refused: `admin`, `api`, `privacy`, `proposal`, `review`, `reset-password`, `sites`, `assets`, `manifest`, `favicon`, `robots`, `sitemap` and `terms`.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="Brand kits" href="/guide/brand-kits">
+    Keep faces, colors and a type scale that a site can use.
+  </Card>
+  <Card title="API" href="/developers/api">
+    Read and update settings with `GET` and `PATCH /api/site-settings`.
+  </Card>
+</Columns>
