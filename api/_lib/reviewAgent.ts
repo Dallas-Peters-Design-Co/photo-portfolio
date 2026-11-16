@@ -123,6 +123,14 @@ export const CAPTURE_SCHEMA = {
   type: "object",
 };
 
+/**
+ * Pages the sign-in agent captures: twelve unless asked, at most fifteen.
+ * Each is shot at two widths, so fifteen pages is thirty screens, within a
+ * review's forty.
+ */
+export const DEFAULT_AGENT_PAGES = 12;
+export const MAX_AGENT_PAGES = 15;
+
 export const captureMessage = ({
   loginUrl,
   pages,
@@ -139,7 +147,9 @@ export const captureMessage = ({
     loginUrl
       ? `Login page: ${loginUrl} — call log_in with it when the app asks you to sign in.`
       : "If the app asks you to sign in, call log_in with the sign-in page's URL.",
-    `Capture the start page and up to ${pages - 1} more key pages, each at desktop and mobile width.`,
+    `Capture the start page and up to ${pages - 1} more pages, each at desktop and mobile width.`,
+    "Go deep, not just wide. First open the main navigation (and any side menus, account menu and settings) and list the app's sections. Then, within each section, go at least two levels in: from a list to an item's detail page, from settings to each settings tab, from an index to a create or edit form (open it, never submit it). Open dialogs, drawers and menus that a page offers, and capture any empty, loading or error state you reach without changing data.",
+    "Spend the pages on different kinds of screen: one list page per section rather than five near-identical ones, and the deeper pages a real user would reach to get work done. Skip marketing pages, legal pages and duplicates of a screen you already have.",
     "Look, never change anything in the app.",
     "",
     "Then validate, one reference at a time, and return one `checks` entry for each of these, in this order:",
@@ -320,22 +330,24 @@ export const storeScreens = async (
   screens: AgentScreen[]
 ): Promise<ReviewScreen[]> => {
   const stored = await Promise.all(
-    screens.slice(0, 20).map(async (s): Promise<ReviewScreen | null> => {
-      const image = s?.image ? await confirmImage(s.image) : null;
-      if (!image) {
-        return null;
-      }
-      return {
-        id: newItemId(),
-        image,
-        marks: [],
-        note: "",
-        pins: [],
-        sourceUrl: typeof s.sourceUrl === "string" ? s.sourceUrl : "",
-        title: typeof s.title === "string" ? s.title.slice(0, 160) : "",
-        viewport: s.viewport === "mobile" ? "mobile" : "desktop",
-      };
-    })
+    screens
+      .slice(0, MAX_AGENT_PAGES * 2)
+      .map(async (s): Promise<ReviewScreen | null> => {
+        const image = s?.image ? await confirmImage(s.image) : null;
+        if (!image) {
+          return null;
+        }
+        return {
+          id: newItemId(),
+          image,
+          marks: [],
+          note: "",
+          pins: [],
+          sourceUrl: typeof s.sourceUrl === "string" ? s.sourceUrl : "",
+          title: typeof s.title === "string" ? s.title.slice(0, 160) : "",
+          viewport: s.viewport === "mobile" ? "mobile" : "desktop",
+        };
+      })
   );
   return stored.filter((s): s is ReviewScreen => s !== null);
 };

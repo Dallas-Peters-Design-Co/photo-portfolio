@@ -4,9 +4,13 @@ import {
   type SetStateAction,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { newItemId } from "../../../config/proposal.js";
-import type { ReviewScreen } from "../../../config/review.js";
+import {
+  DEFAULT_REVIEW_DOC,
+  type ReviewScreen,
+} from "../../../config/review.js";
 import { mergeAudit } from "../../../config/reviewAudit.js";
 import {
   mergeChecks,
@@ -22,7 +26,19 @@ const VIEWPORTS = ["desktop", "mobile"] as const;
 /** How often the editor asks the agent how a capture is going. */
 const POLL_MS = 5000;
 /** A capture still running after this long is given up on. */
-const CAPTURE_LIMIT_MS = 30 * 60 * 1000;
+const CAPTURE_LIMIT_MS = 45 * 60 * 1000;
+
+/** Pages the sign-in agent captures, each at two widths. */
+const AGENT_PAGES = 12;
+const TRAILING_HYPHENS = /-+$/;
+
+const two = (n: number) => String(n).padStart(2, "0");
+
+/** A scan's time, for the new review's address and title. */
+const scanStamp = (at: Date) => ({
+  label: `${at.getFullYear()}-${two(at.getMonth() + 1)}-${two(at.getDate())} ${two(at.getHours())}:${two(at.getMinutes())}`,
+  slug: `${at.getFullYear()}${two(at.getMonth() + 1)}${two(at.getDate())}-${two(at.getHours())}${two(at.getMinutes())}`,
+});
 
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
@@ -52,6 +68,7 @@ export function useReviewAudit({
   setDraft: Dispatch<SetStateAction<ReviewRecord>>;
 }) {
   const { prompt } = useConfirm();
+  const navigate = useNavigate();
   const [phase, setPhase] = useState<AuditPhase>("idle");
   // The agent's latest step during a login capture, for the button label.
   const [agentStatus, setAgentStatus] = useState("");
@@ -102,12 +119,14 @@ export function useReviewAudit({
    * pages and screenshots each at desktop and phone width. Its screens join
    * the review, then the audit runs on them as it does on any capture.
    */
-  const captureBehindLogin = async (): Promise<ReviewScreen[] | null> => {
+  const captureBehindLogin = async (): Promise<{
+    checks: ReferenceCheck[];
+    screens: ReviewScreen[];
+  } | null> => {
     const answer = await prompt({
       confirmLabel: "Capture and audit",
       defaultValue: "https://",
-      description:
-        "The agent signs in with the stored test account, looks at up to four key pages, and screenshots each at desktop and phone width. It looks but never changes anything. This takes a few minutes.",
+      description: `The agent signs in with the stored test account, explores the app up to ${AGENT_PAGES} pages deep into its sections, and screenshots each at desktop and phone width. It looks but never changes anything. The result is saved as a new review; this one is left as it is. This takes several minutes.`,
       placeholder: "https://app.example.com",
       title: "Which app should the agent sign in to?",
     });
@@ -136,6 +155,7 @@ export function useReviewAudit({
     setAgentStatus("Starting the browser…");
     const { session } = await reviewsApi.captureWithLogin({
       loginUrl,
+      pages: AGENT_PAGES,
       slug,
       url,
     });
@@ -147,7 +167,7 @@ export function useReviewAudit({
       screens: ReviewScreen[];
     }> => {
       if (Date.now() - startedAt > CAPTURE_LIMIT_MS) {
-        throw new Error("The capture took longer than 30 minutes.");
+        throw new Error("The capture took longer than 45 minutes.");
       }
       await wait(POLL_MS);
       const status = await reviewsApi.captureStatus(session, slug);
@@ -163,20 +183,7 @@ export function useReviewAudit({
       }
       return status;
     };
-    const { checks, screens } = await poll();
-    // The agent's reference-by-reference validation joins the review with
-    // its screens; the screen audit that follows adds its pins after.
-    setDraft((d) => ({
-      ...d,
-      doc: mergeChecks(
-        { ...d.doc, screens: [...d.doc.screens, ...screens] },
-        checks
-      ),
-    }));
-    if (checks.length > 0) {
-      setAuditKey((k) => k + 1);
-    }
-    return screens;
+    return poll();
   };
 
   const auditThese = async (screens: ReviewScreen[]) => {
@@ -221,7 +228,60 @@ export function useReviewAudit({
     );
   };
 
-  const runLoginAudit = () => auditScreens(captureBehindLogin);
+  /**
+   * The agent's capture, validated and audited, saved as a new review: the
+   * review open in the editor is not touched, so a scan can be run again and
+   * compared rather than piling onto the last one. Same client and brand.
+   */
+  const runLoginAudit = async () => {
+    try {
+      const captured = await captureBehindLogin();
+      if (!captured) {
+        return;
+      }
+      const source = latest.current;
+      let doc = mergeChecks(
+        { ...DEFAULT_REVIEW_DOC, screens: captured.screens },
+        captured.checks
+      );
+      setPhase("auditing");
+      let audited = true;
+      try {
+        const { audit } = await reviewsApi.audit({
+          screens: captured.screens,
+          title: source.title,
+        });
+        doc = mergeAudit(doc, audit);
+      } catch {
+        // The screens and checks are still worth keeping.
+        audited = false;
+      }
+      const stamp = scanStamp(new Date());
+      const created = await reviewsApi.create({
+        brandKitId: source.brandKitId,
+        clientEmail: source.clientEmail,
+        clientName: source.clientName,
+        doc,
+        slug: `${source.slug.slice(0, 40).replace(TRAILING_HYPHENS, "")}-scan-${stamp.slug}`,
+        status: "draft",
+        title: `${source.title} — app scan ${stamp.label}`.slice(0, 160),
+      });
+      const open = `/admin/reviews/${encodeURIComponent(created.slug)}`;
+      toast.success(
+        audited
+          ? `New review saved with ${captured.screens.length} screens.`
+          : `New review saved with ${captured.screens.length} screens; the audit failed, so run it there.`,
+        { action: { label: "Open", onClick: () => navigate(open) } }
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not run the app scan"
+      );
+    } finally {
+      setPhase("idle");
+      setAgentStatus("");
+    }
+  };
 
   return { agentStatus, auditKey, phase, runAudit, runLoginAudit };
 }

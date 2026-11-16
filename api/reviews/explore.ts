@@ -4,8 +4,10 @@ import { handleCors } from "../_lib/cors.js";
 import { parsePublicHttpUrl } from "../_lib/httpUrl.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
 import {
+  DEFAULT_AGENT_PAGES,
   endCapture,
   isReviewAgentConfigured,
+  MAX_AGENT_PAGES,
   readCapture,
   startCapture,
   storeScreens,
@@ -28,7 +30,6 @@ import { signScreens } from "../_lib/reviewImages.js";
 export const config = { maxDuration: 120 };
 
 const SESSION_ID = /^[A-Za-z0-9_-]{1,128}$/;
-const MAX_PAGES = 6;
 
 const start = async (req: VercelRequest, res: VercelResponse) => {
   const body = parseJsonBody(req.body);
@@ -46,8 +47,8 @@ const start = async (req: VercelRequest, res: VercelResponse) => {
       .json({ error: "The login page must be a full https:// address" });
   }
   const pages = Number.isInteger(body.pages)
-    ? Math.min(MAX_PAGES, Math.max(1, body.pages as number))
-    : 4;
+    ? Math.min(MAX_AGENT_PAGES, Math.max(1, body.pages as number))
+    : DEFAULT_AGENT_PAGES;
   const session = await startCapture({ loginUrl, pages, url });
   return res.status(202).json({ session });
 };

@@ -193,7 +193,8 @@ describe("captureMessage", () => {
     );
     expect(text).toContain("- UX patterns");
     expect(text).toContain("https://app.example.com/login");
-    expect(text).toContain("up to 3 more key pages");
+    expect(text).toContain("up to 3 more pages");
+    expect(text).toContain("at least two levels in");
   });
 });
 
