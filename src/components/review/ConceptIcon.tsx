@@ -75,9 +75,14 @@ export function ConceptIconText({
         ...style,
         alignItems: "center",
         display: "inline-flex",
+        // A pill or a button keeps its label on one line and its own width:
+        // in a row beside long text it was squeezed until "In Progress"
+        // broke in two.
+        flexShrink: 0,
         gap: Math.round(element.fontSize * 0.4),
         justifyContent: "center",
         ...(iconOnly ? { padding: element.paddingY } : {}),
+        whiteSpace: "nowrap",
       }}
       type={Tag === "button" ? "button" : undefined}
     >

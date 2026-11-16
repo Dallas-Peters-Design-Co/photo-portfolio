@@ -135,3 +135,30 @@ it("keeps a long icon name on one line in a narrow table cell", () => {
   expect(name.getBoundingClientRect().height).toBeLessThan(24);
   expect(trigger.scrollWidth).toBeLessThanOrEqual(trigger.clientWidth + 1);
 });
+
+it("keeps a badge's and tag's label on one line beside long text", () => {
+  const long =
+    "Real-world effectiveness of biologic DMARD therapies in newly diagnosed RA";
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    slots: {
+      header: {
+        elements: [
+          { ...createConceptElement("badge"), text: "In Progress" },
+          { ...createConceptElement("tag"), text: "In Progress" },
+        ],
+        layout: "row",
+      },
+    },
+    text: `${long} ${long}`,
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  for (const pill of host.querySelectorAll<HTMLElement>(
+    "[data-slot=header] .concept-slot__items > span"
+  )) {
+    // One line box for the whole label: it did not break.
+    const range = document.createRange();
+    range.selectNodeContents(pill.querySelector("span") as HTMLElement);
+    expect(range.getClientRects()).toHaveLength(1);
+  }
+});
