@@ -162,3 +162,19 @@ it("keeps a badge's and tag's label on one line beside long text", () => {
     expect(range.getClientRects()).toHaveLength(1);
   }
 });
+
+it("keeps each tab's label on one line in a narrow row", () => {
+  host.style.width = "160px";
+  const tabs: ReviewConceptElement = {
+    ...createConceptElement("tabs"),
+    options: ["All projects", "In progress", "Awaiting review"],
+  };
+  act(() => root.render(<ReviewConceptElementView element={tabs} />));
+  const labels = [...host.querySelectorAll<HTMLElement>(".concept-tabs__tab")];
+  expect(labels.length).toBeGreaterThan(1);
+  for (const tab of labels) {
+    const range = document.createRange();
+    range.selectNodeContents(tab);
+    expect(range.getClientRects()).toHaveLength(1);
+  }
+});

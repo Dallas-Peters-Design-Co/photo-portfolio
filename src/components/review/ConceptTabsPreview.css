@@ -8,12 +8,16 @@
   border-bottom: 1px solid color-mix(in srgb, currentColor 20%, transparent);
 }
 
+/* Each label stays on one line at its own width; a narrow row was
+   squeezing a two-word tab onto two lines. */
 .concept-tabs__tab {
   position: relative;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   padding-inline: var(--tab-padding-x, 0);
   color: var(--tab-inactive, currentColor);
+  white-space: nowrap;
 }
 
 .concept-tabs__tab[aria-current="page"] {
