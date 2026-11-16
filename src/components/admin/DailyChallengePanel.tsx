@@ -566,7 +566,7 @@ const TodayView = ({
     )}
     {!today.loading && today.challenge ? (
       <>
-        <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+        <div className="grid gap-5 lg:grid-cols-1 lg:items-stretch">
           <TodayPhoto challenge={today.challenge} />
           <TodayJournalForm onSubmit={onSaveJournal} today={today} />
         </div>
