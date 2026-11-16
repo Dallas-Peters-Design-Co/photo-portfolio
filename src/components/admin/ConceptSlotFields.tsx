@@ -13,7 +13,7 @@ import {
   SLOT_NAMES,
   type SlideSide,
 } from "../../../config/conceptSlots.js";
-import { closeIcon } from "../../../config/conceptStarters.js";
+import { closeButton } from "../../../config/conceptStarters.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -148,7 +148,7 @@ export function SlotFields({
       {name === "hide" && slot.elements.length === 0 ? (
         <Button
           onClick={() =>
-            set({ elements: [closeIcon(createConceptElement, brandDoc)] })
+            set({ elements: [closeButton(createConceptElement, brandDoc)] })
           }
           size="xs"
           type="button"

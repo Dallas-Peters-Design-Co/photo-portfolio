@@ -128,22 +128,36 @@ export const progressLook = (
  * the title, a progress bar and a checkbox in the body, an action below.
  * The slots carry the spacing, so the panel itself has no padding.
  */
-/** A panel's close control: an ✕ for its hide slot, in the panel's ink. */
-export const closeIcon = (
+/**
+ * A panel's close control for its hide slot: an icon-only button, so it has
+ * every button setting (fill, border, corners, shadow, padding, icon colour
+ * and size, hover) and can follow a kit button style. A soft round ✕ to start.
+ */
+export const closeButton = (
   make: (
     kind: ReviewConceptElementKind,
     brandDoc?: BrandKitDoc | null
   ) => ReviewConceptElement,
   brandDoc?: BrandKitDoc | null
-): ReviewConceptElement => ({
-  ...make("icon", brandDoc),
-  background: "transparent",
-  iconName: "Cancel01Icon",
-  iconSize: 18,
-  paddingX: 4,
-  paddingY: 4,
-  text: "Close",
-});
+): ReviewConceptElement => {
+  const fill = paletteColor(brandDoc, ["surface", "muted"], "#f2f4f7");
+  const ink = readableColor(brandDoc, ["ink", "text"], fill, "#344054");
+  return {
+    ...make("button", brandDoc),
+    background: fill,
+    borderColor: "transparent",
+    borderWidth: 0,
+    color: ink,
+    hover: { background: paletteColor(brandDoc, ["border"], "#e4e7ec") },
+    iconColor: ink,
+    iconName: "Cancel01Icon",
+    iconSize: 16,
+    paddingX: 8,
+    paddingY: 8,
+    radius: 999,
+    text: "",
+  };
+};
 
 export const panelLook = (
   brandDoc: BrandKitDoc | null | undefined,
@@ -192,7 +206,7 @@ export const panelLook = (
         paddingY: 12,
       },
       // Its ✕, in the top-right corner: a click slides the panel away.
-      hide: { elements: [closeIcon(make, brandDoc)] },
+      hide: { elements: [closeButton(make, brandDoc)] },
     },
   };
 };

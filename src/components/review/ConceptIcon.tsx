@@ -46,7 +46,21 @@ export function ConceptIcon({
 const ICON_SUFFIX = /Icon$/;
 
 /** "ArrowRight01Icon" → "ArrowRight01", for an icon-only control's name. */
-const iconLabel = (name: string): string => name.replace(ICON_SUFFIX, "");
+/** What an icon-only button says it does, for those who can't see it. */
+const ICON_LABELS: Record<string, string> = {
+  Cancel01Icon: "Close",
+  Cancel02Icon: "Close",
+  MultiplicationSignIcon: "Close",
+};
+const CAMEL = /([a-z])([A-Z0-9])/g;
+const TRAILING_NUMBER = /\s*\d+$/;
+
+const iconLabel = (name: string): string =>
+  ICON_LABELS[name] ??
+  name
+    .replace(ICON_SUFFIX, "")
+    .replace(CAMEL, "$1 $2")
+    .replace(TRAILING_NUMBER, "");
 
 /**
  * A button's, badge's or tag's text between its two icon slots: an icon
