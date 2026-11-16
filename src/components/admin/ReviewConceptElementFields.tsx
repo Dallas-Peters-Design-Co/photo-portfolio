@@ -309,6 +309,41 @@ function ElementBar({
   );
 }
 
+/** The element's corner radius and its padding. */
+function BoxGroup({
+  element,
+  onChange,
+}: {
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  return (
+    <ConceptGroup name="Box">
+      <NumberField
+        label="Radius"
+        max={48}
+        onChange={(radius) => onChange({ radius })}
+        value={element.radius}
+      />
+      {/* A tab's side padding is in the Tabs group, beside the row's. */}
+      {element.kind === "tabs" ? null : (
+        <NumberField
+          label="Padding X"
+          max={48}
+          onChange={(paddingX) => onChange({ paddingX })}
+          value={element.paddingX}
+        />
+      )}
+      <NumberField
+        label="Padding Y"
+        max={32}
+        onChange={(paddingY) => onChange({ paddingY })}
+        value={element.paddingY}
+      />
+    </ConceptGroup>
+  );
+}
+
 export function ReviewConceptElementFields({
   brandDoc,
   depth = 0,
@@ -412,26 +447,7 @@ export function ReviewConceptElementFields({
               value={element.lineHeight}
             />
           </ConceptGroup>
-          <ConceptGroup name="Box">
-            <NumberField
-              label="Radius"
-              max={48}
-              onChange={(radius) => onChange({ radius })}
-              value={element.radius}
-            />
-            <NumberField
-              label="Padding X"
-              max={48}
-              onChange={(paddingX) => onChange({ paddingX })}
-              value={element.paddingX}
-            />
-            <NumberField
-              label="Padding Y"
-              max={32}
-              onChange={(paddingY) => onChange({ paddingY })}
-              value={element.paddingY}
-            />
-          </ConceptGroup>
+          <BoxGroup element={element} onChange={onChange} />
           {takesBox(element.kind) ? (
             <ShadowGroup
               brandDoc={brandDoc}

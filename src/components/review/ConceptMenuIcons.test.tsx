@@ -9,6 +9,7 @@ import {
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
 import { createConceptElement } from "../admin/ReviewConceptBrand";
+import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
 (
@@ -230,6 +231,33 @@ it("pads the tab row's ends apart from each tab's own padding", () => {
   expect(
     host.querySelector<HTMLElement>(".concept-tabs__indicator")?.style.transform
   ).toBe("translateX(24px)");
+});
+
+it("puts each tab's padding in the Tabs group, beside the row's", () => {
+  const patches: Partial<ReviewConceptElement>[] = [];
+  act(() =>
+    root.render(
+      <ReviewConceptElementFields
+        element={createConceptElement("tabs")}
+        onChange={(patch) => patches.push(patch)}
+      />
+    )
+  );
+  const field = (label: string) =>
+    host.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`);
+  expect(field("Row padding X")).not.toBeNull();
+  // One side-padding field for the tabs, not a second in Box.
+  expect(field("Padding X")).toBeNull();
+  const tabPadding = field("Tab padding X") as HTMLInputElement;
+  const setValue = Object.getOwnPropertyDescriptor(
+    HTMLInputElement.prototype,
+    "value"
+  )?.set;
+  act(() => {
+    setValue?.call(tabPadding, "18");
+    tabPadding.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+  expect(patches.at(-1)).toEqual({ paddingX: 18 });
 });
 
 it("draws a card's title in its own weight, bolder than the body without one", () => {
