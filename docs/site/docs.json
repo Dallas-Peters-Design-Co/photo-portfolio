@@ -99,5 +99,9 @@
       "light": "#F7F6ED",
       "dark": "#232321"
     }
+  },
+  "logo": {
+    "light": "/docs/site/images/dpd-logo.svg",
+    "dark": "/docs/site/images/dpd-logo-white.svg"
   }
 }
