@@ -8,6 +8,13 @@
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-x: contain;
+  /* Scrolls by trackpad, wheel or touch with no bar drawn: a bar across
+     the bottom of a sketch read as part of the design. */
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* A concept table, in the editor's preview and on the review page alike.

@@ -217,4 +217,7 @@ it("scrolls a table wider than its space, columns at their set widths", () => {
   expect(box?.getBoundingClientRect().width).toBeLessThanOrEqual(320);
   expect(box?.scrollWidth).toBeGreaterThan(box?.clientWidth ?? 0);
   expect(getComputedStyle(box as HTMLElement).overflowX).toBe("auto");
+  // It scrolls without a bar: the bar takes no height.
+  expect(getComputedStyle(box as HTMLElement).scrollbarWidth).toBe("none");
+  expect(box?.offsetHeight).toBe(box?.clientHeight);
 });
