@@ -8,6 +8,7 @@ import {
 } from "../../../config/conceptStyle.js";
 import { newItemId } from "../../../config/proposal.js";
 import type { ReviewConceptElementKind } from "../../../config/reviewConcept.js";
+import { rememberedOpen, rememberOpen } from "../../hooks/useRememberedOpen";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -107,14 +108,23 @@ export function BrandKitComponents({
     styles.length === 0 ? effective.componentStyles : [];
   const set = (next: ConceptStyle[]) =>
     onChange({ ...doc, componentStyles: next });
-  // Folded by default: the list reads as a list of styles until one is opened.
-  const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
+  // Folded by default: the list reads as a list of styles until one is
+  // opened. Which are open is remembered in this browser across reloads.
+  const [open, setOpen] = useState<ReadonlySet<string>>(
+    () =>
+      new Set(
+        [...styles, ...inherited]
+          .map((style) => style.id)
+          .filter((id) => rememberedOpen(`kit-style:${id}`))
+      )
+  );
   const toggle = (id: string) =>
     setOpen((was) => {
       const next = new Set(was);
       if (!next.delete(id)) {
         next.add(id);
       }
+      rememberOpen(`kit-style:${id}`, next.has(id));
       return next;
     });
 

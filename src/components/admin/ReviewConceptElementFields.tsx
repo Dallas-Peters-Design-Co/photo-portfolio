@@ -1,5 +1,5 @@
 import { ChevronDown, Copy, Trash2 } from "lucide-react";
-import { type ReactNode, useId, useState } from "react";
+import { type ReactNode, useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { takesHover } from "../../../config/conceptHover.js";
 import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
@@ -7,6 +7,7 @@ import { takesMenu } from "../../../config/conceptMenu.js";
 import { hasSlots, MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import { useRememberedOpen } from "../../hooks/useRememberedOpen";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
@@ -345,7 +346,11 @@ export function ReviewConceptElementFields({
   styles?: ConceptStyle[];
 }) {
   // Elements inside a slot start folded, so a panel's list stays short.
-  const [open, setOpen] = useState(depth === 0);
+  // Each is remembered after it is first opened or folded.
+  const [open, setOpen] = useRememberedOpen(
+    `concept-element:${element.id}`,
+    depth === 0
+  );
   const bodyId = useId();
   return (
     <section aria-label={element.kind} className="review-concepts__element">
