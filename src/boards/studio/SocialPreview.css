@@ -9,17 +9,10 @@
 }
 
 .studio-social-preview {
-  display: grid;
-  place-items: center;
   width: 100%;
   min-width: 0;
   height: 100%;
   min-height: 0;
-  padding: calc(var(--spacing) * 2);
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-  font-size: 0.625rem;
-  color: #1c1c1c;
 }
 
 .social-node {
@@ -38,375 +31,361 @@
   text-align: center;
 }
 
-.studio-social-preview__post,
-.studio-social-preview__page,
-.studio-social-preview__video,
-.studio-social-preview__pin {
+/*
+ * The mock-up at the platform's own size, scaled as one to fit (Fit in
+ * SocialPreview.tsx). Sizes below are the platforms' CSS pixels.
+ */
+.social-mock {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  width: auto;
-  max-width: 100%;
-  height: min(100%, 36rem);
-  max-height: 100%;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid #dedede;
-  border-radius: 0.25rem;
-}
-
-.studio-social-preview__header {
-  display: flex;
-  flex: none;
-  gap: 0.5rem;
-  align-items: center;
-  min-height: 2.5rem;
-  padding: 0.45rem 0.6rem;
-}
-
-.studio-social-preview__header > span:nth-child(2) {
-  display: grid;
-  gap: 0.1rem;
-}
-
-.studio-social-preview__header small,
-.studio-social-preview__page-info span,
-.studio-social-preview__video small,
-.studio-social-preview__pin footer span {
-  display: block;
-  font-size: 0.55rem;
-  color: #686868;
-}
-
-.studio-social-preview__avatar,
-.studio-social-preview__page-avatar,
-.studio-social-preview__company-logo,
-.studio-social-preview__channel {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fff;
-  background: #53647a;
-  border-radius: 50%;
-}
-
-.studio-social-preview__more {
-  margin-left: auto;
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-}
-
-.studio-social-preview__art {
-  position: relative;
-  display: grid;
-  flex: 1;
-  place-items: center;
-  min-height: 0;
-  overflow: hidden;
-  background: #e8e8e8;
-}
-
-.studio-social-preview__art > img,
-.studio-social-preview__art > canvas {
-  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-}
-
-.studio-social-preview__art > canvas {
-  position: absolute;
-  inset: 0;
-}
-
-.studio-social-preview__footer {
-  display: grid;
-  flex: none;
-  gap: 0.25rem;
-  padding: 0.4rem 0.6rem 0.55rem;
-  font-size: 0.55rem;
-}
-
-.studio-social-preview__actions {
-  font-size: 0.85rem;
-}
-
-.studio-social-preview__muted {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #555;
-  white-space: nowrap;
-}
-
-.studio-social-preview__post--instagram .studio-social-preview__art {
-  flex: none;
-  max-height: calc(100% - 5rem);
-  aspect-ratio: 4 / 5;
-}
-
-.studio-social-preview__post--facebook,
-.studio-social-preview__post--linkedin {
-  aspect-ratio: 4 / 5;
-  border-radius: 0.5rem;
-}
-
-.studio-social-preview__page {
-  aspect-ratio: 4 / 3;
-}
-
-.studio-social-preview__copy {
-  flex: none;
-  padding: 0 0.65rem 0.5rem;
-  margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.studio-social-preview__post-actions {
-  display: flex;
-  flex: none;
-  justify-content: space-around;
-  min-height: 2rem;
-  padding: 0.55rem 0.2rem;
-  font-size: 0.55rem;
-  color: #626262;
-  border-top: 1px solid #e4e4e4;
-}
-
-.studio-social-preview__vertical {
-  position: relative;
-  width: auto;
-  max-width: 100%;
-  height: min(100%, 36rem);
-  max-height: 100%;
-  aspect-ratio: 9 / 16;
-  overflow: hidden;
-  color: #fff;
-  background: #171717;
-  border: 1px solid #333;
-  border-radius: 0.65rem;
-}
-
-.studio-social-preview__vertical .studio-social-preview__art {
-  position: absolute;
-  inset: 0;
-}
-
-.studio-social-preview__vertical-head,
-.studio-social-preview__vertical-foot,
-.studio-social-preview__vertical-actions,
-.studio-social-preview__story-reply {
-  position: absolute;
-  z-index: 1;
-  text-shadow: 0 1px 3px #000;
-}
-
-.studio-social-preview__vertical-head {
-  top: 0.5rem;
-  left: 0.5rem;
-  display: flex;
-  gap: 0.35rem;
-  align-items: center;
-}
-
-.studio-social-preview__vertical-actions {
-  right: 0.45rem;
-  bottom: 3.1rem;
-  display: grid;
-  gap: 0.45rem;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.studio-social-preview__vertical-foot {
-  right: 1.8rem;
-  bottom: 0.5rem;
-  left: 0.5rem;
-  display: grid;
-  gap: 0.25rem;
-  font-size: 0.55rem;
-}
-
-.studio-social-preview__story-reply {
-  right: 0.5rem;
-  bottom: 0.45rem;
-  left: 0.5rem;
-  padding: 0.35rem 0.5rem;
-  border: 1px solid #ffffffb0;
-  border-radius: 1rem;
-}
-
-.studio-social-preview__vertical--tiktok {
-  border-radius: 0.15rem;
-}
-
-.studio-social-preview__page-info {
-  position: relative;
-  display: flex;
-  flex: none;
-  gap: 0.5rem;
-  align-items: center;
-  min-height: 3.2rem;
-  padding: 0.45rem 0.6rem;
-  background: #fff;
-}
-
-.studio-social-preview__page-info > div {
-  flex: 1;
-}
-
-.studio-social-preview__page-info strong {
-  font-size: 0.7rem;
-}
-
-.studio-social-preview__page-avatar,
-.studio-social-preview__company-logo {
-  width: 2.6rem;
-  height: 2.6rem;
-  color: #fff;
-  background: #294b70;
-  border: 2px solid #fff;
-  border-radius: 0.25rem;
-}
-
-.studio-social-preview__page-avatar {
-  margin-top: -1.3rem;
-}
-
-.studio-social-preview__page-button {
-  padding: 0.3rem 0.55rem;
-  color: #fff !important;
-  background: #0866ff;
-  border-radius: 0.25rem;
-}
-
-.studio-social-preview__page--linkedin .studio-social-preview__page-button {
-  color: #0a66c2 !important;
-  background: #fff;
-  border: 1px solid #0a66c2;
-  border-radius: 1rem;
-}
-
-.studio-social-preview__page-nav {
-  flex: none;
-  padding: 0.45rem 0.6rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: #555;
-  white-space: nowrap;
-  border-top: 1px solid #e5e5e5;
-}
-
-.studio-social-preview__page > .studio-social-preview__art {
-  flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
-.studio-social-preview__page--facebook > .studio-social-preview__art {
-  flex: none;
-  max-height: calc(100% - 5rem);
-  aspect-ratio: 851 / 315;
-}
-
-.studio-social-preview__page--linkedin > .studio-social-preview__art {
-  flex: none;
-  max-height: calc(100% - 5rem);
-  aspect-ratio: 1512 / 256;
-}
-
-.studio-social-preview__video {
-  width: auto;
-  max-width: 100%;
-  height: min(100%, 30rem);
-  aspect-ratio: 16 / 9;
-  border-radius: 0.45rem;
-}
-
-.studio-social-preview__video > .studio-social-preview__art {
-  position: absolute;
-  inset: 0;
-}
-
-.studio-social-preview__play {
+.social-mock__stage {
   position: absolute;
   top: 50%;
   left: 50%;
-  display: grid;
-  place-items: center;
-  width: 2rem;
-  height: 1.4rem;
-  color: #fff;
-  background: #d00;
-  border-radius: 0.35rem;
-  transform: translate(-50%, -50%);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.35;
+  color: #0f1419;
+  transform-origin: center;
 }
 
-.studio-social-preview__video footer {
+.social-mock__media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #e9ebee;
+}
+
+.social-mock__media > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.social-mock__card {
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #dbdbdb;
+  border-radius: 8px;
+}
+
+.social-mock__head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+}
+
+.social-mock__end {
+  margin-left: auto;
+}
+
+.social-mock__avatar {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #db2777);
+  border-radius: 50%;
+}
+
+.social-mock__avatar--square {
+  border-radius: 6px;
+}
+
+.social-mock__who {
+  display: grid;
+}
+
+.social-mock__who small {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  font-size: 12px;
+  color: #65676b;
+}
+
+.social-mock__icons {
+  display: flex;
+  gap: 16px;
+  padding: 10px 12px 6px;
+}
+
+.social-mock__line {
+  padding: 2px 12px;
+  margin: 0;
+}
+
+.social-mock__line:last-child {
+  padding-bottom: 12px;
+}
+
+.social-mock__muted {
+  font-size: 12px;
+  color: #65676b;
+}
+
+.social-mock__text {
+  padding: 0 12px 12px;
+  margin: 0;
+}
+
+.social-mock__actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 6px 12px;
+  font-weight: 600;
+  color: #65676b;
+  border-top: 1px solid #e4e6eb;
+}
+
+.social-mock__actions > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 8px;
+}
+
+.social-mock__card--x {
+  padding: 12px 16px;
+  border-radius: 0;
+}
+
+.social-mock__card--x .social-mock__head {
+  padding: 0 0 8px;
+}
+
+.social-mock__card--x .social-mock__text {
+  padding: 0 0 12px;
+}
+
+.social-mock__card--x .social-mock__actions {
+  justify-content: space-between;
+  padding: 10px 0 0;
+  font-weight: 400;
+  color: #536471;
+  border-top: 0;
+}
+
+/* Stories, Reels and TikTok: everything over the picture. */
+.social-mock__vertical {
+  position: relative;
+  overflow: hidden;
+  color: #fff;
+  background: #000;
+  border-radius: 12px;
+}
+
+.social-mock__over {
   position: absolute;
   right: 0;
-  bottom: 0;
   left: 0;
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+.social-mock__over--top {
+  top: 0;
+}
+
+.social-mock__over--bottom {
+  bottom: 0;
+}
+
+.social-mock__progress {
+  height: 2px;
+  background: rgb(255 255 255 / 0.85);
+  border-radius: 2px;
+}
+
+.social-mock__story-who {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   align-items: center;
-  padding: 0.45rem;
+}
+
+.social-mock__reply {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.social-mock__reply > span {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid rgb(255 255 255 / 0.7);
+  border-radius: 999px;
+}
+
+.social-mock__side {
+  position: absolute;
+  right: 10px;
+  bottom: 110px;
+  display: grid;
+  gap: 18px;
+  justify-items: center;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.5));
+}
+
+.social-mock__over--bottom > span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Page and profile headers: the cover with what the platform puts on it. */
+.social-mock__page {
+  position: relative;
+}
+
+.social-mock__cover {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  font-size: 48px;
+  font-weight: 700;
   color: #fff;
-  background: #101010d9;
+  background: linear-gradient(135deg, #4f46e5, #db2777);
+  border: 4px solid #fff;
+  border-radius: 8px;
 }
 
-.studio-social-preview__video footer > span:last-child {
+.social-mock__cover--round {
+  border-radius: 50%;
+}
+
+.social-mock__page-photo {
+  position: absolute;
+  top: calc(940px * 315 / 851 - 120px);
+  left: 32px;
   display: grid;
-  gap: 0.1rem;
+  place-items: center;
+  width: 168px;
+  height: 168px;
+  font-size: 64px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #4f46e5, #db2777);
+  border: 4px solid #fff;
+  border-radius: 50%;
 }
 
-.studio-social-preview__channel {
-  width: 1.4rem;
-  height: 1.4rem;
-  background: #777;
-}
-
-.studio-social-preview__video small {
-  color: #ccc;
-}
-
-.studio-social-preview__pin {
-  width: auto;
-  max-width: 100%;
-  height: min(100%, 36rem);
-  aspect-ratio: 2 / 3;
-  border-radius: 0.75rem;
-}
-
-.studio-social-preview__pin > .studio-social-preview__art {
-  border-radius: 0.7rem 0.7rem 0 0;
-}
-
-.studio-social-preview__pin footer {
+.social-mock__page-body {
   display: grid;
-  flex: none;
-  gap: 0.2rem;
-  padding: 0.45rem 0.55rem;
+  gap: 4px;
+  padding: 16px 24px 20px;
+}
+
+.social-mock__page--facebook .social-mock__page-body {
+  padding-left: 216px;
+}
+
+.social-mock__page--linkedin-banner .social-mock__page-body,
+.social-mock__page--linkedin-page .social-mock__page-body {
+  padding-top: 72px;
+}
+
+.social-mock__page-name {
+  font-size: 24px;
+}
+
+.social-mock__buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.social-mock__button {
+  padding: 6px 16px;
+  font-weight: 600;
+  color: #fff;
+  background: #0a66c2;
+  border-radius: 999px;
+}
+
+.social-mock__page--facebook .social-mock__button {
+  background: #0866ff;
+  border-radius: 6px;
+}
+
+.social-mock__button--quiet {
+  color: #0a66c2;
+  background: transparent;
+  border: 1px solid #0a66c2;
+}
+
+.social-mock__page--facebook .social-mock__button--quiet {
+  color: #050505;
+  background: #e4e6eb;
+  border: 0;
+}
+
+.social-mock__tabs {
+  display: flex;
+  gap: 24px;
+  padding: 12px 24px;
+  font-weight: 600;
+  color: #666;
+  border-top: 1px solid #e8e8e8;
+}
+
+/* YouTube and Pinterest: picture first, a line or two under it. */
+.social-mock__video,
+.social-mock__pin {
+  display: grid;
+  gap: 10px;
+  padding: 8px;
   background: #fff;
 }
 
-.studio-social-preview__post--x {
-  border-radius: 1rem;
+.social-mock__duration {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  padding: 1px 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: rgb(0 0 0 / 0.8);
+  border-radius: 4px;
 }
 
-@media (max-height: 22rem) {
-  .studio-social-preview {
-    padding: calc(var(--spacing) * 1);
-  }
+.social-mock__play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  color: rgb(255 255 255 / 0.9);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.5));
+  transform: translate(-50%, -50%);
+}
 
-  .studio-social-preview__footer,
-  .studio-social-preview__post-actions,
-  .studio-social-preview__page-nav {
-    font-size: 0.5rem;
-  }
+.social-mock__video-meta {
+  display: flex;
+  gap: 12px;
+}
+
+.social-mock__video-meta > span {
+  display: grid;
+}
+
+.social-mock__video-meta small {
+  color: #606060;
+}
+
+.social-mock__pin-who {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
 }

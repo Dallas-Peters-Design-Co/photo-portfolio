@@ -257,6 +257,13 @@ function itemPointerDown({
 }
 
 /** Content of a design frame is styled as such; the frame itself is not. */
+/** An item's wiring dots: none for a layer inside a designed frame. */
+const portsShown = (
+  ports: PortHandlers | undefined,
+  inFrame: BoardItemViewProps["inFrame"]
+): PortHandlers | undefined =>
+  inFrame && !inFrame.isFrame ? undefined : ports;
+
 const inFrameClass = (inFrame: BoardItemViewProps["inFrame"]): string =>
   inFrame && !inFrame.isFrame ? "board-item--in-frame" : "";
 
@@ -332,6 +339,7 @@ export function BoardItemView({
     ports
   );
 
+  const shownPorts = portsShown(ports, inFrame);
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: the board is a canvas of individually addressable items; the click only matters in comment mode
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same — the click aims a comment at the item, and the drag already uses pointer events the same way
@@ -411,8 +419,12 @@ export function BoardItemView({
       />
 
       {/* Absent as a unit on a published board, which has no wiring at all. */}
-      {ports ? (
-        <PortHandles handlers={ports} item={item} scale={scale} />
+      {/* A layer inside a designed frame is part of the frame: it can't be
+          picked on its own, so it can't be wired on its own either. Its dots
+          sat over the frame's, and a wire dragged from one carried that one
+          picture instead of the whole design. */}
+      {shownPorts ? (
+        <PortHandles handlers={shownPorts} item={item} scale={scale} />
       ) : null}
 
       {/* Revealed on hover, and kept visible while selected so it does not
