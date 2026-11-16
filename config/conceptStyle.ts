@@ -3,6 +3,7 @@ import {
   CELL_STYLE_KIND,
   type ConceptCellLook,
   type ConceptTableBorders,
+  type ConceptTableColumn,
   type ConceptTableHeader,
   tableOf,
 } from "./conceptTable.js";
@@ -199,21 +200,42 @@ const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
   shadow: look.shadow,
 });
 
+/** A column's `styleId` when it was set to its own colour on purpose. */
+export const CUSTOM_CELL_STYLE = "custom";
+
 /**
- * A table's columns that follow kit styles, each given its style's current
+ * The kit style a tag, chip or button column draws with: the one it picked,
+ * or — when it picked none — the kit's first style of that kind. A table
+ * made by hand, by a starter or by an agent then wears the brand's badges
+ * without anyone linking each column. Only an explicit "Custom" opts out.
+ */
+export const columnStyleOf = (
+  column: ConceptTableColumn,
+  styles: ConceptStyle[]
+): ConceptStyle | undefined => {
+  const kind = CELL_STYLE_KIND[column.kind];
+  if (!kind || column.styleId === CUSTOM_CELL_STYLE) {
+    return undefined;
+  }
+  const ofKind = styles.filter((s) => s.kind === kind);
+  return column.styleId
+    ? ofKind.find((s) => s.id === column.styleId)
+    : ofKind[0];
+};
+
+/**
+ * A table's tag, chip and button columns, each given its kit style's current
  * look. A style that is gone leaves the column's last look in place.
  */
 export const applyColumnStyles = (
   element: ReviewConceptElement,
   styles: ConceptStyle[]
 ): ReviewConceptElement => {
-  if (!element.table?.columns.some((column) => column.styleId)) {
+  if (!element.table || styles.length === 0) {
     return element;
   }
   const columns = element.table.columns.map((column) => {
-    const style = styles.find(
-      (s) => s.id === column.styleId && s.kind === CELL_STYLE_KIND[column.kind]
-    );
+    const style = columnStyleOf(column, styles);
     return style ? { ...column, look: cellLookOf(style.look) } : column;
   });
   return { ...element, table: { ...element.table, columns } };

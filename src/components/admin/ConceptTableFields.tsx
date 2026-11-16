@@ -6,6 +6,10 @@ import {
   conceptIconName,
 } from "../../../config/conceptIcon.js";
 import {
+  CUSTOM_CELL_STYLE,
+  columnStyleOf,
+} from "../../../config/conceptStyle.js";
+import {
   addColumn,
   addRow,
   type ButtonStyle,
@@ -171,8 +175,6 @@ function CellInput({
   );
 }
 
-const CUSTOM = "custom";
-
 /**
  * A tinted column's look: a kit Badge or Button style its cells follow
  * (tags and chips take badges, buttons take buttons), or, while it follows
@@ -195,7 +197,8 @@ function ColumnLook({
   const styles = (brandDoc?.componentStyles ?? []).filter(
     (style) => style.kind === kind
   );
-  const linked = styles.find((style) => style.id === column.styleId);
+  // A column that picked nothing follows the kit's first style of its kind.
+  const linked = columnStyleOf(column, styles);
   return (
     <div className="review-concepts__table-tint">
       {styles.length > 0 ? (
@@ -204,19 +207,19 @@ function ColumnLook({
             label={`Column ${index + 1} kit style`}
             onChange={(id) =>
               onChange(
-                id === CUSTOM
-                  ? { look: undefined, styleId: undefined }
+                id === CUSTOM_CELL_STYLE
+                  ? { look: undefined, styleId: CUSTOM_CELL_STYLE }
                   : { styleId: id }
               )
             }
             options={[
-              { label: "Custom", value: CUSTOM },
+              { label: "Custom", value: CUSTOM_CELL_STYLE },
               ...styles.map((style) => ({
                 label: style.name,
                 value: style.id,
               })),
             ]}
-            value={linked?.id ?? CUSTOM}
+            value={linked?.id ?? CUSTOM_CELL_STYLE}
           />
         </ConceptField>
       ) : null}

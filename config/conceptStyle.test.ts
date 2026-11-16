@@ -4,6 +4,7 @@ import {
   applyConceptStyle,
   applyReviewStyles,
   type ConceptStyle,
+  CUSTOM_CELL_STYLE,
   cleanConceptStyles,
   linkStyle,
   styleElement,
@@ -295,7 +296,7 @@ describe("table cells that follow kit styles", () => {
     look: { background: "#ecfdf3", color: "#027a48", radius: 999 },
     name: "Success",
   };
-  const table = (styleId: string, kind = "tag") =>
+  const table = (styleId: string | undefined, kind = "tag") =>
     cleanConcept({
       elements: [
         {
@@ -325,5 +326,17 @@ describe("table cells that follow kit styles", () => {
     expect(styleElement(drawn, []).table?.columns[0]?.look?.background).toBe(
       "#ecfdf3"
     );
+  });
+
+  it("gives a tag column that picked no style the kit's first badge", () => {
+    expect(
+      styleElement(table(undefined), [pill]).table?.columns[0]?.look
+    ).toMatchObject({ background: "#ecfdf3", radius: 999 });
+  });
+
+  it("leaves a column set to Custom in its own colour", () => {
+    expect(
+      styleElement(table(CUSTOM_CELL_STYLE), [pill]).table?.columns[0]?.look
+    ).toBeUndefined();
   });
 });
