@@ -144,12 +144,18 @@ export const cleanToast = (
     : {}),
 });
 
+const TITLE_WEIGHTS = [400, 500, 600, 700] as const;
+
 export const cleanCard = (
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "bodySize"> =>
-  typeof raw.bodySize === "number"
+): Pick<ReviewConceptElement, "bodySize" | "titleWeight"> => ({
+  ...(typeof raw.bodySize === "number"
     ? { bodySize: bounded(raw.bodySize, 10, 72, 14) }
-    : {};
+    : {}),
+  ...(TITLE_WEIGHTS.includes(raw.titleWeight as 400)
+    ? { titleWeight: raw.titleWeight }
+    : {}),
+});
 
 /** A progress bar's limits: its value in percent and its bar's height in px. */
 export const PROGRESS_LIMITS = {

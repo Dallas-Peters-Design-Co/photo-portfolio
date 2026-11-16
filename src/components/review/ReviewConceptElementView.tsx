@@ -85,7 +85,11 @@ function CardPreview({
           svg={element.iconSvg}
         />
       ) : null}
-      {title ? <strong>{card.title}</strong> : null}
+      {title ? (
+        <strong style={{ fontWeight: element.titleWeight }}>
+          {card.title}
+        </strong>
+      ) : null}
       {body ? (
         // Cards saved before bodySize existed keep one size for both.
         <p style={{ fontSize: element.bodySize ?? element.fontSize }}>

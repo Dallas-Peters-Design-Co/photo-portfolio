@@ -65,7 +65,12 @@ export interface ConceptTableColumn {
   look?: ConceptCellLook;
   /** The kit component style the cells follow: a badge or button style. */
   styleId?: string;
+  /** The column's width in px; without one it sizes to its content. */
+  width?: number;
 }
+
+/** A column's width in px. */
+export const COLUMN_WIDTH = { max: 640, min: 40 } as const;
 
 /** Which kind of kit style a column's cells can follow. */
 export const CELL_STYLE_KIND: Partial<
@@ -205,6 +210,17 @@ const cleanColumn = (value: unknown): ConceptTableColumn => {
     label: text(raw.label, MAX_LABEL),
     ...(look ? { look } : {}),
     ...(linked ? { styleId: raw.styleId } : {}),
+    // 0 or nothing is "fit the content"; anything else is held in range.
+    ...(typeof raw.width === "number" &&
+    Number.isFinite(raw.width) &&
+    raw.width > 0
+      ? {
+          width: Math.min(
+            COLUMN_WIDTH.max,
+            Math.max(COLUMN_WIDTH.min, Math.round(raw.width))
+          ),
+        }
+      : {}),
   };
 };
 

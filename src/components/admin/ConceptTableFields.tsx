@@ -10,6 +10,7 @@ import {
   addRow,
   type ButtonStyle,
   CELL_STYLE_KIND,
+  COLUMN_WIDTH,
   type ConceptCellKind,
   type ConceptTable,
   type ConceptTableColumn,
@@ -315,6 +316,19 @@ export function ConceptTableFields({
                         value={column.kind}
                       />
                     </ConceptField>
+                    {/* 0 is Auto: the column fits what is in it. */}
+                    <NumberField
+                      label="Width"
+                      max={COLUMN_WIDTH.max}
+                      onChange={(width) =>
+                        set(
+                          updateColumn(table, index, {
+                            width: width > 0 ? width : undefined,
+                          })
+                        )
+                      }
+                      value={column.width ?? 0}
+                    />
                     {TINTED.has(column.kind) ? (
                       <ColumnLook
                         brandDoc={brandDoc}

@@ -178,7 +178,8 @@
   white-space: nowrap;
 }
 
-/* The table editor spans its row: columns as name / cells / colour / remove,
+/* The table editor spans its row: columns as name / cells / width / colour /
+   remove,
    then the rows as a grid with one column per table column. */
 .review-concepts__table-editor {
   display: grid;
@@ -190,7 +191,7 @@
 .review-concepts__table-column {
   display: grid;
   grid-template-columns:
-    auto minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1.4fr)
+    auto minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 0.6fr) minmax(0, 1.4fr)
     calc(var(--spacing) * 8);
   gap: calc(var(--spacing) * 2);
   align-items: end;

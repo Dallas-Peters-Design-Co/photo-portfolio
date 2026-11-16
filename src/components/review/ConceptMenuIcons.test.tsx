@@ -207,3 +207,48 @@ it("slides the tab indicator to the tab clicked", async () => {
   );
   expect(indicator()?.style.width).toBe(`${tab("Settings").offsetWidth}px`);
 });
+
+it("draws a card's title in its own weight, bolder than the body without one", () => {
+  const card: ReviewConceptElement = {
+    ...createConceptElement("card"),
+    fontWeight: 400,
+    text: "LMX-318\nLab based project test",
+  };
+  act(() => root.render(<ReviewConceptElementView element={card} />));
+  const title = () => host.querySelector("strong") as HTMLElement;
+  expect(Number(getComputedStyle(title()).fontWeight)).toBe(700);
+  act(() =>
+    root.render(
+      <ReviewConceptElementView element={{ ...card, titleWeight: 500 }} />
+    )
+  );
+  expect(Number(getComputedStyle(title()).fontWeight)).toBe(500);
+});
+
+it("keeps a column's width in range and a card's title weight", () => {
+  const concept = cleanConcept({
+    elements: [
+      {
+        kind: "table",
+        table: {
+          columns: [
+            { kind: "text", label: "A", width: 10 },
+            { kind: "text", label: "B", width: 9999 },
+            { kind: "text", label: "C", width: 0 },
+          ],
+          rows: [],
+        },
+      },
+      { kind: "card", text: "Title", titleWeight: 500 },
+      { kind: "card", text: "Title", titleWeight: 650 },
+    ],
+  });
+  const [table, card, odd] = concept.elements;
+  expect(table?.table?.columns.map((column) => column.width)).toEqual([
+    40,
+    640,
+    undefined,
+  ]);
+  expect(card?.titleWeight).toBe(500);
+  expect(odd?.titleWeight).toBeUndefined();
+});

@@ -1,3 +1,15 @@
+/* The table's box: its fill, border, corners and shadow. A table wider than
+   its space (set column widths, long headers) scrolls sideways in here
+   rather than being cut off at the edge. */
+.concept-table-scroll {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
 /* A concept table, in the editor's preview and on the review page alike.
    Colours come from the element (currentColor) and, for tags and chips, from
    the column's tint. */

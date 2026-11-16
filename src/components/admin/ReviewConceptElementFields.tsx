@@ -22,6 +22,7 @@ import { ConceptFontField } from "./ConceptFontField";
 import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields } from "./ConceptSlotFields";
 import { ConceptTableFields } from "./ConceptTableFields";
+import { CardTypeFields, WEIGHTS } from "./ConceptTypeFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import {
   CheckboxGroup,
@@ -49,12 +50,6 @@ const SIZE_LABELS: Partial<Record<ReviewConceptElement["kind"], string>> = {
   card: "Title size",
   icon: "Icon size",
 };
-const WEIGHTS = optionsOf([
-  ["400", "Regular"],
-  ["500", "Medium"],
-  ["600", "Semibold"],
-  ["700", "Bold"],
-]);
 
 const CUSTOM = "custom";
 
@@ -391,14 +386,11 @@ export function ReviewConceptElementFields({
               value={element.fontSize}
             />
             {element.kind === "card" ? (
-              <NumberField
-                label="Body size"
-                max={72}
-                onChange={(bodySize) => onChange({ bodySize })}
-                value={element.bodySize ?? element.fontSize}
-              />
+              <CardTypeFields element={element} onChange={onChange} />
             ) : null}
-            <ConceptField label="Weight">
+            <ConceptField
+              label={element.kind === "card" ? "Body weight" : "Weight"}
+            >
               <ConceptSelect
                 label="Weight"
                 onChange={(weight) =>

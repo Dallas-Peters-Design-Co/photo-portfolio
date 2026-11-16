@@ -191,3 +191,30 @@ it("draws a linked column's tags with its kit style's look", () => {
   expect(tag.color).toBe("rgb(2, 122, 72)");
   expect(tag.borderTopLeftRadius).toBe("4px");
 });
+
+it("scrolls a table wider than its space, columns at their set widths", () => {
+  host.style.width = "320px";
+  const table = createConceptElement("table");
+  const base = table.table;
+  if (!base) {
+    throw new Error("A new table has a sample");
+  }
+  const wide = {
+    ...base,
+    columns: base.columns.map((column) => ({ ...column, width: 200 })),
+  };
+  act(() =>
+    root.render(
+      <ReviewConceptElementView element={{ ...table, table: wide }} />
+    )
+  );
+  const box = host.querySelector<HTMLElement>(".concept-table-scroll");
+  const heads = [...host.querySelectorAll<HTMLElement>("th")];
+  // Each column at its width; together wider than the box, which scrolls.
+  for (const head of heads) {
+    expect(Math.round(head.getBoundingClientRect().width)).toBe(200);
+  }
+  expect(box?.getBoundingClientRect().width).toBeLessThanOrEqual(320);
+  expect(box?.scrollWidth).toBeGreaterThan(box?.clientWidth ?? 0);
+  expect(getComputedStyle(box as HTMLElement).overflowX).toBe("auto");
+});

@@ -170,6 +170,8 @@ export interface ReviewConceptElement {
   /** Tables only: typed columns and rows (see conceptTable.ts). */
   table?: ConceptTable;
   text: string;
+  /** Cards only: the title's weight; without it, bolder than the body. */
+  titleWeight?: 400 | 500 | 600 | 700;
   /** Toasts: the action's label ("Undo"); none when empty. */
   toastAction?: string;
   /** Toasts: whether the close button shows. Default true. */
@@ -197,6 +199,7 @@ export const ELEMENT_STYLE_KEYS = [
   "borderWidth",
   "shadow",
   "bodySize",
+  "titleWeight",
   "iconColor",
   "iconSize",
   // A style may set an icon too ("Input / Search"); it is kept or overridden

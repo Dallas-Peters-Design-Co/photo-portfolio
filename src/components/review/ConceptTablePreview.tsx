@@ -177,35 +177,51 @@ export function ConceptTablePreview({
     // lines in from the outline.
     padding: 0,
   } as CSSProperties;
+  // The box (fill, border, corners, shadow) is the scroller's, so a table
+  // wider than its space scrolls sideways inside it instead of being cut off.
   return (
-    <table
-      className="concept-table"
-      data-lines={borders.lines}
-      data-outline={borders.outline || undefined}
-      style={lineStyle}
-    >
-      <thead style={headerStyle}>
-        <tr>
-          {columns.map((column, index) => (
-            // Labels can repeat, so position is the identity of a column.
-            // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
-            <th key={index}>{column.label}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, rowIndex) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
-          <tr key={rowIndex}>
+    <div className="concept-table-scroll" style={lineStyle}>
+      <table
+        className="concept-table"
+        data-lines={borders.lines}
+        data-outline={borders.outline || undefined}
+      >
+        <thead style={headerStyle}>
+          <tr>
             {columns.map((column, index) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: as above
-              <td key={index}>
-                <Cell column={column} icons={icons} value={row[index] ?? ""} />
-              </td>
+              // Labels can repeat, so position is the identity of a column.
+              <th
+                // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
+                key={index}
+                style={
+                  column.width
+                    ? { minWidth: column.width, width: column.width }
+                    : undefined
+                }
+              >
+                {column.label}
+              </th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((row, rowIndex) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
+            <tr key={rowIndex}>
+              {columns.map((column, index) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: as above
+                <td key={index}>
+                  <Cell
+                    column={column}
+                    icons={icons}
+                    value={row[index] ?? ""}
+                  />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
