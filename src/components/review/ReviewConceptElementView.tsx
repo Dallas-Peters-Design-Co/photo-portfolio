@@ -22,6 +22,7 @@ import {
 } from "../ui/select";
 import { ConceptHover } from "./ConceptHover";
 import { ConceptIcon, ConceptIconText } from "./ConceptIcon";
+import { conceptMenuProps } from "./conceptMenuStyle";
 import "./ConceptElements.css";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
 import { ConceptSlotsView } from "./ConceptSlotsView";
@@ -185,7 +186,7 @@ function SelectPreview({
       >
         <SelectValue />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent {...conceptMenuProps(element)}>
         {options.map((option) => (
           <SelectItem key={option} value={option}>
             {option}
@@ -223,7 +224,7 @@ function MenuPreview({
         {text}
         <ChevronDown aria-hidden size={element.fontSize} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent {...conceptMenuProps(element)}>
         {(element.options ?? [text]).map((option) => (
           <DropdownMenuItem key={option}>{option}</DropdownMenuItem>
         ))}

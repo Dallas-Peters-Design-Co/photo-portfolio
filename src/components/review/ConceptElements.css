@@ -122,3 +122,32 @@
   align-self: stretch;
   width: auto;
 }
+
+/*
+ * A select's or dropdown menu's open list, in the element's look (see
+ * conceptMenuStyle.ts): its own fill, text, edge and corners, and the row
+ * under the pointer. Beats the admin's dark popover, which it opens beside.
+ */
+[data-concept-menu] {
+  padding: calc(var(--spacing) * 1);
+  color: var(--menu-ink);
+  background: var(--menu-bg);
+  border: 1px solid var(--menu-line);
+  border-radius: var(--menu-radius);
+  box-shadow: 0 8px 24px -8px color-mix(in srgb, #000 25%, transparent);
+
+  & [data-slot$="-item"] {
+    font: inherit;
+    color: inherit;
+    border-radius: calc(var(--menu-radius) * 0.6);
+  }
+
+  & [data-slot$="-item"][data-highlighted] {
+    color: var(--menu-hl-ink);
+    background: var(--menu-hl);
+  }
+
+  & [data-slot$="-item"][data-highlighted] * {
+    color: inherit;
+  }
+}

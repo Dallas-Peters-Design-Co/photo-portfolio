@@ -8,6 +8,11 @@ import {
   cleanProgress,
   cleanToast,
 } from "./conceptKinds.js";
+import {
+  type ConceptMenuLook,
+  cleanMenuLook,
+  takesMenu,
+} from "./conceptMenu.js";
 import type { ConceptShadow } from "./conceptShadow.js";
 import { type ConceptSlots, cleanSlots, hasSlots } from "./conceptSlots.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
@@ -136,6 +141,8 @@ export interface ReviewConceptElement {
   inputType?: "text" | "email" | "search" | "url" | "tel" | "password";
   kind: ReviewConceptElementKind;
   lineHeight: number;
+  /** Selects and dropdown menus: how the open list looks (conceptMenu.ts). */
+  menuLook?: ConceptMenuLook;
   options?: string[];
   /**
    * The settings this element has set itself while following a kit style;
@@ -201,6 +208,7 @@ export const ELEMENT_STYLE_KEYS = [
   "barHeight",
   "dividers",
   "tabLook",
+  "menuLook",
   "hover",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
@@ -335,6 +343,7 @@ export const cleanElement = (
   const kind = cleanKind(raw.kind);
   const table = kind === "table" ? cleanTable(raw.table) : undefined;
   const tabLook = kind === "tabs" ? cleanTabLook(raw.tabLook) : undefined;
+  const menuLook = takesMenu(kind) ? cleanMenuLook(raw.menuLook) : undefined;
   const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
     background: cleanColor(raw.background, "transparent"),
@@ -356,6 +365,7 @@ export const cleanElement = (
     ...(kind === "progress" ? cleanProgress(raw) : {}),
     ...cleanSlotted(kind, raw, depth),
     ...(tabLook ? { tabLook } : {}),
+    ...(menuLook ? { menuLook } : {}),
     ...(hover ? { hover } : {}),
     ...(table ? { table } : {}),
     ...cleanLink(raw),

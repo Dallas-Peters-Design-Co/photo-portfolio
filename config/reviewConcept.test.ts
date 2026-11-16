@@ -148,17 +148,18 @@ describe("saved icon drawings", () => {
       elements: [
         { iconName: "Rocket01Icon", iconSvg: rocket, kind: "icon" },
         { iconSvg: rocket, kind: "card" },
-        { iconName: "Rocket01Icon", iconSvg: rocket, kind: "button" },
+        { iconName: "Rocket01Icon", iconSvg: rocket, kind: "text" },
       ],
     }).elements;
     expect(icon?.iconSvg).toEqual(rocket);
     expect(card?.iconSvg).toBeUndefined();
+    // Text has no icon slot, so no drawing either.
     expect(button?.iconSvg).toBeUndefined();
   });
 });
 
 describe("icons on inputs", () => {
-  it("lets an input carry an icon with its size and color, and not a button", () => {
+  it("lets an input carry an icon with its size and color, and not plain text", () => {
     const [input, button] = cleanConcept({
       elements: [
         {
@@ -167,7 +168,7 @@ describe("icons on inputs", () => {
           iconSize: 18,
           kind: "input",
         },
-        { iconColor: "#667085", iconName: "Search01Icon", kind: "button" },
+        { iconColor: "#667085", iconName: "Search01Icon", kind: "text" },
       ],
     }).elements;
     expect(input).toMatchObject({

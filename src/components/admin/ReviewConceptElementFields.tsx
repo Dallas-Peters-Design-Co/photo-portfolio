@@ -3,6 +3,7 @@ import { type ReactNode, useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { takesHover } from "../../../config/conceptHover.js";
 import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
+import { takesMenu } from "../../../config/conceptMenu.js";
 import { hasSlots, MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
@@ -17,6 +18,7 @@ import {
   optionsOf,
 } from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
+import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields } from "./ConceptSlotFields";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
@@ -219,6 +221,9 @@ function KindGroups({
           lookOnly={lookOnly}
           onChange={onChange}
         />
+      ) : null}
+      {takesMenu(element.kind) ? (
+        <MenuGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
       {element.kind === "tabs" ? (
         <TabsGroup brandDoc={brandDoc} element={element} onChange={onChange} />
