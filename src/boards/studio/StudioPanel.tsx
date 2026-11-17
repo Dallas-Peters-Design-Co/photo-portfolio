@@ -140,6 +140,7 @@ export function StudioPanel({
       return (
         <PaletteTool
           onAdd={onAdd}
+          onAddComposition={onAddComposition}
           onAddMany={onAddMany}
           selectedImage={selectedImage}
         />

@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { ColorWell } from "../../ColorWell";
 import { isTyping } from "../../hooks/isTyping";
+import type { StudioComposition } from "../composition";
 import { ImagePick } from "../ImagePick";
 import {
   generatePalette,
@@ -27,6 +28,7 @@ import {
   inkOn,
   paletteFromUrl,
 } from "./harmony";
+import { paletteComposition } from "./paletteComposition";
 import { colorSwatchSvg } from "./swatches";
 import { useKitPalette } from "./useKitPalette";
 
@@ -53,11 +55,14 @@ const PALETTE_ROLES = [
 export function PaletteTool({
   onAddMany,
   onAdd,
+  onAddComposition,
   rand = Math.random,
   selectedImage,
 }: {
   onAddMany?: (files: File[]) => void;
   onAdd: (file: File) => void;
+  /** Places the palette as vector swatches in a frame (paletteComposition). */
+  onAddComposition?: (composition: StudioComposition) => void;
   /** Injectable for tests. */
   rand?: () => number;
   /** The picture selected on the board, offered first. */
@@ -153,6 +158,13 @@ export function PaletteTool({
   };
 
   const add = () => {
+    if (onAddComposition) {
+      onAddComposition(paletteComposition(colors, roles));
+      toast.success(
+        `${colors.length} colour swatch${colors.length === 1 ? "" : "es"} added to the board`
+      );
+      return;
+    }
     const files = colors.map(
       (color, index) =>
         new File(
