@@ -64,10 +64,16 @@ export const useKitPalette = () => {
       "palette"
     );
 
+  /**
+   * Saves a palette into any kit, not only the board's: how one brand's
+   * colours are carried to another. `names`, when given (the colours were
+   * loaded from a kit), go with them; else the target's own names are kept.
+   */
   const saveTo = (
     kitId: string,
     values: string[],
-    roles: string[]
+    roles: string[],
+    names?: string[]
   ): Promise<boolean> => {
     const target = kits.find((candidate) => candidate.id === kitId);
     if (!target) {
@@ -84,8 +90,8 @@ export const useKitPalette = () => {
             targetEntries[i] ??
             null;
           return {
-            name: was?.name ?? "",
-            role: roles[i] ?? was?.role ?? "",
+            name: names?.[i] || was?.name || "",
+            role: roles[i] || was?.role || "",
             value,
           };
         }),

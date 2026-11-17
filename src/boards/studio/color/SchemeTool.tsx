@@ -11,6 +11,13 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatOklch, hexToOklch } from "../../../lib/oklch";
 import { ColorWell } from "../../ColorWell";
 import { saveBlob, svgToPngBlob } from "../render";
@@ -50,6 +57,46 @@ export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
   return <SchemeBuilder key={key} onAdd={onAdd} storageKey={key} />;
 }
 
+/** Which kit Save writes to and Load reads from. */
+function KitPicker({
+  kits,
+  onChange,
+  value,
+}: {
+  kits: { id: string; name: string }[];
+  onChange: (id: string) => void;
+  value: string | undefined;
+}) {
+  return (
+    <div className="studio__field">
+      <span>Brand kit</span>
+      <Select
+        onValueChange={(next) => {
+          if (next) {
+            onChange(next);
+          }
+        }}
+        value={value ?? ""}
+      >
+        <SelectTrigger
+          aria-label="Brand kit to save to or load from"
+          size="sm"
+          tone="board"
+        >
+          <SelectValue placeholder="Choose a brand kit" />
+        </SelectTrigger>
+        <SelectContent>
+          {kits.map((candidate) => (
+            <SelectItem key={candidate.id} value={candidate.id}>
+              {candidate.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 function SchemeBuilder({
   onAdd,
   storageKey,
@@ -57,8 +104,14 @@ function SchemeBuilder({
   onAdd: (file: File) => void;
   storageKey: string;
 }) {
-  const { entries, kit, save, saving } = useKitPalette();
+  const { entries, kit, kits, save, saveTo, saving } = useKitPalette();
   const scheme = useScheme(entries[0]?.value, storageKey);
+  // Where Save writes and Load reads: the board's brand to start with, any
+  // kit after. Changing it keeps the colours, so one brand's palette can be
+  // loaded, the kit switched, and saved into another.
+  const [targetId, setTargetId] = useState(kit?.id ?? "");
+  const target =
+    kits.find((candidate) => candidate.id === targetId) ?? kit ?? null;
   const { anchorAt, colors, locked, selected, settings } = scheme;
   const [vision, setVision] = useState<Vision>("none");
 
@@ -194,25 +247,40 @@ function SchemeBuilder({
         />
       </div>
       <div className="studio__actions">
-        {kit ? (
+        {kits.length > 1 ? (
+          <KitPicker kits={kits} onChange={setTargetId} value={target?.id} />
+        ) : null}
+        {target ? (
           <button
             className="studio__button studio__button--primary"
             disabled={saving}
-            onClick={() => void save(colors, scheme.base)}
-            title="Saves a new version of the kit; the old palette stays in its history"
+            onClick={() =>
+              void (target.id === kit?.id
+                ? save(colors, scheme.base)
+                : saveTo(
+                    target.id,
+                    colors,
+                    colors.map((_, i) => scheme.base?.[i]?.role ?? ""),
+                    colors.map((_, i) => scheme.base?.[i]?.name ?? "")
+                  ))
+            }
+            title="Saves a new version of that kit; its old palette stays in its history"
             type="button"
           >
-            <Save size={14} /> Save to {kit.name}
+            <Save size={14} /> Save to {target.name}
           </button>
         ) : null}
-        {entries.length > 0 ? (
+        {target && target.resolvedDoc.palette.length > 0 ? (
           <button
             className="studio__button"
-            onClick={() => scheme.loadBrand(entries)}
-            title="Loads the brand's own colours to edit; Save puts them back with their names"
+            onClick={() => scheme.loadBrand(target.resolvedDoc.palette)}
+            title="Loads that kit's colours, with their names, to edit or save into another kit"
             type="button"
           >
-            <FolderOpen size={14} /> Load brand colours
+            <FolderOpen size={14} />{" "}
+            {target.id === kit?.id
+              ? "Load brand colours"
+              : `Load ${target.name} colours`}
           </button>
         ) : null}
         <button
