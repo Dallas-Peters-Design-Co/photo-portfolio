@@ -170,12 +170,22 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
 
   useConceptFonts(concept);
 
-  // The frame is a picture of an interface; its own trigger is the way on,
-  // with Back and Next above for the keyboard (conceptSequence.tsx).
+  // The frame plays like the interface it pictures: any control in it moves
+  // on, the last step's start it again (conceptSequence.tsx). Back and Next
+  // above are for the keyboard.
   const canvasRef = useRef<HTMLFieldSetElement>(null);
   const seen = useSeen(canvasRef);
   const trigger = last ? undefined : step?.trigger;
-  useSequencePlayer(canvasRef, step, sequence && !last, () => setAt(index + 1));
+  useSequencePlayer(
+    canvasRef,
+    step,
+    sequence && !last,
+    () => setAt(index + 1),
+    {
+      anyControl: sequence,
+      onRestart: () => setAt(0),
+    }
+  );
 
   return (
     <div className="review-page__concept">

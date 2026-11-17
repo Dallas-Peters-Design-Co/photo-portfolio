@@ -90,6 +90,44 @@ it("plays a sequence when the viewer clicks each step's trigger in the mock-up",
   expect(host.textContent).toContain("Step 1 of 3");
 });
 
+it("moves on from any control in the mock-up, and starts over from the last step's", async () => {
+  const concept = cleanConcept({
+    elements: [
+      el("button", { id: "go", text: "Go" }),
+      el("button", { id: "other", text: "Other" }),
+    ],
+    steps: [
+      {
+        caption: "Done",
+        elements: [el("button", { id: "save", text: "Save" })],
+        id: "s2",
+      },
+    ],
+    stepTrigger: "go",
+    title: "Any control",
+  });
+  const host = document.createElement("div");
+  host.style.width = "640px";
+  document.body.append(host);
+  act(() =>
+    createRoot(host).render(<ReviewConceptPreview concept={concept} />)
+  );
+  const press = (text: string) =>
+    userEvent.click(
+      [...host.querySelectorAll(".concept-canvas button")].find(
+        (b) => b.textContent === text
+      ) as HTMLElement
+    );
+
+  expect(host.textContent).toContain("Step 1 of 2");
+  // Not the step's trigger, and it still moves on.
+  await press("Other");
+  expect(host.textContent).toContain("Step 2 of 2");
+  // The last step's Save starts it again; no Next or Start over needed.
+  await press("Save");
+  expect(host.textContent).toContain("Step 1 of 2");
+});
+
 it("drops a trigger that names an element the step doesn't have", () => {
   const concept = cleanConcept({
     elements: [el("button", { id: "a" })],
