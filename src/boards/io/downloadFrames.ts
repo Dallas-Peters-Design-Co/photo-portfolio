@@ -72,7 +72,9 @@ export const svgOfPng = (
 export const frameFiles = async (
   items: BoardItem[],
   onProgress: (done: number, total: number) => void,
-  frames: BoardItem[] = downloadableFrames(items)
+  frames: BoardItem[] = downloadableFrames(items),
+  /** How many times the frame's size: 1, 2 (the default) or 3. */
+  density = 2
 ): Promise<{ failed: string[]; files: ZipFile[] }> => {
   const names = frameFileNames(frames);
   const encoder = new TextEncoder();
@@ -83,7 +85,7 @@ export const frameFiles = async (
     onProgress(i, frames.length);
     try {
       // biome-ignore lint/performance/noAwaitInLoops: one full canvas at a time
-      const png = await bytesOf(await renderFrameAt(frame, items));
+      const png = await bytesOf(await renderFrameAt(frame, items, density));
       files.push(
         { bytes: png, name: `png/${name}.png` },
         {

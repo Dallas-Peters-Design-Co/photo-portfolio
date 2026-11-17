@@ -1,5 +1,4 @@
 import "./BoardViewPage.css";
-import { Download } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,6 +22,7 @@ import { type BoardComment, commentsApi } from "../services/comments";
 import { boardsApi } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import type { Board, BoardItem } from "../types";
+import { DownloadFramesMenu } from "./DownloadFramesMenu";
 
 const NOT_SLUG = /[^a-z0-9]+/g;
 
@@ -42,24 +42,26 @@ const downloadFrame = async (frame: BoardItem, items: BoardItem[]) => {
   }
 };
 
-/** Every designed frame as PNG and SVG, in one zip. */
-const downloadAllFrames = async (board: Board) => {
+/** Every designed frame as PNG and SVG, in one zip, at `density` × size. */
+const downloadAllFrames = async (board: Board, density: number) => {
   const items = board.items ?? [];
   const id = toast.loading("Preparing the frames…");
   try {
-    const { failed, files } = await frameFiles(items, (done, total) =>
-      toast.loading(
-        `Preparing frame ${Math.min(done + 1, total)} of ${total}…`,
-        {
-          id,
-        }
-      )
+    const { failed, files } = await frameFiles(
+      items,
+      (done, total) =>
+        toast.loading(
+          `Preparing frame ${Math.min(done + 1, total)} of ${total}…`,
+          { id }
+        ),
+      downloadableFrames(items),
+      density
     );
     if (files.length === 0) {
       toast.error("Couldn't draw the frames. Try again in a moment.", { id });
       return;
     }
-    downloadNamed(zip(files), `${slugOrTitle(board)}-frames.zip`);
+    downloadNamed(zip(files), `${slugOrTitle(board)}-frames@${density}x.zip`);
     toast.success(
       failed.length > 0
         ? `Downloaded. Couldn't draw: ${failed.join(", ")}.`
@@ -105,15 +107,10 @@ function PublishedActions({
   return (
     <div className="row">
       {frameCount > 0 ? (
-        <button
-          className="board-view-page__action board-view-page__action--primary"
-          onClick={() => void downloadAllFrames(board)}
-          title="Every designed frame, as PNG and SVG, in one zip"
-          type="button"
-        >
-          <Download aria-hidden size={12} />
-          Download frames ({frameCount})
-        </button>
+        <DownloadFramesMenu
+          count={frameCount}
+          onPick={(density) => void downloadAllFrames(board, density)}
+        />
       ) : null}
       <button
         className={

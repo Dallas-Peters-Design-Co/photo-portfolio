@@ -137,3 +137,45 @@
   text-transform: uppercase;
   letter-spacing: 0.2em;
 }
+
+/* The Download frames menu: three sizes, under the button. */
+.board-view-page__download {
+  position: relative;
+}
+
+.board-view-page__sizes {
+  position: absolute;
+  top: calc(100% + var(--spacing) * 1.5);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 16rem;
+  padding: var(--spacing);
+  background-color: var(--board-surface);
+  border: 1px solid color-mix(in oklch, var(--board-ink) 20%, transparent);
+  border-radius: var(--radius-inner);
+}
+
+.board-view-page__size {
+  display: grid;
+  gap: 2px;
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2.5);
+  color: var(--board-ink);
+  text-align: left;
+  border-radius: var(--radius-inner);
+}
+
+.board-view-page__size:hover,
+.board-view-page__size:focus-visible {
+  background-color: color-mix(in oklch, var(--board-ink) 10%, transparent);
+}
+
+.board-view-page__size strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.board-view-page__size small {
+  font-size: 11px;
+  color: color-mix(in oklch, var(--board-ink) 60%, transparent);
+}
