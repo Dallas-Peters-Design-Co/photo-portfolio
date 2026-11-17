@@ -267,7 +267,7 @@ it("keeps a card's header row on one line beside long text", () => {
   expect(arrow?.top).toBeLessThan(badge?.bottom ?? 0);
 });
 
-it("moves a header's badge under a card's text when the card is narrow", () => {
+it("keeps a header's badge beside a card's text when the card is narrow", () => {
   host.style.width = "300px";
   // As in the editor: a title, a body, and a long badge in the header.
   const card: ReviewConceptElement = {
@@ -294,11 +294,14 @@ it("moves a header's badge under a card's text when the card is narrow", () => {
   const badge = host
     .querySelector('[data-slot="header"] > .concept-slot__items')
     ?.getBoundingClientRect() as DOMRect;
-  // No overlap: the badge is below the text, and the title keeps its width.
-  expect(badge.top).toBeGreaterThanOrEqual(text.bottom - 1);
-  const title = document.createRange();
-  title.selectNodeContents(host.querySelector("strong") as Node);
-  expect(title.getClientRects().length).toBeLessThanOrEqual(2);
+  // One row: the badge stays at the end, beside the text, never over it;
+  // the text wraps in the width left to it.
+  expect(badge.left).toBeGreaterThanOrEqual(text.right - 1);
+  expect(badge.top).toBeLessThan(text.bottom);
+  const box = host.querySelector(".review-concepts__card-preview");
+  expect(badge.right).toBeLessThanOrEqual(
+    (box?.getBoundingClientRect().right ?? 0) + 1
+  );
 });
 
 it("keeps a scrolling row of cards on one line, each its set width", () => {
