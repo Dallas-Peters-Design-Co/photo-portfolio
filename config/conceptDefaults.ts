@@ -287,8 +287,13 @@ export const createConcept = (brandDoc?: BrandKitDoc | null): ReviewConcept => {
 export const styleSample = (
   style: ConceptStyle,
   brand: BrandKitDoc
-): ReviewConceptElement =>
-  linkStyle(
+): ReviewConceptElement => {
+  const linked = linkStyle(
     { ...createConceptElement(style.kind, brand), id: style.id },
     style
   );
+  // The kit's own starting items, as they were set, ids and all.
+  return style.look.contents
+    ? { ...linked, slots: style.look.contents }
+    : linked;
+};

@@ -1,4 +1,4 @@
-import { mapChildren } from "./conceptSlots.js";
+import { type ConceptSlots, hasSlots, mapChildren } from "./conceptSlots.js";
 import {
   CELL_STYLE_KIND,
   type ConceptCellLook,
@@ -7,6 +7,7 @@ import {
   type ConceptTableHeader,
   tableOf,
 } from "./conceptTable.js";
+import { newItemId } from "./proposal.js";
 import type { ReviewDoc } from "./review.js";
 import {
   CONCEPT_STYLE_KEYS,
@@ -38,6 +39,12 @@ type ElementStyleKey = (typeof ELEMENT_STYLE_KEYS)[number];
 export type ConceptStyleLook = Partial<
   Pick<ReviewConceptElement, ElementStyleKey>
 > & {
+  /**
+   * A panel's or card's starting items (header, body, footer, close), set in
+   * the kit. A new element made from the style starts with them; one that
+   * already follows the style keeps its own, since they are its content.
+   */
+  contents?: ConceptSlots;
   tableBorders?: ConceptTableBorders;
   tableHeader?: ConceptTableHeader;
 };
@@ -107,6 +114,7 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
     // survive cleaning (cleanIcon keeps them only beside an icon).
     iconName: look.iconName ?? "StarIcon",
     kind: raw.kind,
+    slots: look.contents,
     // A table's borders and header are checked by the table's own rules.
     table: {
       borders: look.tableBorders,
@@ -122,10 +130,14 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   const cleaned = lookOf(element);
   // The stand-in is not the style's icon.
   const { iconName: _name, iconSvg: _svg, ...iconless } = cleaned;
+  const contents =
+    look.contents && hasSlots(element.kind) && element.slots
+      ? { contents: element.slots }
+      : {};
   return {
     id: raw.id,
     kind: element.kind,
-    look: look.iconName ? cleaned : iconless,
+    look: { ...(look.iconName ? cleaned : iconless), ...contents },
     name: name || "Untitled",
   };
 };
@@ -324,6 +336,25 @@ export const withOverrides = (
     (key) => element.overrides?.includes(key) || changed.includes(key)
   );
   return { ...patch, overrides };
+};
+
+/** The element and everything in its slots and group, each with a new id. */
+const withNewIds = (element: ReviewConceptElement): ReviewConceptElement =>
+  mapChildren({ ...element, id: newItemId() }, withNewIds);
+
+/**
+ * A new element made from a style: its look, and the starting items the kit
+ * set for it, each with its own id so two panels never share one.
+ */
+export const fromStyle = (
+  element: ReviewConceptElement,
+  style: ConceptStyle
+): ReviewConceptElement => {
+  const linked = linkStyle(element, style);
+  const { contents } = style.look;
+  return contents && hasSlots(style.kind)
+    ? mapChildren({ ...linked, slots: contents }, withNewIds)
+    : linked;
 };
 
 /** Follows a style from now on: its look, and no settings of its own. */

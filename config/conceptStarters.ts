@@ -131,7 +131,7 @@ export const progressLook = (
 /**
  * A panel's close control for its hide slot: an icon-only button, so it has
  * every button setting (fill, border, corners, shadow, padding, icon colour
- * and size, hover) and can follow a kit button style. A soft round ✕ to start.
+ * and size, hover) and can follow a kit button style. A clear round ✕ to start.
  */
 export const closeButton = (
   make: (
@@ -140,11 +140,15 @@ export const closeButton = (
   ) => ReviewConceptElement,
   brandDoc?: BrandKitDoc | null
 ): ReviewConceptElement => {
-  const fill = paletteColor(brandDoc, ["surface", "muted"], "#f2f4f7");
-  const ink = readableColor(brandDoc, ["ink", "text"], fill, "#344054");
+  // Clear, in the kit's ink, on whatever the panel is: a kit's "surface"
+  // can be a brand colour (one was orange), and a close control filled with
+  // it shouted louder than the panel's own content. The kit sets its own in
+  // the panel style's close slot.
+  const ground = paletteColor(brandDoc, ["background", "paper"], "#ffffff");
+  const ink = readableColor(brandDoc, ["ink", "text"], ground, "#344054");
   return {
     ...make("button", brandDoc),
-    background: fill,
+    background: "transparent",
     borderColor: "transparent",
     borderWidth: 0,
     color: ink,

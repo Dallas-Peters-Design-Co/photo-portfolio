@@ -12,6 +12,7 @@ import {
   styleSample,
 } from "../../../config/conceptDefaults.js";
 import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
+import { hasSlots } from "../../../config/conceptSlots.js";
 import {
   applyColumnStyles,
   type ConceptStyle,
@@ -20,7 +21,10 @@ import {
 } from "../../../config/conceptStyle.js";
 import { withLinkedComponents } from "../../../config/kitComponentLink.js";
 import { newItemId } from "../../../config/proposal.js";
-import type { ReviewConceptElementKind } from "../../../config/reviewConcept.js";
+import type {
+  ReviewConceptElement,
+  ReviewConceptElementKind,
+} from "../../../config/reviewConcept.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { rememberedOpen, rememberOpen } from "../../hooks/useRememberedOpen";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
@@ -54,6 +58,21 @@ const copySource = async (
   } catch {
     toast.error("Couldn't copy. Allow clipboard access and try again.");
   }
+};
+
+/**
+ * A style's look after an edit to its sample. A panel or card keeps its items
+ * too, as the starting items of every new one (ConceptStyleLook.contents).
+ */
+const styleLook = (
+  sample: ReviewConceptElement,
+  patch: Partial<ReviewConceptElement>
+): ConceptStyle["look"] => {
+  const next = { ...sample, ...patch };
+  return {
+    ...lookOf(next),
+    ...(hasSlots(next.kind) && next.slots ? { contents: next.slots } : {}),
+  };
 };
 
 /** One style: a row (fold, type, name, remove) that opens to its sample and look. */
@@ -138,7 +157,7 @@ function StyleEditor({
             element={sample}
             lookOnly
             onChange={(patch) =>
-              onChange({ ...style, look: lookOf({ ...sample, ...patch }) })
+              onChange({ ...style, look: styleLook(sample, patch) })
             }
           />
         </div>

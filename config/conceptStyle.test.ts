@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { EMPTY_KIT, resolveKitDoc, sanitizeKitDoc } from "./brandKit.js";
+import { createConceptElement } from "./conceptDefaults.js";
 import {
   applyConceptStyle,
   applyReviewStyles,
   type ConceptStyle,
   CUSTOM_CELL_STYLE,
   cleanConceptStyles,
+  fromStyle,
   linkStyle,
   styleElement,
   withOverrides,
@@ -338,5 +340,35 @@ describe("table cells that follow kit styles", () => {
     expect(
       styleElement(table(CUSTOM_CELL_STYLE), [pill]).table?.columns[0]?.look
     ).toBeUndefined();
+  });
+});
+
+describe("a panel style's starting items", () => {
+  const panel = createConceptElement("panel");
+  const close = { ...createConceptElement("button"), text: "Done" };
+  const style: ConceptStyle = cleanConceptStyles([
+    {
+      id: "panelstyle1",
+      kind: "panel",
+      look: { contents: { hide: { elements: [close] } } },
+      name: "Primary",
+    },
+  ])[0] as ConceptStyle;
+
+  it("keeps them through cleaning", () => {
+    expect(style.look.contents?.hide?.elements[0]?.text).toBe("Done");
+  });
+
+  it("gives a new panel the kit's items, each with a new id", () => {
+    const made = fromStyle(panel, style);
+    const item = made.slots?.hide?.elements[0];
+    expect(item?.text).toBe("Done");
+    expect(item?.id).not.toBe(close.id);
+    expect(Object.keys(made.slots ?? {})).toEqual(["hide"]);
+  });
+
+  it("leaves a panel already following the style its own items", () => {
+    const own = linkStyle(panel, style);
+    expect(own.slots).toEqual(panel.slots);
   });
 });

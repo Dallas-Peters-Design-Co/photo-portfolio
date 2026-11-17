@@ -4,6 +4,7 @@ import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
   type ConceptStyle,
+  fromStyle,
   linkStyle,
   withOverrides,
 } from "../../../config/conceptStyle.js";
@@ -202,7 +203,7 @@ export function ConceptElementList({
       style
         ? [
             ...elements,
-            linkStyle(createConceptElement(style.kind, brandDoc), style),
+            fromStyle(createConceptElement(style.kind, brandDoc), style),
           ]
         : addConceptElement(
             elements,

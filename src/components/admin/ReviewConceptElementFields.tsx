@@ -526,7 +526,9 @@ export function ReviewConceptElementFields({
               />
             </ConceptGroup>
           ) : null}
-          {lookOnly ? null : (
+          {/* In the kit, a panel's or card's starting items are set here too
+              (ConceptStyleLook.contents). */}
+          {lookOnly && !hasSlots(element.kind) ? null : (
             <HolderFields
               brandDoc={brandDoc}
               depth={depth}
