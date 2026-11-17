@@ -1304,7 +1304,7 @@ export function TablePrimary({ className }: TablePrimaryProps) {
   box-shadow: var(--table-primary-shadow);
 }
 
-.table-primary { width: 100%; border-spacing: 0; border-collapse: separate; padding: 0; }
+.table-primary { width: 100%; border-spacing: 0; border-collapse: separate; padding: 0; contain: paint; }
 .table-primary th, .table-primary td { padding: 8px 12px; vertical-align: middle; text-align: start; }
 .table-primary th { font-size: 0.85em; font-weight: 600; color: var(--table-primary-head-color, color-mix(in srgb, currentColor 65%, transparent)); }
 .table-primary thead { background: var(--table-primary-head-background, transparent); }
@@ -1324,11 +1324,11 @@ export function TablePrimary({ className }: TablePrimaryProps) {
 .table-primary__bar > span { display: block; block-size: 100%; background: var(--table-primary-tint); border-radius: inherit; }
 .table-primary th, .table-primary td { border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
 .table-primary td:nth-child(2) { --table-primary-tint: #382500; }
-.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9ca8a; border: 1px solid #af7b07; border-radius: 48px; color: #382500; font-size: 14px; font-weight: 600; padding: 4px 12px; }
+.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9ca8a; border: 1px solid #af7b07; border-radius: 48px; color: #382500; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .table-primary td:nth-child(3) { --table-primary-tint: #382500; }
-.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9ca8a; border: 1px solid #af7b07; border-radius: 48px; color: #382500; font-size: 14px; font-weight: 600; padding: 4px 12px; }
+.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9ca8a; border: 1px solid #af7b07; border-radius: 48px; color: #382500; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .table-primary td:nth-child(4) { --table-primary-tint: #f2f0e7; }
-.table-primary td:nth-child(4) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #00289d; border-radius: 39px; box-shadow: 0px 0px 0px 3px color-mix(in srgb, #00289d 40%, transparent); color: #f2f0e7; font-size: 15px; font-weight: 500; padding: 11px 18px; }
+.table-primary td:nth-child(4) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #00289d; border: none; border-radius: 39px; box-shadow: 0px 0px 0px 3px color-mix(in srgb, #00289d 40%, transparent); color: #f2f0e7; font-size: 15px; font-weight: 500; line-height: 1.25; padding: 11px 18px; }
 ```
 </CodeGroup>
 
