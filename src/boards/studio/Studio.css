@@ -440,10 +440,24 @@
   align-items: start;
 }
 
+/* One row beside the label, scrolled sideways, so the panel's height never
+   depends on how many pictures there are. Room around each for the chosen
+   picture's outline and a picture's remove button, which the scroll would
+   otherwise clip. */
 .studio-pick__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(2.5rem, 1fr));
-  gap: calc(var(--spacing) * 1);
+  display: flex;
+  grid-column: 2;
+  gap: calc(var(--spacing) * 1.5);
+  padding: 6px 6px 8px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+}
+
+.studio-pick__grid > * {
+  flex: 0 0 3.5rem;
+  scroll-snap-align: start;
 }
 
 .studio-pick__upload,

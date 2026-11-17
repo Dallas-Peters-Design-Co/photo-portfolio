@@ -21,8 +21,6 @@ const BOARD = "board";
  * can read its pixels without the canvas refusing a picture from another site.
  */
 
-const SHOWN = 12;
-
 /** The frame editor's layers, drawn as a picture on demand. */
 export interface FromFrame {
   /** "Selection (3)" or "Whole frame". */
@@ -70,9 +68,9 @@ export function ImagePick({
   );
   const inCollection = from !== BOARD;
   const shelf = inCollection ? saved.map((item) => item.url) : board;
-  const [more, setMore] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
-  const shown = more ? shelf : shelf.slice(0, SHOWN);
+  // Every picture, in one row that scrolls sideways (Studio.css).
+  const shown = shelf;
 
   /**
    * The selection in the frame, as it is right now: draw it, pick it. Taken
@@ -113,7 +111,6 @@ export function ImagePick({
           onValueChange={(next) => {
             if (next !== null) {
               setFrom(next);
-              setMore(false);
             }
           }}
           value={from}
@@ -222,15 +219,6 @@ export function ImagePick({
           </span>
         ))}
       </div>
-      {shelf.length > SHOWN ? (
-        <button
-          className="studio-pick__more"
-          onClick={() => setMore((v) => !v)}
-          type="button"
-        >
-          {more ? "Fewer" : `All ${shelf.length}`}
-        </button>
-      ) : null}
       {hidden > 0 && !inCollection ? (
         <button
           className="studio-pick__more"
