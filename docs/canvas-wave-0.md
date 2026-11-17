@@ -49,7 +49,7 @@ down, and it cannot be done concurrently.
   prove nothing.
 - Behaviour is verified in a browser before a task is called done, not reasoned
   about.
-- `pnpm lint` must pass, which includes the 500-line ceiling and the
+- `pnpm lint` must pass, which includes the 600-line ceiling and the
   migration-safety check.
 
 ## Acceptance criteria (from the spec)

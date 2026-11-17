@@ -529,7 +529,7 @@ the real click fails.
 1. `tsc --noEmit`
 2. `check:esm` — every relative import in `api/` and `db/` names its file
    extension. Without it, code passes tsc and tests but fails when deployed.
-3. `check:size` — a 500-line ceiling per file, as a ratchet against
+3. `check:size` — a 600-line ceiling per file, as a ratchet against
    `file-size-baseline.json`. Listed files may not grow. After shrinking one,
    run `pnpm check:size --update`.
 4. `check:migrations` — blocks `DELETE`, `TRUNCATE`, `DROP TABLE` and
@@ -596,7 +596,7 @@ Also:
 - **Sticky UI respects the admin bar.** `AdminPage` publishes
   `--admin-bar-height`; sticky elements use it in their `top`. Use
   `overflow: clip`, not `hidden`, on ancestors of sticky elements.
-- **Keep files under 500 lines.** Split by responsibility (for example
+- **Keep files under 600 lines.** Split by responsibility (for example
   `ReviewEditorActions.tsx` and `ReviewEditorPanel.tsx` beside
   `ReviewEditor.tsx`).
 - **Verify in a real browser** before calling a UI fix done. Reproduce, don't

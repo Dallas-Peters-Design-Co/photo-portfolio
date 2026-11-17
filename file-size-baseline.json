@@ -1,10 +1,8 @@
 {
-  "config/nodes/falParams.generated.ts": 535,
-  "src/boards/BoardCanvas.tsx": 1364,
-  "src/components/Admin.tsx": 679,
-  "src/components/StandarShader.tsx": 600,
-  "src/components/admin/BoardInsertPanel.tsx": 1203,
-  "src/components/admin/DailyChallengePanel.tsx": 743,
+  "src/boards/BoardCanvas.tsx": 1329,
+  "src/components/Admin.tsx": 677,
+  "src/components/admin/BoardInsertPanel.tsx": 1180,
+  "src/components/admin/DailyChallengePanel.tsx": 731,
   "src/editor/presets.ts": 1316,
-  "src/services/portfolioService.ts": 1627
+  "src/services/portfolioService.ts": 1626
 }

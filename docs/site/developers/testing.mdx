@@ -1,6 +1,6 @@
 ---
 title: "Testing, linting and quality gates"
-description: "How the repo is checked: Vitest in real Chromium, the pnpm lint chain and 500-line ceiling, shadcn UI rules, Ultracite, the pre-commit hook and CI."
+description: "How the repo is checked: Vitest in real Chromium, the pnpm lint chain and 600-line ceiling, shadcn UI rules, Ultracite, the pre-commit hook and CI."
 sidebarTitle: "Testing"
 keywords: ["vitest", "playwright", "chromium", "pnpm lint", "oxlint", "shadcn lint", "ultracite", "biome", "pre-commit", "ci"]
 ---
@@ -65,8 +65,8 @@ Shaders draw through WebGPU, and Playwright's bundled Chromium has no adapter, s
   <Step title="ESM import extensions">
     `scripts/check-esm-imports.ts` requires every relative import under `api/` and `db/` to name a file extension. Those directories deploy as serverless functions running real ESM, where an extensionless specifier does not resolve, even though `tsc`, Vitest and `vercel dev` all accept it. `src/` is not checked because Vite bundles it.
   </Step>
-  <Step title="500-line ceiling">
-    `scripts/check-file-size.ts` scans `.ts` and `.tsx` files in `src`, `api`, `config` and `scripts`. A new file may not exceed 500 lines. Files already over the limit are listed in `file-size-baseline.json` and may not grow past their recorded size; once one drops under 500 lines it must leave the baseline.
+  <Step title="600-line ceiling">
+    `scripts/check-file-size.ts` scans `.ts` and `.tsx` files in `src`, `api`, `config` and `scripts`. A new file may not exceed 600 lines. Files already over the limit are listed in `file-size-baseline.json` and may not grow past their recorded size; once one drops under 600 lines it must leave the baseline.
   </Step>
   <Step title="Schema-only migrations">
     `scripts/check-migrations.ts` reads `db/schema.sql` and `db/patches/*.sql`. It rejects data-destroying statements (`DELETE FROM`, `TRUNCATE`, `DROP TABLE`, `DROP DATABASE`, `DROP SCHEMA`, `DROP COLUMN`) and any `UPDATE` unless the comment block directly above the statement contains a `-- migration-safety: <reason>` marker. `INSERT` is allowed only with `ON CONFLICT` or that marker. `DROP INDEX` and `DROP CONSTRAINT` are allowed, since they hold no data.

@@ -32,7 +32,7 @@ import type { Operation } from "./routes";
 /**
  * Everything outside the core photograph/page/settings surface.
  *
- * Split from `routes.ts` only to keep both files under the 500-line ceiling —
+ * Split from `routes.ts` only to keep both files under the 600-line ceiling —
  * the generator merges them, so which file an entry lives in means nothing.
  */
 export const INTEGRATION_OPERATIONS: Record<string, Operation> = {

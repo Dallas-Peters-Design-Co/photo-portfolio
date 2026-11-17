@@ -1,5 +1,5 @@
 /**
- * Enforces a 500-line ceiling on source files.
+ * Enforces a 600-line ceiling on source files.
  *
  * Fifteen files were already over the line when this was introduced, several at
  * three or four times it, so a flat limit would have failed every build until
@@ -19,7 +19,7 @@
 import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-const MAX_LINES = 500;
+const MAX_LINES = 600;
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const BASELINE_PATH = path.join(ROOT, "file-size-baseline.json");

@@ -67,7 +67,7 @@ bundle reads the first and the serverless functions read the second.
 pnpm db:info  # which database am I pointed at, really
 pnpm test     # vitest in real Chromium — canvas code needs a real canvas,
               # jsdom returns null from getContext and every assertion passes
-pnpm lint     # tsc --noEmit + the 500-line ceiling
+pnpm lint     # tsc --noEmit + the 600-line ceiling
 pnpm api:docs # regenerate openapi.json, openapi.yaml and bruno/
 pnpm dlx ultracite check
 pnpm lint:ui  # @shadcn/lint via Oxlint (.oxlintrc.json): no arbitrary
