@@ -51,6 +51,7 @@ export const collectionsApi = {
         await readPageError(res, "Could not save to the collection")
       );
     }
+    describeSoon();
     return (await res.json()) as CollectionItem;
   },
 
@@ -133,6 +134,78 @@ export const collectionsApi = {
     }
     return (await res.json()) as Collection;
   },
+};
+
+/** An image found by colour and mood (api/_lib/imageSearch.ts). */
+export interface ImageHit {
+  colors: string[];
+  description: string | null;
+  height: number | null;
+  id: string;
+  source: "collection" | "photo";
+  title: string | null;
+  url: string;
+  width: number | null;
+}
+
+/** Searching the library and collections, and describing images for it. */
+export const imagesApi = {
+  /** Describes the next few images; how many were done and how many are left. */
+  describe: async (): Promise<{ described: number; left: number }> => {
+    const res = await fetch(`${apiBase()}/api/collections`, {
+      body: JSON.stringify({ action: "describe" }),
+      headers: jsonHeaders(),
+      method: "POST",
+    });
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Could not describe images"));
+    }
+    return (await res.json()) as { described: number; left: number };
+  },
+
+  pending: async (): Promise<number> => {
+    const res = await fetch(`${apiBase()}/api/collections?pending=1`, {
+      headers: jsonHeaders(),
+    });
+    if (!res.ok) {
+      return 0;
+    }
+    const { left } = (await res.json().catch(() => ({}))) as { left?: unknown };
+    return typeof left === "number" ? left : 0;
+  },
+
+  search: async (q: string): Promise<ImageHit[]> => {
+    const res = await fetch(
+      `${apiBase()}/api/collections?search=${encodeURIComponent(q)}`,
+      { headers: jsonHeaders() }
+    );
+    if (!res.ok) {
+      throw new Error(await readPageError(res, "Could not search"));
+    }
+    return (await res.json()) as ImageHit[];
+  },
+};
+
+let describing: ReturnType<typeof setTimeout> | null = null;
+/**
+ * Describes what was just saved, a moment after the last save of a burst,
+ * so it can be found by colour and mood. Runs in the background; a failure
+ * leaves the images to the next save or the panel's Describe button.
+ */
+export const describeSoon = () => {
+  if (describing) {
+    clearTimeout(describing);
+  }
+  describing = setTimeout(async () => {
+    describing = null;
+    for (let pass = 0; pass < 6; pass += 1) {
+      // biome-ignore lint/performance/noAwaitInLoops: each pass is the server's next batch
+      const step = await imagesApi.describe().catch(() => null);
+      if (!step || step.left === 0 || step.described === 0) {
+        return;
+      }
+    }
+  }, 1500);
 };
 
 export const elementsApi = {

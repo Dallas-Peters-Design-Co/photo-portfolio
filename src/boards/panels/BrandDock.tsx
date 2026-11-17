@@ -15,6 +15,7 @@ import { KitShaderPreview, shaderConfigOf } from "../brand/KitShaderPreview";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
 import type { ShaderConfig } from "../shaders/shaderConfig";
 import { useImageShelf } from "../studio/imageShelf";
+import { ReferenceSearch } from "./ReferenceSearch";
 import "./BrandDock.css";
 
 /**
@@ -201,6 +202,8 @@ export function BrandDock({
 
       {doc ? (
         <div className="brand-dock__body">
+          <ReferenceSearch onInsert={onInsert} />
+
           <section>
             <h4 className="brand-dock__label">Colours</h4>
             {doc.palette.length > 0 ? (
@@ -340,10 +343,13 @@ export function BrandDock({
           ) : null}
         </div>
       ) : (
-        <p className="brand-dock__empty brand-dock__body">
-          Pick a brand to see its colours, logos and library here. Its colours
-          also become the swatches in every colour picker on this board.
-        </p>
+        <div className="brand-dock__body">
+          <ReferenceSearch onInsert={onInsert} />
+          <p className="brand-dock__empty">
+            Pick a brand to see its colours, logos and library here. Its colours
+            also become the swatches in every colour picker on this board.
+          </p>
+        </div>
       )}
     </aside>
   );

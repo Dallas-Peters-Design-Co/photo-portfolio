@@ -83,6 +83,11 @@ vi.mock("../../services/libraryService", () => ({
         name: "Bird Creek library",
       }),
   },
+  imagesApi: {
+    describe: () => Promise.resolve({ described: 0, left: 0 }),
+    pending: () => Promise.resolve(0),
+    search: () => Promise.resolve([]),
+  },
 }));
 
 const { ActiveBrandProvider, useBrandSwatches } = await import(

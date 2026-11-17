@@ -266,9 +266,11 @@ export const boards = pgTable(
 export const photos = pgTable(
   "photos",
   {
+    aiDescription: text("ai_description"),
     alt: text(),
     categoryId: uuid("category_id").notNull(),
     chromeUrl: text("chrome_url"),
+    colors: text().array(),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -431,8 +433,10 @@ export const collections = pgTable(
 export const collectionItems = pgTable(
   "collection_items",
   {
+    aiDescription: text("ai_description"),
     alt: text(),
     collectionId: uuid("collection_id").notNull(),
+    colors: text().array(),
     createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
       .defaultNow()
       .notNull(),
