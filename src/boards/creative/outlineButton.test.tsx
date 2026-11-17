@@ -44,10 +44,11 @@ it("a text layer's bar has a button that converts it to outlines", async () => {
       onToBoard={() => undefined}
     />
   );
-  await new Promise((r) => requestAnimationFrame(() => r(null)));
-  host
-    .querySelector<HTMLElement>('[aria-label="Convert text to outlines (⇧⌘O)"]')
-    ?.click();
+  const label = '[aria-label="Convert text to outlines (⇧⌘O)"]';
+  await vi.waitFor(() => {
+    expect(host.querySelector(label)).not.toBeNull();
+  });
+  host.querySelector<HTMLElement>(label)?.click();
   expect(onOutline).toHaveBeenCalledOnce();
   root.unmount();
   host.remove();

@@ -7,6 +7,7 @@ import TextAlignLeftIcon from "@hugeicons-pro/core-stroke-standard/TextAlignLeft
 import TextAlignRightIcon from "@hugeicons-pro/core-stroke-standard/TextAlignRightIcon";
 import TextItalicIcon from "@hugeicons-pro/core-stroke-standard/TextItalicIcon";
 import { type RefObject, useState } from "react";
+import { toast } from "sonner";
 import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../config/canvas.js";
 import {
   MAX_LETTER_SPACING,
@@ -35,6 +36,7 @@ import {
 import type { BoardItem } from "../types";
 import { BoardFontPicker } from "./BoardFontPicker";
 import { ColorWell } from "./ColorWell";
+import { outlineTextLayer } from "./creative/textOutlines";
 import { isTransparent, NO_FILL } from "./drawing/drawing";
 import { PANEL_GAP } from "./geometry/panelPlacement";
 import { useTextFont } from "./hooks/useTextFont";
@@ -157,6 +159,34 @@ function Stepper({
     </span>
   );
 }
+
+/**
+ * The text item as vector outlines of its letters, measured from its own
+ * text box on the board (creative/textOutlines.ts). One patch, so one undo
+ * puts the text back.
+ */
+const toOutlines = async (
+  item: BoardItem,
+  box: HTMLElement | null,
+  onPatch: (patch: Partial<BoardItem>) => void
+) => {
+  const field = box?.querySelector("textarea");
+  if (!field) {
+    return;
+  }
+  try {
+    const { body, config, fontSize, kind, textStyle } = await outlineTextLayer(
+      item,
+      field
+    );
+    onPatch({ body, config, fontSize, kind, textStyle });
+    toast.success("Text converted to outlines.");
+  } catch (err) {
+    toast.error(
+      err instanceof Error ? err.message : "Couldn't convert to outlines."
+    );
+  }
+};
 
 export function BoardTextTools({
   anchor,
@@ -348,6 +378,18 @@ export function BoardTextTools({
             <HugeiconsIcon icon={ALIGN_ICONS[align]} />
           </Button>
         ))}
+
+        {item.kind === "text" ? (
+          <Button
+            onClick={() => void toOutlines(item, anchor.current, onPatch)}
+            size="sm"
+            title="Convert text to outlines: the letters become a vector shape"
+            type="button"
+            variant="ghost"
+          >
+            Outlines
+          </Button>
+        ) : null}
 
         <Button
           aria-expanded={showMore}
