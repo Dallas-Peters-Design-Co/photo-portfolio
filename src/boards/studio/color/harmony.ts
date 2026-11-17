@@ -157,3 +157,12 @@ export const paletteFromImage = (
 /** Black or white, whichever reads on the colour. */
 export const inkOn = (color: string): string =>
   (hexToOklch(color)?.l ?? 0) > 0.62 ? "#111111" : "#ffffff";
+
+/** A picture's main colours, read from its address (a local or board URL). */
+export const paletteFromUrl = (url: string, count: number): Promise<string[]> =>
+  new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(paletteFromImage(img, count));
+    img.onerror = () => reject(new Error("That picture couldn't be read"));
+    img.src = url;
+  });

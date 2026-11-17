@@ -25,7 +25,7 @@ import {
   HARMONIES,
   type Harmony,
   inkOn,
-  paletteFromImage,
+  paletteFromUrl,
 } from "./harmony";
 import { colorSwatchSvg } from "./swatches";
 import { useKitPalette } from "./useKitPalette";
@@ -49,14 +49,6 @@ const PALETTE_ROLES = [
   "border",
   "muted",
 ] as const;
-
-const loadImage = (url: string): Promise<HTMLImageElement> =>
-  new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("That picture couldn't be read"));
-    img.src = url;
-  });
 
 export function PaletteTool({
   onAddMany,
@@ -147,8 +139,7 @@ export function PaletteTool({
 
   const fromPhoto = async (url: string) => {
     try {
-      const img = await loadImage(url);
-      const found = paletteFromImage(img, colors.length);
+      const found = await paletteFromUrl(url, colors.length);
       if (found.length > 0) {
         replace(found);
         setLocked(new Array(MAX).fill(false));

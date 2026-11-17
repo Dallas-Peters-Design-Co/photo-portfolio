@@ -20,8 +20,9 @@ import {
 } from "@/components/ui/select";
 import { formatOklch, hexToOklch } from "../../../lib/oklch";
 import { ColorWell } from "../../ColorWell";
+import { ImagePick } from "../ImagePick";
 import { saveBlob, svgToPngBlob } from "../render";
-import { inkOn } from "./harmony";
+import { inkOn, paletteFromUrl } from "./harmony";
 import { SchemeControls } from "./SchemeControls";
 import { SchemeDials } from "./SchemeDials";
 import { HueMap } from "./SchemeHueMap";
@@ -120,6 +121,20 @@ function SchemeBuilder({
   const copy = (text: string, what: string) => {
     void navigator.clipboard?.writeText(text);
     toast.success(`${what} copied`);
+  };
+
+  /**
+   * A picture's main colours, loaded like the brand's: the first becomes the
+   * anchor, the rest are held as found, each then editable on the wheel and
+   * the dials.
+   */
+  const fromPicture = async (url: string) => {
+    try {
+      const found = await paletteFromUrl(url, Math.max(colors.length, 5));
+      scheme.loadBrand(found.map((value) => ({ name: "", role: "", value })));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't read it");
+    }
   };
 
   const add = async () => {
@@ -222,6 +237,10 @@ function SchemeBuilder({
             name={nameOf(selected)}
             onChange={(next) => scheme.setColour(selected, next)}
             value={scheme.selectedLch}
+          />
+          <ImagePick
+            label="From a picture"
+            onPick={(url) => void fromPicture(url)}
           />
           <SchemeControls
             onChange={scheme.setSettings}
