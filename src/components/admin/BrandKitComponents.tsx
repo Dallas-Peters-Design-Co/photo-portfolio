@@ -18,8 +18,10 @@ import {
   lookOf,
   MAX_CONCEPT_STYLES,
 } from "../../../config/conceptStyle.js";
+import { withLinkedComponents } from "../../../config/kitComponentLink.js";
 import { newItemId } from "../../../config/proposal.js";
 import type { ReviewConceptElementKind } from "../../../config/reviewConcept.js";
+import { useBrandKits } from "../../hooks/useBrandKits";
 import { rememberedOpen, rememberOpen } from "../../hooks/useRememberedOpen";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
@@ -28,6 +30,8 @@ import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import { SortableList } from "./SortableList";
 import "./ReviewConceptsEditor.css";
+
+const NO_LINK = "none";
 
 /** The style as a React component and its CSS, on the clipboard. */
 const copySource = async (
@@ -147,19 +151,32 @@ function StyleEditor({
  * The kit's component styles: each styled once here, then picked by review
  * concepts, which follow it from then on (config/conceptStyle.ts).
  *
- * A sub-brand with none of its own uses its parent's; "Make them this
- * brand's" copies them in to change.
+ * A sub-brand with none of its own uses its parent's, and any kit can
+ * follow another kit's, drawn in its own colours and type
+ * (config/kitComponentLink.ts); "Make them this brand's" copies them in to
+ * change.
  */
 export function BrandKitComponents({
   doc,
-  effective,
+  effective: resolved,
+  kitId,
   onChange,
 }: {
   doc: BrandKitDoc;
   /** The kit as it resolves, parent included: its palette and type. */
   effective: BrandKitDoc;
+  kitId: string;
   onChange: (next: BrandKitDoc) => void;
 }) {
+  const { kits } = useBrandKits();
+  const source =
+    kits.find((k) => k.id === doc.componentsFrom && k.id !== kitId) ?? null;
+  const effective = withLinkedComponents(
+    doc,
+    resolved,
+    source?.resolvedDoc ?? null
+  );
+  const following = Boolean(source) && doc.componentStyles.length === 0;
   const styles = doc.componentStyles;
   const inherited: ConceptStyle[] =
     styles.length === 0 ? effective.componentStyles : [];
@@ -214,12 +231,32 @@ export function BrandKitComponents({
         Style a button, badge, card or table once. Review concepts that pick a
         style follow it, so a change here shows on every review.
       </p>
+      <ConceptSelect
+        label="Follow another brand's components"
+        onChange={(id) =>
+          onChange({ ...doc, componentsFrom: id === NO_LINK ? null : id })
+        }
+        options={[
+          { label: "Not linked", value: NO_LINK },
+          ...kits
+            .filter((k) => k.id !== kitId)
+            .map((k) => ({ label: k.name, value: k.id })),
+        ]}
+        value={doc.componentsFrom ?? NO_LINK}
+      />
       {inherited.length > 0 ? (
         <p className="brand-kit__hint">
-          Using the parent brand's {inherited.length}{" "}
-          {inherited.length === 1 ? "style" : "styles"}.{" "}
+          {following && source
+            ? `Following ${source.name}'s ${inherited.length} ${inherited.length === 1 ? "style" : "styles"}, in this brand's colours and type. A change there shows here.`
+            : `Using the parent brand's ${inherited.length} ${inherited.length === 1 ? "style" : "styles"}.`}{" "}
           <Button
-            onClick={() => set(inherited)}
+            onClick={() =>
+              onChange({
+                ...doc,
+                componentStyles: inherited,
+                componentsFrom: null,
+              })
+            }
             size="xs"
             type="button"
             variant="outline"

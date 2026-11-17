@@ -30,6 +30,7 @@ function SubBrand() {
         componentStyles:
           doc.componentStyles.length > 0 ? doc.componentStyles : [parentStyle],
       }}
+      kitId="kit-1"
       onChange={setDoc}
     />
   );
@@ -73,7 +74,14 @@ function OneCard() {
     componentStyles: [{ id: "c1", kind: "card", look: {}, name: "Card" }],
   });
   saved = doc;
-  return <BrandKitComponents doc={doc} effective={doc} onChange={setDoc} />;
+  return (
+    <BrandKitComponents
+      doc={doc}
+      effective={doc}
+      kitId="kit-1"
+      onChange={setDoc}
+    />
+  );
 }
 
 it("keeps the icon picked for a style", async () => {
@@ -111,7 +119,14 @@ function Kit() {
     componentStyles: kitStyles,
   });
   saved = doc;
-  return <BrandKitComponents doc={doc} effective={doc} onChange={setDoc} />;
+  return (
+    <BrandKitComponents
+      doc={doc}
+      effective={doc}
+      kitId="kit-1"
+      onChange={setDoc}
+    />
+  );
 }
 
 it("reorders a kit's styles from a style's handle, and keeps remove at the row's end", async () => {

@@ -75,8 +75,14 @@ export const componentDocs = async (
 ): Promise<ComponentDocsKit[]> => {
   const kits = await loadKits(sql);
   const taken = new Set<string>();
+  // A kit following another's components gets its own page, drawn in its
+  // colours; a sub-brand merely inheriting its parent's doesn't.
+  const ownOrLinked = (kit: (typeof kits)[number]) =>
+    kit.doc.componentStyles.length > 0 || kit.doc.componentsFrom
+      ? kit.resolvedDoc.componentStyles
+      : [];
   return kits
-    .filter((kit) => kit.doc.componentStyles.length > 0)
+    .filter((kit) => ownOrLinked(kit).length > 0)
     .map((kit) => {
       // Two kits with one name still get a page each.
       let slug = slugOf(kit.name);
@@ -88,7 +94,7 @@ export const componentDocs = async (
       // one is numbered.
       const classes = new Set<string>();
       const fonts = new Set<string>();
-      const components = kit.doc.componentStyles.map((style) => {
+      const components = ownOrLinked(kit).map((style) => {
         // A table's tag, chip and button columns in the kit's own styles.
         const sample = withIconDrawings(
           applyColumnStyles(

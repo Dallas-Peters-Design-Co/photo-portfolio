@@ -6,6 +6,7 @@ import {
   resolveKitDoc,
   sanitizeKitDoc,
 } from "../../config/brandKit.js";
+import { withLinkedComponents } from "../../config/kitComponentLink.js";
 import type { getSql } from "./db.js";
 import { getDb, schema } from "./orm.js";
 import { toIso } from "./timestamps.js";
@@ -139,7 +140,31 @@ export const loadKits = async (sql: Sql): Promise<BrandKitDto[]> => {
     LEFT JOIN brand_kit_versions pv ON pv.id = k_parent.current_version_id
     ORDER BY COALESCE(p.updated_at, k.updated_at) DESC, k.parent_id NULLS FIRST, k.updated_at DESC
   `) as BrandKitRow[];
-  return rows.map(rowToKitDto);
+  const kits = rows.map(rowToKitDto);
+  const byId = new Map(kits.map((kit) => [kit.id, kit]));
+  return kits.map((kit) => linkComponents(kit, byId));
+};
+
+/**
+ * A kit following another's components (config/kitComponentLink.ts) with
+ * them in: one hop, from the source's own resolved styles, never itself.
+ */
+const linkComponents = (
+  kit: BrandKitDto,
+  byId: Map<string, BrandKitDto>
+): BrandKitDto => {
+  const from = kit.resolvedDoc.componentsFrom;
+  const source = from && from !== kit.id ? byId.get(from) : undefined;
+  return source
+    ? {
+        ...kit,
+        resolvedDoc: withLinkedComponents(
+          kit.doc,
+          kit.resolvedDoc,
+          source.resolvedDoc
+        ),
+      }
+    : kit;
 };
 
 export const loadKit = async (
@@ -172,7 +197,29 @@ export const loadKit = async (
     WHERE k.id = ${id}
   `) as BrandKitRow[];
   const [row] = rows;
-  return row ? rowToKitDto(row) : null;
+  if (!row) {
+    return null;
+  }
+  const kit = rowToKitDto(row);
+  const from = kit.resolvedDoc.componentsFrom;
+  if (!from || from === id || kit.doc.componentStyles.length > 0) {
+    return kit;
+  }
+  // Not through loadKit again: one hop, so two kits linked to each other
+  // can't go round.
+  const [sourceRow] = (await sql`
+    SELECT k.id, k.name, k.created_at, k.updated_at, k.current_version_id,
+      k.parent_id, p.name AS parent_name, pv.doc AS parent_doc,
+      v.version AS current_version, v.doc AS doc, 0 AS version_count
+    FROM brand_kits k
+    LEFT JOIN brand_kit_versions v ON v.id = k.current_version_id
+    LEFT JOIN brand_kits p ON p.id = k.parent_id
+    LEFT JOIN brand_kit_versions pv ON pv.id = p.current_version_id
+    WHERE k.id = ${from}
+  `) as BrandKitRow[];
+  return sourceRow
+    ? linkComponents(kit, new Map([[from, rowToKitDto(sourceRow)]]))
+    : kit;
 };
 
 /** A kit's history, newest first — what "which version was this made against"

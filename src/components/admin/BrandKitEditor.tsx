@@ -292,6 +292,7 @@ export function KitEditor({
           <BrandKitComponents
             doc={doc}
             effective={effective}
+            kitId={kit.id}
             onChange={setDoc}
           />
         )}

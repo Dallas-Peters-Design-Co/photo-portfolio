@@ -133,6 +133,8 @@ export interface BrandKitDoc {
    * review concept that picks them (config/conceptStyle.ts).
    */
   componentStyles: ConceptStyle[];
+  /** Another kit whose styles this one follows (kitComponentLink.ts). */
+  componentsFrom: string | null;
   /**
    * The collection that is this brand's image library: photography, product
    * shots, past work. A link rather than a copy, so the library is managed
@@ -168,6 +170,7 @@ export interface BrandKitDoc {
 export const EMPTY_KIT: BrandKitDoc = {
   adobeKitId: null,
   componentStyles: [],
+  componentsFrom: null,
   libraryCollectionId: null,
   logos: [],
   look: null,
@@ -273,6 +276,10 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
   return {
     adobeKitId: isAdobeKitId(raw.adobeKitId) ? raw.adobeKitId : null,
     componentStyles: cleanConceptStyles(raw.componentStyles),
+    componentsFrom:
+      typeof raw.componentsFrom === "string" && UUID.test(raw.componentsFrom)
+        ? raw.componentsFrom.toLowerCase()
+        : null,
     libraryCollectionId:
       typeof raw.libraryCollectionId === "string" &&
       UUID.test(raw.libraryCollectionId)
@@ -379,6 +386,7 @@ export const resolveKitDoc = (
       child.componentStyles.length > 0
         ? child.componentStyles
         : parent.componentStyles,
+    componentsFrom: child.componentsFrom ?? parent.componentsFrom,
     libraryCollectionId:
       child.libraryCollectionId ?? parent.libraryCollectionId,
     logos: child.logos.length > 0 ? child.logos : parent.logos,
