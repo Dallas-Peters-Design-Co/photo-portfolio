@@ -40,8 +40,11 @@ it("turns a text layer into its letters, in place, in its colour", async () => {
   document.fonts.add(await face.load());
   const bytes = await (await fetch(interBold)).arrayBuffer();
   // The server's font endpoint, answered with the same face the page drew.
+  // Only at its real address: a request built wrong once reached the site's
+  // page fallback, and the font reader choked on HTML.
   const real = globalThis.fetch;
   vi.spyOn(globalThis, "fetch").mockImplementation((input, init) =>
+    String(input).startsWith("/api/brand-kits?") &&
     String(input).includes("outlineFont=")
       ? Promise.resolve(
           new Response(bytes, { headers: { "Content-Type": "font/woff" } })

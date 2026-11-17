@@ -45,7 +45,7 @@ const loadFont = (family: string, weight: string, italic: boolean) => {
         outlineFont: family,
         weight,
       });
-      const res = await fetch(`${apiBase}/brand-kits?${query}`, {
+      const res = await fetch(`${apiBase()}/api/brand-kits?${query}`, {
         headers: jsonHeaders(),
       });
       if (!res.ok) {
@@ -57,6 +57,11 @@ const loadFont = (family: string, weight: string, italic: boolean) => {
         );
       }
       const { parse } = await import("opentype.js");
+      // A page rather than a font (a wrong address answered by the site's
+      // own fallback) said "Unsupported OpenType signature" — say what it is.
+      if ((res.headers.get("content-type") ?? "").includes("text/html")) {
+        throw new Error(`Couldn't get the font file for ${family}.`);
+      }
       return parse(await res.arrayBuffer());
     })();
     // A failure is not kept: the next try asks again.
