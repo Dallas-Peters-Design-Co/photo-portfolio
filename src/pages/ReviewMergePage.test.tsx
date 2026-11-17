@@ -23,6 +23,7 @@ class LockedError extends Error {
 const PICTURE = `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="#041045"/></svg>')}`;
 
 const MERGE: BrandMerge = {
+  boardId: null,
   brandA: null,
   brandB: null,
   brands: [
@@ -49,6 +50,8 @@ const MERGE: BrandMerge = {
   ],
   generatedAt: "2026-11-16T00:00:00.000Z",
   hero: { height: 900, url: PICTURE, width: 1600 },
+  logoA: PICTURE,
+  logoB: null,
   options: [
     {
       changes: ["Acme's name retires"],
@@ -175,6 +178,10 @@ it("asks for the review's password, then shows the writeup", async () => {
   expect(box.querySelector("#recommendation")?.textContent).toContain(
     "Acme, by RoleModel"
   );
+  // Each brand shows the logo copied from its kit; one without shows none.
+  const logos = box.querySelectorAll<HTMLImageElement>(".merge-page__logo");
+  expect(logos).toHaveLength(1);
+  expect(logos[0]?.alt).toBe("RoleModel logo");
   expect(box.querySelector(".merge-page__table tbody th")?.textContent).toBe(
     "Colour"
   );

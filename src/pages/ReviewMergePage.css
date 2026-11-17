@@ -147,6 +147,16 @@
   padding: calc(var(--spacing) * 8);
 }
 
+.merge-page__logo {
+  display: block;
+  width: auto;
+  max-width: min(100%, 14rem);
+  height: 3rem;
+  margin-block-end: calc(var(--spacing) * 6);
+  object-fit: contain;
+  object-position: left center;
+}
+
 .merge-page__brand + .merge-page__brand {
   border-inline-start: 1px solid var(--sheet-rule);
 }

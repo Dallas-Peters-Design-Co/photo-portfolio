@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { BrandMerge } from "../../../../config/brandMerge.js";
+import type { MergeWriteup } from "../../../../config/brandMerge.js";
 import { reviewsApi } from "../../../services/reviewService";
 
 /**
@@ -10,7 +10,7 @@ import { reviewsApi } from "../../../services/reviewService";
 
 const POLL_MS = 4000;
 
-type Writeup = Omit<BrandMerge, "brandA" | "brandB" | "hero">;
+type Writeup = MergeWriteup;
 
 export type WriterState =
   | { state: "idle" }

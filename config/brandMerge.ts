@@ -49,6 +49,8 @@ export interface MergeOption {
 }
 
 export interface BrandMerge {
+  /** The board its pictures come from; the review's own board when null. */
+  boardId: string | null;
   /** Brand kits compared, as ids; the agent reads both. */
   brandA: string | null;
   brandB: string | null;
@@ -57,6 +59,9 @@ export interface BrandMerge {
   /** When the agent last wrote it, ISO; null before it has. */
   generatedAt: string | null;
   hero: MergeImage | null;
+  /** Each kit's logo, copied from the kits: the page is public, the kits aren't. */
+  logoA: string | null;
+  logoB: string | null;
   options: MergeOption[];
   /** One line under the overview: the headline of the whole writeup. */
   outcome: string;
@@ -64,6 +69,18 @@ export interface BrandMerge {
   recommendation: { option: string; why: string } | null;
   title: string;
 }
+
+/** What the editor sets; the rest is the agent's writing. */
+type MergeSetupKey =
+  | "boardId"
+  | "brandA"
+  | "brandB"
+  | "hero"
+  | "logoA"
+  | "logoB";
+
+/** The writeup's text, as the agent writes it. */
+export type MergeWriteup = Omit<BrandMerge, MergeSetupKey>;
 
 export const MAX_MERGE_OPTIONS = 5;
 const MAX_ASPECTS = 12;
@@ -77,12 +94,15 @@ const KIT_ID =
 const HTTP = /^https?:\/\//i;
 
 export const EMPTY_MERGE: BrandMerge = {
+  boardId: null,
   brandA: null,
   brandB: null,
   brands: null,
   comparison: [],
   generatedAt: null,
   hero: null,
+  logoA: null,
+  logoB: null,
   options: [],
   outcome: "",
   overview: "",
@@ -114,6 +134,11 @@ export const cleanMergeImage = (v: unknown): MergeImage | null => {
 
 const kitId = (v: unknown): string | null =>
   typeof v === "string" && KIT_ID.test(v) ? v : null;
+
+const logoUrl = (v: unknown): string | null => {
+  const url = str(v, MAX_URL);
+  return url && HTTP.test(url) ? url : null;
+};
 
 const cleanBrand = (v: unknown): MergeBrand => {
   const raw = (v ?? {}) as Partial<MergeBrand>;
@@ -169,6 +194,8 @@ export const cleanBrandMerge = (value: unknown): BrandMerge | null => {
         ])
       : null;
   return {
+    // Board ids are uuids too.
+    boardId: kitId(raw.boardId),
     brandA: kitId(raw.brandA),
     brandB: kitId(raw.brandB),
     brands,
@@ -182,6 +209,8 @@ export const cleanBrandMerge = (value: unknown): BrandMerge | null => {
         ? raw.generatedAt
         : null,
     hero: cleanMergeImage(raw.hero),
+    logoA: logoUrl(raw.logoA),
+    logoB: logoUrl(raw.logoB),
     options: (Array.isArray(raw.options) ? raw.options : [])
       .map(cleanMergeOption)
       .filter((option) => option.name)

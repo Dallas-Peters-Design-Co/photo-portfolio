@@ -3,6 +3,7 @@ import {
   type BrandMerge,
   cleanBrandMerge,
   MAX_MERGE_OPTIONS,
+  type MergeWriteup,
 } from "../../config/brandMerge.js";
 import {
   readFacts,
@@ -227,7 +228,7 @@ export const startMerge = (
   });
 
 /** The writeup's text, from the agent's answer; pictures are added in the editor. */
-export type MergeText = Omit<BrandMerge, "brandA" | "brandB" | "hero">;
+export type MergeText = MergeWriteup;
 
 export type MergeState =
   | { phase: string; state: "running" }
@@ -255,7 +256,15 @@ export const mergeText = (result: unknown, options: string[]): MergeText => {
       name,
     })),
   }) as BrandMerge;
-  const { brandA: _a, brandB: _b, hero: _h, ...text } = clean;
+  const {
+    boardId: _board,
+    brandA: _a,
+    brandB: _b,
+    hero: _h,
+    logoA: _la,
+    logoB: _lb,
+    ...text
+  } = clean;
   return text;
 };
 

@@ -9,8 +9,9 @@ import {
   type MergeImage,
 } from "../../../config/brandMerge.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
+import type { BrandKit } from "../../services/brandKitService";
 import { boardsApi } from "../../services/portfolioService";
-import type { BoardItem } from "../../types";
+import type { Board, BoardItem } from "../../types";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
@@ -246,6 +247,59 @@ function FramePicker({
   );
 }
 
+/** The board the pictures come from: any board, the review's own by default. */
+function BoardPicker({
+  onChange,
+  reviewBoardId,
+  value,
+}: {
+  onChange: (id: string | null) => void;
+  reviewBoardId: string | null;
+  value: string | null;
+}) {
+  const [boards, setBoards] = useState<Board[]>([]);
+  useEffect(() => {
+    let live = true;
+    boardsApi
+      .list()
+      .then((list) => live && setBoards(list))
+      .catch(() => live && setBoards([]));
+    return () => {
+      live = false;
+    };
+  }, []);
+  const items = [
+    {
+      label: reviewBoardId ? "The review's board" : "Pick a board",
+      value: "",
+    },
+    ...boards
+      .filter((b) => b.id !== reviewBoardId)
+      .map((b) => ({ label: b.title || "Untitled board", value: b.id })),
+  ];
+  return (
+    <div className="review-merge__field">
+      <Label htmlFor="merge-board">Pictures from</Label>
+      <Select
+        items={items}
+        onValueChange={(next) => onChange(next || null)}
+        value={value ?? ""}
+      >
+        <SelectTrigger id="merge-board" size="lg">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map((item) => (
+            <SelectItem key={item.value} value={item.value}>
+              {item.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 function Pictures({
   boardId,
   merge,
@@ -272,7 +326,7 @@ function Pictures({
   if (!boardId) {
     return (
       <p className="review-merge__hint">
-        Link this review to a board to use its frames as the pictures.
+        Pick a board to use its frames as the pictures.
       </p>
     );
   }
@@ -307,6 +361,27 @@ function Pictures({
   );
 }
 
+const logoOf = (kits: BrandKit[], id: string | null): string | null =>
+  kits.find((k) => k.id === id)?.resolvedDoc.logos[0]?.url ?? null;
+
+/**
+ * Each kit's first logo, copied onto the merge: the writeup's page is behind
+ * the review's password, and can't read the kits themselves. Kept in step
+ * when a kit is changed or its logo is.
+ */
+const useKitLogos = (merge: BrandMerge, update: Update) => {
+  const { isLoading, kits } = useBrandKits();
+  const logoA = logoOf(kits, merge.brandA);
+  const logoB = logoOf(kits, merge.brandB);
+  const stale = merge.logoA !== logoA || merge.logoB !== logoB;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: update is a fresh closure each render; the logos are what change
+  useEffect(() => {
+    if (!isLoading && kits.length > 0 && stale) {
+      update((m) => ({ ...m, logoA, logoB }));
+    }
+  }, [isLoading, kits.length, stale, logoA, logoB]);
+};
+
 export function ReviewMergeEditor({
   boardId,
   merge: stored,
@@ -321,6 +396,7 @@ export function ReviewMergeEditor({
 }) {
   const merge = stored ?? EMPTY_MERGE;
   const update: Update = (fn) => onChange((prev) => fn(prev ?? EMPTY_MERGE));
+  useKitLogos(merge, update);
   const { start, status } = useMergeWriter((writeup) =>
     update((m) => ({
       ...m,
@@ -404,7 +480,16 @@ export function ReviewMergeEditor({
       {merge.generatedAt ? (
         <MergeWriteupFields merge={merge} update={update} />
       ) : null}
-      <Pictures boardId={boardId} merge={merge} update={update} />
+      <BoardPicker
+        onChange={(id) => update((m) => ({ ...m, boardId: id }))}
+        reviewBoardId={boardId}
+        value={merge.boardId}
+      />
+      <Pictures
+        boardId={merge.boardId ?? boardId}
+        merge={merge}
+        update={update}
+      />
     </section>
   );
 }

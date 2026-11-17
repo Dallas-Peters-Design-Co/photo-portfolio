@@ -86,18 +86,30 @@ function Brands({ merge }: { merge: BrandMerge }) {
       <p className="merge-page__label">The two brands</p>
       {brands ? (
         <div className="merge-page__pair">
-          {brands.map((brand) => (
-            <article className="merge-page__brand" key={brand.name}>
-              <h2 className="merge-page__brand-name">{brand.name}</h2>
-              <p className="merge-page__prose">{brand.summary}</p>
-              <dl className="merge-page__facts">
-                <dt>Voice</dt>
-                <dd>{brand.voice}</dd>
-                <dt>Audience</dt>
-                <dd>{brand.audience}</dd>
-              </dl>
-            </article>
-          ))}
+          {brands.map((brand, i) => {
+            const logo = i === 0 ? merge.logoA : merge.logoB;
+            return (
+              <article className="merge-page__brand" key={brand.name}>
+                {logo ? (
+                  <img
+                    alt={`${brand.name} logo`}
+                    className="merge-page__logo"
+                    height={48}
+                    src={logo}
+                    width={224}
+                  />
+                ) : null}
+                <h2 className="merge-page__brand-name">{brand.name}</h2>
+                <p className="merge-page__prose">{brand.summary}</p>
+                <dl className="merge-page__facts">
+                  <dt>Voice</dt>
+                  <dd>{brand.voice}</dd>
+                  <dt>Audience</dt>
+                  <dd>{brand.audience}</dd>
+                </dl>
+              </article>
+            );
+          })}
         </div>
       ) : null}
       {merge.comparison.length > 0 ? (

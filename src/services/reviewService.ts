@@ -1,4 +1,4 @@
-import type { BrandMerge } from "../../config/brandMerge.js";
+import type { MergeWriteup } from "../../config/brandMerge.js";
 import type {
   ReviewDoc,
   ReviewImage,
@@ -225,7 +225,7 @@ export const reviewsApi = {
     options: string[]
   ): Promise<
     | { state: "running"; phase: string }
-    | { state: "done"; writeup: Omit<BrandMerge, "brandA" | "brandB" | "hero"> }
+    | { state: "done"; writeup: MergeWriteup }
     | { state: "failed"; error: string }
   > =>
     json(
