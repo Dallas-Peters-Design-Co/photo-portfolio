@@ -1,0 +1,101 @@
+/* The review editor's brand merge block (ReviewMergeEditor.tsx). */
+
+.review-merge {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+
+.review-merge__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.review-merge__open {
+  font-size: var(--text-micro-md);
+  text-decoration: underline;
+}
+
+.review-merge__hint {
+  font-size: var(--text-micro-md);
+  opacity: 0.7;
+}
+
+.review-merge__kits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: calc(var(--spacing) * 3);
+}
+
+.review-merge__field {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.review-merge__label {
+  font-size: var(--text-micro-sm);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-widest);
+  opacity: 0.7;
+}
+
+.review-merge__row {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.review-merge__write {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+}
+
+.review-merge__writeup {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+
+.review-merge__area {
+  width: 100%;
+  resize: vertical;
+}
+
+.review-merge__option {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding-top: calc(var(--spacing) * 3);
+  border-top: var(--border-hairline) solid currentcolor;
+}
+
+.review-merge__lists {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: calc(var(--spacing) * 3);
+}
+
+.review-merge__pictures {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: calc(var(--spacing) * 4);
+}
+
+.review-merge__picture {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-merge__thumb {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+.review-merge__thumb--empty {
+  display: block;
+  border: var(--border-hairline) dashed currentcolor;
+  opacity: 0.4;
+}

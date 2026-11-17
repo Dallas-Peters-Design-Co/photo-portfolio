@@ -8,6 +8,7 @@
  * place whatever size the image is shown at.
  */
 
+import { type BrandMerge, cleanBrandMerge } from "./brandMerge.js";
 import {
   type EditorDoc,
   isEditorDoc,
@@ -140,6 +141,11 @@ export interface ReviewDoc {
   closing: RichText;
   concepts: ReviewConcept[];
   intro: RichText;
+  /**
+   * A brand merge writeup, read at its own page behind the review's
+   * password (config/brandMerge.ts); null when the review has none.
+   */
+  merge: BrandMerge | null;
   screens: ReviewScreen[];
   /** Titled passages between the headline findings and the screens. */
   sections: ReviewSection[];
@@ -154,6 +160,7 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
   concepts: [],
   intro:
     "I went through the site the way a first-time visitor would and noted what helps, what gets in the way, and what I'd change. Each screen below has numbered notes; the numbers match the pins on the screenshot.",
+  merge: null,
   screens: [],
   sections: [],
   summary: "",
@@ -356,6 +363,7 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
     closing: cleanRich(raw.closing, MAX_DOC_BYTES / 4),
     concepts,
     intro: cleanRich(raw.intro, MAX_DOC_BYTES / 4),
+    merge: cleanBrandMerge(raw.merge),
     screens,
     // Reviews written before sections existed have none, which is right.
     sections: (Array.isArray(raw.sections) ? raw.sections : [])

@@ -1,0 +1,296 @@
+/*
+ * A brand merge writeup (ReviewMergePage.tsx), in the review's frame and
+ * colours: laid out as a case study — the title very large, a cover picture
+ * with an accent rule under it, bands of two columns divided by hairlines,
+ * small caps labels, dash lists, and the recommendation set apart as a
+ * quote.
+ */
+
+.merge-page__main {
+  display: grid;
+  gap: 0;
+  padding: 0;
+}
+
+.merge-page__head {
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 12)
+    calc(var(--spacing) * 10);
+}
+
+.merge-page__back,
+.merge-page__label,
+.merge-page__meta {
+  font-size: var(--text-xs-ui);
+  color: var(--sheet-ink-soft);
+  letter-spacing: var(--tracking-micro-wide);
+}
+
+.merge-page__label {
+  display: block;
+  margin-block-end: calc(var(--spacing) * 4);
+  text-transform: uppercase;
+}
+
+.merge-page__title {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: clamp(3rem, 9vw, 9rem);
+  font-weight: 800;
+  line-height: 0.9;
+  text-transform: uppercase;
+  letter-spacing: -0.03em;
+}
+
+.merge-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 6);
+}
+
+.merge-page__accent {
+  color: var(--review-accent);
+}
+
+.merge-page__cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-block-end: 3px solid var(--review-accent);
+}
+
+.merge-page__band {
+  padding: calc(var(--spacing) * 16) calc(var(--spacing) * 12);
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.merge-page__split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr));
+  gap: calc(var(--spacing) * 16);
+}
+
+.merge-page__prose {
+  max-width: 62ch;
+  margin-block-end: calc(var(--spacing) * 4);
+  line-height: 1.7;
+}
+
+.merge-page__lede {
+  max-width: 52ch;
+  margin-block-end: calc(var(--spacing) * 5);
+  font-size: 1.25rem;
+  line-height: 1.45;
+}
+
+.merge-page__outcome {
+  position: relative;
+  max-width: 52ch;
+  padding-inline-start: calc(var(--spacing) * 6);
+  margin-block-start: calc(var(--spacing) * 6);
+  color: var(--sheet-ink-soft);
+}
+
+.merge-page__outcome::before {
+  position: absolute;
+  top: 0.7em;
+  left: 0;
+  width: calc(var(--spacing) * 3);
+  height: 1px;
+  content: "";
+  background: var(--review-accent);
+}
+
+.merge-page__dashes {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding: 0;
+  list-style: none;
+}
+
+.merge-page__dashes li {
+  position: relative;
+  padding-inline-start: calc(var(--spacing) * 6);
+}
+
+.merge-page__dashes li::before {
+  position: absolute;
+  top: 0.7em;
+  left: 0;
+  width: calc(var(--spacing) * 3);
+  height: 1px;
+  content: "";
+  background: var(--review-accent);
+}
+
+.merge-page__dashes--ruled li {
+  padding-block: calc(var(--spacing) * 3);
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.merge-page__dashes--ruled li::before {
+  top: calc(var(--spacing) * 3 + 0.7em);
+}
+
+.merge-page__list-block {
+  margin-block-end: calc(var(--spacing) * 8);
+}
+
+.merge-page__pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  margin-block-end: calc(var(--spacing) * 12);
+  border: 1px solid var(--sheet-rule);
+}
+
+.merge-page__brand {
+  padding: calc(var(--spacing) * 8);
+}
+
+.merge-page__brand + .merge-page__brand {
+  border-inline-start: 1px solid var(--sheet-rule);
+}
+
+.merge-page__brand-name,
+.merge-page__option-name,
+.merge-page__next-title {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 800;
+  line-height: 0.95;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.merge-page__brand-name {
+  margin-block-end: calc(var(--spacing) * 4);
+  font-size: 2rem;
+}
+
+.merge-page__facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: calc(var(--spacing) * 2) calc(var(--spacing) * 6);
+  margin-block-start: calc(var(--spacing) * 6);
+}
+
+.merge-page__facts dt {
+  font-size: var(--text-xs-ui);
+  color: var(--sheet-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-wide);
+}
+
+.merge-page__table {
+  width: 100%;
+  font-size: 0.9375rem;
+  border-collapse: collapse;
+}
+
+.merge-page__table th,
+.merge-page__table td {
+  padding: calc(var(--spacing) * 3) calc(var(--spacing) * 4);
+  vertical-align: top;
+  text-align: start;
+  border-block-end: 1px solid var(--sheet-rule);
+}
+
+.merge-page__table thead th {
+  font-size: var(--text-xs-ui);
+  font-weight: 400;
+  color: var(--sheet-ink-soft);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-wide);
+}
+
+.merge-page__table tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.merge-page__table td:last-child {
+  color: var(--sheet-ink-soft);
+}
+
+.merge-page__option {
+  display: grid;
+  gap: calc(var(--spacing) * 8);
+  padding-block: calc(var(--spacing) * 12);
+  border-block-start: 1px solid var(--sheet-rule);
+}
+
+.merge-page__option-head {
+  display: flex;
+  gap: calc(var(--spacing) * 6);
+  align-items: baseline;
+}
+
+.merge-page__number {
+  font-size: var(--text-xs-ui);
+  font-variant-numeric: tabular-nums;
+  color: var(--review-accent);
+  letter-spacing: var(--tracking-micro-wide);
+}
+
+.merge-page__option-name {
+  font-size: clamp(2rem, 4.5vw, 4rem);
+}
+
+.merge-page__picture {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.merge-page__when .merge-page__label {
+  margin-block-end: calc(var(--spacing) * 2);
+}
+
+.merge-page__recommendation {
+  background: var(--sheet-tint);
+}
+
+.merge-page__quote {
+  max-width: 60ch;
+  margin-block-end: calc(var(--spacing) * 6);
+  font-size: 1.25rem;
+  line-height: 1.6;
+}
+
+.merge-page__next a {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding: calc(var(--spacing) * 10) calc(var(--spacing) * 12);
+}
+
+.merge-page__next-title {
+  font-size: 2.25rem;
+}
+
+@media (max-width: 48rem) {
+  .merge-page__head,
+  .merge-page__band,
+  .merge-page__next a {
+    padding-inline: calc(var(--spacing) * 6);
+  }
+
+  .merge-page__brand + .merge-page__brand {
+    border-block-start: 1px solid var(--sheet-rule);
+    border-inline-start: 0;
+  }
+
+  .merge-page__table thead {
+    display: none;
+  }
+
+  .merge-page__table tr {
+    display: grid;
+    padding-block: calc(var(--spacing) * 3);
+    border-block-end: 1px solid var(--sheet-rule);
+  }
+
+  .merge-page__table th,
+  .merge-page__table td {
+    padding: calc(var(--spacing) * 1) 0;
+    border: 0;
+  }
+}

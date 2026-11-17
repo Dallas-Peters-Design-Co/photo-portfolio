@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { hasMergeWriteup } from "../../config/brandMerge.js";
 import { isRichTextEmpty } from "../../config/proposal.js";
 import { PIN_KINDS, PIN_LABELS } from "../../config/review.js";
 import type { ReviewRecord } from "../services/reviewService";
@@ -51,9 +52,15 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
 };
 
 export function ReviewSidebar({
+  contents,
+  onMerge = false,
   ownerName,
   review,
 }: {
+  /** Another page's contents (the merge writeup's); the review's by default. */
+  contents?: DocEntry[];
+  /** On the merge writeup's page: the box links back to the review. */
+  onMerge?: boolean;
   ownerName: string;
   /** The review once it has loaded; the mark alone until then. */
   review: ReviewRecord | null;
@@ -67,14 +74,31 @@ export function ReviewSidebar({
             <p className="doc-shell__card-title">
               {review.clientName || review.brand?.name || review.title}
             </p>
-            <ReviewPdfButton slug={review.slug} />
+            {onMerge ? (
+              <Link
+                className="doc-shell__card-link"
+                to={`/review/${review.slug}`}
+              >
+                ← The review
+              </Link>
+            ) : (
+              <ReviewPdfButton slug={review.slug} />
+            )}
+            {!onMerge && hasMergeWriteup(review.doc.merge) ? (
+              <Link
+                className="doc-shell__card-link"
+                to={`/review/${review.slug}/merge`}
+              >
+                Brand merge writeup →
+              </Link>
+            ) : null}
           </>
         ) : null
       }
-      contents={review ? reviewContents(review) : []}
+      contents={contents ?? (review ? reviewContents(review) : [])}
       foot={
         <>
-          {review ? (
+          {review && !onMerge ? (
             <ul aria-label="Kinds of note" className="review-page__legend">
               {PIN_KINDS.map((kind) => (
                 <li

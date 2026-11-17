@@ -158,36 +158,21 @@ export const captureMessage = ({
   ].join("\n");
 
 /** Starts a capture. Resolves with the agent session's id. */
-export const startCapture = async (input: {
+export const startCapture = (input: {
   loginUrl: string | null;
   pages: number;
   url: string;
-}): Promise<string> => {
-  const res = await fetch(`${agentUrl()}/eve/v1/session`, {
-    body: JSON.stringify({
-      // The login page goes as client context: the agent's channel stores it
-      // before the model runs and never shows it to the model, so its log_in
-      // tool types credentials on that origin only, whatever a page says.
-      clientContext: { loginUrl: input.loginUrl ?? input.url },
-      message: captureMessage(input),
-      outputSchema: CAPTURE_SCHEMA,
-    }),
-    headers: headers(),
-    method: "POST",
+}): Promise<string> =>
+  startSession({
+    // The login page goes as client context: the agent's channel stores it
+    // before the model runs and never shows it to the model, so its log_in
+    // tool types credentials on that origin only, whatever a page says.
+    clientContext: { loginUrl: input.loginUrl ?? input.url },
+    message: captureMessage(input),
+    outputSchema: CAPTURE_SCHEMA,
   });
-  if (!res.ok) {
-    throw new Error(
-      `The audit agent refused the capture (${res.status}): ${(await res.text()).slice(0, 200)}`
-    );
-  }
-  const body = (await res.json()) as { sessionId?: string };
-  if (!body.sessionId) {
-    throw new Error("The audit agent returned no session.");
-  }
-  return body.sessionId;
-};
 
-interface Fact {
+export interface Fact {
   data?: Record<string, unknown> & {
     capability?: { name?: string };
     error?: { message?: string };
@@ -247,13 +232,7 @@ const settled = (
 ): CaptureState => {
   if (outcome !== "completed") {
     // The reason is on the session's end, which can be recorded after this.
-    const ended = facts.find(
-      (f) => f.type === "session.ended" && f.data?.error
-    );
-    return {
-      error: ended?.data?.error?.message ?? `The agent stopped (${outcome}).`,
-      state: "failed",
-    };
+    return { error: stoppedReason(facts, outcome), state: "failed" };
   }
   const value = (result ?? {}) as {
     checks?: unknown;
@@ -270,9 +249,22 @@ const settled = (
   };
 };
 
-/** Where a capture stands, from its recorded events. */
-export const captureState = (facts: Fact[]): CaptureState => {
-  let phase = "Starting the browser…";
+/** Where any agent session stands: still working, stopped, or its raw result. */
+export type SessionOutcome =
+  | { phase: string; state: "running" }
+  | { error: string; state: "failed" }
+  | {
+      facts: Fact[];
+      outcome: string | undefined;
+      result: unknown;
+      state: "settled";
+    };
+
+export const sessionOutcome = (
+  facts: Fact[],
+  firstPhase = "Starting the browser…"
+): SessionOutcome => {
+  let phase = firstPhase;
   let result: unknown;
   for (const fact of facts) {
     const data = fact.data ?? {};
@@ -286,14 +278,25 @@ export const captureState = (facts: Fact[]): CaptureState => {
         state: "failed",
       };
     } else if (fact.type === "turn.settled") {
-      return settled(facts, data.outcome, result);
+      return { facts, outcome: data.outcome, result, state: "settled" };
     }
   }
   return { phase, state: "running" };
 };
 
-/** Reads a capture's recorded events without waiting for more. */
-export const readCapture = async (sessionId: string): Promise<CaptureState> => {
+/** Why a settled session didn't complete, from its end record. */
+export const stoppedReason = (facts: Fact[], outcome: string | undefined) =>
+  facts.find((f) => f.type === "session.ended" && f.data?.error)?.data?.error
+    ?.message ?? `The agent stopped (${outcome}).`;
+
+/** Where a capture stands, from its recorded events. */
+export const captureState = (facts: Fact[]): CaptureState => {
+  const at = sessionOutcome(facts);
+  return at.state === "settled" ? settled(at.facts, at.outcome, at.result) : at;
+};
+
+/** A session's recorded events so far, without waiting for more. */
+export const readFacts = async (sessionId: string): Promise<Fact[]> => {
   const res = await fetch(
     `${agentUrl()}/eve/v1/session/${encodeURIComponent(sessionId)}/stream?follow=false`,
     { headers: headers() }
@@ -301,7 +304,34 @@ export const readCapture = async (sessionId: string): Promise<CaptureState> => {
   if (!res.ok) {
     throw new Error(`The audit agent could not be read (${res.status}).`);
   }
-  return captureState(parseFacts(await res.text()));
+  return parseFacts(await res.text());
+};
+
+/** Reads a capture's recorded events without waiting for more. */
+export const readCapture = async (sessionId: string): Promise<CaptureState> =>
+  captureState(await readFacts(sessionId));
+
+/** Starts an agent session with a message and the shape its answer must take. */
+export const startSession = async (input: {
+  clientContext?: Record<string, unknown>;
+  message: string;
+  outputSchema: Record<string, unknown>;
+}): Promise<string> => {
+  const res = await fetch(`${agentUrl()}/eve/v1/session`, {
+    body: JSON.stringify(input),
+    headers: headers(),
+    method: "POST",
+  });
+  if (!res.ok) {
+    throw new Error(
+      `The audit agent refused the request (${res.status}): ${(await res.text()).slice(0, 200)}`
+    );
+  }
+  const body = (await res.json()) as { sessionId?: string };
+  if (!body.sessionId) {
+    throw new Error("The audit agent returned no session.");
+  }
+  return body.sessionId;
 };
 
 /** Retires the agent session; its sandbox and browser go with it. */

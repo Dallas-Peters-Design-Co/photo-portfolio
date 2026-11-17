@@ -23,6 +23,7 @@ import { KitStyleSyncProvider } from "./kitStyleSync";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
+import { ReviewMergeEditor } from "./ReviewMergeEditor";
 import { ReviewScreenEditor } from "./ReviewScreenEditor";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
@@ -361,6 +362,18 @@ export function ReviewEditor({
               }))
             }
             sections={draft.doc.sections}
+          />
+
+          <ReviewMergeEditor
+            boardId={draft.doc.boardId}
+            merge={draft.doc.merge}
+            onChange={(update) =>
+              setDraft((d) => ({
+                ...d,
+                doc: { ...d.doc, merge: update(d.doc.merge) },
+              }))
+            }
+            slug={draft.slug}
           />
 
           <section className="space-y-3">

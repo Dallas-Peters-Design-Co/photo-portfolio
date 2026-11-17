@@ -64,6 +64,7 @@ const REVIEW: ReviewRecord = {
     closing: "",
     concepts: [],
     intro: "",
+    merge: null,
     screens: [],
     sections: [],
     summary: "",

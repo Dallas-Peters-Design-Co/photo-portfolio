@@ -147,6 +147,15 @@
   letter-spacing: -0.02em;
 }
 
+/* A link in the box to another page of the same document. */
+.doc-shell__card-link {
+  font-size: var(--text-xs-ui);
+  color: var(--doc-accent);
+  letter-spacing: var(--tracking-micro);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
 .doc-shell__actions {
   display: flex;
   flex-direction: column;

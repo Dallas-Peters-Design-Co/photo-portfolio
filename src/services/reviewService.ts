@@ -1,3 +1,4 @@
+import type { BrandMerge } from "../../config/brandMerge.js";
 import type {
   ReviewDoc,
   ReviewImage,
@@ -201,6 +202,38 @@ export const reviewsApi = {
     json(
       await fetch(reviewsPath(), { headers: jsonHeaders() }),
       "Could not load reviews"
+    ),
+
+  /** Starts the agent on a brand merge writeup. Returns its session. */
+  mergeStart: async (input: {
+    brandA: string;
+    brandB: string;
+    options: string[];
+  }): Promise<{ session: string }> =>
+    json(
+      await fetch(`${reviewsPath()}/explore`, {
+        body: JSON.stringify({ ...input, kind: "merge" }),
+        headers: jsonHeaders(),
+        method: "POST",
+      }),
+      "Could not start the writeup"
+    ),
+
+  /** Where an agent's brand merge writeup stands; when done, its text. */
+  mergeStatus: async (
+    session: string,
+    options: string[]
+  ): Promise<
+    | { state: "running"; phase: string }
+    | { state: "done"; writeup: Omit<BrandMerge, "brandA" | "brandB" | "hero"> }
+    | { state: "failed"; error: string }
+  > =>
+    json(
+      await fetch(
+        `${reviewsPath()}/explore?kind=merge&session=${encodeURIComponent(session)}&options=${encodeURIComponent(JSON.stringify(options))}`,
+        { headers: jsonHeaders() }
+      ),
+      "Could not check the writeup"
     ),
 
   remove: async (slug: string): Promise<void> => {
