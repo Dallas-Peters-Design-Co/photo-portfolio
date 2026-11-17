@@ -32,3 +32,41 @@ export type SocialPreviewId =
 export const isSocialPreviewId = (value: unknown): value is SocialPreviewId =>
   value === "artwork" ||
   SOCIAL_PREVIEW_OPTIONS.some((option) => option.id === value);
+
+/**
+ * Whose post a mock-up shows, as kept on a Social Preview node so a published
+ * board shows it to visitors (src/boards/studio/socialBrand.tsx).
+ */
+export interface SocialBrand {
+  /** "rolemodelsoftware", for @handles and Instagram names. */
+  handle: string;
+  initial: string;
+  /** The logo to put in avatars and page logos, if the kit has one. */
+  logoUrl: string | null;
+  name: string;
+  /** "rolemodelsoftware.com". */
+  site: string;
+}
+
+const brandText = (v: unknown, max = 200): string =>
+  typeof v === "string" ? v.trim().slice(0, max) : "";
+
+/** A node's saved brand, or null when it has none worth showing. */
+export const cleanSocialBrand = (value: unknown): SocialBrand | null => {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const raw = value as Record<string, unknown>;
+  const name = brandText(raw.name);
+  if (!name) {
+    return null;
+  }
+  const logo = brandText(raw.logoUrl, 2000);
+  return {
+    handle: brandText(raw.handle) || "yourbrand",
+    initial: brandText(raw.initial, 2) || name.charAt(0).toUpperCase(),
+    logoUrl: logo.startsWith("https://") ? logo : null,
+    name,
+    site: brandText(raw.site) || "yourbrand.com",
+  };
+};

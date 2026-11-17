@@ -16,6 +16,7 @@ import type { BoardItem } from "../../types";
 import { PANEL_GAP } from "../geometry/panelPlacement";
 import { useAnchoredPanel } from "../panels/useAnchoredPanel";
 import { SocialPreview } from "../studio/SocialPreview";
+import { SavedSocialBrand, savedSocialBrand } from "../studio/socialBrand";
 import "./SocialNode.css";
 
 /**
@@ -48,21 +49,23 @@ export function SocialNode({
 }) {
   return (
     <div className="social-node">
-      <SocialPreview platform={platformOf(item)}>
-        {imageUrl ? (
-          <img
-            alt="Connected frame artwork"
-            decoding="async"
-            height={1200}
-            src={imageUrl}
-            width={1200}
-          />
-        ) : (
-          <div className="social-node__empty">
-            Connect a frame to preview it
-          </div>
-        )}
-      </SocialPreview>
+      <SavedSocialBrand.Provider value={savedSocialBrand(item.config?.brand)}>
+        <SocialPreview platform={platformOf(item)}>
+          {imageUrl ? (
+            <img
+              alt="Connected frame artwork"
+              decoding="async"
+              height={1200}
+              src={imageUrl}
+              width={1200}
+            />
+          ) : (
+            <div className="social-node__empty">
+              Connect a frame to preview it
+            </div>
+          )}
+        </SocialPreview>
+      </SavedSocialBrand.Provider>
     </div>
   );
 }

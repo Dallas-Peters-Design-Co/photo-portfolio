@@ -4,6 +4,7 @@ import {
   bundleHeldImages,
 } from "../../config/nodes/bundle.js";
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
+import { cleanSocialBrand } from "../../config/socialPreview.js";
 import { UUID_RE } from "./boardItemParse.js";
 import { componentOf, parseStudioRecipe } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
@@ -166,6 +167,31 @@ export const ownedList = (value: unknown): string[] | undefined => {
  * to its default rather than failing — the same allowlist-then-fall-back
  * treatment api/ai/icon.ts gives an unknown style.
  */
+/**
+ * What one node type keeps of its own beyond its settings: what was dropped
+ * straight onto a Bundle (nothing kept these, so a dropped picture lasted
+ * until the board saved and was gone on the next load; capped at the count
+ * the node allows), and whose post a Social Preview shows, so visitors see it.
+ */
+const ownedByType = (
+  nodeType: string,
+  source: Record<string, unknown>
+): Record<string, unknown> => {
+  if (nodeType === "bundle") {
+    const images = bundleHeldImages(source);
+    const clips = bundleHeldClips(source);
+    return {
+      ...(images.length > 0 ? { images } : {}),
+      ...(clips.length > 0 ? { clips } : {}),
+    };
+  }
+  if (nodeType === "social") {
+    const brand = cleanSocialBrand(source.brand);
+    return brand ? { brand } : {};
+  }
+  return {};
+};
+
 export const parseNodeConfig = (
   nodeType: string,
   raw: unknown
@@ -202,19 +228,8 @@ export const parseNodeConfig = (
       config[key] = value.slice(0, max);
     }
   }
-  // What was uploaded straight onto a Bundle, pictures and clips. Nothing kept
-  // these, so a dropped picture lasted until the board saved and was gone on
-  // the next load; capped at the count the node itself allows.
-  if (nodeType === "bundle") {
-    const images = bundleHeldImages(source);
-    const clips = bundleHeldClips(source);
-    if (images.length > 0) {
-      config.images = images;
-    }
-    if (clips.length > 0) {
-      config.clips = clips;
-    }
-  }
+  // A Bundle's dropped pictures and clips; a Social Preview's brand.
+  Object.assign(config, ownedByType(nodeType, source));
   const excluded = ownedList(source.excluded);
   if (excluded) {
     config.excluded = excluded;

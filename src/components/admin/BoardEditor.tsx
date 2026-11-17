@@ -8,6 +8,7 @@ import {
 } from "../../../config/canvas.js";
 import { BoardCanvas } from "../../boards/BoardCanvas";
 import { BoardProviders } from "../../boards/BoardProviders";
+import { SocialBrandSync } from "../../boards/brand/SocialBrandSync";
 import { FloatingTools } from "../../boards/canvas/FloatingTools";
 import { useColorVarsDoc } from "../../boards/colorVars/ColorVarsContext";
 import type { DrawStyle } from "../../boards/drawing/DrawToolbar";
@@ -281,6 +282,7 @@ export function BoardEditor({
   );
   return (
     <BoardProviders boardId={boardId} colours={colours}>
+      <SocialBrandSync change={change} items={items} />
       {/* `text-board-ink` establishes the board's own writing color for
           everything inside. Without it the subtree inherits the *site's*
           foreground — the branded near-white that SiteSettingsProvider pins to

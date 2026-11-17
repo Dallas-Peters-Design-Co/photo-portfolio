@@ -1,23 +1,23 @@
+import { createContext, useContext } from "react";
 import type { LogoEntry } from "../../../config/brandKit";
+import {
+  cleanSocialBrand,
+  type SocialBrand,
+} from "../../../config/socialPreview";
+
+export type { SocialBrand } from "../../../config/socialPreview";
+
 import { useActiveBrand } from "../brand/ActiveBrand";
 
 /**
  * Whose post a social mock-up shows: the board's brand (the Brand panel's
  * choice, ActiveBrand.tsx) — its name, handle, website and logo — so a
  * preview reads as the real page rather than "Your Company" with a "Y".
- * With no brand chosen, or on a published board, the placeholders stay.
+ * The brand chosen is only remembered in the designer's browser, so each
+ * Social Preview node keeps a copy of it (config.brand, written by
+ * SocialBrandSync): a visitor to the published board, who has no brand
+ * chosen, sees that copy. With neither, the placeholders stay.
  */
-
-export interface SocialBrand {
-  /** "rolemodelsoftware", for @handles and Instagram names. */
-  handle: string;
-  initial: string;
-  /** The logo to put in avatars and page logos, if the kit has one. */
-  logoUrl: string | null;
-  name: string;
-  /** "rolemodelsoftware.com". */
-  site: string;
-}
 
 const PLACEHOLDER: SocialBrand = {
   handle: "yourbrand",
@@ -57,10 +57,17 @@ export const avatarLogo = (logos: LogoEntry[]): string | null => {
   return pick?.url ?? null;
 };
 
-export const useSocialBrand = (): SocialBrand => {
+/** A node's saved brand, or null when it has none worth showing. */
+export const savedSocialBrand = cleanSocialBrand;
+
+/** The brand saved on the Social Preview node being drawn, if any. */
+export const SavedSocialBrand = createContext<SocialBrand | null>(null);
+
+/** The board's chosen brand, as a mock-up shows it; null when none is chosen. */
+export const useChosenSocialBrand = (): SocialBrand | null => {
   const kit = useActiveBrand()?.kit;
   if (!kit) {
-    return PLACEHOLDER;
+    return null;
   }
   const handle = kit.name.toLowerCase().replace(NOT_HANDLE, "");
   return {
@@ -70,6 +77,13 @@ export const useSocialBrand = (): SocialBrand => {
     name: kit.name,
     site: siteOf(kit.resolvedDoc.websites) ?? `${handle || "yourbrand"}.com`,
   };
+};
+
+/** The chosen brand, else the one saved on the node, else the placeholders. */
+export const useSocialBrand = (): SocialBrand => {
+  const chosen = useChosenSocialBrand();
+  const saved = useContext(SavedSocialBrand);
+  return chosen ?? saved ?? PLACEHOLDER;
 };
 
 /** The brand's logo, or its initial when it has none. */

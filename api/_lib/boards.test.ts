@@ -214,3 +214,46 @@ describe("a browser node's settings", () => {
     expect(config.viewport).toBe("mobile");
   });
 });
+
+describe("a Social Preview on a published board", () => {
+  const social = (config: Record<string, unknown>): BoardItemRow =>
+    ({
+      ...stored(null),
+      config,
+      kind: "op",
+      node_type: "social",
+    }) as BoardItemRow;
+  const brand = {
+    handle: "pretext",
+    initial: "P",
+    logoUrl: "https://x.test/logo.svg",
+    name: "Pretext",
+    site: "pretext.ai",
+  };
+
+  it("keeps its brand through a save", () => {
+    const accepted = parseIncomingItem({
+      ...incoming({}),
+      config: { brand, platform: "instagram-post" },
+      kind: "op",
+      nodeType: "social",
+    });
+    expect(accepted?.config?.brand).toEqual(brand);
+  });
+
+  it("shows a visitor its platform and brand, and no other setting", () => {
+    const dto = rowToItemDto(
+      social({ brand, platform: "instagram-post", prompt: "secret" }),
+      { isPublicReader: true }
+    );
+    expect(dto.config).toEqual({ brand, platform: "instagram-post" });
+  });
+
+  it("still hides another node's settings from a visitor", () => {
+    const dto = rowToItemDto(
+      { ...social({ prompt: "secret" }), node_type: "generate" },
+      { isPublicReader: true }
+    );
+    expect(dto.config).toBeNull();
+  });
+});

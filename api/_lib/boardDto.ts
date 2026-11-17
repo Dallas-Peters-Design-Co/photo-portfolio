@@ -1,4 +1,5 @@
 import { isRunState, type RunState } from "../../config/nodeTypes.js";
+import { cleanSocialBrand } from "../../config/socialPreview.js";
 import { normalizeTextStyle } from "../../config/textStyle.js";
 import type {
   BoardDto,
@@ -53,6 +54,18 @@ export const readRunState = (value: unknown): RunState | null => {
   return value === "running" ? "idle" : value;
 };
 
+/** What a visitor sees of a node's settings: a mock-up's look, else none. */
+const publicOpConfig = (
+  nodeType: string | null | undefined,
+  config: Record<string, unknown> | null
+): Record<string, unknown> | null =>
+  nodeType === "social" && config
+    ? {
+        brand: cleanSocialBrand(config.brand),
+        platform: config.platform ?? null,
+      }
+    : null;
+
 export interface ItemDtoOptions {
   /**
    * Anonymous readers of a published board.
@@ -74,8 +87,12 @@ export const rowToItemDto = (
   // notes behind a picture rather than the picture. A published board shows
   // what was made, not how, so they do not travel to an anonymous reader.
   // A shader's settings are the artwork itself and must stay.
+  // A Social Preview is the exception: its platform and brand are the
+  // mock-up itself, not how a picture was made (socialBrand.tsx).
   config:
-    options.isPublicReader && row.kind === "op" ? null : jsonObject(row.config),
+    options.isPublicReader && row.kind === "op"
+      ? publicOpConfig(row.node_type, jsonObject(row.config))
+      : jsonObject(row.config),
   creditName: row.credit_name,
   creditUrl: row.credit_url,
   fontSize:
