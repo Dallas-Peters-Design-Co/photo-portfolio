@@ -1,10 +1,6 @@
 import type { RefObject } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  CANVAS_HEIGHT,
-  CANVAS_WIDTH,
-  MIN_ITEM_SIZE,
-} from "../../config/canvas.js";
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../../config/canvas.js";
 import { findOutputPort, withWire } from "../../config/graph.js";
 import type { PortType } from "../../config/nodeTypes.js";
 import type { BoardComment } from "../services/comments";
@@ -41,7 +37,7 @@ import {
   containedIndices as indicesWithin,
   topmostAt,
 } from "./geometry/hitTest";
-import { resizeBox } from "./geometry/resizeBox";
+import { minSizeFor, resizeBox } from "./geometry/resizeBox";
 import {
   applyMarquee,
   EMPTY_SELECTION,
@@ -885,7 +881,7 @@ export function BoardCanvas({
         handle: g.handle,
         lockAspect:
           isInstance && g.handle.length === 2 ? !e.shiftKey : e.shiftKey,
-        minSize: MIN_ITEM_SIZE,
+        minSize: minSizeFor(items[g.index], g.origin),
         origin: g.origin,
       });
       // Only the dragged edges snap. The pinned corner is the whole meaning of

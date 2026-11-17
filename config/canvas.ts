@@ -53,6 +53,13 @@ export const START_VIEW_HEIGHT = 3000;
 export const MIN_ITEM_SIZE = 40;
 
 /**
+ * How small a drawn mark may be dragged on the board: a letter from an
+ * ungrouped vector shape, a thin rule. MIN_ITEM_SIZE made a 20-unit letter
+ * jump to 40 the moment it was touched.
+ */
+export const MIN_DRAWING_SIZE = 4;
+
+/**
  * The smallest side a save keeps.
  *
  * Not MIN_ITEM_SIZE: that's how small a drag on the board may make something,

@@ -1,3 +1,4 @@
+import { MIN_DRAWING_SIZE, MIN_ITEM_SIZE } from "../../../config/canvas.js";
 import type { ResizeHandle } from "./alignmentGuides";
 import type { Box } from "./snapIndex";
 
@@ -123,3 +124,16 @@ export const anchorOf = (
     y: north ? box.y + box.height : box.y,
   };
 };
+
+/**
+ * The smallest a resize may make an item: a drawing (a vector letter, a
+ * rule) down to MIN_DRAWING_SIZE; anything else MIN_ITEM_SIZE, or its own
+ * size when it's already smaller, so touching it never makes it jump.
+ */
+export const minSizeFor = (
+  item: { kind: string } | undefined,
+  origin: { height: number; width: number }
+): number =>
+  item?.kind === "drawing"
+    ? MIN_DRAWING_SIZE
+    : Math.min(MIN_ITEM_SIZE, origin.width, origin.height);

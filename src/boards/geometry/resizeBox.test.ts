@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { anchorOf, resizeBox } from "./resizeBox";
+import { anchorOf, minSizeFor, resizeBox } from "./resizeBox";
 
 const ORIGIN = { height: 100, width: 200, x: 50, y: 40 };
 const MIN = 24;
@@ -100,5 +100,26 @@ describe("resizeBox — aspect lock", () => {
     const box = resize("se", 100, 1, true);
     expect(box.width).toBe(300);
     expect(box.height).toBeCloseTo(150, 6);
+  });
+});
+
+describe("how small a resize may go", () => {
+  it("lets a vector letter shrink, and never makes a small item jump", () => {
+    const letter = { height: 20, width: 12 };
+    const drawing = minSizeFor({ kind: "drawing" }, letter);
+    expect(drawing).toBe(4);
+    // Dragging a 12×20 letter's corner in by 2 keeps it 10×18, not 40×40.
+    const smaller = resizeBox({
+      dx: -2,
+      dy: -2,
+      handle: "se",
+      lockAspect: false,
+      minSize: drawing,
+      origin: { ...letter, x: 0, y: 0 },
+    });
+    expect({ h: smaller.height, w: smaller.width }).toEqual({ h: 18, w: 10 });
+    // A small note holds its size rather than snapping up to 40.
+    expect(minSizeFor({ kind: "note" }, { height: 30, width: 90 })).toBe(30);
+    expect(minSizeFor({ kind: "note" }, { height: 300, width: 90 })).toBe(40);
   });
 });
