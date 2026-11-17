@@ -113,6 +113,24 @@ const loadFont = (family: string, weight: string, italic: boolean) => {
   return font;
 };
 
+/**
+ * How much the browser thickens a face that has no bold of its own when
+ * it's set bold (Exposure, Climate Crisis: one weight each): Chromium's
+ * synthetic bold, an outline of 1/24 of the size at 9px easing to 1/32 at
+ * 36px and up. 0 when the font has the weight, or synthesis is off.
+ */
+const fakeBold = (css: CSSStyleDeclaration, font: Font, size: number) => {
+  const wanted = Number.parseInt(css.fontWeight, 10) || 400;
+  const os2 = font.tables.os2 as { usWeightClass?: number } | undefined;
+  const has = os2?.usWeightClass ?? 400;
+  const synthesis = css.getPropertyValue("font-synthesis-weight");
+  if (wanted < 600 || has >= 600 || synthesis === "none") {
+    return 0;
+  }
+  const t = Math.min(1, Math.max(0, (size - 9) / (36 - 9)));
+  return Math.round(size * (1 / 24 + (1 / 32 - 1 / 24) * t) * 100) / 100;
+};
+
 /** Every style that decides where the words fall, copied to the mirror. */
 const COPIED = [
   "boxSizing",
@@ -262,11 +280,15 @@ export const outlineTextLayer = async (
   if (parts.length === 0) {
     throw new Error("There are no letters to convert to a vector shape.");
   }
+  const fill = item.textStyle?.color ?? hexOf(css.color);
+  const bolder = fakeBold(css, font, size);
   const config: DrawingConfig = {
     d: parts.join(""),
-    fill: item.textStyle?.color ?? hexOf(css.color),
-    stroke: "#00000000",
-    strokeWidth: 0,
+    fill,
+    // A face with no bold, set bold, is thickened by the browser; the
+    // outline copies that, or the shape came out a weight lighter.
+    stroke: bolder > 0 ? fill : "#00000000",
+    strokeWidth: bolder,
     tool: "vector",
     viewHeight: el.offsetHeight,
     viewWidth: el.offsetWidth,

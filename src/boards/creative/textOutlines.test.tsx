@@ -113,3 +113,35 @@ it("reads the app's own faces from where they are, not by their CSS name", async
   expect(asked[2]).toContain("/api/brand-kits?");
   expect(asked[2]).toContain("outlineFont=p%3Afigtree");
 });
+
+it("thickens a one-weight face set bold, as the browser draws it", async () => {
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "/fonts/exposure.css";
+  document.head.append(link);
+  await new Promise((resolve) => link.addEventListener("load", resolve));
+  const convert = async (weight: number) => {
+    await document.fonts.load(`${weight} 80px "Exposure[0]"`);
+    const box = document.createElement("textarea");
+    box.value = "Bold";
+    box.style.cssText = `width:300px;height:110px;margin:0;padding:0;border:0;font:${weight} 80px/1.2 'Exposure[0]'`;
+    document.body.append(box);
+    const out = await outlineTextLayer(
+      layer({
+        body: "Bold",
+        textStyle: {
+          ...(layer().textStyle as TextStyle),
+          family: "exposure",
+          weight,
+        },
+      }),
+      box
+    );
+    box.remove();
+    return out.config as unknown as { stroke: string; strokeWidth: number };
+  };
+  const bold = await convert(700);
+  expect(bold.strokeWidth).toBeCloseTo(80 / 32, 1);
+  expect(bold.stroke).toBe("#112233");
+  expect((await convert(400)).strokeWidth).toBe(0);
+});
