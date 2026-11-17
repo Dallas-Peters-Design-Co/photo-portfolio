@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { useAnchoredPanel } from "../hooks/useAnchoredPanel";
 import { scaleResetOf } from "../io/adFrames";
+import { type Collectable, collectableUrls } from "../io/collectFrames";
 import {
   type CopyTarget,
   frameBoardTitle,
@@ -127,6 +129,26 @@ export function CanvasMenu({
     into: CollectTarget;
     urls: string[];
   } | null>(null);
+
+  /** Designed frames are drawn and uploaded first, so they go as one picture. */
+  const collect = async (
+    at: CanvasMenuTarget,
+    list: Collectable[],
+    into: CollectTarget
+  ) => {
+    const drawing = list.some((entry) => "frame" in entry);
+    const id = drawing ? toast.loading("Drawing the design…") : undefined;
+    try {
+      const urls = await collectableUrls(list, items);
+      toast.dismiss(id);
+      setCollecting({ for: at, into, urls });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't draw the design",
+        { id }
+      );
+    }
+  };
 
   const [naming, setNaming] = useState<{
     for: CanvasMenuTarget;
@@ -266,7 +288,7 @@ export function CanvasMenu({
         onAddEffects={onAddEffects}
         onArrange={onArrange}
         onBringToFront={onBringToFront}
-        onCollect={(urls, into) => setCollecting({ for: menu, into, urls })}
+        onCollect={(list, into) => void collect(menu, list, into)}
         onCopy={(frames) => setNaming({ for: menu, frames })}
         onDismiss={onDismiss}
         onExport={onExport}

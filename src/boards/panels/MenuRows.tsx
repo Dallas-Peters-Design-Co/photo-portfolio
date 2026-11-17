@@ -11,6 +11,7 @@ import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
 import { isDesignFrame } from "../geometry/frameLock";
 import { isSvgUrl } from "../io/affinity";
+import { type Collectable, collectablesFor } from "../io/collectFrames";
 import { frameSummary } from "../io/copyToBoard";
 import { downloadImage } from "../io/downloadImage";
 import { saveTargetOf } from "../io/saveTarget";
@@ -301,8 +302,11 @@ export function MenuRows({
   onAddEffects?: (itemId: string) => void;
   onArrange: (itemId: string) => void;
   onBringToFront: (itemId: string) => void;
-  /** Opens the collection panel on the pictures the selection can hand over. */
-  onCollect: (urls: string[], into: "collection" | "board") => void;
+  /**
+   * Opens the collection panel on what the selection can hand over: a
+   * designed frame as its design, everything else as its pictures.
+   */
+  onCollect: (list: Collectable[], into: "collection" | "board") => void;
   /** Copies frames to another board: the selected ones, or this one. */
   onCopy: (frames: BoardItem[]) => void;
   /** Closes the menu, for a row whose work outlives it. */
@@ -339,6 +343,7 @@ export function MenuRows({
   const pictures = selection.flatMap((item) =>
     outputImagesOf(item, { items, wires })
   );
+  const collectables = collectablesFor(selection, frame, { items, wires });
 
   // What a recipe would actually hold. Counted rather than assumed from the
   // selection length: selecting a node and the reference feeding it is two
@@ -406,11 +411,11 @@ export function MenuRows({
         </button>
       ) : null}
 
-      {pictures.length > 0 ? (
+      {collectables.length > 0 ? (
         <CollectionRow
           className={rowClass}
-          count={pictures.length}
-          onOpen={(into) => onCollect(pictures, into)}
+          count={collectables.length}
+          onOpen={(into) => onCollect(collectables, into)}
         />
       ) : null}
 
