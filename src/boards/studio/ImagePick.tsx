@@ -1,11 +1,23 @@
 import { Crosshair, Frame, ImageUp, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCollectionImages } from "../../hooks/useCollectionImages";
+import { useCollections } from "../../hooks/useCollections";
 import { hideFromShelf, restoreShelf, useShelf } from "./imageShelf";
+
+/** Where the grid's pictures come from: the board, or a collection's id. */
+const BOARD = "board";
 
 /**
  * Choosing a picture for a Studio tool: one just generated, one on the board,
- * or an upload. Whatever is chosen arrives as a local object URL, so a tool
+ * one in a collection, or an upload. Whatever is chosen arrives as a local object URL, so a tool
  * can read its pixels without the canvas refusing a picture from another site.
  */
 
@@ -50,7 +62,14 @@ export function ImagePick({
    */
   onPick: (url: string, source?: string, inPlace?: boolean) => void;
 }) {
-  const { hidden, urls: shelf } = useShelf();
+  const { hidden, urls: board } = useShelf();
+  const { collections } = useCollections();
+  const [from, setFrom] = useState(BOARD);
+  const { images: saved, isLoading: savedLoading } = useCollectionImages(
+    from === BOARD ? null : from
+  );
+  const inCollection = from !== BOARD;
+  const shelf = inCollection ? saved.map((item) => item.url) : board;
   const [more, setMore] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
   const shown = more ? shelf : shelf.slice(0, SHOWN);
@@ -85,6 +104,33 @@ export function ImagePick({
   return (
     <div className="studio__field studio-pick">
       <span>{label}</span>
+      {collections.length > 0 ? (
+        <Select
+          items={[
+            { label: "Board and generated", value: BOARD },
+            ...collections.map((c) => ({ label: c.name, value: c.id })),
+          ]}
+          onValueChange={(next) => {
+            if (next !== null) {
+              setFrom(next);
+              setMore(false);
+            }
+          }}
+          value={from}
+        >
+          <SelectTrigger aria-label="Pictures from" size="sm" tone="board">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={BOARD}>Board and generated</SelectItem>
+            {collections.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
       <div className="studio-pick__grid">
         <label className="studio-pick__upload" title="Upload a picture">
           {current && !chosen ? (
@@ -162,15 +208,17 @@ export function ImagePick({
             >
               <img alt="" height={48} loading="lazy" src={url} width={48} />
             </button>
-            <button
-              aria-label="Take this picture off the list"
-              className="studio-pick__remove"
-              onClick={() => hideFromShelf(url)}
-              title="Take it off this list (nothing is deleted)"
-              type="button"
-            >
-              <X aria-hidden size={10} />
-            </button>
+            {inCollection ? null : (
+              <button
+                aria-label="Take this picture off the list"
+                className="studio-pick__remove"
+                onClick={() => hideFromShelf(url)}
+                title="Take it off this list (nothing is deleted)"
+                type="button"
+              >
+                <X aria-hidden size={10} />
+              </button>
+            )}
           </span>
         ))}
       </div>
@@ -183,7 +231,7 @@ export function ImagePick({
           {more ? "Fewer" : `All ${shelf.length}`}
         </button>
       ) : null}
-      {hidden > 0 ? (
+      {hidden > 0 && !inCollection ? (
         <button
           className="studio-pick__more"
           onClick={restoreShelf}
@@ -193,9 +241,11 @@ export function ImagePick({
           Show {hidden} hidden
         </button>
       ) : null}
-      {shelf.length === 0 ? (
+      {shelf.length === 0 && !(inCollection && savedLoading) ? (
         <small className="studio-pick__empty">
-          Pictures you generate or place on the board show up here.
+          {inCollection
+            ? "No pictures in this collection."
+            : "Pictures you generate or place on the board show up here."}
         </small>
       ) : null}
     </div>

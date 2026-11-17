@@ -49,13 +49,27 @@ const cssOf = (colors: string[]) =>
     .map((c, i) => `  --color-${i + 1}: ${oklchOf(c)}; /* ${c} */`)
     .join("\n")}\n}`;
 
-export function SchemeTool({ onAdd }: { onAdd: (file: File) => void }) {
+export function SchemeTool({
+  onAdd,
+  selectedImage,
+}: {
+  onAdd: (file: File) => void;
+  /** The picture selected on the board, offered first. */
+  selectedImage?: string | null;
+}) {
   const { kit } = useKitPalette();
   // Kept per brand kit, so each brand's palette in progress is its own; and
   // a fresh builder per kit, so it opens on that kit's (the kit can arrive
   // a moment after the Studio does).
   const key = `studio:scheme:${kit?.id ?? "none"}`;
-  return <SchemeBuilder key={key} onAdd={onAdd} storageKey={key} />;
+  return (
+    <SchemeBuilder
+      key={key}
+      onAdd={onAdd}
+      selectedImage={selectedImage}
+      storageKey={key}
+    />
+  );
 }
 
 /** Which kit Save writes to and Load reads from. */
@@ -100,9 +114,11 @@ function KitPicker({
 
 function SchemeBuilder({
   onAdd,
+  selectedImage,
   storageKey,
 }: {
   onAdd: (file: File) => void;
+  selectedImage?: string | null;
   storageKey: string;
 }) {
   const { entries, kit, kits, save, saveTo, saving } = useKitPalette();
@@ -241,6 +257,7 @@ function SchemeBuilder({
           <ImagePick
             label="From a picture"
             onPick={(url) => void fromPicture(url)}
+            selectedImage={selectedImage}
           />
           <SchemeControls
             onChange={scheme.setSettings}

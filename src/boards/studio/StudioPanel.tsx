@@ -137,10 +137,16 @@ export function StudioPanel({
 
   const view = () => {
     if (toolId === "palette") {
-      return <PaletteTool onAdd={onAdd} onAddMany={onAddMany} />;
+      return (
+        <PaletteTool
+          onAdd={onAdd}
+          onAddMany={onAddMany}
+          selectedImage={selectedImage}
+        />
+      );
     }
     if (toolId === "scheme") {
-      return <SchemeTool onAdd={onAdd} />;
+      return <SchemeTool onAdd={onAdd} selectedImage={selectedImage} />;
     }
     if (toolId === "type-scale") {
       return (

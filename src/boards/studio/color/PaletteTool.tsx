@@ -54,11 +54,14 @@ export function PaletteTool({
   onAddMany,
   onAdd,
   rand = Math.random,
+  selectedImage,
 }: {
   onAddMany?: (files: File[]) => void;
   onAdd: (file: File) => void;
   /** Injectable for tests. */
   rand?: () => number;
+  /** The picture selected on the board, offered first. */
+  selectedImage?: string | null;
 }) {
   const { entries, kit, kits, saveTo, saving } = useKitPalette();
   const [harmony, setHarmony] = useState<Harmony>("random");
@@ -321,6 +324,7 @@ export function PaletteTool({
         <ImagePick
           label="From a picture"
           onPick={(url) => void fromPhoto(url)}
+          selectedImage={selectedImage}
         />
       </div>
       <div className="studio__actions">
