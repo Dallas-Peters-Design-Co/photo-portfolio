@@ -1,4 +1,12 @@
 import {
+  dialogMarkup,
+  inputMarkup,
+  menuMarkup,
+  selectMarkup,
+  toastMarkup,
+  withIcons,
+} from "./componentSourceKinds.js";
+import {
   cardMarkup,
   checkboxMarkup,
   type Draw,
@@ -116,37 +124,26 @@ const FOCUS_CSS = `&:focus-visible {
 
 const quote = (value: string): string => JSON.stringify(value);
 
-const optionsOf = (el: ReviewConceptElement, fallback: string[]): string[] =>
-  el.options?.length ? el.options : fallback;
-
 const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
   const byKind: Partial<Record<ReviewConceptElementKind, () => Markup>> = {
-    badge: () => ({ passChildren: true, tag: "span" }),
-    button: () => ({
-      attrs: 'type="button"',
-      css: `& { cursor: pointer; }\n${HOVER_CSS}\n${FOCUS_CSS}`,
-      passChildren: true,
-      props: "onClick",
-      tag: "button",
-    }),
+    badge: () => withIcons(el, { passChildren: true, tag: "span" }),
+    button: () =>
+      withIcons(el, {
+        attrs: 'type="button"',
+        css: `& { cursor: pointer; }\n${HOVER_CSS}\n${FOCUS_CSS}`,
+        passChildren: true,
+        props: "onClick",
+        tag: "button",
+      }),
     card: () => cardMarkup(el, draw),
     checkbox: () => checkboxMarkup(el),
-    dialog: () => ({
-      // A dialog is announced by its name: the first line of its text.
-      attrs: `role="dialog" aria-modal="true" aria-label=${quote(sampleText(el))}`,
-      passChildren: true,
-      tag: "div",
-    }),
+    dialog: () => dialogMarkup(el, sampleText(el)),
     divider: () => ({
       css: "& { border: 0; border-top: var(--&-border); padding: 0; margin: 0; }",
       tag: "hr",
     }),
     group: () => groupMarkup(el, draw),
-    input: () => ({
-      attrs: `type=${quote(el.inputType ?? "text")} placeholder=${quote(el.placeholder ?? "")}`,
-      css: FOCUS_CSS,
-      tag: "input",
-    }),
+    input: () => inputMarkup(el, FOCUS_CSS),
     label: () => ({ passChildren: true, tag: "label" }),
     link: () => ({
       attrs: 'href="#"',
@@ -154,28 +151,10 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
       passChildren: true,
       tag: "a",
     }),
-    menu: () => ({
-      attrs: 'role="menu"',
-      body: optionsOf(el, ["First", "Second"])
-        .map(
-          (o) =>
-            `<button role="menuitem" type="button">${escapeJsx(o)}</button>`
-        )
-        .join("\n"),
-      css: "& { display: grid; }\n& > button { all: unset; cursor: pointer; padding: var(--&-padding); }",
-      tag: "div",
-    }),
+    menu: () => menuMarkup(el),
     panel: () => panelMarkup(el, draw),
     progress: () => progressMarkup(el),
-    select: () => ({
-      // A select shows its value, not its purpose; the label says that.
-      attrs: `aria-label=${quote(el.placeholder || sampleText(el))}`,
-      body: optionsOf(el, ["First", "Second"])
-        .map((o) => `<option>${escapeJsx(o)}</option>`)
-        .join("\n"),
-      css: FOCUS_CSS,
-      tag: "select",
-    }),
+    select: () => selectMarkup(el, FOCUS_CSS),
     skeleton: () => ({
       attrs: 'aria-hidden="true"',
       css: "& { min-block-size: 1em; }",
@@ -183,18 +162,14 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
     }),
     table: () => tableMarkup(el),
     tabs: () => tabsMarkup(el),
-    tag: () => ({ passChildren: true, tag: "span" }),
+    tag: () => withIcons(el, { passChildren: true, tag: "span" }),
     text: () => ({ passChildren: true, tag: "p" }),
     textarea: () => ({
       attrs: `placeholder=${quote(el.placeholder ?? "")}`,
       css: FOCUS_CSS,
       tag: "textarea",
     }),
-    toast: () => ({
-      attrs: 'role="status"',
-      passChildren: true,
-      tag: "div",
-    }),
+    toast: () => toastMarkup(el),
     upload: () => ({
       body: `<input className="@@__input" type="file" />\n<span>{children}</span>${
         el.placeholder

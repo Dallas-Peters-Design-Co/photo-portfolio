@@ -23,9 +23,14 @@ export const withIconDrawings = (
 ): ReviewConceptElement => {
   const name = element.iconSvg ? null : conceptIconName(element.iconName);
   const svg = name ? lookup(name) : undefined;
+  const endName = element.iconEndSvg
+    ? null
+    : conceptIconName(element.iconEndName);
+  const endSvg = endName ? lookup(endName) : undefined;
   return {
     ...mapChildren(element, (child) => withIconDrawings(child, lookup)),
     ...(svg ? { iconSvg: svg } : {}),
+    ...(endSvg ? { iconEndSvg: endSvg } : {}),
   };
 };
 
@@ -76,27 +81,34 @@ export const HOVER_CSS = `&:hover {
   box-shadow: var(--&-hover-shadow, var(--&-shadow));
 }`;
 
-const indent = (text: string, by = "  "): string =>
+export const indent = (text: string, by = "  "): string =>
   text
     .split("\n")
     .map((line) => (line ? `${by}${line}` : line))
     .join("\n");
 
-/** A kit icon's drawing as an inline SVG, stroked in currentColor. */
-const svgJsx = (element: ReviewConceptElement): string => {
-  if (!element.iconSvg?.length) {
+/** An icon's drawing as an inline SVG under a class, stroked in currentColor. */
+export const iconSvgJsx = (
+  svg: ConceptIconSvg | undefined,
+  size: number,
+  cls = "@@__icon"
+): string => {
+  if (!svg?.length) {
     return "";
   }
-  const size = iconSizeOf(element);
-  const parts = element.iconSvg.map(([tag, attrs]) => {
+  const parts = svg.map(([tag, attrs]) => {
     const own = Object.entries(attrs)
       .filter(([key]) => key !== "key" && key !== "strokeWidth")
       .map(([key, value]) => `${key}=${JSON.stringify(String(value))}`)
       .join(" ");
     return `  <${tag} ${own} strokeWidth="2" />`;
   });
-  return `<svg className="@@__icon" width={${size}} height={${size}} viewBox="0 0 24 24" fill="none" aria-hidden="true">\n${parts.join("\n")}\n</svg>`;
+  return `<svg className="${cls}" width={${size}} height={${size}} viewBox="0 0 24 24" fill="none" aria-hidden="true">\n${parts.join("\n")}\n</svg>`;
 };
+
+/** A kit icon's drawing as an inline SVG, stroked in currentColor. */
+const svgJsx = (element: ReviewConceptElement): string =>
+  iconSvgJsx(element.iconSvg, iconSizeOf(element));
 
 const JUSTIFY = {
   between: "space-between",
