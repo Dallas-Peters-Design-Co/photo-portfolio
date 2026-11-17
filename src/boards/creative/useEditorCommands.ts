@@ -6,6 +6,7 @@ import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
 import {
   fitVectorBox,
+  groupVectors,
   isVectorShape,
   ungroupVector,
 } from "../drawing/vectorEdit";
@@ -275,6 +276,25 @@ export const useEditorCommands = ({
           chosen.filter(isVectorShape).map((l) => [l.id, fitVectorBox(l)])
         )
       ),
+    /** The chosen vector shapes joined into one, where the first was. */
+    group: () => {
+      const joinedShape = groupVectors(chosen);
+      if (!joinedShape) {
+        toast.message("Select two or more vector shapes to group.");
+        return;
+      }
+      const joined = new Set(
+        chosen
+          .filter((l) => l.id !== joinedShape.id && isVectorShape(l))
+          .map((l) => l.id)
+      );
+      write(
+        live.current
+          .filter((item) => !joined.has(item.id))
+          .map((item) => (item.id === joinedShape.id ? joinedShape : item))
+      );
+      selection.setIds([joinedShape.id]);
+    },
     ungroup: () => {
       const split = new Map(
         chosen.filter(isVectorShape).map((l) => [l.id, ungroupVector(l)])

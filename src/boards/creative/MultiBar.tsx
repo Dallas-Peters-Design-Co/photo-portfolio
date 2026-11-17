@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { BoardItem } from "../../types";
+import { isVectorShape } from "../drawing/vectorEdit";
 import { opacityOf, withOpacity } from "./layerOpacity";
 import { OpacityField } from "./OpacityField";
 import { SharedControls } from "./SharedControls";
@@ -85,6 +86,7 @@ export function MultiBar({
   onClear,
   onDelete,
   onDuplicate,
+  onGroupVectors,
   onPatch,
   onToBoard,
 }: {
@@ -92,6 +94,8 @@ export function MultiBar({
   onClear: () => void;
   onDelete: () => void;
   onDuplicate: () => void;
+  /** Joins the selected vector shapes into one (⌘G). */
+  onGroupVectors?: () => void;
   onPatch: (patches: Map<string, Partial<BoardItem>>) => void;
   onToBoard: () => void;
 }) {
@@ -103,6 +107,11 @@ export function MultiBar({
       <strong className="creative__count">{layers.length} layers</strong>
       <span className="creative__divider" />
       <SharedControls layers={layers} onPatch={onPatch} />
+      {onGroupVectors && layers.filter(isVectorShape).length > 1 ? (
+        <Icon label="Group into one vector shape (⌘G)" onClick={onGroupVectors}>
+          Group
+        </Icon>
+      ) : null}
       <span className="creative__divider" />
       <div className="creative__group">
         {ALIGNS.map((a) => (

@@ -44,7 +44,7 @@ export interface EditorOps {
   toBoard: (group: BoardItem[]) => void;
   ui: EditorUi;
   /** Vector shapes (vectorEdit.ts): box fitted to them, or split into letters. */
-  vector: { fit: () => void; ungroup: () => void };
+  vector: { fit: () => void; group: () => void; ungroup: () => void };
 }
 
 export const editorCommandList = (ops: EditorOps): Command[] => {
@@ -236,6 +236,14 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       id: "vector-fit",
       label: "Fit the box to the vector shape",
       run: vector.fit,
+    },
+    {
+      enabled: chosen.filter(isVectorShape).length > 1,
+      group: "Edit",
+      id: "vector-group",
+      keys: ["mod+g"],
+      label: "Group the vector shapes into one",
+      run: vector.group,
     },
     {
       enabled: chosen.some(isVectorShape),

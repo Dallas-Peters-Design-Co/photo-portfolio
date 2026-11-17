@@ -1,6 +1,11 @@
 import { expect, it } from "vitest";
 import type { BoardItem } from "../../types";
-import { fitVectorBox, pathBounds, ungroupVector } from "./vectorEdit";
+import {
+  fitVectorBox,
+  groupVectors,
+  pathBounds,
+  ungroupVector,
+} from "./vectorEdit";
 
 // Two letters in a 200×100 box: an "o" (outer square, hole) at 20..60, and
 // an "l" bar at 100..110, drawn into a layer twice that size.
@@ -50,4 +55,25 @@ it("ungroups into letters, each keeping its hole", () => {
   expect(holes?.filter(Boolean)).toHaveLength(2);
   expect({ w: o?.width, x: o?.x, y: o?.y }).toEqual({ w: 80, x: 1040, y: 540 });
   expect({ w: l?.width, x: l?.x, y: l?.y }).toEqual({ w: 20, x: 1200, y: 520 });
+});
+
+it("groups shapes back into one layer, letters where they were", () => {
+  const parts = ungroupVector(shape);
+  const one = groupVectors(parts);
+  expect(one).not.toBeNull();
+  expect({ h: one?.height, w: one?.width, x: one?.x, y: one?.y }).toEqual({
+    h: 100,
+    w: 180,
+    x: 1040,
+    y: 520,
+  });
+  // Drawn at its own box, the shapes sit where the ungrouped parts were.
+  const joined = (one?.config as { d?: string } | undefined)?.d ?? "";
+  expect(pathBounds(joined)).toEqual({
+    maxX: 180,
+    maxY: 100,
+    minX: 0,
+    minY: 0,
+  });
+  expect(groupVectors([shape])).toBeNull();
 });

@@ -339,6 +339,7 @@ export function CreativeEditor({
             onClear={() => selection.select(null)}
             onDelete={() => cmd.removeMany(chosen.map((l) => l.id))}
             onDuplicate={() => cmd.copyMany(chosen)}
+            onGroupVectors={cmd.vector.group}
             onPatch={patchMany}
             onToBoard={() => cmd.toBoard(chosen)}
           />

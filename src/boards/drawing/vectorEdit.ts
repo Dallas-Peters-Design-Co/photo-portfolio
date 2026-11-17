@@ -1,6 +1,7 @@
 import type { BoardItem } from "../../types";
 import { newItemId } from "../io/newItemId";
 import type { DrawingConfig } from "./drawing";
+import { scalePath } from "./shapes";
 
 /**
  * Editing a vector shape (text converted to outlines, textOutlines.ts)
@@ -181,4 +182,47 @@ export const ungroupVector = (item: BoardItem): BoardItem[] => {
     const pieceD = [outer.d, ...holes.map((h) => h.d)].join("");
     return layerFor(item, pieceD, outer.box, i === 0 ? item.id : newItemId());
   });
+};
+
+/**
+ * Several vector shapes as one layer: the inverse of ungroup. Each path is
+ * put into the board's units, moved to the shared box and joined, so the
+ * letters stay exactly where they are. One fill for the whole, the first
+ * shape's: a vector layer has one colour. Null when fewer than two can be
+ * joined (a rotated shape keeps its own layer).
+ */
+export const groupVectors = (layers: BoardItem[]): BoardItem | null => {
+  const shapes = layers.filter(
+    (l) => isVectorShape(l) && !(typeof l.rotation === "number" && l.rotation)
+  );
+  const [first] = shapes;
+  if (!first || shapes.length < 2) {
+    return null;
+  }
+  const minX = Math.min(...shapes.map((l) => l.x));
+  const minY = Math.min(...shapes.map((l) => l.y));
+  const maxX = Math.max(...shapes.map((l) => l.x + l.width));
+  const maxY = Math.max(...shapes.map((l) => l.y + l.height));
+  const d = shapes
+    .map((l) => {
+      const config = l.config as unknown as DrawingConfig;
+      const sx = l.width / (config.viewWidth || l.width);
+      const sy = l.height / (config.viewHeight || l.height);
+      return shift(scalePath(config.d ?? "", sx, sy), l.x - minX, l.y - minY);
+    })
+    .join("");
+  return {
+    ...first,
+    config: {
+      ...first.config,
+      d,
+      viewHeight: round(maxY - minY),
+      viewWidth: round(maxX - minX),
+    },
+    height: round(maxY - minY),
+    width: round(maxX - minX),
+    x: round(minX),
+    y: round(minY),
+    z: Math.max(...shapes.map((l) => l.z)),
+  };
 };

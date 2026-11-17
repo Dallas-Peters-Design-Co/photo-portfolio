@@ -67,7 +67,7 @@ interface ContextBarProps {
   /** Off the frame and back onto the board. */
   onToBoard: () => void;
   /** A vector shape's box fitted to it, or the shape split into letters. */
-  onVector?: { fit: () => void; ungroup: () => void };
+  onVector?: { fit: () => void; group: () => void; ungroup: () => void };
 }
 
 function IconButton({
