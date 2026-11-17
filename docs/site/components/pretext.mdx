@@ -7,7 +7,7 @@ description: "24 components from the Pretext brand kit, as React and CSS to copy
 
 Each component below is drawn with the Pretext brand kit's style. Copy the React file and its CSS into your project. The look is in the custom properties at the top of the CSS.
 
-**Accessibility:** 16 of 24 components pass an automated scan with axe-core 4.14.0 against WCAG 2.2 AA. Each component is scanned in a browser as drawn here, at rest. Hover and focus states, keyboard use and screen reader output still need a person to check.
+**Accessibility:** 18 of 24 components pass an automated scan with axe-core 4.14.0 against WCAG 2.2 AA. Each component is scanned in a browser as drawn here, at rest. Hover and focus states, keyboard use and screen reader output still need a person to check.
 
 ## Button · Primary
 
@@ -184,8 +184,8 @@ export function ButtonSecondary({ className, children = "Get started", onClick }
 
 ```css ButtonSecondary.css
 .button-secondary {
-  --button-secondary-background: #031b23;
-  --button-secondary-color: #d0fbe9;
+  --button-secondary-background: #486dca;
+  --button-secondary-color: #f8f9f9;
   --button-secondary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-secondary-font-size: 14px;
   --button-secondary-font-weight: 500;
@@ -229,11 +229,9 @@ export function ButtonSecondary({ className, children = "Get started", onClick }
 
 <PreviewButtonNoBorder />
 
-<Warning>
-**Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
-
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.8:1, needs 4.5:1 (#009387 on #ffffff). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
-</Warning>
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 4 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx ButtonNoBorder.tsx
@@ -259,7 +257,7 @@ export function ButtonNoBorder({ className, children = "Get started", onClick }:
 ```css ButtonNoBorder.css
 .button-no-border {
   --button-no-border-background: transparent;
-  --button-no-border-color: #009387;
+  --button-no-border-color: #486dca;
   --button-no-border-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-no-border-font-size: 14px;
   --button-no-border-font-weight: 600;
@@ -268,7 +266,7 @@ export function ButtonNoBorder({ className, children = "Get started", onClick }:
   --button-no-border-radius: 6px;
   --button-no-border-border: none;
   --button-no-border-shadow: none;
-  --button-no-border-icon-color: #009387;
+  --button-no-border-icon-color: #486dca;
 
   box-sizing: border-box;
   background: var(--button-no-border-background);
@@ -304,7 +302,7 @@ export function ButtonNoBorder({ className, children = "Get started", onClick }:
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.87:1, needs 4.5:1 (#623b17 on #f48800). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.35:1, needs 4.5:1 (#f8f9f9 on #f9470b). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
@@ -329,17 +327,17 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
 
 ```css BadgeWarning.css
 .badge-warning {
-  --badge-warning-background: #f48800;
-  --badge-warning-color: #623b17;
+  --badge-warning-background: #f9470b;
+  --badge-warning-color: #f8f9f9;
   --badge-warning-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-warning-font-size: 14px;
   --badge-warning-font-weight: 600;
   --badge-warning-line-height: 1;
   --badge-warning-padding: 4px 12px;
   --badge-warning-radius: 48px;
-  --badge-warning-border: 1px solid #f48800;
+  --badge-warning-border: 1px solid #f9470b;
   --badge-warning-shadow: none;
-  --badge-warning-icon-color: #f48800;
+  --badge-warning-icon-color: #f9470b;
 
   box-sizing: border-box;
   background: var(--badge-warning-background);
@@ -363,7 +361,7 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.24:1, needs 4.5:1 (#009387 on #def1ef). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 4.45:1, needs 4.5:1 (#486dca on #f2f5fb). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
@@ -388,15 +386,15 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 
 ```css BadgeNotes.css
 .badge-notes {
-  --badge-notes-background: #00938721;
-  --badge-notes-color: #009387;
+  --badge-notes-background: #486dca12;
+  --badge-notes-color: #486dca;
   --badge-notes-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-notes-font-size: 14px;
   --badge-notes-font-weight: 600;
   --badge-notes-line-height: 1;
   --badge-notes-padding: 4px 12px;
   --badge-notes-radius: 48px;
-  --badge-notes-border: 1px solid #009387;
+  --badge-notes-border: 1px solid #486dca;
   --badge-notes-shadow: none;
   --badge-notes-icon-color: #009387;
 
@@ -419,9 +417,11 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 
 <PreviewBadgeSuccess />
 
-<Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
-</Check>
+<Warning>
+**Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
+
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.57:1, needs 4.5:1 (#022732 on #3d8570). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+</Warning>
 
 <CodeGroup>
 ```tsx BadgeSuccess.tsx
@@ -445,15 +445,15 @@ export function BadgeSuccess({ className, children = "New" }: BadgeSuccessProps)
 
 ```css BadgeSuccess.css
 .badge-success {
-  --badge-success-background: #1a5c2a;
-  --badge-success-color: #f2f0e7;
+  --badge-success-background: #3d8570;
+  --badge-success-color: #022732;
   --badge-success-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-success-font-size: 14px;
   --badge-success-font-weight: 600;
   --badge-success-line-height: 1;
   --badge-success-padding: 4px 16px;
   --badge-success-radius: 48px;
-  --badge-success-border: 1px solid #1a5c2a;
+  --badge-success-border: 1px solid #3d8570;
   --badge-success-shadow: none;
 
   box-sizing: border-box;
@@ -526,7 +526,7 @@ export function CardPrimary({ className, children = "Supporting copy goes here."
   --card-primary-shadow: 0px 0px 0px 2px color-mix(in srgb, #000000 11%, transparent);
   --card-primary-body-size: 16px;
   --card-primary-title-weight: 600;
-  --card-primary-icon-color: #009387;
+  --card-primary-icon-color: #486dca;
   --card-primary-icon-size: 20px;
 
   box-sizing: border-box;
@@ -622,7 +622,7 @@ export function CardStats({ className, children = "Supporting copy goes here.", 
   --card-stats-shadow: 0px 0px 0px 2px color-mix(in srgb, #000000 5%, transparent);
   --card-stats-body-size: 17px;
   --card-stats-title-weight: 600;
-  --card-stats-icon-color: #009387;
+  --card-stats-icon-color: #486dca;
   --card-stats-icon-size: 22px;
   --card-stats-hover-background: #00289d14;
 
@@ -1203,8 +1203,8 @@ export function TabsPrimary({
 
 ```css TabsPrimary.css
 .tabs-primary {
-  --tabs-primary-background: #f2f2f2;
-  --tabs-primary-color: #000000;
+  --tabs-primary-background: #ffffff00;
+  --tabs-primary-color: #022732;
   --tabs-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --tabs-primary-font-size: 14px;
   --tabs-primary-font-weight: 600;
@@ -1213,14 +1213,14 @@ export function TabsPrimary({
   --tabs-primary-radius: 0px;
   --tabs-primary-border: none;
   --tabs-primary-shadow: none;
-  --tabs-primary-hover-color: #00289d;
+  --tabs-primary-hover-color: #486dca;
   --tabs-primary-tab-padding-x: 13px;
   --tabs-primary-tab-height: 52px;
-  --tabs-primary-tab-active: #00289d;
+  --tabs-primary-tab-active: #486dca;
   --tabs-primary-tab-inactive: #5b5952;
-  --tabs-primary-tab-indicator: #00289d;
+  --tabs-primary-tab-indicator: #486dca;
   --tabs-primary-tab-indicator-size: 5px;
-  --tabs-primary-tab-hover: #00289d;
+  --tabs-primary-tab-hover: #486dca;
 
   box-sizing: border-box;
   background: var(--tabs-primary-background);
@@ -1251,7 +1251,7 @@ export function TabsPrimary({
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.87:1, needs 4.5:1 (#623b17 on #f48800); 3.33:1, needs 4.5:1 (#f2f0e7 on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.35:1, needs 4.5:1 (#f8f9f9 on #f9470b); 3.33:1, needs 4.5:1 (#f2f0e7 on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
@@ -1304,10 +1304,10 @@ export function TablePrimary({ className }: TablePrimaryProps) {
   --table-primary-line-height: 1.25;
   --table-primary-padding: 0;
   --table-primary-radius: 8px;
-  --table-primary-border: 1px solid #bdbcbb;
+  --table-primary-border: 1px solid #acb3ad;
   --table-primary-shadow: 0px 0px 0px 3px color-mix(in srgb, #000000 7%, transparent);
-  --table-primary-head-background: #1c1b1b;
-  --table-primary-head-color: #f2f0e7;
+  --table-primary-head-background: #022732;
+  --table-primary-head-color: #f8f9f9;
 
   box-sizing: border-box;
   background: var(--table-primary-background);
@@ -1340,11 +1340,11 @@ export function TablePrimary({ className }: TablePrimaryProps) {
 .table-primary__progress-head { display: flex; gap: 0.5em; align-items: baseline; justify-content: space-between; }
 .table-primary__bar { display: block; block-size: 6px; overflow: hidden; background: color-mix(in srgb, currentColor 12%, transparent); border-radius: 999px; }
 .table-primary__bar > span { display: block; block-size: 100%; background: var(--table-primary-tint); border-radius: inherit; }
-.table-primary th, .table-primary td { border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent); }
-.table-primary td:nth-child(2) { --table-primary-tint: #623b17; }
-.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f48800; border: 1px solid #f48800; border-radius: 48px; color: #623b17; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
-.table-primary td:nth-child(3) { --table-primary-tint: #623b17; }
-.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f48800; border: 1px solid #f48800; border-radius: 48px; color: #623b17; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.table-primary th, .table-primary td { border-bottom: 1px solid #acb3ad; }
+.table-primary td:nth-child(2) { --table-primary-tint: #f8f9f9; }
+.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9470b; border: 1px solid #f9470b; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.table-primary td:nth-child(3) { --table-primary-tint: #f8f9f9; }
+.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9470b; border: 1px solid #f9470b; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .table-primary td:nth-child(4) { --table-primary-tint: #f2f0e7; }
 .table-primary td:nth-child(4) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #009387; border: none; border-radius: 39px; box-shadow: 0px 0px 0px 3px color-mix(in srgb, #009387 40%, transparent); color: #f2f0e7; font-size: 15px; font-weight: 500; line-height: 1.25; padding: 11px 18px; }
 ```
@@ -1386,8 +1386,8 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 
 ```css ToastPrimary.css
 .toast-primary {
-  --toast-primary-background: #000000;
-  --toast-primary-color: #bdbcbb;
+  --toast-primary-background: #022732;
+  --toast-primary-color: #f8f9f9;
   --toast-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --toast-primary-font-size: 16px;
   --toast-primary-font-weight: 500;
@@ -1423,13 +1423,11 @@ export function ToastPrimary({ className, children = "Changes saved" }: ToastPri
 
 <PreviewPanelPrimary />
 
-<Warning>
-**Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
-
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.8:1, needs 4.5:1 (#ffffff on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 20 WCAG 2.2 AA checks on this component.
 
 Needs a person to check: Elements must meet minimum color contrast ratio thresholds.
-</Warning>
+</Check>
 
 <CodeGroup>
 ```tsx PanelPrimary.tsx
@@ -1500,7 +1498,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
   --panel-primary-line-height: 1.25;
   --panel-primary-padding: 0px 0px;
   --panel-primary-radius: 12px;
-  --panel-primary-border: 1px solid #b9bfb9;
+  --panel-primary-border: 1px solid #acb3ad;
   --panel-primary-shadow: 0px 0px 0px 3px color-mix(in srgb, #000000 8%, transparent);
 
   box-sizing: border-box;
@@ -1534,14 +1532,14 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 
 .panel-primary__header-1 {
   --panel-primary__header-1-background: #eef4ff;
-  --panel-primary__header-1-color: #132218;
+  --panel-primary__header-1-color: #3538cd;
   --panel-primary__header-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__header-1-font-size: 14px;
   --panel-primary__header-1-font-weight: 600;
   --panel-primary__header-1-line-height: 1.25;
   --panel-primary__header-1-padding: 8px 12px;
   --panel-primary__header-1-radius: 999px;
-  --panel-primary__header-1-border: 1px solid #b9bfb9;
+  --panel-primary__header-1-border: 1px solid #acb3ad;
   --panel-primary__header-1-shadow: none;
 
   box-sizing: border-box;
@@ -1558,7 +1556,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 }
 .panel-primary__body-1 {
   --panel-primary__body-1-background: #e4e7ec;
-  --panel-primary__body-1-color: #132218;
+  --panel-primary__body-1-color: #172033;
   --panel-primary__body-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__body-1-font-size: 14px;
   --panel-primary__body-1-font-weight: 400;
@@ -1567,7 +1565,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
   --panel-primary__body-1-radius: 999px;
   --panel-primary__body-1-border: none;
   --panel-primary__body-1-shadow: none;
-  --panel-primary__body-1-accent: #009387;
+  --panel-primary__body-1-accent: #486dca;
   --panel-primary__body-1-bar-height: 8px;
 
   box-sizing: border-box;
@@ -1590,7 +1588,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 .panel-primary__body-1__fill { display: block; block-size: 100%; background: var(--panel-primary__body-1-accent, currentColor); border-radius: inherit; }
 .panel-primary__body-2 {
   --panel-primary__body-2-background: transparent;
-  --panel-primary__body-2-color: #132218;
+  --panel-primary__body-2-color: #172033;
   --panel-primary__body-2-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__body-2-font-size: 14px;
   --panel-primary__body-2-font-weight: 400;
@@ -1599,7 +1597,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
   --panel-primary__body-2-radius: 0px;
   --panel-primary__body-2-border: none;
   --panel-primary__body-2-shadow: none;
-  --panel-primary__body-2-accent: #009387;
+  --panel-primary__body-2-accent: #486dca;
   --panel-primary__body-2-check-size: 18px;
 
   box-sizing: border-box;
@@ -1618,7 +1616,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
 .panel-primary__body-2 { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
 .panel-primary__body-2 > input { accent-color: var(--panel-primary__body-2-accent); inline-size: var(--panel-primary__body-2-check-size, 1em); block-size: var(--panel-primary__body-2-check-size, 1em); margin: 0; }
 .panel-primary__footer-1 {
-  --panel-primary__footer-1-background: #009387;
+  --panel-primary__footer-1-background: #486dca;
   --panel-primary__footer-1-color: #ffffff;
   --panel-primary__footer-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__footer-1-font-size: 14px;
@@ -1654,8 +1652,8 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
   outline-offset: 2px;
 }
 .panel-primary__hide-1 {
-  --panel-primary__hide-1-background: #f2f4f7;
-  --panel-primary__hide-1-color: #132218;
+  --panel-primary__hide-1-background: #93bfb5;
+  --panel-primary__hide-1-color: #344054;
   --panel-primary__hide-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__hide-1-font-size: 14px;
   --panel-primary__hide-1-font-weight: 600;
@@ -1664,9 +1662,9 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
   --panel-primary__hide-1-radius: 999px;
   --panel-primary__hide-1-border: 0px solid transparent;
   --panel-primary__hide-1-shadow: none;
-  --panel-primary__hide-1-icon-color: #132218;
+  --panel-primary__hide-1-icon-color: #344054;
   --panel-primary__hide-1-icon-size: 16px;
-  --panel-primary__hide-1-hover-background: #b9bfb9;
+  --panel-primary__hide-1-hover-background: #acb3ad;
 
   box-sizing: border-box;
   background: var(--panel-primary__hide-1-background);
@@ -1733,7 +1731,7 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
 
 ```css ProgressPrimary.css
 .progress-primary {
-  --progress-primary-background: #bdbcbb;
+  --progress-primary-background: #acb3ad;
   --progress-primary-color: #000000;
   --progress-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --progress-primary-font-size: 14px;
@@ -1743,7 +1741,7 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
   --progress-primary-radius: 0px;
   --progress-primary-border: none;
   --progress-primary-shadow: none;
-  --progress-primary-accent: #009387;
+  --progress-primary-accent: #486dca;
   --progress-primary-bar-height: 4px;
 
   box-sizing: border-box;
@@ -1797,7 +1795,7 @@ export function TagDefault({ className, children = "Design" }: TagDefaultProps) 
 
 ```css TagDefault.css
 .tag-default {
-  --tag-default-background: #b9bfb9;
+  --tag-default-background: #acb3ad;
   --tag-default-color: #000000;
   --tag-default-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --tag-default-font-size: 13px;
@@ -1805,7 +1803,7 @@ export function TagDefault({ className, children = "Design" }: TagDefaultProps) 
   --tag-default-line-height: 1;
   --tag-default-padding: 5px 12px;
   --tag-default-radius: 32px;
-  --tag-default-border: 1px solid #b9bfb9;
+  --tag-default-border: 1px solid #acb3ad;
   --tag-default-shadow: none;
   --tag-default-hover-background: #5b5952;
   --tag-default-hover-color: #f2f2f2;
@@ -1829,11 +1827,9 @@ export function TagDefault({ className, children = "Design" }: TagDefaultProps) 
 
 <PreviewLinkPrimary />
 
-<Warning>
-**Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
-
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.8:1, needs 4.5:1 (#009387 on #ffffff). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
-</Warning>
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 3 WCAG 2.2 AA checks on this component.
+</Check>
 
 <CodeGroup>
 ```tsx LinkPrimary.tsx
@@ -1858,7 +1854,7 @@ export function LinkPrimary({ className, children = "Learn more" }: LinkPrimaryP
 ```css LinkPrimary.css
 .link-primary {
   --link-primary-background: transparent;
-  --link-primary-color: #009387;
+  --link-primary-color: #486dca;
   --link-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --link-primary-font-size: 14px;
   --link-primary-font-weight: 400;
@@ -1867,7 +1863,7 @@ export function LinkPrimary({ className, children = "Learn more" }: LinkPrimaryP
   --link-primary-radius: 0px;
   --link-primary-border: none;
   --link-primary-shadow: none;
-  --link-primary-hover-color: #3d5a45;
+  --link-primary-hover-color: #022732;
 
   box-sizing: border-box;
   background: var(--link-primary-background);
