@@ -164,7 +164,11 @@ const drawText = (
   const font = `${css.fontStyle} ${css.fontWeight} ${size}px ${css.fontFamily}`;
   ctx.font = font;
   ctx.fillStyle = css.color;
-  ctx.textBaseline = "top";
+  // From the baseline, as CSS sets a line: the font's own ascent and descent
+  // centred in the line height. "top" put the em box's top there instead,
+  // which for a display face with a tall ascent lifted the words ~4% of the
+  // frame above where the page draws them.
+  ctx.textBaseline = "alphabetic";
   ctx.fontKerning = css.fontKerning === "none" ? "none" : "normal";
   const tracking = Number.parseFloat(css.letterSpacing);
   if ("letterSpacing" in ctx && Number.isFinite(tracking)) {
@@ -187,10 +191,13 @@ const drawText = (
   ctx.textAlign = align === "center" ? "center" : side;
   const edge = side === "right" ? w - pad : pad;
   const x = align === "center" ? w / 2 : edge;
-  // Half-leading, as CSS centres the glyphs in the line box.
-  const leading = (lineHeight - size) / 2;
+  const metrics = ctx.measureText("Hg");
+  const ascent = metrics.fontBoundingBoxAscent ?? size * 0.8;
+  const descent = metrics.fontBoundingBoxDescent ?? size * 0.2;
+  // Half-leading, as CSS centres the font's content area in the line box.
+  const baseline = (lineHeight - ascent - descent) / 2 + ascent;
   wrap(ctx, body, inner).forEach((line, i) => {
-    const y = padTop + i * lineHeight + leading;
+    const y = padTop + i * lineHeight + baseline;
     if (outline) {
       // Under the fill, as paint-order draws it on the page.
       ctx.lineJoin = "round";
