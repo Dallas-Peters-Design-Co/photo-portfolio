@@ -351,6 +351,7 @@ export function CreativeEditor({
             onDuplicate={() => cmd.copyMany([selected])}
             onEditInStudio={studioEditorFor(selected)}
             onFillFromStudio={() => fillWithStudio(selected)}
+            onOutline={cmd.outline}
             onPatch={(next) => patch(selected.id, next)}
             onReorder={(how) => cmd.order(selected.id, how)}
             onToBoard={() => cmd.toBoard([selected])}

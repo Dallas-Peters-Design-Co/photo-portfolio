@@ -59,6 +59,8 @@ interface ContextBarProps {
   onEditInStudio?: () => void;
   /** Opens the Studio to fill the selected shape. */
   onFillFromStudio?: () => void;
+  /** Turns the text into vector outlines (⇧⌘O). */
+  onOutline?: () => void;
   onPatch: (patch: Partial<BoardItem>) => void;
   onReorder: (how: Reorder) => void;
   /** Off the frame and back onto the board. */
@@ -254,6 +256,7 @@ export function ContextBar({
   onDuplicate,
   onEditInStudio,
   onFillFromStudio,
+  onOutline,
   onPatch,
   onReorder,
   onToBoard,
@@ -266,6 +269,14 @@ export function ContextBar({
         <>
           <TextControls item={item} onPatch={onPatch} />
           <TextFitControl item={item} onPatch={onPatch} />
+          {onOutline ? (
+            <IconButton
+              label="Convert text to outlines (⇧⌘O)"
+              onClick={onOutline}
+            >
+              Outlines
+            </IconButton>
+          ) : null}
         </>
       ) : null}
       {kind === "shape" && isDrawingConfig(item.config) ? (

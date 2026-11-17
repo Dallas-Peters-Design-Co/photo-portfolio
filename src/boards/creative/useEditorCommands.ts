@@ -303,6 +303,8 @@ export const useEditorCommands = ({
     copyMoved,
     one,
     order,
+    /** ⇧⌘O, also the Outlines button on a text layer's bar. */
+    outline: () => void outline(),
     patch,
     patchMany,
     removeMany,
