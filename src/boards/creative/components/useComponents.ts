@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useConfirm } from "../../../components/admin/ConfirmProvider";
 import type { BoardItem } from "../../../types";
 import { useActiveBrand } from "../../brand/ActiveBrand";
+import { syncKitLogos } from "../../components/logoSync";
 import {
   type BrandComponent,
   type ComponentProp,
@@ -434,6 +435,19 @@ export const useComponents = ({
       select([back.id]);
       if (save) {
         toast.success(`${component.name} saved. Every copy has the change.`);
+        // A brand logo drawn from this component follows it.
+        const saved = component;
+        syncKitLogos(saved)
+          .then((n) => {
+            if (n > 0) {
+              toast.success(
+                `The brand's ${n === 1 ? "logo" : `${n} logos`} now show the new ${saved.name}.`
+              );
+            }
+          })
+          .catch((e: Error) =>
+            toast.error(`Couldn't update the brand logo: ${e.message}`)
+          );
       }
     },
     [editing, frame, keep, onChange, select]

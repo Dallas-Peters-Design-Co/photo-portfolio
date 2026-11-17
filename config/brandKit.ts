@@ -73,6 +73,11 @@ export interface TypefaceEntry {
 export interface LogoEntry {
   /** Minimum clear space as a fraction of the logo's own width. */
   clearSpace: number;
+  /**
+   * A canvas component this logo is drawn from: saving the component draws
+   * it again and puts the new picture here (src/boards/components/logoSync.ts).
+   */
+  componentId?: string;
   label: string;
   /** Below this width the mark stops being legible. In pixels. */
   minWidth: number;
@@ -300,6 +305,9 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
              size. Bounded at 4 because eight logo-widths of air is not clear
              space, it is a mistake. */
           clearSpace: Math.min(Math.max(Number(e.clearSpace) || 0, 0), 4),
+          ...(typeof e.componentId === "string" && UUID.test(e.componentId)
+            ? { componentId: e.componentId.toLowerCase() }
+            : {}),
           label: clampText(e.label, MAX_KIT_NAME),
           minWidth: Math.min(Math.max(Number(e.minWidth) || 0, 0), 4096),
           rules: clampText(e.rules, MAX_RULE_TEXT),

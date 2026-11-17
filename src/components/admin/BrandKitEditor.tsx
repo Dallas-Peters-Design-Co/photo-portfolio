@@ -23,6 +23,7 @@ import {
   PaletteEditor,
 } from "./BrandKitFields";
 import { LibraryPicker } from "./BrandKitLibrary";
+import { BrandKitLogoLink } from "./BrandKitLogoLink";
 import { BrandKitPaletteLink, usePaletteSource } from "./BrandKitPaletteLink";
 import { FormatPreviews, PalettePreview } from "./BrandKitPreviews";
 import { BrandKitShaders } from "./BrandKitShaders";
@@ -285,11 +286,14 @@ export function KitEditor({
         {block(
           "logos",
           "Logos",
-          <LogoEditor
-            doc={doc}
-            onChange={setDoc}
-            onProof={proofHandlerFor(kit)}
-          />
+          <div className="stack stack--snug">
+            <LogoEditor
+              doc={doc}
+              onChange={setDoc}
+              onProof={proofHandlerFor(kit)}
+            />
+            <BrandKitLogoLink doc={doc} kitId={kit.id} setDoc={setDoc} />
+          </div>
         )}
         {block(
           "typefaces",
