@@ -4,14 +4,14 @@ import type { BrandKitDoc, PaletteEntry } from "../../../../config/brandKit.js";
 import { useBrandKits } from "../../../hooks/useBrandKits";
 import { brandKitsApi } from "../../../services/brandKitService";
 import { useActiveBrand } from "../../brand/ActiveBrand";
+import { keepPaletteNames } from "./keepPaletteNames";
 
 /**
  * The active brand's palette, and saving a new one (or any other part of
  * the kit, via `update`) over it.
  *
  * A save is a new kit version, so the old palette is one restore away in the
- * kit's history. Colours that were already in the palette keep their names
- * and roles; new ones come in unnamed, to be named on the kit page.
+ * kit's history. The kit keeps its names and roles across a save.
  */
 export const useKitPalette = () => {
   const brand = useActiveBrand();
@@ -46,28 +46,17 @@ export const useKitPalette = () => {
   };
 
   /**
-   * Saves a palette over the kit's. A colour already in the palette keeps
-   * its name and role. With `byPlace` (the entries the values were loaded
-   * from, in order), an edited colour keeps the name and role of the one
-   * that was in its place, so changing a brand colour doesn't unname it.
+   * Saves a palette over the kit's. The kit keeps its names and roles, place
+   * by place (keepPaletteNames.ts); `byPlace`, the entries the colours were
+   * loaded from, only names a place the kit had nothing in.
    */
   const save = (values: string[], byPlace?: PaletteEntry[] | null) =>
-    update(
-      {
-        palette: values.map((raw, i) => {
-          const value = raw.toLowerCase();
-          const was =
-            byPlace?.[i] ?? entries.find((e) => e.value === value) ?? null;
-          return { name: was?.name ?? "", role: was?.role ?? "", value };
-        }),
-      },
-      "palette"
-    );
+    update({ palette: keepPaletteNames(entries, values, byPlace) }, "palette");
 
   /**
    * Saves a palette into any kit, not only the board's: how one brand's
-   * colours are carried to another. `names`, when given (the colours were
-   * loaded from a kit), go with them; else the target's own names are kept.
+   * colours are carried to another. The colours change; the target keeps its
+   * own names and roles, which its styles are written against.
    */
   const saveTo = (
     kitId: string,
@@ -79,23 +68,10 @@ export const useKitPalette = () => {
     if (!target) {
       return Promise.resolve(false);
     }
-    const targetEntries = target.resolvedDoc.palette;
+    const loaded = values.map((_, i) => ({ name: names?.[i], role: roles[i] }));
     return updateFor(
       target,
-      {
-        palette: values.map((raw, i) => {
-          const value = raw.toLowerCase();
-          const was =
-            targetEntries.find((entry) => entry.value === value) ??
-            targetEntries[i] ??
-            null;
-          return {
-            name: names?.[i] || was?.name || "",
-            role: roles[i] || was?.role || "",
-            value,
-          };
-        }),
-      },
+      { palette: keepPaletteNames(target.resolvedDoc.palette, values, loaded) },
       "palette"
     );
   };

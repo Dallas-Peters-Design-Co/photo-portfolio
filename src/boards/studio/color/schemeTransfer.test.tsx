@@ -4,7 +4,9 @@ import { beforeEach, expect, it, vi } from "vitest";
 
 /**
  * One brand's colours carried to another: loaded from the board's brand,
- * the kit picker switched, and saved into the other kit, names and all.
+ * the kit picker switched, and saved into the other kit. The colours
+ * change; the other kit keeps its own names, and takes a name only where it
+ * had none.
  */
 
 const ROLEMODEL = [
@@ -83,5 +85,8 @@ it("carries one brand's colours into another kit", async () => {
     await vi.waitFor(() => expect(saved).toHaveLength(1));
   });
   expect(saved[0]?.id).toBe("kit-2");
-  expect(saved[0]?.doc.palette).toEqual(ROLEMODEL);
+  expect(saved[0]?.doc.palette).toEqual([
+    { name: "Old", role: "primary", value: "#041045" },
+    { name: "Sky", role: "accent", value: "#2f7cf6" },
+  ]);
 });
