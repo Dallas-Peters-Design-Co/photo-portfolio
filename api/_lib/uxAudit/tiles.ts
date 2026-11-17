@@ -95,15 +95,21 @@ const tilesOf = async (source: TileSource): Promise<Omit<Tile, "label">[]> => {
   );
 };
 
+/** A screen read top to bottom by its own pass: up to this many tiles. */
+export const MAX_SCREEN_TILES = 8;
+
+type RawTile = Omit<Tile, "label">;
+
+const labelled = (tiles: RawTile[]): Tile[] =>
+  tiles.map((tile, i) => ({ ...tile, label: `T${i + 1}` }));
+
 /**
- * Every screen as tiles, in screen order, labelled T1 onward.
- *
- * Past MAX_TILES the bottoms of the longest screens are dropped rather than
- * a whole screen, so every screen is still seen from the top.
+ * The review-wide set: every screen's tiles in screen order, labelled T1
+ * onward. Past MAX_TILES the bottoms of the longest screens are dropped
+ * rather than a whole screen, so every screen is still seen from the top.
  */
-export const tileScreens = async (sources: TileSource[]): Promise<Tile[]> => {
-  const perScreen = await Promise.all(sources.map(tilesOf));
-  const kept: Omit<Tile, "label">[][] = perScreen.map(() => []);
+const capped = (perScreen: RawTile[][]): Tile[] => {
+  const kept: RawTile[][] = perScreen.map(() => []);
   let total = 0;
   for (let row = 0; total < MAX_TILES; row += 1) {
     let added = false;
@@ -119,8 +125,34 @@ export const tileScreens = async (sources: TileSource[]): Promise<Tile[]> => {
       break;
     }
   }
-  return kept.flat().map((tile, i) => ({ ...tile, label: `T${i + 1}` }));
+  return labelled(kept.flat());
 };
+
+/**
+ * Every screen as tiles, read once: `all` for the passes that look across
+ * the review (capped, MAX_TILES), and `byScreen` for each screen's own pass,
+ * which reads that screen whole (up to MAX_SCREEN_TILES, labelled T1 onward
+ * within it), so a long page is read to its foot however many screens the
+ * review holds.
+ */
+export const tileEachScreen = async (
+  sources: TileSource[]
+): Promise<{ all: Tile[]; byScreen: Map<string, Tile[]> }> => {
+  const perScreen = await Promise.all(sources.map(tilesOf));
+  return {
+    all: capped(perScreen),
+    byScreen: new Map(
+      sources.map((source, i) => [
+        source.id,
+        labelled((perScreen[i] ?? []).slice(0, MAX_SCREEN_TILES)),
+      ])
+    ),
+  };
+};
+
+/** Every screen as tiles, for the review-wide pass (see tileEachScreen). */
+export const tileScreens = async (sources: TileSource[]): Promise<Tile[]> =>
+  (await tileEachScreen(sources)).all;
 
 /** A point on a tile, as a point on the tile's screen. */
 export const toScreenPoint = (

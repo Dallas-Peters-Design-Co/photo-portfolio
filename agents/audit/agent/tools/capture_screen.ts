@@ -63,6 +63,64 @@ const PREPARE_PAGE_JS = `(async () => {
   return document.documentElement.scrollHeight;
 })()`;
 
+// The page's real styles: colours, radii, borders, type, buttons and pills.
+// Twin of PAGE_STYLES_JS in the site's config/pageStyles.ts, which cleans
+// and reads what this stores; change both together.
+const PAGE_STYLES_JS = `(() => {
+  const count = (m, k) => m.set(k, (m.get(k) || 0) + 1);
+  const text = new Map(), bgs = new Map(), radii = new Map(), fonts = new Map(), borders = new Map();
+  const components = [];
+  const seen = new Set();
+  for (const el of Array.from(document.body.querySelectorAll("*")).slice(0, 5000)) {
+    const r = el.getBoundingClientRect();
+    if (r.width < 1 || r.height < 1) continue;
+    const cs = getComputedStyle(el);
+    if (cs.visibility === "hidden" || cs.display === "none" || cs.opacity === "0") continue;
+    const own = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim());
+    if (own) {
+      count(text, cs.color);
+      count(fonts, cs.fontFamily.split(",")[0].replace(/["']/g, "").trim() + " " + cs.fontWeight + " " + cs.fontSize);
+    }
+    if (cs.backgroundColor !== "rgba(0, 0, 0, 0)") count(bgs, cs.backgroundColor);
+    if (cs.borderTopLeftRadius !== "0px") count(radii, cs.borderTopLeftRadius);
+    if (cs.borderTopStyle !== "none" && cs.borderTopWidth !== "0px") count(borders, cs.borderTopWidth + " " + cs.borderTopColor);
+    const tag = el.tagName.toLowerCase();
+    const cls = String(el.getAttribute("class") || "").toLowerCase();
+    const button = tag === "button" || el.getAttribute("role") === "button" || /\\b(btn|button)\\b/.test(cls);
+    const pill = /(pill|badge|chip|tag|status)/.test(cls) || (own && r.height < 40 && parseFloat(cs.borderTopLeftRadius) >= r.height / 2 - 1);
+    if ((button || pill) && components.length < 24) {
+      const key = [button, cs.backgroundColor, cs.color, cs.borderTopLeftRadius].join("|");
+      if (!seen.has(key)) {
+        seen.add(key);
+        components.push({
+          bg: cs.backgroundColor,
+          border: cs.borderTopWidth + " " + cs.borderTopStyle + " " + cs.borderTopColor,
+          color: cs.color,
+          font: cs.fontWeight + " " + cs.fontSize,
+          height: Math.round(r.height),
+          kind: button ? "button" : "pill",
+          radius: cs.borderTopLeftRadius,
+          text: (el.textContent || "").trim().replace(/\\s+/g, " ").slice(0, 40),
+        });
+      }
+    }
+  }
+  const top = (m, n) => Array.from(m.entries()).sort((a, b) => b[1] - a[1]).slice(0, n).map(([value, c]) => ({ count: c, value }));
+  return JSON.stringify({ backgrounds: top(bgs, 14), borders: top(borders, 8), components, fonts: top(fonts, 12), radii: top(radii, 10), text: top(text, 12) });
+})()`;
+
+/** The measurements eval printed, or null when there are none to read. */
+function parseStyles(stdout: string): unknown {
+  try {
+    let value: unknown = JSON.parse(stdout.trim());
+    // The CLI may print the returned string quoted, once more.
+    if (typeof value === "string") value = JSON.parse(value);
+    return typeof value === "object" && value !== null ? value : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Width and height from a PNG's IHDR chunk. */
 function pngSize(bytes: Uint8Array): { height: number; width: number } {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -84,7 +142,7 @@ export default defineTool({
     const sandbox = await ctx.getSandbox();
     const signal = ctx.abortSignal;
     const frame = VIEWPORTS[viewport];
-    const env = { AB_URL: url ?? "", AB_JS: PREPARE_PAGE_JS };
+    const env = { AB_URL: url ?? "", AB_JS: PREPARE_PAGE_JS, AB_STYLES: PAGE_STYLES_JS };
     const ab = (args: string) =>
       sandbox.run({ command: `agent-browser --session ${BROWSER_SESSION} ${args}`, env, signal });
 
@@ -134,6 +192,8 @@ export default defineTool({
       await ab("wait 1500");
       await ab('eval "$AB_JS"');
       await ab("wait 1200");
+      // Measured before the shot, with the page laid out as it is captured.
+      const styles = parseStyles((await ab('eval "$AB_STYLES"')).stdout);
 
       const file = `${SHOTS_DIR}/${randomUUID()}.png`;
       await sandbox.run({ command: `mkdir -p ${SHOTS_DIR}`, signal });
@@ -151,8 +211,18 @@ export default defineTool({
       const token = process.env.REVIEW_BLOB_READ_WRITE_TOKEN?.trim();
       if (!token) return { ok: false, reason: "REVIEW_BLOB_READ_WRITE_TOKEN is not set." };
       const { issueSignedToken, presignUrl, put } = await import("@vercel/blob");
-      const pathname = `screens/${randomUUID()}.png`;
+      const id = randomUUID();
+      const pathname = `screens/${id}.png`;
       await put(pathname, Buffer.from(bytes), { access: "private", contentType: "image/png", token });
+      // Beside the picture, under the same name: the site reads it from there
+      // (reviewAgent.ts), so the numbers never pass through the model.
+      if (styles) {
+        await put(`screens/${id}.json`, JSON.stringify(styles), {
+          access: "private",
+          contentType: "application/json",
+          token,
+        }).catch(() => undefined);
+      }
       const validUntil = Date.now() + LINK_LIFETIME_MS;
       const signed = await issueSignedToken({ operations: ["get"], pathname, token, validUntil });
       const { presignedUrl } = await presignUrl(signed, {

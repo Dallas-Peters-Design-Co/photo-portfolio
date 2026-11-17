@@ -9,6 +9,7 @@ import type {
 import type { UxAudit } from "../../config/reviewAudit.js";
 import type { ReferenceCheck } from "../../config/reviewChecks.js";
 import type { ReviewFeedback } from "../../config/reviewFeedback.js";
+import type { AuditTopic, AuditTopicKey } from "../../config/reviewTopics.js";
 import { apiBase, jsonHeaders, readPageError } from "./portfolioService";
 import type { ProposalBrand, ProposalSent } from "./proposalService";
 import { keepPass, passHeaders } from "./reviewPass";
@@ -95,6 +96,22 @@ export const reviewsApi = {
         method: "POST",
       }),
       "Could not run the UX audit"
+    ),
+
+  /** One topic of the deep audit (config/reviewTopics.ts), across the screens. */
+  auditTopic: async (input: {
+    brief?: string;
+    screens: ReviewScreen[];
+    title?: string;
+    topic: AuditTopicKey;
+  }): Promise<{ topic: AuditTopic | null }> =>
+    json(
+      await fetch(`${reviewsPath()}/audit`, {
+        body: JSON.stringify(input),
+        headers: jsonHeaders(),
+        method: "POST",
+      }),
+      "Could not run that part of the audit"
     ),
 
   /** Screenshots a URL for a screen. Admin only; slow (a real browser). */

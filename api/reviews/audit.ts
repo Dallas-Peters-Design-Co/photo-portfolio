@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { MAX_REVIEW_TITLE, sanitizeReviewDoc } from "../../config/review.js";
 import { cleanBrief } from "../../config/reviewBrief.js";
+import { isAuditTopicKey } from "../../config/reviewTopics.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
@@ -12,6 +13,7 @@ import {
   runUxAudit,
   sourcesFromScreens,
 } from "../_lib/uxAudit/audit.js";
+import { runTopicPass } from "../_lib/uxAudit/topicPasses.js";
 
 /**
  * Runs a UX audit across a review's screens and returns the structured
@@ -55,6 +57,17 @@ const serve = async (req: VercelRequest, res: VercelResponse) => {
       return res.status(503).json({
         error: "Claude is not configured on this deployment.",
       });
+    }
+    // One topic of the deep audit, as its own request beside the main one
+    // (topicPasses.ts), so each stays inside a function's time.
+    if (isAuditTopicKey(body.topic)) {
+      const topic = await runTopicPass({
+        brief: cleanBrief(body.brief),
+        screens,
+        title,
+        topic: body.topic,
+      });
+      return res.status(200).json({ topic });
     }
     const audit = await runUxAudit({
       brief: cleanBrief(body.brief),

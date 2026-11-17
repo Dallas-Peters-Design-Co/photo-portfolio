@@ -8,7 +8,7 @@ import {
   isStoredImage,
   type Tile,
   type TileSource,
-  tileScreens,
+  tileEachScreen,
   toScreenPoint,
 } from "./tiles.js";
 import { AUDIT_CHECKLIST } from "./vendor/audit-checklist.js";
@@ -41,8 +41,11 @@ const REQUEST_TIMEOUT_MS = 240_000;
 /** A full audit is several thousand tokens of JSON; cut short, it will not parse. */
 const MAX_OUTPUT_TOKENS = 16_000;
 /** One screen's findings are a few thousand tokens. */
-const SCREEN_OUTPUT_TOKENS = 10_000;
+const SCREEN_OUTPUT_TOKENS = 14_000;
 const MAX_MARKUP_URLS = 4;
+/** How long a busy answer is waited out before the one retry. */
+const BUSY_WAIT_S = 20;
+const MAX_BUSY_WAIT_S = 45;
 const JSON_FENCE = /```(?:json)?\s*([\s\S]*?)```/i;
 
 const apiKey = (): string | null =>
@@ -141,7 +144,7 @@ Reply with a single JSON object and nothing else (no markdown fences, no comment
   ]
 }
 
-Aim for 10-18 findings for this screen, spread over the whole of it rather than only the top, touching every section that applies, with at least two "praise" findings where they are earned. Use "issue" for Critical and High severity, "recommendation" for Medium, "suggestion" for Patterns and polish. Do not repeat the same point twice.`;
+Aim for 15-25 findings for this screen, spread over the whole of it from top to foot (every tile), rather than only the top, touching every section that applies, with at least two "praise" findings where they are earned. Use "issue" for Critical and High severity, "recommendation" for Medium, "suggestion" for Patterns and polish. Do not repeat the same point twice.`;
 
 const clamp01 = (v: unknown): number =>
   typeof v === "number" && Number.isFinite(v)
@@ -257,8 +260,8 @@ export const runUxAudit = async ({
     );
   }
   const urls = uniqueUrls(screens);
-  const [tiles, fetchedPages] = await Promise.all([
-    tileScreens(sources),
+  const [{ all: tiles, byScreen }, fetchedPages] = await Promise.all([
+    tileEachScreen(sources),
     Promise.all(
       urls.map(async (url) => {
         const markup = await fetchMarkup(url);
@@ -284,7 +287,8 @@ export const runUxAudit = async ({
       MAX_OUTPUT_TOKENS
     ),
     ...sources.map((source) => {
-      const own = tiles.filter((t) => t.screenId === source.id);
+      // The whole screen, not its share of the review-wide tiles.
+      const own = byScreen.get(source.id) ?? [];
       return askClaude(
         screenInstructions(source.title) + screenBriefRules(brief),
         tileContent(
@@ -304,8 +308,9 @@ export const runUxAudit = async ({
   const missed: string[] = [];
   for (const [i, result] of perScreen.entries()) {
     if (result.status === "fulfilled") {
+      const own = byScreen.get(sources[i]?.id ?? "") ?? [];
       audit.findings.push(
-        ...parseAuditReply(result.value, tiles, screenIds).findings
+        ...parseAuditReply(result.value, own, screenIds).findings
       );
     } else {
       console.error("[ux audit] screen failed", result.reason);
@@ -322,7 +327,7 @@ export const runUxAudit = async ({
   return audit;
 };
 
-type Block =
+export type Block =
   | {
       source: { data: string; media_type: "image/jpeg"; type: "base64" };
       type: "image";
@@ -330,7 +335,7 @@ type Block =
   | { text: string; type: "text" };
 
 /** The tiles as image blocks, each labelled, then the manifest and markup. */
-const tileContent = (
+export const tileContent = (
   tiles: Tile[],
   title: string | undefined,
   markup: string,
@@ -361,32 +366,47 @@ const tileContent = (
 };
 
 /** One Messages call; resolves with the reply text. */
-const askClaude = async (
+export const askClaude = async (
   instructions: string,
   content: Block[],
   maxTokens: number
 ): Promise<string> => {
   const headers = await authHeaders();
-  const res = await fetch(MESSAGES_URL, {
-    body: JSON.stringify({
-      max_tokens: maxTokens,
-      messages: [{ content, role: "user" }],
-      model: AUDIT_MODEL,
-      // The four guides are ~15k tokens and identical on every call, so they
-      // come first and are cached; the task for this call follows them.
-      system: [
-        { cache_control: { type: "ephemeral" }, text: REFERENCE, type: "text" },
-        { text: instructions, type: "text" },
-      ],
-    }),
-    headers: {
-      "anthropic-version": API_VERSION,
-      "content-type": "application/json",
-      ...headers,
-    },
-    method: "POST",
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-  });
+  const send = () =>
+    fetch(MESSAGES_URL, {
+      body: JSON.stringify({
+        max_tokens: maxTokens,
+        messages: [{ content, role: "user" }],
+        model: AUDIT_MODEL,
+        // The four guides are ~15k tokens and identical on every call, so they
+        // come first and are cached; the task for this call follows them.
+        system: [
+          {
+            cache_control: { type: "ephemeral" },
+            text: REFERENCE,
+            type: "text",
+          },
+          { text: instructions, type: "text" },
+        ],
+      }),
+      headers: {
+        "anthropic-version": API_VERSION,
+        "content-type": "application/json",
+        ...headers,
+      },
+      method: "POST",
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    });
+  let res = await send();
+  // A deep audit sends dozens of calls at once; a busy or rate-limited
+  // answer is waited out once, for as long as it asks (capped).
+  if (res.status === 429 || res.status === 529) {
+    const asked = Number(res.headers.get("retry-after")) || BUSY_WAIT_S;
+    await new Promise((done) =>
+      setTimeout(done, Math.min(asked, MAX_BUSY_WAIT_S) * 1000)
+    );
+    res = await send();
+  }
 
   if (!res.ok) {
     throw new Error(

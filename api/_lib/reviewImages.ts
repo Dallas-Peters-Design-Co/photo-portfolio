@@ -207,6 +207,48 @@ export const signDoc = async <T extends { doc: ReviewDoc }>(
  * the review store. The link arrives through the model's answer, so anything
  * else — another host, a missing file, another type — is refused.
  */
+/**
+ * The styles the agent measured for a screen (config/pageStyles.ts): kept
+ * beside its picture under the same name, as JSON. Null when there are none.
+ */
+export const agentStyles = async (imageUrl: string): Promise<unknown> => {
+  const token = reviewBlobToken();
+  const plain = plainImageUrl(imageUrl);
+  if (!(token && isReviewImageUrl(plain, reviewStoreHost(token)))) {
+    return null;
+  }
+  const pathname = decodeURIComponent(new URL(plain).pathname.slice(1)).replace(
+    PNG_END,
+    ".json"
+  );
+  if (!pathname.endsWith(".json")) {
+    return null;
+  }
+  try {
+    const validUntil = Date.now() + 60_000;
+    const signed = await issueSignedToken({
+      operations: ["get"],
+      pathname,
+      token,
+      validUntil,
+    });
+    const { presignedUrl } = await presignUrl(signed, {
+      access: "private",
+      operation: "get",
+      pathname,
+      validUntil,
+    });
+    const res = await fetch(presignedUrl, {
+      signal: AbortSignal.timeout(15_000),
+    });
+    return res.ok ? await res.json() : null;
+  } catch {
+    return null;
+  }
+};
+
+const PNG_END = /\.png$/;
+
 export const confirmAgentImage = async (
   value: string
 ): Promise<string | null> => {

@@ -1,3 +1,4 @@
+import { cleanPageStyles } from "../../config/pageStyles.js";
 import { newItemId } from "../../config/proposal.js";
 import type { ReviewImage, ReviewScreen } from "../../config/review.js";
 import {
@@ -6,7 +7,7 @@ import {
   SEVERITIES,
   sanitizeChecks,
 } from "../../config/reviewChecks.js";
-import { confirmAgentImage } from "./reviewImages.js";
+import { agentStyles, confirmAgentImage } from "./reviewImages.js";
 
 /**
  * The eve audit agent, as the Reviews feature uses it: it signs in to an app
@@ -383,7 +384,9 @@ export const storeScreens = async (
         if (!image) {
           return null;
         }
+        const styles = cleanPageStyles(await agentStyles(image.url));
         return {
+          ...(styles ? { styles } : {}),
           id: newItemId(),
           image,
           marks: [],

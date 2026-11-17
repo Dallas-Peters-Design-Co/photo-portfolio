@@ -9,6 +9,7 @@
  */
 
 import { type BrandMerge, cleanBrandMerge } from "./brandMerge.js";
+import { cleanPageStyles, type PageStyles } from "./pageStyles.js";
 import {
   type EditorDoc,
   isEditorDoc,
@@ -122,6 +123,8 @@ export interface ReviewScreen {
   pins: ReviewPin[];
   /** Where the screenshot came from, shown as a link when set. */
   sourceUrl: string;
+  /** The page's real styles, measured as it was captured (pageStyles.ts). */
+  styles?: PageStyles;
   title: string;
   /** How the capture was framed: "desktop" (1440) or "mobile" (390). */
   viewport: "desktop" | "mobile";
@@ -330,9 +333,15 @@ const cleanScreen = (v: unknown): ReviewScreen => {
       .slice(0, MAX_PINS)
       .map(cleanPin),
     sourceUrl: isHttpUrl(sourceUrl) ? sourceUrl : "",
+    ...stylesOf(raw.styles),
     title: str(raw.title, MAX_TITLE),
     viewport: raw.viewport === "mobile" ? "mobile" : "desktop",
   };
+};
+
+const stylesOf = (value: unknown): { styles?: PageStyles } => {
+  const styles = cleanPageStyles(value);
+  return styles ? { styles } : {};
 };
 
 const cleanSection = (v: unknown): ReviewSection => {

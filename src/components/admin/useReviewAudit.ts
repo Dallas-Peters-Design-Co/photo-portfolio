@@ -11,12 +11,13 @@ import {
   DEFAULT_REVIEW_DOC,
   type ReviewScreen,
 } from "../../../config/review.js";
-import { mergeAudit } from "../../../config/reviewAudit.js";
+import { mergeAudit, type UxAudit } from "../../../config/reviewAudit.js";
 import {
   mergeChecks,
   type ReferenceCheck,
 } from "../../../config/reviewChecks.js";
 import { withoutAudit } from "../../../config/reviewRedo.js";
+import { AUDIT_TOPICS, type AuditTopic } from "../../../config/reviewTopics.js";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useConfirm } from "./ConfirmProvider";
 
@@ -44,6 +45,37 @@ const scanStamp = (at: Date) => ({
 });
 
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
+
+/**
+ * The deep audit: the main audit (whole review, then each screen) and one
+ * pass per topic (config/reviewTopics.ts), all at once, each its own
+ * request. A topic that fails is named, and the rest are kept.
+ */
+const deepAudit = async (input: {
+  brief: string;
+  screens: ReviewScreen[];
+  title: string;
+}): Promise<{ audit: UxAudit; missed: string[] }> => {
+  const [main, ...topics] = await Promise.allSettled([
+    reviewsApi.audit(input),
+    ...AUDIT_TOPICS.map((t) =>
+      reviewsApi.auditTopic({ ...input, topic: t.key })
+    ),
+  ]);
+  if (main.status === "rejected") {
+    throw main.reason;
+  }
+  const missed: string[] = [];
+  const found: AuditTopic[] = [];
+  for (const [i, result] of topics.entries()) {
+    if (result.status === "fulfilled" && result.value.topic) {
+      found.push(result.value.topic);
+    } else {
+      missed.push(AUDIT_TOPICS[i]?.title ?? "a topic");
+    }
+  }
+  return { audit: { ...main.value.audit, topics: found }, missed };
+};
 
 const hostOf = (url: string): string => {
   try {
@@ -195,11 +227,16 @@ export function useReviewAudit({
   /** Audits the screens; with `replace`, the last audit's work goes first. */
   const auditThese = async (screens: ReviewScreen[], replace = false) => {
     setPhase("auditing");
-    const { audit } = await reviewsApi.audit({
+    const { audit, missed } = await deepAudit({
       brief: latest.current.doc.brief,
       screens,
       title: latest.current.title,
     });
+    if (missed.length > 0) {
+      toast.warning(
+        `Not covered this time: ${missed.join(", ")}. Redo to try again.`
+      );
+    }
     // Taken out only now the new one is back, so a failed run loses nothing.
     setDraft((d) => ({
       ...d,
@@ -289,7 +326,7 @@ export function useReviewAudit({
       setPhase("auditing");
       let audited = true;
       try {
-        const { audit } = await reviewsApi.audit({
+        const { audit } = await deepAudit({
           brief: source.doc.brief,
           screens: captured.screens,
           title: source.title,

@@ -50,7 +50,7 @@ const autosaveFields = (r: ReviewRecord) => ({
 });
 
 const AUDIT_LABELS: Record<AuditPhase, string> = {
-  auditing: "Auditing… (1–3 min)",
+  auditing: "Deep audit… (3–5 min)",
   capturing: "Capturing screens…",
   exploring: "Agent at work…",
   idle: "Run UX audit",

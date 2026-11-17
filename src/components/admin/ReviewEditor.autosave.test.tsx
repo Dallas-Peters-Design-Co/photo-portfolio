@@ -42,7 +42,12 @@ const audit = vi.fn(
 );
 
 vi.mock("../../services/reviewService", () => ({
-  reviewsApi: { audit, capture: vi.fn(), update },
+  reviewsApi: {
+    audit,
+    auditTopic: vi.fn(() => Promise.resolve({ topic: null })),
+    capture: vi.fn(),
+    update,
+  },
 }));
 vi.mock("../../cms/PageEditor", () => ({ PageEditor: () => null }));
 vi.mock("./ReviewSendPanel", () => ({ ReviewSendPanel: () => null }));

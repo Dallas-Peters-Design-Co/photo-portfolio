@@ -10,6 +10,7 @@
  * editor, which folds it into the draft. Folding only ever adds: an audit run
  * on a review with writing in it appends to that writing and never replaces it.
  */
+
 import { type EditorDoc, isEditorDoc, newItemId } from "./proposal.js";
 import {
   PIN_KINDS,
@@ -20,6 +21,12 @@ import {
   type RichText,
 } from "./review.js";
 import { type BriefCoverage, cleanCoverage } from "./reviewBrief.js";
+import {
+  AUDIT_TOPICS,
+  type AuditTopic,
+  cleanAuditTopic,
+  type TopicPriority,
+} from "./reviewTopics.js";
 
 export type PrincipleStatus = "pass" | "opportunity" | "attention";
 const PRINCIPLE_STATUSES: PrincipleStatus[] = [
@@ -67,6 +74,8 @@ export interface UxAudit {
   principles: AuditPrinciple[];
   recommendations: AuditPoint[];
   strengths: AuditPoint[];
+  /** The deep audit's topic passes (config/reviewTopics.ts), when run. */
+  topics?: AuditTopic[];
 }
 
 const MAX_TEXT = 2000;
@@ -143,6 +152,12 @@ export const sanitizeUxAudit = (
     strengths: list(raw.strengths)
       .map(cleanPoint)
       .filter((p) => p.title || p.detail),
+    topics: (Array.isArray(raw.topics) ? raw.topics : [])
+      .slice(0, AUDIT_TOPICS.length)
+      .map((t: unknown) =>
+        cleanAuditTopic(t, str((t as { title?: unknown } | null)?.title, 160))
+      )
+      .filter((t): t is AuditTopic => t !== null),
   };
 };
 
@@ -236,8 +251,40 @@ const summaryOf = (audit: UxAudit): EditorDoc =>
       .map((t) => paragraph(text(t)))
   );
 
+const PRIORITY_LABELS: Record<TopicPriority, string> = {
+  "must-fix": "Must fix",
+  recommended: "Recommended",
+  rule: "Rules",
+};
+
+/** A topic pass as a section: its summary, then its points by priority. */
+const topicSection = (topic: AuditTopic): ReviewSection =>
+  section(topic.title, [
+    ...(topic.summary ? [paragraph(text(topic.summary))] : []),
+    ...(["must-fix", "recommended", "rule"] as const).flatMap((priority) => {
+      const points = topic.points.filter((p) => p.priority === priority);
+      return points.length === 0
+        ? []
+        : [
+            paragraph(text(PRIORITY_LABELS[priority], true)),
+            bulletList(
+              points.map((p) =>
+                labelled(
+                  p.title,
+                  p.screens.length > 0
+                    ? `${p.detail} (Seen on: ${p.screens.join(", ")}.)`
+                    : p.detail
+                )
+              )
+            ),
+          ];
+    }),
+  ]);
+
 const sectionsOf = (audit: UxAudit): ReviewSection[] =>
-  auditSections(audit).map((s) => ({ ...s, fromAudit: true as const }));
+  [...auditSections(audit), ...(audit.topics ?? []).map(topicSection)].map(
+    (s) => ({ ...s, fromAudit: true as const })
+  );
 
 const auditSections = (audit: UxAudit): ReviewSection[] => {
   const out: ReviewSection[] = [];
