@@ -164,9 +164,12 @@ async function replaceItems(sql: Sql, boardId: string, items: IncomingItem[]) {
     // server mint ids meant the canvas had to adopt them from the response,
     // which overwrote whatever had been typed while the request was in flight.
     //
-    // Only geometry, body and node settings are updatable: an item's kind and
-    // source never change, so a payload cannot repoint an existing item at
-    // another photograph. The board_id guard means an id belonging to a
+    // Only geometry, body and node settings are updatable: an item's source
+    // never changes, so a payload cannot repoint an existing item at another
+    // photograph. Its kind changes only between text and drawing — text
+    // converted to vector outlines, and the undo that puts it back — which
+    // carry no source at all. Without that, the converted layer kept kind
+    // 'text' with no body, broke board_items_shape, and every save failed. The board_id guard means an id belonging to a
     // different board updates nothing rather than being stolen into this one.
     //
     // `result`, `run_state` and `run_error` are absent from the SET list on
@@ -190,7 +193,13 @@ async function replaceItems(sql: Sql, boardId: string, items: IncomingItem[]) {
         ${item.x}, ${item.y}, ${item.width}, ${item.height}, ${item.z}, ${item.rotation}
       )
       ON CONFLICT (id) DO UPDATE
-      SET x = EXCLUDED.x, y = EXCLUDED.y,
+      SET kind = CASE
+            WHEN board_items.kind IN ('text', 'drawing')
+              AND EXCLUDED.kind IN ('text', 'drawing')
+            THEN EXCLUDED.kind
+            ELSE board_items.kind
+          END,
+          x = EXCLUDED.x, y = EXCLUDED.y,
           width = EXCLUDED.width, height = EXCLUDED.height,
           z_index = EXCLUDED.z_index, body = EXCLUDED.body,
           font_size = EXCLUDED.font_size, config = EXCLUDED.config,
@@ -493,6 +502,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: "Method not allowed" });
   } catch (e) {
     console.error(e);
-    return res.status(500).json({ error: "Could not load this board" });
+    // Said for what failed: a failed save read "Could not load this board".
+    return res.status(500).json({
+      error:
+        req.method === "GET"
+          ? "Could not load this board"
+          : "Could not save this board",
+    });
   }
 }
