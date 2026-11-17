@@ -58,7 +58,7 @@ export interface ExternalImage {
 
 interface BoardInsertPanelProps {
   /** Which source to open on, for a panel opened *at* something. */
-  initialTab?: Tab;
+  initialTab?: InsertTab;
   /** Places a saved style on the canvas as an Element node. */
   onAddElement: (element: Element) => void;
   onAddExternal: (image: ExternalImage) => void;
@@ -77,7 +77,7 @@ interface BoardInsertPanelProps {
   sources: BoardSource[];
 }
 
-type Tab =
+export type InsertTab =
   | "elements"
   | "yours"
   | "collections"
@@ -90,7 +90,7 @@ type Tab =
   | "icon"
   | "shader";
 
-const TABS: { id: Tab; label: string }[] = [
+const TABS: { id: InsertTab; label: string }[] = [
   // First, and deliberately: a style you have already found and named beats
   // going looking for the same look again.
   { id: "elements", label: "Elements" },
@@ -134,7 +134,7 @@ export function BoardInsertPanel({
   photos,
   sources,
 }: BoardInsertPanelProps) {
-  const [tab, setTab] = useState<Tab>(initialTab ?? "yours");
+  const [tab, setTab] = useState<InsertTab>(initialTab ?? "yours");
   const scrollRootRef = useRef<HTMLDivElement>(null);
 
   // Seeded from what they already shoot, then edited freely.

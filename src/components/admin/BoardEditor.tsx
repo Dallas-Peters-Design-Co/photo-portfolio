@@ -33,7 +33,7 @@ import type {
   Photo,
 } from "../../types";
 import { BoardEditorDialogs } from "./BoardEditorDialogs";
-import { BoardInsertPanel } from "./BoardInsertPanel";
+import { BoardInsertPanel, type InsertTab } from "./BoardInsertPanel";
 import { CustomCursor } from "./CustomCursor";
 import "./BoardEditor.css";
 
@@ -99,11 +99,8 @@ export function BoardEditor({
     description: string;
     images: string[];
   } | null>(null);
-  /**
-   * Which tab the insert panel opens on (undefined: its own default). Naming
-   * an element ends on its library, so it can be placed without hunting.
-   */
-  const [pickAt, setPickAt] = useState<"elements" | undefined>();
+  /** The insert panel's tab: an element named, or Collections from the rail. */
+  const [pickAt, setPickAt] = useState<InsertTab | undefined>();
   const history = useBoardHistory();
   const [drawTool, setDrawTool] = useState<DrawTool | null>(null);
   const selection = useSelectedItem(items);
@@ -348,7 +345,10 @@ export function BoardEditor({
             onAddShader={addShader}
             onAddWritable={addWritable}
             onInsertImage={addExternal}
-            onTogglePicker={() => setIsPicking((v) => !v)}
+            onTogglePicker={(at) => {
+              setPickAt(at);
+              setIsPicking((open) => Boolean(at) || !open);
+            }}
           />
           {/* Frame actions, and its link once published (nothing to open). */}
           <FrameOpenProvider
@@ -454,6 +454,7 @@ export function BoardEditor({
             {isPicking ? (
               <BoardInsertPanel
                 initialTab={pickAt}
+                key={pickAt}
                 onAddElement={(element) => {
                   addElement(element);
                   setIsPicking(false);

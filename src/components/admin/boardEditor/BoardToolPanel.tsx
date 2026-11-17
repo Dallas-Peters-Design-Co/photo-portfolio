@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import BrowserIcon from "@hugeicons-pro/core-stroke-standard/BrowserIcon";
 import ColorsIcon from "@hugeicons-pro/core-stroke-standard/ColorsIcon";
 import Film01Icon from "@hugeicons-pro/core-stroke-standard/Film01Icon";
+import FolderLibraryIcon from "@hugeicons-pro/core-stroke-standard/FolderLibraryIcon";
 import FrameIcon from "@hugeicons-pro/core-stroke-standard/FrameIcon";
 import Image01Icon from "@hugeicons-pro/core-stroke-standard/Image01Icon";
 import LinkSquare01Icon from "@hugeicons-pro/core-stroke-standard/LinkSquare01Icon";
@@ -22,7 +23,7 @@ import { BrandDock } from "../../../boards/panels/BrandDock";
 import type { ShaderConfig } from "../../../boards/shaders/shaderConfig";
 import { openStudio } from "../../../boards/studio/studioEvents";
 import { Button } from "../../ui/button";
-import type { ExternalImage } from "../BoardInsertPanel";
+import type { ExternalImage, InsertTab } from "../BoardInsertPanel";
 import "./boardEditorChrome.css";
 
 /**
@@ -45,7 +46,8 @@ export interface BoardToolPanelProps {
   onAddWritable: (kind: "note" | "text") => void;
   /** Drops a brand logo or library image onto the board. */
   onInsertImage: (image: ExternalImage) => void;
-  onTogglePicker: () => void;
+  /** Opens or closes the image picker; with a tab, opens it on that tab. */
+  onTogglePicker: (tab?: InsertTab) => void;
 }
 
 export function BoardToolPanel({
@@ -100,13 +102,23 @@ export function BoardToolPanel({
           Text
         </Button>
         <Button
-          onClick={onTogglePicker}
+          onClick={() => onTogglePicker()}
           stacked
           type="button"
           variant="noborder"
         >
           <HugeiconsIcon aria-hidden icon={Image01Icon} size={14} />
           Image
+        </Button>
+        <Button
+          onClick={() => onTogglePicker("collections")}
+          stacked
+          title="Pictures saved in your collections"
+          type="button"
+          variant="noborder"
+        >
+          <HugeiconsIcon aria-hidden icon={FolderLibraryIcon} size={14} />
+          Collections
         </Button>
         <Button
           aria-pressed={showBrand}
