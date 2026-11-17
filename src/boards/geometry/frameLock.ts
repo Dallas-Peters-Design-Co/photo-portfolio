@@ -80,12 +80,34 @@ const intersect = (a: Rect, b: Rect): Rect => {
 
 const area = (r: Rect): number => r.width * r.height;
 
-/** Every item sitting in a design frame, with its owner and clip. */
+/**
+ * What a design is made of: the kinds the frame editor shows as layers
+ * (creativeModel.ts layerKind), and frames nested in it.
+ *
+ * Anything else that lands on a design frame (a shader, a node, a comment)
+ * is not part of the design. Locked, it could be picked up neither on the
+ * board, where a press took the frame, nor in the frame editor, which never
+ * lists it: stuck where it was dropped.
+ */
+const DESIGN_KINDS = new Set([
+  "component",
+  "drawing",
+  "frame",
+  "note",
+  "photo",
+  "reference",
+  "text",
+]);
+
+/** Every design layer sitting in a design frame, with its owner and clip. */
 export const frameLocks = (items: BoardItem[]): Map<string, FrameLock> => {
   const locks = new Map<string, FrameLock>();
   const frames = items.filter((item) => isDesignFrame(item, items));
   for (const frame of frames) {
     for (const item of withinFrame(frame, items)) {
+      if (!DESIGN_KINDS.has(item.kind)) {
+        continue;
+      }
       const was = locks.get(item.id);
       if (!was) {
         locks.set(item.id, { clip: frame, owner: frame.id });

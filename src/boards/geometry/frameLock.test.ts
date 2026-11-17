@@ -62,6 +62,17 @@ describe("frameLock", () => {
     expect(frameLocks([old, words, shape, node]).size).toBe(0);
   });
 
+  it("leaves a shader or node on a design frame free: it isn't a layer", () => {
+    const frame = box("g", "frame", 0, 0, 400, 400);
+    const pic = box("p", "photo", 10, 10, 100, 100);
+    const shader = box("s", "shader", 100, 100, 100, 100);
+    const node = box("n", "op", 200, 200, 100, 100);
+    const locks = frameLocks([frame, pic, shader, node]);
+    expect(locks.has("p")).toBe(true);
+    expect(locks.has("s")).toBe(false);
+    expect(locks.has("n")).toBe(false);
+  });
+
   it("hands a nested frame's contents to the outermost design frame", () => {
     const outer = box("a", "frame", 0, 0, 400, 400);
     const inner = box("b", "frame", 100, 100, 100, 100);
