@@ -26,6 +26,7 @@ import { MergeWriteupFields } from "./reviewMerge/MergeWriteupFields";
 import { frameImage, framesOf } from "./reviewMerge/mergeFrames";
 import { useMergeWriter } from "./reviewMerge/useMergeWriter";
 import "./ReviewMergeEditor.css";
+import { EditorBlock } from "./EditorBlock";
 
 /**
  * A review's brand merge writeup (config/brandMerge.ts): two brand kits, the
@@ -33,9 +34,6 @@ import "./ReviewMergeEditor.css";
  * and frames from the review's board as its pictures. Read at
  * /review/:slug/merge, behind the review's password.
  */
-
-const fieldsetTitleClass =
-  "text-micro-sm uppercase tracking-micro-widest text-white/70";
 
 type Update = (update: (merge: BrandMerge) => BrandMerge) => void;
 
@@ -384,11 +382,16 @@ const useKitLogos = (merge: BrandMerge, update: Update) => {
 
 export function ReviewMergeEditor({
   boardId,
+  collapsed,
   merge: stored,
   onChange,
+  onToggle,
   slug,
 }: {
   boardId: string | null;
+  /** Folded away, like the editor's other blocks (EditorBlock). */
+  collapsed: boolean;
+  onToggle: () => void;
   merge: BrandMerge | null;
   /** Given the merge as it is when the change lands (the agent's answer arrives minutes later). */
   onChange: (update: (prev: BrandMerge | null) => BrandMerge | null) => void;
@@ -417,10 +420,9 @@ export function ReviewMergeEditor({
   const running = status.state === "running";
 
   return (
-    <section className="review-merge">
-      <div className="review-merge__head">
-        <h3 className={fieldsetTitleClass}>Brand merge</h3>
-        {hasMergeWriteup(stored) ? (
+    <EditorBlock
+      actions={
+        hasMergeWriteup(stored) ? (
           <a
             className="review-merge__open"
             href={`/review/${slug}/merge`}
@@ -429,67 +431,73 @@ export function ReviewMergeEditor({
           >
             Open the page
           </a>
+        ) : null
+      }
+      collapsed={collapsed}
+      onToggle={onToggle}
+      title="Brand merge"
+    >
+      <div className="review-merge">
+        <p className="review-merge__hint">
+          Two brands, and the ways they could become one. The agent reads both
+          kits and their websites and writes the comparison and each option. It
+          has its own page, behind this review's password.
+        </p>
+        <div className="review-merge__kits">
+          <KitPicker
+            id="merge-a"
+            label="Brand A"
+            onChange={(brandA) => update((m) => ({ ...m, brandA }))}
+            value={merge.brandA}
+          />
+          <KitPicker
+            id="merge-b"
+            label="Brand B"
+            onChange={(brandB) => update((m) => ({ ...m, brandB }))}
+            value={merge.brandB}
+          />
+        </div>
+        <OptionNames merge={merge} update={update} />
+        <div className="review-merge__write">
+          <Button
+            disabled={!ready || running}
+            onClick={() =>
+              merge.brandA && merge.brandB
+                ? void start({
+                    brandA: merge.brandA,
+                    brandB: merge.brandB,
+                    options: names,
+                  })
+                : undefined
+            }
+            type="button"
+          >
+            {merge.generatedAt ? "Write it again" : "Write it with the agent"}
+          </Button>
+          <span aria-live="polite" className="review-merge__hint">
+            {status.state === "running"
+              ? `${status.phase} This takes a few minutes.`
+              : null}
+            {status.state === "failed" ? status.error : null}
+            {status.state === "idle" && !ready
+              ? "Pick two brand kits and name at least one option."
+              : null}
+          </span>
+        </div>
+        {merge.generatedAt ? (
+          <MergeWriteupFields merge={merge} update={update} />
         ) : null}
-      </div>
-      <p className="review-merge__hint">
-        Two brands, and the ways they could become one. The agent reads both
-        kits and their websites and writes the comparison and each option. It
-        has its own page, behind this review's password.
-      </p>
-      <div className="review-merge__kits">
-        <KitPicker
-          id="merge-a"
-          label="Brand A"
-          onChange={(brandA) => update((m) => ({ ...m, brandA }))}
-          value={merge.brandA}
+        <BoardPicker
+          onChange={(id) => update((m) => ({ ...m, boardId: id }))}
+          reviewBoardId={boardId}
+          value={merge.boardId}
         />
-        <KitPicker
-          id="merge-b"
-          label="Brand B"
-          onChange={(brandB) => update((m) => ({ ...m, brandB }))}
-          value={merge.brandB}
+        <Pictures
+          boardId={merge.boardId ?? boardId}
+          merge={merge}
+          update={update}
         />
       </div>
-      <OptionNames merge={merge} update={update} />
-      <div className="review-merge__write">
-        <Button
-          disabled={!ready || running}
-          onClick={() =>
-            merge.brandA && merge.brandB
-              ? void start({
-                  brandA: merge.brandA,
-                  brandB: merge.brandB,
-                  options: names,
-                })
-              : undefined
-          }
-          type="button"
-        >
-          {merge.generatedAt ? "Write it again" : "Write it with the agent"}
-        </Button>
-        <span aria-live="polite" className="review-merge__hint">
-          {status.state === "running"
-            ? `${status.phase} This takes a few minutes.`
-            : null}
-          {status.state === "failed" ? status.error : null}
-          {status.state === "idle" && !ready
-            ? "Pick two brand kits and name at least one option."
-            : null}
-        </span>
-      </div>
-      {merge.generatedAt ? (
-        <MergeWriteupFields merge={merge} update={update} />
-      ) : null}
-      <BoardPicker
-        onChange={(id) => update((m) => ({ ...m, boardId: id }))}
-        reviewBoardId={boardId}
-        value={merge.boardId}
-      />
-      <Pictures
-        boardId={merge.boardId ?? boardId}
-        merge={merge}
-        update={update}
-      />
-    </section>
+    </EditorBlock>
   );
 }

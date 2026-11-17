@@ -392,6 +392,7 @@ export function ReviewEditor({
 
           <ReviewMergeEditor
             boardId={draft.doc.boardId}
+            collapsed={collapse.isCollapsed("merge")}
             merge={draft.doc.merge}
             onChange={(update) =>
               setDraft((d) => ({
@@ -399,6 +400,7 @@ export function ReviewEditor({
                 doc: { ...d.doc, merge: update(d.doc.merge) },
               }))
             }
+            onToggle={() => collapse.toggle("merge")}
             slug={draft.slug}
           />
 
