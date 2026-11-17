@@ -14,6 +14,7 @@ import {
 import type { ReactNode } from "react";
 import type { SocialPreviewId } from "../../../config/socialPreview";
 import { isMorePreview, MORE_SPECS, moreMockFor } from "./SocialPreviewMore";
+import { BrandMark, useSocialBrand } from "./socialBrand";
 import { Avatar, Covers, Fit, Media, type Spec } from "./socialMockParts";
 import "./SocialPreview.css";
 
@@ -47,11 +48,12 @@ const SPECS: Record<Exclude<SocialPreviewId, "artwork">, Spec> = {
 };
 
 function InstagramPost({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const { handle } = useSocialBrand();
   return (
     <article className="social-mock__card social-mock__card--ig">
       <header className="social-mock__head">
         <Avatar size={32} />
-        <strong>yourbrand</strong>
+        <strong>{handle}</strong>
         <MoreHorizontal className="social-mock__end" size={20} />
       </header>
       <Media sizeId={spec.size}>{art}</Media>
@@ -65,7 +67,7 @@ function InstagramPost({ art, spec }: { art: ReactNode; spec: Spec }) {
         <strong>1,024 likes</strong>
       </p>
       <p className="social-mock__line">
-        <strong>yourbrand</strong> Your caption goes here…
+        <strong>{handle}</strong> Your caption goes here…
       </p>
       <p className="social-mock__line social-mock__muted">2 hours ago</p>
     </article>
@@ -81,6 +83,7 @@ function Vertical({
   spec: Spec;
   tiktok: boolean;
 }) {
+  const { handle } = useSocialBrand();
   return (
     <article className="social-mock__vertical">
       <Media radius={tiktok ? 0 : 12} sizeId={spec.size}>
@@ -96,7 +99,7 @@ function Vertical({
             <Share size={30} />
           </div>
           <footer className="social-mock__over social-mock__over--bottom">
-            <strong>@yourbrand</strong>
+            <strong>@{handle}</strong>
             <span>Your caption goes here… #hashtag</span>
             <span>
               <Music2 size={14} /> Original sound
@@ -108,7 +111,7 @@ function Vertical({
           <div className="social-mock__over social-mock__over--top">
             <span className="social-mock__progress" />
             <span className="social-mock__story-who">
-              <Avatar size={32} /> <strong>yourbrand</strong> 2h
+              <Avatar size={32} /> <strong>{handle}</strong> 2h
             </span>
           </div>
           <footer className="social-mock__over social-mock__over--bottom social-mock__reply">
@@ -131,10 +134,11 @@ function FeedPost({
   platform: "facebook" | "linkedin" | "x";
   spec: Spec;
 }) {
+  const brand = useSocialBrand();
   const names = {
-    facebook: ["Your Page", "Sponsored · "],
-    linkedin: ["Your Company", "12,480 followers · Promoted"],
-    x: ["Your Brand", "@yourbrand · 1h"],
+    facebook: [brand.name, "Sponsored · "],
+    linkedin: [brand.name, "12,480 followers · Promoted"],
+    x: [brand.name, `@${brand.handle} · 1h`],
   } as const;
   const [name, meta] = names[platform];
   const actions = {
@@ -196,15 +200,16 @@ function PageHeader({
   kind: "facebook" | "linkedin-banner" | "linkedin-page";
   spec: Spec;
 }) {
+  const brand = useSocialBrand();
   const text = {
-    facebook: ["Your Page", "12K followers · 240 following", "Follow"],
+    facebook: [brand.name, "12K followers · 240 following", "Follow"],
     "linkedin-banner": [
       "Your Name",
-      "Brand designer at Your Company · Austin, Texas",
+      `Designer at ${brand.name} · Austin, Texas`,
       "Connect",
     ],
     "linkedin-page": [
-      "Your Company",
+      brand.name,
       "Design services · Austin, Texas · 12,480 followers",
       "+ Follow",
     ],
@@ -215,16 +220,20 @@ function PageHeader({
       className={`social-mock__card social-mock__page social-mock__page--${kind}`}
     >
       <Media
-        covers={
-          kind === "facebook" ? null : <Covers initial="Y" sizeId={spec.size} />
-        }
+        covers={kind === "facebook" ? null : <Covers sizeId={spec.size} />}
         sizeId={spec.size}
       >
         {art}
       </Media>
       {kind === "facebook" ? (
-        <span aria-hidden className="social-mock__page-photo">
-          Y
+        <span
+          aria-hidden
+          className={[
+            "social-mock__page-photo",
+            brand.logoUrl ? "social-mock__logo" : "",
+          ].join(" ")}
+        >
+          <BrandMark />
         </span>
       ) : null}
       <div className="social-mock__page-body">
@@ -251,6 +260,7 @@ function PageHeader({
 }
 
 function YouTube({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const { name } = useSocialBrand();
   return (
     <article className="social-mock__video">
       <Media radius={12} sizeId={spec.size}>
@@ -262,7 +272,7 @@ function YouTube({ art, spec }: { art: ReactNode; spec: Spec }) {
         <Avatar size={36} />
         <span>
           <strong>Your video title goes here</strong>
-          <small>Your Channel · 12K views · 2 days ago</small>
+          <small>{name} · 12K views · 2 days ago</small>
         </span>
       </footer>
     </article>
@@ -270,6 +280,7 @@ function YouTube({ art, spec }: { art: ReactNode; spec: Spec }) {
 }
 
 function Pin({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const { name } = useSocialBrand();
   return (
     <article className="social-mock__pin">
       <Media radius={16} sizeId={spec.size}>
@@ -277,7 +288,7 @@ function Pin({ art, spec }: { art: ReactNode; spec: Spec }) {
       </Media>
       <strong>Your pin title</strong>
       <span className="social-mock__pin-who">
-        <Avatar size={24} /> Your Board
+        <Avatar size={24} /> {name}
       </span>
     </article>
   );

@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { type SafeCover, SOCIAL_SIZES } from "../../../config/socialSizes";
+import { BrandMark, useSocialBrand } from "./socialBrand";
 
 /**
  * What every social mock-up is built from (SocialPreview.tsx and
@@ -136,14 +137,9 @@ const coverStyle = (cover: SafeCover, sizeId: string): CSSProperties => {
   };
 };
 
-export function Covers({
-  initial,
-  sizeId,
-}: {
-  initial: string;
-  sizeId: string;
-}) {
+export function Covers({ sizeId }: { sizeId: string }) {
   const covers = sizeOf(sizeId)?.safe?.covers ?? [];
+  const { logoUrl } = useSocialBrand();
   return (
     <>
       {covers.map((cover) => (
@@ -152,32 +148,31 @@ export function Covers({
           className={[
             "social-mock__cover",
             cover.round ? "social-mock__cover--round" : "",
+            logoUrl ? "social-mock__logo" : "",
           ].join(" ")}
           key={cover.label}
           style={coverStyle(cover, sizeId)}
         >
-          {initial}
+          <BrandMark />
         </span>
       ))}
     </>
   );
 }
 
-export const Avatar = ({
-  size,
-  square,
-}: {
-  size: number;
-  square?: boolean;
-}) => (
-  <span
-    aria-hidden
-    className={[
-      "social-mock__avatar",
-      square ? "social-mock__avatar--square" : "",
-    ].join(" ")}
-    style={{ fontSize: size * 0.42, height: size, width: size }}
-  >
-    Y
-  </span>
-);
+export function Avatar({ size, square }: { size: number; square?: boolean }) {
+  const { logoUrl } = useSocialBrand();
+  return (
+    <span
+      aria-hidden
+      className={[
+        "social-mock__avatar",
+        square ? "social-mock__avatar--square" : "",
+        logoUrl ? "social-mock__logo" : "",
+      ].join(" ")}
+      style={{ fontSize: size * 0.42, height: size, width: size }}
+    >
+      <BrandMark />
+    </span>
+  );
+}

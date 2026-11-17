@@ -92,6 +92,18 @@
   border-radius: 50%;
 }
 
+/* A brand's logo in an avatar or page logo: on white, with room round it. */
+.social-mock__logo {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #0000001a;
+}
+
+.social-mock__mark {
+  width: 76%;
+  height: 76%;
+  object-fit: contain;
+}
+
 .social-mock__avatar--square {
   border-radius: 6px;
 }
@@ -253,6 +265,11 @@
   background: linear-gradient(135deg, #4f46e5, #db2777);
   border: 4px solid #fff;
   border-radius: 8px;
+}
+
+.social-mock__cover.social-mock__logo,
+.social-mock__page-photo.social-mock__logo {
+  background: #fff;
 }
 
 .social-mock__cover--round {

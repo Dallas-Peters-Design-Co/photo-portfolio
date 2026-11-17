@@ -9,6 +9,7 @@ import {
   Star,
 } from "lucide-react";
 import type { ReactNode } from "react";
+import { useSocialBrand } from "./socialBrand";
 import { Avatar, Media, type Spec } from "./socialMockParts";
 import "./SocialPreviewMore.css";
 
@@ -36,6 +37,7 @@ export const isMorePreview = (id: string): id is MorePreviewId =>
   id in MORE_SPECS;
 
 function FacebookEvent({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const brand = useSocialBrand();
   return (
     <article className="social-mock__card social-mock__event">
       <Media radius={8} sizeId={spec.size}>
@@ -51,7 +53,7 @@ function FacebookEvent({ art, spec }: { art: ReactNode; spec: Spec }) {
             FRIDAY, NOVEMBER 21, 2026 AT 7 PM
           </small>
           <strong className="social-mock__page-name">Your event name</strong>
-          <small>Your venue · Austin, Texas</small>
+          <small>Hosted by {brand.name} · Austin, Texas</small>
         </div>
       </div>
       <div className="social-mock__buttons social-mock__event-buttons">
@@ -68,11 +70,12 @@ function FacebookEvent({ art, spec }: { art: ReactNode; spec: Spec }) {
 }
 
 function GoogleProfile({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const brand = useSocialBrand();
   return (
     <article className="social-mock__card social-mock__gbp">
       <Media sizeId={spec.size}>{art}</Media>
       <div className="social-mock__gbp-body">
-        <strong className="social-mock__gbp-name">Your Business</strong>
+        <strong className="social-mock__gbp-name">{brand.name}</strong>
         <span className="social-mock__gbp-rating">
           4.8{" "}
           {[1, 2, 3, 4, 5].map((n) => (
@@ -107,12 +110,13 @@ function GoogleProfile({ art, spec }: { art: ReactNode; spec: Spec }) {
 }
 
 function GooglePost({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const brand = useSocialBrand();
   return (
     <article className="social-mock__card social-mock__gbp-post">
       <header className="social-mock__head">
         <Avatar size={36} />
         <span className="social-mock__who">
-          <strong>Your Business</strong>
+          <strong>{brand.name}</strong>
           <small>2 days ago</small>
         </span>
       </header>
@@ -126,6 +130,7 @@ function GooglePost({ art, spec }: { art: ReactNode; spec: Spec }) {
 }
 
 function ChatGptProfile({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const brand = useSocialBrand();
   return (
     <article className="social-mock__chatgpt">
       <Media radius={16} sizeId={spec.size}>
@@ -134,8 +139,8 @@ function ChatGptProfile({ art, spec }: { art: ReactNode; spec: Spec }) {
       <div className="social-mock__chatgpt-who">
         <Avatar size={56} />
         <div className="social-mock__who">
-          <strong className="social-mock__page-name">Your Business</strong>
-          <small>Design services · yourbusiness.com</small>
+          <strong className="social-mock__page-name">{brand.name}</strong>
+          <small>Design services · {brand.site}</small>
         </div>
         <span className="social-mock__chatgpt-button">
           <MessageCircle size={14} /> Ask about us
@@ -149,6 +154,7 @@ function ChatGptProfile({ art, spec }: { art: ReactNode; spec: Spec }) {
 }
 
 function ChatGptAd({ art, spec }: { art: ReactNode; spec: Spec }) {
+  const brand = useSocialBrand();
   return (
     <article className="social-mock__chatgpt social-mock__chatgpt-chat">
       <p className="social-mock__chatgpt-answer">
@@ -162,10 +168,10 @@ function ChatGptAd({ art, spec }: { art: ReactNode; spec: Spec }) {
         </div>
         <div className="social-mock__who">
           <small className="social-mock__muted">Sponsored</small>
-          <strong>Your Business</strong>
+          <strong>{brand.name}</strong>
           <small>One line on why to choose you.</small>
           <span className="social-mock__chatgpt-link">
-            <MapPin size={12} /> yourbusiness.com
+            <MapPin size={12} /> {brand.site}
           </span>
         </div>
       </div>
