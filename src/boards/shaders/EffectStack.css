@@ -11,6 +11,11 @@
   margin-block-start: calc(var(--spacing) * 2);
 }
 
+/* Add effect spans the stack, as wide as the rows under it. */
+.effect-stack__add-row {
+  display: flex;
+}
+
 .effect-stack__list {
   display: flex;
   flex-direction: column;
