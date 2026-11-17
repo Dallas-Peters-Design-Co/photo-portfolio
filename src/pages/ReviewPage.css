@@ -103,6 +103,30 @@
   color: oklch(0.75 0.15 70);
 }
 
+/* The writeup and the design system, where a reader looks first. */
+.review-page__hero-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  margin-block-start: calc(var(--spacing) * 5);
+}
+
+.review-page__hero-link {
+  padding: calc(var(--spacing) * 2) calc(var(--spacing) * 4);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border: 1px solid color-mix(in oklch, currentColor 35%, transparent);
+  border-radius: 999px;
+  transition: border-color 150ms ease;
+}
+
+.review-page__hero-link:hover,
+.review-page__hero-link:focus-visible {
+  border-color: currentColor;
+}
+
 .review-page__hero-foot {
   display: grid;
   gap: calc(var(--spacing) * 8);
@@ -562,7 +586,8 @@
     background: #fff;
   }
 
-  .review-page__draft {
+  .review-page__draft,
+  .review-page__hero-links {
     display: none;
   }
 

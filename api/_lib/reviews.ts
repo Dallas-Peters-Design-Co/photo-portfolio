@@ -3,6 +3,7 @@
  * the database returns it, the DTO the admin and the public page read, and
  * the one SELECT every read uses so list and lookup cannot drift.
  */
+import { DOCS_SITE_KEY, designSystemUrl } from "../../config/docsSite.js";
 import {
   type ReviewDoc,
   type ReviewStatus,
@@ -18,6 +19,7 @@ import {
   pickAccent,
 } from "./proposals.js";
 import { accessOf } from "./reviewAccess.js";
+import { getSite } from "./site.js";
 
 export interface ReviewRow {
   brand_kit_id: string | null;
@@ -26,6 +28,8 @@ export interface ReviewRow {
   created_at: string | Date;
   doc: unknown;
   id: string;
+  /** The kit has component styles, so the docs site has a page for it. */
+  kit_has_components?: boolean | null;
   kit_name?: string | null;
   kit_palette?: unknown;
   sent_at?: string | Date | null;
@@ -42,6 +46,8 @@ export interface ReviewDto {
   clientEmail: string | null;
   clientName: string;
   createdAt: string;
+  /** The brand's design system page on the docs site, when it has one. */
+  designSystemUrl: string | null;
   doc: ReviewDoc;
   /** What the client has said on the review page (config/reviewFeedback.ts). */
   feedback: ReviewFeedback[];
@@ -80,6 +86,10 @@ export const rowToReviewDto = (row: ReviewRow): ReviewDto => ({
   clientEmail: row.client_email ?? null,
   clientName: row.client_name,
   createdAt: toIso(row.created_at),
+  designSystemUrl:
+    row.kit_name && row.kit_has_components && getSite().key === DOCS_SITE_KEY
+      ? designSystemUrl(row.kit_name)
+      : null,
   doc: sanitizeReviewDoc(row.doc),
   feedback: feedbackOf(row.doc),
   hasPassword: accessOf(row.doc) !== null,
@@ -116,7 +126,10 @@ export const REVIEW_SELECT = `
   r.id, r.slug, r.title, r.client_name, r.client_email, r.brand_kit_id, r.doc, r.status,
   r.sent_at, r.sent_to, r.created_at, r.updated_at,
   bk.name AS kit_name,
-  v.doc -> 'palette' AS kit_palette
+  v.doc -> 'palette' AS kit_palette,
+  (CASE WHEN jsonb_typeof(v.doc -> 'componentStyles') = 'array'
+      THEN jsonb_array_length(v.doc -> 'componentStyles') ELSE 0 END > 0
+    OR coalesce(v.doc ->> 'componentsFrom', '') <> '') AS kit_has_components
   FROM reviews r
   LEFT JOIN brand_kits bk ON bk.id = r.brand_kit_id
   LEFT JOIN brand_kit_versions v ON v.id = bk.current_version_id

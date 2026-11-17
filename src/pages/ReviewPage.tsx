@@ -1,7 +1,8 @@
 import "./ReviewPage.css";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { hasMergeWriteup } from "../../config/brandMerge.js";
 import {
   isRichTextEmpty,
   type RichText,
@@ -115,6 +116,41 @@ export function ReviewPage() {
   );
 }
 
+/**
+ * The review's companion documents, in the header where they're found: the
+ * brand merge writeup and the brand's design system on the docs site. The
+ * sidebar box links the writeup too, but a reader looks at the top first.
+ */
+function ReviewHeaderLinks({ review }: { review: ReviewRecord }) {
+  const merge = hasMergeWriteup(review.doc.merge);
+  const docs = review.designSystemUrl;
+  if (!(merge || docs)) {
+    return null;
+  }
+  return (
+    <nav aria-label="With this review" className="review-page__hero-links">
+      {merge ? (
+        <Link
+          className="review-page__hero-link"
+          to={`/review/${review.slug}/merge`}
+        >
+          Brand merge writeup →
+        </Link>
+      ) : null}
+      {docs ? (
+        <a
+          className="review-page__hero-link"
+          href={docs}
+          rel="noopener"
+          target="_blank"
+        >
+          Design system docs ↗
+        </a>
+      ) : null}
+    </nav>
+  );
+}
+
 function ReviewSheet({
   review,
   ownerName,
@@ -146,6 +182,7 @@ function ReviewSheet({
             Draft — only visible to signed-in admins
           </p>
         )}
+        <ReviewHeaderLinks review={review} />
         <div className="review-page__hero-foot">
           <div className="review-page__intro">
             {isRichTextEmpty(doc.intro) ? null : <Prose text={doc.intro} />}

@@ -6,6 +6,7 @@ import { withIconDrawings } from "../../config/componentSourceParts.js";
 import { styleSample } from "../../config/conceptDefaults.js";
 import type { ConceptIconSvg } from "../../config/conceptIcon.js";
 import { applyColumnStyles } from "../../config/conceptStyle.js";
+import { docsSlugOf } from "../../config/docsSite.js";
 import {
   adobeFontCss,
   fontshareFontCss,
@@ -45,10 +46,7 @@ export interface ComponentDocsKit {
   updatedAt: string;
 }
 
-const WORD = /[a-z0-9]+/g;
-
-const slugOf = (name: string): string =>
-  name.toLowerCase().match(WORD)?.join("-") || "brand";
+const slugOf = docsSlugOf;
 
 /** The site's icon set, by name: what the app draws a named icon with. */
 const iconDrawing = (name: string): ConceptIconSvg | undefined =>

@@ -36,6 +36,8 @@ export interface ReviewSummary {
 
 // The board link travels in the doc (doc.boardId) on a full record.
 export type ReviewRecord = Omit<ReviewSummary, "boardId" | "counts"> & {
+  /** The brand's design system page on the docs site, when it has one. */
+  designSystemUrl?: string | null;
   doc: ReviewDoc;
   /** What the client has said on the review page. */
   feedback: ReviewFeedback[];
