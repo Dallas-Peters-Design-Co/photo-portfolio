@@ -213,7 +213,17 @@ export default defineTool({
       const { issueSignedToken, presignUrl, put } = await import("@vercel/blob");
       const id = randomUUID();
       const pathname = `screens/${id}.png`;
-      await put(pathname, Buffer.from(bytes), { access: "private", contentType: "image/png", token });
+      try {
+        await put(pathname, Buffer.from(bytes), { access: "private", contentType: "image/png", token });
+      } catch (error) {
+        // Not something a retry or another page fixes: every capture after
+        // this fails the same way, and a run of them spends the whole budget
+        // for a review with no pictures in it.
+        return {
+          ok: false,
+          reason: `STORAGE_REFUSED: the screenshot store refused the upload (${error instanceof Error ? error.message : String(error)}). Stop capturing now: do not retry and do not open more pages. Return straight away with no screens, and put this message in \`note\`.`,
+        };
+      }
       // Beside the picture, under the same name: the site reads it from there
       // (reviewAgent.ts), so the numbers never pass through the model.
       if (styles) {
