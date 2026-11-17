@@ -39,6 +39,13 @@ interface FrameActions {
   duplicateFrame?: (frameId: string) => void;
   /** Resizes a frame to an ad size, or copies it out at several. */
   fitFrame?: (frameId: string, sizeIds: string[], mode: FitMode) => void;
+  /**
+   * A designed frame drawn as one picture and uploaded: its address and size.
+   * How a frame becomes the brand's logo (FrameLogoButton).
+   */
+  frameImage?: (
+    frameId: string
+  ) => Promise<{ height: number; url: string; width: number }>;
   /** The absolute URL of a frame, or null when the board is not published. */
   linkFor?: (frameId: string) => string | null;
   /** Opens the frame as its own view. */
@@ -65,6 +72,7 @@ export function FrameOpenProvider({
   downloadFor,
   duplicateFrame,
   fitFrame,
+  frameImage,
   linkFor,
   onOpenFrame,
   onTrainOnFrame,
@@ -75,6 +83,7 @@ export function FrameOpenProvider({
   downloadFor?: FrameActions["downloadFor"];
   duplicateFrame?: FrameActions["duplicateFrame"];
   fitFrame?: FrameActions["fitFrame"];
+  frameImage?: FrameActions["frameImage"];
   linkFor?: (frameId: string) => string | null;
   onOpenFrame?: (frameId: string) => void;
   onTrainOnFrame?: (frameId: string) => void;
@@ -87,6 +96,7 @@ export function FrameOpenProvider({
         downloadFor,
         duplicateFrame,
         fitFrame,
+        frameImage,
         linkFor,
         open: onOpenFrame,
         resetScale,

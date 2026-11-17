@@ -226,7 +226,6 @@ export function BoardEditor({
     dropPoint,
     selection.item
   );
-
   const {
     addDrawing,
     addMaskStroke,
@@ -356,6 +355,7 @@ export function BoardEditor({
             designFrame={frameDesign.designFrame}
             duplicateFrame={frameDesign.duplicateFrame}
             fitFrame={frameDesign.fitFrame}
+            frameImage={frameDesign.frameImage}
             linkFor={(id) => frameLink(publicUrl, items, id)}
             onTrainOnFrame={(id) => void trainOnFrame(id)}
             resetScale={frameDesign.resetScale}

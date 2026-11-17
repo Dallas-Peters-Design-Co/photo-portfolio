@@ -14,6 +14,7 @@ import {
 import { StudioPanel } from "../../../boards/studio/StudioPanel";
 import { onOpenStudio } from "../../../boards/studio/studioEvents";
 import type { BoardItem } from "../../../types";
+import { frameImage } from "../reviewMerge/mergeFrames";
 import { useAdFrames } from "./useAdFrames";
 
 /**
@@ -109,6 +110,13 @@ export const useFrameDesign = (
     designFrame: setDesigning,
     duplicateFrame,
     fitFrame,
+    /** A frame as one uploaded picture, from the board as it is now. */
+    frameImage: (frameId: string) => {
+      const frame = live.current.find((item) => item.id === frameId);
+      return frame
+        ? frameImage(frame, live.current)
+        : Promise.reject(new Error("That frame is gone."));
+    },
     resetScale,
   };
 };

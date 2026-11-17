@@ -3,6 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { BoardItem } from "../types";
+import { FrameLogoButton } from "./brand/FrameLogoButton";
 import { tintOf } from "./creative/imageAnchor";
 import { useFrameActions } from "./FrameOpenContext";
 import { PANEL_GAP } from "./geometry/panelPlacement";
@@ -366,6 +367,7 @@ export function BoardToolBar({
          * than threaded through the canvas; see FrameOpenContext.
          */}
         <FrameLinkButton href={frameHref} />
+        <FrameLogoButton item={item} />
         {isRunning ? (
           <span className="board-toolbar__status">Working…</span>
         ) : (
