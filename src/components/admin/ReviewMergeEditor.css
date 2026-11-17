@@ -93,3 +93,48 @@
   border: var(--border-hairline) dashed currentcolor;
   opacity: 0.4;
 }
+
+/* From a collection: one slot per line, its pictures in a sideways row. */
+.review-merge__pictures--strips {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.review-merge__strip {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  padding: 4px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.review-merge__strip-item {
+  flex: 0 0 6rem;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  border: var(--border-hairline) solid transparent;
+  border-radius: var(--radius-sm);
+  opacity: 0.75;
+  transition: opacity 150ms ease;
+}
+
+.review-merge__strip-item:hover {
+  opacity: 1;
+}
+
+.review-merge__strip-item[aria-pressed="true"] {
+  outline: 2px solid currentcolor;
+  outline-offset: 1px;
+  border-color: currentcolor;
+  opacity: 1;
+}
+
+.review-merge__strip-item img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+}

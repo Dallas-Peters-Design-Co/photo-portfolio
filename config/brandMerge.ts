@@ -55,6 +55,11 @@ export interface BrandMerge {
   brandA: string | null;
   brandB: string | null;
   brands: [MergeBrand, MergeBrand] | null;
+  /**
+   * A library collection its pictures come from instead of a board. When
+   * set, the editor offers the collection's images rather than frames.
+   */
+  collectionId: string | null;
   comparison: MergeAspect[];
   /** When the agent last wrote it, ISO; null before it has. */
   generatedAt: string | null;
@@ -75,6 +80,7 @@ type MergeSetupKey =
   | "boardId"
   | "brandA"
   | "brandB"
+  | "collectionId"
   | "hero"
   | "logoA"
   | "logoB";
@@ -98,6 +104,7 @@ export const EMPTY_MERGE: BrandMerge = {
   brandA: null,
   brandB: null,
   brands: null,
+  collectionId: null,
   comparison: [],
   generatedAt: null,
   hero: null,
@@ -199,6 +206,8 @@ export const cleanBrandMerge = (value: unknown): BrandMerge | null => {
     brandA: kitId(raw.brandA),
     brandB: kitId(raw.brandB),
     brands,
+    // Collection ids are uuids too.
+    collectionId: kitId(raw.collectionId),
     comparison: (Array.isArray(raw.comparison) ? raw.comparison : [])
       .map(cleanAspect)
       .filter((row) => row.aspect)

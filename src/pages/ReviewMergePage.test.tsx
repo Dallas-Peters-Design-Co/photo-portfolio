@@ -40,6 +40,7 @@ const MERGE: BrandMerge = {
       voice: "Bold and quick",
     },
   ],
+  collectionId: null,
   comparison: [
     {
       a: "Navy and white",

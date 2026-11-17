@@ -9,6 +9,7 @@ import {
   type MergeImage,
 } from "../../../config/brandMerge.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
+import { useCollections } from "../../hooks/useCollections";
 import type { BrandKit } from "../../services/brandKitService";
 import { boardsApi } from "../../services/portfolioService";
 import type { Board, BoardItem } from "../../types";
@@ -22,6 +23,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import {
+  CollectionPictures,
+  type PictureSlot,
+} from "./reviewMerge/CollectionPictures";
 import { MergeWriteupFields } from "./reviewMerge/MergeWriteupFields";
 import { frameImage, framesOf } from "./reviewMerge/mergeFrames";
 import { useMergeWriter } from "./reviewMerge/useMergeWriter";
@@ -246,16 +251,20 @@ function FramePicker({
 }
 
 /** The board the pictures come from: any board, the review's own by default. */
-function BoardPicker({
-  onChange,
+const COLLECTION = "collection:";
+
+/** Where the pictures come from: the review's board, another board, or a collection. */
+function SourcePicker({
+  merge,
   reviewBoardId,
-  value,
+  update,
 }: {
-  onChange: (id: string | null) => void;
+  merge: BrandMerge;
   reviewBoardId: string | null;
-  value: string | null;
+  update: Update;
 }) {
   const [boards, setBoards] = useState<Board[]>([]);
+  const { collections } = useCollections();
   useEffect(() => {
     let live = true;
     boardsApi
@@ -274,14 +283,28 @@ function BoardPicker({
     ...boards
       .filter((b) => b.id !== reviewBoardId)
       .map((b) => ({ label: b.title || "Untitled board", value: b.id })),
+    ...collections.map((c) => ({
+      label: `Collection: ${c.name}`,
+      value: `${COLLECTION}${c.id}`,
+    })),
   ];
+  const value = merge.collectionId
+    ? `${COLLECTION}${merge.collectionId}`
+    : (merge.boardId ?? "");
   return (
     <div className="review-merge__field">
       <Label htmlFor="merge-board">Pictures from</Label>
       <Select
         items={items}
-        onValueChange={(next) => onChange(next || null)}
-        value={value ?? ""}
+        onValueChange={(next) => {
+          const picked = next ?? "";
+          update((m) =>
+            picked.startsWith(COLLECTION)
+              ? { ...m, collectionId: picked.slice(COLLECTION.length) }
+              : { ...m, boardId: picked || null, collectionId: null }
+          );
+        }}
+        value={value}
       >
         <SelectTrigger id="merge-board" size="lg">
           <SelectValue />
@@ -297,6 +320,28 @@ function BoardPicker({
     </div>
   );
 }
+
+/** The hero and each option's picture, as slots either picker fills. */
+const slotsOf = (merge: BrandMerge, update: Update): PictureSlot[] => [
+  {
+    image: merge.hero,
+    key: "hero",
+    label: "Hero picture",
+    onChange: (hero) => update((m) => ({ ...m, hero })),
+  },
+  ...merge.options.map((option, i) => ({
+    image: option.image,
+    key: keyOf(option),
+    label: option.name || `Option ${i + 1}`,
+    onChange: (image: MergeImage | null) =>
+      update((m) => ({
+        ...m,
+        options: m.options.map((o, k) =>
+          k === i ? replaceOption(o, { ...o, image }) : o
+        ),
+      })),
+  })),
+];
 
 function Pictures({
   boardId,
@@ -331,28 +376,14 @@ function Pictures({
   const frames = framesOf(items);
   return (
     <div className="review-merge__pictures">
-      <FramePicker
-        frames={frames}
-        image={merge.hero}
-        items={items}
-        label="Hero picture"
-        onChange={(hero) => update((m) => ({ ...m, hero }))}
-      />
-      {merge.options.map((option, i) => (
+      {slotsOf(merge, update).map((slot) => (
         <FramePicker
           frames={frames}
-          image={option.image}
+          image={slot.image}
           items={items}
-          key={keyOf(option)}
-          label={option.name || `Option ${i + 1}`}
-          onChange={(image) =>
-            update((m) => ({
-              ...m,
-              options: m.options.map((o, k) =>
-                k === i ? replaceOption(o, { ...o, image }) : o
-              ),
-            }))
-          }
+          key={slot.key}
+          label={slot.label}
+          onChange={slot.onChange}
         />
       ))}
     </div>
@@ -487,16 +518,19 @@ export function ReviewMergeEditor({
         {merge.generatedAt ? (
           <MergeWriteupFields merge={merge} update={update} />
         ) : null}
-        <BoardPicker
-          onChange={(id) => update((m) => ({ ...m, boardId: id }))}
-          reviewBoardId={boardId}
-          value={merge.boardId}
-        />
-        <Pictures
-          boardId={merge.boardId ?? boardId}
-          merge={merge}
-          update={update}
-        />
+        <SourcePicker merge={merge} reviewBoardId={boardId} update={update} />
+        {merge.collectionId ? (
+          <CollectionPictures
+            collectionId={merge.collectionId}
+            slots={slotsOf(merge, update)}
+          />
+        ) : (
+          <Pictures
+            boardId={merge.boardId ?? boardId}
+            merge={merge}
+            update={update}
+          />
+        )}
       </div>
     </EditorBlock>
   );
