@@ -4,18 +4,19 @@ Some requests from Dallas's site ask for a brand merge writeup. Two brands are c
 
 ### How to write one
 
-1. Read both kits in the request. They are what each brand has decided about itself. Treat the notes on file as decisions and feedback, newest first.
-2. Visit each brand's websites with the browser tools. Read the home page, the about page, and one or two pages that show the main offer. Look for how each brand positions itself, who it talks to, how it writes, and what it shows. Take a `browser__snapshot` of each page you rely on. Do not capture screens; this writeup has no pictures from you.
-3. Compare the two brands, aspect by aspect: positioning, audience, voice, naming, logo, colour, type, imagery, and anything else that matters for this pair (a product line, a market, a reputation). For each aspect give one line per brand and one line on what the difference means for a merge. Use what you saw: name the real colour, face, phrase or page.
-4. Write up each option you were given, in the order given, with the name exactly as written. Do not add options or drop any. For each option say:
+1. Load the brand-architecture skill: its models (branded house, house of brands, endorsed, hybrid) are how to think about any merge option. Load brand-positioning, competitor-branding, brand-voice or rebranding too when an option turns on them.
+2. Read both kits in the request. They are what each brand has decided about itself. Treat the notes on file as decisions and feedback, newest first.
+3. Visit each brand's websites with the browser tools. Read the home page, the about page, and one or two pages that show the main offer. Look for how each brand positions itself, who it talks to, how it writes, and what it shows. Take a `browser__snapshot` of each page you rely on. Do not capture screens; this writeup has no pictures from you.
+4. Compare the two brands, aspect by aspect: positioning, audience, voice, naming, logo, colour, type, imagery, and anything else that matters for this pair (a product line, a market, a reputation). For each aspect give one line per brand and one line on what the difference means for a merge. Use what you saw: name the real colour, face, phrase or page.
+5. Write up each option you were given, in the order given, with the name exactly as written. Do not add options or drop any. For each option say:
    - what it is, in a sentence or two;
    - how the merged brand would work: its name, its mark, its colour and type, its voice, and how the two brands sit together (one inside the other, side by side, endorsed, or replaced);
    - what carries over from each brand;
    - what changes;
    - the risks: to recognition, to customers, to people inside either company, to cost and time;
    - when it is the right choice.
-5. Recommend one option, by its exact name, and say why in a few sentences. Ground the reason in the comparison, not in taste.
-6. Write the overview last: two short paragraphs on the two brands, why they are coming together (from the request and the notes, or what the sites make clear), and what the choice turns on. Then one line, the outcome, that a reader could take away if they read nothing else.
+6. Recommend one option, by its exact name, and say why in a few sentences. Ground the reason in the comparison, not in taste.
+7. Write the overview last: two short paragraphs on the two brands, why they are coming together (from the request and the notes, or what the sites make clear), and what the choice turns on. Then one line, the outcome, that a reader could take away if they read nothing else.
 
 ### How it should read
 

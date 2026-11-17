@@ -49,3 +49,11 @@ npm ci
 vercel env pull .env.local          # Blob store + OIDC
 doppler run --project ux-audits --config prd -- npm run dev   # http://127.0.0.1:2000
 ```
+
+## Brand skills
+
+`agent/skills/` holds twelve brand skills from
+[arnabbagxd/Brand-building-skills](https://github.com/arnabbagxd/Brand-building-skills)
+(MIT, commit 4a0a8b5b7a0f), copied unchanged without their evals, each with
+its licence. `agent/instructions/30-brand-skills.md` tells the agent how to use
+them without a person to answer. To update one, copy its `SKILL.md` again.
