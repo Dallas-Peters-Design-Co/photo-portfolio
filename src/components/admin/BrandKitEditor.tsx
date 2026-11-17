@@ -23,6 +23,7 @@ import {
 } from "./BrandKitFields";
 import { LibraryPicker } from "./BrandKitLibrary";
 import { FormatPreviews, PalettePreview } from "./BrandKitPreviews";
+import { BrandKitShaders } from "./BrandKitShaders";
 import { BrandSources } from "./BrandKitWebsites";
 import { useConfirm } from "./ConfirmProvider";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
@@ -293,6 +294,11 @@ export function KitEditor({
             effective={effective}
             onChange={setDoc}
           />
+        )}
+        {block(
+          "shaders",
+          "Shaders",
+          <BrandKitShaders doc={doc} effective={effective} onChange={setDoc} />
         )}
         {block(
           "voice",

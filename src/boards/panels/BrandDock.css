@@ -147,3 +147,22 @@
   flex: none;
   opacity: 0.45;
 }
+
+/* A shader tile: the live preview, its name along the bottom. */
+.brand-dock__tile--shader {
+  position: relative;
+}
+
+.brand-dock__tile-name {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  padding: 2px 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--text-micro-xs);
+  color: #fff;
+  text-align: start;
+  white-space: nowrap;
+  background: color-mix(in oklch, #000 55%, transparent);
+}

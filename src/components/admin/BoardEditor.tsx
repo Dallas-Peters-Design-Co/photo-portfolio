@@ -346,11 +346,11 @@ export function BoardEditor({
           <BoardToolPanel
             onAddFrame={addFrame}
             onAddNode={addNode}
+            onAddShader={addShader}
             onAddWritable={addWritable}
             onInsertImage={addExternal}
             onTogglePicker={() => setIsPicking((v) => !v)}
           />
-
           {/* Frame actions, and its link once published (nothing to open). */}
           <FrameOpenProvider
             designFrame={frameDesign.designFrame}

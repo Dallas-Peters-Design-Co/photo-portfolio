@@ -2,9 +2,11 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import CodeIcon from "@hugeicons-pro/core-stroke-standard/CodeIcon";
 import Download01Icon from "@hugeicons-pro/core-stroke-standard/Download01Icon";
 import FileExportIcon from "@hugeicons-pro/core-stroke-standard/FileExportIcon";
+import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import { useState } from "react";
 import { nodeTypeFor } from "../../../config/nodeTypes.js";
 import type { BoardItem } from "../../types";
+import { useSaveKitShader } from "../brand/useSaveKitShader";
 import { SettingField } from "../nodes/SettingField";
 import { ShaderControls } from "./ShaderControls";
 import { isShaderConfig, type ShaderConfig } from "./shaderConfig";
@@ -56,6 +58,7 @@ export function ShaderPanel({
   selected,
 }: ShaderPanelProps) {
   const [saving, setSaving] = useState(false);
+  const kitShader = useSaveKitShader();
 
   /* The halftone node comes here too. It is not a shader item, but it has the
      same problem — far more visual controls than fit on the thing they change —
@@ -82,6 +85,20 @@ export function ShaderPanel({
               picture on the board so the rest of the graph can wire out of it;
               Save puts it on the machine, which is what you want when the board
               is not where it is going next. */}
+          {kitShader.kitName && !isHalftone ? (
+            <button
+              className="shader-panel__action"
+              onClick={() =>
+                void kitShader.save(config, config.layers[0]?.name ?? "Shader")
+              }
+              onPointerDown={(e) => e.stopPropagation()}
+              title={`Save this shader to ${kitShader.kitName}, to place on any board`}
+              type="button"
+            >
+              <HugeiconsIcon icon={PaintBoardIcon} size={13} />
+              Brand
+            </button>
+          ) : null}
           {onCopyReact && !isHalftone ? (
             <button
               className="shader-panel__action"

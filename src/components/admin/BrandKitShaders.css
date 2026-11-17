@@ -1,0 +1,26 @@
+/* A kit's shaders in its editor: live previews in a grid, named below. */
+.brand-kit-shaders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: calc(var(--spacing) * 3);
+  padding: 0;
+  list-style: none;
+}
+
+.brand-kit-shaders__item {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.brand-kit-shaders__preview {
+  display: block;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+}
+
+.brand-kit-shaders__row {
+  display: flex;
+  gap: var(--spacing);
+  align-items: center;
+}

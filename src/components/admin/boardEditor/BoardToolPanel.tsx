@@ -19,6 +19,7 @@ import { motion } from "motion/react";
 import { useState } from "react";
 import type { NodeTypeId } from "../../../../config/nodeTypes.js";
 import { BrandDock } from "../../../boards/panels/BrandDock";
+import type { ShaderConfig } from "../../../boards/shaders/shaderConfig";
 import { openStudio } from "../../../boards/studio/studioEvents";
 import { Button } from "../../ui/button";
 import type { ExternalImage } from "../BoardInsertPanel";
@@ -39,6 +40,8 @@ import "./boardEditorChrome.css";
 export interface BoardToolPanelProps {
   onAddFrame: () => void;
   onAddNode: (nodeType: NodeTypeId, config?: Record<string, unknown>) => void;
+  /** Places a brand kit's shader stack. */
+  onAddShader: (shader: ShaderConfig) => void;
   onAddWritable: (kind: "note" | "text") => void;
   /** Drops a brand logo or library image onto the board. */
   onInsertImage: (image: ExternalImage) => void;
@@ -48,6 +51,7 @@ export interface BoardToolPanelProps {
 export function BoardToolPanel({
   onAddFrame,
   onAddNode,
+  onAddShader,
   onAddWritable,
   onInsertImage,
   onTogglePicker,
@@ -59,6 +63,7 @@ export function BoardToolPanel({
     <>
       {showBrand ? (
         <BrandDock
+          onAddShader={onAddShader}
           onClose={() => setShowBrand(false)}
           onInsert={(img) =>
             onInsertImage({

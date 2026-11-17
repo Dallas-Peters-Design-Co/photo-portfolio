@@ -21,7 +21,10 @@ import { gridLayout, readingOrder } from "../../../boards/geometry/arrange";
 import { findFreeSpot } from "../../../boards/geometry/placement";
 import { newItemId } from "../../../boards/io/newItemId";
 import { outputImagesOf, outputTextOf } from "../../../boards/itemOutput";
-import { newShaderConfig } from "../../../boards/shaders/shaderConfig";
+import {
+  newShaderConfig,
+  type ShaderConfig,
+} from "../../../boards/shaders/shaderConfig";
 import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire, Element, Photo } from "../../../types";
 import type { ExternalImage } from "../BoardInsertPanel";
@@ -387,13 +390,16 @@ export const useBoardInserts = (deps: BoardInsertDeps) => {
    * improves an existing board rather than being overridden by values copied
    * out of it at the moment it was placed.
    */
-  const addShader = (name: string) => {
+  /** A shader by name, or a whole stack (a brand kit's, from the Brand panel). */
+  const addShader = (shader: string | ShaderConfig) => {
     const p = dropPoint(items, DEFAULT_SHADER_WIDTH, DEFAULT_SHADER_HEIGHT);
     change([
       ...items,
       {
         ...BLANK_ITEM,
-        config: newShaderConfig(name) as unknown as Record<string, unknown>,
+        config: (typeof shader === "string"
+          ? newShaderConfig(shader)
+          : shader) as unknown as Record<string, unknown>,
         height: DEFAULT_SHADER_HEIGHT,
         id: newItemId(),
         kind: "shader",

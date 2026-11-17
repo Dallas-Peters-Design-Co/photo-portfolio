@@ -8,9 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { KitShader } from "../../../config/kitShaders.js";
 import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { useActiveBrand } from "../brand/ActiveBrand";
+import { KitShaderPreview, shaderConfigOf } from "../brand/KitShaderPreview";
 import { useDraggablePanel } from "../hooks/useDraggablePanel";
+import type { ShaderConfig } from "../shaders/shaderConfig";
 import { useImageShelf } from "../studio/imageShelf";
 import "./BrandDock.css";
 
@@ -74,6 +77,38 @@ function Library({
   );
 }
 
+/** The kit's shaders, drawn live; a click places one on the board. */
+function KitShaders({
+  onAddShader,
+  shaders,
+}: {
+  onAddShader?: (shader: ShaderConfig) => void;
+  shaders: KitShader[];
+}) {
+  if (!onAddShader || shaders.length === 0) {
+    return null;
+  }
+  return (
+    <section>
+      <h4 className="brand-dock__label">Shaders</h4>
+      <div className="brand-dock__grid">
+        {shaders.map((shader) => (
+          <button
+            className="brand-dock__tile brand-dock__tile--shader"
+            key={shader.id}
+            onClick={() => onAddShader(shaderConfigOf(shader))}
+            title={`${shader.name} — add to board`}
+            type="button"
+          >
+            <KitShaderPreview shader={shader} />
+            <span className="brand-dock__tile-name">{shader.name}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 /** Pictures generated lately (imageShelf.ts), to place again. */
 function MadeImages({
   onInsert,
@@ -105,9 +140,12 @@ function MadeImages({
 }
 
 export function BrandDock({
+  onAddShader,
   onClose,
   onInsert,
 }: {
+  /** Places one of the kit's shaders; absent where shaders can't go. */
+  onAddShader?: (shader: ShaderConfig) => void;
   onClose: () => void;
   onInsert: (image: BrandDockInsert) => void;
 }) {
@@ -223,6 +261,8 @@ export function BrandDock({
               </ul>
             </section>
           ) : null}
+
+          <KitShaders onAddShader={onAddShader} shaders={doc.shaders} />
 
           <MadeImages onInsert={onInsert} />
 

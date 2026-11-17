@@ -16,6 +16,7 @@
 import { describePalette } from "./colourWords.js";
 import { type ConceptStyle, cleanConceptStyles } from "./conceptStyle.js";
 import { isAdobeKitId, isFontFamilyName, isFontRef } from "./fontRef.js";
+import { cleanKitShaders, type KitShader } from "./kitShaders.js";
 import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
 import { sanitizeTypeScale, type TypeScale } from "./typeScale.js";
 
@@ -154,6 +155,8 @@ export interface BrandKitDoc {
    * scale, radii and spacing as the browser draws them (config/siteScan.ts).
    */
   scans: SiteScan[];
+  /** Named shader stacks, placed on boards from the Brand panel. */
+  shaders: KitShader[];
   typefaces: TypefaceEntry[];
   /** Named text styles and spacing steps (config/typeScale.ts), or none. */
   typeScale: TypeScale | null;
@@ -173,6 +176,7 @@ export const EMPTY_KIT: BrandKitDoc = {
   palette: [],
   references: [],
   scans: [],
+  shaders: [],
   typefaces: [],
   typeScale: null,
   voice: "",
@@ -326,6 +330,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
       .slice(0, MAX_PALETTE),
     references: sanitizeReferences(raw.references),
     scans: sanitizeScans(raw.scans),
+    shaders: cleanKitShaders(raw.shaders),
     typefaces: asArray(raw.typefaces)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
@@ -384,6 +389,7 @@ export const resolveKitDoc = (
     references:
       child.references.length > 0 ? child.references : parent.references,
     scans: child.websites.length > 0 ? child.scans : parent.scans,
+    shaders: child.shaders.length > 0 ? child.shaders : parent.shaders,
     typefaces: child.typefaces.length > 0 ? child.typefaces : parent.typefaces,
     typeScale: child.typeScale ?? parent.typeScale,
     voice: child.voice.trim() ? child.voice : parent.voice,
@@ -401,35 +407,31 @@ export const inheritedParts = (
   if (!parent) {
     return [];
   }
-  const parts: string[] = [];
-  if (child.palette.length === 0 && parent.palette.length > 0) {
-    parts.push("palette");
-  }
-  if (child.typefaces.length === 0 && parent.typefaces.length > 0) {
-    parts.push("typefaces");
-  }
-  if (!child.typeScale && parent.typeScale) {
-    parts.push("type scale");
-  }
-  if (child.logos.length === 0 && parent.logos.length > 0) {
-    parts.push("logos");
-  }
-  if (!(child.look || !parent.look)) {
-    parts.push("look");
-  }
-  if (!child.voice.trim() && parent.voice.trim()) {
-    parts.push("voice");
-  }
-  if (!child.libraryCollectionId && parent.libraryCollectionId) {
-    parts.push("library");
-  }
-  if (child.references.length === 0 && parent.references.length > 0) {
-    parts.push("references");
-  }
-  if (child.componentStyles.length === 0 && parent.componentStyles.length > 0) {
-    parts.push("components");
-  }
-  return parts;
+  // Each part: whether the child leaves it to the parent, which has it.
+  const lists = [
+    ["palette", "palette"],
+    ["typefaces", "typefaces"],
+    ["logos", "logos"],
+    ["shaders", "shaders"],
+    ["references", "references"],
+    ["componentStyles", "components"],
+  ] as const;
+  const fromParent: [string, boolean][] = [
+    ...lists.map(([key, label]): [string, boolean] => [
+      label,
+      child[key].length === 0 && parent[key].length > 0,
+    ]),
+    ["type scale", !child.typeScale && Boolean(parent.typeScale)],
+    ["look", !child.look && Boolean(parent.look)],
+    ["voice", !child.voice.trim() && Boolean(parent.voice.trim())],
+    [
+      "library",
+      !child.libraryCollectionId && Boolean(parent.libraryCollectionId),
+    ],
+  ];
+  return fromParent
+    .filter(([, inherited]) => inherited)
+    .map(([label]) => label);
 };
 
 /**
