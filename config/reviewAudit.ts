@@ -182,7 +182,7 @@ const doc = (content: Node[]): EditorDoc => ({ content, type: "doc" });
 const BLANK_LINE = /\n\s*\n/;
 
 /** Plain text or a document, as the nodes of a document. */
-const nodesOf = (value: RichText): unknown[] => {
+export const nodesOf = (value: RichText): unknown[] => {
   if (isEditorDoc(value)) {
     return value.content;
   }
@@ -220,6 +220,7 @@ export { PRINCIPLE_LABELS };
 
 const findingPin = (f: AuditFinding): ReviewPin => ({
   body: f.detail,
+  fromAudit: true,
   id: newItemId(),
   kind: f.kind,
   title: f.headline,
@@ -235,7 +236,10 @@ const summaryOf = (audit: UxAudit): EditorDoc =>
       .map((t) => paragraph(text(t)))
   );
 
-const sectionsOf = (audit: UxAudit): ReviewSection[] => {
+const sectionsOf = (audit: UxAudit): ReviewSection[] =>
+  auditSections(audit).map((s) => ({ ...s, fromAudit: true as const }));
+
+const auditSections = (audit: UxAudit): ReviewSection[] => {
   const out: ReviewSection[] = [];
   if (audit.strengths.length > 0) {
     out.push(
@@ -299,6 +303,9 @@ export const mergeAudit = (review: ReviewDoc, audit: UxAudit): ReviewDoc => {
   const summary = summaryOf(audit);
   return {
     ...review,
+    ...(summary.content.length > 0
+      ? { auditSummary: JSON.stringify(summary.content) }
+      : {}),
     // The newest account replaces the last: it was made against this brief.
     briefCoverage: audit.coverage?.length
       ? audit.coverage

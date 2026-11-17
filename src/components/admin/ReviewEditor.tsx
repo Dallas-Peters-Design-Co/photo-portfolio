@@ -9,6 +9,7 @@ import type {
   RichText,
 } from "../../../config/review.js";
 import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
+import { hasAudit } from "../../../config/reviewRedo.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { downloadReviewPdf } from "../../pages/pagePdf";
@@ -91,7 +92,7 @@ export function ReviewEditor({
   const savedPrint = useRef(fingerprint(review));
   const latest = useRef(draft);
   latest.current = draft;
-  const { agentStatus, auditKey, phase, runAudit, runLoginAudit } =
+  const { agentStatus, auditKey, phase, redoAudit, runAudit, runLoginAudit } =
     useReviewAudit({ latest, setDraft });
 
   const setDoc = (patch: Partial<ReviewDoc>) =>
@@ -288,6 +289,7 @@ export function ReviewEditor({
                   : "Capture behind login",
               onAudit: () => void runAudit(),
               onLoginAudit: () => void runLoginAudit(),
+              onRedo: hasAudit(draft.doc) ? () => void redoAudit() : undefined,
               running: phase !== "idle",
             }}
             clientAccess={

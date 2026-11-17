@@ -16,6 +16,7 @@ import {
   mergeChecks,
   type ReferenceCheck,
 } from "../../../config/reviewChecks.js";
+import { withoutAudit } from "../../../config/reviewRedo.js";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useConfirm } from "./ConfirmProvider";
 
@@ -69,7 +70,7 @@ export function useReviewAudit({
   latest: RefObject<ReviewRecord>;
   setDraft: Dispatch<SetStateAction<ReviewRecord>>;
 }) {
-  const { prompt } = useConfirm();
+  const { confirm, prompt } = useConfirm();
   const navigate = useNavigate();
   const [phase, setPhase] = useState<AuditPhase>("idle");
   // The agent's latest step during a login capture, for the button label.
@@ -191,14 +192,19 @@ export function useReviewAudit({
     return poll();
   };
 
-  const auditThese = async (screens: ReviewScreen[]) => {
+  /** Audits the screens; with `replace`, the last audit's work goes first. */
+  const auditThese = async (screens: ReviewScreen[], replace = false) => {
     setPhase("auditing");
     const { audit } = await reviewsApi.audit({
       brief: latest.current.doc.brief,
       screens,
       title: latest.current.title,
     });
-    setDraft((d) => ({ ...d, doc: mergeAudit(d.doc, audit) }));
+    // Taken out only now the new one is back, so a failed run loses nothing.
+    setDraft((d) => ({
+      ...d,
+      doc: mergeAudit(replace ? withoutAudit(d.doc).doc : d.doc, audit),
+    }));
     setAuditKey((k) => k + 1);
     const placed = audit.findings.filter((f) => f.screenId !== null).length;
     toast.success(
@@ -209,14 +215,15 @@ export function useReviewAudit({
   };
 
   const auditScreens = async (
-    capture: () => Promise<ReviewScreen[] | null>
+    capture: () => Promise<ReviewScreen[] | null>,
+    replace = false
   ) => {
     try {
       const screens = await capture();
       if (!screens) {
         return;
       }
-      await auditThese(screens);
+      await auditThese(screens, replace);
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Could not run the UX audit"
@@ -232,6 +239,30 @@ export function useReviewAudit({
     await auditScreens(async () =>
       withPictures.length > 0 ? withPictures : await captureReferences()
     );
+  };
+
+  /**
+   * The audit again, from scratch: its findings, sections, pins and summary
+   * are replaced by a new run over the same screens. Notes written by hand
+   * stay (config/reviewRedo.ts).
+   */
+  const redoAudit = async () => {
+    const screens = latest.current.doc.screens.filter((s) => s.image);
+    if (screens.length === 0) {
+      toast.error("Add a screen with a picture first");
+      return;
+    }
+    const { legacyPins } = withoutAudit(latest.current.doc);
+    const ok = await confirm({
+      confirmLabel: "Redo audit",
+      description: legacyPins
+        ? "The audit's sections are replaced. This review's audit ran before audit pins were marked, so its old pins stay: delete any you don't want."
+        : "The audit's findings, sections, pins and summary are replaced by a new run. Notes and text you wrote yourself stay.",
+      title: `Run the audit again on ${screens.length} screen${screens.length === 1 ? "" : "s"}?`,
+    });
+    if (ok) {
+      await auditScreens(() => Promise.resolve(screens), true);
+    }
   };
 
   /**
@@ -295,5 +326,12 @@ export function useReviewAudit({
     }
   };
 
-  return { agentStatus, auditKey, phase, runAudit, runLoginAudit };
+  return {
+    agentStatus,
+    auditKey,
+    phase,
+    redoAudit,
+    runAudit,
+    runLoginAudit,
+  };
 }

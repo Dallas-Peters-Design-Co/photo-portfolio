@@ -92,6 +92,8 @@ export interface ReviewPin {
   body: string;
   /** Small interface concepts attached to this note, usually a recommendation. */
   concepts?: ReviewConcept[];
+  /** Written by the UX audit, so Redo audit can replace it. */
+  fromAudit?: true;
   id: string;
   kind: PinKind;
   title: string;
@@ -132,11 +134,18 @@ export interface ReviewScreen {
  */
 export interface ReviewSection {
   body: RichText;
+  /** Written by the UX audit, so Redo audit can replace it. */
+  fromAudit?: true;
   id: string;
   title: string;
 }
 
 export interface ReviewDoc {
+  /**
+   * The paragraphs the last audit added to the headline findings, as JSON,
+   * so Redo audit can take them out again (config/reviewRedo.ts).
+   */
+  auditSummary?: string;
   /**
    * The board this review is synced with, or null. Set by "Send to board" in
    * the review editor or by publishing from a board; both directions then
@@ -267,6 +276,7 @@ export const cleanPin = (v: unknown): ReviewPin => {
     concepts: (Array.isArray(raw.concepts) ? raw.concepts : [])
       .slice(0, MAX_REVIEW_CONCEPTS)
       .map(cleanConcept),
+    ...(raw.fromAudit === true ? { fromAudit: true as const } : {}),
     id: str(raw.id, 64) || newItemId(),
     kind,
     title: str(raw.title, MAX_TITLE),
@@ -329,6 +339,7 @@ const cleanSection = (v: unknown): ReviewSection => {
   const raw = (v ?? {}) as Partial<ReviewSection>;
   return {
     body: cleanRich(raw.body, MAX_DOC_BYTES / 8),
+    ...(raw.fromAudit === true ? { fromAudit: true as const } : {}),
     id: str(raw.id, 64) || newItemId(),
     title: str(raw.title, MAX_TITLE),
   };
@@ -373,6 +384,10 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
         : null,
     brief: cleanBrief(raw.brief),
     briefCoverage: cleanCoverage(raw.briefCoverage),
+    ...(typeof raw.auditSummary === "string" &&
+    raw.auditSummary.length <= MAX_DOC_BYTES / 4
+      ? { auditSummary: raw.auditSummary }
+      : {}),
     closing: cleanRich(raw.closing, MAX_DOC_BYTES / 4),
     concepts,
     intro: cleanRich(raw.intro, MAX_DOC_BYTES / 4),

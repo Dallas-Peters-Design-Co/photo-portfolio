@@ -1,6 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
-import { KeyRound, ScanSearch } from "lucide-react";
+import { KeyRound, RotateCcw, ScanSearch } from "lucide-react";
 import type { ReactNode } from "react";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import type { ReviewRecord } from "../../services/reviewService";
@@ -35,6 +35,8 @@ export function ReviewEditorPanel({
     loginLabel: string;
     onAudit: () => void;
     onLoginAudit: () => void;
+    /** Runs the audit again, replacing its last results; absent before one. */
+    onRedo?: () => void;
     running: boolean;
   };
   clientAccess: ReactNode;
@@ -154,6 +156,18 @@ export function ReviewEditorPanel({
             <ScanSearch size={14} />
             {audit.label}
           </Button>
+          {audit.onRedo ? (
+            <Button
+              disabled={audit.running}
+              onClick={audit.onRedo}
+              title="Run the audit again on the same screens: its findings, sections, pins and summary are replaced; your own notes stay"
+              type="button"
+              variant="outline"
+            >
+              <RotateCcw size={14} />
+              Redo audit
+            </Button>
+          ) : null}
           <Button
             disabled={audit.running}
             onClick={audit.onLoginAudit}
