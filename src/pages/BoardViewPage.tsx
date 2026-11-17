@@ -1,4 +1,5 @@
 import "./BoardViewPage.css";
+import { Download } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -105,11 +106,12 @@ function PublishedActions({
     <div className="row">
       {frameCount > 0 ? (
         <button
-          className="board-view-page__action"
+          className="board-view-page__action board-view-page__action--primary"
           onClick={() => void downloadAllFrames(board)}
           title="Every designed frame, as PNG and SVG, in one zip"
           type="button"
         >
+          <Download aria-hidden size={12} />
           Download frames ({frameCount})
         </button>
       ) : null}

@@ -91,6 +91,25 @@
 }
 
 /*
+ * The one thing a visitor most often came to do: take the frames away. Solid
+ * ink, so it reads as the page's main action beside the quiet ones.
+ */
+.board-view-page__action--primary {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  font-weight: 600;
+  color: var(--board-surface);
+  background-color: var(--board-ink);
+  border-color: var(--board-ink);
+}
+
+.board-view-page__action--primary:hover {
+  color: var(--board-surface);
+  background-color: color-mix(in oklch, var(--board-ink) 85%, transparent);
+}
+
+/*
  * Comment mode is armed, and the next click on an item leaves a comment rather
  * than doing nothing. Amber because that is the app's "on" — and it holds
  * through hover, since hovering an armed control does not disarm it.
