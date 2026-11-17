@@ -24,6 +24,7 @@ export function FrameRows({
   canGroup,
   count,
   copies,
+  designed = false,
   onArrange,
   onCopy,
   onExport,
@@ -34,6 +35,8 @@ export function FrameRows({
   copies: number;
   canGroup: boolean;
   count: number;
+  /** A designed frame: it downloads as its design, not its pictures. */
+  designed?: boolean;
   onArrange: () => void;
   onCopy: () => void;
   onExport: () => void;
@@ -58,7 +61,11 @@ export function FrameRows({
         type="button"
       >
         <HugeiconsIcon aria-hidden icon={Download01Icon} size={14} />
-        <span>Download {count === 1 ? "it" : `all ${count}`}</span>
+        <span>
+          {designed
+            ? "Download at 2× (PNG + SVG)"
+            : `Download ${count === 1 ? "it" : `all ${count}`}`}
+        </span>
       </button>
       {copies > 0 ? (
         <button

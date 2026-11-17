@@ -9,6 +9,7 @@ import PenTool01Icon from "@hugeicons-pro/core-stroke-standard/PenTool01Icon";
 import RepeatIcon from "@hugeicons-pro/core-stroke-standard/RepeatIcon";
 import type { BoardItem, BoardWire } from "../../types";
 import { useFrameActions } from "../FrameOpenContext";
+import { isDesignFrame } from "../geometry/frameLock";
 import { isSvgUrl } from "../io/affinity";
 import { frameSummary } from "../io/copyToBoard";
 import { downloadImage } from "../io/downloadImage";
@@ -427,6 +428,7 @@ export function MenuRows({
           canGroup={canGroup}
           copies={copies.length}
           count={summary?.count ?? 0}
+          designed={isDesignFrame(frame, items)}
           onArrange={() => onArrange(frame.id)}
           onCopy={() => onCopy(copies)}
           onExport={() => onExport(frame.id)}

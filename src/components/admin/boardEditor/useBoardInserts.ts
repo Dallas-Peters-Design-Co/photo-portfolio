@@ -18,13 +18,17 @@ import { BROWSER_NODE_SIZE } from "../../../../config/nodes/browser.js";
 import type { NodeTypeId } from "../../../../config/nodeTypes.js";
 import { elementConfig } from "../../../boards/elementNode";
 import { gridLayout, readingOrder } from "../../../boards/geometry/arrange";
+import { isDesignFrame } from "../../../boards/geometry/frameLock";
 import { findFreeSpot } from "../../../boards/geometry/placement";
+import { frameFileNames, frameFiles } from "../../../boards/io/downloadFrames";
+import { downloadNamed } from "../../../boards/io/downloadImage";
 import { newItemId } from "../../../boards/io/newItemId";
 import { outputImagesOf, outputTextOf } from "../../../boards/itemOutput";
 import {
   newShaderConfig,
   type ShaderConfig,
 } from "../../../boards/shaders/shaderConfig";
+import { zip } from "../../../lib/zip";
 import { boardsApi } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire, Element, Photo } from "../../../types";
 import type { ExternalImage } from "../BoardInsertPanel";
@@ -346,7 +350,32 @@ export const useBoardInserts = (deps: BoardInsertDeps) => {
   };
 
   /**
-   * Downloads everything a node made, or everything a frame holds.
+   * A designed frame as its design: PNG at 2× (144 DPI) and SVG, in a zip,
+   * the same files a visitor's Download frames gives (downloadFrames.ts).
+   */
+  const downloadDesign = async (frame: BoardItem) => {
+    const id = toast.loading("Drawing the frame at 2×…");
+    try {
+      const { files } = await frameFiles(items, () => undefined, [frame]);
+      if (files.length === 0) {
+        throw new Error("Couldn't draw that frame");
+      }
+      const [name] = frameFileNames([frame]);
+      downloadNamed(zip(files), `${name ?? "frame"}@2x.zip`);
+      toast.success("Frame downloaded: PNG at 2× and SVG", { id });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Couldn't draw that frame",
+        {
+          id,
+        }
+      );
+    }
+  };
+
+  /**
+   * Downloads everything a node made, or everything a frame holds: a
+   * designed frame downloads as its design instead (downloadDesign).
    *
    * The other half of being able to make things in batches: vectorise a frame
    * of twenty stickers and you have twenty files inside a node, reachable only
@@ -357,6 +386,11 @@ export const useBoardInserts = (deps: BoardInsertDeps) => {
    * reasonable price for fetching a file.
    */
   const exportItem = async (itemId: string) => {
+    const frame = items.find((item) => item.id === itemId);
+    if (frame && isDesignFrame(frame, items)) {
+      await downloadDesign(frame);
+      return;
+    }
     const toastId = toast.loading("Preparing the download…");
     try {
       const { count, skipped, url } = await boardsApi.exportItem(

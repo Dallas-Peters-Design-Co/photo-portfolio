@@ -71,9 +71,9 @@ export const svgOfPng = (
  */
 export const frameFiles = async (
   items: BoardItem[],
-  onProgress: (done: number, total: number) => void
+  onProgress: (done: number, total: number) => void,
+  frames: BoardItem[] = downloadableFrames(items)
 ): Promise<{ failed: string[]; files: ZipFile[] }> => {
-  const frames = downloadableFrames(items);
   const names = frameFileNames(frames);
   const encoder = new TextEncoder();
   const files: ZipFile[] = [];
