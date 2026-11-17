@@ -271,10 +271,10 @@ export function ContextBar({
           <TextFitControl item={item} onPatch={onPatch} />
           {onOutline ? (
             <IconButton
-              label="Convert text to outlines (⇧⌘O)"
+              label="Convert text to a vector shape (⇧⌘O)"
               onClick={onOutline}
             >
-              Outlines
+              To vector
             </IconButton>
           ) : null}
         </>

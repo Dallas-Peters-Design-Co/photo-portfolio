@@ -27,7 +27,7 @@ const text: BoardItem = {
   z: 1,
 };
 
-it("a text layer's bar has a button that converts it to outlines", async () => {
+it("a text layer's bar has a button that converts it to a vector shape", async () => {
   const host = document.createElement("div");
   document.body.append(host);
   const onOutline = vi.fn();
@@ -44,7 +44,7 @@ it("a text layer's bar has a button that converts it to outlines", async () => {
       onToBoard={() => undefined}
     />
   );
-  const label = '[aria-label="Convert text to outlines (⇧⌘O)"]';
+  const label = '[aria-label="Convert text to a vector shape (⇧⌘O)"]';
   await vi.waitFor(() => {
     expect(host.querySelector(label)).not.toBeNull();
   });

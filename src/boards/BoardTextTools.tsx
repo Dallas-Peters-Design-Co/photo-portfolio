@@ -180,10 +180,12 @@ const toOutlines = async (
       field
     );
     onPatch({ body, config, fontSize, kind, textStyle });
-    toast.success("Text converted to outlines.");
+    toast.success("Text converted to a vector shape.");
   } catch (err) {
     toast.error(
-      err instanceof Error ? err.message : "Couldn't convert to outlines."
+      err instanceof Error
+        ? err.message
+        : "Couldn't convert the text to a vector shape."
     );
   }
 };
@@ -383,11 +385,11 @@ export function BoardTextTools({
           <Button
             onClick={() => void toOutlines(item, anchor.current, onPatch)}
             size="sm"
-            title="Convert text to outlines: the letters become a vector shape"
+            title="Convert the text to a vector shape of its letters"
             type="button"
             variant="ghost"
           >
-            Outlines
+            To vector
           </Button>
         ) : null}
 

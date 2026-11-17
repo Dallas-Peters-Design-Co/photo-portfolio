@@ -223,7 +223,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       group: "Edit",
       id: "outline-text",
       keys: ["shift+mod+o"],
-      label: "Convert text to outlines",
+      label: "Convert text to a vector shape",
       run: outline,
     },
     {

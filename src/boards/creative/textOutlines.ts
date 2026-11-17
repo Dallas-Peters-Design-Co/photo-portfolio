@@ -52,7 +52,9 @@ const loadFont = (family: string, weight: string, italic: boolean) => {
         const body = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(body.error ?? `Couldn't load ${family} to outline.`);
+        throw new Error(
+          body.error ?? `Couldn't load ${family} to convert to a vector shape.`
+        );
       }
       const { parse } = await import("opentype.js");
       return parse(await res.arrayBuffer());
@@ -184,7 +186,7 @@ export const outlineTextLayer = async (
   const css = getComputedStyle(el);
   const family = familyOf(item, css);
   if (!family) {
-    throw new Error("This text has no font to outline.");
+    throw new Error("This text has no font to convert to a vector shape.");
   }
   const italic = css.fontStyle === "italic" || css.fontStyle === "oblique";
   const font = await loadFont(family, css.fontWeight, italic);
@@ -211,7 +213,7 @@ export const outlineTextLayer = async (
     }
   }
   if (parts.length === 0) {
-    throw new Error("There are no letters to outline.");
+    throw new Error("There are no letters to convert to a vector shape.");
   }
   const config: DrawingConfig = {
     d: parts.join(""),

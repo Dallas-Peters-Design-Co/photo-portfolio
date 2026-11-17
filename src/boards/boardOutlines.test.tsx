@@ -62,11 +62,11 @@ const mount = async (
     expect(host.querySelector("button")).not.toBeNull();
   });
   return [...host.querySelectorAll("button")].find(
-    (b) => b.textContent?.trim() === "Outlines"
+    (b) => b.textContent?.trim() === "To vector"
   );
 };
 
-it("a text item's bar converts it to outlines in one patch", async () => {
+it("a text item's bar converts it to a vector shape in one patch", async () => {
   const onPatch = vi.fn();
   const button = await mount("text", onPatch);
   expect(button).toBeDefined();
@@ -78,6 +78,6 @@ it("a text item's bar converts it to outlines in one patch", async () => {
   });
 });
 
-it("a note has no Outlines button", async () => {
+it("a note has no To vector button", async () => {
   expect(await mount("note", () => undefined)).toBeUndefined();
 });

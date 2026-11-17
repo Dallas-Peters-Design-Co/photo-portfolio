@@ -197,7 +197,7 @@ export const useEditorCommands = ({
             `[data-layer-id="${CSS.escape(layer.id)}"] textarea`
           );
           if (!box) {
-            throw new Error("Open the frame to outline its text.");
+            throw new Error("Open the frame to convert its text.");
           }
           return outlineTextLayer(layer, box);
         })
@@ -206,12 +206,14 @@ export const useEditorCommands = ({
       write(live.current.map((item) => byId.get(item.id) ?? item));
       toast.success(
         converted.length === 1
-          ? "Text converted to outlines."
-          : `${converted.length} text layers converted to outlines.`
+          ? "Text converted to a vector shape."
+          : `${converted.length} text layers converted to vector shapes.`
       );
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Couldn't convert to outlines."
+        err instanceof Error
+          ? err.message
+          : "Couldn't convert the text to a vector shape."
       );
     }
   };
@@ -303,7 +305,7 @@ export const useEditorCommands = ({
     copyMoved,
     one,
     order,
-    /** ⇧⌘O, also the Outlines button on a text layer's bar. */
+    /** ⇧⌘O, also the Vector button on a text layer's bar. */
     outline: () => void outline(),
     patch,
     patchMany,
