@@ -69,6 +69,13 @@
       font-size: 12px;
     }
 
+    #collection-status {
+      min-height: 1.4em;
+      margin: 10px 0 0;
+      font-size: 12px;
+    }
+
+    #collection-status[data-bad],
     #status[data-bad] {
       color: #c0392b;
     }
@@ -85,6 +92,15 @@
     <button class="primary" id="whole" type="button">Whole page</button>
     <button id="view" type="button">What's on screen</button>
     <p id="status" role="status"></p>
+    <hr style="margin:14px 0;border:0;border-top:1px solid #ffffff22">
+    <h1>Save images to a collection</h1>
+    <label for="collection"
+      >Right-click any image → Save image to collection. First in the
+      menu:</label
+    >
+    <select id="collection"></select>
+    <button id="refresh" type="button">Refresh collections</button>
+    <p id="collection-status" role="status"></p>
     <script defer src="popup.js"></script>
   </body>
 </html>

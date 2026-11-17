@@ -78,6 +78,8 @@ const isSvg = (bytes: Uint8Array): boolean => {
   return SVG_TAG.test(head);
 };
 
+const MAX_STRICT_BYTES = 25_000_000;
+
 const EXTENSIONS: Record<string, string> = {
   "image/avif": "avif",
   "image/gif": "gif",
@@ -133,13 +135,25 @@ export const persistGenerated = async (
    * The type the generator declared, used only when the bytes are unrecognised.
    * fal reports one in its JSON that is more honest than the one it serves.
    */
-  declaredType?: string | null
+  declaredType?: string | null,
+  /**
+   * For a file from anywhere (a picture saved from another site): kept only
+   * when its bytes are a known image or video, and not past MAX_STRICT_BYTES.
+   * A web page or an error document is refused rather than stored as a jpg.
+   */
+  strict = false
 ): Promise<string> => {
   const res = await fetch(sourceUrl);
   if (!res.ok) {
     throw new Error(`Could not download the generated file (${res.status})`);
   }
   const bytes = await res.arrayBuffer();
+  if (
+    strict &&
+    (bytes.byteLength > MAX_STRICT_BYTES || !sniff(new Uint8Array(bytes)))
+  ) {
+    throw new Error("That address isn't an image this can keep.");
+  }
 
   const served = res.headers.get("content-type");
   const type =

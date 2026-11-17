@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ExtensionCollections } from "./components/ExtensionCollections";
 import { HomePage } from "./pages/HomePage";
 import { SiteSettingsProvider } from "./theme/SiteSettingsProvider";
 
@@ -110,6 +111,7 @@ export default function App() {
             <Route element={<ContentPage />} path="/:slug" />
           </Routes>
         </Suspense>
+        <ExtensionCollections />
         <Analytics />
         <SpeedInsights />
       </BrowserRouter>

@@ -18,6 +18,8 @@ import { handleCors } from "../_lib/cors.js";
 import { parsePublicHttpUrl, sanitizeText } from "../_lib/httpUrl.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
+import { persistGenerated } from "../_lib/persistGenerated.js";
+import { resolvePublicUrl } from "../_lib/publicHost.js";
 
 /**
  * One collection: its items, its name, adding to it, and removing from it.
@@ -119,12 +121,29 @@ async function handlePost(
 ) {
   // Checked, not taken: this is stored, rendered in a page, and handed to fal as
   // a source image, so a "javascript:" or a file path must not survive.
-  const url =
+  const given =
     typeof body.url === "string" ? parsePublicHttpUrl(body.url.trim()) : null;
-  if (!url) {
+  if (!given) {
     return res
       .status(400)
       .json({ error: "An asset needs a public http(s) URL" });
+  }
+  // A picture saved from another site (the browser extension) is copied
+  // into this site's store first: a hotlinked one breaks when that site
+  // blocks it or takes it down.
+  let url = given;
+  if (body.copy === true) {
+    // Fetched by the server, so only from the public internet.
+    if (!(await resolvePublicUrl(given)).ok) {
+      return res.status(400).json({ error: "That image isn't public." });
+    }
+    try {
+      url = await persistGenerated(given, "collections/saved", null, true);
+    } catch {
+      return res
+        .status(422)
+        .json({ error: "That image couldn't be downloaded to save." });
+    }
   }
 
   const counted = await getDb()

@@ -64,3 +64,49 @@ loadBoards();
 
 document.getElementById("version").textContent =
   `v${chrome.runtime.getManifest().version}`;
+
+// Collections: the default one for the right-click menu.
+const collectionSelect = document.getElementById("collection");
+const collectionStatus = document.getElementById("collection-status");
+const collections = (message) =>
+  chrome.runtime.sendMessage({ ...message, to: "collections" });
+
+const showCollections = (result) => {
+  const list = result?.collections ?? [];
+  collectionSelect.replaceChildren(
+    ...list.map((c) => {
+      const option = document.createElement("option");
+      option.value = c.id;
+      option.textContent = c.name;
+      option.selected = c.id === result.defaultId;
+      return option;
+    })
+  );
+  collectionSelect.disabled = list.length === 0;
+  let note = "";
+  if (result?.error) {
+    note = result.error;
+  } else if (list.length === 0) {
+    note = "No collections yet. Make one on dallaspeters.com.";
+  }
+  collectionStatus.textContent = note;
+  collectionStatus.toggleAttribute("data-bad", Boolean(result?.error));
+};
+
+const refreshCollections = async () => {
+  collectionStatus.textContent = "Loading collections…";
+  showCollections(await collections({ type: "load" }));
+};
+
+collectionSelect.addEventListener("change", async () => {
+  showCollections(
+    await collections({
+      defaultId: collectionSelect.value,
+      type: "set-default",
+    })
+  );
+});
+document
+  .getElementById("refresh")
+  .addEventListener("click", () => void refreshCollections());
+refreshCollections();

@@ -277,3 +277,128 @@ chrome.commands.onCommand.addListener((command) => {
     });
   }
 });
+
+/*
+ * Collections: right-click any image and save it to one.
+ *
+ * Asked of any open dallaspeters.com tab (bridge.js), which saves it as the
+ * signed-in admin and copies the picture into the site's store
+ * (src/components/ExtensionCollections.tsx). The list of collections is kept
+ * here to build the menu; it's refreshed from the popup or the menu.
+ */
+
+/** Asks each site tab in turn until one answers. */
+const askSite = async (message) => {
+  const tabs = await chrome.tabs.query({ url: BOARD_HOSTS });
+  let last = {
+    error: "Open dallaspeters.com in a tab and sign in.",
+    ok: false,
+  };
+  for (const tab of tabs) {
+    // biome-ignore lint/performance/noAwaitInLoops: one tab at a time, the first that answers wins
+    const answer = await ask(tab.id, message);
+    if (answer?.ok) {
+      return answer;
+    }
+    last = answer ?? last;
+  }
+  return last;
+};
+
+const stored = async () => {
+  const { collections = [], defaultId = null } = await chrome.storage.local.get(
+    ["collections", "defaultId"]
+  );
+  return { collections, defaultId };
+};
+
+const buildMenus = async () => {
+  const { collections, defaultId } = await stored();
+  await chrome.contextMenus.removeAll();
+  const menu = (item) =>
+    chrome.contextMenus.create({ contexts: ["image"], ...item });
+  menu({ id: "save", title: "Save image to collection" });
+  const first = collections.find((c) => c.id === defaultId);
+  if (first) {
+    menu({ id: `col:${first.id}`, parentId: "save", title: first.name });
+    menu({ id: "sep-1", parentId: "save", type: "separator" });
+  }
+  for (const c of collections) {
+    if (c.id !== first?.id) {
+      menu({ id: `col:${c.id}`, parentId: "save", title: c.name });
+    }
+  }
+  if (collections.length === 0) {
+    menu({
+      enabled: false,
+      id: "none",
+      parentId: "save",
+      title: "No collections yet: sign in on dallaspeters.com",
+    });
+  }
+  menu({ id: "sep-2", parentId: "save", type: "separator" });
+  menu({ id: "refresh", parentId: "save", title: "Refresh collections" });
+};
+
+const loadCollections = async () => {
+  const answer = await askSite({ type: "collections" });
+  if (answer?.ok) {
+    await chrome.storage.local.set({ collections: answer.collections });
+    await buildMenus();
+  }
+  return { ...(await stored()), error: answer?.ok ? null : answer?.error };
+};
+
+const flash = (ok) => {
+  chrome.action.setBadgeText({ text: ok ? "✓" : "!" });
+  setTimeout(() => chrome.action.setBadgeText({ text: "" }), 2500);
+};
+
+const saveImage = async (collectionId, srcUrl, tab) => {
+  if (!WEB_PAGE.test(srcUrl ?? "")) {
+    flash(false);
+    return { error: "That image can't be saved from here.", ok: false };
+  }
+  const answer = await askSite({
+    collectionId,
+    title: tab?.title ?? "",
+    type: "save-image",
+    url: srcUrl,
+  });
+  if (answer?.ok) {
+    await chrome.storage.local.set({ defaultId: collectionId });
+    await buildMenus();
+  }
+  flash(Boolean(answer?.ok));
+  return answer;
+};
+
+chrome.runtime.onInstalled.addListener(() => void buildMenus());
+chrome.runtime.onStartup.addListener(() => void buildMenus());
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  const id = String(info.menuItemId);
+  if (id === "refresh") {
+    loadCollections().then((r) => flash(!r.error));
+  } else if (id.startsWith("col:")) {
+    saveImage(id.slice(4), info.srcUrl, tab);
+  }
+});
+
+// The popup's collection picker.
+chrome.runtime.onMessage.addListener((message, _sender, respond) => {
+  if (message?.to !== "collections") {
+    return;
+  }
+  const work =
+    message.type === "set-default"
+      ? chrome.storage.local
+          .set({ defaultId: message.defaultId })
+          .then(buildMenus)
+          .then(stored)
+      : loadCollections();
+  work.then(respond, (e) =>
+    respond({ error: String(e?.message ?? e), ok: false })
+  );
+  return true;
+});

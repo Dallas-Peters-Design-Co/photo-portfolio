@@ -29,3 +29,16 @@ The picture lands near the middle of what the board is showing.
   the board's own site.
 - The board must be open in Chrome. The desktop app can't hear a Chrome
   extension; it has its own live Browser node instead.
+
+## Save images to a collection
+
+Right-click any image on any site → **Save image to collection** → pick one.
+The collection you used last comes first in the menu; the popup also has a
+picker for it, and **Refresh collections** after making a new one.
+
+- A dallaspeters.com tab must be open and signed in (any page). The site
+  copies the picture into its own store, so it survives the original being
+  removed, and describes it for search by colour and mood.
+- The toolbar icon shows ✓ when it's saved and ! when it isn't.
+- After updating the extension (1.4.0 adds this), reload it in
+  `chrome://extensions` and reload your dallaspeters.com tabs once.

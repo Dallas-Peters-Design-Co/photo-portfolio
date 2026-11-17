@@ -34,6 +34,8 @@ export const collectionsApi = {
     collectionId: string,
     item: {
       alt?: string | null;
+      /** Copy the picture into this site's store (saved from another site). */
+      copy?: boolean;
       height?: number | null;
       kind?: "image" | "video";
       title?: string | null;
