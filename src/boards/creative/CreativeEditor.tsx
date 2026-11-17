@@ -355,6 +355,7 @@ export function CreativeEditor({
             onPatch={(next) => patch(selected.id, next)}
             onReorder={(how) => cmd.order(selected.id, how)}
             onToBoard={() => cmd.toBoard([selected])}
+            onVector={cmd.vector}
           />
         ) : null}
         {chosen.length === 0 ? (

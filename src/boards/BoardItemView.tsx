@@ -87,6 +87,8 @@ interface BoardItemViewProps {
   /** Writes any field of this item back — how the text panel saves. */
   onPatch: (patch: Partial<BoardItem>) => void;
   onRemoveVersion?: (index: number) => void;
+  /** Swaps this item for several in its place (a vector shape ungrouped). */
+  onReplace?: (items: BoardItem[]) => void;
   onResizeStart: (
     index: number,
     clientX: number,
@@ -293,6 +295,7 @@ export function BoardItemView({
   onDelete,
   onEditBody,
   onPatch,
+  onReplace,
   onResizeStart,
   onRun,
   onSelect,
@@ -468,6 +471,7 @@ export function BoardItemView({
         item={item}
         on={isSoleSelected && !readOnly}
         onPatch={onPatch}
+        onReplace={onReplace}
         writable={isWritable}
       />
 

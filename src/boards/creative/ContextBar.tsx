@@ -35,6 +35,7 @@ import { BoardFontPicker } from "../BoardFontPicker";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ColorWell } from "../ColorWell";
 import { isDrawingConfig } from "../drawing/drawing";
+import { isVectorShape } from "../drawing/vectorEdit";
 import { Field, num } from "./barFields";
 import { type Box, layerKind, type Reorder } from "./creativeModel";
 import { ImageControls } from "./ImageControls";
@@ -65,6 +66,8 @@ interface ContextBarProps {
   onReorder: (how: Reorder) => void;
   /** Off the frame and back onto the board. */
   onToBoard: () => void;
+  /** A vector shape's box fitted to it, or the shape split into letters. */
+  onVector?: { fit: () => void; ungroup: () => void };
 }
 
 function IconButton({
@@ -260,6 +263,7 @@ export function ContextBar({
   onPatch,
   onReorder,
   onToBoard,
+  onVector,
 }: ContextBarProps) {
   const kind = layerKind(item);
   const place = (patch: Partial<Box>) => onPatch(patch);
@@ -285,6 +289,19 @@ export function ContextBar({
           onFillFromStudio={onFillFromStudio}
           onPatch={onPatch}
         />
+      ) : null}
+      {onVector && isVectorShape(item) ? (
+        <>
+          <IconButton label="Fit the box to the shape" onClick={onVector.fit}>
+            Fit box
+          </IconButton>
+          <IconButton
+            label="Ungroup into letters (⇧⌘G)"
+            onClick={onVector.ungroup}
+          >
+            Ungroup
+          </IconButton>
+        </>
       ) : null}
       {onEditInStudio && kind !== "shape" ? (
         <button

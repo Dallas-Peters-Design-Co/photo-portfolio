@@ -1,5 +1,6 @@
 import interBold from "@fontsource/inter/files/inter-latin-700-normal.woff?url";
 import { afterEach, expect, it, vi } from "vitest";
+import type { TextStyle } from "../../../config/textStyle.js";
 import type { BoardItem } from "../../types";
 import type { DrawingConfig } from "../drawing/drawing";
 import { shapeGeometry } from "../drawing/shapes";
@@ -96,7 +97,9 @@ it("reads the app's own faces from where they are, not by their CSS name", async
   document.body.append(box);
   const as = (family: string) =>
     outlineTextLayer(
-      layer({ textStyle: { ...layer().textStyle, family, weight: 600 } }),
+      layer({
+        textStyle: { ...(layer().textStyle as TextStyle), family, weight: 600 },
+      }),
       box
     );
 

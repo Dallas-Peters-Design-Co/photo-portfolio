@@ -5,6 +5,11 @@ import { normalizeTextStyle, type TextStyle } from "../../../config/textStyle";
 import type { TypeScale } from "../../../config/typeScale.js";
 import type { BoardItem } from "../../types";
 import {
+  fitVectorBox,
+  isVectorShape,
+  ungroupVector,
+} from "../drawing/vectorEdit";
+import {
   bundleOf,
   heldClip,
   holdClip,
@@ -262,6 +267,27 @@ export const useEditorCommands = ({
     selection.select(next?.id ?? null);
   };
 
+  /** Vector shapes (vectorEdit.ts): boxes fitted, or each split into letters. */
+  const vector = {
+    fit: () =>
+      patchMany(
+        new Map(
+          chosen.filter(isVectorShape).map((l) => [l.id, fitVectorBox(l)])
+        )
+      ),
+    ungroup: () => {
+      const split = new Map(
+        chosen.filter(isVectorShape).map((l) => [l.id, ungroupVector(l)])
+      );
+      if ([...split.values()].every((parts) => parts.length < 2)) {
+        toast.message("That shape is a single piece.");
+        return;
+      }
+      write(live.current.flatMap((item) => split.get(item.id) ?? [item]));
+      selection.setIds([...split.values()].flat().map((l) => l.id));
+    },
+  };
+
   const commands = editorCommandList({
     align,
     background,
@@ -287,6 +313,7 @@ export const useEditorCommands = ({
     textStyle,
     toBoard,
     ui,
+    vector,
   });
 
   /** The brand's type scale onto every text layer (applyTypeScale.ts). */
@@ -314,5 +341,6 @@ export const useEditorCommands = ({
     shape,
     text,
     toBoard,
+    vector,
   };
 };

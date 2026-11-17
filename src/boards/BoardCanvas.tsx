@@ -1248,6 +1248,9 @@ export function BoardCanvas({
                     ? (version) => onRemoveVersion(item.id, version)
                     : undefined
                 }
+                onReplace={(parts) =>
+                  onChange(items.flatMap((it, i) => (i === index ? parts : it)))
+                }
                 onResizeStart={readOnly ? () => undefined : beginResize}
                 onRun={(force) => onRun?.(item.id, force)}
                 onSelect={selectFor()}

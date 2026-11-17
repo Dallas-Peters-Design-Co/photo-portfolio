@@ -1,5 +1,6 @@
 import type { TextStyle } from "../../../config/textStyle";
 import type { BoardItem } from "../../types";
+import { isVectorShape } from "../drawing/vectorEdit";
 import { requestHistory } from "../hooks/historyRequest";
 import type { Command } from "../shortcuts/keys";
 import { arrangeCommands } from "./arrangeCommands";
@@ -42,6 +43,8 @@ export interface EditorOps {
   textStyle: (fn: (s: TextStyle | null) => Partial<TextStyle>) => void;
   toBoard: (group: BoardItem[]) => void;
   ui: EditorUi;
+  /** Vector shapes (vectorEdit.ts): box fitted to them, or split into letters. */
+  vector: { fit: () => void; ungroup: () => void };
 }
 
 export const editorCommandList = (ops: EditorOps): Command[] => {
@@ -55,6 +58,7 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
     layers,
     one,
     outline,
+    vector,
     pasteLayers,
     removeMany,
     selection,
@@ -225,6 +229,21 @@ export const editorCommandList = (ops: EditorOps): Command[] => {
       keys: ["shift+mod+o"],
       label: "Convert text to a vector shape",
       run: outline,
+    },
+    {
+      enabled: chosen.some(isVectorShape),
+      group: "Edit",
+      id: "vector-fit",
+      label: "Fit the box to the vector shape",
+      run: vector.fit,
+    },
+    {
+      enabled: chosen.some(isVectorShape),
+      group: "Edit",
+      id: "vector-ungroup",
+      keys: ["shift+mod+g"],
+      label: "Ungroup the vector shape into letters",
+      run: vector.ungroup,
     },
     {
       enabled: some,

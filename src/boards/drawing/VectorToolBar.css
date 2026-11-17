@@ -1,0 +1,25 @@
+/* The bar over a selected vector shape: the board's floating chrome. */
+.vector-toolbar {
+  position: absolute;
+  left: 0;
+  z-index: var(--z-popover);
+  display: flex;
+  gap: var(--spacing);
+  width: max-content;
+  padding: var(--spacing);
+  background: color-mix(in oklch, var(--color-board-surface) 90%, transparent);
+  border: var(--border-hairline) solid
+    color-mix(in oklch, var(--color-board-ink) 10%, transparent);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(var(--blur-sm));
+}
+
+.vector-toolbar--above {
+  bottom: 100%;
+  transform-origin: bottom left;
+}
+
+.vector-toolbar--below {
+  top: 100%;
+  transform-origin: top left;
+}
