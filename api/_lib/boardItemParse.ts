@@ -10,11 +10,11 @@ import { isNodeTypeId } from "../../config/nodeTypes.js";
 import { normalizeTextStyle, type TextStyle } from "../../config/textStyle.js";
 import {
   parseDrawingConfig,
-  parseFrameConfig,
   parseNodeConfig,
   parseShaderConfig,
 } from "./boardItemConfig.js";
 import type { BoardItemKind } from "./boards.js";
+import { parseFrameConfig } from "./frameConfig.js";
 import {
   parseImageConfig,
   parseInstanceConfig,
