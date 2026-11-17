@@ -99,16 +99,25 @@ export function Media({
   sizeId: string;
 }) {
   const size = sizeOf(sizeId);
-  return (
+  const aspectRatio = size ? `${size.w} / ${size.h}` : undefined;
+  const media = (
     <div
       className="social-mock__media"
-      style={{
-        aspectRatio: size ? `${size.w} / ${size.h}` : undefined,
-        borderRadius: radius,
-      }}
+      style={{ aspectRatio, borderRadius: radius }}
     >
       {children}
-      {covers}
+    </div>
+  );
+  if (!covers) {
+    return media;
+  }
+  // The covers sit in a layer the picture's size but outside its crop: a
+  // LinkedIn page logo hangs half below the cover, and inside the crop it
+  // was cut in half.
+  return (
+    <div className="social-mock__media-wrap">
+      {media}
+      <div className="social-mock__media-covers">{covers}</div>
     </div>
   );
 }
@@ -140,7 +149,10 @@ export function Covers({
       {covers.map((cover) => (
         <span
           aria-hidden
-          className={`social-mock__cover${cover.round ? "social-mock__cover--round" : ""}`}
+          className={[
+            "social-mock__cover",
+            cover.round ? "social-mock__cover--round" : "",
+          ].join(" ")}
           key={cover.label}
           style={coverStyle(cover, sizeId)}
         >
@@ -160,7 +172,10 @@ export const Avatar = ({
 }) => (
   <span
     aria-hidden
-    className={`social-mock__avatar${square ? "social-mock__avatar--square" : ""}`}
+    className={[
+      "social-mock__avatar",
+      square ? "social-mock__avatar--square" : "",
+    ].join(" ")}
     style={{ fontSize: size * 0.42, height: size, width: size }}
   >
     Y

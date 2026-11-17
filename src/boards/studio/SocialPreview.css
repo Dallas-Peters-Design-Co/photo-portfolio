@@ -47,6 +47,16 @@
   background: #e9ebee;
 }
 
+.social-mock__media-wrap {
+  position: relative;
+}
+
+.social-mock__media-covers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .social-mock__media > img {
   display: block;
   width: 100%;
@@ -275,9 +285,13 @@
   padding-left: 216px;
 }
 
-.social-mock__page--linkedin-banner .social-mock__page-body,
-.social-mock__page--linkedin-page .social-mock__page-body {
+.social-mock__page--linkedin-banner .social-mock__page-body {
   padding-top: 72px;
+}
+
+/* The logo hangs 119/256 of the cover's height below it: 89px at 1128 wide. */
+.social-mock__page--linkedin-page .social-mock__page-body {
+  padding-top: 104px;
 }
 
 .social-mock__page-name {
