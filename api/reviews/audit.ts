@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { MAX_REVIEW_TITLE, sanitizeReviewDoc } from "../../config/review.js";
+import { cleanBrief } from "../../config/reviewBrief.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
@@ -55,7 +56,11 @@ const serve = async (req: VercelRequest, res: VercelResponse) => {
         error: "Claude is not configured on this deployment.",
       });
     }
-    const audit = await runUxAudit({ screens, title });
+    const audit = await runUxAudit({
+      brief: cleanBrief(body.brief),
+      screens,
+      title,
+    });
     return res.status(200).json({ audit });
   } catch (e) {
     console.error("[review audit]", e);

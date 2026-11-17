@@ -18,6 +18,11 @@ import {
   trimEditorDoc,
 } from "./proposal.js";
 import {
+  type BriefCoverage,
+  cleanBrief,
+  cleanCoverage,
+} from "./reviewBrief.js";
+import {
   cleanConcept,
   MAX_REVIEW_CONCEPTS,
   type ReviewConcept,
@@ -138,6 +143,10 @@ export interface ReviewDoc {
    * find each other through it (src/boards/review/).
    */
   boardId: string | null;
+  /** What the client asked the review to cover (config/reviewBrief.ts). */
+  brief: string;
+  /** The last audit's account of each item in the brief. */
+  briefCoverage: BriefCoverage[];
   closing: RichText;
   concepts: ReviewConcept[];
   intro: RichText;
@@ -155,6 +164,8 @@ export interface ReviewDoc {
 
 export const DEFAULT_REVIEW_DOC: ReviewDoc = {
   boardId: null,
+  brief: "",
+  briefCoverage: [],
   closing:
     "Happy to walk through any of this on a call. If you'd like me to take on the fixes, I'll turn the notes into a scoped proposal.",
   concepts: [],
@@ -360,6 +371,8 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
       typeof raw.boardId === "string" && BOARD_ID.test(raw.boardId)
         ? raw.boardId
         : null,
+    brief: cleanBrief(raw.brief),
+    briefCoverage: cleanCoverage(raw.briefCoverage),
     closing: cleanRich(raw.closing, MAX_DOC_BYTES / 4),
     concepts,
     intro: cleanRich(raw.intro, MAX_DOC_BYTES / 4),

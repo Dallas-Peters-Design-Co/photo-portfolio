@@ -84,6 +84,7 @@ const json = async <T>(res: Response, fallback: string): Promise<T> => {
 export const reviewsApi = {
   /** Runs a UX audit across the review's captured screens through Claude. */
   audit: async (input: {
+    brief?: string;
     screens: ReviewScreen[];
     title?: string;
   }): Promise<{ audit: UxAudit }> =>
@@ -135,6 +136,7 @@ export const reviewsApi = {
 
   /** Starts an agent capture of an app behind a login. Returns its session. */
   captureWithLogin: async (input: {
+    brief?: string;
     loginUrl?: string;
     pages?: number;
     slug: string;

@@ -94,6 +94,12 @@ export const rowToReviewDto = (row: ReviewRow): ReviewDto => ({
   updatedAt: toIso(row.updated_at),
 });
 
+/** The review as a visitor gets it: the brief is the designer's own. */
+export const forVisitor = (dto: ReviewDto): ReviewDto => ({
+  ...dto,
+  doc: { ...dto.doc, brief: "", briefCoverage: [] },
+});
+
 export const rowToReviewSummary = (row: ReviewRow): ReviewSummaryDto => {
   const { doc, feedback: _feedback, ...rest } = rowToReviewDto(row);
   return {

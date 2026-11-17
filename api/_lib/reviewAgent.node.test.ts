@@ -195,6 +195,22 @@ describe("captureMessage", () => {
     expect(text).toContain("https://app.example.com/login");
     expect(text).toContain("up to 3 more pages");
     expect(text).toContain("at least two levels in");
+    expect(text).not.toContain("<brief>");
+  });
+
+  it("puts the brief's areas first when the review has one", () => {
+    const text = captureMessage({
+      brief: "Cover PubMed search and manuscript export.",
+      loginUrl: null,
+      pages: 15,
+      url: "https://app.example.com",
+    });
+    expect(text).toContain("Spend your pages on it first");
+    expect(text).toContain(
+      "<brief>\nCover PubMed search and manuscript export.\n</brief>"
+    );
+    // The brief comes before the checks, which still name every reference.
+    expect(text.indexOf("<brief>")).toBeLessThan(text.indexOf("Then validate"));
   });
 });
 

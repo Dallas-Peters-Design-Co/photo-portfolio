@@ -131,11 +131,25 @@ export const CAPTURE_SCHEMA = {
 export const DEFAULT_AGENT_PAGES = 12;
 export const MAX_AGENT_PAGES = 15;
 
+/** The client's brief, and how it changes what the agent visits first. */
+const briefLines = (brief: string): string[] =>
+  brief
+    ? [
+        "",
+        "The client's brief for this review is below. It names what the review must cover. Spend your pages on it first: reach and capture every area, flow and screen it names, then use any pages left as described above. In the checks, cover each topic it raises (for example colour-blind accessibility), and say plainly when a named area could not be reached.",
+        "<brief>",
+        brief,
+        "</brief>",
+      ]
+    : [];
+
 export const captureMessage = ({
+  brief = "",
   loginUrl,
   pages,
   url,
 }: {
+  brief?: string;
   loginUrl: string | null;
   pages: number;
   url: string;
@@ -151,6 +165,7 @@ export const captureMessage = ({
     "Go deep, not just wide. First open the main navigation (and any side menus, account menu and settings) and list the app's sections. Then, within each section, go at least two levels in: from a list to an item's detail page, from settings to each settings tab, from an index to a create or edit form (open it, never submit it). Open dialogs, drawers and menus that a page offers, and capture any empty, loading or error state you reach without changing data.",
     "Spend the pages on different kinds of screen: one list page per section rather than five near-identical ones, and the deeper pages a real user would reach to get work done. Skip marketing pages, legal pages and duplicates of a screen you already have.",
     "Look, never change anything in the app.",
+    ...briefLines(brief),
     "",
     "Then validate, one reference at a time, and return one `checks` entry for each of these, in this order:",
     ...REFERENCE_NAMES.map((name) => `- ${name}`),
@@ -159,6 +174,7 @@ export const captureMessage = ({
 
 /** Starts a capture. Resolves with the agent session's id. */
 export const startCapture = (input: {
+  brief?: string;
   loginUrl: string | null;
   pages: number;
   url: string;

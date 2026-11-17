@@ -2,6 +2,7 @@ import type { ReviewScreen } from "../../../config/review.js";
 import { sanitizeUxAudit, type UxAudit } from "../../../config/reviewAudit.js";
 import { claudeToken } from "../claudeAuth.js";
 import { parsePublicHttpUrl } from "../httpUrl.js";
+import { briefText, screenBriefRules, siteBriefRules } from "./briefPrompt.js";
 import { fetchMarkup, type PageMarkup } from "./page.js";
 import {
   isStoredImage,
@@ -240,9 +241,12 @@ export const sourcesFromScreens = (screens: ReviewScreen[]): TileSource[] =>
   );
 
 export const runUxAudit = async ({
+  brief = "",
   screens,
   title,
 }: {
+  /** The client's brief (config/reviewBrief.ts); "" for none. */
+  brief?: string;
   screens: ReviewScreen[];
   title?: string;
 }): Promise<UxAudit> => {
@@ -275,18 +279,19 @@ export const runUxAudit = async ({
   // A failed screen is reported in the summary rather than sinking the rest.
   const [site, ...perScreen] = await Promise.allSettled([
     askClaude(
-      SITE_INSTRUCTIONS,
-      tileContent(tiles, title, formatMarkups(pages)),
+      SITE_INSTRUCTIONS + siteBriefRules(brief),
+      tileContent(tiles, title, formatMarkups(pages), brief),
       MAX_OUTPUT_TOKENS
     ),
     ...sources.map((source) => {
       const own = tiles.filter((t) => t.screenId === source.id);
       return askClaude(
-        screenInstructions(source.title),
+        screenInstructions(source.title) + screenBriefRules(brief),
         tileContent(
           own,
           title,
-          formatMarkups(pageFor(sourceUrlOf.get(source.id) ?? ""))
+          formatMarkups(pageFor(sourceUrlOf.get(source.id) ?? "")),
+          brief
         ),
         SCREEN_OUTPUT_TOKENS
       );
@@ -328,7 +333,8 @@ type Block =
 const tileContent = (
   tiles: Tile[],
   title: string | undefined,
-  markup: string
+  markup: string,
+  brief: string
 ): Block[] => {
   const manifest = tiles
     .map(
@@ -348,7 +354,7 @@ const tileContent = (
       },
     ]),
     {
-      text: `Review title: ${title?.trim() || "Site review"}\n\nTile manifest:\n${manifest}\n\n${markup}\n\nReturn the audit JSON now.`,
+      text: `Review title: ${title?.trim() || "Site review"}\n\n${briefText(brief)}Tile manifest:\n${manifest}\n\n${markup}\n\nReturn the audit JSON now.`,
       type: "text",
     },
   ];

@@ -61,6 +61,8 @@ const REVIEW: ReviewRecord = {
   createdAt: "2026-10-18T00:00:00Z",
   doc: {
     boardId: null,
+    brief: "",
+    briefCoverage: [],
     closing: "",
     concepts: [],
     intro: "",

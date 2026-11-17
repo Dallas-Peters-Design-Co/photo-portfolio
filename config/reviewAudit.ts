@@ -19,6 +19,7 @@ import {
   type ReviewSection,
   type RichText,
 } from "./review.js";
+import { type BriefCoverage, cleanCoverage } from "./reviewBrief.js";
 
 export type PrincipleStatus = "pass" | "opportunity" | "attention";
 const PRINCIPLE_STATUSES: PrincipleStatus[] = [
@@ -58,6 +59,8 @@ export interface AuditFinding {
 }
 
 export interface UxAudit {
+  /** Each item the review's brief asks for, when it had one. */
+  coverage?: BriefCoverage[];
   execSummary: string;
   findings: AuditFinding[];
   nowFraming: string;
@@ -106,6 +109,7 @@ export const sanitizeUxAudit = (
 ): UxAudit => {
   const raw = (value ?? {}) as Record<string, unknown>;
   return {
+    coverage: cleanCoverage(raw.coverage),
     execSummary: str(raw.execSummary),
     findings: list(raw.findings, MAX_FINDINGS)
       .map((f) => {
@@ -295,6 +299,10 @@ export const mergeAudit = (review: ReviewDoc, audit: UxAudit): ReviewDoc => {
   const summary = summaryOf(audit);
   return {
     ...review,
+    // The newest account replaces the last: it was made against this brief.
+    briefCoverage: audit.coverage?.length
+      ? audit.coverage
+      : review.briefCoverage,
     screens: review.screens.map((screen) => {
       const pins = audit.findings
         .filter((f) => f.screenId === screen.id)

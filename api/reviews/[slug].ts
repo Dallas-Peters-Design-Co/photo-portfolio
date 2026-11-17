@@ -19,6 +19,7 @@ import {
 import { signDoc, storeDoc } from "../_lib/reviewImages.js";
 import { withKitStyles } from "../_lib/reviewStyles.js";
 import {
+  forVisitor,
   isReviewStatus,
   REVIEW_SELECT,
   type ReviewRow,
@@ -125,7 +126,14 @@ const read = async (
   }
   return res
     .status(200)
-    .json(await signDoc(await withKitStyles(sql, rowToReviewDto(row))));
+    .json(
+      await signDoc(
+        await withKitStyles(
+          sql,
+          user ? rowToReviewDto(row) : forVisitor(rowToReviewDto(row))
+        )
+      )
+    );
 };
 
 const save = async (

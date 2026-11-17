@@ -30,6 +30,8 @@ const CAPTURE_LIMIT_MS = 45 * 60 * 1000;
 
 /** Pages the sign-in agent captures, each at two widths. */
 const AGENT_PAGES = 12;
+/** The most the agent takes (api/_lib/reviewAgent.ts MAX_AGENT_PAGES). */
+const MAX_AGENT_PAGES = 15;
 const TRAILING_HYPHENS = /-+$/;
 
 const two = (n: number) => String(n).padStart(2, "0");
@@ -153,9 +155,12 @@ export function useReviewAudit({
     const { slug } = latest.current;
     setPhase("exploring");
     setAgentStatus("Starting the browser…");
+    const { brief } = latest.current.doc;
     const { session } = await reviewsApi.captureWithLogin({
+      brief,
       loginUrl,
-      pages: AGENT_PAGES,
+      // A brief names areas that must be reached: the agent gets its most.
+      pages: brief ? MAX_AGENT_PAGES : AGENT_PAGES,
       slug,
       url,
     });
@@ -189,6 +194,7 @@ export function useReviewAudit({
   const auditThese = async (screens: ReviewScreen[]) => {
     setPhase("auditing");
     const { audit } = await reviewsApi.audit({
+      brief: latest.current.doc.brief,
       screens,
       title: latest.current.title,
     });
@@ -241,13 +247,19 @@ export function useReviewAudit({
       }
       const source = latest.current;
       let doc = mergeChecks(
-        { ...DEFAULT_REVIEW_DOC, screens: captured.screens },
+        // The scan keeps the brief, so it can be audited again against it.
+        {
+          ...DEFAULT_REVIEW_DOC,
+          brief: source.doc.brief,
+          screens: captured.screens,
+        },
         captured.checks
       );
       setPhase("auditing");
       let audited = true;
       try {
         const { audit } = await reviewsApi.audit({
+          brief: source.doc.brief,
           screens: captured.screens,
           title: source.title,
         });

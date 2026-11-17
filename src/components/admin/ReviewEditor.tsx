@@ -20,6 +20,7 @@ import { Label } from "../ui/label";
 import { EditorBlock, useCollapsedBlocks } from "./EditorBlock";
 import { EditorShell } from "./EditorShell";
 import { KitStyleSyncProvider } from "./kitStyleSync";
+import { ReviewBriefEditor } from "./ReviewBriefEditor";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
@@ -222,6 +223,7 @@ export function ReviewEditor({
 
   const collapse = useCollapsedBlocks(`review-editor-folded:${review.id}`);
   const blockIds = [
+    "brief",
     "opening",
     ...draft.doc.sections.map((x) => x.id),
     ...draft.doc.screens.map((x) => x.id),
@@ -326,6 +328,14 @@ export function ReviewEditor({
               {allFolded ? "Expand all" : "Collapse all"}
             </Button>
           </div>
+
+          <ReviewBriefEditor
+            brief={draft.doc.brief}
+            collapsed={collapse.isCollapsed("brief")}
+            coverage={draft.doc.briefCoverage}
+            onChange={(brief) => setDoc({ brief })}
+            onToggle={() => collapse.toggle("brief")}
+          />
 
           <EditorBlock
             collapsed={collapse.isCollapsed("opening")}

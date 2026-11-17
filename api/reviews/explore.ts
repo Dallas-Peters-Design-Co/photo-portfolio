@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { MAX_MERGE_OPTIONS } from "../../config/brandMerge.js";
+import { cleanBrief } from "../../config/reviewBrief.js";
 import { getBearerUser } from "../_lib/auth.js";
 import { loadKit } from "../_lib/brandKitStore.js";
 import { handleCors } from "../_lib/cors.js";
@@ -122,7 +123,12 @@ const start = async (req: VercelRequest, res: VercelResponse) => {
   const pages = Number.isInteger(body.pages)
     ? Math.min(MAX_AGENT_PAGES, Math.max(1, body.pages as number))
     : DEFAULT_AGENT_PAGES;
-  const session = await startCapture({ loginUrl, pages, url });
+  const session = await startCapture({
+    brief: cleanBrief(body.brief),
+    loginUrl,
+    pages,
+    url,
+  });
   return res.status(202).json({ session });
 };
 
