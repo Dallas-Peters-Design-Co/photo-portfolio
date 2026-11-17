@@ -2,6 +2,7 @@ import type React from "react";
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import {
+  framesIntoShaders,
   framesToRender,
   withFrameRenders,
 } from "../../../boards/io/frameRender";
@@ -43,6 +44,21 @@ export interface LiveFrameDeps {
   wires: BoardWire[];
 }
 
+/** Every frame a live item reads that needs drawing, each once. */
+const staleFrames = (
+  items: BoardItem[],
+  wires: BoardWire[],
+  live: Set<string>
+) => {
+  const all = [
+    ...framesToRender(items, wires),
+    ...framesIntoShaders(items, wires),
+  ];
+  return all.filter(
+    (f, i) => live.has(f.id) && all.findIndex((g) => g.id === f.id) === i
+  );
+};
+
 const upload = async (png: Blob): Promise<string> =>
   (
     await portfolioService.uploadImageFile(
@@ -72,7 +88,7 @@ export const useLiveFrameRenders = ({
     if (live.size === 0) {
       return;
     }
-    const stale = framesToRender(items, wires).filter((f) => live.has(f.id));
+    const stale = staleFrames(items, wires, live);
     if (stale.length === 0 || busy.current) {
       return;
     }
@@ -82,9 +98,7 @@ export const useLiveFrameRenders = ({
         // Rendered from the board as it is now, not as it was when the
         // timer was set: the design may have moved on during the wait.
         const now = pending.current.items;
-        const again = framesToRender(now, pending.current.wires).filter((f) =>
-          live.has(f.id)
-        );
+        const again = staleFrames(now, pending.current.wires, live);
         if (again.length === 0) {
           return;
         }

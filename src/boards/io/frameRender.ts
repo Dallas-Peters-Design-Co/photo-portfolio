@@ -33,6 +33,30 @@ export const framesToRender = (
       !currentFrameRender(frame, items)
   );
 
+/**
+ * Frames wired into a shader that need a render, designed or not.
+ *
+ * A shader takes one picture, so a frame wired into it means the frame as
+ * it looks. Without this only a frame marked designed was drawn, and any
+ * other frame handed the shader its first picture, or nothing at all when
+ * it held only type and shapes: the wire was there and the shader stayed
+ * blank.
+ */
+export const framesIntoShaders = (
+  items: BoardItem[],
+  wires: BoardWire[]
+): BoardItem[] =>
+  items.filter(
+    (frame) =>
+      frame.kind === "frame" &&
+      wires.some(
+        (w) =>
+          w.sourceItemId === frame.id &&
+          items.some((i) => i.id === w.targetItemId && i.kind === "shader")
+      ) &&
+      !currentFrameRender(frame, items)
+  );
+
 /** Draws a frame exactly as it appears in the creative editor. */
 export const renderFrameBlob = async (
   frame: BoardItem,

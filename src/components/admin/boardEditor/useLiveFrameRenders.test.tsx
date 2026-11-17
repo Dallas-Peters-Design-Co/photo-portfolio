@@ -134,6 +134,31 @@ describe("a frame feeding a shader", () => {
     expect(typeof rendered?.config?.renderKey).toBe("string");
   });
 
+  it("renders a frame that was never marked designed, too", async () => {
+    vi.useFakeTimers();
+    const save = vi.fn(() => Promise.resolve());
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    const plain = { ...frame, config: null };
+    act(() =>
+      root?.render(
+        <Host
+          items={[plain, text, shader]}
+          onItems={() => undefined}
+          save={save}
+          wires={[wire]}
+        />
+      )
+    );
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    vi.useRealTimers();
+    await vi.waitFor(() => expect(save).toHaveBeenCalled());
+    expect(uploads).toHaveLength(1);
+  });
+
   it("leaves a frame alone when nothing live is wired to it", async () => {
     vi.useFakeTimers();
     const save = vi.fn(() => Promise.resolve());
