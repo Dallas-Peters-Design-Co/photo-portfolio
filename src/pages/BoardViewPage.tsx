@@ -9,17 +9,25 @@ import { BoardCanvas } from "../boards/BoardCanvas";
 import { FrameOpenProvider, frameLink } from "../boards/FrameOpenContext";
 import { FrameViewer } from "../boards/FrameViewer";
 import { isDesignFrame } from "../boards/geometry/frameLock";
-import { downloadBlob, downloadImage } from "../boards/io/downloadImage";
+import { downloadableFrames, frameFiles } from "../boards/io/downloadFrames";
+import {
+  downloadBlob,
+  downloadImage,
+  downloadNamed,
+} from "../boards/io/downloadImage";
 import { renderFrameBlob } from "../boards/io/frameRender";
 import { currentFrameRender, frameKeyOf } from "../boards/io/frameRenderKey";
 import { currentImageUrl } from "../boards/itemOutput";
 import { CommentDialog } from "../boards/panels/CommentDialog";
 import { CommentsPanel } from "../boards/panels/CommentsPanel";
 import { ShareButtons } from "../components/ShareButtons";
+import { zip } from "../lib/zip";
 import { type BoardComment, commentsApi } from "../services/comments";
 import { boardsApi } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 import type { Board, BoardItem } from "../types";
+
+const NOT_SLUG = /[^a-z0-9]+/g;
 
 /**
  * A designed frame as one picture, saved: its stored render when it is still
@@ -40,6 +48,40 @@ const downloadFrame = async (frame: BoardItem, items: BoardItem[]) => {
     toast.error("Couldn't draw that frame. Try again in a moment.", { id });
   }
 };
+
+/** Every designed frame as PNG and SVG, in one zip. */
+const downloadAllFrames = async (board: Board) => {
+  const items = board.items ?? [];
+  const id = toast.loading("Preparing the frames…");
+  try {
+    const { failed, files } = await frameFiles(items, (done, total) =>
+      toast.loading(
+        `Preparing frame ${Math.min(done + 1, total)} of ${total}…`,
+        {
+          id,
+        }
+      )
+    );
+    if (files.length === 0) {
+      toast.error("Couldn't draw the frames. Try again in a moment.", { id });
+      return;
+    }
+    downloadNamed(zip(files), `${slugOrTitle(board)}-frames.zip`);
+    toast.success(
+      failed.length > 0
+        ? `Downloaded. Couldn't draw: ${failed.join(", ")}.`
+        : "Frames downloaded",
+      { id }
+    );
+  } catch {
+    toast.error("Couldn't prepare the frames. Try again in a moment.", { id });
+  }
+};
+
+const slugOrTitle = (board: Board): string =>
+  board.slug ||
+  board.title.toLowerCase().replace(NOT_SLUG, "-").slice(0, 60) ||
+  "board";
 
 const itemLabel = (item: BoardItem | undefined): string => {
   if (!item) {
@@ -66,8 +108,19 @@ function PublishedActions({
   onToggleComments: () => void;
 }) {
   const { settings } = useSiteSettings();
+  const frameCount = downloadableFrames(board.items ?? []).length;
   return (
     <div className="row">
+      {frameCount > 0 ? (
+        <button
+          className="board-view-page__action"
+          onClick={() => void downloadAllFrames(board)}
+          title="Every designed frame, as PNG and SVG, in one zip"
+          type="button"
+        >
+          Download frames ({frameCount})
+        </button>
+      ) : null}
       <button
         className={
           commentMode

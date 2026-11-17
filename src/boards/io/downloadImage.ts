@@ -53,6 +53,13 @@ export const downloadBlob = (blob: Blob, label: string): void => {
   setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
 };
 
+/** Saves bytes under a name given whole, extension and all ("frames.zip"). */
+export const downloadNamed = (blob: Blob, fileName: string): void => {
+  const objectUrl = URL.createObjectURL(blob);
+  saveObjectUrl(objectUrl, fileName);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+};
+
 export const downloadImage = async (
   url: string,
   label: string
