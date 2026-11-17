@@ -2,18 +2,17 @@ import type { ZipFile } from "../../lib/zip";
 import type { BoardItem } from "../../types";
 import { exportWidthFor } from "../creative/exportPng";
 import { isDesignFrame } from "../geometry/frameLock";
-import { renderFrameBlob } from "./frameRender";
-import { currentFrameRender } from "./frameRenderKey";
+import { renderFrameAt } from "./frameRender";
 
 /**
  * Every designed frame on a board, for a visitor to download: each as a PNG
  * and as an SVG, in one zip. Only designed frames: a workflow group, a
  * Social Preview and any other node is left out.
  *
- * The PNG is the frame's stored render when it is still current, else drawn
- * here as the frame editor draws it. The SVG holds that same picture at the
- * frame's size, so it opens and scales in any design tool; its parts are
- * not separate, editable shapes.
+ * Each PNG is drawn fresh at twice the frame's size (renderFrameAt), so its
+ * type and shapes stay sharp on a high-density screen or zoomed in. The SVG
+ * holds that same picture at the frame's own size, so it opens and scales
+ * in any design tool; its parts are not separate, editable shapes.
  */
 
 const SLUG_RUN = /[^a-z0-9]+/g;
@@ -66,17 +65,6 @@ export const svgOfPng = (
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><image width="${w}" height="${h}" preserveAspectRatio="none" href="${data}" xlink:href="${data}"/></svg>`;
 };
 
-const pngOf = async (frame: BoardItem, items: BoardItem[]): Promise<Blob> => {
-  const stored = currentFrameRender(frame, items);
-  if (stored) {
-    const res = await fetch(stored);
-    if (res.ok) {
-      return await res.blob();
-    }
-  }
-  return await renderFrameBlob(frame, items);
-};
-
 /**
  * The zip's files: png/<name>.png and svg/<name>.svg per frame. One frame
  * at a time, for memory; a frame that fails is named in `failed`.
@@ -95,7 +83,7 @@ export const frameFiles = async (
     onProgress(i, frames.length);
     try {
       // biome-ignore lint/performance/noAwaitInLoops: one full canvas at a time
-      const png = await bytesOf(await pngOf(frame, items));
+      const png = await bytesOf(await renderFrameAt(frame, items));
       files.push(
         { bytes: png, name: `png/${name}.png` },
         {

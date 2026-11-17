@@ -10,12 +10,8 @@ import { FrameOpenProvider, frameLink } from "../boards/FrameOpenContext";
 import { FrameViewer } from "../boards/FrameViewer";
 import { isDesignFrame } from "../boards/geometry/frameLock";
 import { downloadableFrames, frameFiles } from "../boards/io/downloadFrames";
-import {
-  downloadBlob,
-  downloadImage,
-  downloadNamed,
-} from "../boards/io/downloadImage";
-import { renderFrameBlob } from "../boards/io/frameRender";
+import { downloadBlob, downloadNamed } from "../boards/io/downloadImage";
+import { renderFrameAt } from "../boards/io/frameRender";
 import { currentFrameRender, frameKeyOf } from "../boards/io/frameRenderKey";
 import { currentImageUrl } from "../boards/itemOutput";
 import { CommentDialog } from "../boards/panels/CommentDialog";
@@ -30,19 +26,15 @@ import type { Board, BoardItem } from "../types";
 const NOT_SLUG = /[^a-z0-9]+/g;
 
 /**
- * A designed frame as one picture, saved: its stored render when it is still
- * current, else drawn here as the editor draws it.
+ * A designed frame as one picture, saved: drawn here as the editor draws it,
+ * at twice its size, so type and shapes stay sharp (renderFrameAt). The
+ * stored render is the frame's own size, made for the nodes it feeds.
  */
 const downloadFrame = async (frame: BoardItem, items: BoardItem[]) => {
   const name = frame.body?.trim() || "Frame";
-  const stored = currentFrameRender(frame, items);
-  if (stored) {
-    await downloadImage(stored, name);
-    return;
-  }
   const id = toast.loading("Preparing the image…");
   try {
-    downloadBlob(await renderFrameBlob(frame, items), name);
+    downloadBlob(await renderFrameAt(frame, items), name);
     toast.dismiss(id);
   } catch {
     toast.error("Couldn't draw that frame. Try again in a moment.", { id });
@@ -293,21 +285,16 @@ export function BoardViewPage() {
   const selectedFrameKey = selectedFrame
     ? frameKeyOf(selectedFrame, items)
     : null;
-  const storedFrameRender = selectedFrame
-    ? currentFrameRender(selectedFrame, items)
-    : null;
-
+  // Drawn here at twice the frame's size, so it is sharp on any screen; the
+  // stored render (the frame's own size) shows until it is ready.
   useEffect(() => {
-    if (
-      !(selectedFrame && isDesignFrame(selectedFrame, items)) ||
-      storedFrameRender
-    ) {
+    if (!(selectedFrame && isDesignFrame(selectedFrame, items))) {
       return;
     }
 
     let cancelled = false;
     let objectUrl: string | null = null;
-    void renderFrameBlob(selectedFrame, items)
+    void renderFrameAt(selectedFrame, items)
       .then((blob) => {
         objectUrl = URL.createObjectURL(blob);
         if (cancelled) {
@@ -329,7 +316,7 @@ export function BoardViewPage() {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [items, selectedFrame, selectedFrameKey, storedFrameRender]);
+  }, [items, selectedFrame, selectedFrameKey]);
 
   const framed = useMemo(() => {
     const frame = openFrame && frames.find((one) => one.id === openFrame.id);
@@ -338,11 +325,10 @@ export function BoardViewPage() {
     }
     if (isDesignFrame(frame, items)) {
       const url =
-        currentFrameRender(frame, items) ??
         (localFrameRender?.frameId === frame.id &&
         localFrameRender.key === frameKeyOf(frame, items)
           ? localFrameRender.url
-          : null);
+          : null) ?? currentFrameRender(frame, items);
       if (url) {
         return [{ ...frame, imageUrl: url }];
       }

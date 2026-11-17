@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { groupFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
+import { withDpi } from "../io/pngDensity";
 import { AD_WEIGHT_LIMIT, exportHtml5 } from "./exportHtml5";
 import { deckSlides, exportDeckPdf, exportEmail } from "./exportOutputs";
 import { downloadBlob, exportWidthFor, renderCreative } from "./exportPng";
@@ -184,7 +185,9 @@ export function ExportMenu({
   textElementFor: (id: string) => HTMLElement | null;
 }) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState<"file" | "png" | "video" | null>(null);
+  const [busy, setBusy] = useState<"file" | "png" | "png2" | "video" | null>(
+    null
+  );
   const [link, setLink] = useState("https://");
   const [print, setPrint] = useState<PrintOptions>({
     bleed: true,
@@ -252,18 +255,23 @@ export function ExportMenu({
     toast.success(`${copy.title} exported`, { description: notes.join(" ") });
   };
 
-  const run = async (kind: "file" | "png") => {
+  const run = async (kind: "file" | "png" | "png2") => {
     setBusy(kind);
     try {
-      if (kind === "png") {
-        const blob = await renderCreative(
-          frame,
-          layers,
-          exportWidthFor(frame),
-          textElementFor
+      if (kind === "png" || kind === "png2") {
+        // At 2× it is marked 144 DPI: the frame's size in a layout, sharper.
+        const density = kind === "png2" ? 2 : 1;
+        const blob = await withDpi(
+          await renderCreative(
+            frame,
+            layers,
+            exportWidthFor(frame) * density,
+            textElementFor
+          ),
+          72 * density
         );
-        downloadBlob(blob, name);
-        toast.success("PNG exported");
+        downloadBlob(blob, density === 2 ? `${name}@2x` : name);
+        toast.success(density === 2 ? "PNG exported at 2×" : "PNG exported");
       } else {
         await exportFile();
       }
@@ -297,6 +305,17 @@ export function ExportMenu({
           >
             <strong>PNG</strong>
             <span>The image at its real size</span>
+          </button>
+          <button
+            className="creative-export__item"
+            disabled={busy !== null}
+            onClick={() => void run("png2")}
+            type="button"
+          >
+            <strong>PNG at 2×</strong>
+            <span>
+              Twice the size, for sharp type on any screen and in print
+            </span>
           </button>
           <div className="creative-export__item creative-export__item--form">
             <strong>{copy.title}</strong>

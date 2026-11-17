@@ -4,6 +4,7 @@ import { exportWidthFor, renderCreative } from "../creative/exportPng";
 import { withTextGhosts } from "../creative/textGhosts";
 import { isDesignFrame } from "../geometry/frameLock";
 import { currentFrameRender, frameKeyOf } from "./frameRenderKey";
+import { withDpi } from "./pngDensity";
 
 /**
  * Rendering designed frames for the nodes they feed (see frameRenderKey.ts).
@@ -42,6 +43,31 @@ export const renderFrameBlob = async (
   return await withTextGhosts(layers, (textElementFor) =>
     renderCreative(frame, layers, width, textElementFor)
   );
+};
+
+/** Download density: twice the frame's size, sharp on any screen. */
+export const DOWNLOAD_DENSITY = 2;
+/** Longest side a download is drawn at; browsers refuse far larger canvases. */
+const MAX_DOWNLOAD_SIDE = 8192;
+
+/**
+ * A frame drawn for someone to keep: `density` times its real size (its
+ * export width), at most MAX_DOWNLOAD_SIDE on its longer side, and marked
+ * as that many times 72 DPI, so it opens at the frame's size, sharp.
+ */
+export const renderFrameAt = async (
+  frame: BoardItem,
+  items: BoardItem[],
+  density = DOWNLOAD_DENSITY
+): Promise<Blob> => {
+  const layers = layersOf(frame, items);
+  const base = exportWidthFor(frame);
+  const longest = base * Math.max(1, frame.height / frame.width);
+  const k = Math.min(density, MAX_DOWNLOAD_SIDE / longest);
+  const png = await withTextGhosts(layers, (textElementFor) =>
+    renderCreative(frame, layers, Math.round(base * k), textElementFor)
+  );
+  return await withDpi(png, Math.round(72 * k));
 };
 
 /**
