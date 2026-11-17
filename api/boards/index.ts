@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getBearerUser } from "../_lib/auth.js";
+import { getBearerUser, getSessionUser } from "../_lib/auth.js";
 import { rowToBoardDto } from "../_lib/boardDto.js";
 import type { BoardRow } from "../_lib/boards.js";
 import { handleCors } from "../_lib/cors.js";
@@ -10,12 +10,39 @@ import { parseJsonBody } from "../_lib/parseBody.js";
 type Sql = ReturnType<typeof getSql>;
 type User = ReturnType<typeof getBearerUser>;
 
-async function handleGet(sql: Sql, user: User, res: VercelResponse) {
-  // Boards are a planning surface, so the list is admin-only. Published boards
+/** A member's boards: only those shared with them, each with their level. */
+async function memberBoards(sql: Sql, userId: string, res: VercelResponse) {
+  const rows = (await sql`
+    SELECT b.id, b.title, b.cover_url, b.is_public, b.slug,
+           b.created_at, b.updated_at, m.role AS access,
+           COUNT(i.id) AS item_count
+    FROM board_members m
+    JOIN boards b ON b.id = m.board_id
+    LEFT JOIN board_items i ON i.board_id = b.id
+    WHERE m.user_id = ${userId}
+    GROUP BY b.id, m.role
+    ORDER BY b.updated_at DESC
+  `) as (BoardRow & { access: string })[];
+  return res
+    .status(200)
+    .json(rows.map((row) => ({ ...rowToBoardDto(row), access: row.access })));
+}
+
+async function handleGet(
+  sql: Sql,
+  user: User,
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  // Boards are a planning surface, so the list is the admin's. Published boards
   // are read individually by slug, not enumerated — a public index would leak
-  // every board title the moment one board was shared.
+  // every board title the moment one board was shared. A member gets only the
+  // boards shared with them.
   if (!user) {
-    return res.status(401).json({ error: "Unauthorized" });
+    const session = getSessionUser(req.headers.authorization);
+    return session
+      ? await memberBoards(sql, session.userId, res)
+      : res.status(401).json({ error: "Unauthorized" });
   }
 
   const rows = (await sql`
@@ -66,7 +93,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     if (req.method === "GET") {
-      return await handleGet(sql, user, res);
+      return await handleGet(sql, user, req, res);
     }
     if (req.method === "POST") {
       return await handlePost(sql, user, req, res);

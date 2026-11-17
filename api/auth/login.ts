@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
-import { signToken, verifyPassword } from "../_lib/auth.js";
+import { roleOf, signToken, verifyPassword } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
@@ -31,6 +31,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         email: schema.users.email,
         id: schema.users.id,
         passwordHash: schema.users.passwordHash,
+        role: schema.users.role,
       })
       .from(schema.users)
       .where(eq(schema.users.email, email))
@@ -41,7 +42,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const token = signToken({ email: row.email, sub: row.id });
+    const token = signToken({
+      email: row.email,
+      role: roleOf(row.role),
+      sub: row.id,
+    });
     return res.status(200).json({
       token,
       user: { email: row.email, id: row.id },

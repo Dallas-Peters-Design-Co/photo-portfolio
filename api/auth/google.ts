@@ -1,13 +1,55 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { eq } from "drizzle-orm";
-import { signToken } from "../_lib/auth.js";
+import { roleOf, signToken } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import {
   GoogleNotConfiguredError,
   verifyGoogleIdToken,
 } from "../_lib/googleAuth.js";
+import { verifyNeonToken } from "../_lib/neonAuth.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
+
+/** The site's own token for someone this site knows, and who they are. */
+const sendSession = (
+  res: VercelResponse,
+  user: { email: string; id: string; role: string }
+) => {
+  const role = roleOf(user.role);
+  const token = signToken({ email: user.email, role, sub: user.id });
+  return res
+    .status(200)
+    .json({ token, user: { email: user.email, id: user.id, role } });
+};
+
+/**
+ * Signed in through Neon Auth (neonAuth.ts). Like Google above, it finds an
+ * account and never makes one: a member exists once a board is shared with
+ * their address, so a stranger's Google account reaches nothing.
+ */
+const neonSignIn = async (neonToken: string, res: VercelResponse) => {
+  const identity = neonToken ? await verifyNeonToken(neonToken) : null;
+  if (!identity) {
+    return res
+      .status(401)
+      .json({ error: "Could not verify that sign-in. Try again." });
+  }
+  const [user] = await getDb()
+    .select({
+      email: schema.users.email,
+      id: schema.users.id,
+      role: schema.users.role,
+    })
+    .from(schema.users)
+    .where(eq(schema.users.email, identity.email))
+    .limit(1);
+  if (!user) {
+    return res.status(403).json({
+      error: `${identity.email} has no access here yet. Ask for a board to be shared with this address.`,
+    });
+  }
+  return sendSession(res, user);
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
@@ -20,6 +62,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const body = parseJsonBody(req.body);
+  if (typeof body.neonToken === "string") {
+    return await neonSignIn(body.neonToken.trim(), res);
+  }
   const credential =
     typeof body.credential === "string" ? body.credential.trim() : "";
   if (!credential) {
@@ -44,7 +89,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const db = getDb();
     const [user] = await db
-      .select({ email: schema.users.email, id: schema.users.id })
+      .select({
+        email: schema.users.email,
+        id: schema.users.id,
+        role: schema.users.role,
+      })
       .from(schema.users)
       .where(eq(schema.users.email, identity.email))
       .limit(1);
@@ -57,10 +106,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    const token = signToken({ email: user.email, sub: user.id });
-    return res
-      .status(200)
-      .json({ token, user: { email: user.email, id: user.id } });
+    return sendSession(res, user);
   } catch (e) {
     console.error(e);
     if (e instanceof GoogleNotConfiguredError) {

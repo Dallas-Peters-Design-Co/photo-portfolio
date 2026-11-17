@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
-import { hashPassword, signToken } from "../_lib/auth.js";
+import { hashPassword, roleOf, signToken } from "../_lib/auth.js";
 import { handleCors } from "../_lib/cors.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
@@ -62,7 +62,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .update(schema.users)
       .set({ passwordHash })
       .where(eq(schema.users.id, userId))
-      .returning({ email: schema.users.email, id: schema.users.id });
+      .returning({
+        email: schema.users.email,
+        id: schema.users.id,
+        role: schema.users.role,
+      });
 
     const [user] = updated;
     if (!user) {
@@ -81,7 +85,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       );
 
     // Sign straight in — the user just proved control of the mailbox.
-    const authToken = signToken({ email: user.email, sub: user.id });
+    const authToken = signToken({
+      email: user.email,
+      role: roleOf(user.role),
+      sub: user.id,
+    });
     return res
       .status(200)
       .json({ token: authToken, user: { email: user.email, id: user.id } });

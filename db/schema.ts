@@ -39,6 +39,7 @@ import {
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   real,
   text,
   timestamp,
@@ -102,9 +103,31 @@ export const users = pgTable(
       .notNull(),
     email: text().notNull(),
     id: uuid().defaultRandom().primaryKey().notNull(),
-    passwordHash: text("password_hash").notNull(),
+    /** Null for a member who signs in through Neon Auth (Google). */
+    passwordHash: text("password_hash"),
+    /** 'admin' reaches everything; 'member' only boards shared with them. */
+    role: text().default("member").notNull(),
   },
   (table) => [unique("users_email_key").on(table.email)]
+);
+
+/** Who may open a board besides the admin, and whether they may edit it. */
+export const boardMembers = pgTable(
+  "board_members",
+  {
+    boardId: uuid("board_id").notNull(),
+    createdAt: timestamp("created_at", { mode: "date", withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    role: text().notNull(),
+    userId: uuid("user_id").notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.boardId, table.userId],
+      name: "board_members_pkey",
+    }),
+  ]
 );
 
 export const dailyChallenges = pgTable(

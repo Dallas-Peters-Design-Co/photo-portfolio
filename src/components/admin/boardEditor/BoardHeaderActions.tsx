@@ -12,6 +12,7 @@ import type { Board, BoardItem } from "../../../types";
 import { FrameLinks } from "./FrameLinks";
 import { HeaderIcon } from "./HeaderIcon";
 import { PublishReview } from "./PublishReview";
+import { ShareBoard } from "./ShareBoard";
 
 /** Strips the scheme so the shared link reads as a plain address. */
 const SCHEME = /^https?:\/\//;
@@ -94,6 +95,8 @@ export function BoardHeaderActions({
       {/* Browser nodes' screenshots, as a review for a client. Only once one
           has been taken. */}
       <PublishReview board={board} items={items} />
+      {/* Who else may open it, and whether they may change it. */}
+      <ShareBoard boardId={board?.id ?? null} />
       <HeaderIcon
         disabled={isPublishing}
         icon={Globe02Icon}

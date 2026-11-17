@@ -1,0 +1,67 @@
+/* A member's boards: one card each, the board's cover over its name. */
+.member-boards {
+  display: grid;
+  gap: calc(var(--spacing) * 6);
+  max-width: 64rem;
+  margin-inline: auto;
+}
+
+.member-boards__title {
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+}
+
+.member-boards__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: calc(var(--spacing) * 4);
+}
+
+.member-boards__item {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  padding: calc(var(--spacing) * 2);
+  border: 1px solid color-mix(in oklch, currentColor 15%, transparent);
+  border-radius: var(--radius-inner);
+}
+
+.member-boards__item:hover {
+  border-color: color-mix(in oklch, currentColor 40%, transparent);
+}
+
+.member-boards__cover {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  background-color: color-mix(in oklch, currentColor 8%, transparent);
+  border-radius: var(--radius-inner);
+}
+
+.member-boards__name {
+  font-weight: 600;
+}
+
+.member-boards__access,
+.member-boards__note {
+  font-size: var(--text-xs);
+  color: color-mix(in oklch, currentColor 60%, transparent);
+}
+
+/* The People overview: one row per person, their boards beneath. */
+.people-list {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+}
+
+.people-list__person {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+  padding-block-end: calc(var(--spacing) * 4);
+  border-block-end: 1px solid color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.people-list__boards {
+  display: grid;
+  gap: var(--spacing);
+}

@@ -11,9 +11,11 @@ import { CollectionsPanel } from "../components/admin/CollectionsPanel";
 import { ConfirmProvider } from "../components/admin/ConfirmProvider";
 import { InvoicesPanel } from "../components/admin/InvoicesPanel";
 import { LightroomPanel } from "../components/admin/LightroomPanel";
+import { MemberBoards } from "../components/admin/MemberBoards";
 import { ModelsPanel } from "../components/admin/ModelsPanel";
 import { NotificationBell } from "../components/admin/NotificationBell";
 import { PagesPanel } from "../components/admin/PagesPanel";
+import { PeoplePanel } from "../components/admin/PeoplePanel";
 import { ProposalsPanel } from "../components/admin/ProposalsPanel";
 import { ReviewsPanel } from "../components/admin/ReviewsPanel";
 import { SiteSettingsPanel } from "../components/admin/SiteSettingsPanel";
@@ -27,7 +29,9 @@ import {
 } from "../components/ui/card";
 import { useNewVersion } from "../hooks/useNewVersion";
 import posthog from "../lib/posthog";
-import { authApi, authStorage } from "../services/portfolioService";
+import { neonSignOut } from "../services/neonAuth";
+import { authStorage } from "../services/portfolioService";
+import { sharingApi, type UserRole } from "../services/sharingService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
 
 /**
@@ -71,6 +75,7 @@ const SECTIONS = [
   { end: false, label: "Reviews", to: "/admin/reviews" },
   { end: false, label: "Invoices", to: "/admin/invoices" },
   { end: false, label: "Models", to: "/admin/models" },
+  { end: false, label: "People", to: "/admin/people" },
   { end: false, label: "Settings", to: "/admin/settings" },
 ];
 
@@ -90,19 +95,23 @@ export function AdminPage() {
     () => (authStorage.getToken() ? "checking" : "out")
   );
   const isAuthenticated = authState === "signedIn";
+  // A member reaches only the boards shared with them, not the admin.
+  const [role, setRole] = useState<UserRole>("admin");
+  const isMember = isAuthenticated && role === "member";
 
   useEffect(() => {
     if (authState !== "checking") {
       return;
     }
     let cancelled = false;
-    void authApi
+    void sharingApi
       .me()
-      .then(({ user }) => {
+      .then((user) => {
         if (cancelled) {
           return;
         }
         posthog.identify(user.id, { email: user.email });
+        setRole(user.role);
         setAuthState("signedIn");
       })
       .catch(() => {
@@ -124,13 +133,15 @@ export function AdminPage() {
       posthog.identify(user.id, { email: user.email });
       posthog.capture("admin_login_succeeded");
     }
-    setAuthState("signedIn");
+    // Checked again, so a member lands on their boards, not the admin.
+    setAuthState("checking");
   };
 
   const handleLogout = () => {
     posthog.capture("admin_logged_out");
     posthog.reset();
     authStorage.setToken(null);
+    void neonSignOut();
     setAuthState("out");
     toast.message("Signed out");
   };
@@ -165,7 +176,7 @@ export function AdminPage() {
 
         {/* Hidden until signed in: section links behind a login screen are an
             invitation to a page that will only bounce you back here. */}
-        {isAuthenticated ? (
+        {isAuthenticated && !isMember ? (
           <div className="row admin-page__sections">
             {SECTIONS.map((section) => (
               <NavLink
@@ -184,44 +195,49 @@ export function AdminPage() {
       <main className="admin-page__main">
         <ConfirmProvider>
           <AdminGate isAuthenticated={isAuthenticated} onLogin={handleLogin}>
-            <Routes>
-              <Route element={<Admin />} index />
-              <Route element={<BoardsPanel />} path="boards" />
-              <Route element={<CollectionsPanel />} path="collections" />
-              <Route element={<BrandKitsPanel />} path="brand-kits" />
-              <Route element={<LightroomPanel />} path="lightroom" />
-              <Route element={<PagesPanel />} path="pages" />
-              <Route element={<ModelsPanel />} path="models" />
-              {/* Same component: it reads the slug and opens that page, so the
+            {isMember ? (
+              <MemberBoards />
+            ) : (
+              <Routes>
+                <Route element={<Admin />} index />
+                <Route element={<BoardsPanel />} path="boards" />
+                <Route element={<CollectionsPanel />} path="collections" />
+                <Route element={<BrandKitsPanel />} path="brand-kits" />
+                <Route element={<LightroomPanel />} path="lightroom" />
+                <Route element={<PagesPanel />} path="pages" />
+                <Route element={<ModelsPanel />} path="models" />
+                {/* Same component: it reads the slug and opens that page, so the
                   editor has an address you can link to and come back to. */}
-              <Route element={<PagesPanel />} path="pages/:slug" />
-              <Route element={<ProposalsPanel />} path="proposals" />
-              <Route element={<ProposalsPanel />} path="proposals/:slug" />
-              <Route element={<ReviewsPanel />} path="reviews" />
-              <Route element={<ReviewsPanel />} path="reviews/:slug" />
-              <Route element={<InvoicesPanel />} path="invoices" />
-              <Route
-                element={
-                  <div className="admin-page__settings">
-                    <div className="admin-page__settings-grid">
-                      <SiteSettingsPanel />
-                      <div className="stack stack--loose">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle>Password</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <ChangePasswordForm />
-                          </CardContent>
-                        </Card>
-                        <SitesPanel />
+                <Route element={<PagesPanel />} path="pages/:slug" />
+                <Route element={<ProposalsPanel />} path="proposals" />
+                <Route element={<ProposalsPanel />} path="proposals/:slug" />
+                <Route element={<ReviewsPanel />} path="reviews" />
+                <Route element={<ReviewsPanel />} path="reviews/:slug" />
+                <Route element={<InvoicesPanel />} path="invoices" />
+                <Route
+                  element={
+                    <div className="admin-page__settings">
+                      <div className="admin-page__settings-grid">
+                        <SiteSettingsPanel />
+                        <div className="stack stack--loose">
+                          <Card>
+                            <CardHeader>
+                              <CardTitle>Password</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <ChangePasswordForm />
+                            </CardContent>
+                          </Card>
+                          <SitesPanel />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                }
-                path="settings"
-              />
-            </Routes>
+                  }
+                  path="settings"
+                />
+                <Route element={<PeoplePanel />} path="people" />
+              </Routes>
+            )}
           </AdminGate>
         </ConfirmProvider>
       </main>

@@ -6,6 +6,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { GoogleSignInButton } from "./GoogleSignInButton";
+import { NeonSignIn } from "./NeonSignIn";
 import "../../styles/adminChrome.css";
 
 // ── Login screen ──────────────────────────────────────────────────────────────
@@ -71,5 +72,6 @@ export const LoginScreen = ({
       </Button>
     </form>
     <GoogleSignInButton onSignedIn={onSignedIn} />
+    <NeonSignIn onSignedIn={onSignedIn} />
   </div>
 );

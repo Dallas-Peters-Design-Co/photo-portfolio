@@ -6,7 +6,12 @@ import {
   hasCycle,
   withWire,
 } from "../../config/graph.js";
-import { getBearerUser } from "../_lib/auth.js";
+import { getBearerUser, getSessionUser } from "../_lib/auth.js";
+import {
+  type BoardRole,
+  boardRoleFor,
+  handleBoardMembers,
+} from "../_lib/boardAccess.js";
 import { rowToBoardDto } from "../_lib/boardDto.js";
 import {
   type IncomingItem,
@@ -85,7 +90,9 @@ async function handleGet(
   sql: Sql,
   user: User,
   id: string,
-  res: VercelResponse
+  res: VercelResponse,
+  /** What the reader may do: the admin, a member's level, or a visitor. */
+  access: "admin" | BoardRole | null = user ? "admin" : null
 ) {
   // The admin addresses a board by id; a published link addresses it by slug.
   // UUIDs and slugs cannot collide, so one lookup serves both.
@@ -134,6 +141,7 @@ async function handleGet(
       sources,
       recipeUses
     ),
+    access,
     components,
   });
 }
@@ -464,6 +472,33 @@ async function handleDelete(
   return res.status(204).end();
 }
 
+/**
+ * GET and PATCH, for the admin or a member. A member reads a board shared
+ * with them as the admin does, and an editor saves it; neither publishes
+ * (boardAccess.ts). Deleting stays the admin's, below.
+ */
+async function readOrSave(
+  sql: Sql,
+  user: User,
+  id: string,
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  const session = user ? null : getSessionUser(req.headers.authorization);
+  const role = session ? await boardRoleFor(sql, session.userId, id) : null;
+  const member =
+    session && role ? { email: session.email, userId: session.userId } : null;
+  if (req.method === "GET") {
+    return await handleGet(sql, user ?? member, id, res, user ? "admin" : role);
+  }
+  if (member && (role !== "editor" || "isPublic" in parseJsonBody(req.body))) {
+    return res
+      .status(403)
+      .json({ error: "Only the board's owner can do that" });
+  }
+  return await handlePatch(sql, user ?? member, id, req, res);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
     return;
@@ -479,11 +514,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const user = getBearerUser(req.headers.authorization);
 
   try {
-    if (req.method === "GET") {
-      return await handleGet(sql, user, id, res);
+    // Who the board is shared with: the admin's alone.
+    if (req.query.part === "members") {
+      return user
+        ? await handleBoardMembers(sql, id, req, res)
+        : res.status(401).json({ error: "Unauthorized" });
     }
-    if (req.method === "PATCH") {
-      return await handlePatch(sql, user, id, req, res);
+    if (req.method === "GET" || req.method === "PATCH") {
+      return await readOrSave(sql, user, id, req, res);
     }
     if (req.method === "DELETE") {
       return await handleDelete(sql, user, id, res);

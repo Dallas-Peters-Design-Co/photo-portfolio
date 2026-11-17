@@ -1,0 +1,65 @@
+/* The Share dialog: add someone, then the people it is shared with. */
+.share-board__form {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+}
+
+.share-board__field {
+  display: grid;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.share-board__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 4);
+  align-items: center;
+}
+
+.share-board__legend {
+  float: left;
+  margin-inline-end: calc(var(--spacing) * 2);
+  font-size: var(--text-xs);
+  opacity: 0.7;
+}
+
+.share-board__role {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  font-size: var(--text-sm);
+}
+
+.share-board__people {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  padding-block-start: calc(var(--spacing) * 3);
+  border-block-start: 1px solid
+    color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.share-board__person {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.share-board__email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-board__select {
+  padding: var(--spacing) calc(var(--spacing) * 2);
+  font-size: var(--text-xs);
+  background: transparent;
+  border: 1px solid color-mix(in oklch, currentColor 20%, transparent);
+  border-radius: var(--radius-inner);
+}
+
+.share-board__note {
+  font-size: var(--text-xs);
+  opacity: 0.6;
+}
