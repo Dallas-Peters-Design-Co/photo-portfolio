@@ -7,6 +7,7 @@ import type {
   ReviewStatus,
 } from "../../config/review.js";
 import type { UxAudit } from "../../config/reviewAudit.js";
+import type { BriefCoverage } from "../../config/reviewBrief.js";
 import type { ReferenceCheck } from "../../config/reviewChecks.js";
 import type { ReviewFeedback } from "../../config/reviewFeedback.js";
 import type { AuditTopic, AuditTopicKey } from "../../config/reviewTopics.js";
@@ -96,6 +97,21 @@ export const reviewsApi = {
         method: "POST",
       }),
       "Could not run the UX audit"
+    ),
+
+  /** What the brief asks for, and whether the screens show it. */
+  auditCoverage: async (input: {
+    brief: string;
+    screens: ReviewScreen[];
+    title?: string;
+  }): Promise<{ coverage: BriefCoverage[] }> =>
+    json(
+      await fetch(`${reviewsPath()}/audit`, {
+        body: JSON.stringify({ ...input, part: "coverage" }),
+        headers: jsonHeaders(),
+        method: "POST",
+      }),
+      "Could not check the brief's coverage"
     ),
 
   /** One topic of the deep audit (config/reviewTopics.ts), across the screens. */

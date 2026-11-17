@@ -56,8 +56,11 @@ const deepAudit = async (input: {
   screens: ReviewScreen[];
   title: string;
 }): Promise<{ audit: UxAudit; missed: string[] }> => {
-  const [main, ...topics] = await Promise.allSettled([
+  const [main, coverage, ...topics] = await Promise.allSettled([
     reviewsApi.audit(input),
+    input.brief
+      ? reviewsApi.auditCoverage(input)
+      : Promise.resolve({ coverage: [] }),
     ...AUDIT_TOPICS.map((t) =>
       reviewsApi.auditTopic({ ...input, topic: t.key })
     ),
@@ -74,7 +77,17 @@ const deepAudit = async (input: {
       missed.push(AUDIT_TOPICS[i]?.title ?? "a topic");
     }
   }
-  return { audit: { ...main.value.audit, topics: found }, missed };
+  if (coverage.status === "rejected") {
+    missed.push("brief coverage");
+  }
+  return {
+    audit: {
+      ...main.value.audit,
+      coverage: coverage.status === "fulfilled" ? coverage.value.coverage : [],
+      topics: found,
+    },
+    missed,
+  };
 };
 
 const hostOf = (url: string): string => {

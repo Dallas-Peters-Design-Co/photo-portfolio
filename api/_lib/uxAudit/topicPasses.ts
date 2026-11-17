@@ -1,6 +1,10 @@
 import { describeStyles } from "../../../config/pageStyles.js";
 import type { ReviewScreen } from "../../../config/review.js";
 import {
+  type BriefCoverage,
+  cleanCoverage,
+} from "../../../config/reviewBrief.js";
+import {
   AUDIT_TOPICS,
   type AuditTopic,
   type AuditTopicKey,
@@ -12,6 +16,7 @@ import {
   sourcesFromScreens,
   tileContent,
 } from "./audit.js";
+import { COVERAGE_INSTRUCTIONS } from "./briefPrompt.js";
 import { colourBlindTiles } from "./colourBlind.js";
 import { tileEachScreen } from "./tiles.js";
 
@@ -27,7 +32,8 @@ import { tileEachScreen } from "./tiles.js";
  * they name are the app's own.
  */
 
-const TOPIC_OUTPUT_TOKENS = 12_000;
+const TOPIC_OUTPUT_TOKENS = 24_000;
+const COVERAGE_OUTPUT_TOKENS = 12_000;
 
 const FOCUS: Record<AuditTopicKey, string> = {
   accessibility:
@@ -62,13 +68,13 @@ Reply with a single JSON object and nothing else (no markdown fences, no comment
     {
       "priority": "must-fix" | "recommended" | "rule",
       "title": "Short, specific title",
-      "detail": "2-5 sentences: what you saw and where, why it matters to the people using it, and exactly what to do, with values where they apply.",
+      "detail": "2-4 sentences: what you saw and where, why it matters to the people using it, and exactly what to do, with values where they apply.",
       "screens": ["Titles of the screens it is seen on"]
     }
   ]
 }
 
-Aim for 10-20 points, ordered must-fix first. "must-fix" is anything that blocks a task, fails accessibility, or breaks consistency in a way users will notice; "recommended" is the rest; "rule" is for the developer rules topic only. Do not repeat the same point.`;
+Aim for 10-16 points, ordered must-fix first. "must-fix" is anything that blocks a task, fails accessibility, or breaks consistency in a way users will notice; "recommended" is the rest; "rule" is for the developer rules topic only. Do not repeat the same point.`;
 };
 
 const JSON_FENCE = /```(?:json)?\s*([\s\S]*?)```/i;
@@ -89,6 +95,30 @@ const parseReply = (reply: string): unknown => {
 
 const usesStyles = (topic: AuditTopicKey): boolean =>
   topic === "colour" || topic === "type" || topic === "rules";
+
+/** The brief's coverage: each thing it asks for, and whether the screens show it. */
+export const runCoveragePass = async ({
+  brief,
+  screens,
+  title,
+}: {
+  brief: string;
+  screens: ReviewScreen[];
+  title?: string;
+}): Promise<BriefCoverage[]> => {
+  const sources = sourcesFromScreens(screens);
+  if (!(brief && sources.length > 0)) {
+    return [];
+  }
+  const { all } = await tileEachScreen(sources);
+  const reply = await askClaude(
+    COVERAGE_INSTRUCTIONS,
+    tileContent(all, title, "", brief),
+    COVERAGE_OUTPUT_TOKENS
+  );
+  const raw = parseReply(reply) as { coverage?: unknown } | null;
+  return cleanCoverage(raw?.coverage);
+};
 
 export const runTopicPass = async ({
   brief = "",

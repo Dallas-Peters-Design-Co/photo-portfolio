@@ -13,7 +13,7 @@ import {
   runUxAudit,
   sourcesFromScreens,
 } from "../_lib/uxAudit/audit.js";
-import { runTopicPass } from "../_lib/uxAudit/topicPasses.js";
+import { runCoveragePass, runTopicPass } from "../_lib/uxAudit/topicPasses.js";
 
 /**
  * Runs a UX audit across a review's screens and returns the structured
@@ -21,7 +21,8 @@ import { runTopicPass } from "../_lib/uxAudit/topicPasses.js";
  * The editor folds the returned audit into the draft and saves as usual.
  */
 
-export const config = { maxDuration: 300 };
+/** A deep audit's longest pass writes for several minutes; Pro allows 800. */
+export const config = { maxDuration: 800 };
 
 const serve = async (req: VercelRequest, res: VercelResponse) => {
   if (handleCors(req, res)) {
@@ -60,6 +61,15 @@ const serve = async (req: VercelRequest, res: VercelResponse) => {
     }
     // One topic of the deep audit, as its own request beside the main one
     // (topicPasses.ts), so each stays inside a function's time.
+    // The brief's coverage list, likewise its own request.
+    if (body.part === "coverage") {
+      const coverage = await runCoveragePass({
+        brief: cleanBrief(body.brief),
+        screens,
+        title,
+      });
+      return res.status(200).json({ coverage });
+    }
     if (isAuditTopicKey(body.topic)) {
       const topic = await runTopicPass({
         brief: cleanBrief(body.brief),

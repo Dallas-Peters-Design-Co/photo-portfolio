@@ -37,11 +37,11 @@ const AUDIT_MODEL = "claude-opus-5-5";
  * Under the route's 300s ceiling with room for the tiling before it. Reading
  * two dozen tiles and writing a full audit takes Opus one to three minutes.
  */
-const REQUEST_TIMEOUT_MS = 240_000;
+const REQUEST_TIMEOUT_MS = 700_000;
 /** A full audit is several thousand tokens of JSON; cut short, it will not parse. */
-const MAX_OUTPUT_TOKENS = 16_000;
+const MAX_OUTPUT_TOKENS = 32_000;
 /** One screen's findings are a few thousand tokens. */
-const SCREEN_OUTPUT_TOKENS = 14_000;
+const SCREEN_OUTPUT_TOKENS = 20_000;
 const MAX_MARKUP_URLS = 4;
 /** How long a busy answer is waited out before the one retry. */
 const BUSY_WAIT_S = 20;

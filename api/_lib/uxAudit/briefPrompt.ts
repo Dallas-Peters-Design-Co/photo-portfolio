@@ -23,12 +23,21 @@ export const siteBriefRules = (brief: string): string =>
 The client's brief for this review is given after the screens. It sets the scope. Hold the whole audit to it:
 - Cover every area, flow, topic and question it names. Where it asks for a deliverable in a particular shape (for example must-fix versus recommended), shape "recommendations" that way and start each title with its group, e.g. "Must fix: …" or "Recommended: …".
 - Respect what it says must stay, such as a logo or wordmark that is kept: never recommend changing it, and where a finding touches it, say it stays.
-- Where it asks for rules a developer can apply (colours, what each component or pill means, corner radius, spacing, type), give them as concrete recommendations naming the values seen on the screens.
-
-Also add this key to the JSON object, with one entry per thing the brief asks the review to cover, in the brief's order:
-  ${COVERAGE_SHAPE}
-Use "missing" when no screen shows that area or topic. Never claim coverage the screens do not show.`
+- Where it asks for rules a developer can apply (colours, what each component or pill means, corner radius, spacing, type), give them as concrete recommendations naming the values seen on the screens.`
     : "";
+
+/**
+ * The brief's coverage, as its own call beside the audit (topicPasses.ts):
+ * kept out of the review-wide call, which is long enough already.
+ */
+export const COVERAGE_INSTRUCTIONS = `Your task in this call: check this review against the client's brief, given after the screens. List every thing the brief asks the review to cover — each area, flow, screen, topic, question and deliverable — in the brief's order, and say whether the screens show it.
+
+Reply with a single JSON object and nothing else (no markdown fences, no commentary):
+{
+  ${COVERAGE_SHAPE}
+}
+
+Use "covered" when the screens show it well enough to review, "partial" when only part of it is shown, and "missing" when no screen shows it. In "where", name the screens by title; for partial or missing, say what screen or state still needs capturing. Never claim coverage the screens do not show.`;
 
 /** Added to each screen's call. */
 export const screenBriefRules = (brief: string): string =>
