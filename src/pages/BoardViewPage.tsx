@@ -21,10 +21,11 @@ import { zip } from "../lib/zip";
 import { type BoardComment, commentsApi } from "../services/comments";
 import { boardsApi } from "../services/portfolioService";
 import { useSiteSettings } from "../theme/SiteSettingsProvider";
-import type { Board, BoardItem } from "../types";
+import type { Board, BoardItem, BoardWire } from "../types";
 import { DownloadFramesMenu } from "./DownloadFramesMenu";
 
 const NOT_SLUG = /[^a-z0-9]+/g;
+const NO_WIRES: BoardWire[] = [];
 
 /**
  * A designed frame as one picture, saved: drawn here as the editor draws it,
@@ -431,11 +432,11 @@ export function BoardViewPage() {
               setCommentMode(false);
             }}
             readOnly
-            // Wires render for a visitor too. On a graph they are the account of
-            // how the images were made, which is most of the reason to publish
-            // one — and `readOnly` is what keeps them un-draggable. Running is
-            // refused by the API regardless of what this page offers.
-            wires={board?.wires ?? []}
+            // No connection lines on the published page, for anyone: a visitor
+            // sees the pictures, not the machinery that made them. The API
+            // sends none to a stranger; this also hides them from the owner
+            // and anyone signed in, so the page looks the same to everybody.
+            wires={NO_WIRES}
           />
         </FrameOpenProvider>
 
