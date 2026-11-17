@@ -106,3 +106,18 @@ export const withLinkedComponents = (
         componentStyles: carryStyles(source.componentStyles, source, resolved),
       }
     : resolved;
+
+/**
+ * A resolved kit with the linked kit's palette in, when it follows one and
+ * has no colours of its own; else as it was. A change to the source's colours
+ * shows here next time the kits are read; "Make them this brand's" copies them
+ * in. Applied before the component link, so linked styles carry into these.
+ */
+export const withLinkedPalette = (
+  own: BrandKitDoc,
+  resolved: BrandKitDoc,
+  source: BrandKitDoc | null
+): BrandKitDoc =>
+  source && resolved.paletteFrom && own.palette.length === 0
+    ? { ...resolved, palette: source.palette }
+    : resolved;

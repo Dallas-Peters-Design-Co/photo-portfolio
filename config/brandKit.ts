@@ -151,6 +151,12 @@ export interface BrandKitDoc {
   /** Images that are on-brand — what a generation should read like. */
   onBrand: string[];
   palette: PaletteEntry[];
+  /**
+   * Another kit whose palette this one follows while it has none of its own
+   * (kitComponentLink.ts withLinkedPalette), as `componentsFrom` does for
+   * component styles.
+   */
+  paletteFrom: string | null;
   references: BrandReference[];
   /**
    * What scanning the brand's websites found, one per site: components, type
@@ -177,6 +183,7 @@ export const EMPTY_KIT: BrandKitDoc = {
   offBrand: [],
   onBrand: [],
   palette: [],
+  paletteFrom: null,
   references: [],
   scans: [],
   shaders: [],
@@ -335,6 +342,10 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
       })
       .filter((entry) => isHexColour(entry.value))
       .slice(0, MAX_PALETTE),
+    paletteFrom:
+      typeof raw.paletteFrom === "string" && UUID.test(raw.paletteFrom)
+        ? raw.paletteFrom.toLowerCase()
+        : null,
     references: sanitizeReferences(raw.references),
     scans: sanitizeScans(raw.scans),
     shaders: cleanKitShaders(raw.shaders),
@@ -394,6 +405,7 @@ export const resolveKitDoc = (
     offBrand: child.offBrand.length > 0 ? child.offBrand : parent.offBrand,
     onBrand: child.onBrand.length > 0 ? child.onBrand : parent.onBrand,
     palette: child.palette.length > 0 ? child.palette : parent.palette,
+    paletteFrom: child.paletteFrom ?? parent.paletteFrom,
     references:
       child.references.length > 0 ? child.references : parent.references,
     scans: child.websites.length > 0 ? child.scans : parent.scans,

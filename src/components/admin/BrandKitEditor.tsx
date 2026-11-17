@@ -10,6 +10,7 @@ import {
   resolveKitDoc,
   sanitizeKitDoc,
 } from "../../../config/brandKit.js";
+import { withLinkedPalette } from "../../../config/kitComponentLink.js";
 import { useProofBoard } from "../../boards/brand/useProofBoard";
 import type { BrandKit } from "../../services/brandKitService";
 import { Button } from "../ui/button";
@@ -22,6 +23,7 @@ import {
   PaletteEditor,
 } from "./BrandKitFields";
 import { LibraryPicker } from "./BrandKitLibrary";
+import { BrandKitPaletteLink, usePaletteSource } from "./BrandKitPaletteLink";
 import { FormatPreviews, PalettePreview } from "./BrandKitPreviews";
 import { BrandKitShaders } from "./BrandKitShaders";
 import { BrandSources } from "./BrandKitWebsites";
@@ -139,7 +141,13 @@ export function KitEditor({
      saved state; this recomputes it live against the same rule. */
   const own = sanitizeKitDoc(doc);
   const inheritedFrom = kit.parentId ? parentDoc : null;
-  const effective = resolveKitDoc(own, inheritedFrom);
+  // A palette followed from another kit shows through as it would saved.
+  const paletteSource = usePaletteSource(own, kit.id);
+  const effective = withLinkedPalette(
+    own,
+    resolveKitDoc(own, inheritedFrom),
+    paletteSource?.doc ?? null
+  );
   /* Recomputed from what is on screen, not read off the saved kit: overriding a
      part should stop the panel claiming to inherit it before the save, or the
      line contradicts the fields under it. */
@@ -264,7 +272,10 @@ export function KitEditor({
         {block(
           "palette",
           "Palette",
-          <PaletteEditor doc={doc} onChange={setDoc} />
+          <div className="stack stack--snug">
+            <BrandKitPaletteLink doc={doc} kitId={kit.id} onChange={setDoc} />
+            <PaletteEditor doc={doc} onChange={setDoc} />
+          </div>
         )}
         {block(
           "css",

@@ -1,7 +1,11 @@
 import { expect, test } from "vitest";
-import { EMPTY_KIT } from "./brandKit";
+import { EMPTY_KIT, sanitizeKitDoc } from "./brandKit";
 import type { ConceptStyle } from "./conceptStyle";
-import { carryStyles, withLinkedComponents } from "./kitComponentLink";
+import {
+  carryStyles,
+  withLinkedComponents,
+  withLinkedPalette,
+} from "./kitComponentLink";
 
 const ROLEMODEL = {
   ...EMPTY_KIT,
@@ -56,4 +60,23 @@ test("a kit with its own styles doesn't follow the link", () => {
   expect(
     withLinkedComponents(following, following, source).componentStyles[0]?.look
   ).toMatchObject({ background: "#009387" });
+});
+
+test("a kit with no colours follows the linked kit's palette; its own win", () => {
+  const sourceId = "11111111-1111-4111-8111-111111111111";
+  const source = {
+    ...EMPTY_KIT,
+    palette: [{ name: "Navy", role: "brand", value: "#0a1f44" }],
+  };
+  const following = sanitizeKitDoc({ ...EMPTY_KIT, paletteFrom: sourceId });
+  expect(following.paletteFrom).toBe(sourceId);
+  expect(withLinkedPalette(following, following, source).palette).toEqual(
+    source.palette
+  );
+  const own = {
+    ...following,
+    palette: [{ name: "Red", role: "brand", value: "#ff0000" }],
+  };
+  expect(withLinkedPalette(own, own, source).palette).toEqual(own.palette);
+  expect(withLinkedPalette(following, following, null).palette).toEqual([]);
 });

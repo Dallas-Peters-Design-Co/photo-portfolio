@@ -6,7 +6,10 @@ import {
   resolveKitDoc,
   sanitizeKitDoc,
 } from "../../config/brandKit.js";
-import { withLinkedComponents } from "../../config/kitComponentLink.js";
+import {
+  withLinkedComponents,
+  withLinkedPalette,
+} from "../../config/kitComponentLink.js";
 import type { getSql } from "./db.js";
 import { getDb, schema } from "./orm.js";
 import { toIso } from "./timestamps.js";
@@ -146,25 +149,34 @@ export const loadKits = async (sql: Sql): Promise<BrandKitDto[]> => {
 };
 
 /**
- * A kit following another's components (config/kitComponentLink.ts) with
- * them in: one hop, from the source's own resolved styles, never itself.
+ * A kit following another's palette or components (config/kitComponentLink.ts)
+ * with them in: one hop, from each source's own resolved document, never
+ * itself. The palette first, so linked styles carry into these colours.
  */
 const linkComponents = (
   kit: BrandKitDto,
   byId: Map<string, BrandKitDto>
 ): BrandKitDto => {
-  const from = kit.resolvedDoc.componentsFrom;
-  const source = from && from !== kit.id ? byId.get(from) : undefined;
-  return source
-    ? {
-        ...kit,
-        resolvedDoc: withLinkedComponents(
-          kit.doc,
-          kit.resolvedDoc,
-          source.resolvedDoc
-        ),
-      }
-    : kit;
+  const sourceOf = (from: string | null) =>
+    from && from !== kit.id ? byId.get(from) : undefined;
+  const palette = sourceOf(kit.resolvedDoc.paletteFrom);
+  const components = sourceOf(kit.resolvedDoc.componentsFrom);
+  if (!(palette || components)) {
+    return kit;
+  }
+  const coloured = withLinkedPalette(
+    kit.doc,
+    kit.resolvedDoc,
+    palette?.resolvedDoc ?? null
+  );
+  return {
+    ...kit,
+    resolvedDoc: withLinkedComponents(
+      kit.doc,
+      coloured,
+      components?.resolvedDoc ?? null
+    ),
+  };
 };
 
 export const loadKit = async (
@@ -201,13 +213,18 @@ export const loadKit = async (
     return null;
   }
   const kit = rowToKitDto(row);
-  const from = kit.resolvedDoc.componentsFrom;
-  if (!from || from === id || kit.doc.componentStyles.length > 0) {
+  const wanted = [
+    kit.doc.palette.length === 0 ? kit.resolvedDoc.paletteFrom : null,
+    kit.doc.componentStyles.length === 0
+      ? kit.resolvedDoc.componentsFrom
+      : null,
+  ].filter((from): from is string => Boolean(from) && from !== id);
+  if (wanted.length === 0) {
     return kit;
   }
   // Not through loadKit again: one hop, so two kits linked to each other
   // can't go round.
-  const [sourceRow] = (await sql`
+  const sourceRows = (await sql`
     SELECT k.id, k.name, k.created_at, k.updated_at, k.current_version_id,
       k.parent_id, p.name AS parent_name, pv.doc AS parent_doc,
       v.version AS current_version, v.doc AS doc, 0 AS version_count
@@ -215,11 +232,10 @@ export const loadKit = async (
     LEFT JOIN brand_kit_versions v ON v.id = k.current_version_id
     LEFT JOIN brand_kits p ON p.id = k.parent_id
     LEFT JOIN brand_kit_versions pv ON pv.id = p.current_version_id
-    WHERE k.id = ${from}
+    WHERE k.id = ANY(${[...new Set(wanted)]}::uuid[])
   `) as BrandKitRow[];
-  return sourceRow
-    ? linkComponents(kit, new Map([[from, rowToKitDto(sourceRow)]]))
-    : kit;
+  const sources = sourceRows.map(rowToKitDto);
+  return linkComponents(kit, new Map(sources.map((src) => [src.id, src])));
 };
 
 /** A kit's history, newest first — what "which version was this made against"
