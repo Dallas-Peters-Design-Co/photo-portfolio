@@ -48,6 +48,8 @@ export interface ConceptCellLook {
   color?: string;
   fontSize?: number;
   fontWeight?: number;
+  /** The style's own, so a table's button is as tall as the kit's button. */
+  lineHeight?: number;
   paddingX?: number;
   paddingY?: number;
   radius?: number;
@@ -183,6 +185,7 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
     ...optionalHex("color", raw.color),
     ...num("fontSize", raw.fontSize, 8, 72),
     ...num("fontWeight", raw.fontWeight, 100, 900),
+    ...num("lineHeight", raw.lineHeight, 0.8, 3),
     ...num("paddingX", raw.paddingX, 0, 48),
     ...num("paddingY", raw.paddingY, 0, 32),
     ...num("radius", raw.radius, 0, 999),

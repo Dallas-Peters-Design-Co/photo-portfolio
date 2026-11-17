@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { componentSource } from "./componentSource.js";
+import { createConceptElement } from "./conceptDefaults.js";
+import { tableOf } from "./conceptTable.js";
 import { cleanConcept, type ReviewConceptElement } from "./reviewConcept.js";
 
 const element = (raw: Record<string, unknown>) =>
@@ -145,5 +147,32 @@ describe("componentSource names what a screen reader needs named", () => {
       componentSource(one({ kind: "dialog", text: "Delete file?\nBody" }), "A")
         .preview
     ).toContain('aria-label="Delete file?"');
+  });
+});
+
+describe("a table in the copied code", () => {
+  it("clips to its corners, and its kit-styled buttons match the kit's", () => {
+    const table = createConceptElement("table");
+    const columns = tableOf(table).columns.map((column) =>
+      column.kind === "button"
+        ? {
+            ...column,
+            look: {
+              background: "#00289d",
+              lineHeight: 1.25,
+              paddingX: 18,
+              paddingY: 11,
+            },
+            styleId: "kit-button",
+          }
+        : column
+    );
+    const { css } = componentSource(
+      { ...table, table: { ...tableOf(table), columns } },
+      "Primary"
+    );
+    expect(css).toContain("contain: paint;");
+    expect(css).toContain("line-height: 1.25;");
+    expect(css).toContain("border: none;");
   });
 });

@@ -194,6 +194,7 @@ const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
   color: look.color,
   fontSize: look.fontSize,
   fontWeight: look.fontWeight,
+  lineHeight: look.lineHeight,
   paddingX: look.paddingX,
   paddingY: look.paddingY,
   radius: look.radius,

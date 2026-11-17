@@ -38,14 +38,17 @@ const lookStyle = (look?: ConceptCellLook): CSSProperties =>
   look
     ? {
         background: look.background,
+        // A kit style with no border colour draws none, as the kit does:
+        // the cell's own 1px outline made its buttons 2px taller.
         border: look.borderColor
           ? `${look.borderWidth ?? 1}px solid ${look.borderColor}`
-          : undefined,
+          : "none",
         borderRadius: look.radius,
         boxShadow: look.shadow ? shadowCss(look.shadow) : undefined,
         color: look.color,
         fontSize: look.fontSize,
         fontWeight: look.fontWeight,
+        lineHeight: look.lineHeight,
         padding:
           look.paddingY === undefined || look.paddingX === undefined
             ? undefined

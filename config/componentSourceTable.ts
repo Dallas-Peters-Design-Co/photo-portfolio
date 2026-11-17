@@ -32,13 +32,15 @@ const tintOf = (column: ConceptTableColumn): string =>
 const lookCss = (look: ConceptCellLook): string =>
   [
     look.background && `background: ${look.background};`,
-    look.borderColor &&
-      `border: ${look.borderWidth ?? 1}px solid ${look.borderColor};`,
+    look.borderColor
+      ? `border: ${look.borderWidth ?? 1}px solid ${look.borderColor};`
+      : "border: none;",
     look.radius !== undefined && `border-radius: ${look.radius}px;`,
     look.shadow && `box-shadow: ${shadowCss(look.shadow)};`,
     look.color && `color: ${look.color};`,
     look.fontSize !== undefined && `font-size: ${look.fontSize}px;`,
     look.fontWeight !== undefined && `font-weight: ${look.fontWeight};`,
+    look.lineHeight !== undefined && `line-height: ${look.lineHeight};`,
     look.paddingY !== undefined &&
       look.paddingX !== undefined &&
       `padding: ${look.paddingY}px ${look.paddingX}px;`,
@@ -75,7 +77,7 @@ const cellOf = (column: ConceptTableColumn, value: string): string => {
 };
 
 /** The app's table CSS, under the block's class. */
-const TABLE_CSS = `& { width: 100%; border-spacing: 0; border-collapse: separate; padding: 0; }
+const TABLE_CSS = `& { width: 100%; border-spacing: 0; border-collapse: separate; padding: 0; contain: paint; }
 & th, & td { padding: 8px 12px; vertical-align: middle; text-align: start; }
 & th { font-size: 0.85em; font-weight: 600; color: var(--&-head-color, color-mix(in srgb, currentColor 65%, transparent)); }
 & thead { background: var(--&-head-background, transparent); }
