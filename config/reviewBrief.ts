@@ -52,3 +52,29 @@ export const cleanCoverage = (value: unknown): BriefCoverage[] =>
         typeof c.where === "string" ? c.where.trim().slice(0, MAX_WHERE) : "",
     }))
     .filter((c) => c.item);
+
+/**
+ * A brief for a capture that goes back for what the last audit could not
+ * see: the open items first, with what each still needs, then the screens
+ * the review already holds (so the agent spends no page on them), then the
+ * client's own brief for context. Cut to the brief's limit from the end, so
+ * the gaps always survive.
+ */
+export const gapBrief = (
+  brief: string,
+  open: BriefCoverage[],
+  have: string[]
+): string =>
+  [
+    "This capture goes back for what the review is still missing. Spend every page on these items, in this order, and capture each state they name (empty, filled, open menus, dialogs, other roles) where the app lets you reach it without changing data:",
+    ...open.map((c) => `- ${c.item}${c.where ? `: ${c.where}` : ""}`),
+    "",
+    have.length > 0
+      ? `The review already has these screens; capture them again only to reach a state named above:\n${have.map((t) => `- ${t}`).join("\n")}`
+      : "",
+    "",
+    "The client's original brief, for context:",
+    brief,
+  ]
+    .join("\n")
+    .slice(0, MAX_BRIEF);

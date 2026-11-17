@@ -92,8 +92,15 @@ export function ReviewEditor({
   const savedPrint = useRef(fingerprint(review));
   const latest = useRef(draft);
   latest.current = draft;
-  const { agentStatus, auditKey, phase, redoAudit, runAudit, runLoginAudit } =
-    useReviewAudit({ latest, setDraft });
+  const {
+    agentStatus,
+    auditKey,
+    captureGaps,
+    phase,
+    redoAudit,
+    runAudit,
+    runLoginAudit,
+  } = useReviewAudit({ latest, setDraft });
 
   const setDoc = (patch: Partial<ReviewDoc>) =>
     setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } }));
@@ -335,8 +342,15 @@ export function ReviewEditor({
             brief={draft.doc.brief}
             collapsed={collapse.isCollapsed("brief")}
             coverage={draft.doc.briefCoverage}
+            gapsLabel={
+              phase === "exploring"
+                ? agentStatus || AUDIT_LABELS.exploring
+                : AUDIT_LABELS[phase]
+            }
+            onCaptureGaps={() => void captureGaps()}
             onChange={(brief) => setDoc({ brief })}
             onToggle={() => collapse.toggle("brief")}
+            running={phase !== "idle"}
           />
 
           <EditorBlock

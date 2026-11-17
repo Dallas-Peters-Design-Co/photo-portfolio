@@ -12,6 +12,7 @@ import {
   type ReviewScreen,
 } from "../../../config/review.js";
 import { mergeAudit, type UxAudit } from "../../../config/reviewAudit.js";
+import { gapBrief } from "../../../config/reviewBrief.js";
 import {
   mergeChecks,
   type ReferenceCheck,
@@ -32,8 +33,11 @@ const CAPTURE_LIMIT_MS = 45 * 60 * 1000;
 
 /** Pages the sign-in agent captures, each at two widths. */
 const AGENT_PAGES = 12;
-/** The most the agent takes (api/_lib/reviewAgent.ts MAX_AGENT_PAGES). */
-const MAX_AGENT_PAGES = 15;
+/**
+ * Pages for a capture with a brief: its flows are walked step by step, at
+ * desktop width only past each area's first screen (api/_lib/reviewAgent.ts).
+ */
+const BRIEF_AGENT_PAGES = 30;
 const TRAILING_HYPHENS = /-+$/;
 
 const two = (n: number) => String(n).padStart(2, "0");
@@ -167,14 +171,22 @@ export function useReviewAudit({
    * pages and screenshots each at desktop and phone width. Its screens join
    * the review, then the audit runs on them as it does on any capture.
    */
-  const captureBehindLogin = async (): Promise<{
+  const captureBehindLogin = async (gaps?: {
+    brief: string;
+    description: string;
+  }): Promise<{
     checks: ReferenceCheck[];
     screens: ReviewScreen[];
   } | null> => {
     const answer = await prompt({
       confirmLabel: "Capture and audit",
-      defaultValue: "https://",
-      description: `The agent signs in with the stored test account, explores the app up to ${AGENT_PAGES} pages deep into its sections, and screenshots each at desktop and phone width. It looks but never changes anything. The result is saved as a new review; this one is left as it is. This takes several minutes.`,
+      defaultValue:
+        (gaps &&
+          latest.current.doc.screens.find((s) => s.sourceUrl)?.sourceUrl) ||
+        "https://",
+      description:
+        gaps?.description ??
+        `The agent signs in with the stored test account, explores the app up to ${AGENT_PAGES} pages deep into its sections, and screenshots each at desktop and phone width. It looks but never changes anything. The result is saved as a new review; this one is left as it is. This takes several minutes.`,
       placeholder: "https://app.example.com",
       title: "Which app should the agent sign in to?",
     });
@@ -201,12 +213,12 @@ export function useReviewAudit({
     const { slug } = latest.current;
     setPhase("exploring");
     setAgentStatus("Starting the browser…");
-    const { brief } = latest.current.doc;
+    const brief = gaps?.brief ?? latest.current.doc.brief;
     const { session } = await reviewsApi.captureWithLogin({
       brief,
       loginUrl,
       // A brief names areas that must be reached: the agent gets its most.
-      pages: brief ? MAX_AGENT_PAGES : AGENT_PAGES,
+      pages: brief ? BRIEF_AGENT_PAGES : AGENT_PAGES,
       slug,
       url,
     });
@@ -316,6 +328,39 @@ export function useReviewAudit({
   };
 
   /**
+   * Goes back for what the brief coverage marks partly covered or missing:
+   * the agent is sent for those items only, its screens join this review,
+   * and the audit is run again over every screen so the coverage, topics
+   * and pins all agree with the new set.
+   */
+  const captureGaps = async () => {
+    const { doc } = latest.current;
+    const open = doc.briefCoverage.filter((c) => c.status !== "covered");
+    if (open.length === 0) {
+      return;
+    }
+    const have = doc.screens.filter((s) => s.image);
+    await auditScreens(async () => {
+      const captured = await captureBehindLogin({
+        brief: gapBrief(
+          doc.brief,
+          open,
+          have.map((s) => s.title)
+        ),
+        description: `The agent signs in with the stored test account and goes only after the ${open.length} items still open in the brief coverage. Its screens are added to this review, then the whole audit runs again. Items that are not screens (a deliverable, another company's brand) stay open. This takes 15–30 minutes.`,
+      });
+      if (!captured) {
+        return null;
+      }
+      setDraft((d) => ({
+        ...d,
+        doc: { ...d.doc, screens: [...d.doc.screens, ...captured.screens] },
+      }));
+      return [...have, ...captured.screens];
+    }, true);
+  };
+
+  /**
    * The agent's capture, validated and audited, saved as a new review: the
    * review open in the editor is not touched, so a scan can be run again and
    * compared rather than piling onto the last one. Same client and brand.
@@ -379,6 +424,7 @@ export function useReviewAudit({
   return {
     agentStatus,
     auditKey,
+    captureGaps,
     phase,
     redoAudit,
     runAudit,

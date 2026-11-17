@@ -13,8 +13,9 @@ const anthropic = createAnthropic({
 export default defineAgent({
   model: anthropic("claude-opus-5-5"),
   limits: {
-    // Stop a runaway audit before it gets expensive.
-    sessionUsage: ({ window }) => (window.costUsd ?? 0) >= 5,
+    // Stop a runaway audit before it gets expensive. A capture that walks a
+    // brief's flows takes up to 30 pages, so the cap leaves room for that.
+    sessionUsage: ({ window }) => (window.costUsd ?? 0) >= 20,
     // Audit sessions are one-shot; let idle ones expire after a day.
     sessionTimeoutMs: 24 * 60 * 60 * 1_000,
   },

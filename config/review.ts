@@ -190,7 +190,8 @@ export const DEFAULT_REVIEW_DOC: ReviewDoc = {
 };
 
 export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
-const MAX_SCREENS = 40;
+/** Room for a brief's capture (up to 30 pages) beside the screens already there. */
+const MAX_SCREENS = 60;
 const BOARD_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_SECTIONS = 12;

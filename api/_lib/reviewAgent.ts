@@ -130,14 +130,25 @@ export const CAPTURE_SCHEMA = {
  * review's forty.
  */
 export const DEFAULT_AGENT_PAGES = 12;
-export const MAX_AGENT_PAGES = 15;
+export const MAX_AGENT_PAGES = 30;
 
 /** The client's brief, and how it changes what the agent visits first. */
+/**
+ * With a brief, the capture is a checklist, not a tour: the agent lists
+ * every flow, screen and state the brief names, walks each flow step by
+ * step, and says which items it could not reach. Without this it stopped
+ * after a handful of top-level pages and the brief's flows went unseen.
+ */
 const briefLines = (brief: string): string[] =>
   brief
     ? [
         "",
-        "The client's brief for this review is below. It names what the review must cover. Spend your pages on it first: reach and capture every area, flow and screen it names, then use any pages left as described above. In the checks, cover each topic it raises (for example colour-blind accessibility), and say plainly when a named area could not be reached.",
+        "The client's brief for this review is below. It is your capture checklist, and it comes before everything above about choosing pages.",
+        "1. Before capturing anything, read the brief and write out (for yourself) every flow, screen, step, state and role it names: for example a creation flow, each stage of a pipeline, a reader or editor view, an export dialog, empty and filled states, an approver's view.",
+        "2. Walk each flow from its start to its end, the way a user would, and capture every step it names, not only the first page of each area. Open each tab, card, panel, menu and dialog the brief mentions. Where a step needs an item that already exists (a project at a later stage, a finding with results), open an existing one rather than creating one.",
+        "3. Capture each brief step at desktop width. Capture a mobile shot only of the first screen in each area, so the pages go to the flows.",
+        "4. Use all of your pages. Do not stop while a brief item is still uncaptured and you have pages left. If an item truly cannot be reached without changing data, or the account cannot see it, move on.",
+        "5. In `note`, list each brief item you could not capture and why.",
         "<brief>",
         brief,
         "</brief>",
@@ -162,9 +173,13 @@ export const captureMessage = ({
     loginUrl
       ? `Login page: ${loginUrl} — call log_in with it when the app asks you to sign in.`
       : "If the app asks you to sign in, call log_in with the sign-in page's URL.",
-    `Capture the start page and up to ${pages - 1} more pages, each at desktop and mobile width.`,
+    brief
+      ? `Capture the start page and up to ${pages - 1} more pages (see the brief steps below for widths).`
+      : `Capture the start page and up to ${pages - 1} more pages, each at desktop and mobile width.`,
     "Go deep, not just wide. First open the main navigation (and any side menus, account menu and settings) and list the app's sections. Then, within each section, go at least two levels in: from a list to an item's detail page, from settings to each settings tab, from an index to a create or edit form (open it, never submit it). Open dialogs, drawers and menus that a page offers, and capture any empty, loading or error state you reach without changing data.",
-    "Spend the pages on different kinds of screen: one list page per section rather than five near-identical ones, and the deeper pages a real user would reach to get work done. Skip marketing pages, legal pages and duplicates of a screen you already have.",
+    brief
+      ? "Skip marketing pages, legal pages and duplicates of a screen you already have."
+      : "Spend the pages on different kinds of screen: one list page per section rather than five near-identical ones, and the deeper pages a real user would reach to get work done. Skip marketing pages, legal pages and duplicates of a screen you already have.",
     "Look, never change anything in the app.",
     ...briefLines(brief),
     "",

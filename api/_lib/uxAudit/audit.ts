@@ -243,6 +243,27 @@ export const sourcesFromScreens = (screens: ReviewScreen[]): TileSource[] =>
       : []
   );
 
+/** Screen passes running at once. */
+const SCREEN_CALLS = 10;
+
+/** Runs the tasks it is given at most `max` at a time, in order. */
+const limiter = (max: number) => {
+  let running = 0;
+  const queue: (() => void)[] = [];
+  return async <T>(task: () => Promise<T>): Promise<T> => {
+    if (running >= max) {
+      await new Promise<void>((go) => queue.push(go));
+    }
+    running += 1;
+    try {
+      return await task();
+    } finally {
+      running -= 1;
+      queue.shift()?.();
+    }
+  };
+};
+
 export const runUxAudit = async ({
   brief = "",
   screens,
@@ -278,8 +299,11 @@ export const runUxAudit = async ({
     pages.filter((p) => p.url === parsePublicHttpUrl(url));
   const sourceUrlOf = new Map(screens.map((s) => [s.id, s.sourceUrl]));
 
-  // Every call starts together: the whole-review call and one per screen.
-  // A failed screen is reported in the summary rather than sinking the rest.
+  // The whole-review call and one per screen, at most SCREEN_CALLS at once:
+  // a brief's capture brings dozens of screens, and all of them together
+  // trip the API's rate limit. A failed screen is reported in the summary
+  // rather than sinking the rest.
+  const slot = limiter(SCREEN_CALLS);
   const [site, ...perScreen] = await Promise.allSettled([
     askClaude(
       SITE_INSTRUCTIONS + siteBriefRules(brief),
@@ -289,15 +313,17 @@ export const runUxAudit = async ({
     ...sources.map((source) => {
       // The whole screen, not its share of the review-wide tiles.
       const own = byScreen.get(source.id) ?? [];
-      return askClaude(
-        screenInstructions(source.title) + screenBriefRules(brief),
-        tileContent(
-          own,
-          title,
-          formatMarkups(pageFor(sourceUrlOf.get(source.id) ?? "")),
-          brief
-        ),
-        SCREEN_OUTPUT_TOKENS
+      return slot(() =>
+        askClaude(
+          screenInstructions(source.title) + screenBriefRules(brief),
+          tileContent(
+            own,
+            title,
+            formatMarkups(pageFor(sourceUrlOf.get(source.id) ?? "")),
+            brief
+          ),
+          SCREEN_OUTPUT_TOKENS
+        )
       );
     }),
   ]);

@@ -205,7 +205,7 @@ describe("captureMessage", () => {
       pages: 15,
       url: "https://app.example.com",
     });
-    expect(text).toContain("Spend your pages on it first");
+    expect(text).toContain("It is your capture checklist");
     expect(text).toContain(
       "<brief>\nCover PubMed search and manuscript export.\n</brief>"
     );
