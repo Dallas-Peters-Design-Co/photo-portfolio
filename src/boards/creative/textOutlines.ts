@@ -1,5 +1,6 @@
 import type { Font } from "opentype.js";
 import { parseFontRef } from "../../../config/fontRef";
+import { FONT_CHOICES } from "../../../config/theme";
 import { apiBase, jsonHeaders } from "../../services/portfolioService";
 import type { BoardItem } from "../../types";
 import type { DrawingConfig } from "../drawing/drawing";
@@ -26,13 +27,56 @@ const FIRST_FAMILY = /^\s*["']?([^"',]+)["']?/;
 const RGB = /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/;
 const WHITESPACE = /\s/;
 
-/** The face to outline with: the layer's brand ref, else what CSS drew. */
+/**
+ * The app's own faces whose files are on the site rather than on Google:
+ * read straight from here, since no font service has them.
+ */
+const SAUCE_WEIGHTS = [300, 400, 500, 600, 700, 800, 900];
+const LOCAL_FONT_FILES: Record<string, (weight: number) => string> = {
+  exposure: () => "/fonts/Exposure0-Regular.woff",
+  // Bundled by @fontsource, not served by Google; its files are copied to
+  // public/fonts (OFL, licence in public/font-licenses).
+  "open-sauce-sans": (weight) => {
+    const near = SAUCE_WEIGHTS.reduce((a, b) =>
+      Math.abs(b - weight) < Math.abs(a - weight) ? b : a
+    );
+    return `/fonts/open-sauce-sans/open-sauce-sans-latin-${near}-normal.woff`;
+  },
+};
+
+/** One of the app's own faces, by its id or the family its CSS names. */
+const appFontOf = (family: string) =>
+  FONT_CHOICES.find(
+    (choice) => choice.id === family || choice.stack.startsWith(`"${family}"`)
+  );
+
+/**
+ * The face to outline with: the layer's brand ref, one of the app's own
+ * faces (stored by id, as "figtree" or "exposure") as its ref, else what CSS
+ * drew. An app face went to the server by its CSS name ("Figtree Variable",
+ * "Exposure[0]"), which no font service knows: "Name a font family."
+ */
 const familyOf = (item: BoardItem, css: CSSStyleDeclaration): string => {
   const family = item.textStyle?.family;
   if (family && parseFontRef(family)) {
     return family;
   }
-  return FIRST_FAMILY.exec(css.fontFamily)?.[1]?.trim() ?? "";
+  const drawn = FIRST_FAMILY.exec(css.fontFamily)?.[1]?.trim() ?? "";
+  const app = appFontOf(family ?? "") ?? appFontOf(drawn);
+  return app ? `p:${app.id}` : drawn;
+};
+
+/** A font file's bytes: the site's own copy, else from the server. */
+const fontFile = (
+  family: string,
+  query: URLSearchParams
+): Promise<Response> => {
+  const local = LOCAL_FONT_FILES[parseFontRef(family)?.fontId ?? ""];
+  return local
+    ? fetch(local(Number(query.get("weight")) || 400))
+    : fetch(`${apiBase()}/api/brand-kits?${query}`, {
+        headers: jsonHeaders(),
+      });
 };
 
 const loadFont = (family: string, weight: string, italic: boolean) => {
@@ -45,9 +89,7 @@ const loadFont = (family: string, weight: string, italic: boolean) => {
         outlineFont: family,
         weight,
       });
-      const res = await fetch(`${apiBase()}/api/brand-kits?${query}`, {
-        headers: jsonHeaders(),
-      });
+      const res = await fontFile(family, query);
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as {
           error?: string;

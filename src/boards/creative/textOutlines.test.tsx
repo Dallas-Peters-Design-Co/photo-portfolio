@@ -80,3 +80,33 @@ it("turns a text layer into its letters, in place, in its colour", async () => {
     shapeGeometry(config, 420, 120, 0)?.d
   );
 });
+
+it("reads the app's own faces from where they are, not by their CSS name", async () => {
+  const bytes = await (await fetch(interBold)).arrayBuffer();
+  const asked: string[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation((input) => {
+    asked.push(String(input));
+    return Promise.resolve(
+      new Response(bytes.slice(0), { headers: { "Content-Type": "font/woff" } })
+    );
+  });
+  const box = document.createElement("textarea");
+  box.value = "Hi";
+  box.style.cssText = "width:200px;height:60px;font:600 40px/1.2 sans-serif";
+  document.body.append(box);
+  const as = (family: string) =>
+    outlineTextLayer(
+      layer({ textStyle: { ...layer().textStyle, family, weight: 600 } }),
+      box
+    );
+
+  await as("exposure");
+  await as("open-sauce-sans");
+  await as("figtree");
+  expect(asked[0]).toBe("/fonts/Exposure0-Regular.woff");
+  expect(asked[1]).toBe(
+    "/fonts/open-sauce-sans/open-sauce-sans-latin-600-normal.woff"
+  );
+  expect(asked[2]).toContain("/api/brand-kits?");
+  expect(asked[2]).toContain("outlineFont=p%3Afigtree");
+});

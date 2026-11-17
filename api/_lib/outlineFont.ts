@@ -1,4 +1,5 @@
 import { isFontFamilyName, parseFontRef } from "../../config/fontRef.js";
+import { FONT_CHOICES } from "../../config/theme.js";
 
 /**
  * A font file to turn type into vector outlines with (the frame editor's
@@ -128,7 +129,14 @@ export const outlineFont = (
   if (ref?.source === "fontshare" && ref.slug) {
     return fontshareFile(ref.slug, weight, italic);
   }
-  const name = ref?.family ?? family;
+  // One of the app's own faces: bundled from Google under a CSS name of its
+  // own ("Climate Crisis Variable"), so asked for by its Google name, its
+  // label. (Exposure, the one not on Google, is read from the site.)
+  const app =
+    ref?.source === "app"
+      ? FONT_CHOICES.find((choice) => choice.id === ref.fontId)
+      : undefined;
+  const name = (app?.label ?? ref?.family ?? family) as unknown;
   if (!isFontFamilyName(name)) {
     return Promise.resolve({
       error: "Name a font family.",
