@@ -38,8 +38,8 @@
 }
 
 .bk-pretext .button-primary {
-  --button-primary-background: #009387;
-  --button-primary-color: #022732;
+  --button-primary-background: #22419a;
+  --button-primary-color: #f8f9f9;
   --button-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-primary-font-size: 15px;
   --button-primary-font-weight: 600;
@@ -47,7 +47,7 @@
   --button-primary-padding: 11px 18px;
   --button-primary-radius: 39px;
   --button-primary-border: 1px solid #022732;
-  --button-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, #7bceb6 48%, transparent);
+  --button-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca 48%, transparent);
   --button-primary-hover-background: #132218;
 
   box-sizing: border-box;
@@ -76,14 +76,14 @@
 }
 .bk-pretext .button-ghost {
   --button-ghost-background: transparent;
-  --button-ghost-color: #004d46;
+  --button-ghost-color: #022732;
   --button-ghost-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-ghost-font-size: 14px;
   --button-ghost-font-weight: 600;
   --button-ghost-line-height: 1.25;
   --button-ghost-padding: 7px 15px;
   --button-ghost-radius: 27px;
-  --button-ghost-border: 1px solid #009387;
+  --button-ghost-border: 1px solid #022732;
   --button-ghost-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 18%, transparent);
   --button-ghost-icon-color: #009387;
 
@@ -692,8 +692,8 @@
 .bk-pretext .table-primary td:nth-child(2) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .bk-pretext .table-primary td:nth-child(3) { --table-primary-tint: #061014; }
 .bk-pretext .table-primary td:nth-child(3) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
-.bk-pretext .table-primary td:nth-child(4) { --table-primary-tint: #022732; }
-.bk-pretext .table-primary td:nth-child(4) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #009387; border: 1px solid #022732; border-radius: 39px; box-shadow: 0px 0px 0px 4px color-mix(in srgb, #7bceb6 48%, transparent); color: #022732; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
+.bk-pretext .table-primary td:nth-child(4) { --table-primary-tint: #f8f9f9; }
+.bk-pretext .table-primary td:nth-child(4) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #22419a; border: 1px solid #022732; border-radius: 39px; box-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca 48%, transparent); color: #f8f9f9; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
 .bk-pretext .toast-primary {
   --toast-primary-background: #022732;
   --toast-primary-color: #f8f9f9;
@@ -1383,8 +1383,8 @@
 .bk-pretext .input-password__field::placeholder { color: inherit; opacity: 0.6; }
 .bk-pretext .input-password:focus-within { outline: 2px solid var(--input-password-accent, currentColor); outline-offset: 2px; }
 .bk-viaskai .button-primary {
-  --button-primary-background: #009387;
-  --button-primary-color: #022732;
+  --button-primary-background: #22419a;
+  --button-primary-color: #f8f9f9;
   --button-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-primary-font-size: 15px;
   --button-primary-font-weight: 600;
@@ -1392,7 +1392,7 @@
   --button-primary-padding: 11px 18px;
   --button-primary-radius: 39px;
   --button-primary-border: 1px solid #022732;
-  --button-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, #7bceb6 48%, transparent);
+  --button-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca 48%, transparent);
   --button-primary-hover-background: #132218;
 
   box-sizing: border-box;
@@ -1421,14 +1421,14 @@
 }
 .bk-viaskai .button-ghost {
   --button-ghost-background: transparent;
-  --button-ghost-color: #004d46;
+  --button-ghost-color: #022732;
   --button-ghost-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-ghost-font-size: 14px;
   --button-ghost-font-weight: 600;
   --button-ghost-line-height: 1.25;
   --button-ghost-padding: 7px 15px;
   --button-ghost-radius: 27px;
-  --button-ghost-border: 1px solid #009387;
+  --button-ghost-border: 1px solid #022732;
   --button-ghost-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 18%, transparent);
   --button-ghost-icon-color: #009387;
 
@@ -2037,8 +2037,8 @@
 .bk-viaskai .table-primary td:nth-child(2) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .bk-viaskai .table-primary td:nth-child(3) { --table-primary-tint: #061014; }
 .bk-viaskai .table-primary td:nth-child(3) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
-.bk-viaskai .table-primary td:nth-child(4) { --table-primary-tint: #022732; }
-.bk-viaskai .table-primary td:nth-child(4) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #009387; border: 1px solid #022732; border-radius: 39px; box-shadow: 0px 0px 0px 4px color-mix(in srgb, #7bceb6 48%, transparent); color: #022732; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
+.bk-viaskai .table-primary td:nth-child(4) { --table-primary-tint: #f8f9f9; }
+.bk-viaskai .table-primary td:nth-child(4) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #22419a; border: 1px solid #022732; border-radius: 39px; box-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca 48%, transparent); color: #f8f9f9; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
 .bk-viaskai .toast-primary {
   --toast-primary-background: #022732;
   --toast-primary-color: #f8f9f9;
