@@ -12,6 +12,7 @@ import { iconLabel } from "../review/ConceptIcon";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { ComponentStyleClipboard } from "./ComponentStyleClipboard";
 import { ConceptAvatarFields } from "./ConceptAvatarFields";
 import { BoxGroup } from "./ConceptBoxFields";
 import {
@@ -305,7 +306,7 @@ function ElementBar({
           </Button>
         ) : null}
       </div>
-      {onLink && styles.length > 0 ? (
+      {onLink ? (
         <StyleLink element={element} onLink={onLink} styles={styles} />
       ) : null}
     </header>
@@ -474,6 +475,7 @@ export function ReviewConceptElementFields({
       ) : null}
       {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
+          <ComponentStyleClipboard element={element} onChange={onChange} />
           {!lookOnly && element.kind !== "tooltip" ? (
             <ConceptTooltipFields
               brandDoc={brandDoc}

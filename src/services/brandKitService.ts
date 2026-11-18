@@ -1,4 +1,5 @@
 import type { BrandKitDoc } from "../../config/brandKit.js";
+import type { ConceptStyle } from "../../config/conceptStyle.js";
 import type {
   AdobeFamily,
   CatalogFont,
@@ -218,6 +219,23 @@ export const brandKitsApi = {
     });
     if (!res.ok) {
       throw new Error(await readPageError(res, "Could not save the kit"));
+    }
+    return (await res.json()) as BrandKit;
+  },
+
+  saveComponentStyle: async (
+    id: string,
+    componentStyle: ConceptStyle
+  ): Promise<BrandKit> => {
+    const res = await fetch(`${apiBase()}/api/brand-kits/${id}`, {
+      body: JSON.stringify({ componentStyle }),
+      headers: jsonHeaders(),
+      method: "PATCH",
+    });
+    if (!res.ok) {
+      throw new Error(
+        await readPageError(res, "Could not save the component style")
+      );
     }
     return (await res.json()) as BrandKit;
   },

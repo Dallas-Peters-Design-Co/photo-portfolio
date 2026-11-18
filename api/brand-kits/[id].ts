@@ -16,6 +16,7 @@ import { getSql } from "../_lib/db.js";
 import { sanitizeText } from "../_lib/httpUrl.js";
 import { getDb, schema } from "../_lib/orm.js";
 import { parseJsonBody } from "../_lib/parseBody.js";
+import { saveKitComponentStyle } from "../_lib/saveKitComponentStyle.js";
 
 /**
  * One brand kit: reading it, editing it, deleting it.
@@ -80,6 +81,17 @@ async function handlePatch(
   }
   const body = parseJsonBody(req.body) as Record<string, unknown>;
 
+  if (body.componentStyle !== undefined) {
+    const failure = await saveKitComponentStyle(
+      sql,
+      existing,
+      body.componentStyle
+    );
+    if (failure) {
+      return res.status(failure.status).json({ error: failure.error });
+    }
+    return res.status(200).json(await loadKit(sql, id));
+  }
   if (body.name !== undefined) {
     const name = sanitizeText(String(body.name)).slice(0, MAX_KIT_NAME);
     if (!name) {

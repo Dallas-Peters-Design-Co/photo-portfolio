@@ -6,10 +6,7 @@ import {
   useMemo,
 } from "react";
 import { toast } from "sonner";
-import {
-  type ConceptStyle,
-  MAX_CONCEPT_STYLES,
-} from "../../../config/conceptStyle.js";
+import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { brandKitsApi } from "../../services/brandKitService";
 
@@ -49,22 +46,16 @@ export function KitStyleSyncProvider({
       if (!kit) {
         return false;
       }
-      const own = kit.doc.componentStyles;
-      const base = own.length > 0 ? own : kit.resolvedDoc.componentStyles;
-      const exists = base.some((s) => s.id === style.id);
-      if (!exists && base.length >= MAX_CONCEPT_STYLES) {
-        toast.error(`${kit.name} holds the most styles it can.`);
-        return false;
-      }
-      const componentStyles = exists
-        ? base.map((s) => (s.id === style.id ? style : s))
-        : [...base, style];
+      const exists = kit.resolvedDoc.componentStyles.some(
+        (item) => item.id === style.id
+      );
       try {
-        await brandKitsApi.save(kit.id, {
-          ...kit.doc,
-          componentStyles,
-        });
-        await refresh();
+        const updated = await brandKitsApi.saveComponentStyle(kit.id, style);
+        await refresh(
+          (previous) =>
+            previous?.map((item) => (item.id === updated.id ? updated : item)),
+          { revalidate: true }
+        );
         toast.success(
           exists
             ? `${style.name} updated in ${kit.name}. Every review using it follows.`

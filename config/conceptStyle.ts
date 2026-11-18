@@ -61,7 +61,7 @@ export interface ConceptStyle {
   name: string;
 }
 
-export const MAX_CONCEPT_STYLES = 40;
+export const MAX_CONCEPT_STYLES = 256;
 /** Icon settings a style may leave unset; the element's own then stand. */
 const ICON_KEYS = new Set<ConceptStyleKey>([
   "iconColor",

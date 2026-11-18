@@ -1,10 +1,12 @@
+import { useLayoutEffect, useRef, useState } from "react";
+import { newComponentStyleLook } from "../../../config/componentStyleTransfer.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { lookOf } from "../../../config/conceptStyle.js";
 import { newItemId } from "../../../config/proposal.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { ConceptSelect } from "./ConceptControls";
-import { useConfirm } from "./ConfirmProvider";
 import { useKitStyleSync } from "./kitStyleSync";
 
 const CUSTOM = "custom";
@@ -25,7 +27,15 @@ export function StyleLink({
   const linked = styles.find((style) => style.id === element.styleId) ?? null;
   const own = element.overrides?.length ?? 0;
   const kit = useKitStyleSync();
-  const { prompt } = useConfirm();
+  const [name, setName] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const currentLink = useRef<typeof onLink | null>(null);
+  useLayoutEffect(() => {
+    currentLink.current = onLink;
+    return () => {
+      currentLink.current = null;
+    };
+  }, [onLink]);
 
   /** The kit's style made to look like this element; it follows it again. */
   const updateKitStyle = async () => {
@@ -36,6 +46,7 @@ export function StyleLink({
       ...linked,
       look: {
         ...lookOf(element),
+        ...(linked.look.contents ? { contents: linked.look.contents } : {}),
         ...(linked.look.groupContents
           ? { groupContents: linked.look.groupContents }
           : {}),
@@ -45,21 +56,14 @@ export function StyleLink({
       },
     };
     if (await kit.save(next)) {
-      onLink(next);
+      currentLink.current?.(next);
     }
   };
   /** A new style in the kit from this element's look, linked from now on. */
   const saveAsNew = async () => {
-    if (!kit) {
+    if (!kit || saving) {
       return;
     }
-    const name = await prompt({
-      confirmLabel: "Add to kit",
-      defaultValue: linked ? `${linked.name} variant` : "",
-      description: `A new ${element.kind} style in ${kit.kitName}, looking like this one. This element follows it from now on.`,
-      placeholder: "e.g. Secondary",
-      title: "Name the new style",
-    });
     const trimmed = name?.trim();
     if (!trimmed) {
       return;
@@ -67,11 +71,17 @@ export function StyleLink({
     const style: ConceptStyle = {
       id: newItemId(),
       kind: element.kind,
-      look: lookOf(element),
+      look: newComponentStyleLook(element),
       name: trimmed.slice(0, 60),
     };
-    if (await kit.save(style)) {
-      onLink(style);
+    setSaving(true);
+    try {
+      if (await kit.save(style)) {
+        currentLink.current?.(style);
+        setName(null);
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -88,7 +98,7 @@ export function StyleLink({
             { label: "Custom", value: CUSTOM },
             ...styles.map((style) => ({ label: style.name, value: style.id })),
           ]}
-          value={linked?.id ?? CUSTOM}
+          value={linked ? linked.id : CUSTOM}
         />
       </div>
       {linked && own > 0 ? (
@@ -118,9 +128,51 @@ export function StyleLink({
           Update kit style
         </Button>
       ) : null}
-      {kit && (!linked || own > 0) ? (
+      {kit && name !== null ? (
+        <>
+          <Input
+            aria-label="New style name"
+            autoFocus
+            maxLength={60}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                event.stopPropagation();
+                void saveAsNew();
+              }
+              if (event.key === "Escape") {
+                event.stopPropagation();
+                setName(null);
+              }
+            }}
+            placeholder="e.g. Secondary"
+            size="sm"
+            value={name}
+          />
+          <Button
+            disabled={saving || !name.trim()}
+            onClick={() => void saveAsNew()}
+            size="xs"
+            type="button"
+            variant="ghost"
+          >
+            Add to kit
+          </Button>
+          <Button
+            disabled={saving}
+            onClick={() => setName(null)}
+            size="xs"
+            type="button"
+            variant="ghost"
+          >
+            Cancel
+          </Button>
+        </>
+      ) : null}
+      {kit && name === null ? (
         <Button
-          onClick={() => void saveAsNew()}
+          onClick={() => setName(linked ? `${linked.name} variant` : "")}
           size="xs"
           title={`Save this look to ${kit.kitName} as a new style`}
           type="button"
