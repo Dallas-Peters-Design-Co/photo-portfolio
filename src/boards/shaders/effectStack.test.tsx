@@ -6,7 +6,12 @@ import type { BoardItem } from "../../types";
 import { ShaderPanel } from "./ShaderPanel";
 import type { ShaderLayer } from "./shaderConfig";
 import { reactSource } from "./shaderReact";
-import { activeLayers, chainOf, layersOfChain } from "./shaderStack";
+import {
+  activeLayers,
+  chainOf,
+  layersOfChain,
+  withSourceBeside,
+} from "./shaderStack";
 
 /**
  * The stack as a list.
@@ -200,5 +205,18 @@ describe("the effect stack in the panel", () => {
     );
     expect(host.querySelector(".effect-row")).toBeNull();
     expect(host.querySelectorAll(".shader-layer").length).toBeGreaterThan(1);
+  });
+});
+
+describe("a second source", () => {
+  it("sits beside the first, inside every effect, and the stack becomes a tree", () => {
+    const parsed = chainOf(chain);
+    if (!parsed) {
+      throw new Error("expected a chain");
+    }
+    const next = withSourceBeside(parsed, layer("Plasma", "p"));
+    const inner = next[0]?.children?.[0]?.children ?? [];
+    expect(inner.map((l) => l.name)).toEqual(["MeshGradient", "Plasma"]);
+    expect(chainOf(next)).toBeNull();
   });
 });

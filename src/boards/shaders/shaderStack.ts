@@ -52,6 +52,21 @@ export const layersOfChain = ({ effects, source }: Chain): ShaderLayer[] => {
   return inner;
 };
 
+/**
+ * The chain with another source beside its own, inside every effect: the
+ * effects then work on both. No longer a chain, so it shows as the tree.
+ */
+export const withSourceBeside = (
+  { effects, source }: Chain,
+  added: ShaderLayer
+): ShaderLayer[] => {
+  let inner: ShaderLayer[] = source ? [source, added] : [added];
+  for (const effect of [...effects].reverse()) {
+    inner = [{ ...effect, children: inner }];
+  }
+  return inner;
+};
+
 /** The layers that draw: effects switched off are unwrapped, sources dropped. */
 export const activeLayers = (layers: ShaderLayer[]): ShaderLayer[] =>
   layers.flatMap((layer) => {

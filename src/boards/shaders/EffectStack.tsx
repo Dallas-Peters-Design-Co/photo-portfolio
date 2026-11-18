@@ -218,6 +218,16 @@ export function EffectStack({
         >
           Add effect
         </button>
+        {/* Another source sits beside the first (or the wired picture), and
+            the effects work on all of them; the panel then shows the tree. */}
+        <button
+          className="shader-controls__add shader-controls__add--root"
+          onClick={() => onPick("source")}
+          onPointerDown={stop}
+          type="button"
+        >
+          Add source
+        </button>
       </div>
       <ol className="effect-stack__list">
         {effects.map((layer, index) => (
@@ -314,19 +324,9 @@ export function EffectStack({
               </div>
             </div>
           ) : (
-            <>
-              <p className="shader-layer__note shader-layer__note--warn">
-                Nothing to work on yet.
-              </p>
-              <button
-                className="shader-controls__add shader-controls__add--root"
-                onClick={() => onPick("source")}
-                onPointerDown={stop}
-                type="button"
-              >
-                Add source
-              </button>
-            </>
+            <p className="shader-layer__note shader-layer__note--warn">
+              Nothing to work on yet. Add a source, or wire a picture in.
+            </p>
           )}
         </div>
       )}

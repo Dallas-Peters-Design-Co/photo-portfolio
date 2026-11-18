@@ -19,7 +19,7 @@ import {
   SOURCE_SHADERS,
   shaderMeta,
 } from "./shaderConfig";
-import { chainOf, layersOfChain } from "./shaderStack";
+import { chainOf, layersOfChain, withSourceBeside } from "./shaderStack";
 import "./ShaderControls.css";
 
 /**
@@ -398,11 +398,12 @@ export function ShaderControls({
             onPick={(name) => {
               const added = { ...newLayer(name, false), children: undefined };
               put(
-                layersOfChain(
-                  adding === "effect"
-                    ? { ...chain, effects: [added, ...chain.effects] }
-                    : { ...chain, source: added }
-                )
+                adding === "effect"
+                  ? layersOfChain({
+                      ...chain,
+                      effects: [added, ...chain.effects],
+                    })
+                  : withSourceBeside(chain, added)
               );
               setAdding(null);
             }}
