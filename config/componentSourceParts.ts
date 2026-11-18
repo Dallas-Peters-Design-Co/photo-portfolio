@@ -160,14 +160,15 @@ const slotItems = (
   slot: ConceptSlot,
   prefix: string,
   draw: Draw,
-  css: string[]
+  css: string[],
+  lead = ""
 ): string => {
   const children = slot.elements.map((child, index) => {
     const drawn = draw(child, `${prefix}-${index + 1}`);
     css.push(drawn.css);
     return indent(drawn.jsx);
   });
-  return `<div className="@@__items" data-layout="${slot.layout ?? "column"}"${slot.fill ? " data-fill" : ""} style=${itemsStyle(slot)}>\n${children.join("\n")}\n</div>`;
+  return `<div className="@@__items" data-layout="${slot.layout ?? "column"}"${slot.fill ? " data-fill" : ""} style=${itemsStyle(slot)}>\n${[lead, ...children].filter(Boolean).join("\n")}\n</div>`;
 };
 
 /** Header, body and footer, each laid out its own way, the lead first. */
@@ -192,9 +193,21 @@ const slotsOf = (
     const style = slot
       ? ` style={{ gap: ${slot.gap ?? SLOT_DEFAULTS.gap}, padding: "${slot.paddingY ?? SLOT_DEFAULTS.paddingY}px ${slot.paddingX ?? SLOT_DEFAULTS.paddingX}px" }}`
       : defaultStyle;
-    const items = filled ? slotItems(filled, `${cls}__${name}`, draw, css) : "";
-    const inner = [led ? lead : "", items, end].filter(Boolean).join("\n");
-    return `<div className="@@__slot" data-slot="${name}"${led || end ? " data-led" : ""}${end ? " data-close" : ""}${style}>\n${indent(inner)}\n</div>`;
+    const titleInLayout = element.kind === "panel" && Boolean(led);
+    const items =
+      filled || titleInLayout
+        ? slotItems(
+            slot ?? { elements: [] },
+            `${cls}__${name}`,
+            draw,
+            css,
+            titleInLayout ? lead : ""
+          )
+        : "";
+    const inner = [led && !titleInLayout ? lead : "", items, end]
+      .filter(Boolean)
+      .join("\n");
+    return `<div className="@@__slot" data-slot="${name}"${(led && !titleInLayout) || end ? " data-led" : ""}${end ? " data-close" : ""}${style}>\n${indent(inner)}\n</div>`;
   }).filter(Boolean);
   return {
     css: css.join("\n"),
@@ -289,7 +302,8 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
 &__trigger[aria-expanded="false"] + [inert] svg:first-of-type, &__trigger[aria-expanded="false"] + [inert] &__chevron { rotate: 180deg; }
 &__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { &__inner { transition: none; } }
-${SLOTS_CSS}`,
+${SLOTS_CSS}
+&__items:not([data-layout="row"]) > &__lead { flex: none; }`,
     tag: "section",
     tsx: (
       name,

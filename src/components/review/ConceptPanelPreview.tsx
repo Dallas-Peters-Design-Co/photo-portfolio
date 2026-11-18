@@ -51,6 +51,7 @@ export function ConceptPanelPreview({
               ) : undefined
             }
             slots={element.slots}
+            titleInLayout
           />
         </div>
       </Collapsible.Panel>

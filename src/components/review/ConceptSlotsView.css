@@ -133,3 +133,7 @@
   border-inline-start: 1px solid
     var(--concept-divider, color-mix(in oklch, currentColor 15%, transparent));
 }
+
+.concept-slot__items:not([data-layout="row"]) > .concept-slot__lead {
+  flex: none;
+}

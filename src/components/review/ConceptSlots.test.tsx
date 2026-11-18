@@ -46,7 +46,9 @@ it("draws a new panel's title and samples in their slots", () => {
   const [header, body, footer] = slots;
   expect(header?.textContent).toBe("Agents3");
   // The title and the count share one line, centred on each other.
-  const [title, count] = [...(header?.children ?? [])] as HTMLElement[];
+  const [title, count] = [
+    ...(header?.querySelector(".concept-slot__items")?.children ?? []),
+  ] as HTMLElement[];
   const middle = (el?: HTMLElement) => {
     const box = el?.getBoundingClientRect();
     return box ? box.top + box.height / 2 : 0;
@@ -361,4 +363,37 @@ it("keeps scroll only on a horizontal row", () => {
   expect(cleanConcept({ direction: "column", scroll: true }).scroll).toBe(
     undefined
   );
+});
+
+it("lays out the panel title and badge together when the header changes direction", () => {
+  const panel = createConceptElement("panel");
+  const header = panel.slots?.header;
+  if (!header) {
+    throw new Error("Missing default header");
+  }
+  for (const layout of ["row", "column"] as const) {
+    const element = {
+      ...panel,
+      slots: { ...panel.slots, header: { ...header, layout } },
+    };
+    act(() => root.render(<ReviewConceptElementView element={element} />));
+    const items = host.querySelector(
+      '[data-slot="header"] .concept-slot__items'
+    );
+    const title = items?.firstElementChild;
+    const badge = title?.nextElementSibling;
+    if (!(title && badge)) {
+      throw new Error("Missing title or badge in header layout");
+    }
+    expect(title.textContent).toBe(panel.text);
+    if (layout === "column") {
+      expect(badge.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        title.getBoundingClientRect().bottom
+      );
+    } else {
+      expect(badge.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+        title.getBoundingClientRect().right
+      );
+    }
+  }
 });

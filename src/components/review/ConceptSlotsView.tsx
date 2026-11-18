@@ -46,10 +46,12 @@ const itemsStyle = (slot: ConceptSlot): CSSProperties => {
 /** A slot's elements, laid out the slot's way. */
 function Items({
   className,
+  lead,
   draw,
   slot,
 }: {
   className?: string;
+  lead?: ReactNode;
   draw: Draw;
   slot: ConceptSlot;
 }) {
@@ -64,6 +66,7 @@ function Items({
       data-layout={layout}
       style={itemsStyle(slot)}
     >
+      {lead}
       {/* draw keys each element by its id. */}
       {slot.elements.map(draw)}
     </div>
@@ -79,6 +82,7 @@ function Slot({
   draw,
   lead,
   end,
+  includeLead,
   name,
   slot,
 }: {
@@ -86,6 +90,7 @@ function Slot({
   /** A card's or panel's own text, at the start of its header. */
   lead?: ReactNode;
   end?: ReactNode;
+  includeLead?: boolean;
   name: ConceptSlotName;
   slot?: ConceptSlot;
 }) {
@@ -93,19 +98,26 @@ function Slot({
   if (!(lead || filled || end)) {
     return null;
   }
+  const outsideLead = includeLead ? null : lead;
   const slotPadding = slot ? padding(slot) : undefined;
   return (
     <div
       className="concept-slot"
-      data-led={lead || end ? true : undefined}
+      data-led={(!includeLead && lead) || end ? true : undefined}
       data-slot={name}
       style={{
         gap: slot?.gap ?? SLOT_DEFAULTS.gap,
         padding: slotPadding ?? (end ? "8px" : undefined),
       }}
     >
-      {lead}
-      {filled ? <Items draw={draw} slot={filled} /> : null}
+      {outsideLead}
+      {filled || (includeLead && lead) ? (
+        <Items
+          draw={draw}
+          lead={includeLead ? lead : undefined}
+          slot={slot ?? { elements: [] }}
+        />
+      ) : null}
       {end}
     </div>
   );
@@ -122,6 +134,7 @@ export function ConceptSlotsView({
   slots = {},
   lead,
   headerEnd,
+  titleInLayout = false,
 }: {
   /**
    * A navbar: header, body and footer side by side as its start, middle and
@@ -138,6 +151,7 @@ export function ConceptSlotsView({
   lead?: ReactNode;
   /** A panel's close control, beside the header rather than over it. */
   headerEnd?: ReactNode;
+  titleInLayout?: boolean;
 }) {
   return (
     <div
@@ -149,6 +163,7 @@ export function ConceptSlotsView({
         <Slot
           draw={draw}
           end={name === "header" ? headerEnd : undefined}
+          includeLead={name === "header" && titleInLayout}
           key={name}
           lead={name === "header" ? lead : undefined}
           name={name}
