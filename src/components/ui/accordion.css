@@ -1,0 +1,34 @@
+.ui-accordion {
+  width: 100%;
+  min-width: 0;
+}
+.ui-accordion__summary {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+}
+.ui-accordion__heading {
+  flex: 1;
+  margin: 0;
+  font: inherit;
+}
+.ui-accordion__trigger {
+  display: flex;
+  gap: 0.5em;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 1.5em;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+.ui-accordion__trigger[aria-expanded="true"] > svg {
+  rotate: 180deg;
+}
+.ui-accordion__trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

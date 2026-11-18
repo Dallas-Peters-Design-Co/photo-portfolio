@@ -82,6 +82,7 @@ export const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "panel",
   "upload",
   "group",
+  "accordion",
   "avatar",
   "logo",
   "navbar",
@@ -122,6 +123,7 @@ export type ReviewConceptElementKind =
   | "panel"
   | "upload"
   | "group"
+  | "accordion"
   | "avatar"
   | "logo"
   | "navbar"
@@ -135,11 +137,12 @@ export type ReviewConceptElementKind =
 export type ReviewConceptIcon = string;
 
 export interface ReviewConceptElement {
+  accentColor?: string;
   /**
    * Checkboxes: the checked box's colour (CSS accent-color). Toasts: the
    * action's colour.
    */
-  accentColor?: string;
+  accordionExpanded?: boolean;
   avatarInitials?: string;
   avatarUrl?: string;
   background: string;
@@ -272,6 +275,7 @@ export const ELEMENT_STYLE_KEYS = [
   "barHeight",
   "dividers",
   "flex",
+  "accordionExpanded",
   "panelCollapsed",
   "panelToggleSide",
   "tabLook",
@@ -446,8 +450,15 @@ const cleanHolder = (
   depth: number
 ): Pick<
   ReviewConceptElement,
-  "group" | "slideFrom" | "panelCollapsed" | "panelToggleSide"
+  | "group"
+  | "slideFrom"
+  | "panelCollapsed"
+  | "panelToggleSide"
+  | "accordionExpanded"
 > => {
+  if (kind === "accordion" && typeof raw.accordionExpanded === "boolean") {
+    return { accordionExpanded: raw.accordionExpanded };
+  }
   if (kind === "group" && depth < MAX_GROUP_DEPTH) {
     const group = cleanSlot(raw.group, depth, cleanElement);
     // Groups made before Full width existed had only Fill, labelled "Fill

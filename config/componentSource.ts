@@ -7,6 +7,7 @@ import {
   withIcons,
 } from "./componentSourceKinds.js";
 import {
+  accordionMarkup,
   cardMarkup,
   checkboxMarkup,
   type Draw,
@@ -131,6 +132,7 @@ const quote = (value: string): string => JSON.stringify(value);
 
 const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
   const byKind: Partial<Record<ReviewConceptElementKind, () => Markup>> = {
+    accordion: () => accordionMarkup(el, draw),
     avatar: () => {
       const initials = el.avatarInitials || "?";
       return {

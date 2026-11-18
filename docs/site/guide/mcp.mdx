@@ -101,3 +101,7 @@ A problem you can fix, such as a bad input or a kit that cannot be found, comes 
 ## Calling the tools from scripts
 
 `scripts/siteConnector.mjs` calls these tools from local scripts, including the `DESIGN.md` sync and the website scan. It reads `MCP_ACCESS_TOKEN` from `.env.local`, and `DESIGN_MD_SITE` points it at another deployment. The repo's own `.mcp.json` is unrelated: it gives local coding agents a `chrome-devtools` MCP server. For environment setup, see [Local setup](/developers/local-setup).
+
+## Canvas tools
+
+Use `get_canvas_frames` with the board ID from its URL to read page designs, component IDs, state IDs, and the current frame revision. Use `append_canvas_component` with that revision, the frame and state, a configured component, and its bounding box. Nested components go in the element’s slots. Read the frame again after a write to verify the result and get its next revision.

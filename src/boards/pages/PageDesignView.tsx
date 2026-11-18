@@ -10,6 +10,7 @@ import {
 import { useSequencePlayer } from "../../components/review/conceptSequence";
 import { StepElements } from "../../components/review/ReviewConceptPreview";
 import { useConceptFont } from "../../components/review/useConceptFont";
+import { PageSelect } from "./PageFields";
 import "./PageDesignView.css";
 
 /** The same DOM and geometry in the editor, on the board, and in the review. */
@@ -39,7 +40,9 @@ export const PageDesignView = memo(function PageView({
     page.concept.fontRef,
     page.concept.fontId
   );
-  useSequencePlayer(sheet, step, playing && !last, () => setAt(index + 1));
+  useSequencePlayer(sheet, step, playing && steps.length > 1, () =>
+    setAt(last ? 0 : index + 1)
+  );
   useEffect(() => {
     const el = holder.current;
     if (!el) {
@@ -64,9 +67,17 @@ export const PageDesignView = memo(function PageView({
           >
             Back
           </button>
-          <span aria-live="polite">
-            {step?.caption || `Step ${index + 1} of ${steps.length}`}
-          </span>
+          <PageSelect
+            label="Prototype state"
+            onChange={(id) =>
+              setAt(steps.findIndex((state) => state.id === id))
+            }
+            options={steps.map((state, i) => ({
+              label: state.caption || `State ${i + 1}`,
+              value: state.id,
+            }))}
+            value={step?.id ?? ""}
+          />
           <button onClick={() => setAt(last ? 0 : index + 1)} type="button">
             {last ? "Start over" : "Next"}
           </button>

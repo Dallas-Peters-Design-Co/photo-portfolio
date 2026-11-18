@@ -431,3 +431,36 @@ it("keeps the empty navbar middle slot and sizes its neighbors using saved flex 
   );
   expect(host.querySelector('[data-slot="body"]')?.textContent).toBe("");
 });
+
+it("switches accordion states and keeps summary controls independent of the trigger", () => {
+  const accordion = createConceptElement("accordion");
+  const summary = { ...createConceptElement("button"), text: "Review" };
+  const render = (expanded: boolean) =>
+    act(() =>
+      root.render(
+        <ReviewConceptElementView
+          element={{
+            ...accordion,
+            accordionExpanded: expanded,
+            slots: { ...accordion.slots, header: { elements: [summary] } },
+          }}
+        />
+      )
+    );
+  render(false);
+  const trigger = () =>
+    host.querySelector<HTMLButtonElement>(".ui-accordion__trigger");
+  expect(trigger()?.getAttribute("aria-expanded")).toBe("false");
+  const action = host.querySelector<HTMLButtonElement>(
+    '[data-slot="header"] button'
+  );
+  expect(action?.textContent).toBe("Review");
+  expect(trigger()?.contains(action)).toBe(false);
+  act(() => action?.click());
+  expect(trigger()?.getAttribute("aria-expanded")).toBe("false");
+  render(true);
+  expect(trigger()?.getAttribute("aria-expanded")).toBe("true");
+  expect(host.querySelector('[data-slot="body"]')?.textContent).toBe("Details");
+  act(() => trigger()?.click());
+  expect(trigger()?.getAttribute("aria-expanded")).toBe("false");
+});

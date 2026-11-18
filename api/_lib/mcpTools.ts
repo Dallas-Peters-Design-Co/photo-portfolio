@@ -14,6 +14,7 @@ import {
 } from "./invoices.js";
 import { type McpTool, ToolError } from "./mcp.js";
 import { BRAND_TOOLS } from "./mcpBrandTools.js";
+import { CANVAS_TOOLS } from "./mcpCanvasTools.js";
 import { notify } from "./notify.js";
 import {
   cleanEmail,
@@ -351,4 +352,5 @@ export const SITE_TOOLS: McpTool<ToolCtx>[] = [
   recentActivity,
   searchPhotos,
   ...BRAND_TOOLS,
+  ...CANVAS_TOOLS,
 ];

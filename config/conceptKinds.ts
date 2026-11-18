@@ -14,6 +14,7 @@ import type {
 
 /** Kinds that may carry an icon beside their text; an icon element always has one. */
 const OPTIONAL_ICON_KINDS = new Set<ReviewConceptElementKind>([
+  "accordion",
   "badge",
   "button",
   "card",
@@ -84,6 +85,7 @@ export const cleanIcon = (
  * shadow: the controls, the surfaces and the pills.
  */
 const BOX_KINDS = new Set<ReviewConceptElementKind>([
+  "accordion",
   "group",
   "tooltip",
   "badge",

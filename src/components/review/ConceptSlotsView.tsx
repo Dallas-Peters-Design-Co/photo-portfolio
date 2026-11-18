@@ -86,7 +86,7 @@ function Items({
  * own text), the lead takes the start of the full width and the slot's
  * elements sit together at the end, laid out the slot's way.
  */
-function Slot({
+export function Slot({
   draw,
   lead,
   end,

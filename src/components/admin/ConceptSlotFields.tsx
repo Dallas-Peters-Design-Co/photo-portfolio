@@ -262,6 +262,42 @@ export function ConceptSlotFields({
 }) {
   const dividersId = useId();
   const slots = element.slots ?? {};
+  if (element.kind === "accordion") {
+    return (
+      <>
+        <ConceptField label="State">
+          <ConceptSelect
+            label="Accordion state"
+            onChange={(value) =>
+              onChange({ accordionExpanded: value === "expanded" })
+            }
+            options={[
+              { label: "Collapsed", value: "collapsed" },
+              { label: "Expanded", value: "expanded" },
+            ]}
+            value={element.accordionExpanded ? "expanded" : "collapsed"}
+          />
+        </ConceptField>
+        {(["header", "body"] as const).map((name) => {
+          const label = name === "header" ? "Summary" : "Details";
+          return (
+            <SlotFields
+              brandDoc={brandDoc}
+              depth={depth}
+              key={name}
+              label={`${label} slot`}
+              listLabel={`In the ${label.toLowerCase()}`}
+              name={name}
+              onChange={(slot) =>
+                onChange({ slots: { ...slots, [name]: slot } })
+              }
+              slot={slots[name] ?? { elements: [] }}
+            />
+          );
+        })}
+      </>
+    );
+  }
   return (
     <>
       <ConceptGroup name="Slots">

@@ -42,6 +42,7 @@ const TYPE_SIZES: Partial<Record<ReviewConceptElementKind, number>> = {
 };
 
 const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
+  "accordion",
   "upload",
   "panel",
   "input",
@@ -52,6 +53,7 @@ const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const PADDED_KINDS = new Set<ReviewConceptElementKind>([
+  "accordion",
   "tooltip",
   "upload",
   "panel",
@@ -65,6 +67,7 @@ const PADDED_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
+  "accordion",
   "tooltip",
   "upload",
   "panel",
@@ -79,6 +82,7 @@ const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
 ]);
 
 const elementText: Record<ReviewConceptElementKind, string> = {
+  accordion: "Summary",
   avatar: "",
   badge: "New",
   button: "Get started",
@@ -249,6 +253,25 @@ export const createConceptElement = (
     ...(options ? { options } : {}),
     ...elementState(kind),
     ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
+    ...(kind === "accordion"
+      ? {
+          iconName: "ArrowDown01Icon",
+          iconSvg: [
+            [
+              "path",
+              { d: "m5 9 7 7 7-7", fill: "none", stroke: "currentColor" },
+            ],
+          ] as NonNullable<ReviewConceptElement["iconSvg"]>,
+          slots: {
+            body: {
+              elements: [
+                { ...createConceptElement("label", brandDoc), text: "Details" },
+              ],
+            },
+            header: { elements: [], layout: "row" },
+          },
+        }
+      : {}),
     ...(kind === "avatar"
       ? {
           avatarInitials: "AB",

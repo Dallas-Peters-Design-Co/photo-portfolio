@@ -38,6 +38,7 @@ export default defineConfig({
     // tests loading at that moment fail with "Failed to fetch dynamically
     // imported module" — a different file each run.
     include: [
+      "@base-ui/react/accordion",
       "@base-ui/react/avatar",
       "@base-ui/react/collapsible",
       "@base-ui/react/menu",

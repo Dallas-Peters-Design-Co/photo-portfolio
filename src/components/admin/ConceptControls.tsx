@@ -183,6 +183,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["panel", "Panel"],
   ["upload", "File upload"],
   ["group", "Group"],
+  ["accordion", "Accordion"],
   ["avatar", "Avatar"],
   ["logo", "Logo"],
   ["navbar", "Navbar"],

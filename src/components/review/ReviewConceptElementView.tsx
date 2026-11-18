@@ -8,6 +8,7 @@ import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { Accordion } from "../ui/accordion";
 import { Avatar } from "../ui/avatar";
 import {
   DropdownMenu,
@@ -30,7 +31,7 @@ import { marksFor, useSequenceMarks } from "./conceptSequence";
 import "./ConceptElements.css";
 import { ConceptPanelPreview } from "./ConceptPanelPreview";
 import { ConceptProgressPreview } from "./ConceptProgressPreview";
-import { ConceptGroupView, ConceptSlotsView } from "./ConceptSlotsView";
+import { ConceptGroupView, ConceptSlotsView, Slot } from "./ConceptSlotsView";
 import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
@@ -411,6 +412,33 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       );
     case "progress":
       return <ConceptProgressPreview element={element} style={style} />;
+    case "accordion":
+      return (
+        <Accordion
+          defaultOpen={element.accordionExpanded}
+          icon={
+            element.iconName ? (
+              <ConceptIcon
+                color={element.iconColor}
+                name={element.iconName}
+                size={iconSizeOf(element)}
+                svg={element.iconSvg}
+              />
+            ) : null
+          }
+          style={style}
+          summary={
+            <Slot
+              draw={drawElement}
+              name="header"
+              slot={element.slots?.header}
+            />
+          }
+          title={element.text}
+        >
+          <Slot draw={drawElement} name="body" slot={element.slots?.body} />
+        </Accordion>
+      );
     case "avatar":
       return (
         <Avatar
@@ -486,9 +514,15 @@ export function ReviewConceptElementView({
   const marks = marksFor(element, useSequenceMarks());
   const child = (
     <ConceptTooltip
-      fill={["card", "panel", "table", "navbar", "progress", "select"].includes(
-        element.kind
-      )}
+      fill={[
+        "accordion",
+        "card",
+        "panel",
+        "table",
+        "navbar",
+        "progress",
+        "select",
+      ].includes(element.kind)}
       tooltip={element.tooltip}
     >
       <ConceptHover element={element} marks={marks}>
