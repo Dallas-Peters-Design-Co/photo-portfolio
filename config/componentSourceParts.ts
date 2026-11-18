@@ -249,33 +249,63 @@ ${SLOTS_CSS}`,
 };
 
 export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
-  // The close control shares the header, so its width cannot cover its contents.
-  const hidden = (el.slots?.hide?.elements ?? []).map((child, i) =>
+  const controls = (el.slots?.hide?.elements ?? []).map((child, i) =>
     draw(child, `@@__hide-${i + 1}`)
   );
-  const hide =
-    hidden.length > 0
-      ? `<div className="@@__hide">\n${hidden.map((h) => indent(h.jsx)).join("\n")}\n</div>`
-      : "";
   const slotted = withSlots(
     el,
     draw,
-    el.text
-      ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>`
-      : "",
-    hide
+    el.text ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>` : ""
   );
+  const label = JSON.stringify(el.text || "Panel");
+  const handle = controls.map((child) => child.jsx).join("\n") || "×";
+  const hasTrigger = controls.length > 0 || el.panelCollapsed;
+  const surface = `<div className="@@__surface">\n${slotted.body}\n</div>`;
+  const control = (trigger: string) =>
+    hasTrigger
+      ? `<div className="@@__hide">\n${trigger}<div inert aria-hidden="true">${handle}</div>\n</div>`
+      : "";
   return {
-    attrs: `aria-label=${JSON.stringify(el.text || "Panel")}`,
-    body: slotted.body,
-    childCss: [slotted.childCss, ...hidden.map((h) => h.css)]
+    attrs: `aria-label=${label}`,
+    body: [
+      `<div className="@@__inner" data-panel-open="${!el.panelCollapsed}">${surface}</div>`,
+      control(
+        `<button type="button" className="@@__trigger" aria-label=${JSON.stringify(`Toggle ${el.text || "panel"}`)} aria-expanded={${!el.panelCollapsed}} />`
+      ),
+    ].join("\n"),
+    childCss: [slotted.childCss, ...controls.map((h) => h.css)]
       .filter(Boolean)
       .join("\n"),
-    css: `& { position: relative; display: flex; flex-direction: column; width: 100%; min-width: 0; }
-&__hide { display: flex; flex: 0 0 auto; gap: 4px; margin-left: auto; }
-&__slot[data-close] { flex-wrap: nowrap; }
+    css: `& { display: flex; align-items: flex-start; width: 100%; min-width: 0; background: transparent; border: 0; padding: 0; box-shadow: none; }
+&__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--&-background); padding: var(--&-padding); border: var(--&-border); border-radius: var(--&-radius); box-shadow: var(--&-shadow); }
+&__inner { width: 100%; min-width: 0; overflow: clip; transition: width 260ms ease; }
+&__inner[data-starting-style], &__inner[data-ending-style], &__inner[data-panel-open="false"] { width: 0; }
+&__hide { display: flex; position: relative; flex: none; }
+&__hide > [inert] { display: flex; }
+&__trigger { position: absolute; inset: 0; z-index: 1; background: transparent; border: 0; cursor: pointer; }
+&__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { &__inner { transition: none; } }
 ${SLOTS_CSS}`,
     tag: "section",
+    tsx: (
+      name,
+      cls
+    ) => `import { Collapsible } from "@base-ui/react/collapsible";
+import "./${name}.css";
+
+type ${name}Props = Pick<Collapsible.Root.Props, "open" | "defaultOpen" | "onOpenChange"> & { className?: string };
+
+export function ${name}({ className, defaultOpen = ${!el.panelCollapsed}, ...props }: ${name}Props) {
+  return (
+    <Collapsible.Root {...props} defaultOpen={defaultOpen} aria-label=${label} className={[${JSON.stringify(cls)}, className].filter(Boolean).join(" ")}>
+      <Collapsible.Panel className="${cls}__inner">
+        ${surface.replaceAll("@@", cls)}
+      </Collapsible.Panel>
+      ${control(`<Collapsible.Trigger className="@@__trigger" aria-label=${JSON.stringify(`Toggle ${el.text || "panel"}`)} />`).replaceAll("@@", cls)}
+    </Collapsible.Root>
+  );
+}
+`,
   };
 };
 

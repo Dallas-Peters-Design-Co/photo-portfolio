@@ -242,9 +242,19 @@ export function ConceptSlotFields({
               value={element.slideFrom ?? "none"}
             />
           </ConceptField>
-          <p className="review-concepts__hint">
-            The close button sits in the header and slides the panel away.
-          </p>
+          <ConceptField label="Initial state" wide>
+            <ConceptSelect
+              label="Panel initial state"
+              onChange={(value) =>
+                onChange({ panelCollapsed: value === "collapsed" })
+              }
+              options={[
+                { label: "Expanded", value: "expanded" },
+                { label: "Collapsed", value: "collapsed" },
+              ]}
+              value={element.panelCollapsed ? "collapsed" : "expanded"}
+            />
+          </ConceptField>
         </ConceptGroup>
       ) : null}
       {(element.kind === "panel" ? PANEL_SLOTS : SLOT_NAMES)

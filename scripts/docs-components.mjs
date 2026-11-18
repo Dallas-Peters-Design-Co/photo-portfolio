@@ -65,20 +65,8 @@ const mdxText = (value) =>
   value.replace(/[{}<>]/g, (c) => `&#${c.charCodeAt(0)};`);
 const yamlString = (value) => JSON.stringify(value);
 
-/**
- * A kit's CSS with every selector put under its page's wrapper class, once
- * per selector: `.a > .b` becomes `.bk-kit .a > .b`, not a prefix on each.
- * The generated CSS is flat rules only, so a rule's selector is the text
- * between one block and the next brace.
- */
-const scopeSourceCss = (source, slug) =>
-  source.css.replace(/(^|})(\s*)([^{}]+)\{/g, (_, end, space, selector) => {
-    const scoped = selector
-      .split(",")
-      .map((part) => `.bk-${slug} ${part.trim()}`)
-      .join(", ");
-    return `${end}${space}${scoped} {`;
-  });
+/** Native nesting scopes each rule, including rules inside media queries. */
+const scopeSourceCss = (source, slug) => `.bk-${slug} {\n${source.css}\n}`;
 
 const scopedCss = (kit) =>
   kit.components
@@ -95,7 +83,26 @@ const fence = (lang, title, code) =>
  * off the component.
  */
 const SUMMARY_CONTENT = /(<summary[^>]*>)[^\n]*/;
+const PANEL_OPEN = /data-panel-open="(true|false)"/;
+const PANEL_EXPANDED = /aria-expanded=\{(?:true|false)\}/;
 const widgetOf = (source) => {
+  const panel = source.preview.match(PANEL_OPEN);
+  if (
+    panel &&
+    source.preview.includes(`className="${source.className}__trigger"`)
+  ) {
+    const markup = source.preview
+      .replace(PANEL_OPEN, "data-panel-open={open} inert={!open}")
+      .replace(
+        PANEL_EXPANDED,
+        "aria-expanded={open} onClick={() => setOpen(!open)}"
+      );
+    return widgetMarkup(
+      source,
+      markup,
+      `  const [open, setOpen] = useState(${panel[1]});`
+    );
+  }
   const interactive = source.previewValue !== undefined;
   const preview = interactive
     ? source.preview
@@ -105,10 +112,18 @@ const widgetOf = (source) => {
           ' type="button" onClick={(event) => { setValue(event.currentTarget.textContent ?? ""); event.currentTarget.closest("details")?.removeAttribute("open"); }}'
         )
     : source.preview;
-  const start = interactive
-    ? `() => {\n  const [value, setValue] = useState(${JSON.stringify(source.previewValue)});\n  return (`
-    : "() => (";
-  const end = interactive ? ");\n};" : ");";
+  return widgetMarkup(
+    source,
+    preview,
+    interactive
+      ? `  const [value, setValue] = useState(${JSON.stringify(source.previewValue)});`
+      : ""
+  );
+};
+
+const widgetMarkup = (source, preview, state) => {
+  const start = state ? `() => {\n${state}\n  return (` : "() => (";
+  const end = state ? ");\n};" : ");";
   return `export const Preview${source.name} = ${start}\n  <div className="not-prose bk-preview bk-${source.slug}">\n    <style>{${JSON.stringify(`${source.fonts.map((href) => `@import url(${JSON.stringify(href)});`).join("\n")}\n${BASE_CSS}\n${scopeSourceCss(source, source.slug)}`)}}</style>\n${preview
     .split("\n")
     .map((line) => `    ${line}`)

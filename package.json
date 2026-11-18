@@ -36,6 +36,7 @@
     "dev:dallas-images": "cross-env VITE_SITE=dallas-images node scripts/dev-stack.mjs",
     "dev:vercel": "cross-env VITE_SITE=dallas-images node scripts/dev-stack.mjs --vercel",
     "docs:components": "node scripts/docs-components.mjs",
+    "docs:components:refresh": "gh workflow run docs-components.yml --ref main",
     "electron:build": "electron-builder --mac",
     "electron:dev": "electron .",
     "electron:dev-temp": "ELECTRON_ORIGIN=https://dallas-images-git-cover-node-dallaspeters.vercel.app electron .",

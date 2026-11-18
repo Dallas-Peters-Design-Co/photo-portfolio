@@ -1,28 +1,9 @@
-import {
-  type CSSProperties,
-  type ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Collapsible } from "@base-ui/react/collapsible";
+import { type CSSProperties, type ReactNode, useCallback, useRef } from "react";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { ConceptSlotsView } from "./ConceptSlotsView";
-
 import { PANEL_HIDDEN, useSequenceMarks } from "./conceptSequence";
 
-const prefersStill = () =>
-  typeof window !== "undefined" &&
-  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
-/**
- * A panel: its slots, its title at the start of the header, and its hide
- * slot in the top-right corner. With a side to slide from, it slides in as
- * it appears, and a click in the hide slot slides it back out; then it says
- * so (PANEL_HIDDEN), which a sequence takes as the panel's click.
- *
- * Gone, it leaves a small "Show panel" in its place, to play it again, and
- * keeps its place among the frame's elements, which are known by position.
- */
 export function ConceptPanelPreview({
   draw,
   element,
@@ -32,89 +13,63 @@ export function ConceptPanelPreview({
   element: ReviewConceptElement;
   style: CSSProperties;
 }) {
-  const [state, setState] = useState<"open" | "closing" | "closed">("open");
-  const root = useRef<HTMLElement>(null);
+  const root = useRef<HTMLDivElement>(null);
+  const closing = useRef(false);
   const hide = element.slots?.hide?.elements ?? [];
-  const hideSlot = useRef<HTMLDivElement>(null);
-  // Editing: a click on the ✕ selects it, it doesn't hide the panel.
   const { editing } = useSequenceMarks();
-
-  const finish = () => {
-    root.current?.dispatchEvent(
-      new CustomEvent(PANEL_HIDDEN, { bubbles: true })
-    );
-    setState("closed");
-  };
-  const close = () => {
-    if (element.slideFrom && !prefersStill()) {
-      setState("closing");
-    } else {
-      finish();
+  // Base UI removes the panel after its closing transition, including when
+  // reduced motion skips that transition. Advance a sequence at that point.
+  const panelRef = useCallback((node: HTMLDivElement | null) => {
+    if (!node && closing.current) {
+      closing.current = false;
+      root.current?.dispatchEvent(
+        new CustomEvent(PANEL_HIDDEN, { bubbles: true })
+      );
     }
-  };
-
-  // A native listener: the slot holds the control (a button, an ✕), and its
-  // own click (or Enter on it) is what hides the panel.
-  useEffect(() => {
-    const slot = hideSlot.current;
-    if (!slot || editing) {
-      return;
-    }
-    const onClick = () => close();
-    slot.addEventListener("click", onClick);
-    return () => slot.removeEventListener("click", onClick);
-  });
-
-  if (state === "closed") {
-    return (
-      <section className="concept-panel concept-panel--closed" ref={root}>
-        <button
-          className="concept-panel__show"
-          onClick={() => setState("open")}
-          type="button"
-        >
-          Show panel
-        </button>
-      </section>
-    );
-  }
-
+  }, []);
   return (
-    <section
+    <Collapsible.Root
       aria-label={element.text || "Panel"}
       className="concept-panel"
-      data-closing={state === "closing" || undefined}
-      data-has-hide={hide.length > 0 || undefined}
       data-slide={element.slideFrom}
-      onAnimationEnd={() => {
-        if (state === "closing") {
-          finish();
-        }
+      defaultOpen={!element.panelCollapsed}
+      key={String(Boolean(element.panelCollapsed))}
+      onOpenChange={(open) => {
+        closing.current = !open;
       }}
       ref={root}
-      style={style}
     >
-      <ConceptSlotsView
-        dividers={element.dividers}
-        draw={draw}
-        headerEnd={
-          hide.length > 0 ? (
-            <div
-              className="concept-panel__hide"
-              data-concept-hide
-              ref={hideSlot}
-            >
-              {hide.map(draw)}
-            </div>
-          ) : undefined
-        }
-        lead={
-          element.text ? (
-            <strong className="concept-slot__lead">{element.text}</strong>
-          ) : undefined
-        }
-        slots={element.slots}
-      />
-    </section>
+      <Collapsible.Panel className="concept-panel__inner" ref={panelRef}>
+        <div className="concept-panel__surface" style={style}>
+          <ConceptSlotsView
+            dividers={element.dividers}
+            draw={draw}
+            lead={
+              element.text ? (
+                <strong className="concept-slot__lead">{element.text}</strong>
+              ) : undefined
+            }
+            slots={element.slots}
+          />
+        </div>
+      </Collapsible.Panel>
+      {hide.length || element.panelCollapsed ? (
+        <div className="concept-panel__hide" data-concept-hide>
+          {editing && hide.length ? (
+            hide.map(draw)
+          ) : (
+            <>
+              <Collapsible.Trigger
+                aria-label={`Toggle ${element.text || "panel"}`}
+                className="concept-panel__trigger"
+              />
+              <div aria-hidden="true" inert>
+                {hide.length ? hide.map(draw) : "×"}
+              </div>
+            </>
+          )}
+        </div>
+      ) : null}
+    </Collapsible.Root>
   );
 }

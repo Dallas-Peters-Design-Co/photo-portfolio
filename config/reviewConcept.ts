@@ -197,6 +197,11 @@ export interface ReviewConceptElement {
   overrides?: ConceptStyleKey[];
   paddingX: number;
   paddingY: number;
+  /**
+   * Panels only: the side it slides in from when it appears, and out to
+   * when its hide slot is clicked. Absent: it just appears.
+   */
+  panelCollapsed?: boolean;
   placeholder?: string;
   /** Progress bars: how far along, 0–100. The bar is `accentColor`. */
   progress?: number;
@@ -204,10 +209,6 @@ export interface ReviewConceptElement {
   shadow?: ConceptShadow;
   /** Progress bars: whether the percentage shows beside the label. */
   showValue?: boolean;
-  /**
-   * Panels only: the side it slides in from when it appears, and out to
-   * when its hide slot is clicked. Absent: it just appears.
-   */
   slideFrom?: SlideSide;
   /**
    * Cards and panels: header, body and footer, each with its own layout and
@@ -263,6 +264,7 @@ export const ELEMENT_STYLE_KEYS = [
   "checkSize",
   "barHeight",
   "dividers",
+  "panelCollapsed",
   "tabLook",
   "menuLook",
   "hover",
@@ -423,7 +425,7 @@ const cleanHolder = (
   kind: ReviewConceptElementKind,
   raw: Partial<ReviewConceptElement>,
   depth: number
-): Pick<ReviewConceptElement, "group" | "slideFrom"> => {
+): Pick<ReviewConceptElement, "group" | "slideFrom" | "panelCollapsed"> => {
   if (kind === "group" && depth < MAX_GROUP_DEPTH) {
     const group = cleanSlot(raw.group, depth, cleanElement);
     // Groups made before Full width existed had only Fill, labelled "Fill
@@ -435,8 +437,13 @@ const cleanHolder = (
     }
     return { group };
   }
-  if (kind === "panel" && SLIDE_SIDES.includes(raw.slideFrom as SlideSide)) {
-    return { slideFrom: raw.slideFrom as SlideSide };
+  if (kind === "panel") {
+    return {
+      ...(raw.panelCollapsed === true ? { panelCollapsed: true } : {}),
+      ...(SLIDE_SIDES.includes(raw.slideFrom as SlideSide)
+        ? { slideFrom: raw.slideFrom }
+        : {}),
+    };
   }
   return {};
 };

@@ -56,9 +56,33 @@
 .concept-panel {
   position: relative;
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
   min-width: 0;
+}
+
+.concept-panel__inner {
+  width: 100%;
+  min-width: 0;
+  transition: width 260ms ease;
+}
+
+.concept-panel__inner:is([data-starting-style], [data-ending-style]) {
+  width: 0;
+}
+
+.concept-panel__inner:is(
+  [data-starting-style],
+  [data-ending-style],
+  [data-open]
+) {
+  overflow: clip;
+  overflow-clip-margin: 2px;
+}
+
+.concept-panel__surface {
+  display: flex;
+  flex-direction: column;
   /* Fallback for a panel given no border of its own. */
   border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
 }
@@ -198,29 +222,34 @@
 
 /* A panel's hide slot: its close button or ✕, in the top-right corner. */
 .concept-panel__hide {
+  position: relative;
   display: flex;
   flex: 0 0 auto;
   gap: calc(var(--spacing) * 1);
-  margin-left: auto;
-  cursor: pointer;
 }
 
-.concept-panel--closed {
-  display: grid;
-  place-items: center;
-  min-height: 0;
+.concept-panel__trigger {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+  background: transparent;
   border: 0;
 }
 
-.concept-panel__show {
-  padding: calc(var(--spacing) * 1) calc(var(--spacing) * 3);
-  font: inherit;
-  font-size: 0.8em;
-  color: inherit;
-  cursor: pointer;
-  background: transparent;
-  border: 1px dashed color-mix(in srgb, currentColor 35%, transparent);
-  border-radius: 999px;
+.concept-panel__trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.concept-panel__hide > [inert] {
+  display: flex;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .concept-panel__inner {
+    transition: none;
+  }
 }
 
 /* Sliding in as it appears, and back out when hidden. */

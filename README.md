@@ -639,3 +639,10 @@ Also:
 | `docs/social-sizes.md` | Sources for social sizes and safe zones |
 | `specs/001-node-canvas-workflow/`, `specs/002-daily-design-canvas/` | spec-kit specs for the canvas |
 | `openapi.yaml`, `bruno/` | The API, generated |
+
+
+### Refresh the Mintlify component library
+
+After saving a brand kit, run `pnpm docs:components:refresh` from this checkout with GitHub CLI signed in. The workflow fetches the current component feed from www.dallaspeters.com, scans the previews, and commits changed pages and CSS under `docs/site` on `main`. Mintlify publishes those files. The same workflow checks for changes on a five-minute schedule. If you changed the app’s component renderer, wait for its production deployment before refreshing.
+
+To regenerate the files locally for inspection, run `pnpm docs:components`.

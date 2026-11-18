@@ -69,3 +69,34 @@ it("puts the hide slot in a panel's copied code", () => {
   expect(source.tsx).toContain('className="panel-drawer__hide"');
   expect(source.css).toContain(".panel-drawer__hide {");
 });
+
+it("reopens a saved collapsed panel with the same external keyboard control", async () => {
+  const concept = cleanConcept({
+    elements: [{ ...panel, panelCollapsed: true }],
+  });
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  try {
+    act(() => root.render(<ReviewConceptPreview concept={concept} />));
+    const trigger = host.querySelector(
+      ".concept-panel__trigger"
+    ) as HTMLButtonElement;
+    expect(trigger.getAttribute("aria-expanded")).toBe("false");
+    expect(host.querySelector(".concept-panel__inner")).toBeNull();
+    trigger.focus();
+    await userEvent.keyboard("{Enter}");
+    expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(
+      host.querySelector(".concept-panel__surface")?.textContent
+    ).toContain("Filters");
+    await userEvent.keyboard("{Enter}");
+    await vi.waitFor(() =>
+      expect(host.querySelector(".concept-panel__inner")).toBeNull()
+    );
+    expect(document.activeElement).toBe(trigger);
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+  }
+});
