@@ -55,7 +55,7 @@
   --button-primary-radius: 39px;
   --button-primary-border: 1px solid #022732;
   --button-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca 48%, transparent);
-  --button-primary-hover-background: #132218;
+  --button-primary-hover-background: #486dca;
 
   box-sizing: border-box;
   background: var(--button-primary-background);
@@ -95,6 +95,7 @@
   --button-ghost-border: 1px solid #022732;
   --button-ghost-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 18%, transparent);
   --button-ghost-icon-color: #009387;
+  --button-ghost-hover-background: #efefef;
 
   box-sizing: border-box;
   background: var(--button-ghost-background);
@@ -134,8 +135,8 @@
   --button-secondary-border: 0px solid transparent;
   --button-secondary-shadow: 0px 0px 0px 3px color-mix(in srgb, #022732 40%, transparent);
   --button-secondary-icon-color: #ffffff;
-  --button-secondary-hover-background: #212121;
-  --button-secondary-hover-color: #d0fbe9;
+  --button-secondary-hover-background: #7bceb6;
+  --button-secondary-hover-color: #586f75;
 
   box-sizing: border-box;
   background: var(--button-secondary-background);
@@ -1627,6 +1628,47 @@
 
 .divider { border: 0; border-top: var(--divider-border); padding: 0; margin: 0; }
 }
+.bk-pretex-t {
+.button-primary-diasabled {
+  --button-primary-diasabled-background: #22419abd;
+  --button-primary-diasabled-color: #f8f9f9;
+  --button-primary-diasabled-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --button-primary-diasabled-font-size: 15px;
+  --button-primary-diasabled-font-weight: 600;
+  --button-primary-diasabled-line-height: 1;
+  --button-primary-diasabled-padding: 12px 18px;
+  --button-primary-diasabled-radius: 39px;
+  --button-primary-diasabled-border: 1px solid #486dca6b;
+  --button-primary-diasabled-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca87 48%, transparent);
+  --button-primary-diasabled-hover-background: #132218;
+
+  box-sizing: border-box;
+  background: var(--button-primary-diasabled-background);
+  color: var(--button-primary-diasabled-color);
+  font-family: var(--button-primary-diasabled-font-family);
+  font-size: var(--button-primary-diasabled-font-size);
+  font-weight: var(--button-primary-diasabled-font-weight);
+  line-height: var(--button-primary-diasabled-line-height);
+  padding: var(--button-primary-diasabled-padding);
+  border-radius: var(--button-primary-diasabled-radius);
+  border: var(--button-primary-diasabled-border);
+  box-shadow: var(--button-primary-diasabled-shadow);
+}
+
+.button-primary-diasabled { cursor: pointer; }
+.button-primary-diasabled:hover {
+  background: var(--button-primary-diasabled-hover-background, var(--button-primary-diasabled-background));
+  color: var(--button-primary-diasabled-hover-color, var(--button-primary-diasabled-color));
+  border-color: var(--button-primary-diasabled-hover-border-color, currentColor);
+  box-shadow: var(--button-primary-diasabled-hover-shadow, var(--button-primary-diasabled-shadow));
+}
+.button-primary-diasabled:focus-visible {
+  outline: 2px solid var(--button-primary-diasabled-accent, currentColor);
+  outline-offset: 2px;
+}
+.button-primary-diasabled { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
+.button-primary-diasabled__icon { flex: none; color: var(--button-primary-diasabled-icon-color, currentColor); }
+}
 .bk-viaskai {
 .button-primary {
   --button-primary-background: #22419a;
@@ -1639,7 +1681,7 @@
   --button-primary-radius: 39px;
   --button-primary-border: 1px solid #022732;
   --button-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca 48%, transparent);
-  --button-primary-hover-background: #132218;
+  --button-primary-hover-background: #486dca;
 
   box-sizing: border-box;
   background: var(--button-primary-background);
@@ -1679,6 +1721,7 @@
   --button-ghost-border: 1px solid #022732;
   --button-ghost-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 18%, transparent);
   --button-ghost-icon-color: #009387;
+  --button-ghost-hover-background: #efefef;
 
   box-sizing: border-box;
   background: var(--button-ghost-background);
@@ -1718,8 +1761,8 @@
   --button-secondary-border: 0px solid transparent;
   --button-secondary-shadow: 0px 0px 0px 3px color-mix(in srgb, #022732 40%, transparent);
   --button-secondary-icon-color: #ffffff;
-  --button-secondary-hover-background: #212121;
-  --button-secondary-hover-color: #d0fbe9;
+  --button-secondary-hover-background: #7bceb6;
+  --button-secondary-hover-color: #586f75;
 
   box-sizing: border-box;
   background: var(--button-secondary-background);
@@ -3210,4 +3253,45 @@
 }
 
 .divider { border: 0; border-top: var(--divider-border); padding: 0; margin: 0; }
+}
+.bk-viaskai {
+.button-primary-diasabled {
+  --button-primary-diasabled-background: #22419abd;
+  --button-primary-diasabled-color: #f8f9f9;
+  --button-primary-diasabled-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --button-primary-diasabled-font-size: 15px;
+  --button-primary-diasabled-font-weight: 600;
+  --button-primary-diasabled-line-height: 1;
+  --button-primary-diasabled-padding: 12px 18px;
+  --button-primary-diasabled-radius: 39px;
+  --button-primary-diasabled-border: 1px solid #486dca6b;
+  --button-primary-diasabled-shadow: 0px 0px 0px 4px color-mix(in srgb, #486dca87 48%, transparent);
+  --button-primary-diasabled-hover-background: #132218;
+
+  box-sizing: border-box;
+  background: var(--button-primary-diasabled-background);
+  color: var(--button-primary-diasabled-color);
+  font-family: var(--button-primary-diasabled-font-family);
+  font-size: var(--button-primary-diasabled-font-size);
+  font-weight: var(--button-primary-diasabled-font-weight);
+  line-height: var(--button-primary-diasabled-line-height);
+  padding: var(--button-primary-diasabled-padding);
+  border-radius: var(--button-primary-diasabled-radius);
+  border: var(--button-primary-diasabled-border);
+  box-shadow: var(--button-primary-diasabled-shadow);
+}
+
+.button-primary-diasabled { cursor: pointer; }
+.button-primary-diasabled:hover {
+  background: var(--button-primary-diasabled-hover-background, var(--button-primary-diasabled-background));
+  color: var(--button-primary-diasabled-hover-color, var(--button-primary-diasabled-color));
+  border-color: var(--button-primary-diasabled-hover-border-color, currentColor);
+  box-shadow: var(--button-primary-diasabled-hover-shadow, var(--button-primary-diasabled-shadow));
+}
+.button-primary-diasabled:focus-visible {
+  outline: 2px solid var(--button-primary-diasabled-accent, currentColor);
+  outline-offset: 2px;
+}
+.button-primary-diasabled { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
+.button-primary-diasabled__icon { flex: none; color: var(--button-primary-diasabled-icon-color, currentColor); }
 }
