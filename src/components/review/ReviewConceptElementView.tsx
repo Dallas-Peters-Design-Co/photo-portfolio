@@ -352,7 +352,6 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
             ...style,
             border: 0,
             cursor: "pointer",
-            font: "inherit",
             textDecoration: "underline",
           }}
           type="button"

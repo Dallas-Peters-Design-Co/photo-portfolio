@@ -82,3 +82,85 @@ it("paints an open panel's shadow beyond its flex group on the page", async () =
     host.remove();
   }
 });
+
+it.each(["row", "column", "grid"] as const)(
+  "centers content within the painted %s group frame",
+  async (layout) => {
+    const link = {
+      ...createConceptElement("link"),
+      fontSize: 13,
+      text: "Details",
+    };
+    const panel = {
+      ...createConceptElement("panel"),
+      fontSize: 28,
+      slots: { body: { elements: [link] } },
+    };
+    const group = {
+      ...createConceptElement("group"),
+      background: "#abcdef",
+      borderColor: "#123456",
+      borderWidth: 3,
+      group: {
+        align: "center" as const,
+        columns: 1,
+        elements: [link],
+        justify: "center" as const,
+        layout,
+      },
+      shadow: { blur: 8, color: "#000000", opacity: 50, spread: 2, x: 1, y: 2 },
+    };
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    try {
+      await act(() =>
+        root.render(
+          <PageDesignView
+            page={{
+              boxes: {
+                [group.id]: { height: 140, width: 240, x: 0, y: 0 },
+                [panel.id]: { height: 140, width: 240, x: 0, y: 150 },
+              },
+              concept: { ...createConcept(), elements: [group, panel] },
+              height: 320,
+              kitId: null,
+              version: 1,
+              width: 250,
+            }}
+            stepIndex={0}
+          />
+        )
+      );
+      const frame = host.querySelector(".page-design__component");
+      const surface = host.querySelector(".concept-group");
+      const button = surface?.querySelector("button");
+      const panelLink = host.querySelector(
+        '.concept-panel__surface [data-slot="body"] button'
+      );
+      if (!(frame && surface && button && panelLink)) {
+        throw new Error("Missing group or panel link");
+      }
+      const bounds = surface.getBoundingClientRect();
+      const child = button.getBoundingClientRect();
+      expect(bounds.toJSON()).toEqual(frame.getBoundingClientRect().toJSON());
+      expect(child.left + child.width / 2).toBeCloseTo(
+        bounds.left + bounds.width / 2,
+        0
+      );
+      expect(child.top + child.height / 2).toBeCloseTo(
+        bounds.top + bounds.height / 2,
+        0
+      );
+      expect(getComputedStyle(surface).backgroundColor).toBe(
+        "rgb(171, 205, 239)"
+      );
+      expect(getComputedStyle(surface).borderWidth).toBe("3px");
+      expect(getComputedStyle(surface).boxShadow).toContain("8px");
+      expect(getComputedStyle(panelLink).fontSize).toBe("13px");
+    } finally {
+      await act(() => root.unmount());
+      host.remove();
+    }
+  }
+);

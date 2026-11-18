@@ -35,6 +35,8 @@ const itemsStyle = (slot: ConceptSlot): CSSProperties => {
     ...(slot.layout === "row" && slot.wrap !== undefined
       ? { flexWrap: slot.wrap ? "wrap" : "nowrap" }
       : {}),
+    alignContent:
+      slot.layout === "row" && slot.align ? ALIGN[slot.align] : undefined,
     alignItems: slot.align ? ALIGN[slot.align] : undefined,
     gap: slot.gap ?? SLOT_DEFAULTS.gap,
     justifyContent: slot.justify ? JUSTIFY[slot.justify] : undefined,
@@ -43,6 +45,8 @@ const itemsStyle = (slot: ConceptSlot): CSSProperties => {
     ? {
         ...base,
         gridTemplateColumns: `repeat(${slot.columns ?? SLOT_DEFAULTS.columns}, minmax(0, 1fr))`,
+        justifyItems:
+          slot.fill || slot.justify === "between" ? undefined : slot.justify,
       }
     : base;
 };

@@ -95,6 +95,7 @@ export const PageDesignView = memo(function PageView({
           {step?.elements.map((element, i) => (
             <div
               className="page-design__component"
+              data-group={element.kind === "group" || undefined}
               data-layout-container={
                 element.kind === "group" || hasSlots(element.kind) || undefined
               }

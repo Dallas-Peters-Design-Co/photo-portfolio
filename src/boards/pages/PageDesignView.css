@@ -19,6 +19,17 @@
 .page-design__component[data-layout-container] {
   overflow: visible;
 }
+/* A placed group uses its authored frame for alignment and paint. */
+.page-design__component[data-group] {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+}
+.page-design__component[data-group] > .concept-tooltip__trigger,
+.page-design__component[data-group]
+  > .concept-flex-item
+  > .concept-tooltip__trigger {
+  display: grid;
+}
 .page-design__component > * {
   max-width: 100%;
 }

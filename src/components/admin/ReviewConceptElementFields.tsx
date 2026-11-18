@@ -363,7 +363,7 @@ function BoxGroup({
         value={element.radius}
       />
       {/* A tab's side padding is in the Tabs group, beside the row's. */}
-      {element.kind === "tabs" ? null : (
+      {element.kind === "tabs" || element.kind === "group" ? null : (
         <NumberField
           label="Padding X"
           max={48}
@@ -371,12 +371,14 @@ function BoxGroup({
           value={element.paddingX}
         />
       )}
-      <NumberField
-        label="Padding Y"
-        max={32}
-        onChange={(paddingY) => onChange({ paddingY })}
-        value={element.paddingY}
-      />
+      {element.kind !== "group" && (
+        <NumberField
+          label="Padding Y"
+          max={32}
+          onChange={(paddingY) => onChange({ paddingY })}
+          value={element.paddingY}
+        />
+      )}
     </ConceptGroup>
   );
 }
