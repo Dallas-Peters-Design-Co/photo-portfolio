@@ -33,6 +33,7 @@ export function ConceptPanelPreview({
       aria-label={element.text || "Panel"}
       className="concept-panel"
       data-slide={element.slideFrom}
+      data-toggle-side={element.panelToggleSide}
       defaultOpen={!element.panelCollapsed}
       key={String(Boolean(element.panelCollapsed))}
       onOpenChange={(open) => {

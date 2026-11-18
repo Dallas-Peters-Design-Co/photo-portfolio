@@ -282,7 +282,7 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
       ? `<div className="@@__hide">\n${trigger}<div inert aria-hidden="true">${handle}</div>\n</div>`
       : "";
   return {
-    attrs: `aria-label=${label}`,
+    attrs: `aria-label=${label} data-toggle-side="${el.panelToggleSide ?? "right"}"`,
     body: [
       `<div className="@@__inner" data-panel-open="${!el.panelCollapsed}">${surface}</div>`,
       control(
@@ -293,6 +293,8 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
       .filter(Boolean)
       .join("\n"),
     css: `& { display: flex; align-items: flex-start; width: 100%; min-width: 0; background: transparent; border: 0; padding: 0; box-shadow: none; }
+&[data-toggle-side="left"] { flex-direction: row-reverse; }
+&[data-toggle-side="left"] > &__hide :is(svg:first-of-type, &__chevron) { scale: -1 1; }
 &__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--&-background); padding: var(--&-padding); border: var(--&-border); border-radius: var(--&-radius); box-shadow: var(--&-shadow); }
 &__inner { width: 100%; min-width: 0; overflow: clip; transition: width 260ms ease; }
 &__inner[data-starting-style], &__inner[data-ending-style], &__inner[data-panel-open="false"] { width: 0; }
@@ -311,11 +313,11 @@ ${SLOTS_CSS}
     ) => `import { Collapsible } from "@base-ui/react/collapsible";
 import "./${name}.css";
 
-type ${name}Props = Pick<Collapsible.Root.Props, "open" | "defaultOpen" | "onOpenChange"> & { className?: string };
+type ${name}Props = Pick<Collapsible.Root.Props, "open" | "defaultOpen" | "onOpenChange"> & { className?: string; toggleSide?: "left" | "right" };
 
-export function ${name}({ className, defaultOpen = ${!el.panelCollapsed}, ...props }: ${name}Props) {
+export function ${name}({ className, toggleSide = "${el.panelToggleSide ?? "right"}", defaultOpen = ${!el.panelCollapsed}, ...props }: ${name}Props) {
   return (
-    <Collapsible.Root {...props} defaultOpen={defaultOpen} aria-label=${label} className={[${JSON.stringify(cls)}, className].filter(Boolean).join(" ")}>
+    <Collapsible.Root {...props} defaultOpen={defaultOpen} data-toggle-side={toggleSide} aria-label=${label} className={[${JSON.stringify(cls)}, className].filter(Boolean).join(" ")}>
       <Collapsible.Panel className="${cls}__inner">
         ${surface.replaceAll("@@", cls)}
       </Collapsible.Panel>

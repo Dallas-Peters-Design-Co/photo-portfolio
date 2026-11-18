@@ -202,6 +202,7 @@ export interface ReviewConceptElement {
    * when its hide slot is clicked. Absent: it just appears.
    */
   panelCollapsed?: boolean;
+  panelToggleSide?: "left" | "right";
   placeholder?: string;
   /** Progress bars: how far along, 0–100. The bar is `accentColor`. */
   progress?: number;
@@ -265,6 +266,7 @@ export const ELEMENT_STYLE_KEYS = [
   "barHeight",
   "dividers",
   "panelCollapsed",
+  "panelToggleSide",
   "tabLook",
   "menuLook",
   "hover",
@@ -425,7 +427,10 @@ const cleanHolder = (
   kind: ReviewConceptElementKind,
   raw: Partial<ReviewConceptElement>,
   depth: number
-): Pick<ReviewConceptElement, "group" | "slideFrom" | "panelCollapsed"> => {
+): Pick<
+  ReviewConceptElement,
+  "group" | "slideFrom" | "panelCollapsed" | "panelToggleSide"
+> => {
   if (kind === "group" && depth < MAX_GROUP_DEPTH) {
     const group = cleanSlot(raw.group, depth, cleanElement);
     // Groups made before Full width existed had only Fill, labelled "Fill
@@ -439,6 +444,9 @@ const cleanHolder = (
   }
   if (kind === "panel") {
     return {
+      ...(raw.panelToggleSide === "left" || raw.panelToggleSide === "right"
+        ? { panelToggleSide: raw.panelToggleSide }
+        : {}),
       ...(raw.panelCollapsed === true ? { panelCollapsed: true } : {}),
       ...(SLIDE_SIDES.includes(raw.slideFrom as SlideSide)
         ? { slideFrom: raw.slideFrom }

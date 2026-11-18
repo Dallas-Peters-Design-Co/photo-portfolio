@@ -72,38 +72,55 @@ it("puts the hide slot in a panel's copied code", () => {
   expect(source.css).toContain('.panel-drawer__trigger[aria-expanded="false"]');
 });
 
-it("reopens a saved collapsed panel with the same external keyboard control", async () => {
-  const concept = cleanConcept({
-    elements: [{ ...panel, panelCollapsed: true }],
-  });
-  const host = document.createElement("div");
-  document.body.append(host);
-  const root = createRoot(host);
-  try {
-    act(() => root.render(<ReviewConceptPreview concept={concept} />));
-    const trigger = host.querySelector(
-      ".concept-panel__trigger"
-    ) as HTMLButtonElement;
-    const chevron = host.querySelector(
-      ".concept-panel__hide svg"
-    ) as SVGElement;
-    expect(getComputedStyle(chevron).rotate).toBe("180deg");
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(host.querySelector(".concept-panel__inner")).toBeNull();
-    trigger.focus();
-    await userEvent.keyboard("{Enter}");
-    expect(trigger.getAttribute("aria-expanded")).toBe("true");
-    expect(getComputedStyle(chevron).rotate).toBe("none");
-    expect(
-      host.querySelector(".concept-panel__surface")?.textContent
-    ).toContain("Filters");
-    await userEvent.keyboard("{Enter}");
-    await vi.waitFor(() =>
-      expect(host.querySelector(".concept-panel__inner")).toBeNull()
-    );
-    expect(document.activeElement).toBe(trigger);
-  } finally {
-    act(() => root.unmount());
-    host.remove();
+it.each(["left", "right"] as const)(
+  "reopens a panel with its toggle on the %s",
+  async (side) => {
+    const concept = cleanConcept({
+      elements: [{ ...panel, panelCollapsed: true, panelToggleSide: side }],
+    });
+    const host = document.createElement("div");
+    document.body.append(host);
+    const root = createRoot(host);
+    try {
+      act(() => root.render(<ReviewConceptPreview concept={concept} />));
+      const trigger = host.querySelector(
+        ".concept-panel__trigger"
+      ) as HTMLButtonElement;
+      const chevron = host.querySelector(
+        ".concept-panel__hide svg"
+      ) as SVGElement;
+      expect(getComputedStyle(chevron).scale).toBe(
+        side === "left" ? "-1 1" : "none"
+      );
+      expect(getComputedStyle(chevron).rotate).toBe("180deg");
+      expect(trigger.getAttribute("aria-expanded")).toBe("false");
+      expect(host.querySelector(".concept-panel__inner")).toBeNull();
+      trigger.focus();
+      await userEvent.keyboard("{Enter}");
+      expect(trigger.getAttribute("aria-expanded")).toBe("true");
+      expect(getComputedStyle(chevron).rotate).toBe("none");
+      const body = host.querySelector(".concept-panel__inner") as HTMLElement;
+      await vi.waitFor(() =>
+        expect(body.getBoundingClientRect().width).toBeGreaterThan(0)
+      );
+      const box = body.getBoundingClientRect();
+      const handle = trigger.getBoundingClientRect();
+      if (side === "left") {
+        expect(handle.right).toBeLessThanOrEqual(box.left + 1);
+      } else {
+        expect(handle.left).toBeGreaterThanOrEqual(box.right - 1);
+      }
+      expect(
+        host.querySelector(".concept-panel__surface")?.textContent
+      ).toContain("Filters");
+      await userEvent.keyboard("{Enter}");
+      await vi.waitFor(() =>
+        expect(host.querySelector(".concept-panel__inner")).toBeNull()
+      );
+      expect(document.activeElement).toBe(trigger);
+    } finally {
+      act(() => root.unmount());
+      host.remove();
+    }
   }
-});
+);

@@ -242,6 +242,21 @@ export function ConceptSlotFields({
               value={element.slideFrom ?? "none"}
             />
           </ConceptField>
+          <ConceptField label="Toggle position" wide>
+            <ConceptSelect
+              label="Panel toggle position"
+              onChange={(value) =>
+                onChange({
+                  panelToggleSide: value === "left" ? "left" : "right",
+                })
+              }
+              options={[
+                { label: "Left", value: "left" },
+                { label: "Right", value: "right" },
+              ]}
+              value={element.panelToggleSide ?? "right"}
+            />
+          </ConceptField>
           <ConceptField label="Initial state" wide>
             <ConceptSelect
               label="Panel initial state"
