@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { DrawTool } from "../../../boards/drawing/drawing";
+import { shadersShapedToFrames } from "../../../boards/geometry/shaderShape";
 import type { useBoardHistory } from "../../../boards/hooks/useBoardHistory";
 import type { BoardComment } from "../../../services/comments";
 import { commentsApi } from "../../../services/comments";
@@ -265,11 +266,15 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
   const changeWires = useCallback(
     (next: BoardWire[]) => {
       remember();
+      const before = pending.current.wires;
       pending.current = { ...pending.current, wires: next };
       setWires(next);
       // Rewiring changes what a composite is made of, so it invalidates one
-      // just as surely as moving a picture does.
-      setItems(dropComposites);
+      // just as surely as moving a picture does. A shader newly fed a frame
+      // takes the frame's shape, so none of the design is cut off.
+      setItems((current) =>
+        shadersShapedToFrames(dropComposites(current), before, next)
+      );
       setIsDirty(true);
     },
     [
