@@ -33,7 +33,11 @@ export function ReviewCanvasComponent({
   }, []);
   const scale = Math.min(1, width / component.width);
   return (
-    <div className="review-canvas-component" ref={container}>
+    <div
+      className="review-canvas-component"
+      ref={container}
+      style={{ width: `min(100%, ${component.width}px)` }}
+    >
       <div
         style={{
           height: component.height * scale,

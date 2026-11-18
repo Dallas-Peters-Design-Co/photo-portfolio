@@ -9,6 +9,7 @@
  */
 
 import { type BrandMerge, cleanBrandMerge } from "./brandMerge.js";
+import { cleanPageDesign, type PageDesign } from "./pageDesign.js";
 import { cleanPageStyles, type PageStyles } from "./pageStyles.js";
 import {
   type EditorDoc,
@@ -120,6 +121,8 @@ export interface ReviewScreen {
   marks: ReviewMark[];
   /** A paragraph under the title, before the numbered notes. */
   note: RichText;
+  /** A live page designed on a board, in place of a screenshot. */
+  pageDesign?: PageDesign;
   pins: ReviewPin[];
   /** Where the screenshot came from, shown as a link when set. */
   sourceUrl: string;
@@ -322,7 +325,9 @@ export const cleanMark = (v: unknown): ReviewMark | null => {
 const cleanScreen = (v: unknown): ReviewScreen => {
   const raw = (v ?? {}) as Partial<ReviewScreen>;
   const sourceUrl = str(raw.sourceUrl, MAX_URL).trim();
+  const pageDesign = cleanPageDesign(raw.pageDesign);
   return {
+    ...(pageDesign ? { pageDesign } : {}),
     id: str(raw.id, 64) || newItemId(),
     image: cleanImage(raw.image),
     marks: (Array.isArray(raw.marks) ? raw.marks : [])

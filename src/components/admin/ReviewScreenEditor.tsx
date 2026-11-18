@@ -3,6 +3,7 @@ import {
   type ChangeEvent,
   type MouseEvent,
   type PointerEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -237,8 +238,14 @@ export function ReviewScreenEditor({
     patch({ pins: pins.map((p) => (p.id === id ? { ...p, ...pos } : p)) });
   };
 
-  const updatePin = (id: string, next: Partial<ReviewPin>) =>
-    patch({ pins: pins.map((p) => (p.id === id ? { ...p, ...next } : p)) });
+  const updatePin = useCallback(
+    (id: string, next: Partial<ReviewPin>) =>
+      onChange((prev) => ({
+        ...prev,
+        pins: prev.pins.map((p) => (p.id === id ? { ...p, ...next } : p)),
+      })),
+    [onChange]
+  );
 
   const removePin = (id: string) => {
     history.record();

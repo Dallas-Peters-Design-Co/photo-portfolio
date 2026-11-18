@@ -40,7 +40,7 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
       });
     }
   }
-  const screens = doc.screens.filter((s) => s.image);
+  const screens = doc.screens.filter((s) => s.image || s.pageDesign);
   for (const screen of screens) {
     entries.push({
       id: reviewAnchor.screen(screen.id),

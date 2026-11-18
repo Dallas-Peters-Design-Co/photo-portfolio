@@ -368,6 +368,7 @@ function BoxGroup({
   );
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the canvas element has a separate, read-only editor alongside the existing element controls
 export function ReviewConceptElementFields({
   actions,
   brandDoc,
@@ -426,6 +427,34 @@ export function ReviewConceptElementFields({
       );
     }
   }, [focus.nonce]);
+  if (element.kind === "canvas") {
+    return (
+      <section
+        aria-label="canvas component"
+        className="review-concepts__element"
+        data-picked={picked || undefined}
+        ref={section}
+      >
+        <ElementBar
+          actions={actions}
+          bodyId={bodyId}
+          element={element}
+          handle={handle}
+          onDuplicate={onDuplicate}
+          onRemove={onRemove}
+          onToggle={() => setOpen(!open)}
+          open={open}
+          styles={[]}
+        />
+        {open ? (
+          <p id={bodyId}>
+            The component is saved with this review. Edit the original on the
+            canvas, then insert it again to use its latest version.
+          </p>
+        ) : null}
+      </section>
+    );
+  }
   return (
     <section
       aria-label={element.kind}

@@ -118,8 +118,9 @@ export function PublishReview({
               {existing ? "Update the review" : "Publish a review"}
             </DialogTitle>
             <DialogDescription>
-              {count} {count === 1 ? "screenshot" : "screenshots"} from this
-              board, each with its markup and numbered notes.
+              {count} {count === 1 ? "screen" : "screens"} from this board:
+              captured screenshots with their notes, and interactive page
+              designs.
               {existing
                 ? " What you wrote in the review editor and the client's comments stay."
                 : ""}

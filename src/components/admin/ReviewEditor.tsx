@@ -1,16 +1,11 @@
 import { ChevronsDownUp, ChevronsUpDown, Plus } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { newItemId } from "../../../config/proposal.js";
-import type {
-  ReviewDoc,
-  ReviewScreen,
-  RichText,
-} from "../../../config/review.js";
+import type { ReviewDoc, ReviewScreen } from "../../../config/review.js";
 import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { hasAudit } from "../../../config/reviewRedo.js";
-import { PageEditor } from "../../cms/PageEditor";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { downloadReviewPdf } from "../../pages/pagePdf";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
@@ -25,11 +20,12 @@ import { ReviewBriefEditor } from "./ReviewBriefEditor";
 import { ReviewClientPanel } from "./ReviewClientPanel";
 import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
+import { ReviewEditorScreen } from "./ReviewEditorScreen";
 import { ReviewMergeEditor } from "./ReviewMergeEditor";
-import { ReviewScreenEditor } from "./ReviewScreenEditor";
+import { ReviewRichText } from "./ReviewRichText";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
-import { toEditorDoc } from "./reviewEditing";
+import { sameReviewContent, screenStats } from "./reviewPerformance";
 import { SortableList } from "./SortableList";
 import { type AuditPhase, useReviewAudit } from "./useReviewAudit";
 
@@ -55,9 +51,6 @@ const AUDIT_LABELS: Record<AuditPhase, string> = {
   exploring: "Agent at work…",
   idle: "Run UX audit",
 };
-
-const fingerprint = (r: ReviewRecord): string =>
-  JSON.stringify(autosaveFields(r));
 
 const fieldsetTitleClass =
   "text-micro-sm uppercase tracking-micro-widest text-white/70";
@@ -89,7 +82,7 @@ export function ReviewEditor({
   const [saveState, setSaveState] = useState<SaveState>("saved");
   // What the server last confirmed, and the draft as it is right now, for
   // the timers and the unmount flush, which outlive the render they start in.
-  const savedPrint = useRef(fingerprint(review));
+  const savedSnapshot = useRef(review);
   const latest = useRef(draft);
   latest.current = draft;
   const {
@@ -102,8 +95,11 @@ export function ReviewEditor({
     runLoginAudit,
   } = useReviewAudit({ latest, setDraft });
 
-  const setDoc = (patch: Partial<ReviewDoc>) =>
-    setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } }));
+  const setDoc = useCallback(
+    (patch: Partial<ReviewDoc>) =>
+      setDraft((d) => ({ ...d, doc: { ...d.doc, ...patch } })),
+    []
+  );
 
   /*
    * The draft saves itself a moment after each change, so a capture, a pin
@@ -112,22 +108,23 @@ export function ReviewEditor({
    */
   const autosave = useCallback(async () => {
     const { current } = latest;
-    const print = fingerprint(current);
-    if (print === savedPrint.current) {
+    if (sameReviewContent(current, savedSnapshot.current)) {
       return;
     }
     setSaveState("saving");
     try {
       await reviewsApi.update(review.slug, autosaveFields(current));
-      savedPrint.current = print;
-      setSaveState(fingerprint(latest.current) === print ? "saved" : "unsaved");
+      savedSnapshot.current = current;
+      setSaveState(
+        sameReviewContent(latest.current, current) ? "saved" : "unsaved"
+      );
     } catch {
       setSaveState("failed");
     }
   }, [review.slug]);
 
   useEffect(() => {
-    if (fingerprint(draft) === savedPrint.current) {
+    if (sameReviewContent(draft, savedSnapshot.current)) {
       return;
     }
     setSaveState("unsaved");
@@ -138,7 +135,7 @@ export function ReviewEditor({
   // Closing the editor mid-pause still keeps the last change.
   useEffect(
     () => () => {
-      if (fingerprint(latest.current) !== savedPrint.current) {
+      if (!sameReviewContent(latest.current, savedSnapshot.current)) {
         reviewsApi
           .update(review.slug, autosaveFields(latest.current))
           .catch(() => undefined);
@@ -163,7 +160,7 @@ export function ReviewEditor({
         title: next.title,
       });
       setDraft(saved);
-      savedPrint.current = fingerprint(saved);
+      savedSnapshot.current = saved;
       setSaveState("saved");
       await onSaved(saved);
       toast.success(
@@ -198,22 +195,32 @@ export function ReviewEditor({
 
   // Applied to the screen as it is when the change lands, not as it was when
   // the change began: a capture returns long after it was asked for.
-  const updateScreen = (
-    id: string,
-    update: (prev: ReviewScreen) => ReviewScreen
-  ) =>
-    setDraft((d) => ({
-      ...d,
-      doc: {
-        ...d.doc,
-        screens: d.doc.screens.map((s) => (s.id === id ? update(s) : s)),
-      },
-    }));
+  const updateScreen = useCallback(
+    (id: string, update: (prev: ReviewScreen) => ReviewScreen) =>
+      setDraft((d) => ({
+        ...d,
+        doc: {
+          ...d.doc,
+          screens: d.doc.screens.map((s) => (s.id === id ? update(s) : s)),
+        },
+      })),
+    []
+  );
+
+  const removeScreen = useCallback(
+    (id: string) =>
+      setDraft((d) => ({
+        ...d,
+        doc: { ...d.doc, screens: d.doc.screens.filter((s) => s.id !== id) },
+      })),
+    []
+  );
 
   // Preview opens the saved review, so anything not yet saved goes first.
   const openPreview = async () => {
     const pending =
-      fingerprint(draft) !== savedPrint.current || draft.slug !== review.slug;
+      !sameReviewContent(draft, savedSnapshot.current) ||
+      draft.slug !== review.slug;
     const saved = pending ? await save() : draft;
     if (saved) {
       window.open(`/review/${saved.slug}`, "_blank", "noopener");
@@ -222,12 +229,10 @@ export function ReviewEditor({
 
   // The number the first pin on each screen carries, so numbering runs on
   // across screens the way the page shows it.
-  const firstNumbers: number[] = [];
-  let n = 1;
-  for (const screen of draft.doc.screens) {
-    firstNumbers.push(n);
-    n += screen.pins.length;
-  }
+  const { stats, totalConcepts } = useMemo(
+    () => screenStats(draft.doc.screens, draft.doc.concepts.length),
+    [draft.doc.screens, draft.doc.concepts.length]
+  );
 
   const collapse = useCollapsedBlocks(`review-editor-folded:${review.id}`);
   const blockIds = [
@@ -361,19 +366,19 @@ export function ReviewEditor({
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Intro</Label>
-                <PageEditor
-                  onChange={(intro) => setDoc({ intro: intro as RichText })}
-                  value={toEditorDoc(draft.doc.intro)}
+                <ReviewRichText
+                  field="intro"
+                  onChange={setDoc}
+                  value={draft.doc.intro}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Findings</Label>
-                <PageEditor
+                <ReviewRichText
+                  field="summary"
                   key={auditKey}
-                  onChange={(summary) =>
-                    setDoc({ summary: summary as RichText })
-                  }
-                  value={toEditorDoc(draft.doc.summary)}
+                  onChange={setDoc}
+                  value={draft.doc.summary}
                 />
               </div>
             </div>
@@ -423,39 +428,17 @@ export function ReviewEditor({
                   onToggle={() => collapse.toggle(screen.id)}
                   title={screen.title || "Untitled screen"}
                 >
-                  <ReviewScreenEditor
+                  <ReviewEditorScreen
+                    boardId={draft.doc.boardId}
                     brandDoc={brandDoc}
                     conceptLimit={
                       MAX_REVIEW_CONCEPTS -
-                      draft.doc.concepts.length -
-                      draft.doc.screens
-                        .filter((other) => other.id !== screen.id)
-                        .reduce(
-                          (total, other) =>
-                            total +
-                            other.pins.reduce(
-                              (count, pin) =>
-                                count + (pin.concepts?.length ?? 0),
-                              0
-                            ),
-                          0
-                        )
+                      totalConcepts +
+                      (stats.get(screen.id)?.concepts ?? 0)
                     }
-                    firstNumber={
-                      firstNumbers[draft.doc.screens.indexOf(screen)] ?? 1
-                    }
-                    onChange={(update) => updateScreen(screen.id, update)}
-                    onRemove={() =>
-                      setDraft((d) => ({
-                        ...d,
-                        doc: {
-                          ...d.doc,
-                          screens: d.doc.screens.filter(
-                            (s) => s.id !== screen.id
-                          ),
-                        },
-                      }))
-                    }
+                    firstNumber={stats.get(screen.id)?.firstNumber ?? 1}
+                    onChange={updateScreen}
+                    onRemove={removeScreen}
                     screen={screen}
                     slug={draft.slug}
                   />
@@ -469,9 +452,10 @@ export function ReviewEditor({
             onToggle={() => collapse.toggle("closing")}
             title="Closing"
           >
-            <PageEditor
-              onChange={(closing) => setDoc({ closing: closing as RichText })}
-              value={toEditorDoc(draft.doc.closing)}
+            <ReviewRichText
+              field="closing"
+              onChange={setDoc}
+              value={draft.doc.closing}
             />
           </EditorBlock>
         </div>

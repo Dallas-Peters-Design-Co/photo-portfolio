@@ -1,4 +1,5 @@
 import { browserConfigOf } from "../../../config/nodes/browser.js";
+import { pageDesignOf } from "../../../config/pageDesign.js";
 import {
   DEFAULT_REVIEW_DOC,
   type ReviewScreen,
@@ -88,7 +89,47 @@ export const reviewSlugFor = (board: Pick<Board, "id" | "slug" | "title">) => {
 };
 
 export const countCaptured = (items: readonly BoardItem[]): number =>
-  browserScreens(items).length;
+  reviewScreens(items).length;
+
+/** Page frames travel as editable UI, alongside the board's captured screens. */
+export const reviewScreens = (
+  items: readonly BoardItem[],
+  existing: readonly ReviewScreen[] = []
+): ReviewScreen[] => {
+  const pages: ReviewScreen[] = [];
+  for (const item of items) {
+    const pageDesign = item.kind === "frame" ? pageDesignOf(item.config) : null;
+    if (!pageDesign) {
+      continue;
+    }
+    const before = existing.find((s) => s.id === item.id);
+    pages.push({
+      id: item.id,
+      image: null,
+      marks: before?.marks ?? [],
+      note: before?.note ?? "",
+      pageDesign,
+      pins: before?.pins ?? [],
+      sourceUrl: "",
+      title: item.body || "Page",
+      viewport: pageDesign.width <= 480 ? "mobile" : "desktop",
+    });
+  }
+  const all = [...browserScreens(items, existing), ...pages];
+  const byId = new Map(
+    items.map((item) => [
+      item.nodeType === "browser"
+        ? browserConfigOf(item.config).reviewScreenId || item.id
+        : item.id,
+      item,
+    ])
+  );
+  return all.sort((a, b) => {
+    const first = byId.get(a.id);
+    const second = byId.get(b.id);
+    return first && second ? readingOrder(first, second) : 0;
+  });
+};
 
 export interface PublishInput {
   board: Pick<Board, "id" | "slug" | "title">;
@@ -137,9 +178,13 @@ export const publishBoardReview = async ({
   if (current) {
     const screens = mergeScreens(
       current.doc.screens,
-      browserScreens(items, current.doc.screens)
+      reviewScreens(items, current.doc.screens)
     );
     return reviewsApi.update(slug, {
+      brandKitId:
+        current.brandKitId ||
+        screens.find((s) => s.pageDesign?.kitId)?.pageDesign?.kitId ||
+        null,
       clientName: clientName || current.clientName,
       doc: { ...current.doc, boardId: board.id, screens },
       ...(password === undefined ? {} : { password }),
@@ -148,11 +193,14 @@ export const publishBoardReview = async ({
     });
   }
   return reviewsApi.create({
+    brandKitId:
+      reviewScreens(items).find((s) => s.pageDesign?.kitId)?.pageDesign
+        ?.kitId ?? null,
     clientName,
     doc: {
       ...DEFAULT_REVIEW_DOC,
       boardId: board.id,
-      screens: browserScreens(items),
+      screens: reviewScreens(items),
     },
     ...(password ? { password } : {}),
     slug,

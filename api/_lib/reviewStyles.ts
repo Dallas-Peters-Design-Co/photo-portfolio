@@ -1,4 +1,7 @@
-import { applyReviewStyles } from "../../config/conceptStyle.js";
+import {
+  applyConceptStyles,
+  applyReviewStyles,
+} from "../../config/conceptStyle.js";
 import { loadKit } from "./brandKitStore.js";
 import type { getSql } from "./db.js";
 import type { ReviewDto } from "./reviews.js";
@@ -17,12 +20,38 @@ export const withKitStyles = async (
   sql: Sql,
   review: ReviewDto
 ): Promise<ReviewDto> => {
-  if (!review.brandKitId) {
-    return review;
-  }
-  const kit = await loadKit(sql, review.brandKitId).catch(() => null);
+  const loading = new Map<string, ReturnType<typeof loadKit>>();
+  const getKit = (id: string) => {
+    let pending = loading.get(id);
+    if (!pending) {
+      pending = loadKit(sql, id).catch(() => null);
+      loading.set(id, pending);
+    }
+    return pending;
+  };
+  const kit = review.brandKitId ? await getKit(review.brandKitId) : null;
+  const doc = applyReviewStyles(
+    review.doc,
+    kit?.resolvedDoc.componentStyles ?? [],
+    review.brandKitId
+  );
+  const screens = await Promise.all(
+    doc.screens.map(async (screen) => {
+      const page = screen.pageDesign;
+      if (!page?.kitId || page.kitId === review.brandKitId) {
+        return screen;
+      }
+      const own = await getKit(page.kitId);
+      const concept =
+        applyConceptStyles(
+          [page.concept],
+          own?.resolvedDoc.componentStyles ?? []
+        )[0] ?? page.concept;
+      return { ...screen, pageDesign: { ...page, concept } };
+    })
+  );
   return {
     ...review,
-    doc: applyReviewStyles(review.doc, kit?.resolvedDoc.componentStyles ?? []),
+    doc: { ...doc, screens },
   };
 };

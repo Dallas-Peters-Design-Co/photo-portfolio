@@ -188,9 +188,7 @@ describe("review markup tools", () => {
     expect(current.marks.map((m) => m.id)).toEqual(["m2"]);
     await act(() => button("Note 1")?.click());
     expect(current.pins).toHaveLength(0);
-    const clear = [...document.querySelectorAll("button")].find((b) =>
-      b.textContent?.includes("Clear markup")
-    );
+    const clear = button("Clear markup");
     await act(() => clear?.click());
     expect(current.marks).toHaveLength(0);
   });

@@ -119,7 +119,12 @@ export function ReviewMarkupToolbar({
         </Button>
       </div>
       {canClear ? (
-        <Button onClick={onClear} size="icon" type="button">
+        <Button
+          aria-label="Clear markup"
+          onClick={onClear}
+          size="icon"
+          type="button"
+        >
           <Trash2 size={18} />
         </Button>
       ) : null}

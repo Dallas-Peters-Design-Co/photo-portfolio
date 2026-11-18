@@ -1,8 +1,12 @@
 import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, expect, it, vi } from "vitest";
-import { userEvent } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
+import {
+  createConcept,
+  createConceptElement,
+} from "../../../config/conceptDefaults.js";
 import {
   cleanConcept,
   type ReviewConcept,
@@ -42,7 +46,13 @@ const component = {
 };
 let saved: ReviewConcept[] = [];
 function Harness() {
-  const [concepts, setConcepts] = useState<ReviewConcept[]>([]);
+  const [concepts, setConcepts] = useState<ReviewConcept[]>([
+    {
+      ...createConcept(),
+      direction: "row",
+      elements: [{ ...createConceptElement("text"), text: "Existing text" }],
+    },
+  ]);
   saved = concepts;
   return (
     <KitStyleSyncContext.Provider
@@ -60,18 +70,16 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 it("inserts a canvas component and retains its layers in a saved review preview", async () => {
+  await page.viewport(1200, 900);
   vi.spyOn(componentsApi, "list").mockResolvedValue([component]);
   const host = document.createElement("div");
+  host.style.width = "900px";
   document.body.append(host);
   const root = createRoot(host);
   await act(async () => root.render(<Harness />));
-  await vi.waitFor(() =>
-    expect(
-      host.querySelector('[aria-label="Insert canvas component"]')
-    ).not.toBeNull()
-  );
+  await vi.waitFor(() => expect(componentsApi.list).toHaveBeenCalled());
   await userEvent.click(
-    host.querySelector('[aria-label="Insert canvas component"]') as HTMLElement
+    host.querySelector('[aria-label="Add a component"]') as HTMLElement
   );
   const choice = await vi.waitFor(() => {
     const found = [...document.querySelectorAll('[role="option"]')].find(
@@ -83,13 +91,64 @@ it("inserts a canvas component and retains its layers in a saved review preview"
     return found as HTMLElement;
   });
   await userEvent.click(choice);
-  expect(saved[0]?.canvasComponent?.layers[0]?.body).toBe("Canvas title");
+  expect(saved).toHaveLength(1);
+  expect(saved[0]?.elements.map((item) => item.kind)).toEqual([
+    "text",
+    "canvas",
+  ]);
+  expect(saved[0]?.elements[1]?.canvasComponent?.layers[0]?.body).toBe(
+    "Canvas title"
+  );
   const reopened = cleanConcept(JSON.parse(JSON.stringify(saved[0])));
-  expect(reopened.canvasComponent?.layers[0]?.body).toBe("Canvas title");
+  expect(reopened.elements[1]?.canvasComponent?.layers[0]?.body).toBe(
+    "Canvas title"
+  );
   await act(async () =>
     root.render(<ReviewConceptPreview concept={reopened} />)
   );
   expect(host.textContent).toContain("Canvas title");
+  expect(host.textContent).toContain("Existing text");
+  const existing = [...host.querySelectorAll<HTMLElement>("span, p, div")].find(
+    (element) => element.textContent === "Existing text"
+  );
+  const canvas = host.querySelector<HTMLElement>(".review-canvas-component");
+  expect(canvas?.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+    existing?.getBoundingClientRect().right ?? Number.POSITIVE_INFINITY
+  );
+  expect(canvas?.getBoundingClientRect().top).toBeCloseTo(
+    existing?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY,
+    0
+  );
   await act(async () => root.unmount());
   host.remove();
+});
+
+it("keeps canvas components inside groups and migrates previously saved standalone components", () => {
+  const canvas = {
+    ...createConceptElement("canvas"),
+    canvasComponent: component,
+  };
+  const group = createConceptElement("group");
+  const concept = createConcept();
+  const reopened = cleanConcept({
+    ...concept,
+    elements: [
+      {
+        ...group,
+        group: {
+          ...group.group,
+          elements: [createConceptElement("text"), canvas],
+        },
+      },
+    ],
+  });
+  expect(
+    reopened.elements[0]?.group?.elements.map((element) => element.kind)
+  ).toEqual(["text", "canvas"]);
+  expect(reopened.elements[0]?.group?.elements[1]?.canvasComponent?.name).toBe(
+    "Canvas header"
+  );
+  const migrated = cleanConcept({ ...concept, canvasComponent: component });
+  expect(migrated.elements[0]?.canvasComponent?.name).toBe("Canvas header");
+  expect(cleanConcept(migrated)).toEqual(migrated);
 });

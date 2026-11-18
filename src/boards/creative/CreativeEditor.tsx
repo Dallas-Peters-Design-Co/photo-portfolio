@@ -50,6 +50,7 @@ export interface CreativeEditorProps {
   onAddComposition?: (composition: StudioComposition) => void;
   onChange: (next: BoardItem[]) => void;
   onClose: () => void;
+  onDesignPage?: () => void;
   onDropFiles?: (files: File[], point: { x: number; y: number }) => void;
 }
 
@@ -84,6 +85,7 @@ export function CreativeEditor({
   onAddComposition,
   onClose,
   onDropFiles,
+  onDesignPage,
 }: CreativeEditorProps) {
   const selection = useLayerSelection();
   const panelWidths = usePanelWidths();
@@ -202,6 +204,10 @@ export function CreativeEditor({
           ) : null}
         </div>
         <div className="creative__actions">
+          <PageBuilderButton
+            empty={layers.length === 0}
+            onOpen={onDesignPage}
+          />
           <div className="creative__history">
             <button
               aria-label="Undo"
@@ -453,5 +459,22 @@ export function CreativeEditor({
         />
       ) : null}
     </div>
+  );
+}
+
+function PageBuilderButton({
+  empty,
+  onOpen,
+}: {
+  empty: boolean;
+  onOpen?: () => void;
+}) {
+  if (!(empty && onOpen)) {
+    return null;
+  }
+  return (
+    <button className="creative__button" onClick={onOpen} type="button">
+      Page builder
+    </button>
   );
 }

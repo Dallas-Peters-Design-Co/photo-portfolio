@@ -19,7 +19,7 @@ import {
 } from "../ui/select";
 import { PinWcagFields } from "./PinWcagFields";
 import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
-import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
+import { ReviewPinConcepts } from "./ReviewPinConcepts";
 import { readingOrder } from "./reviewEditing";
 
 /** The note kinds with their labels, so the closed menu shows "Issue", not "issue". */
@@ -249,9 +249,9 @@ export function ReviewPinList({
             ) : null}
             {pin.kind === "recommendation" ||
             (pin.concepts?.length ?? 0) > 0 ? (
-              <ReviewConceptsEditor
+              <ReviewPinConcepts
                 brandDoc={brandDoc}
-                concepts={pin.concepts ?? []}
+                concepts={pin.concepts}
                 maxConcepts={Math.max(
                   pin.concepts?.length ?? 0,
                   conceptLimit -
@@ -264,7 +264,8 @@ export function ReviewPinList({
                       0
                     )
                 )}
-                onChange={(concepts) => onUpdate(pin.id, { concepts })}
+                onUpdate={onUpdate}
+                pinId={pin.id}
               />
             ) : null}
           </li>

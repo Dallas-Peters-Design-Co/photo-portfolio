@@ -32,6 +32,7 @@ import { ConceptTablePreview } from "./ConceptTablePreview";
 import { ConceptTabsPreview } from "./ConceptTabsPreview";
 import { ConceptToastPreview } from "./ConceptToastPreview";
 import { ConceptUploadPreview } from "./ConceptUploadPreview";
+import { ReviewCanvasComponent } from "./ReviewCanvasComponent";
 import { useConceptFont } from "./useConceptFont";
 
 const ICON_SUFFIX = /Icon$/;
@@ -269,6 +270,10 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
   const text = element.text || (element.kind === "button" ? "Button" : "Text");
 
   switch (element.kind) {
+    case "canvas":
+      return element.canvasComponent ? (
+        <ReviewCanvasComponent component={element.canvasComponent} />
+      ) : null;
     case "icon": {
       const iconName = element.iconName ?? "StarIcon";
       return (

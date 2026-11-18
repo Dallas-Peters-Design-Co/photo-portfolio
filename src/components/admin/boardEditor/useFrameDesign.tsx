@@ -1,4 +1,13 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  type ReactNode,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { pageDesignOf } from "../../../../config/pageDesign.js";
 import { CreativeEditor } from "../../../boards/creative/CreativeEditor";
 import { markDesigned } from "../../../boards/geometry/frameLock";
 import { pickImages } from "../../../boards/itemImages";
@@ -16,6 +25,12 @@ import { onOpenStudio } from "../../../boards/studio/studioEvents";
 import type { BoardItem } from "../../../types";
 import { frameImage } from "../reviewMerge/mergeFrames";
 import { useAdFrames } from "./useAdFrames";
+
+const PageCanvasEditor = lazy(() =>
+  import("../../../boards/pages/PageCanvasEditor").then((m) => ({
+    default: m.PageCanvasEditor,
+  }))
+);
 
 /**
  * Everything a frame can be turned into on the editor's side: ad sizes
@@ -37,6 +52,7 @@ export const useFrameDesign = (
 ) => {
   const { duplicateFrame, fitFrame, resetScale } = useAdFrames(items, change);
   const [designing, setDesigning] = useState<string | null>(null);
+  const [pageMode, setPageMode] = useState(false);
   // The Studio, opened from the insert palette by event (studioEvents.ts).
   const [studio, setStudio] = useState<string | null>(null);
   const live = useRef(items);
@@ -60,19 +76,48 @@ export const useFrameDesign = (
     }
   };
   useEffect(() => onOpenStudio((toolId) => setStudio(toolId)), []);
-  const designer = designing ? (
-    <CreativeEditor
-      frameId={designing}
-      items={items}
-      key={designing}
-      onAddComposition={(composition) => addComposition(composition, true)}
-      // Any change made here makes it a designed frame: one clipped object
-      // on the canvas from then on (frameLock.ts).
-      onChange={(next) => change(markDesigned(next, designing))}
-      onClose={() => setDesigning(null)}
-      onDropFiles={(files, point) => void dropFiles(files, point)}
-    />
-  ) : null;
+  const editingFrame = items.find((item) => item.id === designing);
+  let designer: ReactNode = null;
+  if (editingFrame && (pageMode || pageDesignOf(editingFrame.config))) {
+    designer = (
+      <PageCanvasEditor
+        frame={editingFrame}
+        key={editingFrame.id}
+        onChange={(pageDesign) => {
+          const next = live.current.map((item) =>
+            item.id === editingFrame.id
+              ? {
+                  ...item,
+                  config: { ...item.config, designed: true, pageDesign },
+                  height: (item.width * pageDesign.height) / pageDesign.width,
+                }
+              : item
+          );
+          live.current = next;
+          change(next);
+        }}
+        onClose={() => {
+          setDesigning(null);
+          setPageMode(false);
+        }}
+      />
+    );
+  } else if (designing) {
+    designer = (
+      <CreativeEditor
+        frameId={designing}
+        items={items}
+        key={designing}
+        onAddComposition={(composition) => addComposition(composition, true)}
+        // Any change made here makes it a designed frame: one clipped object
+        // on the canvas from then on (frameLock.ts).
+        onChange={(next) => change(markDesigned(next, designing))}
+        onClose={() => setDesigning(null)}
+        onDesignPage={() => setPageMode(true)}
+        onDropFiles={(files, point) => void dropFiles(files, point)}
+      />
+    );
+  }
   // Every Studio image picker, here or in the frame editor, offers these.
   const pictures = useMemo(() => boardImages(items), [items]);
   const selectedImage = selectedItem
@@ -103,11 +148,14 @@ export const useFrameDesign = (
   return {
     designer: (
       <BoardImagesContext.Provider value={pictures}>
-        {designer}
+        <Suspense fallback={null}>{designer}</Suspense>
         {studioPanel}
       </BoardImagesContext.Provider>
     ),
-    designFrame: setDesigning,
+    designFrame: (id: string) => {
+      setPageMode(false);
+      setDesigning(id);
+    },
     duplicateFrame,
     fitFrame,
     /** A frame as one uploaded picture, from the board as it is now. */

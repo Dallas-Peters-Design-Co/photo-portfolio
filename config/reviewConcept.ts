@@ -52,11 +52,11 @@ export const ALIGN_ITEMS = {
   start: "flex-start",
   stretch: "stretch",
 } as const;
-const MAX_CONCEPT_ELEMENTS = 64;
+export const MAX_CONCEPT_ELEMENTS = 64;
 const MAX_TITLE = 160;
 const FONT_ID = /^[a-z0-9-]{1,64}$/;
 const FONT_FAMILIES = ["sans", "serif", "mono", "brand", "app"] as const;
-const ELEMENT_KINDS: ReviewConceptElementKind[] = [
+export const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "text",
   "icon",
   "button",
@@ -82,6 +82,7 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "group",
   "logo",
   "navbar",
+  "canvas",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -118,7 +119,8 @@ export type ReviewConceptElementKind =
   | "upload"
   | "group"
   | "logo"
-  | "navbar";
+  | "navbar"
+  | "canvas";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -141,6 +143,8 @@ export interface ReviewConceptElement {
   borderColor?: string;
   /** Badges and cards: the outline's width in px, 0–8. Default 1. */
   borderWidth?: number;
+  /** A copy of a canvas component, drawn in the concept alongside other elements. */
+  canvasComponent?: BrandComponent;
   checked?: boolean;
   /** Checkboxes: the box's size in px. */
   checkSize?: number;
@@ -432,6 +436,15 @@ const cleanHolder = (
   return {};
 };
 
+const cleanCanvas = (
+  raw: Partial<ReviewConceptElement>,
+  kind: ReviewConceptElementKind
+) => {
+  const canvasComponent =
+    kind === "canvas" ? cleanReviewCanvasComponent(raw.canvasComponent) : null;
+  return canvasComponent ? { canvasComponent } : {};
+};
+
 export const cleanElement = (
   value: unknown,
   /** How many slots deep this element sits. */
@@ -451,6 +464,7 @@ export const cleanElement = (
   const menuLook = takesMenu(kind) ? cleanMenuLook(raw.menuLook) : undefined;
   const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
+    ...cleanCanvas(raw, kind),
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
     ...font,
@@ -494,7 +508,16 @@ const cleanElements = (value: unknown): ReviewConceptElement[] =>
 export const cleanConcept = (value: unknown): ReviewConcept => {
   const raw = (value ?? {}) as Partial<ReviewConcept>;
   const canvasComponent = cleanReviewCanvasComponent(raw.canvasComponent);
-  const elements = cleanElements(raw.elements);
+  const elements = canvasComponent
+    ? [
+        cleanElement({
+          canvasComponent,
+          id: `${str(raw.id, 55)}-canvas`,
+          kind: "canvas",
+          text: canvasComponent.name,
+        }),
+      ]
+    : cleanElements(raw.elements);
   const steps = cleanSteps(raw.steps, cleanElements, str);
   const font = fontSelection(raw.fontFamily, raw.fontRef, raw.fontId);
   const alignOptions = ["start", "center", "end", "stretch"] as const;
@@ -504,7 +527,6 @@ export const cleanConcept = (value: unknown): ReviewConcept => {
     ? (raw.align as (typeof alignOptions)[number])
     : "start";
   return {
-    ...(canvasComponent ? { canvasComponent } : {}),
     align,
     background: cleanColor(raw.background, "#f2f4f7"),
     color: cleanColor(raw.color, "#172033"),

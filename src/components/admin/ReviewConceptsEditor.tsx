@@ -40,10 +40,6 @@ import {
   NO_FOCUS,
   pathTo,
 } from "./elementFocus";
-import {
-  CanvasComponentCard,
-  CanvasComponentPicker,
-} from "./ReviewCanvasComponents";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import "./ReviewConceptsEditor.css";
 
@@ -354,11 +350,6 @@ export function ReviewConceptsEditor({
         >
           <Plus size={14} /> Add concept
         </Button>
-        <CanvasComponentPicker
-          brandDoc={brandDoc}
-          disabled={concepts.length >= maxConcepts}
-          onAdd={(concept) => onChange([...concepts, concept])}
-        />
         {copied ? (
           <Button
             disabled={concepts.length >= maxConcepts}
@@ -385,28 +376,17 @@ export function ReviewConceptsEditor({
         </p>
       ) : (
         <div className="review-concepts-editor__list">
-          {concepts.map((concept) =>
-            concept.canvasComponent ? (
-              <CanvasComponentCard
-                concept={concept}
-                key={concept.id}
-                onChange={(next) => update(concept.id, next)}
-                onRemove={() =>
-                  onChange(concepts.filter((item) => item.id !== concept.id))
-                }
-              />
-            ) : (
-              <ConceptCard
-                brandDoc={brandDoc}
-                concept={concept}
-                key={concept.id}
-                onChange={(next) => update(concept.id, next)}
-                onRemove={() =>
-                  onChange(concepts.filter((item) => item.id !== concept.id))
-                }
-              />
-            )
-          )}
+          {concepts.map((concept) => (
+            <ConceptCard
+              brandDoc={brandDoc}
+              concept={concept}
+              key={concept.id}
+              onChange={(next) => update(concept.id, next)}
+              onRemove={() =>
+                onChange(concepts.filter((item) => item.id !== concept.id))
+              }
+            />
+          ))}
         </div>
       )}
     </section>

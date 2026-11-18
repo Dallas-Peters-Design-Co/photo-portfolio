@@ -13,13 +13,15 @@ import {
   linkStyle,
   withOverrides,
 } from "../../../config/conceptStyle.js";
-import type {
-  ReviewConceptElement,
-  ReviewConceptElementKind,
+import {
+  MAX_CONCEPT_ELEMENTS,
+  type ReviewConceptElement,
+  type ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
+import { useReviewCanvasComponents } from "./ReviewCanvasComponents";
 import {
   addConceptElement,
   duplicateConceptElement,
@@ -208,6 +210,10 @@ export function ConceptElementList({
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
+  const { data: canvasComponents = [], error: canvasError } =
+    useReviewCanvasComponents();
+  const limit = depth === 0 ? MAX_CONCEPT_ELEMENTS : MAX_SLOT_ELEMENTS;
+  const full = elements.length >= limit;
   // Which list a drag started in: a slot's list sits inside its card's, and
   // a drop moves an element only within the list it came from.
   const listId = useId();
@@ -248,6 +254,23 @@ export function ConceptElementList({
 
   /** A kind ("button"), or a kit style ("style:<id>") to add already linked. */
   const add = (choice: string) => {
+    if (full) {
+      return;
+    }
+    const component = canvasComponents.find(
+      (item) => `canvas:${item.id}` === choice
+    );
+    if (component) {
+      onChange([
+        ...elements,
+        {
+          ...createConceptElement("canvas", brandDoc),
+          canvasComponent: component,
+          text: component.name,
+        },
+      ]);
+      return;
+    }
     const style = styles.find((s) => `style:${s.id}` === choice);
     onChange(
       style
@@ -265,15 +288,28 @@ export function ConceptElementList({
   const groups = [
     {
       label: "Components",
-      options: ELEMENT_KINDS,
+      options: ELEMENT_KINDS.map((option) => ({ ...option, disabled: full })),
     },
     ...(styles.length > 0
       ? [
           {
             label: "From the brand kit",
             options: styles.map((style) => ({
+              disabled: full,
               label: `${kindLabel(style.kind)} · ${style.name}`,
               value: `style:${style.id}`,
+            })),
+          },
+        ]
+      : []),
+    ...(canvasComponents.length > 0
+      ? [
+          {
+            label: "Canvas components",
+            options: canvasComponents.map((component) => ({
+              disabled: full,
+              label: component.name,
+              value: `canvas:${component.id}`,
             })),
           },
         ]
@@ -296,6 +332,9 @@ export function ConceptElementList({
           />
         </div>
       </div>
+      {canvasError ? (
+        <p role="status">Couldn't load canvas components.</p>
+      ) : null}
       {elements.map((element, index) => (
         // biome-ignore lint/a11y/noStaticElementInteractions: the row is a drop target; the handle inside it is the keyboard route
         // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same

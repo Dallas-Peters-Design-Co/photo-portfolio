@@ -1,14 +1,13 @@
 import { ChevronRight } from "lucide-react";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useState } from "react";
 import "./EditorBlock.css";
 
 /**
  * One part of a long editor — a section, a screen, the opening — under a
  * header that folds it away.
  *
- * Folded, the body stays mounted and is only hidden: the rich editors and a
- * capture in flight inside it carry on, and unfolding shows them as they
- * were.
+ * A folded body first mounts when opened. Once visited it stays mounted:
+ * rich-text selections and captures in flight survive folding it away.
  */
 export function EditorBlock({
   actions,
@@ -27,6 +26,12 @@ export function EditorBlock({
   onToggle: () => void;
   title: ReactNode;
 }) {
+  const [visited, setVisited] = useState(!collapsed);
+  useEffect(() => {
+    if (!collapsed) {
+      setVisited(true);
+    }
+  }, [collapsed]);
   return (
     <section
       className={`editor-block ${collapsed ? "editor-block--collapsed" : ""}`}
@@ -51,7 +56,7 @@ export function EditorBlock({
         ) : null}
       </header>
       <div className="editor-block__body" hidden={collapsed}>
-        {children}
+        {visited || !collapsed ? children : null}
       </div>
     </section>
   );

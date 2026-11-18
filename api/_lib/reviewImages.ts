@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 import { head, issueSignedToken, presignUrl, put } from "@vercel/blob";
 import type { ReviewDoc, ReviewScreen } from "../../config/review.js";
+import type {
+  ReviewConcept,
+  ReviewConceptElement,
+} from "../../config/reviewConcept.js";
+import type { BrandComponent } from "../../src/boards/components/model.js";
 
 /**
  * Review screenshots kept in a private Blob store.
@@ -65,41 +70,114 @@ export const plainImageUrl = (value: string): string => {
   return url.toString();
 };
 
+type ConvertImage = (url: string) => Promise<string> | string;
+
+const mapComponent = async (
+  component: BrandComponent,
+  convert: ConvertImage
+): Promise<BrandComponent> => ({
+  ...component,
+  layers: await Promise.all(
+    component.layers.map(async (layer) => ({
+      ...layer,
+      imageUrl: layer.imageUrl ? await convert(layer.imageUrl) : null,
+      thumbUrl: layer.thumbUrl ? await convert(layer.thumbUrl) : null,
+    }))
+  ),
+});
+
+const mapElement = async (
+  element: ReviewConceptElement,
+  convert: ConvertImage
+): Promise<ReviewConceptElement> => ({
+  ...element,
+  ...(element.canvasComponent
+    ? { canvasComponent: await mapComponent(element.canvasComponent, convert) }
+    : {}),
+  ...(element.group
+    ? {
+        group: {
+          ...element.group,
+          elements: await Promise.all(
+            element.group.elements.map((child) => mapElement(child, convert))
+          ),
+        },
+      }
+    : {}),
+  ...(element.slots
+    ? {
+        slots: Object.fromEntries(
+          await Promise.all(
+            Object.entries(element.slots).map(async ([name, slot]) => [
+              name,
+              slot
+                ? {
+                    ...slot,
+                    elements: await Promise.all(
+                      slot.elements.map((child) => mapElement(child, convert))
+                    ),
+                  }
+                : slot,
+            ])
+          )
+        ),
+      }
+    : {}),
+});
+
+const mapConcept = async (
+  concept: ReviewConcept,
+  convert: ConvertImage
+): Promise<ReviewConcept> => ({
+  ...concept,
+  ...(concept.canvasComponent
+    ? { canvasComponent: await mapComponent(concept.canvasComponent, convert) }
+    : {}),
+  elements: await Promise.all(
+    concept.elements.map((element) => mapElement(element, convert))
+  ),
+  ...(concept.steps
+    ? {
+        steps: await Promise.all(
+          concept.steps.map(async (step) => ({
+            ...step,
+            elements: await Promise.all(
+              step.elements.map((element) => mapElement(element, convert))
+            ),
+          }))
+        ),
+      }
+    : {}),
+});
+
 const mapImages = async (
   screens: ReviewScreen[],
-  convert: (url: string) => Promise<string> | string
+  convert: ConvertImage
 ): Promise<ReviewScreen[]> =>
   Promise.all(
-    screens.map(async (s) => ({
-      ...s,
-      image: s.image ? { ...s.image, url: await convert(s.image.url) } : null,
+    screens.map(async (screen) => ({
+      ...screen,
+      image: screen.image
+        ? { ...screen.image, url: await convert(screen.image.url) }
+        : null,
+      ...(screen.pageDesign
+        ? {
+            pageDesign: {
+              ...screen.pageDesign,
+              concept: await mapConcept(screen.pageDesign.concept, convert),
+            },
+          }
+        : {}),
       pins: await Promise.all(
-        s.pins.map(async (pin) => ({
+        screen.pins.map(async (pin) => ({
           ...pin,
-          concepts: await Promise.all(
-            (pin.concepts ?? []).map(async (concept) => {
-              if (!concept.canvasComponent) {
-                return concept;
+          ...(pin.concepts
+            ? {
+                concepts: await Promise.all(
+                  pin.concepts.map((concept) => mapConcept(concept, convert))
+                ),
               }
-              return {
-                ...concept,
-                canvasComponent: {
-                  ...concept.canvasComponent,
-                  layers: await Promise.all(
-                    concept.canvasComponent.layers.map(async (layer) => ({
-                      ...layer,
-                      imageUrl: layer.imageUrl
-                        ? await convert(layer.imageUrl)
-                        : null,
-                      thumbUrl: layer.thumbUrl
-                        ? await convert(layer.thumbUrl)
-                        : null,
-                    }))
-                  ),
-                },
-              };
-            })
-          ),
+            : {}),
         }))
       ),
     }))
@@ -194,24 +272,16 @@ export const signScreens = async (
   const token = reviewBlobToken();
   const host = reviewStoreHost(token);
   const plain = await unsignScreens(screens);
-  if (
-    !(
-      token &&
-      plain.some(
-        (s) =>
-          (s.image && isReviewImageUrl(s.image.url, host)) ||
-          s.pins.some((pin) =>
-            (pin.concepts ?? []).some((concept) =>
-              concept.canvasComponent?.layers.some(
-                (layer) =>
-                  (layer.imageUrl && isReviewImageUrl(layer.imageUrl, host)) ||
-                  (layer.thumbUrl && isReviewImageUrl(layer.thumbUrl, host))
-              )
-            )
-          )
-      )
-    )
-  ) {
+  let needsSigning = false;
+  if (token) {
+    await mapImages(plain, (url) => {
+      if (isReviewImageUrl(url, host)) {
+        needsSigning = true;
+      }
+      return url;
+    });
+  }
+  if (!(token && needsSigning)) {
     return plain;
   }
   const validUntil = Date.now() + lifetimeMs;

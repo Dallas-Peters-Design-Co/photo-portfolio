@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { EMPTY_KIT } from "../../config/brandKit.js";
-import { DEFAULT_REVIEW_DOC } from "../../config/review.js";
+import {
+  createConcept,
+  createConceptElement,
+} from "../../config/conceptDefaults.js";
+import type { PageDesign } from "../../config/pageDesign.js";
+import { DEFAULT_REVIEW_DOC, type ReviewScreen } from "../../config/review.js";
 import { cleanConcept } from "../../config/reviewConcept.js";
 import type { ReviewDto } from "./reviews.js";
 
@@ -56,4 +61,58 @@ describe("withKitStyles", () => {
         ?.background
     ).toBe("#000000");
   });
+});
+
+it("resolves each live page's brand without applying another page's kit", async () => {
+  loadKit.mockReset();
+  loadKit.mockImplementation(async (_sql: unknown, id: string) => ({
+    resolvedDoc: {
+      componentStyles: [
+        {
+          id: "shared",
+          kind: "text",
+          look: { color: id === "page-kit" ? "#ff0000" : "#0000ff" },
+          name: "Heading",
+        },
+      ],
+    },
+  }));
+  const heading = { ...createConceptElement("text"), styleId: "shared" };
+  const concept = { ...createConcept(), elements: [heading] };
+  const pageDesign: PageDesign = {
+    boxes: {},
+    concept,
+    height: 900,
+    kitId: "page-kit",
+    version: 1,
+    width: 1440,
+  };
+  const screen = (id: string, kitId: string | null): ReviewScreen => ({
+    id,
+    image: null,
+    marks: [],
+    note: "",
+    pageDesign: { ...pageDesign, kitId },
+    pins: [],
+    sourceUrl: "",
+    title: id,
+    viewport: "desktop",
+  });
+  const multiKitReview = {
+    ...review("review-kit"),
+    doc: {
+      ...DEFAULT_REVIEW_DOC,
+      screens: [
+        screen("a", "page-kit"),
+        screen("b", "page-kit"),
+        screen("c", "review-kit"),
+        screen("d", null),
+      ],
+    },
+  };
+  const result = await withKitStyles(sql, multiKitReview);
+  expect(
+    result.doc.screens.map((s) => s.pageDesign?.concept.elements[0]?.color)
+  ).toEqual(["#ff0000", "#ff0000", "#0000ff", heading.color]);
+  expect(loadKit).toHaveBeenCalledTimes(2);
 });

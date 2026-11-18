@@ -10,6 +10,7 @@ import {
   textToBlocks,
 } from "../../config/proposal.js";
 import { PIN_LABELS, type ReviewScreen } from "../../config/review.js";
+import { PageDesignView } from "../boards/pages/PageDesignView";
 import { PageContent } from "../cms/PageContent";
 import { PinWcagLinks } from "../components/review/PinWcagLinks";
 import { ReviewConceptPreview } from "../components/review/ReviewConceptPreview";
@@ -159,7 +160,7 @@ function ReviewSheet({
   ownerName: string;
 }) {
   const { doc } = review;
-  const screens = doc.screens.filter((s) => s.image);
+  const screens = doc.screens.filter((s) => s.image || s.pageDesign);
   const firstNumbers: number[] = [];
   let n = 1;
   for (const screen of screens) {
@@ -329,6 +330,25 @@ function Screen({
 }) {
   const { image } = screen;
   const [shown, setShown] = useState<string | null>(null);
+  if (screen.pageDesign) {
+    return (
+      <section
+        className="doc-band review-page__section--screen"
+        id={reviewAnchor.screen(screen.id)}
+      >
+        <h2 className="doc-band__title">{screen.title || "Page"}</h2>
+        {isRichTextEmpty(screen.note) ? null : <Prose text={screen.note} />}
+        <PageDesignView page={screen.pageDesign}>
+          <ClientLayer
+            height={screen.pageDesign.height}
+            screenId={screen.id}
+            width={screen.pageDesign.width}
+          />
+        </PageDesignView>
+        <ScreenComments screenId={screen.id} />
+      </section>
+    );
+  }
   if (!image) {
     return null;
   }

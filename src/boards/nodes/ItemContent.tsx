@@ -1,4 +1,6 @@
 import type { RefObject } from "react";
+import { lazy, Suspense } from "react";
+import { pageDesignOf } from "../../../config/pageDesign.js";
 import { textStyleCss } from "../../../config/textStyle.js";
 import type { BoardItem } from "../../types";
 import { InstanceView } from "../components/InstanceView";
@@ -25,6 +27,10 @@ import { OpNodeView } from "./OpNodeView";
  * edges — and this owns what is drawn in it, which is a different question
  * answered per kind.
  */
+
+const PageDesignView = lazy(() =>
+  import("../pages/PageDesignView").then((m) => ({ default: m.PageDesignView }))
+);
 
 interface BoardItemBodyProps {
   fieldRef: RefObject<HTMLTextAreaElement | null>;
@@ -208,7 +214,7 @@ export function ItemContent({
     );
   }
   if (item.kind === "frame") {
-    return <FrameBody {...{ chromeScale, item, onEditBody, readOnly }} />;
+    return <FrameContents {...{ chromeScale, item, onEditBody, readOnly }} />;
   }
   if (item.kind === "component") {
     return <InstanceView item={item} />;
@@ -271,5 +277,21 @@ export function ItemContent({
       item={item}
       onEditBody={onEditBody}
     />
+  );
+}
+
+function FrameContents(props: Parameters<typeof FrameBody>[0]) {
+  const page = pageDesignOf(props.item.config);
+  return (
+    <>
+      {page ? (
+        <div className="page-design__frame">
+          <Suspense fallback={null}>
+            <PageDesignView page={page} stepIndex={0} />
+          </Suspense>
+        </div>
+      ) : null}
+      <FrameBody {...props} />
+    </>
   );
 }

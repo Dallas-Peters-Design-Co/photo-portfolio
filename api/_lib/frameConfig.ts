@@ -1,3 +1,4 @@
+import { cleanPageDesign } from "../../config/pageDesign.js";
 import { isSocialPreviewId } from "../../config/socialPreview.js";
 import { text } from "./values.js";
 
@@ -26,12 +27,18 @@ export const parseFrameConfig = (
 ): Record<string, unknown> | null => {
   const source = (raw ?? {}) as {
     designed?: unknown;
+    pageDesign?: unknown;
     guides?: unknown;
     renderKey?: unknown;
     renderUrl?: unknown;
     socialPreview?: unknown;
   };
   const config: Record<string, unknown> = {};
+  const pageDesign = cleanPageDesign(source.pageDesign);
+  if (pageDesign) {
+    config.pageDesign = pageDesign;
+    config.designed = true;
+  }
   if (source.designed === true) {
     config.designed = true;
   }

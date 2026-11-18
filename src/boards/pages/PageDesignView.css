@@ -1,0 +1,45 @@
+.page-design {
+  width: 100%;
+  min-width: 0;
+}
+.page-design__viewport {
+  position: relative;
+  overflow: hidden;
+}
+.page-design__sheet {
+  position: relative;
+  overflow: hidden;
+  transform-origin: top left;
+}
+.page-design__component {
+  position: absolute;
+  overflow: auto;
+}
+.page-design__component > * {
+  max-width: 100%;
+}
+.page-design__navigation {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 0.75rem;
+  font-size: 0.875rem;
+}
+.page-design__navigation button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid currentColor;
+}
+.page-design__navigation button:disabled {
+  opacity: 0.4;
+}
+.page-design__navigation button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.page-design__frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}

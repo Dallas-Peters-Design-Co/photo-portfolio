@@ -1,3 +1,4 @@
+import { pageDesignOf } from "../../../config/pageDesign.js";
 import type { BoardItem, BoardWire } from "../../types";
 import { layersOf } from "../creative/creativeModel";
 import { exportWidthFor, renderCreative } from "../creative/exportPng";
@@ -62,6 +63,11 @@ export const renderFrameBlob = async (
   frame: BoardItem,
   items: BoardItem[]
 ): Promise<Blob> => {
+  if (pageDesignOf(frame.config)) {
+    throw new Error(
+      "Publish this page to its review to share the live interface. Image export is not available for page designs yet."
+    );
+  }
   const layers = layersOf(frame, items);
   const width = Math.min(exportWidthFor(frame), MAX_WIDTH);
   return await withTextGhosts(layers, (textElementFor) =>
@@ -84,6 +90,11 @@ export const renderFrameAt = async (
   items: BoardItem[],
   density = DOWNLOAD_DENSITY
 ): Promise<Blob> => {
+  if (pageDesignOf(frame.config)) {
+    throw new Error(
+      "Publish this page to its review to share the live interface. Image export is not available for page designs yet."
+    );
+  }
   const layers = layersOf(frame, items);
   const base = exportWidthFor(frame);
   const longest = base * Math.max(1, frame.height / frame.width);

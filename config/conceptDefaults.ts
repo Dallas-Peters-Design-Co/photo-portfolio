@@ -75,6 +75,7 @@ const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
 const elementText: Record<ReviewConceptElementKind, string> = {
   badge: "New",
   button: "Get started",
+  canvas: "Canvas component",
   card: "Card title\nSupporting copy goes here.",
   checkbox: "I agree to the terms",
   dialog: "Confirm changes?",

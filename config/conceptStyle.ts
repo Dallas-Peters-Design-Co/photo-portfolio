@@ -371,7 +371,8 @@ export const linkStyle = (
 /** A review document with every concept, on every screen, styled. */
 export const applyReviewStyles = (
   doc: ReviewDoc,
-  styles: ConceptStyle[]
+  styles: ConceptStyle[],
+  kitId?: string | null
 ): ReviewDoc =>
   styles.length === 0
     ? doc
@@ -380,6 +381,20 @@ export const applyReviewStyles = (
         concepts: applyConceptStyles(doc.concepts, styles),
         screens: doc.screens.map((screen) => ({
           ...screen,
+          ...(screen.pageDesign &&
+          screen.pageDesign.kitId !== null &&
+          screen.pageDesign.kitId === kitId
+            ? {
+                pageDesign: {
+                  ...screen.pageDesign,
+                  concept:
+                    applyConceptStyles(
+                      [screen.pageDesign.concept],
+                      styles
+                    )[0] ?? screen.pageDesign.concept,
+                },
+              }
+            : {}),
           pins: screen.pins.map((pin) =>
             pin.concepts
               ? { ...pin, concepts: applyConceptStyles(pin.concepts, styles) }
