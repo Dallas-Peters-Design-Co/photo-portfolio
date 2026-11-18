@@ -1,4 +1,10 @@
-import { createContext, type ReactNode, useContext } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+} from "react";
 import { toast } from "sonner";
 import {
   type ConceptStyle,
@@ -18,6 +24,7 @@ import { brandKitsApi } from "../../services/brandKitService";
  */
 
 export interface KitStyleSync {
+  kitId?: string;
   kitName: string;
   /** Writes the style into the kit: replacing one with its id, else added. */
   save: (style: ConceptStyle) => Promise<boolean>;
@@ -37,38 +44,46 @@ export function KitStyleSyncProvider({
 }) {
   const { kits, refresh } = useBrandKits();
   const kit = kits.find((k) => k.id === kitId) ?? null;
-  const value: KitStyleSync | null = kit
-    ? {
-        kitName: kit.name,
-        save: async (style) => {
-          const own = kit.doc.componentStyles;
-          const base = own.length > 0 ? own : kit.resolvedDoc.componentStyles;
-          const exists = base.some((s) => s.id === style.id);
-          if (!exists && base.length >= MAX_CONCEPT_STYLES) {
-            toast.error(`${kit.name} holds the most styles it can.`);
-            return false;
-          }
-          const componentStyles = exists
-            ? base.map((s) => (s.id === style.id ? style : s))
-            : [...base, style];
-          try {
-            await brandKitsApi.save(kit.id, { ...kit.doc, componentStyles });
-            await refresh();
-            toast.success(
-              exists
-                ? `${style.name} updated in ${kit.name}. Every review using it follows.`
-                : `${style.name} added to ${kit.name}.`
-            );
-            return true;
-          } catch (err) {
-            toast.error(
-              err instanceof Error ? err.message : "Couldn't save to the kit"
-            );
-            return false;
-          }
-        },
+  const save = useCallback(
+    async (style: ConceptStyle): Promise<boolean> => {
+      if (!kit) {
+        return false;
       }
-    : null;
+      const own = kit.doc.componentStyles;
+      const base = own.length > 0 ? own : kit.resolvedDoc.componentStyles;
+      const exists = base.some((s) => s.id === style.id);
+      if (!exists && base.length >= MAX_CONCEPT_STYLES) {
+        toast.error(`${kit.name} holds the most styles it can.`);
+        return false;
+      }
+      const componentStyles = exists
+        ? base.map((s) => (s.id === style.id ? style : s))
+        : [...base, style];
+      try {
+        await brandKitsApi.save(kit.id, {
+          ...kit.doc,
+          componentStyles,
+        });
+        await refresh();
+        toast.success(
+          exists
+            ? `${style.name} updated in ${kit.name}. Every review using it follows.`
+            : `${style.name} added to ${kit.name}.`
+        );
+        return true;
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Couldn't save to the kit"
+        );
+        return false;
+      }
+    },
+    [kit, refresh]
+  );
+  const value = useMemo<KitStyleSync | null>(
+    () => (kit ? { kitId: kit.id, kitName: kit.name, save } : null),
+    [kit, save]
+  );
   return (
     <KitStyleSyncContext.Provider value={value}>
       {children}

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createConcept } from "../../config/conceptDefaults.js";
 import { DEFAULT_REVIEW_DOC, type ReviewScreen } from "../../config/review.js";
 
 const stored = new Map<string, string>();
@@ -18,7 +19,7 @@ vi.mock("@vercel/blob", () => ({
   }),
 }));
 
-const { storeDoc } = await import("./reviewImages.js");
+const { signDoc, storeDoc } = await import("./reviewImages.js");
 const blob = await import("@vercel/blob");
 
 const COPIED =
@@ -63,6 +64,59 @@ afterEach(() => {
 });
 
 describe("storeDoc", () => {
+  it("keeps component images private and signs them for review visitors", async () => {
+    const item = screen("a", "https://example.com/a.png");
+    const concept = createConcept();
+    concept.canvasComponent = {
+      height: 100,
+      id: "component",
+      kitId: "kit",
+      layers: [
+        {
+          body: null,
+          config: null,
+          fontSize: null,
+          height: 100,
+          imageUrl: BOARD_PICTURE,
+          kind: "photo",
+          lid: "image",
+          thumbUrl: null,
+          width: 100,
+          x: 0,
+          y: 0,
+        },
+      ],
+      name: "Picture",
+      placement: {},
+      props: [],
+      updatedAt: "",
+      width: 100,
+    };
+    item.pins = [
+      {
+        body: "",
+        concepts: [concept],
+        id: "pin",
+        kind: "recommendation",
+        title: "",
+        x: 0,
+        y: 0,
+      },
+    ];
+    const result = await storeDoc(doc(item));
+    const layer =
+      result.screens[0]?.pins[0]?.concepts?.[0]?.canvasComponent?.layers[0];
+    expect(layer?.imageUrl).toMatch(COPIED);
+    vi.mocked(blob.issueSignedToken).mockResolvedValue("signed-token" as never);
+    vi.mocked(blob.presignUrl).mockResolvedValue({
+      presignedUrl: "https://signed.example/image",
+    } as never);
+    const signed = await signDoc({ doc: result });
+    expect(
+      signed.doc.screens[0]?.pins[0]?.concepts?.[0]?.canvasComponent?.layers[0]
+        ?.imageUrl
+    ).toBe("https://signed.example/image");
+  });
   it("copies a board's public picture into the private store, once", async () => {
     const first = await storeDoc(doc(screen("a", BOARD_PICTURE)));
     const url = first.screens[0]?.image?.url ?? "";

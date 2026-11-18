@@ -70,11 +70,39 @@ const mapImages = async (
   convert: (url: string) => Promise<string> | string
 ): Promise<ReviewScreen[]> =>
   Promise.all(
-    screens.map(async (s) =>
-      s.image
-        ? { ...s, image: { ...s.image, url: await convert(s.image.url) } }
-        : s
-    )
+    screens.map(async (s) => ({
+      ...s,
+      image: s.image ? { ...s.image, url: await convert(s.image.url) } : null,
+      pins: await Promise.all(
+        s.pins.map(async (pin) => ({
+          ...pin,
+          concepts: await Promise.all(
+            (pin.concepts ?? []).map(async (concept) => {
+              if (!concept.canvasComponent) {
+                return concept;
+              }
+              return {
+                ...concept,
+                canvasComponent: {
+                  ...concept.canvasComponent,
+                  layers: await Promise.all(
+                    concept.canvasComponent.layers.map(async (layer) => ({
+                      ...layer,
+                      imageUrl: layer.imageUrl
+                        ? await convert(layer.imageUrl)
+                        : null,
+                      thumbUrl: layer.thumbUrl
+                        ? await convert(layer.thumbUrl)
+                        : null,
+                    }))
+                  ),
+                },
+              };
+            })
+          ),
+        }))
+      ),
+    }))
   );
 
 /** Screens with every private picture back at its plain address, for saving. */
@@ -168,7 +196,20 @@ export const signScreens = async (
   const plain = await unsignScreens(screens);
   if (
     !(
-      token && plain.some((s) => s.image && isReviewImageUrl(s.image.url, host))
+      token &&
+      plain.some(
+        (s) =>
+          (s.image && isReviewImageUrl(s.image.url, host)) ||
+          s.pins.some((pin) =>
+            (pin.concepts ?? []).some((concept) =>
+              concept.canvasComponent?.layers.some(
+                (layer) =>
+                  (layer.imageUrl && isReviewImageUrl(layer.imageUrl, host)) ||
+                  (layer.thumbUrl && isReviewImageUrl(layer.thumbUrl, host))
+              )
+            )
+          )
+      )
     )
   ) {
     return plain;

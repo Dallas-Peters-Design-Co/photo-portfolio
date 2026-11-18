@@ -1,3 +1,4 @@
+import type { BrandComponent } from "../src/boards/components/model.js";
 import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
 import type { ConceptIconSvg } from "./conceptIcon.js";
 import {
@@ -35,6 +36,7 @@ import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
 import { bounded, cleanColor, str } from "./conceptValues.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
+import { cleanReviewCanvasComponent } from "./reviewCanvasComponent.js";
 
 /**
  * Concepts in one whole review, across every note. 8 was too few: a review
@@ -291,6 +293,8 @@ const cleanLink = (
 export interface ReviewConcept {
   align: "start" | "center" | "end" | "stretch";
   background: string;
+  /** A saved canvas component, embedded so the review can draw it. */
+  canvasComponent?: BrandComponent;
   color: string;
   direction: "row" | "column";
   elements: ReviewConceptElement[];
@@ -489,6 +493,7 @@ const cleanElements = (value: unknown): ReviewConceptElement[] =>
 
 export const cleanConcept = (value: unknown): ReviewConcept => {
   const raw = (value ?? {}) as Partial<ReviewConcept>;
+  const canvasComponent = cleanReviewCanvasComponent(raw.canvasComponent);
   const elements = cleanElements(raw.elements);
   const steps = cleanSteps(raw.steps, cleanElements, str);
   const font = fontSelection(raw.fontFamily, raw.fontRef, raw.fontId);
@@ -499,6 +504,7 @@ export const cleanConcept = (value: unknown): ReviewConcept => {
     ? (raw.align as (typeof alignOptions)[number])
     : "start";
   return {
+    ...(canvasComponent ? { canvasComponent } : {}),
     align,
     background: cleanColor(raw.background, "#f2f4f7"),
     color: cleanColor(raw.color, "#172033"),

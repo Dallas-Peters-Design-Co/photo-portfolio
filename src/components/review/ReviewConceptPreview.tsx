@@ -18,6 +18,7 @@ import {
 } from "./conceptSequence";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import "./ReviewConceptPreview.css";
+import { ReviewCanvasComponent } from "./ReviewCanvasComponent";
 
 /** The concept's frame: its layout, colours and face. */
 export const conceptFrameStyle = (concept: ReviewConcept): CSSProperties =>
@@ -186,6 +187,18 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
       onRestart: () => setAt(0),
     }
   );
+
+  if (concept.canvasComponent) {
+    return (
+      <div className="review-page__concept">
+        <h4 className="review-page__concept-title">
+          What it could look like
+          {concept.title ? <span>{concept.title}</span> : null}
+        </h4>
+        <ReviewCanvasComponent component={concept.canvasComponent} />
+      </div>
+    );
+  }
 
   return (
     <div className="review-page__concept">

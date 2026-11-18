@@ -1,0 +1,8 @@
+.review-canvas-component {
+  width: 100%;
+  overflow: hidden;
+}
+
+.review-canvas-component__layers {
+  transform-origin: top left;
+}
