@@ -132,8 +132,8 @@
 }
 
 .page-builder__numbers {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.5rem;
   font-variant-numeric: tabular-nums;
 }

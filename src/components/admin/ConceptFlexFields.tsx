@@ -17,7 +17,7 @@ export function ConceptFlexFields({
   const enableId = useId();
   const basisId = useId();
   return (
-    <ConceptGroup name="Flex sizing">
+    <ConceptGroup compact name="Flex sizing">
       <label className="review-concepts__check" htmlFor={enableId}>
         <Checkbox
           checked={Boolean(flex)}

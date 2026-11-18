@@ -143,13 +143,15 @@ export function NumberField({
 /** One named row of the element form: Content, Icon, Type, Box, Shadow, Color. */
 export function ConceptGroup({
   children,
+  compact = false,
   name,
 }: {
   children: ReactNode;
   name: string;
+  compact?: boolean;
 }) {
   return (
-    <div className="review-concepts__group">
+    <div className="review-concepts__group" data-compact={compact || undefined}>
       <span className="review-concepts__group-name">{name}</span>
       <div className="review-concepts__group-fields">{children}</div>
     </div>

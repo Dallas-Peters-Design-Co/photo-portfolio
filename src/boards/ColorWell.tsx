@@ -34,6 +34,7 @@ import "./ColorWell.css";
  */
 
 interface ColorWellProps {
+  allowNone?: boolean;
   /** Offer alpha; false for values stored as plain six-digit hex. */
   alpha?: boolean;
   label: string;
@@ -55,6 +56,7 @@ export const pickerSeed = (value: string): string =>
 
 export function ColorWell({
   alpha = true,
+  allowNone = false,
   label,
   swatches,
   noVars = false,
@@ -188,6 +190,18 @@ export function ColorWell({
                     image just generated. Absent rather than disabled where the
                     browser has no sampler: a control that cannot work is worse
                     than one that is not offered. */}
+                {allowNone ? (
+                  <button
+                    className="color-well__sample"
+                    onClick={() => {
+                      onChange("transparent");
+                      setAt(null);
+                    }}
+                    type="button"
+                  >
+                    No color
+                  </button>
+                ) : null}
                 {noVars ? null : (
                   <ColorVarsRow
                     onChange={onChange}

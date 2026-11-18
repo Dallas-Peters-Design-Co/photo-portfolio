@@ -29,7 +29,7 @@ export function MenuGroup({
     (element.background === "transparent" ? "#ffffff" : element.background);
   const ink = look.color ?? element.color;
   return (
-    <ConceptGroup name="Open list">
+    <ConceptGroup compact name="Open list">
       <ConceptColorField
         ariaLabel="list fill color"
         brandDoc={brandDoc}

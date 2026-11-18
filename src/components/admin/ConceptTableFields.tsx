@@ -482,7 +482,7 @@ export function ConceptTableFields({
         </div>
       </ConceptGroup>
 
-      <ConceptGroup name="Header">
+      <ConceptGroup compact name="Header">
         <ConceptColorField
           allowNone
           ariaLabel="Table header background"
@@ -501,7 +501,7 @@ export function ConceptTableFields({
         />
       </ConceptGroup>
 
-      <ConceptGroup name="Borders">
+      <ConceptGroup compact name="Borders">
         <ConceptField label="Lines">
           <ConceptSelect
             label="Table lines"

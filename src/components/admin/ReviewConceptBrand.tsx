@@ -9,7 +9,6 @@ import {
 } from "../../../config/reviewConcept.js";
 import { paletteSwatches } from "../../boards/brand/ActiveBrand";
 import { ColorWell } from "../../boards/ColorWell";
-import { ConceptSelect } from "./ConceptControls";
 
 export const conceptFontSelection = (
   family: string,
@@ -49,8 +48,6 @@ export const conceptFontPatch = (
   };
 };
 
-const NONE = "transparent";
-
 /**
  * A colour from the brand palette or the swatch. With `allowNone`, "None"
  * clears it (stored as "transparent"): no fill, no border.
@@ -70,41 +67,16 @@ export function ConceptColorField({
   onChange: (value: string) => void;
   value: string;
 }) {
-  const palette = (brandDoc?.palette ?? []).filter(
-    (entry, index, all) =>
-      all.findIndex((other) => other.value === entry.value) === index
-  );
-  const options = [
-    ...(allowNone ? [{ label: "None", value: NONE }] : []),
-    ...palette.map((entry) => ({
-      label:
-        [entry.role, entry.name].filter(Boolean).join(" · ") || entry.value,
-      value: entry.value,
-    })),
-  ];
-  const listed = options.some((option) => option.value === value);
   return (
     <div className="review-concepts__field review-concepts__field--color">
+      <ColorWell
+        allowNone={allowNone}
+        label={ariaLabel}
+        onChange={onChange}
+        swatches={paletteSwatches(brandDoc?.palette)}
+        value={value}
+      />
       <span>{label}</span>
-      <div className="review-concepts__color-row">
-        {options.length > 0 ? (
-          <div className="review-concepts__color-pick">
-            <ConceptSelect
-              label={`${ariaLabel} brand color`}
-              onChange={onChange}
-              options={options}
-              placeholder="Custom color"
-              value={listed ? value : ""}
-            />
-          </div>
-        ) : null}
-        <ColorWell
-          label={ariaLabel}
-          onChange={onChange}
-          swatches={paletteSwatches(brandDoc?.palette)}
-          value={value}
-        />
-      </div>
     </div>
   );
 }

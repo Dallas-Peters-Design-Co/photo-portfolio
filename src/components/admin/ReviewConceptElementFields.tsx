@@ -355,7 +355,7 @@ function BoxGroup({
   onChange: (patch: Patch) => void;
 }) {
   return (
-    <ConceptGroup name="Box">
+    <ConceptGroup compact name="Box">
       <NumberField
         label="Radius"
         max={48}
@@ -525,7 +525,7 @@ export function ReviewConceptElementFields({
             lookOnly={lookOnly}
             onChange={onChange}
           />
-          <ConceptGroup name="Type">
+          <ConceptGroup compact name="Type">
             <ConceptFontField
               brandDoc={brandDoc}
               family={element.fontFamily}
@@ -569,7 +569,7 @@ export function ReviewConceptElementFields({
               onChange={onChange}
             />
           ) : null}
-          <ConceptGroup name="Color">
+          <ConceptGroup compact name="Color">
             <ConceptColorField
               ariaLabel={`${element.kind} text color`}
               brandDoc={brandDoc}
@@ -587,7 +587,7 @@ export function ReviewConceptElementFields({
             />
           </ConceptGroup>
           {takesBox(element.kind) ? (
-            <ConceptGroup name="Border">
+            <ConceptGroup compact name="Border">
               <ConceptColorField
                 allowNone
                 ariaLabel={`${element.kind} border color`}

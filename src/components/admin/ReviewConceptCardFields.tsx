@@ -136,7 +136,7 @@ export function ShadowGroup({
   const set = (patch: Partial<ConceptShadow>) =>
     onChange({ shadow: { ...shadow, ...patch } });
   return (
-    <ConceptGroup name="Shadow">
+    <ConceptGroup compact name="Shadow">
       <ConceptField label="Preset">
         <ConceptSelect
           label="Shadow preset"
@@ -186,7 +186,7 @@ export function CheckboxGroup({
   onChange: (patch: Patch) => void;
 }) {
   return (
-    <ConceptGroup name="Checkbox">
+    <ConceptGroup compact name="Checkbox">
       <ConceptColorField
         ariaLabel="checkbox accent color"
         brandDoc={brandDoc}
@@ -219,7 +219,7 @@ export function TabsGroup({
   const set = (patch: ConceptTabLook) =>
     onChange({ tabLook: { ...look, ...patch } });
   return (
-    <ConceptGroup name="Tabs">
+    <ConceptGroup compact name="Tabs">
       <ConceptColorField
         ariaLabel="tabs indicator color"
         brandDoc={brandDoc}
@@ -330,7 +330,7 @@ export function ProgressGroup({
 }) {
   const valueId = useId();
   return (
-    <ConceptGroup name="Progress">
+    <ConceptGroup compact name="Progress">
       {lookOnly ? null : (
         <NumberField
           label="Value %"
@@ -409,10 +409,14 @@ export function HoverGroup({
     />
   );
   if (element.kind === "tabs") {
-    return <ConceptGroup name="Hover">{color("color", "Text")}</ConceptGroup>;
+    return (
+      <ConceptGroup compact name="Hover">
+        {color("color", "Text")}
+      </ConceptGroup>
+    );
   }
   return (
-    <ConceptGroup name="Hover">
+    <ConceptGroup compact name="Hover">
       {color("background", "Fill")}
       {color("color", "Text")}
       {color("borderColor", "Border")}

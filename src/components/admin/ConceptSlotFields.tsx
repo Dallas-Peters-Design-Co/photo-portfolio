@@ -27,6 +27,7 @@ import {
 } from "./ConceptControls";
 import { ConceptElementList } from "./ConceptElementList";
 import { ConceptFlexFields } from "./ConceptFlexFields";
+import { FlexAlignmentPicker } from "./FlexAlignmentPicker";
 
 const LAYOUTS = optionsOf([
   ["column", "Column"],
@@ -125,7 +126,7 @@ export function SlotFields({
   const layout = slot.layout ?? "column";
   return (
     <div className="review-concepts__slot">
-      <ConceptGroup name={label}>
+      <ConceptGroup compact name={label}>
         <ConceptField label="Layout">
           <ConceptSelect
             label={`${label} layout`}
@@ -144,14 +145,35 @@ export function SlotFields({
             value={slot.columns ?? SLOT_DEFAULTS.columns}
           />
         ) : null}
-        <ConceptField label="Align">
-          <ConceptSelect
-            label={`${label} align`}
-            onChange={(next) => set({ align: next as ConceptSlotAlign })}
-            options={ALIGNS}
-            value={slot.align ?? "start"}
+        {layout === "grid" ? (
+          <>
+            <ConceptField label="Align">
+              <ConceptSelect
+                label={`${label} align`}
+                onChange={(next) => set({ align: next as ConceptSlotAlign })}
+                options={ALIGNS}
+                value={slot.align ?? "start"}
+              />
+            </ConceptField>
+            <ConceptField label="Justify">
+              <ConceptSelect
+                label={`${label} justify`}
+                onChange={(next) =>
+                  set({ justify: next as ConceptSlotJustify })
+                }
+                options={JUSTIFIES}
+                value={slot.justify ?? "start"}
+              />
+            </ConceptField>
+          </>
+        ) : (
+          <FlexAlignmentPicker
+            label={label}
+            layout={layout}
+            onChange={set}
+            slot={slot}
           />
-        </ConceptField>
+        )}
         {group ? (
           <label className="review-concepts__check" htmlFor={fullId}>
             <Checkbox
@@ -168,16 +190,8 @@ export function SlotFields({
             id={fillId}
             onChange={(event) => set({ fill: event.target.checked })}
           />
-          <span>Stretch items to share the width</span>
+          <span>Fill available width</span>
         </label>
-        <ConceptField label="Justify">
-          <ConceptSelect
-            label={`${label} justify`}
-            onChange={(next) => set({ justify: next as ConceptSlotJustify })}
-            options={JUSTIFIES}
-            value={slot.justify ?? "start"}
-          />
-        </ConceptField>
         <NumberField
           label="Gap"
           max={SLOT_LIMITS.gap[1]}
