@@ -76,7 +76,7 @@
 }
 .bk-pretext .button-ghost {
   --button-ghost-background: transparent;
-  --button-ghost-color: #009387;
+  --button-ghost-color: #004d46;
   --button-ghost-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-ghost-font-size: 14px;
   --button-ghost-font-weight: 600;
@@ -152,7 +152,7 @@
 }
 .bk-pretext .button-no-border {
   --button-no-border-background: transparent;
-  --button-no-border-color: #486dca;
+  --button-no-border-color: #26459b;
   --button-no-border-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-no-border-font-size: 14px;
   --button-no-border-font-weight: 600;
@@ -161,7 +161,7 @@
   --button-no-border-radius: 6px;
   --button-no-border-border: none;
   --button-no-border-shadow: none;
-  --button-no-border-icon-color: #486dca;
+  --button-no-border-icon-color: #0c2270;
 
   box-sizing: border-box;
   background: var(--button-no-border-background);
@@ -188,8 +188,8 @@
   outline-offset: 2px;
 }
 .bk-pretext .badge-warning {
-  --badge-warning-background: #cc550e;
-  --badge-warning-color: #f8f9f9;
+  --badge-warning-background: #e49a7a;
+  --badge-warning-color: #061014;
   --badge-warning-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-warning-font-size: 14px;
   --badge-warning-font-weight: 600;
@@ -214,7 +214,7 @@
 }
 .bk-pretext .badge-info {
   --badge-info-background: #985ce70d;
-  --badge-info-color: #985ce7;
+  --badge-info-color: #3b225d;
   --badge-info-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-info-font-size: 14px;
   --badge-info-font-weight: 600;
@@ -688,10 +688,10 @@
 .bk-pretext .table-primary__bar { display: block; block-size: 6px; overflow: hidden; background: color-mix(in srgb, currentColor 12%, transparent); border-radius: 999px; }
 .bk-pretext .table-primary__bar > span { display: block; block-size: 100%; background: var(--table-primary-tint); border-radius: inherit; }
 .bk-pretext .table-primary th, .bk-pretext .table-primary td { border-bottom: 1px solid #acb3ad; }
-.bk-pretext .table-primary td:nth-child(2) { --table-primary-tint: #f8f9f9; }
-.bk-pretext .table-primary td:nth-child(2) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #cc550e; border: 1px solid #cc550e; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
-.bk-pretext .table-primary td:nth-child(3) { --table-primary-tint: #f8f9f9; }
-.bk-pretext .table-primary td:nth-child(3) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #cc550e; border: 1px solid #cc550e; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.bk-pretext .table-primary td:nth-child(2) { --table-primary-tint: #061014; }
+.bk-pretext .table-primary td:nth-child(2) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.bk-pretext .table-primary td:nth-child(3) { --table-primary-tint: #061014; }
+.bk-pretext .table-primary td:nth-child(3) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .bk-pretext .table-primary td:nth-child(4) { --table-primary-tint: #022732; }
 .bk-pretext .table-primary td:nth-child(4) :is(.table-primary__tag, .bk-pretext .table-primary__chip, .bk-pretext .table-primary__button) { background: #009387; border: 1px solid #022732; border-radius: 39px; box-shadow: 0px 0px 0px 4px color-mix(in srgb, #7bceb6 48%, transparent); color: #022732; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
 .bk-pretext .toast-primary {
@@ -774,7 +774,7 @@
   --panel-primary__header-1-font-weight: 600;
   --panel-primary__header-1-line-height: 1.25;
   --panel-primary__header-1-padding: 8px 12px;
-  --panel-primary__header-1-radius: 999px;
+  --panel-primary__header-1-radius: 48px;
   --panel-primary__header-1-border: 1px solid #acb3ad;
   --panel-primary__header-1-shadow: none;
 
@@ -791,18 +791,18 @@
   box-shadow: var(--panel-primary__header-1-shadow);
 }
 .bk-pretext .panel-primary__body-1 {
-  --panel-primary__body-1-background: #e4e7ec;
-  --panel-primary__body-1-color: #022732;
+  --panel-primary__body-1-background: #acb3ad;
+  --panel-primary__body-1-color: #373b3a;
   --panel-primary__body-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__body-1-font-size: 14px;
-  --panel-primary__body-1-font-weight: 400;
-  --panel-primary__body-1-line-height: 1.25;
+  --panel-primary__body-1-font-weight: 500;
+  --panel-primary__body-1-line-height: 1;
   --panel-primary__body-1-padding: 0px 0px;
-  --panel-primary__body-1-radius: 999px;
+  --panel-primary__body-1-radius: 0px;
   --panel-primary__body-1-border: none;
   --panel-primary__body-1-shadow: none;
   --panel-primary__body-1-accent: #486dca;
-  --panel-primary__body-1-bar-height: 8px;
+  --panel-primary__body-1-bar-height: 4px;
 
   box-sizing: border-box;
   background: var(--panel-primary__body-1-background);
@@ -824,17 +824,17 @@
 .bk-pretext .panel-primary__body-1__fill { display: block; block-size: 100%; background: var(--panel-primary__body-1-accent, currentColor); border-radius: inherit; }
 .bk-pretext .panel-primary__body-2 {
   --panel-primary__body-2-background: transparent;
-  --panel-primary__body-2-color: #022732;
+  --panel-primary__body-2-color: #000000;
   --panel-primary__body-2-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__body-2-font-size: 14px;
-  --panel-primary__body-2-font-weight: 400;
+  --panel-primary__body-2-font-weight: 500;
   --panel-primary__body-2-line-height: 1.25;
   --panel-primary__body-2-padding: 0px 0px;
   --panel-primary__body-2-radius: 0px;
   --panel-primary__body-2-border: none;
   --panel-primary__body-2-shadow: none;
   --panel-primary__body-2-accent: #486dca;
-  --panel-primary__body-2-check-size: 18px;
+  --panel-primary__body-2-check-size: 21px;
 
   box-sizing: border-box;
   background: var(--panel-primary__body-2-background);
@@ -853,15 +853,17 @@
 .bk-pretext .panel-primary__body-2 > input { accent-color: var(--panel-primary__body-2-accent); inline-size: var(--panel-primary__body-2-check-size, 1em); block-size: var(--panel-primary__body-2-check-size, 1em); margin: 0; }
 .bk-pretext .panel-primary__footer-1 {
   --panel-primary__footer-1-background: #486dca;
-  --panel-primary__footer-1-color: #ffffff;
+  --panel-primary__footer-1-color: #f8f9f9;
   --panel-primary__footer-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__footer-1-font-size: 14px;
-  --panel-primary__footer-1-font-weight: 600;
+  --panel-primary__footer-1-font-weight: 500;
   --panel-primary__footer-1-line-height: 1.25;
   --panel-primary__footer-1-padding: 11px 18px;
-  --panel-primary__footer-1-radius: 6px;
-  --panel-primary__footer-1-border: none;
-  --panel-primary__footer-1-shadow: none;
+  --panel-primary__footer-1-radius: 33px;
+  --panel-primary__footer-1-border: 0px solid transparent;
+  --panel-primary__footer-1-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 16%, transparent);
+  --panel-primary__footer-1-hover-background: #212121;
+  --panel-primary__footer-1-hover-color: #d0fbe9;
 
   box-sizing: border-box;
   background: var(--panel-primary__footer-1-background);
@@ -895,7 +897,7 @@
   --panel-primary__hide-1-font-weight: 600;
   --panel-primary__hide-1-line-height: 1.25;
   --panel-primary__hide-1-padding: 8px 8px;
-  --panel-primary__hide-1-radius: 999px;
+  --panel-primary__hide-1-radius: 48px;
   --panel-primary__hide-1-border: 0px solid transparent;
   --panel-primary__hide-1-shadow: none;
   --panel-primary__hide-1-icon-color: #022732;
@@ -931,7 +933,7 @@
 .bk-pretext .panel-primary__hide-1 { padding: 8px; }
 .bk-pretext .progress-primary {
   --progress-primary-background: #acb3ad;
-  --progress-primary-color: #000000;
+  --progress-primary-color: #373b3a;
   --progress-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --progress-primary-font-size: 14px;
   --progress-primary-font-weight: 500;
@@ -940,7 +942,7 @@
   --progress-primary-radius: 0px;
   --progress-primary-border: none;
   --progress-primary-shadow: none;
-  --progress-primary-accent: #373b3a;
+  --progress-primary-accent: #486dca;
   --progress-primary-bar-height: 4px;
 
   box-sizing: border-box;
@@ -1419,7 +1421,7 @@
 }
 .bk-viaskai .button-ghost {
   --button-ghost-background: transparent;
-  --button-ghost-color: #009387;
+  --button-ghost-color: #004d46;
   --button-ghost-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-ghost-font-size: 14px;
   --button-ghost-font-weight: 600;
@@ -1495,7 +1497,7 @@
 }
 .bk-viaskai .button-no-border {
   --button-no-border-background: transparent;
-  --button-no-border-color: #486dca;
+  --button-no-border-color: #26459b;
   --button-no-border-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-no-border-font-size: 14px;
   --button-no-border-font-weight: 600;
@@ -1504,7 +1506,7 @@
   --button-no-border-radius: 6px;
   --button-no-border-border: none;
   --button-no-border-shadow: none;
-  --button-no-border-icon-color: #486dca;
+  --button-no-border-icon-color: #0c2270;
 
   box-sizing: border-box;
   background: var(--button-no-border-background);
@@ -1531,8 +1533,8 @@
   outline-offset: 2px;
 }
 .bk-viaskai .badge-warning {
-  --badge-warning-background: #cc550e;
-  --badge-warning-color: #f8f9f9;
+  --badge-warning-background: #e49a7a;
+  --badge-warning-color: #061014;
   --badge-warning-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-warning-font-size: 14px;
   --badge-warning-font-weight: 600;
@@ -1557,7 +1559,7 @@
 }
 .bk-viaskai .badge-info {
   --badge-info-background: #985ce70d;
-  --badge-info-color: #985ce7;
+  --badge-info-color: #3b225d;
   --badge-info-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-info-font-size: 14px;
   --badge-info-font-weight: 600;
@@ -2031,10 +2033,10 @@
 .bk-viaskai .table-primary__bar { display: block; block-size: 6px; overflow: hidden; background: color-mix(in srgb, currentColor 12%, transparent); border-radius: 999px; }
 .bk-viaskai .table-primary__bar > span { display: block; block-size: 100%; background: var(--table-primary-tint); border-radius: inherit; }
 .bk-viaskai .table-primary th, .bk-viaskai .table-primary td { border-bottom: 1px solid #acb3ad; }
-.bk-viaskai .table-primary td:nth-child(2) { --table-primary-tint: #f8f9f9; }
-.bk-viaskai .table-primary td:nth-child(2) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #cc550e; border: 1px solid #cc550e; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
-.bk-viaskai .table-primary td:nth-child(3) { --table-primary-tint: #f8f9f9; }
-.bk-viaskai .table-primary td:nth-child(3) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #cc550e; border: 1px solid #cc550e; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.bk-viaskai .table-primary td:nth-child(2) { --table-primary-tint: #061014; }
+.bk-viaskai .table-primary td:nth-child(2) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.bk-viaskai .table-primary td:nth-child(3) { --table-primary-tint: #061014; }
+.bk-viaskai .table-primary td:nth-child(3) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #e49a7a; border: 1px solid #cc550e; border-radius: 48px; color: #061014; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .bk-viaskai .table-primary td:nth-child(4) { --table-primary-tint: #022732; }
 .bk-viaskai .table-primary td:nth-child(4) :is(.table-primary__tag, .bk-viaskai .table-primary__chip, .bk-viaskai .table-primary__button) { background: #009387; border: 1px solid #022732; border-radius: 39px; box-shadow: 0px 0px 0px 4px color-mix(in srgb, #7bceb6 48%, transparent); color: #022732; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
 .bk-viaskai .toast-primary {
@@ -2117,7 +2119,7 @@
   --panel-primary__header-1-font-weight: 600;
   --panel-primary__header-1-line-height: 1.25;
   --panel-primary__header-1-padding: 8px 12px;
-  --panel-primary__header-1-radius: 999px;
+  --panel-primary__header-1-radius: 48px;
   --panel-primary__header-1-border: 1px solid #acb3ad;
   --panel-primary__header-1-shadow: none;
 
@@ -2134,18 +2136,18 @@
   box-shadow: var(--panel-primary__header-1-shadow);
 }
 .bk-viaskai .panel-primary__body-1 {
-  --panel-primary__body-1-background: #e4e7ec;
-  --panel-primary__body-1-color: #022732;
+  --panel-primary__body-1-background: #acb3ad;
+  --panel-primary__body-1-color: #586f75;
   --panel-primary__body-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__body-1-font-size: 14px;
-  --panel-primary__body-1-font-weight: 400;
-  --panel-primary__body-1-line-height: 1.25;
+  --panel-primary__body-1-font-weight: 500;
+  --panel-primary__body-1-line-height: 1;
   --panel-primary__body-1-padding: 0px 0px;
-  --panel-primary__body-1-radius: 999px;
+  --panel-primary__body-1-radius: 0px;
   --panel-primary__body-1-border: none;
   --panel-primary__body-1-shadow: none;
   --panel-primary__body-1-accent: #486dca;
-  --panel-primary__body-1-bar-height: 8px;
+  --panel-primary__body-1-bar-height: 4px;
 
   box-sizing: border-box;
   background: var(--panel-primary__body-1-background);
@@ -2167,17 +2169,17 @@
 .bk-viaskai .panel-primary__body-1__fill { display: block; block-size: 100%; background: var(--panel-primary__body-1-accent, currentColor); border-radius: inherit; }
 .bk-viaskai .panel-primary__body-2 {
   --panel-primary__body-2-background: transparent;
-  --panel-primary__body-2-color: #022732;
+  --panel-primary__body-2-color: #000000;
   --panel-primary__body-2-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__body-2-font-size: 14px;
-  --panel-primary__body-2-font-weight: 400;
+  --panel-primary__body-2-font-weight: 500;
   --panel-primary__body-2-line-height: 1.25;
   --panel-primary__body-2-padding: 0px 0px;
   --panel-primary__body-2-radius: 0px;
   --panel-primary__body-2-border: none;
   --panel-primary__body-2-shadow: none;
   --panel-primary__body-2-accent: #486dca;
-  --panel-primary__body-2-check-size: 18px;
+  --panel-primary__body-2-check-size: 21px;
 
   box-sizing: border-box;
   background: var(--panel-primary__body-2-background);
@@ -2196,15 +2198,17 @@
 .bk-viaskai .panel-primary__body-2 > input { accent-color: var(--panel-primary__body-2-accent); inline-size: var(--panel-primary__body-2-check-size, 1em); block-size: var(--panel-primary__body-2-check-size, 1em); margin: 0; }
 .bk-viaskai .panel-primary__footer-1 {
   --panel-primary__footer-1-background: #486dca;
-  --panel-primary__footer-1-color: #ffffff;
+  --panel-primary__footer-1-color: #f8f9f9;
   --panel-primary__footer-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__footer-1-font-size: 14px;
-  --panel-primary__footer-1-font-weight: 600;
+  --panel-primary__footer-1-font-weight: 500;
   --panel-primary__footer-1-line-height: 1.25;
   --panel-primary__footer-1-padding: 11px 18px;
-  --panel-primary__footer-1-radius: 6px;
-  --panel-primary__footer-1-border: none;
-  --panel-primary__footer-1-shadow: none;
+  --panel-primary__footer-1-radius: 33px;
+  --panel-primary__footer-1-border: 0px solid transparent;
+  --panel-primary__footer-1-shadow: 0px 0px 0px 4px color-mix(in srgb, #000000 16%, transparent);
+  --panel-primary__footer-1-hover-background: #212121;
+  --panel-primary__footer-1-hover-color: #d0fbe9;
 
   box-sizing: border-box;
   background: var(--panel-primary__footer-1-background);
@@ -2238,7 +2242,7 @@
   --panel-primary__hide-1-font-weight: 600;
   --panel-primary__hide-1-line-height: 1.25;
   --panel-primary__hide-1-padding: 8px 8px;
-  --panel-primary__hide-1-radius: 999px;
+  --panel-primary__hide-1-radius: 48px;
   --panel-primary__hide-1-border: 0px solid transparent;
   --panel-primary__hide-1-shadow: none;
   --panel-primary__hide-1-icon-color: #022732;
@@ -2274,7 +2278,7 @@
 .bk-viaskai .panel-primary__hide-1 { padding: 8px; }
 .bk-viaskai .progress-primary {
   --progress-primary-background: #acb3ad;
-  --progress-primary-color: #000000;
+  --progress-primary-color: #586f75;
   --progress-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --progress-primary-font-size: 14px;
   --progress-primary-font-weight: 500;
@@ -2283,7 +2287,7 @@
   --progress-primary-radius: 0px;
   --progress-primary-border: none;
   --progress-primary-shadow: none;
-  --progress-primary-accent: #586f75;
+  --progress-primary-accent: #486dca;
   --progress-primary-bar-height: 4px;
 
   box-sizing: border-box;
