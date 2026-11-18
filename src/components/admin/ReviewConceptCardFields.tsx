@@ -257,13 +257,11 @@ export function TabsGroup({
       />
       <NumberField
         label="Tab padding X"
-        max={48}
         onChange={(paddingX) => onChange({ paddingX })}
         value={element.paddingX}
       />
       <NumberField
         label="Row padding X"
-        max={TAB_LIMITS.rowPaddingX[1]}
         onChange={(rowPaddingX) => set({ rowPaddingX })}
         value={look.rowPaddingX ?? 0}
       />

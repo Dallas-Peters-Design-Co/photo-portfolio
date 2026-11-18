@@ -31,7 +31,7 @@ it("keeps each slot's layout and elements, clamped", () => {
     columns: 6,
     gap: 0,
     layout: "grid",
-    paddingX: 48,
+    paddingX: 99,
   });
   expect(panel?.slots?.body?.elements.map((e) => e.kind)).toEqual([
     "button",

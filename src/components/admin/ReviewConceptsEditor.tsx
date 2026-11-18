@@ -273,7 +273,6 @@ function ConceptCard({
             />
             <NumberField
               label="Padding"
-              max={96}
               onChange={(padding) => onChange({ ...concept, padding })}
               value={concept.padding}
             />

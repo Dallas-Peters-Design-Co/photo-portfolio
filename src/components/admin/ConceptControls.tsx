@@ -117,7 +117,7 @@ export function NumberField({
   value,
 }: {
   label: string;
-  max: number;
+  max?: number;
   min?: number;
   onChange: (value: number) => void;
   step?: number;

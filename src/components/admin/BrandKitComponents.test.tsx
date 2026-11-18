@@ -153,12 +153,12 @@ it("edits the panel's close button in the brand kit", async () => {
   const padding = button?.querySelector<HTMLInputElement>(
     '[aria-label="Padding X"]'
   );
-  expect(padding).toBeDefined();
+  expect(padding?.hasAttribute("max")).toBe(false);
   await userEvent.clear(padding as HTMLInputElement);
-  await userEvent.type(padding as HTMLInputElement, "20");
+  await userEvent.type(padding as HTMLInputElement, "120");
   expect(
     saved.componentStyles[0]?.look.contents?.hide?.elements[0]?.paddingX
-  ).toBe(20);
+  ).toBe(120);
   await act(() => root.unmount());
   host.remove();
 });

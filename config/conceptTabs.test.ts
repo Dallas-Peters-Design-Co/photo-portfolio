@@ -19,7 +19,7 @@ describe("tab look", () => {
       height: 96,
       indicatorColor: "#ff0000",
       indicatorSize: 1,
-      rowPaddingX: 48,
+      rowPaddingX: 90,
     });
     expect(cleanTabLook({})).toBeUndefined();
   });

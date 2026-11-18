@@ -206,8 +206,8 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
     ...num("fontSize", raw.fontSize, 8, 72),
     ...num("fontWeight", raw.fontWeight, 100, 900),
     ...num("lineHeight", raw.lineHeight, 0.8, 3),
-    ...num("paddingX", raw.paddingX, 0, 48),
-    ...num("paddingY", raw.paddingY, 0, 32),
+    ...num("paddingX", raw.paddingX, 0, Number.POSITIVE_INFINITY),
+    ...num("paddingY", raw.paddingY, 0, Number.POSITIVE_INFINITY),
     ...num("radius", raw.radius, 0, 999),
     ...(shadow ? { shadow } : {}),
   };

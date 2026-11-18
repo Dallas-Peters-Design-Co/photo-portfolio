@@ -200,13 +200,11 @@ export function SlotFields({
         />
         <NumberField
           label="Padding X"
-          max={SLOT_LIMITS.paddingX[1]}
           onChange={(paddingX) => set({ paddingX })}
           value={slot.paddingX ?? SLOT_DEFAULTS.paddingX}
         />
         <NumberField
           label="Padding Y"
-          max={SLOT_LIMITS.paddingY[1]}
           onChange={(paddingY) => set({ paddingY })}
           value={slot.paddingY ?? SLOT_DEFAULTS.paddingY}
         />

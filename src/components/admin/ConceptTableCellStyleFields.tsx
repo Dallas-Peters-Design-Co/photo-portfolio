@@ -81,13 +81,11 @@ export function ConceptTableCellStyleFields({
             />
             <NumberField
               label="Padding X"
-              max={48}
               onChange={(paddingX) => set({ paddingX })}
               value={look.paddingX ?? 12}
             />
             <NumberField
               label="Padding Y"
-              max={32}
               onChange={(paddingY) => set({ paddingY })}
               value={look.paddingY ?? 4}
             />

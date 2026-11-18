@@ -69,8 +69,8 @@ export type ConceptSlots = Partial<Record<ConceptSlotName, ConceptSlot>>;
 export const SLOT_LIMITS = {
   columns: [1, 6],
   gap: [0, 48],
-  paddingX: [0, 48],
-  paddingY: [0, 48],
+  paddingX: [0, Number.POSITIVE_INFINITY],
+  paddingY: [0, Number.POSITIVE_INFINITY],
 } as const;
 
 export const SLOT_DEFAULTS = {

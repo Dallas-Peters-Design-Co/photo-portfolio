@@ -366,7 +366,6 @@ function BoxGroup({
       {element.kind === "tabs" || element.kind === "group" ? null : (
         <NumberField
           label="Padding X"
-          max={48}
           onChange={(paddingX) => onChange({ paddingX })}
           value={element.paddingX}
         />
@@ -374,7 +373,6 @@ function BoxGroup({
       {element.kind !== "group" && (
         <NumberField
           label="Padding Y"
-          max={32}
           onChange={(paddingY) => onChange({ paddingY })}
           value={element.paddingY}
         />

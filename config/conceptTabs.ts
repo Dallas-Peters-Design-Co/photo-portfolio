@@ -20,7 +20,7 @@ export interface ConceptTabLook {
 export const TAB_LIMITS = {
   height: [20, 96],
   indicatorSize: [1, 8],
-  rowPaddingX: [0, 48],
+  rowPaddingX: [0, Number.POSITIVE_INFINITY],
 } as const;
 
 const hex = <K extends string>(key: K, value: unknown) =>
