@@ -53,14 +53,19 @@ const ICON_LABELS: Record<string, string> = {
   MultiplicationSignIcon: "Close",
 };
 const CAMEL = /([a-z])([A-Z0-9])/g;
+const FILLED_PREFIX = /^Filled/;
 const TRAILING_NUMBER = /\s*\d+$/;
 
-export const iconLabel = (name: string): string =>
-  ICON_LABELS[name] ??
-  name
-    .replace(ICON_SUFFIX, "")
-    .replace(CAMEL, "$1 $2")
-    .replace(TRAILING_NUMBER, "");
+export const iconLabel = (storedName: string): string => {
+  const name = storedName.replace(FILLED_PREFIX, "");
+  return (
+    ICON_LABELS[name] ??
+    name
+      .replace(ICON_SUFFIX, "")
+      .replace(CAMEL, "$1 $2")
+      .replace(TRAILING_NUMBER, "")
+  );
+};
 
 /**
  * A button's, badge's or tag's text between its two icon slots: an icon

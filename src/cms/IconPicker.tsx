@@ -2,7 +2,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
 import UnavailableIcon from "@hugeicons-pro/core-stroke-standard/UnavailableIcon";
 import { useEffect, useRef, useState } from "react";
-import { type IconLibrary, useIconLibrary } from "./iconLibrary";
+import { type IconLibrary, type IconSet, useIconLibrary } from "./iconLibrary";
 import { ICON_GROUPS, type IconGroup } from "./icons";
 import { resolveIcon } from "./resolveIcon";
 
@@ -104,6 +104,21 @@ const searchIcons = (
   return { matches: curated, status };
 };
 
+const iconSetOf = (name: string | null): IconSet =>
+  name?.startsWith("Filled") ? "filled" : "stroke";
+
+function selectedDrawing(
+  name: string | null,
+  set: IconSet,
+  library: IconLibrary | null
+) {
+  const curated = resolveIcon(name);
+  if (curated || !name || set !== iconSetOf(name)) {
+    return curated;
+  }
+  return library?.icons[set === "filled" ? name.slice("Filled".length) : name];
+}
+
 /**
  * Visual icon chooser for a page's nav link.
  *
@@ -145,12 +160,19 @@ export function IconPicker({
     };
   }, [open]);
 
-  const full = useIconLibrary(library === "full" && open);
-  const iconOf = (name: string | null) =>
-    (name && full?.icons[name]) || resolveIcon(name);
-  const Selected = iconOf(value) ?? svg ?? null;
+  const currentSet = iconSetOf(value);
+  const [set, setIconSet] = useState<IconSet>(currentSet);
+  const full = useIconLibrary(library === "full" && open, set);
+  const storedName = (name: string) =>
+    set === "filled" ? `Filled${name}` : name;
+  const iconOf = (name: string) =>
+    full?.icons[name] ?? resolveIcon(storedName(name));
+  const Selected = svg ?? selectedDrawing(value, set, full);
   const choose = (name: string | null) => {
-    onChange(name, iconOf(name) ?? undefined);
+    onChange(
+      name ? storedName(name) : null,
+      name ? (iconOf(name) ?? undefined) : undefined
+    );
     setOpen(false);
   };
 
@@ -167,7 +189,12 @@ export function IconPicker({
         aria-label={label}
         className={`flex ${TRIGGER_SIZES[size]} w-full items-center justify-between gap-2 rounded-control border border-white/10 bg-black/40 text-left transition-colors hover:border-white/25 focus:border-white/40 focus:outline-none`}
         id={id}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          if (!open) {
+            setIconSet(currentSet);
+          }
+          setOpen(!open);
+        }}
         title={value ? labelFor(value) : undefined}
         type="button"
       >
@@ -201,6 +228,20 @@ export function IconPicker({
         >
           {/* Sticky so the field stays reachable while scrolling 185 icons. */}
           <div className="sticky top-0 z-10 border-white/10 border-b bg-black p-2">
+            <label className="flex items-center gap-2 pb-2 text-xs">
+              Icon set
+              <select
+                onChange={(event) =>
+                  setIconSet(
+                    event.target.value === "filled" ? "filled" : "stroke"
+                  )
+                }
+                value={set}
+              >
+                <option value="stroke">Hugeicons Stroke</option>
+                <option value="filled">Hugeicons Filled</option>
+              </select>
+            </label>
             <input
               autoFocus
               className="min-h-9 w-full rounded-control border border-white/10 bg-black/60 px-2 text-white/90 text-xs outline-none focus:border-white/40"
@@ -249,9 +290,9 @@ export function IconPicker({
                   }
                   return (
                     <button
-                      aria-selected={value === name}
+                      aria-selected={value === storedName(name)}
                       className={`flex aspect-square items-center justify-center rounded-inner transition-colors ${
-                        value === name
+                        value === storedName(name)
                           ? "bg-white text-black"
                           : "text-white/90 hover:bg-white/8 hover:text-white"
                       }`}

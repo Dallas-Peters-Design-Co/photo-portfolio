@@ -1,58 +1,73 @@
 import type { IconSvgElement } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 
-/**
- * The whole Hugeicons stroke set, about 6,000 icons, for the admin's
- * full-library picker. One chunk of ~900 KB gzipped, fetched the first time
- * someone searches it and never by a public page: whatever is chosen is saved
- * with its drawing (see ConceptIconSvg), so nothing downstream needs this.
- */
+/** The active full-library pack loads on demand. Published concepts carry the selected drawing. */
 export interface IconLibrary {
   icons: Record<string, IconSvgElement>;
   /** Every icon once, sorted; the pack also exports aliases of each. */
   names: string[];
 }
 
-const ALIAS_SUFFIX = /StrokeStandard$/;
+export type IconSet = "stroke" | "filled";
 
-let pending: Promise<IconLibrary> | null = null;
+const pending = new Map<IconSet, Promise<IconLibrary>>();
 
-const loadIconLibrary = (): Promise<IconLibrary> => {
-  pending ??= import("@hugeicons-pro/core-stroke-standard").then((pack) => {
-    const icons: Record<string, IconSvgElement> = {};
-    const seen = new Set<IconSvgElement>();
-    for (const [name, icon] of Object.entries(pack)) {
-      const isIcon =
-        name.endsWith("Icon") &&
-        !ALIAS_SUFFIX.test(name) &&
-        Array.isArray(icon);
-      if (isIcon && !seen.has(icon as IconSvgElement)) {
+function loadIconLibrary(set: IconSet): Promise<IconLibrary> {
+  const existing = pending.get(set);
+  if (existing) {
+    return existing;
+  }
+  const pack =
+    set === "filled"
+      ? import("@hugeicons-pro/core-solid-standard")
+      : import("@hugeicons-pro/core-stroke-standard");
+  const request = pack
+    .then((exports) => {
+      const icons: Record<string, IconSvgElement> = {};
+      const seen = new Set<IconSvgElement>();
+      for (const [name, icon] of Object.entries(exports)) {
+        if (
+          !(name.endsWith("Icon") && Array.isArray(icon)) ||
+          seen.has(icon as IconSvgElement)
+        ) {
+          continue;
+        }
         seen.add(icon as IconSvgElement);
         icons[name] = icon as IconSvgElement;
       }
-    }
-    return { icons, names: Object.keys(icons).sort() };
-  });
-  return pending;
-};
+      return { icons, names: Object.keys(icons).sort() };
+    })
+    .catch((error: unknown) => {
+      pending.delete(set);
+      throw error;
+    });
+  pending.set(set, request);
+  return request;
+}
 
-/** The library once `wanted` is true; null while it loads or before. */
-export const useIconLibrary = (wanted: boolean): IconLibrary | null => {
-  const [library, setLibrary] = useState<IconLibrary | null>(null);
+export function useIconLibrary(
+  wanted: boolean,
+  set: IconSet
+): IconLibrary | null {
+  const [loaded, setLoaded] = useState<{
+    set: IconSet;
+    library: IconLibrary;
+  } | null>(null);
   useEffect(() => {
-    if (!wanted || library) {
+    if (!wanted || loaded?.set === set) {
       return;
     }
     let live = true;
-    loadIconLibrary()
-      .then((loaded) => live && setLibrary(loaded))
-      .catch(() => {
-        // A failed chunk load: drop it so the next search tries again.
-        pending = null;
-      });
+    loadIconLibrary(set)
+      .then((library) => {
+        if (live) {
+          setLoaded({ library, set });
+        }
+      })
+      .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [wanted, library]);
-  return library;
-};
+  }, [wanted, set, loaded]);
+  return loaded?.set === set ? loaded.library : null;
+}

@@ -190,6 +190,7 @@ import WhatsappIcon from "@hugeicons-pro/core-stroke-standard/WhatsappIcon";
 import WifiConnected01Icon from "@hugeicons-pro/core-stroke-standard/WifiConnected01Icon";
 import WorkoutRunIcon from "@hugeicons-pro/core-stroke-standard/WorkoutRunIcon";
 import YoutubeIcon from "@hugeicons-pro/core-stroke-standard/YoutubeIcon";
+import { FILLED_ICONS } from "./filledIconMap.js";
 
 /** One icon's drawing data, as HugeiconsIcon's `icon` prop takes it. */
 export type IconComponent = IconSvgElement;
@@ -208,6 +209,7 @@ export type IconComponent = IconSvgElement;
  * Generated from ICON_GROUPS in ./icons.ts — keep the two in step.
  */
 export const ICON_COMPONENTS: Record<string, IconComponent> = {
+  ...FILLED_ICONS,
   Add01Icon,
   AiBrain01Icon,
 

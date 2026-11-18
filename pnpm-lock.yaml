@@ -203,6 +203,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.9.2
         version: 5.9.2(@sinclair/typebox@0.25.24)(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1)(ajv@8.20.0)(joi@18.3.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
+      '@hugeicons-pro/core-solid-standard':
+        specifier: ^4.4.0
+        version: 4.4.0
       '@hugeicons-pro/core-stroke-standard':
         specifier: ^4.3.4
         version: 4.3.4
@@ -1819,6 +1822,9 @@ packages:
         optional: true
       zod:
         optional: true
+
+  '@hugeicons-pro/core-solid-standard@4.4.0':
+    resolution: {integrity: sha512-NsMQqZJMRNc7ozr4SbmAkQqFMqijRZ414GhQzpMmbPI81JsBWBvUPqRBWo/eJra1G8b3RoDPGwHe/WHaEVImow==}
 
   '@hugeicons-pro/core-stroke-standard@4.3.4':
     resolution: {integrity: sha512-DW01XxnfGhMF/5Fcs/aIMU6/u4yoPFrI9zhskgyXDG/FbtBiy9py+p6v8fKNZgVWbNsV7B+EccY5/uGBDfVkdA==}
@@ -8800,6 +8806,8 @@ snapshots:
       ajv-formats: 2.1.1
       joi: 18.3.0
       zod: 4.6.7
+
+  '@hugeicons-pro/core-solid-standard@4.4.0': {}
 
   '@hugeicons-pro/core-stroke-standard@4.3.4': {}
 

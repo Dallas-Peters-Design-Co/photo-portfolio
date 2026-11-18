@@ -2,13 +2,15 @@ import "../../index.css";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
-import { userEvent } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
+import { cleanIconSvg, conceptIconName } from "../../../config/conceptIcon.js";
 import {
   cleanConcept,
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
 import { IconPicker } from "../../cms/IconPicker";
+import { resolveIcon } from "../../cms/resolveIcon";
 import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
@@ -324,4 +326,37 @@ it("keeps a column's width in range and a card's title weight", () => {
   ]);
   expect(card?.titleWeight).toBe(500);
   expect(odd?.titleWeight).toBeUndefined();
+});
+
+it("saves a full-library filled drawing and reopens its set", async () => {
+  let name: string | null = null;
+  const render = (svg?: Parameters<typeof IconPicker>[0]["svg"]) =>
+    root.render(
+      <IconPicker
+        label="Choose icon"
+        library="full"
+        onChange={(next, drawing) => {
+          name = next;
+          expect(cleanIconSvg(drawing)).toEqual(drawing);
+          render(drawing);
+        }}
+        svg={svg}
+        value={name}
+      />
+    );
+  act(() => render());
+  await page.getByRole("button", { name: "Choose icon" }).click();
+  await page.getByLabelText("Icon set").selectOptions("filled");
+  await page.getByPlaceholder("Search icons…").fill("abacus");
+  await page.getByTitle("Abacus", { exact: true }).click();
+  expect(conceptIconName(name)).toBe("FilledAbacusIcon");
+  expect(host.querySelector('button path[fill="currentColor"]')).not.toBeNull();
+  await page.getByRole("button", { name: "Choose icon" }).click();
+  expect(
+    (page.getByLabelText("Icon set").element() as HTMLSelectElement).value
+  ).toBe("filled");
+  expect(resolveIcon("FilledHome01Icon")).not.toEqual(
+    resolveIcon("Home01Icon")
+  );
+  expect(resolveIcon("FilledHome01Icon")?.[0]?.[1].fill).toBe("currentColor");
 });
