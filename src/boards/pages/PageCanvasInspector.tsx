@@ -2,6 +2,7 @@ import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
 import { PageField, PageNumber, PageSelect } from "./PageFields";
+import { PageTooltipFields } from "./PageTooltipFields";
 import type { usePageCanvas } from "./usePageCanvas";
 
 const NONE = "none";
@@ -195,6 +196,13 @@ export function PageCanvasInspector({
               />
             </PageField>
           ))}
+          {element.kind === "tooltip" ? null : (
+            <PageTooltipFields
+              doc={doc}
+              element={element}
+              onChange={patchElement}
+            />
+          )}
           {element.styleId ? (
             <button
               className="page-builder__button"

@@ -183,6 +183,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["group", "Group"],
   ["logo", "Logo"],
   ["navbar", "Navbar"],
+  ["tooltip", "Tooltip"],
 ]);
 
 /** A kind's menu label ("Dropdown menu" for menu), or the kind itself. */

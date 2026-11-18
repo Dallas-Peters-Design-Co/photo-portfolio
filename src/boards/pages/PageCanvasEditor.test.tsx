@@ -149,6 +149,36 @@ it("inserts a linked brand component and commits a drag only on release", async 
   });
 });
 
+it("attaches an interactive tooltip to a page component", async () => {
+  await mount();
+  await act(() =>
+    host.querySelector<HTMLButtonElement>(".page-builder__insert")?.click()
+  );
+  const add = [...host.querySelectorAll("label")].find((label) =>
+    label.textContent?.includes("Add tooltip")
+  );
+  await userEvent.click(add as HTMLElement);
+  const interactive = [...host.querySelectorAll("label")].find((label) =>
+    label.textContent?.includes("Interactive on hover")
+  );
+  await userEvent.click(interactive as HTMLElement);
+  await userEvent.clear(
+    host.querySelector<HTMLInputElement>(
+      '[aria-label="Tooltip text"]'
+    ) as HTMLElement
+  );
+  await userEvent.type(
+    host.querySelector<HTMLInputElement>(
+      '[aria-label="Tooltip text"]'
+    ) as HTMLElement,
+    "Page hint"
+  );
+  expect(latest?.concept.elements[0]?.tooltip).toMatchObject({
+    interactive: true,
+    text: "Page hint",
+  });
+});
+
 it("inserts a canvas component beside the page's other elements", async () => {
   vi.spyOn(componentsApi, "list").mockResolvedValue([
     {

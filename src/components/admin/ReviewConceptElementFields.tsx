@@ -25,6 +25,7 @@ import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields, SlotFields } from "./ConceptSlotFields";
 import { StyleLink } from "./ConceptStyleLink";
 import { ConceptTableFields } from "./ConceptTableFields";
+import { ConceptTooltipFields } from "./ConceptTooltipFields";
 import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
 import { useElementFocus } from "./elementFocus";
 import { ConceptColorField } from "./ReviewConceptBrand";
@@ -450,10 +451,17 @@ export function ReviewConceptElementFields({
           styles={[]}
         />
         {open ? (
-          <p id={bodyId}>
-            The component is saved with this review. Edit the original on the
-            canvas, then insert it again to use its latest version.
-          </p>
+          <div id={bodyId}>
+            <p>
+              The component is saved with this review. Edit the original on the
+              canvas, then insert it again to use its latest version.
+            </p>
+            <ConceptTooltipFields
+              brandDoc={brandDoc}
+              element={element}
+              onChange={onChange}
+            />
+          </div>
         ) : null}
       </section>
     );
@@ -481,6 +489,13 @@ export function ReviewConceptElementFields({
       )}
       {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
+          {!lookOnly && element.kind !== "tooltip" ? (
+            <ConceptTooltipFields
+              brandDoc={brandDoc}
+              element={element}
+              onChange={onChange}
+            />
+          ) : null}
           <KindGroups
             brandDoc={brandDoc}
             element={element}

@@ -33,6 +33,7 @@ import {
 } from "./conceptSteps.js";
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
+import { type ConceptTooltip, cleanTooltip } from "./conceptTooltip.js";
 import { bounded, cleanColor, str } from "./conceptValues.js";
 import { isFontRef } from "./fontRef.js";
 import { newItemId } from "./proposal.js";
@@ -83,6 +84,7 @@ export const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "logo",
   "navbar",
   "canvas",
+  "tooltip",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -120,7 +122,8 @@ export type ReviewConceptElementKind =
   | "group"
   | "logo"
   | "navbar"
-  | "canvas";
+  | "canvas"
+  | "tooltip";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -224,6 +227,8 @@ export interface ReviewConceptElement {
   toastAction?: string;
   /** Toasts: whether the close button shows. Default true. */
   toastClose?: boolean;
+  /** An optional tooltip attached to this component. */
+  tooltip?: ConceptTooltip;
 }
 
 /**
@@ -445,6 +450,14 @@ const cleanCanvas = (
   return canvasComponent ? { canvasComponent } : {};
 };
 
+const cleanAttachedTooltip = (
+  raw: Partial<ReviewConceptElement>,
+  kind: ReviewConceptElementKind
+) => {
+  const tooltip = kind === "tooltip" ? undefined : cleanTooltip(raw.tooltip);
+  return tooltip ? { tooltip } : {};
+};
+
 export const cleanElement = (
   value: unknown,
   /** How many slots deep this element sits. */
@@ -465,6 +478,7 @@ export const cleanElement = (
   const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
     ...cleanCanvas(raw, kind),
+    ...cleanAttachedTooltip(raw, kind),
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
     ...font,

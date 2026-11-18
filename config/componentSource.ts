@@ -21,6 +21,7 @@ import {
   tabsMarkup,
 } from "./componentSourceParts.js";
 import { tableMarkup } from "./componentSourceTable.js";
+import { withTooltipSource } from "./componentSourceTooltip.js";
 import { conceptFontStack } from "./conceptFont.js";
 import { takesBox } from "./conceptKinds.js";
 import { shadowCss, shadowOf } from "./conceptShadow.js";
@@ -175,6 +176,12 @@ const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
       tag: "textarea",
     }),
     toast: () => toastMarkup(el),
+    tooltip: () => ({
+      attrs: 'role="tooltip"',
+      css: "& { display: inline-block; max-width: 20rem; }",
+      passChildren: true,
+      tag: "span",
+    }),
     upload: () => ({
       body: `<input className="@@__input" type="file" />\n<span>{children}</span>${
         el.placeholder
@@ -283,19 +290,22 @@ export const componentSource = (
   const markup = markupOf(element, drawStatic);
   const { css, jsx: preview } = drawStatic(element, className);
   if (markup.tsx) {
-    return {
-      className,
-      css,
-      name,
-      preview,
-      ...(element.kind === "select"
-        ? {
-            previewValue:
-              element.text.trim() || element.options?.[0] || "Choose",
-          }
-        : {}),
-      tsx: markup.tsx(name, className),
-    };
+    return withTooltipSource(
+      {
+        className,
+        css,
+        name,
+        preview,
+        ...(element.kind === "select"
+          ? {
+              previewValue:
+                element.text.trim() || element.options?.[0] || "Choose",
+            }
+          : {}),
+        tsx: markup.tsx(name, className),
+      },
+      element.tooltip
+    );
   }
 
   const props = [
@@ -357,7 +367,10 @@ ${jsx}
   );
 }
 `;
-  return { className, css, name, preview, tsx };
+  return withTooltipSource(
+    { className, css, name, preview, tsx },
+    element.tooltip
+  );
 };
 
 /** Both files in one paste, each under its file name. */

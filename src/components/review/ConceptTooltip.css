@@ -1,0 +1,27 @@
+.concept-tooltip__trigger {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.concept-tooltip__trigger[data-fill] {
+  width: 100%;
+}
+
+.concept-tooltip__trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.concept-tooltip__positioner {
+  position: fixed;
+  z-index: 10000;
+  pointer-events: none;
+}
+
+.concept-tooltip__bubble {
+  display: inline-block;
+  max-width: 20rem;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}

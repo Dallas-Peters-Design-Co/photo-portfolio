@@ -48,6 +48,7 @@ const SURFACE_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const PADDED_KINDS = new Set<ReviewConceptElementKind>([
+  "tooltip",
   "upload",
   "panel",
   "input",
@@ -60,6 +61,7 @@ const PADDED_KINDS = new Set<ReviewConceptElementKind>([
   "table",
 ]);
 const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
+  "tooltip",
   "upload",
   "panel",
   "button",
@@ -98,6 +100,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   text: "A better way to work",
   textarea: "",
   toast: "Changes saved",
+  tooltip: "Helpful information",
   upload: "Drop a file here, or browse",
 };
 
@@ -145,7 +148,7 @@ const elementBackground = (
   kind: ReviewConceptElementKind,
   brandDoc?: BrandKitDoc | null
 ): string => {
-  if (kind === "button") {
+  if (kind === "button" || kind === "tooltip") {
     return paletteColor(brandDoc, ["button", "accent", "primary"], "#172033");
   }
   if (SURFACE_KINDS.has(kind)) {
@@ -224,7 +227,7 @@ export const createConceptElement = (
   return {
     background,
     color:
-      kind === "button"
+      kind === "button" || kind === "tooltip"
         ? paletteColor(brandDoc, ["button ink", "on button"], "#ffffff")
         : paletteColor(brandDoc, ["ink", "text"], "#172033"),
     fontFamily: face?.ref ? "brand" : "sans",

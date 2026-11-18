@@ -57,6 +57,7 @@ const KIND_LABEL = {
   text: "Text",
   textarea: "Text area",
   toast: "Toast",
+  tooltip: "Tooltip",
 };
 
 /** Text inside MDX: braces and angle brackets would be read as code. */

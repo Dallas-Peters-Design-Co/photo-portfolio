@@ -7,6 +7,7 @@ import {
   type ConceptTableHeader,
   tableOf,
 } from "./conceptTable.js";
+import { cleanTooltip } from "./conceptTooltip.js";
 import { newItemId } from "./proposal.js";
 import type { ReviewDoc } from "./review.js";
 import {
@@ -262,7 +263,22 @@ export const styleElement = (
   element: ReviewConceptElement,
   styles: ConceptStyle[]
 ): ReviewConceptElement => {
-  const styled = applyColumnStyles(applyConceptStyle(element, styles), styles);
+  let styled = applyColumnStyles(applyConceptStyle(element, styles), styles);
+  const { tooltip } = styled;
+  const tooltipStyle =
+    tooltip?.styleId &&
+    styles.find(
+      (style) => style.id === tooltip.styleId && style.kind === "tooltip"
+    );
+  if (tooltip && tooltipStyle) {
+    styled = {
+      ...styled,
+      tooltip: cleanTooltip({
+        ...tooltip,
+        look: { ...tooltip.look, ...tooltipStyle.look },
+      }),
+    };
+  }
   return styled.slots || styled.group
     ? mapChildren(styled, (child) => styleElement(child, styles))
     : styled;

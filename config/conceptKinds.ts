@@ -84,6 +84,7 @@ export const cleanIcon = (
  * shadow: the controls, the surfaces and the pills.
  */
 const BOX_KINDS = new Set<ReviewConceptElementKind>([
+  "tooltip",
   "badge",
   "button",
   "card",

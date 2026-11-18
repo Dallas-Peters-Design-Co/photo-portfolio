@@ -22,6 +22,7 @@ import {
 } from "../ui/select";
 import { ConceptHover } from "./ConceptHover";
 import { ConceptIcon, ConceptIconText } from "./ConceptIcon";
+import { ConceptTooltip } from "./ConceptTooltip";
 import { conceptMenuProps } from "./conceptMenuStyle";
 import { marksFor, useSequenceMarks } from "./conceptSequence";
 import "./ConceptElements.css";
@@ -270,6 +271,12 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
   const text = element.text || (element.kind === "button" ? "Button" : "Text");
 
   switch (element.kind) {
+    case "tooltip":
+      return (
+        <span className="concept-tooltip__bubble" role="tooltip" style={style}>
+          {text}
+        </span>
+      );
     case "canvas":
       return element.canvasComponent ? (
         <ReviewCanvasComponent component={element.canvasComponent} />
@@ -470,9 +477,16 @@ export function ReviewConceptElementView({
 }) {
   const marks = marksFor(element, useSequenceMarks());
   return (
-    <ConceptHover element={element} marks={marks}>
-      <ElementBody element={element} />
-    </ConceptHover>
+    <ConceptTooltip
+      fill={["card", "panel", "table", "navbar", "progress"].includes(
+        element.kind
+      )}
+      tooltip={element.tooltip}
+    >
+      <ConceptHover element={element} marks={marks}>
+        <ElementBody element={element} />
+      </ConceptHover>
+    </ConceptTooltip>
   );
 }
 
