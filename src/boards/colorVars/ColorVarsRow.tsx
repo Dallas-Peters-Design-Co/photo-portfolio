@@ -10,15 +10,21 @@ import "./ColorVars.css";
  */
 export function ColorVarsRow({
   onChange,
+  onManage,
   value,
 }: {
   onChange: (colour: string) => void;
+  onManage?: () => void;
   value: string;
 }) {
   const ctx = useColorVars();
   if (!ctx) {
     return null;
   }
+  const manage = () => {
+    onManage?.();
+    ctx.open();
+  };
   const current = varFor(value, ctx.vars);
   const alpha = normalHex(value)?.slice(7) ?? "";
   return (
@@ -45,7 +51,7 @@ export function ColorVarsRow({
             className="color-vars-row__tool"
             onClick={() => {
               if (ctx.add(value)) {
-                ctx.open();
+                manage();
               }
             }}
             title="Save this colour as a variable"
@@ -57,7 +63,7 @@ export function ColorVarsRow({
         <button
           aria-label="Edit colour variables"
           className="color-vars-row__tool"
-          onClick={ctx.open}
+          onClick={manage}
           title="Edit colour variables"
           type="button"
         >

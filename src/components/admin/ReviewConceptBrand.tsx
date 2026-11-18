@@ -7,6 +7,7 @@ import {
   type ReviewConceptElement,
   type ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
+import { paletteSwatches } from "../../boards/brand/ActiveBrand";
 import { ColorWell } from "../../boards/ColorWell";
 import { ConceptSelect } from "./ConceptControls";
 
@@ -97,7 +98,12 @@ export function ConceptColorField({
             />
           </div>
         ) : null}
-        <ColorWell label={ariaLabel} noVars onChange={onChange} value={value} />
+        <ColorWell
+          label={ariaLabel}
+          onChange={onChange}
+          swatches={paletteSwatches(brandDoc?.palette)}
+          value={value}
+        />
       </div>
     </div>
   );

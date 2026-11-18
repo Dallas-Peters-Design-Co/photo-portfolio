@@ -533,14 +533,13 @@
   --z-photo-editor: 100;
   --z-board-panel: 200;
   --z-wires: 1000;
-  /* One rung above --z-modal-scrim, for the colour picker that portals itself
-     over a scrim of its own. This was the `z-61` that made the ladder
-     unreadable. */
-  --z-color-picker: 61;
   /* A menu that portals out of its control (the shared Select) opens above
      anything it can sit in: the board's panels and the wires over them. At
      --z-popover it opened behind every board panel, out of reach. */
   --z-menu: 1100;
+  /* The variable manager and its nested color picker open from editor dialogs. */
+  --z-color-variables: calc(var(--z-menu) + 1);
+  --z-color-picker: calc(var(--z-color-variables) + 2);
 }
 
 /* Register --gradient-angle as a typed property so browsers can interpolate it */

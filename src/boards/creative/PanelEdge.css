@@ -1,0 +1,27 @@
+.creative__splitter {
+  z-index: 3;
+  grid-row: 2;
+  align-self: stretch;
+  width: 8px;
+  height: auto;
+  margin: 0;
+  touch-action: none;
+  cursor: col-resize;
+  border: 0;
+
+  &:hover,
+  &:focus-visible {
+    background: color-mix(in oklch, var(--color-board-ink) 14%, transparent);
+  }
+}
+
+.creative__splitter--left {
+  grid-column: 2;
+  justify-self: start;
+}
+
+.creative__splitter--right {
+  grid-column: 3;
+  justify-self: start;
+  margin-left: -8px;
+}

@@ -7,7 +7,10 @@ import { createPortal } from "react-dom";
 const PICKER_WIDTH = 240;
 const PICKER_HEIGHT = 420;
 
-import { OklchPicker } from "../components/ui/OklchPicker";
+import {
+  OklchPicker,
+  type OklchPickerProps,
+} from "../components/ui/OklchPicker";
 import { useBrandSwatches } from "./brand/ActiveBrand";
 import { ColorVarsRow } from "./colorVars/ColorVarsRow";
 import { varFor } from "./colorVars/colorVars";
@@ -37,6 +40,7 @@ interface ColorWellProps {
   /** Leave out the board's colour variables (a variable's own well). */
   noVars?: boolean;
   onChange: (color: string) => void;
+  swatches?: OklchPickerProps["swatches"];
   value: string;
 }
 
@@ -52,6 +56,7 @@ export const pickerSeed = (value: string): string =>
 export function ColorWell({
   alpha = true,
   label,
+  swatches,
   noVars = false,
   onChange,
   value,
@@ -99,8 +104,14 @@ export function ColorWell({
     // Below the swatch, unless that would run off the bottom of the window.
     const wantsAbove = box.bottom + PICKER_HEIGHT > window.innerHeight;
     setAt({
-      left: Math.min(box.left, window.innerWidth - PICKER_WIDTH - 8),
-      top: wantsAbove ? box.top - PICKER_HEIGHT - 8 : box.bottom + 8,
+      left: Math.max(
+        8,
+        Math.min(box.left, window.innerWidth - PICKER_WIDTH - 8)
+      ),
+      top: Math.max(
+        8,
+        wantsAbove ? box.top - PICKER_HEIGHT - 8 : box.bottom + 8
+      ),
     });
   };
 
@@ -169,7 +180,7 @@ export function ColorWell({
                 <OklchPicker
                   alpha={alpha}
                   onChange={onChange}
-                  swatches={brandSwatches}
+                  swatches={swatches ?? brandSwatches}
                   value={pickerSeed(value)}
                 />
                 {/* Sampling beats matching by eye when the color wanted is
@@ -178,7 +189,11 @@ export function ColorWell({
                     browser has no sampler: a control that cannot work is worse
                     than one that is not offered. */}
                 {noVars ? null : (
-                  <ColorVarsRow onChange={onChange} value={value} />
+                  <ColorVarsRow
+                    onChange={onChange}
+                    onManage={() => setAt(null)}
+                    value={value}
+                  />
                 )}
                 {canSample ? (
                   <button

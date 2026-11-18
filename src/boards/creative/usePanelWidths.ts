@@ -1,4 +1,8 @@
-import { type PointerEvent as ReactPointerEvent, useState } from "react";
+import {
+  type PointerEvent as ReactPointerEvent,
+  useEffect,
+  useState,
+} from "react";
 
 /**
  * The frame editor's two side panels, at the widths you drag them to.
@@ -14,13 +18,13 @@ export const PANEL_MAX = 520;
 const DEFAULTS = { left: 240, leftOpen: true, right: 288, rightOpen: true };
 type Panels = typeof DEFAULTS;
 
-const clampWidth = (n: number) =>
-  Math.round(Math.min(PANEL_MAX, Math.max(PANEL_MIN, n)));
+const clampWidth = (n: number, max = PANEL_MAX) =>
+  Math.round(Math.min(max, Math.max(PANEL_MIN, n)));
 
-const read = (): Panels => {
+const read = (storageKey: string): Panels => {
   try {
     const stored = JSON.parse(
-      localStorage.getItem(KEY) ?? "{}"
+      localStorage.getItem(storageKey) ?? "{}"
     ) as Partial<Panels>;
     return {
       left: clampWidth(Number(stored.left) || DEFAULTS.left),
@@ -33,14 +37,36 @@ const read = (): Panels => {
   }
 };
 
-export const usePanelWidths = () => {
-  const [panels, setPanels] = useState<Panels>(read);
+export const usePanelWidths = (storageKey = KEY, viewportShare?: number) => {
+  const [saved, setPanels] = useState<Panels>(() => read(storageKey));
+  const limit = () =>
+    viewportShare
+      ? Math.min(PANEL_MAX, Math.floor(window.innerWidth * viewportShare))
+      : PANEL_MAX;
+  const [max, setMax] = useState(limit);
+  useEffect(() => {
+    if (!viewportShare) {
+      return;
+    }
+    const resize = () =>
+      setMax(
+        Math.min(PANEL_MAX, Math.floor(window.innerWidth * viewportShare))
+      );
+    resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [viewportShare]);
+  const panels = {
+    ...saved,
+    left: Math.min(max, saved.left),
+    right: Math.min(max, saved.right),
+  };
 
   const update = (next: Partial<Panels>) =>
     setPanels((was) => {
       const merged = { ...was, ...next };
       try {
-        localStorage.setItem(KEY, JSON.stringify(merged));
+        localStorage.setItem(storageKey, JSON.stringify(merged));
       } catch {
         // Private windows can refuse storage; the width still holds for now.
       }
@@ -57,19 +83,25 @@ export const usePanelWidths = () => {
     const from = panels[side];
     const move = (ev: PointerEvent) => {
       const dx = ev.clientX - startX;
-      update({ [side]: clampWidth(side === "left" ? from + dx : from - dx) });
+      update({
+        [side]: clampWidth(side === "left" ? from + dx : from - dx, max),
+      });
     };
     const stop = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
   };
 
   /** ← and → on a focused edge: 16px at a time. */
   const nudge = (side: "left" | "right", dx: number) =>
-    update({ [side]: clampWidth(panels[side] + (side === "left" ? dx : -dx)) });
+    update({
+      [side]: clampWidth(panels[side] + (side === "left" ? dx : -dx), max),
+    });
 
   return {
     /** The editor's class, with the hidden panels marked. */
@@ -80,6 +112,7 @@ export const usePanelWidths = () => {
     ]
       .filter(Boolean)
       .join(" "),
+    max,
     nudge,
     panels,
     reset: (side: "left" | "right") => update({ [side]: DEFAULTS[side] }),

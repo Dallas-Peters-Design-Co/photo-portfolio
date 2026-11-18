@@ -78,7 +78,7 @@ export function SvgColours({
     return (
       <div className="svg-colours">
         <div className="svg-colours__row">
-          <ColorWell label="Tint" noVars onChange={onTint} value={tint} />
+          <ColorWell label="Tint" onChange={onTint} value={tint} />
           <span className="svg-colours__hex">{tint.toUpperCase()}</span>
           <span className="svg-colours__count">whole picture</span>
         </div>
@@ -117,7 +117,6 @@ export function SvgColours({
           <li className="svg-colours__row" key={c.hex}>
             <ColorWell
               label={`Colour ${i + 1}`}
-              noVars
               onChange={(next) =>
                 setChanges((was) => {
                   const out = new Map(was);

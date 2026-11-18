@@ -61,7 +61,7 @@
 .color-vars__scrim {
   position: fixed;
   inset: 0;
-  z-index: var(--z-modal-scrim);
+  z-index: var(--z-color-variables);
   cursor: default;
   background: rgb(0 0 0 / 0.3);
 }
@@ -70,7 +70,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-  z-index: var(--z-modal-scrim);
+  z-index: var(--z-color-variables);
   display: grid;
   gap: 12px;
   width: min(420px, calc(100vw - 32px));

@@ -228,7 +228,6 @@ export function PaletteTool({
             <ColorWell
               alpha={false}
               label={`Colour ${i + 1}`}
-              noVars
               onChange={(hex) =>
                 setColors((was) => was.map((v, k) => (k === i ? hex : v)))
               }

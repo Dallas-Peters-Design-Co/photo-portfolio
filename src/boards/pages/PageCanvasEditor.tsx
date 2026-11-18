@@ -1,6 +1,7 @@
 import "@fontsource-variable/public-sans/wght.css";
 import "@fontsource/archivo/latin-600.css";
 import { ArrowLeft, Copy, Play, Plus, Trash2 } from "lucide-react";
+import type { CSSProperties } from "react";
 import { MAX_CONCEPT_STEPS } from "../../../config/conceptSteps.js";
 import type { PageDesign } from "../../../config/pageDesign.js";
 import {
@@ -8,6 +9,8 @@ import {
   MAX_CONCEPT_ELEMENTS,
 } from "../../../config/reviewConcept.js";
 import type { BoardItem } from "../../types";
+import { PanelEdge } from "../creative/PanelEdge";
+import { usePanelWidths } from "../creative/usePanelWidths";
 import { PageCanvasInspector } from "./PageCanvasInspector";
 import { PageCanvasStage } from "./PageCanvasStage";
 import { PageDesignView } from "./PageDesignView";
@@ -27,6 +30,7 @@ export function PageCanvasEditor({
   onClose: () => void;
 }) {
   const editor = usePageCanvas(frame, onChange);
+  const widths = usePanelWidths("page-builder:panels", 0.32);
   const dialog = usePageEditorDialog(onClose);
   const {
     brand,
@@ -61,6 +65,12 @@ export function PageCanvasEditor({
       onKeyDown={dialog.onKeyDown}
       ref={dialog.ref}
       role="dialog"
+      style={
+        {
+          "--inspector-width": `${widths.panels.right}px`,
+          "--library-width": `${widths.panels.left}px`,
+        } as CSSProperties
+      }
     >
       <header className="page-builder__header">
         <button
@@ -169,6 +179,7 @@ export function PageCanvasEditor({
           </button>
         ))}
       </aside>
+      <PanelEdge label="component library" panels={widths} side="left" />
       <main className="page-builder__main">
         <nav aria-label="Page states" className="page-builder__steps">
           {steps.map((s, i) => (
@@ -208,18 +219,26 @@ export function PageCanvasEditor({
             ? "Try the controls in the page. Back and Next move between states."
             : "Drag to move. Drag the corner to resize. Arrow keys nudge; Shift moves 10 px."}
         </p>
-        {playing ? (
-          <PageDesignView page={resolved} />
-        ) : (
-          <PageCanvasStage
-            onBox={setBox}
-            onSelect={setSelected}
-            page={resolved}
-            selected={selected}
-            stepIndex={at}
-          />
-        )}
+        <div className="page-builder__workspace">
+          <div
+            className="page-builder__screen"
+            style={{ maxWidth: page.width }}
+          >
+            {playing ? (
+              <PageDesignView page={resolved} />
+            ) : (
+              <PageCanvasStage
+                onBox={setBox}
+                onSelect={setSelected}
+                page={resolved}
+                selected={selected}
+                stepIndex={at}
+              />
+            )}
+          </div>
+        </div>
       </main>
+      <PanelEdge label="inspector" panels={widths} side="right" />
       <PageCanvasInspector editor={editor} />
     </div>
   );

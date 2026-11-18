@@ -12,6 +12,7 @@ import {
   MAX_PALETTE,
   paletteFromCss,
 } from "../../../config/brandKit.js";
+import { paletteSwatches } from "../../boards/brand/ActiveBrand";
 import { ColorWell } from "../../boards/ColorWell";
 import { LOOK_FAMILIES, LOOKS } from "../../editor/presets";
 import {
@@ -414,6 +415,7 @@ export function PaletteEditor({
             alpha={false}
             label="Colour"
             onChange={(value) => set(index, { value })}
+            swatches={paletteSwatches(doc.palette)}
             value={isHexColour(entry.value) ? entry.value : "#000000"}
           />
           <Input

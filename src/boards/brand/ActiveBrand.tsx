@@ -82,16 +82,12 @@ export function ActiveBrandProvider({
 export const useActiveBrand = (): ActiveBrandValue | null =>
   useContext(ActiveBrandContext);
 
+export const paletteSwatches = (palette?: BrandKit["resolvedDoc"]["palette"]) =>
+  palette?.map((entry) => ({
+    color: entry.value,
+    title: [entry.name, entry.role].filter(Boolean).join(" · ") || entry.value,
+  }));
+
 /** The active brand's colours, as the colour picker's preset swatches. */
-export const useBrandSwatches = ():
-  | { color: string; title: string }[]
-  | undefined => {
-  const brand = useActiveBrand();
-  const palette = brand?.kit?.resolvedDoc.palette ?? [];
-  return palette.length > 0
-    ? palette.map((p) => ({
-        color: p.value,
-        title: [p.name, p.role].filter(Boolean).join(" · ") || p.value,
-      }))
-    : undefined;
-};
+export const useBrandSwatches = () =>
+  paletteSwatches(useActiveBrand()?.kit?.resolvedDoc.palette);

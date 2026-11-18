@@ -33,6 +33,7 @@ const kit = {
         name: "Primary",
       },
     ],
+    palette: [{ name: "Harbor", role: "Accent", value: "#114477" }],
   },
 };
 vi.mock("../brand/ActiveBrand", async (importOriginal) => ({
@@ -456,4 +457,78 @@ it("wraps a placed item at its original position and moves a sibling into its gr
     second.id,
   ]);
   expect(latest?.boxes[group?.id ?? ""]).toEqual(box);
+});
+
+it("keeps the screen centered when either sidebar changes width", async () => {
+  await page.viewport(1440, 900);
+  await mount({
+    boxes: {},
+    concept: createConcept(),
+    height: 320,
+    kitId: null,
+    version: 1,
+    width: 480,
+  });
+  const rect = (selector: string) => {
+    const el = host.querySelector(selector);
+    if (!el) {
+      throw new Error(`Missing ${selector}`);
+    }
+    return el.getBoundingClientRect();
+  };
+  const checkCenter = () => {
+    const workspace = rect(".page-builder__workspace");
+    const screen = rect(".page-design__sheet");
+    expect(screen.x + screen.width / 2).toBeCloseTo(
+      workspace.x + workspace.width / 2,
+      0
+    );
+    expect(screen.y + screen.height / 2).toBeCloseTo(
+      workspace.y + workspace.height / 2,
+      0
+    );
+  };
+  checkCenter();
+  try {
+    const resize = async (label: string, selector: string, key: string) => {
+      const before = rect(selector).width;
+      const edge = page.getByRole("separator", { name: `Resize the ${label}` });
+      await act(() => {
+        edge
+          .element()
+          .dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key }));
+      });
+      expect(rect(selector).width).toBe(before + 16);
+      checkCenter();
+    };
+    await resize("component library", ".page-builder__library", "ArrowRight");
+    await resize("inspector", ".page-builder__inspector", "ArrowLeft");
+    await act(() =>
+      page.getByRole("button", { exact: true, name: "Play" }).click()
+    );
+    checkCenter();
+  } finally {
+    localStorage.removeItem("page-builder:panels");
+  }
+});
+
+it("applies the selected kit's swatch from the page background OKLCH picker", async () => {
+  await page.viewport(1440, 900);
+  await mount();
+  await act(() =>
+    page.getByRole("button", { exact: true, name: "Page background" }).click()
+  );
+  expect(
+    document.querySelector('[aria-label="Lightness and chroma"]')
+  ).not.toBeNull();
+  const swatch = page.getByRole("button", {
+    exact: true,
+    name: "Harbor · Accent",
+  });
+  await act(() => swatch.click());
+  expect(latest?.concept.background).toBe("#114477");
+  expect(
+    host.querySelector<HTMLElement>(".page-design__sheet")?.style
+      .backgroundColor
+  ).toBe("rgb(17, 68, 119)");
 });

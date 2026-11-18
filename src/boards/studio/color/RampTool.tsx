@@ -196,7 +196,6 @@ export function RampTool({
           <ColorWell
             alpha={false}
             label="Colour to add"
-            noVars
             onChange={setPick}
             value={pick}
           />

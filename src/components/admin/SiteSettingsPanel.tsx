@@ -12,6 +12,8 @@ import {
   SANS_FONTS,
   SERIF_FONTS,
 } from "../../../config/theme";
+import { paletteSwatches } from "../../boards/brand/ActiveBrand";
+import { useBrandKits } from "../../hooks/useBrandKits";
 import posthog from "../../lib/posthog";
 import { authStorage, settingsApi } from "../../services/portfolioService";
 import { siteConfig } from "../../site";
@@ -93,6 +95,10 @@ const TEXT_FIELDS: {
 export function SiteSettingsPanel() {
   const { settings, setSettings } = useSiteSettings();
   const [draft, setDraft] = useState<ResolvedSiteSettings>(settings);
+  const { kits } = useBrandKits();
+  const swatches = paletteSwatches(
+    kits.find((kit) => kit.id === draft.theme.brandKitId)?.resolvedDoc.palette
+  );
   const [isSaving, setIsSaving] = useState(false);
   /**
    * Which swatch has its picker open, rather than whether one is.
@@ -233,6 +239,7 @@ export function SiteSettingsPanel() {
                             // WCAG warning below rather than fail loudly.
                             alpha={false}
                             onChange={(hex) => setTheme(key, hex)}
+                            swatches={swatches}
                             value={draft.theme[key]}
                           />
                         </div>
@@ -285,6 +292,7 @@ export function SiteSettingsPanel() {
             onChange={(pinColors) =>
               setDraft((d) => ({ ...d, theme: { ...d.theme, pinColors } }))
             }
+            swatches={swatches}
           />
 
           <div className="space-y-4">

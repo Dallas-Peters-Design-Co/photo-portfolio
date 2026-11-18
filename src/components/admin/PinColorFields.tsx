@@ -3,7 +3,7 @@ import { PIN_KINDS, PIN_LABELS, type PinKind } from "../../../config/review.js";
 import { inkOn } from "../../../config/theme";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
-import { OklchPicker } from "../ui/OklchPicker";
+import { OklchPicker, type OklchPickerProps } from "../ui/OklchPicker";
 
 /**
  * The fill of each kind of review note, in the site settings.
@@ -14,9 +14,11 @@ import { OklchPicker } from "../ui/OklchPicker";
  */
 export function PinColorFields({
   colors,
+  swatches,
   labelClass,
   onChange,
 }: {
+  swatches?: OklchPickerProps["swatches"];
   colors: Record<PinKind, string>;
   labelClass: string;
   onChange: (next: Record<PinKind, string>) => void;
@@ -72,6 +74,7 @@ export function PinColorFields({
                       <OklchPicker
                         alpha={false}
                         onChange={(hex) => set(kind, hex)}
+                        swatches={swatches}
                         value={fill}
                       />
                     </div>

@@ -223,7 +223,6 @@ function SchemeBuilder({
             <ColorWell
               alpha={false}
               label={`${nameOf(selected)} colour`}
-              noVars
               onChange={(hex) => {
                 const { c, h, l } = lchOf(hex);
                 scheme.setColour(selected, { c, h, l });

@@ -1,13 +1,16 @@
-import type { usePanelWidths } from "./usePanelWidths";
+import "./PanelEdge.css";
+import { PANEL_MIN, type usePanelWidths } from "./usePanelWidths";
 
 /**
  * The inner edge of a side panel: drag to resize, double-click to reset,
  * or focus it and use ← →.
  */
 export function PanelEdge({
+  label,
   panels,
   side,
 }: {
+  label?: string;
   panels: ReturnType<typeof usePanelWidths>;
   side: "left" | "right";
 }) {
@@ -16,13 +19,13 @@ export function PanelEdge({
   if (!open) {
     return null;
   }
-  const name = side === "left" ? "layers panel" : "brand panel";
+  const name = label ?? (side === "left" ? "layers panel" : "brand panel");
   return (
     <hr
       aria-label={`Resize the ${name}`}
       aria-orientation="vertical"
-      aria-valuemax={520}
-      aria-valuemin={180}
+      aria-valuemax={panels.max}
+      aria-valuemin={Math.min(PANEL_MIN, panels.max)}
       aria-valuenow={panels.panels[side]}
       className={`creative__splitter creative__splitter--${side}`}
       onDoubleClick={() => panels.reset(side)}

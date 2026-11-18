@@ -2,9 +2,10 @@ import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
 import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
+import { ConceptColorField } from "../../components/admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../../components/admin/ReviewConceptElementFields";
 import "../../components/admin/ReviewConceptsEditor.css";
-import { PageField, PageNumber, PageSelect } from "./PageFields";
+import { PageNumber, PageSelect } from "./PageFields";
 import { PageTooltipFields } from "./PageTooltipFields";
 import type { usePageCanvas } from "./usePageCanvas";
 
@@ -56,20 +57,16 @@ export function PageCanvasInspector({
           value={page.height}
         />
       </div>
-      <PageField label="Page background">
-        <input
-          aria-label="Page background"
-          className="page-builder__color"
-          onChange={(e) =>
-            write({
-              ...resolved,
-              concept: { ...concept, background: e.target.value },
-            })
-          }
-          type="color"
-          value={concept.background}
-        />
-      </PageField>
+      <ConceptColorField
+        allowNone
+        ariaLabel="Page background"
+        brandDoc={doc}
+        label="Page background"
+        onChange={(background) =>
+          write({ ...resolved, concept: { ...concept, background } })
+        }
+        value={concept.background}
+      />
       {step && steps.length > 1 ? (
         <>
           <h2>Interaction</h2>
