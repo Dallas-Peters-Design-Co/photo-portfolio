@@ -7,6 +7,7 @@ import {
   type ConceptSlotJustify,
   type ConceptSlotLayout,
   type ConceptSlotName,
+  LAYOUT_SLOTS,
   SLIDE_SIDES,
   SLOT_DEFAULTS,
   SLOT_LIMITS,
@@ -47,8 +48,9 @@ const SLOT_LABELS: Record<ConceptSlotName, string> = {
   body: "Body",
   footer: "Footer",
   header: "Header",
-  hide: "Hide button",
+  hide: "Close button",
 };
+const PANEL_SLOTS: readonly ConceptSlotName[] = ["hide", ...LAYOUT_SLOTS];
 
 /** A navbar's slots, as it lays them out: start, middle, end. */
 const BAR_LABELS: Record<ConceptSlotName, string> = {
@@ -183,7 +185,11 @@ export function SlotFields({
         brandDoc={brandDoc}
         depth={depth + 1}
         elements={slot.elements}
-        label={listLabel ?? `In the ${name}`}
+        initiallyOpen={name === "hide"}
+        label={
+          listLabel ??
+          (name === "hide" ? "Close button style" : `In the ${name}`)
+        }
         onChange={(elements) => set({ elements })}
       />
     </div>
@@ -237,26 +243,25 @@ export function ConceptSlotFields({
             />
           </ConceptField>
           <p className="review-concepts__hint">
-            Put a close button or ✕ in the Hide button slot: it sits in the
-            top-right corner, and clicking it slides the panel away.
+            The close button sits in the header and slides the panel away.
           </p>
         </ConceptGroup>
       ) : null}
-      {SLOT_NAMES.filter(
-        (name) => name !== "hide" || element.kind === "panel"
-      ).map((name) => (
-        <SlotFields
-          brandDoc={brandDoc}
-          depth={depth}
-          key={name}
-          label={
-            element.kind === "navbar" ? `${BAR_LABELS[name]} slot` : undefined
-          }
-          name={name}
-          onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
-          slot={slots[name] ?? { elements: [] }}
-        />
-      ))}
+      {(element.kind === "panel" ? PANEL_SLOTS : SLOT_NAMES)
+        .filter((name) => name !== "hide" || element.kind === "panel")
+        .map((name) => (
+          <SlotFields
+            brandDoc={brandDoc}
+            depth={depth}
+            key={name}
+            label={
+              element.kind === "navbar" ? `${BAR_LABELS[name]} slot` : undefined
+            }
+            name={name}
+            onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
+            slot={slots[name] ?? { elements: [] }}
+          />
+        ))}
     </>
   );
 }

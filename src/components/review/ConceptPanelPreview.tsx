@@ -97,6 +97,17 @@ export function ConceptPanelPreview({
       <ConceptSlotsView
         dividers={element.dividers}
         draw={draw}
+        headerEnd={
+          hide.length > 0 ? (
+            <div
+              className="concept-panel__hide"
+              data-concept-hide
+              ref={hideSlot}
+            >
+              {hide.map(draw)}
+            </div>
+          ) : undefined
+        }
         lead={
           element.text ? (
             <strong className="concept-slot__lead">{element.text}</strong>
@@ -104,11 +115,6 @@ export function ConceptPanelPreview({
         }
         slots={element.slots}
       />
-      {hide.length > 0 ? (
-        <div className="concept-panel__hide" data-concept-hide ref={hideSlot}>
-          {hide.map(draw)}
-        </div>
-      ) : null}
     </section>
   );
 }

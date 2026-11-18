@@ -200,6 +200,7 @@ export function ConceptElementList({
   depth = 0,
   elements,
   label,
+  initiallyOpen = false,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
@@ -207,6 +208,7 @@ export function ConceptElementList({
   depth?: number;
   elements: ReviewConceptElement[];
   label: string;
+  initiallyOpen?: boolean;
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
@@ -398,6 +400,7 @@ export function ConceptElementList({
                 <GripVertical aria-hidden size={14} />
               </button>
             }
+            initiallyOpen={initiallyOpen}
             onChange={(patch) => update(element.id, patch)}
             onDuplicate={() =>
               onChange(duplicateConceptElement(elements, element.id))

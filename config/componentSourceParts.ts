@@ -174,22 +174,26 @@ const slotsOf = (
   element: ReviewConceptElement,
   cls: string,
   draw: Draw,
-  lead: string
+  lead: string,
+  headerEnd = ""
 ): { css: string; jsx: string } => {
   const css: string[] = [];
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: each slot contributes optional lead, contents and close control in order
   const slots = LAYOUT_SLOTS.map((name: ConceptSlotName) => {
     const slot = element.slots?.[name];
     const filled = slot?.elements.length ? slot : undefined;
     const led = name === "header" && lead;
-    if (!(led || filled)) {
+    const end = name === "header" ? headerEnd : "";
+    if (!(led || filled || end)) {
       return "";
     }
+    const defaultStyle = end ? ' style={{ padding: "8px" }}' : "";
     const style = slot
       ? ` style={{ gap: ${slot.gap ?? SLOT_DEFAULTS.gap}, padding: "${slot.paddingY ?? SLOT_DEFAULTS.paddingY}px ${slot.paddingX ?? SLOT_DEFAULTS.paddingX}px" }}`
-      : "";
+      : defaultStyle;
     const items = filled ? slotItems(filled, `${cls}__${name}`, draw, css) : "";
-    const inner = [led ? lead : "", items].filter(Boolean).join("\n");
-    return `<div className="@@__slot" data-slot="${name}"${led ? " data-led" : ""}${style}>\n${indent(inner)}\n</div>`;
+    const inner = [led ? lead : "", items, end].filter(Boolean).join("\n");
+    return `<div className="@@__slot" data-slot="${name}"${led || end ? " data-led" : ""}${end ? " data-close" : ""}${style}>\n${indent(inner)}\n</div>`;
   }).filter(Boolean);
   return {
     css: css.join("\n"),
@@ -245,27 +249,31 @@ ${SLOTS_CSS}`,
 };
 
 export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
-  const slotted = withSlots(
-    el,
-    draw,
-    el.text ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>` : ""
-  );
-  // The hide slot: its close button or ✕, in the top-right corner.
+  // The close control shares the header, so its width cannot cover its contents.
   const hidden = (el.slots?.hide?.elements ?? []).map((child, i) =>
     draw(child, `@@__hide-${i + 1}`)
   );
   const hide =
     hidden.length > 0
-      ? `\n<div className="@@__hide">\n${hidden.map((h) => indent(h.jsx)).join("\n")}\n</div>`
+      ? `<div className="@@__hide">\n${hidden.map((h) => indent(h.jsx)).join("\n")}\n</div>`
       : "";
+  const slotted = withSlots(
+    el,
+    draw,
+    el.text
+      ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>`
+      : "",
+    hide
+  );
   return {
     attrs: `aria-label=${JSON.stringify(el.text || "Panel")}`,
-    body: `${slotted.body ?? ""}${hide}`,
+    body: slotted.body,
     childCss: [slotted.childCss, ...hidden.map((h) => h.css)]
       .filter(Boolean)
       .join("\n"),
     css: `& { position: relative; display: flex; flex-direction: column; width: 100%; min-width: 0; }
-&__hide { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; }
+&__hide { display: flex; flex: 0 0 auto; gap: 4px; margin-left: auto; }
+&__slot[data-close] { flex-wrap: nowrap; }
 ${SLOTS_CSS}`,
     tag: "section",
   };
@@ -299,12 +307,13 @@ export const logoMarkup = (el: ReviewConceptElement): Markup => ({
 const withSlots = (
   el: ReviewConceptElement,
   draw: Draw,
-  lead: string
+  lead: string,
+  headerEnd = ""
 ): Pick<Markup, "body" | "childCss"> => {
   // The children's classes need the block's class now; "@@" holds its place
   // in this element's own markup and is resolved with the rest.
   const placeholder = "@@";
-  const drawn = slotsOf(el, placeholder, draw, lead);
+  const drawn = slotsOf(el, placeholder, draw, lead, headerEnd);
   return { body: drawn.jsx, childCss: drawn.css };
 };
 

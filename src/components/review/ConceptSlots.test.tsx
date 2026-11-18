@@ -105,8 +105,8 @@ it("edits each slot's layout and lists what it holds", () => {
   const gaps = [
     ...host.querySelectorAll<HTMLInputElement>('input[aria-label="Gap"]'),
   ];
-  // Header, body, footer: the body's is the second.
-  const [, bodyGap] = gaps;
+  // Close button, header, body, footer.
+  const [, , bodyGap] = gaps;
   if (!bodyGap) {
     throw new Error("A gap field per slot");
   }
@@ -119,6 +119,24 @@ it("edits each slot's layout and lists what it holds", () => {
     bodyGap.dispatchEvent(new Event("input", { bubbles: true }));
   });
   expect(host.querySelector('[data-testid="gap"]')?.textContent).toBe("20");
+});
+
+it("keeps a large close button beside the panel header instead of over its badge", () => {
+  host.style.width = "300px";
+  const panel = createConceptElement("panel");
+  const close = panel.slots?.hide?.elements[0];
+  if (!(close && panel.slots?.hide)) {
+    throw new Error("Panel has no close button");
+  }
+  close.paddingX = 24;
+  act(() => root.render(<ReviewConceptElementView element={panel} />));
+  const badge = host.querySelector<HTMLElement>(
+    '.concept-slot[data-slot="header"] .concept-slot__items'
+  );
+  const button = host.querySelector<HTMLElement>(".concept-panel__hide");
+  expect(badge?.getBoundingClientRect().right).toBeLessThanOrEqual(
+    button?.getBoundingClientRect().left ?? 0
+  );
 });
 
 it("puts a card's header elements beside its text, across the full card", () => {

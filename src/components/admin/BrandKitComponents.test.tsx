@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
 import { type BrandKitDoc, EMPTY_KIT } from "../../../config/brandKit.js";
+import { createConceptElement } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { BrandKitComponents } from "./BrandKitComponents";
 
@@ -104,6 +105,53 @@ it("keeps the icon picked for a style", async () => {
   expect(host.querySelector('[aria-label="Card icon"]')?.textContent).toContain(
     "Favourite"
   );
+  host.remove();
+});
+
+it("edits the panel's close button in the brand kit", async () => {
+  const panel = createConceptElement("panel");
+  function PanelKit() {
+    const [doc, setDoc] = useState<BrandKitDoc>({
+      ...EMPTY_KIT,
+      componentStyles: [
+        {
+          id: "panel-test",
+          kind: "panel",
+          look: { contents: panel.slots },
+          name: "Primary",
+        },
+      ],
+    });
+    saved = doc;
+    return (
+      <BrandKitComponents
+        doc={doc}
+        effective={doc}
+        kitId="kit-1"
+        onChange={setDoc}
+      />
+    );
+  }
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(() => root.render(<PanelKit />));
+  await userEvent.click(
+    host.querySelector('[aria-label="Open Panel Primary"]') as HTMLElement
+  );
+  const button = [
+    ...host.querySelectorAll<HTMLElement>('[aria-label="button"]'),
+  ].find((section) => section.querySelector('[aria-label="Padding X"]'));
+  const padding = button?.querySelector<HTMLInputElement>(
+    '[aria-label="Padding X"]'
+  );
+  expect(padding).toBeDefined();
+  await userEvent.clear(padding as HTMLInputElement);
+  await userEvent.type(padding as HTMLInputElement, "20");
+  expect(
+    saved.componentStyles[0]?.look.contents?.hide?.elements[0]?.paddingX
+  ).toBe(20);
+  await act(() => root.unmount());
   host.remove();
 });
 

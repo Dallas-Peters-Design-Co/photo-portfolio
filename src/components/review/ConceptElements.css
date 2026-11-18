@@ -198,11 +198,10 @@
 
 /* A panel's hide slot: its close button or ✕, in the top-right corner. */
 .concept-panel__hide {
-  position: absolute;
-  top: calc(var(--spacing) * 2);
-  right: calc(var(--spacing) * 2);
   display: flex;
+  flex: 0 0 auto;
   gap: calc(var(--spacing) * 1);
+  margin-left: auto;
   cursor: pointer;
 }
 
@@ -268,15 +267,6 @@
   .concept-panel[data-slide][data-closing] {
     animation: none;
   }
-}
-
-/* Room at the panel's own header's end for its ✕, so it covers nothing.
-   Its own header only: cards inside the panel keep theirs.
-   !important: the slot's own padding is set inline. */
-.concept-panel[data-has-hide]
-  > .concept-slots
-  > .concept-slot[data-slot="header"] {
-  padding-right: 48px !important;
 }
 
 /* A logo: the brand's mark at its height, its width following the picture. */

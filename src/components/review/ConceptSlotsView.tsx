@@ -78,31 +78,35 @@ function Items({
 function Slot({
   draw,
   lead,
+  end,
   name,
   slot,
 }: {
   draw: Draw;
   /** A card's or panel's own text, at the start of its header. */
   lead?: ReactNode;
+  end?: ReactNode;
   name: ConceptSlotName;
   slot?: ConceptSlot;
 }) {
   const filled = slot?.elements.length ? slot : undefined;
-  if (!(lead || filled)) {
+  if (!(lead || filled || end)) {
     return null;
   }
+  const slotPadding = slot ? padding(slot) : undefined;
   return (
     <div
       className="concept-slot"
-      data-led={lead ? true : undefined}
+      data-led={lead || end ? true : undefined}
       data-slot={name}
       style={{
         gap: slot?.gap ?? SLOT_DEFAULTS.gap,
-        padding: slot ? padding(slot) : undefined,
+        padding: slotPadding ?? (end ? "8px" : undefined),
       }}
     >
       {lead}
       {filled ? <Items draw={draw} slot={filled} /> : null}
+      {end}
     </div>
   );
 }
@@ -117,6 +121,7 @@ export function ConceptSlotsView({
   draw,
   slots = {},
   lead,
+  headerEnd,
 }: {
   /**
    * A navbar: header, body and footer side by side as its start, middle and
@@ -131,6 +136,8 @@ export function ConceptSlotsView({
    * header, which then spans the element even with nothing else in it.
    */
   lead?: ReactNode;
+  /** A panel's close control, beside the header rather than over it. */
+  headerEnd?: ReactNode;
 }) {
   return (
     <div
@@ -141,6 +148,7 @@ export function ConceptSlotsView({
       {LAYOUT_SLOTS.map((name) => (
         <Slot
           draw={draw}
+          end={name === "header" ? headerEnd : undefined}
           key={name}
           lead={name === "header" ? lead : undefined}
           name={name}

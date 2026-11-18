@@ -376,6 +376,7 @@ export function ReviewConceptElementFields({
   element,
   handle,
   lookOnly = false,
+  initiallyOpen = false,
   onChange,
   onDuplicate,
   onLink,
@@ -395,6 +396,8 @@ export function ReviewConceptElementFields({
    * colour, a table's header and borders), none of the content.
    */
   lookOnly?: boolean;
+  /** Open this control by default even when it sits in a slot. */
+  initiallyOpen?: boolean;
   onChange: (patch: Patch) => void;
   onDuplicate?: () => void;
   /** Follow a kit style, or (null) stop following one. */
@@ -407,7 +410,7 @@ export function ReviewConceptElementFields({
   // Each is remembered after it is first opened or folded.
   const [open, setOpen] = useRememberedOpen(
     `concept-element:${element.id}`,
-    depth === 0
+    depth === 0 || initiallyOpen
   );
   const bodyId = useId();
   // Picked in the preview: open, and if it's the one picked, scroll to it.
