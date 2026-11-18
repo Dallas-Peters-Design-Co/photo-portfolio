@@ -161,6 +161,11 @@ const optionalHex = <K extends string>(
 
 const STYLE_ID = /^[a-z0-9-]{1,64}$/i;
 
+const optionalPaint = <K extends string>(key: K, value: unknown) =>
+  value === "transparent"
+    ? ({ [key]: value } as Partial<Record<K, string>>)
+    : optionalHex(key, value);
+
 const num = <K extends string>(
   key: K,
   value: unknown,
@@ -179,8 +184,8 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
   const raw = value as Record<string, unknown>;
   const shadow = cleanShadow(raw.shadow);
   const look: ConceptCellLook = {
-    ...optionalHex("background", raw.background),
-    ...optionalHex("borderColor", raw.borderColor),
+    ...optionalPaint("background", raw.background),
+    ...optionalPaint("borderColor", raw.borderColor),
     ...num("borderWidth", raw.borderWidth, 0, 8),
     ...optionalHex("color", raw.color),
     ...num("fontSize", raw.fontSize, 8, 72),
@@ -203,7 +208,7 @@ const cleanColumn = (value: unknown): ConceptTableColumn => {
     CELL_STYLE_KIND[kind] !== undefined &&
     typeof raw.styleId === "string" &&
     STYLE_ID.test(raw.styleId);
-  const look = linked ? cleanCellLook(raw.look) : undefined;
+  const look = cleanCellLook(raw.look);
   return {
     ...(kind === "button" && raw.buttonStyle === "outline"
       ? { buttonStyle: "outline" as const }

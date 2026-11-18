@@ -34,16 +34,15 @@ const lookCss = (look: ConceptCellLook): string =>
     look.background && `background: ${look.background};`,
     look.borderColor
       ? `border: ${look.borderWidth ?? 1}px solid ${look.borderColor};`
-      : "border: none;",
+      : look.borderWidth === 0 && "border: none;",
     look.radius !== undefined && `border-radius: ${look.radius}px;`,
     look.shadow && `box-shadow: ${shadowCss(look.shadow)};`,
     look.color && `color: ${look.color};`,
     look.fontSize !== undefined && `font-size: ${look.fontSize}px;`,
     look.fontWeight !== undefined && `font-weight: ${look.fontWeight};`,
     look.lineHeight !== undefined && `line-height: ${look.lineHeight};`,
-    look.paddingY !== undefined &&
-      look.paddingX !== undefined &&
-      `padding: ${look.paddingY}px ${look.paddingX}px;`,
+    look.paddingY !== undefined && `padding-block: ${look.paddingY}px;`,
+    look.paddingX !== undefined && `padding-inline: ${look.paddingX}px;`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -124,9 +123,15 @@ const columnsCss = (columns: ConceptTableColumn[]): string =>
       const rules = [`${cell} { --&-tint: ${tintOf(column)}; }`];
       const look = column.look ? lookCss(column.look) : "";
       if (look) {
-        rules.push(`${cell} :is(&__tag, &__chip, &__button) { ${look} }`);
+        if (column.kind === "text" || column.kind === "stacked") {
+          rules.push(`${cell} { ${look} }`);
+        } else {
+          rules.push(
+            `${cell} :is(&__tag, &__chip, &__button, &__progress) { ${look} }`
+          );
+        }
       }
-      return column.kind === "text" || column.kind === "stacked" ? [] : rules;
+      return rules;
     })
     .join("\n");
 

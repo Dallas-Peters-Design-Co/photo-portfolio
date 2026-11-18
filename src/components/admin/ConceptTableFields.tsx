@@ -7,6 +7,7 @@ import {
 } from "../../../config/conceptIcon.js";
 import {
   CUSTOM_CELL_STYLE,
+  cellLookOf,
   columnStyleOf,
 } from "../../../config/conceptStyle.js";
 import {
@@ -51,6 +52,7 @@ import {
   NumberField,
   optionsOf,
 } from "./ConceptControls";
+import { ConceptTableCellStyleFields } from "./ConceptTableCellStyleFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import { SortableList } from "./SortableList";
 
@@ -208,7 +210,12 @@ function ColumnLook({
             onChange={(id) =>
               onChange(
                 id === CUSTOM_CELL_STYLE
-                  ? { look: undefined, styleId: CUSTOM_CELL_STYLE }
+                  ? {
+                      look:
+                        column.look ??
+                        (linked ? cellLookOf(linked.look) : undefined),
+                      styleId: CUSTOM_CELL_STYLE,
+                    }
                   : { styleId: id }
               )
             }
@@ -223,15 +230,27 @@ function ColumnLook({
           />
         </ConceptField>
       ) : null}
-      {linked ? null : (
+      {linked ? (
+        <p className="review-concepts__hint">
+          Choose Custom to edit this column's items.
+        </p>
+      ) : null}
+      {!linked && TINTED.has(column.kind) ? (
         <ConceptColorField
           ariaLabel={`Column ${index + 1} color`}
           brandDoc={brandDoc}
           label="Color"
-          onChange={(color) => onChange({ color })}
+          onChange={(color) =>
+            onChange({
+              color,
+              ...(column.look?.color
+                ? { look: { ...column.look, color } }
+                : {}),
+            })
+          }
           value={column.color ?? textColor}
         />
-      )}
+      ) : null}
       {!linked && column.kind === "button" ? (
         <ConceptField label="Style">
           <ConceptSelect
@@ -244,6 +263,15 @@ function ColumnLook({
           />
         </ConceptField>
       ) : null}
+      {linked ? null : (
+        <ConceptTableCellStyleFields
+          brandDoc={brandDoc}
+          column={column}
+          index={index}
+          onChange={(look) => onChange({ look, styleId: CUSTOM_CELL_STYLE })}
+          textColor={textColor}
+        />
+      )}
     </div>
   );
 }
@@ -332,19 +360,6 @@ export function ConceptTableFields({
                       }
                       value={column.width ?? 0}
                     />
-                    {TINTED.has(column.kind) ? (
-                      <ColumnLook
-                        brandDoc={brandDoc}
-                        column={column}
-                        index={index}
-                        onChange={(patch) =>
-                          set(updateColumn(table, index, patch))
-                        }
-                        textColor={element.color}
-                      />
-                    ) : (
-                      <span />
-                    )}
                     <Button
                       aria-label={`Remove column ${index + 1}`}
                       disabled={table.columns.length <= 1}
@@ -355,6 +370,15 @@ export function ConceptTableFields({
                     >
                       <Trash2 size={13} />
                     </Button>
+                    <ColumnLook
+                      brandDoc={brandDoc}
+                      column={column}
+                      index={index}
+                      onChange={(patch) =>
+                        set(updateColumn(table, index, patch))
+                      }
+                      textColor={element.color}
+                    />
                   </div>
                 )}
               </SortableList>

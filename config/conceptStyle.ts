@@ -199,10 +199,10 @@ export const applyConceptStyle = (
 };
 
 /** The part of a badge or button style a table cell draws with. */
-const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
+export const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
   background: look.background,
   borderColor: look.borderColor,
-  borderWidth: look.borderWidth,
+  borderWidth: look.borderColor ? look.borderWidth : 0,
   color: look.color,
   fontSize: look.fontSize,
   fontWeight: look.fontWeight,

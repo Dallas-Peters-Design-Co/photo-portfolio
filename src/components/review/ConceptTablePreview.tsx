@@ -30,6 +30,13 @@ const tintOf = (column: ConceptTableColumn): string =>
 const tint = (column: ConceptTableColumn): CSSProperties =>
   ({ "--concept-tint": tintOf(column) }) as CSSProperties;
 
+const lookBorder = (look: ConceptCellLook): string | undefined => {
+  if (look.borderColor) {
+    return `${look.borderWidth ?? 1}px solid ${look.borderColor}`;
+  }
+  return look.borderWidth === 0 ? "none" : undefined;
+};
+
 /**
  * A cell drawn as its column's kit style draws: the badge's or button's own
  * fill, border, corners, padding, type and shadow, over the tinted default.
@@ -40,19 +47,15 @@ const lookStyle = (look?: ConceptCellLook): CSSProperties =>
         background: look.background,
         // A kit style with no border colour draws none, as the kit does:
         // the cell's own 1px outline made its buttons 2px taller.
-        border: look.borderColor
-          ? `${look.borderWidth ?? 1}px solid ${look.borderColor}`
-          : "none",
+        border: lookBorder(look),
         borderRadius: look.radius,
         boxShadow: look.shadow ? shadowCss(look.shadow) : undefined,
         color: look.color,
         fontSize: look.fontSize,
         fontWeight: look.fontWeight,
         lineHeight: look.lineHeight,
-        padding:
-          look.paddingY === undefined || look.paddingX === undefined
-            ? undefined
-            : `${look.paddingY}px ${look.paddingX}px`,
+        paddingBlock: look.paddingY,
+        paddingInline: look.paddingX,
       }
     : {};
 
@@ -112,7 +115,7 @@ function Cell({
           color={tintOf(column)}
           icon={svg}
           role="img"
-          size="1.25em"
+          size={column.look?.fontSize ?? "1.25em"}
           strokeWidth={2}
         />
       ) : null;
@@ -133,7 +136,10 @@ function Cell({
       // The description and the percent head the bar: the text at the
       // start, the percent at the end.
       return (
-        <span className="concept-table__progress">
+        <span
+          className="concept-table__progress"
+          style={lookStyle(column.look)}
+        >
           <span className="concept-table__progress-head">
             <span>{label}</span>
             <small>{Math.round(percent)}%</small>
@@ -212,8 +218,15 @@ export function ConceptTablePreview({
             // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
             <tr key={rowIndex}>
               {columns.map((column, index) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: as above
-                <td key={index}>
+                <td
+                  // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
+                  key={index}
+                  style={
+                    column.kind === "text" || column.kind === "stacked"
+                      ? lookStyle(column.look)
+                      : undefined
+                  }
+                >
                   <Cell
                     column={column}
                     icons={icons}

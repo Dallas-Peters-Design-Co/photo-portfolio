@@ -2,8 +2,12 @@ import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
+import { componentSource } from "../../../config/componentSource.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
-import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import {
+  cleanConcept,
+  type ReviewConceptElement,
+} from "../../../config/reviewConcept.js";
 import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
@@ -11,10 +15,12 @@ import { ReviewConceptElementView } from "./ReviewConceptElementView";
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
+let latest: ReviewConceptElement;
 function Harness() {
   const [table, setTable] = useState<ReviewConceptElement>(() =>
     createConceptElement("table")
   );
+  latest = table;
   return (
     <>
       <ReviewConceptElementFields
@@ -38,6 +44,30 @@ beforeEach(() => {
   document.body.append(host);
   root = createRoot(host);
   act(() => root.render(<Harness />));
+});
+
+it("styles a column's cell items and retains the appearance when reopened and exported", async () => {
+  const columns = host.querySelectorAll<HTMLElement>(
+    ".review-concepts__table-column"
+  );
+  const [, status] = columns;
+  const details = status?.querySelector<HTMLDetailsElement>(
+    ".review-concepts__cell-style"
+  );
+  expect(details).toBeTruthy();
+  await userEvent.click(details?.querySelector("summary") as HTMLElement);
+  const radius = details?.querySelector<HTMLInputElement>(
+    '[aria-label="Radius"]'
+  );
+  await userEvent.clear(radius as HTMLInputElement);
+  await userEvent.type(radius as HTMLInputElement, "12");
+  const item = preview().querySelector<HTMLElement>(".concept-table__tag");
+  expect(getComputedStyle(item as HTMLElement).borderRadius).toBe("12px");
+  const [reopened] = cleanConcept({ elements: [latest] }).elements;
+  expect(reopened?.table?.columns[1]?.look?.radius).toBe(12);
+  expect(
+    componentSource(reopened as ReviewConceptElement, "Primary").css
+  ).toContain("border-radius: 12px");
 });
 
 afterEach(() => {
