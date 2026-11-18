@@ -467,7 +467,10 @@
 /* Handle, type, name and copy at the start; remove at the far end. */
 .brand-kit-components__head {
   display: grid;
-  grid-template-columns: auto 9rem minmax(0, 18rem) auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 9rem) minmax(0, 18rem) repeat(3, auto) minmax(
+      max-content,
+      1fr
+    );
   gap: calc(var(--spacing) * 2);
   align-items: center;
 }

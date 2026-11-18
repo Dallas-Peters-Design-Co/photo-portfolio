@@ -245,6 +245,7 @@ function ElementBar({
   bodyId,
   element,
   handle,
+  onChange,
   onDuplicate,
   onLink,
   onRemove,
@@ -258,6 +259,7 @@ function ElementBar({
   element: ReviewConceptElement;
   /** The control that moves the element within its list. */
   handle?: ReactNode;
+  onChange?: (patch: Patch) => void;
   onDuplicate?: () => void;
   onLink?: (style: ConceptStyle | null) => void;
   onRemove?: () => void;
@@ -283,6 +285,9 @@ function ElementBar({
           {open ? null : <small>{summaryOf(element)}</small>}
         </button>
         {actions}
+        {onChange ? (
+          <ComponentStyleClipboard element={element} onChange={onChange} />
+        ) : null}
         {onDuplicate ? (
           <Button
             aria-label={`Duplicate ${element.kind}`}
@@ -462,6 +467,7 @@ export function ReviewConceptElementFields({
           bodyId={bodyId}
           element={element}
           handle={handle}
+          onChange={onChange}
           onDuplicate={onDuplicate}
           onLink={onLink}
           onRemove={onRemove}
@@ -475,7 +481,6 @@ export function ReviewConceptElementFields({
       ) : null}
       {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
-          <ComponentStyleClipboard element={element} onChange={onChange} />
           {!lookOnly && element.kind !== "tooltip" ? (
             <ConceptTooltipFields
               brandDoc={brandDoc}

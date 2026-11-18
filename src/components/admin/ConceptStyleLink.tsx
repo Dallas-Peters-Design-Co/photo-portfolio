@@ -1,3 +1,4 @@
+import { Check, ListPlus, RotateCcw, Save, X } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { newComponentStyleLook } from "../../../config/componentStyleTransfer.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
@@ -107,25 +108,27 @@ export function StyleLink({
             {own} {own === 1 ? "change" : "changes"} of its own
           </span>
           <Button
+            aria-label="Reset"
             onClick={() => onLink(linked)}
-            size="xs"
+            size="icon-sm"
             title="Hand these settings back to the kit style"
             type="button"
             variant="ghost"
           >
-            Reset
+            <RotateCcw aria-hidden size={14} />
           </Button>
         </>
       ) : null}
       {kit && linked && own > 0 ? (
         <Button
+          aria-label="Update kit style"
           onClick={() => void updateKitStyle()}
-          size="xs"
+          size="icon-sm"
           title={`Make ${linked.name} in ${kit.kitName} look like this. Every review using it follows.`}
           type="button"
           variant="ghost"
         >
-          Update kit style
+          <Save aria-hidden size={14} />
         </Button>
       ) : null}
       {kit && name !== null ? (
@@ -151,34 +154,39 @@ export function StyleLink({
             value={name}
           />
           <Button
+            aria-label="Add to kit"
             disabled={saving || !name.trim()}
             onClick={() => void saveAsNew()}
-            size="xs"
+            size="icon-sm"
+            title="Add to kit"
             type="button"
             variant="ghost"
           >
-            Add to kit
+            <Check aria-hidden size={14} />
           </Button>
           <Button
+            aria-label="Cancel"
             disabled={saving}
             onClick={() => setName(null)}
-            size="xs"
+            size="icon-sm"
+            title="Cancel"
             type="button"
             variant="ghost"
           >
-            Cancel
+            <X aria-hidden size={14} />
           </Button>
         </>
       ) : null}
       {kit && name === null ? (
         <Button
+          aria-label={linked ? "Save as new style" : "Save as kit style"}
           onClick={() => setName(linked ? `${linked.name} variant` : "")}
-          size="xs"
+          size="icon-sm"
           title={`Save this look to ${kit.kitName} as a new style`}
           type="button"
           variant="ghost"
         >
-          {linked ? "Save as new style" : "Save as kit style"}
+          <ListPlus aria-hidden size={14} />
         </Button>
       ) : null}
     </div>

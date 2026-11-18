@@ -29,6 +29,7 @@ import { rememberedOpen, rememberOpen } from "../../hooks/useRememberedOpen";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { ComponentStyleClipboard } from "./ComponentStyleClipboard";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
 import { CanvasComponentKit } from "./ReviewCanvasComponents";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
@@ -108,6 +109,8 @@ function StyleEditor({
 }) {
   const bodyId = useId();
   const sample = styleSample(style, brand);
+  const changeLook = (patch: Partial<ReviewConceptElement>) =>
+    onChange({ ...style, look: styleLook(sample, patch) });
   return (
     <section className="brand-kit-components__style">
       <header className="brand-kit-components__head">
@@ -131,6 +134,7 @@ function StyleEditor({
           size="sm"
           value={style.name}
         />
+        <ComponentStyleClipboard element={sample} onChange={changeLook} />
         <Button
           aria-label={`Copy ${style.name} source code`}
           onClick={() => copySource(sample, style.name)}
@@ -162,9 +166,7 @@ function StyleEditor({
             brandDoc={brand}
             element={sample}
             lookOnly
-            onChange={(patch) =>
-              onChange({ ...style, look: styleLook(sample, patch) })
-            }
+            onChange={changeLook}
           />
         </div>
       ) : null}

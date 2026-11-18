@@ -1,3 +1,4 @@
+import { ClipboardPaste, Paintbrush } from "lucide-react";
 import { useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import {
@@ -66,19 +67,28 @@ export function ComponentStyleClipboard({
     }
   };
   return (
-    <div className="review-concepts__style-link">
-      <Button onClick={copy} size="xs" type="button" variant="ghost">
-        Copy style
-      </Button>
+    <>
       <Button
-        disabled={!raw}
-        onClick={paste}
-        size="xs"
+        aria-label="Copy style"
+        onClick={copy}
+        size="icon-sm"
+        title="Copy style"
         type="button"
         variant="ghost"
       >
-        Paste style
+        <Paintbrush aria-hidden size={14} />
       </Button>
-    </div>
+      <Button
+        aria-label="Paste style"
+        disabled={!raw}
+        onClick={paste}
+        size="icon-sm"
+        title={raw ? "Paste style" : "Copy a component style first"}
+        type="button"
+        variant="ghost"
+      >
+        <ClipboardPaste aria-hidden size={14} />
+      </Button>
+    </>
   );
 }

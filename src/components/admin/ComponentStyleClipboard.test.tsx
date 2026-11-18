@@ -5,10 +5,9 @@ import { page } from "vitest/browser";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { cleanElement } from "../../../config/reviewConcept.js";
-import { ComponentStyleClipboard } from "./ComponentStyleClipboard";
-import { StyleLink } from "./ConceptStyleLink";
 import { ConfirmProvider } from "./ConfirmProvider";
 import { KitStyleSyncContext } from "./kitStyleSync";
+import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 
 const source = {
   ...createConceptElement("button"),
@@ -27,18 +26,17 @@ function Harness({
     <ConfirmProvider>
       <KitStyleSyncContext.Provider value={{ kitName: "Pretext", save }}>
         <section aria-label="Source">
-          <ComponentStyleClipboard
+          <ReviewConceptElementFields
+            depth={1}
             element={source}
             onChange={() => undefined}
           />
         </section>
         <section aria-label="Destination">
-          <ComponentStyleClipboard
+          <ReviewConceptElementFields
+            depth={1}
             element={element}
             onChange={(patch) => set(cleanElement({ ...element, ...patch }))}
-          />
-          <StyleLink
-            element={element}
             onLink={(style) => set({ ...element, styleId: style?.id })}
             styles={[]}
           />
@@ -57,6 +55,12 @@ it("pastes between kinds, keeps content and saves the result as a named kit vari
   const root = createRoot(host);
   try {
     await act(() => root.render(<Harness save={save} />));
+    expect(
+      host.querySelectorAll('button[aria-expanded="false"][aria-controls]')
+    ).toHaveLength(2);
+    expect(
+      host.querySelectorAll(".review-concepts__element-body")
+    ).toHaveLength(0);
     await page
       .getByRole("region", { exact: true, name: "Source" })
       .getByRole("button", { name: "Copy style" })

@@ -44,7 +44,7 @@ it("pushes an element's own changes back to its kit style", async () => {
     )
   );
   const update = [...host.querySelectorAll("button")].find(
-    (b) => b.textContent === "Update kit style"
+    (b) => b.getAttribute("aria-label") === "Update kit style"
   );
   expect(update).toBeDefined();
   await userEvent.click(update as HTMLElement);
