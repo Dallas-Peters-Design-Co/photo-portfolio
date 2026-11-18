@@ -70,17 +70,18 @@ const yamlString = (value) => JSON.stringify(value);
  * The generated CSS is flat rules only, so a rule's selector is the text
  * between one block and the next brace.
  */
+const scopeSourceCss = (source, slug) =>
+  source.css.replace(/(^|})(\s*)([^{}]+)\{/g, (_, end, space, selector) => {
+    const scoped = selector
+      .split(",")
+      .map((part) => `.bk-${slug} ${part.trim()}`)
+      .join(", ");
+    return `${end}${space}${scoped} {`;
+  });
+
 const scopedCss = (kit) =>
   kit.components
-    .map(({ source }) =>
-      source.css.replace(/(^|})(\s*)([^{}]+)\{/g, (_, end, space, selector) => {
-        const scoped = selector
-          .split(",")
-          .map((part) => `.bk-${kit.slug} ${part.trim()}`)
-          .join(", ");
-        return `${end}${space}${scoped} {`;
-      })
-    )
+    .map(({ source }) => scopeSourceCss(source, kit.slug))
     .join("\n");
 
 const fence = (lang, title, code) =>
@@ -93,7 +94,7 @@ const fence = (lang, title, code) =>
  * off the component.
  */
 const widgetOf = (source) =>
-  `export const Preview${source.name} = () => (\n  <div className="not-prose bk-preview bk-${source.slug}">\n${source.preview
+  `export const Preview${source.name} = () => (\n  <div className="not-prose bk-preview bk-${source.slug}">\n    <style>{${JSON.stringify(`${source.fonts.map((href) => `@import url(${JSON.stringify(href)});`).join("\n")}\n${BASE_CSS}\n${scopeSourceCss(source, source.slug)}`)}}</style>\n${source.preview
     .split("\n")
     .map((line) => `    ${line}`)
     .join("\n")}\n  </div>\n);`;
@@ -155,7 +156,7 @@ const kitPage = (kit, scan) => {
     ].join("\n")
   );
   const widgets = kit.components.map(({ source }) =>
-    widgetOf({ ...source, slug: kit.slug })
+    widgetOf({ ...source, fonts: kit.fonts ?? [], slug: kit.slug })
   );
   const count = kit.components.length;
   return `---
@@ -259,7 +260,9 @@ const readFeed = async () => {
   if (process.env.DOCS_FEED_FILE) {
     return JSON.parse(readFileSync(process.env.DOCS_FEED_FILE, "utf8"));
   }
-  const url = `${ORIGIN}/api/brand-kits?docs=components`;
+  // The public endpoint is CDN-cached for visitors. Each scheduled build must
+  // read the latest kit, including a change saved just before this run.
+  const url = `${ORIGIN}/api/brand-kits?docs=components&build=${Date.now()}`;
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`${url} answered ${res.status}`);

@@ -1148,7 +1148,7 @@
   box-shadow: var(--navbar-primary__header-1-shadow);
 }
 
-.bk-pretext .navbar-primary__header-1 { display: block; height: 32px; width: auto; max-width: 100%; object-fit: contain; }
+.bk-pretext .navbar-primary__header-1 { display: block; height: 39px; width: auto; max-width: 100%; object-fit: contain; }
 .bk-pretext .navbar-primary__body-1 {
   --navbar-primary__body-1-background: transparent;
   --navbar-primary__body-1-color: #f8f9f9;
@@ -1318,6 +1318,68 @@
   outline: 2px solid var(--navbar-primary__footer-2-accent, currentColor);
   outline-offset: 2px;
 }
+.bk-pretext .input-email {
+  --input-email-background: #f8f9f9;
+  --input-email-color: #022732;
+  --input-email-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --input-email-font-size: 16px;
+  --input-email-font-weight: 400;
+  --input-email-line-height: 1;
+  --input-email-padding: 8px 12px;
+  --input-email-radius: 6px;
+  --input-email-border: 1px solid #acb3ad;
+  --input-email-shadow: none;
+  --input-email-icon-size: 16px;
+
+  box-sizing: border-box;
+  background: var(--input-email-background);
+  color: var(--input-email-color);
+  font-family: var(--input-email-font-family);
+  font-size: var(--input-email-font-size);
+  font-weight: var(--input-email-font-weight);
+  line-height: var(--input-email-line-height);
+  padding: var(--input-email-padding);
+  border-radius: var(--input-email-radius);
+  border: var(--input-email-border);
+  box-shadow: var(--input-email-shadow);
+}
+
+.bk-pretext .input-email { display: inline-flex; align-items: center; gap: 8px; cursor: text; }
+.bk-pretext .input-email__icon { flex: none; color: var(--input-email-icon-color, currentColor); }
+.bk-pretext .input-email__field { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
+.bk-pretext .input-email__field::placeholder { color: inherit; opacity: 0.6; }
+.bk-pretext .input-email:focus-within { outline: 2px solid var(--input-email-accent, currentColor); outline-offset: 2px; }
+.bk-pretext .input-password {
+  --input-password-background: #f8f9f9;
+  --input-password-color: #022732;
+  --input-password-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --input-password-font-size: 17px;
+  --input-password-font-weight: 400;
+  --input-password-line-height: 1;
+  --input-password-padding: 8px 12px;
+  --input-password-radius: 6px;
+  --input-password-border: 1px solid #acb3ad;
+  --input-password-shadow: none;
+  --input-password-icon-size: 19px;
+
+  box-sizing: border-box;
+  background: var(--input-password-background);
+  color: var(--input-password-color);
+  font-family: var(--input-password-font-family);
+  font-size: var(--input-password-font-size);
+  font-weight: var(--input-password-font-weight);
+  line-height: var(--input-password-line-height);
+  padding: var(--input-password-padding);
+  border-radius: var(--input-password-radius);
+  border: var(--input-password-border);
+  box-shadow: var(--input-password-shadow);
+}
+
+.bk-pretext .input-password { display: inline-flex; align-items: center; gap: 9px; cursor: text; }
+.bk-pretext .input-password__icon { flex: none; color: var(--input-password-icon-color, currentColor); }
+.bk-pretext .input-password__field { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
+.bk-pretext .input-password__field::placeholder { color: inherit; opacity: 0.6; }
+.bk-pretext .input-password:focus-within { outline: 2px solid var(--input-password-accent, currentColor); outline-offset: 2px; }
 .bk-viaskai .button-primary {
   --button-primary-background: #009387;
   --button-primary-color: #022732;
@@ -2429,7 +2491,7 @@
   box-shadow: var(--navbar-primary__header-1-shadow);
 }
 
-.bk-viaskai .navbar-primary__header-1 { display: block; height: 32px; width: auto; max-width: 100%; object-fit: contain; }
+.bk-viaskai .navbar-primary__header-1 { display: block; height: 39px; width: auto; max-width: 100%; object-fit: contain; }
 .bk-viaskai .navbar-primary__body-1 {
   --navbar-primary__body-1-background: transparent;
   --navbar-primary__body-1-color: #f8f9f9;
@@ -2599,3 +2661,65 @@
   outline: 2px solid var(--navbar-primary__footer-2-accent, currentColor);
   outline-offset: 2px;
 }
+.bk-viaskai .input-email {
+  --input-email-background: #f8f9f9;
+  --input-email-color: #022732;
+  --input-email-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --input-email-font-size: 16px;
+  --input-email-font-weight: 400;
+  --input-email-line-height: 1;
+  --input-email-padding: 8px 12px;
+  --input-email-radius: 6px;
+  --input-email-border: 1px solid #acb3ad;
+  --input-email-shadow: none;
+  --input-email-icon-size: 16px;
+
+  box-sizing: border-box;
+  background: var(--input-email-background);
+  color: var(--input-email-color);
+  font-family: var(--input-email-font-family);
+  font-size: var(--input-email-font-size);
+  font-weight: var(--input-email-font-weight);
+  line-height: var(--input-email-line-height);
+  padding: var(--input-email-padding);
+  border-radius: var(--input-email-radius);
+  border: var(--input-email-border);
+  box-shadow: var(--input-email-shadow);
+}
+
+.bk-viaskai .input-email { display: inline-flex; align-items: center; gap: 8px; cursor: text; }
+.bk-viaskai .input-email__icon { flex: none; color: var(--input-email-icon-color, currentColor); }
+.bk-viaskai .input-email__field { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
+.bk-viaskai .input-email__field::placeholder { color: inherit; opacity: 0.6; }
+.bk-viaskai .input-email:focus-within { outline: 2px solid var(--input-email-accent, currentColor); outline-offset: 2px; }
+.bk-viaskai .input-password {
+  --input-password-background: #f8f9f9;
+  --input-password-color: #022732;
+  --input-password-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --input-password-font-size: 17px;
+  --input-password-font-weight: 400;
+  --input-password-line-height: 1;
+  --input-password-padding: 8px 12px;
+  --input-password-radius: 6px;
+  --input-password-border: 1px solid #acb3ad;
+  --input-password-shadow: none;
+  --input-password-icon-size: 19px;
+
+  box-sizing: border-box;
+  background: var(--input-password-background);
+  color: var(--input-password-color);
+  font-family: var(--input-password-font-family);
+  font-size: var(--input-password-font-size);
+  font-weight: var(--input-password-font-weight);
+  line-height: var(--input-password-line-height);
+  padding: var(--input-password-padding);
+  border-radius: var(--input-password-radius);
+  border: var(--input-password-border);
+  box-shadow: var(--input-password-shadow);
+}
+
+.bk-viaskai .input-password { display: inline-flex; align-items: center; gap: 9px; cursor: text; }
+.bk-viaskai .input-password__icon { flex: none; color: var(--input-password-icon-color, currentColor); }
+.bk-viaskai .input-password__field { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
+.bk-viaskai .input-password__field::placeholder { color: inherit; opacity: 0.6; }
+.bk-viaskai .input-password:focus-within { outline: 2px solid var(--input-password-accent, currentColor); outline-offset: 2px; }
