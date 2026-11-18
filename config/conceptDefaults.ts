@@ -15,6 +15,7 @@ import {
   type ConceptStyle,
   linkStyle,
 } from "./conceptStyle.js";
+import { refreshPalettePaints } from "./paletteBinding.js";
 import { newItemId } from "./proposal.js";
 import type {
   ReviewConcept,
@@ -329,7 +330,7 @@ export const createConcept = (brandDoc?: BrandKitDoc | null): ReviewConcept => {
  * Exactly as a concept linked to it draws — no stand-in content of its own,
  * so the kit, the guide and every review show the same thing.
  */
-export const styleSample = (
+const buildStyleSample = (
   style: ConceptStyle,
   brand: BrandKitDoc
 ): ReviewConceptElement => {
@@ -351,3 +352,6 @@ export const styleSample = (
     ? { ...linked, slots: style.look.contents }
     : linked;
 };
+
+export const styleSample = (style: ConceptStyle, brand: BrandKitDoc) =>
+  refreshPalettePaints(buildStyleSample(style, brand), brand.palette);

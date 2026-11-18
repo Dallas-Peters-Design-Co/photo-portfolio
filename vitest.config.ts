@@ -54,6 +54,7 @@ export default defineConfig({
       "@okathira/ghostpdl-wasm",
       "@vercel/analytics/react",
       "@vercel/blob",
+      "@vercel/speed-insights/react",
       "bcryptjs",
       "dotenv",
       "drizzle-orm",

@@ -67,13 +67,15 @@ export function ConceptColorField({
   onChange: (value: string) => void;
   value: string;
 }) {
+  const swatches = paletteSwatches(brandDoc?.palette, "");
   return (
     <div className="review-concepts__field review-concepts__field--color">
       <ColorWell
         allowNone={allowNone}
+        bindPalette
         label={ariaLabel}
         onChange={onChange}
-        swatches={paletteSwatches(brandDoc?.palette)}
+        swatches={swatches}
         value={value}
       />
       <span>{label}</span>

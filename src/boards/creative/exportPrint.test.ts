@@ -54,6 +54,29 @@ describe("print export", () => {
     expect(printSpecFor(a2).bleedIn).toBeCloseTo(3 / 25.4, 5);
   });
 
+  it("prints the current bound fill and keeps equal custom colours independent", async () => {
+    const scope = document.createElement("div");
+    scope.dataset.boardPalette = "";
+    scope.style.setProperty("--kit-example-info", "#127766");
+    document.body.append(scope);
+    try {
+      const html = await printHtml(
+        frame,
+        [
+          rect("bound", 10, 10, 20, 20, "var(--kit-example-info, #334455)"),
+          rect("custom", 40, 10, 20, 20, "#334455"),
+        ],
+        () => null,
+        { bleedIn: 0, heightIn: 24, marksIn: 0, widthIn: 18 }
+      );
+      expect(html).toContain("#127766");
+      expect(html).toContain("#334455");
+      expect(html).not.toContain("var(--kit-example-info");
+    } finally {
+      scope.remove();
+    }
+  });
+
   it("grows layers touching the edge into the bleed, and only those", () => {
     const edge = rect("e", 0, 0, 180, 120, "#ff0000");
     expect(bleedBox(edge, frame, 2)).toEqual({

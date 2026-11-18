@@ -2,6 +2,7 @@ import type { BrandKitDoc } from "./brandKit.js";
 import { PANEL_CHEVRON } from "./conceptIcon.js";
 import { columnStyleOf } from "./conceptStyle.js";
 import { type ConceptTable, DEFAULT_TABLE } from "./conceptTable.js";
+import { paintFallback, paletteIds, paletteToken } from "./paletteBinding.js";
 import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
@@ -17,9 +18,15 @@ export const paletteColor = (
   doc: BrandKitDoc | null | undefined,
   roles: string[],
   fallback: string
-): string =>
-  doc?.palette.find((entry) => roles.includes(entry.role.trim().toLowerCase()))
-    ?.value ?? fallback;
+): string => {
+  const palette = doc?.palette ?? [];
+  const index = palette.findIndex((entry) =>
+    roles.includes(entry.role.trim().toLowerCase())
+  );
+  return index < 0
+    ? fallback
+    : paletteToken(paletteIds(palette)[index], palette[index].value);
+};
 
 /**
  * Status, Tags and Action start with the kit's matching component styles.
@@ -61,8 +68,11 @@ export const readableColor = (
     ...roles.map((role) => paletteColor(doc, [role], "")),
     paletteColor(doc, ["ink", "text"], ""),
     fallback,
-  ].find((color) => color && contrastRatio(color, ground) >= READABLE) ??
-  inkOn(ground);
+  ].find(
+    (color) =>
+      color &&
+      contrastRatio(paintFallback(color), paintFallback(ground)) >= READABLE
+  ) ?? inkOn(paintFallback(ground));
 
 /** A badge starts as a soft tinted pill: light fill, strong text, thin edge. */
 export const badgeLook = (

@@ -1,4 +1,4 @@
-import { CONCEPT_HEX } from "./conceptColor.js";
+import { isConceptPaint } from "./conceptColor.js";
 import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
 
 /**
@@ -32,7 +32,7 @@ const HOVER_KINDS = new Set([
 export const takesHover = (kind: string): boolean => HOVER_KINDS.has(kind);
 
 const hex = <K extends string>(key: K, value: unknown) =>
-  typeof value === "string" && CONCEPT_HEX.test(value)
+  typeof value === "string" && isConceptPaint(value)
     ? ({ [key]: value } as Record<K, string>)
     : {};
 

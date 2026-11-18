@@ -1,3 +1,4 @@
+import { parsePaletteToken } from "./paletteBinding.js";
 /**
  * How a board's words are set: family, weight, colour, alignment and the rest.
  *
@@ -183,7 +184,9 @@ const isEmpty = (style: TextStyle): boolean =>
   Object.values(style).every((value) => value === null);
 
 const hexOf = (value: unknown): string | null =>
-  typeof value === "string" && HEX.test(value) ? value.toLowerCase() : null;
+  typeof value === "string" && (HEX.test(value) || parsePaletteToken(value))
+    ? value.toLowerCase()
+    : null;
 
 /**
  * The outline and the box behind text, only when set: each key is present
@@ -247,10 +250,7 @@ export const normalizeTextStyle = (raw: unknown): TextStyle | null => {
   const weight = bounded(o.weight, 100, 900);
   const style: TextStyle = {
     align: TEXT_ALIGNS.find((align) => align === o.align) ?? null,
-    color:
-      typeof o.color === "string" && HEX.test(o.color)
-        ? o.color.toLowerCase()
-        : null,
+    color: hexOf(o.color),
     family: family ?? null,
     // Never false. Not italic is the default, so storing it says nothing that
     // an absent key does not already say.

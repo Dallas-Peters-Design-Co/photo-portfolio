@@ -124,3 +124,8 @@
   border-radius: var(--radius-inner);
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.15);
 }
+
+.oklch__swatch[aria-pressed="true"] {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}

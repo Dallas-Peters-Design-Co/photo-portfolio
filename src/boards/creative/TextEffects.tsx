@@ -51,6 +51,7 @@ export function TextEffects({
       {outlined ? (
         <>
           <ColorWell
+            bindPalette
             label="Outline colour"
             onChange={(outline) => onSet({ outline })}
             value={style?.outline ?? "#000000"}
@@ -97,6 +98,7 @@ export function TextEffects({
       {boxed ? (
         <>
           <ColorWell
+            bindPalette
             label="Box colour"
             onChange={(background) => onSet({ background })}
             value={style?.background ?? accent}

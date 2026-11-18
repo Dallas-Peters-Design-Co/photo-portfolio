@@ -43,6 +43,23 @@ describe("colour variables", () => {
     );
   });
 
+  it("updates a stored variable by id even when its fallback is stale and another variable shares it", () => {
+    const vars = [{ id: "lime", name: "Lime", value: "#556677" }];
+    const bound = "var(--kit-board-lime-a80, #11223380)";
+    expect(varFor(bound, vars)).toEqual(vars[0]);
+    const other = "var(--kit-info, #556677)";
+    const { items } = recolourItems(
+      [item({ config: { fill: bound, stroke: other } })],
+      "#556677",
+      "#abcdef",
+      "lime"
+    );
+    expect(items[0].config).toEqual({
+      fill: "var(--kit-board-lime-a80, #abcdef80)",
+      stroke: other,
+    });
+  });
+
   it("changes every layer that uses the colour, and only those", () => {
     const items = [
       item({

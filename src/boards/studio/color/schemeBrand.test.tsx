@@ -110,7 +110,7 @@ it("loads the brand's colours, changes one, and saves them back named", async ()
   expect((saved[0] as { palette: unknown }).palette).toEqual([
     PALETTE[0],
     PALETTE[1],
-    { name: "Leaf", role: "danger", value: "#aa3311" },
+    { id: expect.any(String), name: "Leaf", role: "danger", value: "#aa3311" },
   ]);
   act(() => root.unmount());
   host.remove();

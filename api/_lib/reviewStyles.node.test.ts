@@ -116,3 +116,29 @@ it("resolves each live page's brand without applying another page's kit", async 
   ).toEqual(["#ff0000", "#ff0000", "#0000ff", heading.color]);
   expect(loadKit).toHaveBeenCalledTimes(2);
 });
+
+it("refreshes a published colour binding while preserving a literal of the same old colour", async () => {
+  loadKit.mockResolvedValueOnce({
+    resolvedDoc: {
+      ...EMPTY_KIT,
+      palette: [{ id: "info", name: "Info", role: "info", value: "#112233" }],
+    },
+  });
+  const item = review("kit-1");
+  item.doc.concepts = [
+    cleanConcept({
+      elements: [
+        {
+          background: "var(--kit-info, #eeeeee)",
+          color: "#eeeeee",
+          kind: "card",
+        },
+      ],
+    }),
+  ];
+  const out = await withKitStyles(sql, item);
+  expect(out.doc.concepts[0].elements[0]).toMatchObject({
+    background: "var(--kit-info, #112233)",
+    color: "#eeeeee",
+  });
+});

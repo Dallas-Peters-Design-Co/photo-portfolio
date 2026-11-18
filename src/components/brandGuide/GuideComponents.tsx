@@ -2,6 +2,7 @@ import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { styleSample } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { styleFacts, styleTitle } from "../../../config/conceptStyleFacts.js";
+import { refreshPalettePaints } from "../../../config/paletteBinding.js";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import "../admin/ReviewConceptsEditor.css";
 
@@ -26,7 +27,7 @@ function GuideComponent({
         <ReviewConceptElementView element={styleSample(style, doc)} />
       </div>
       <dl className="guide-component__facts">
-        {styleFacts(style).map((fact) => (
+        {styleFacts(refreshPalettePaints(style, doc.palette)).map((fact) => (
           <div key={fact.label}>
             <dt>{fact.label}</dt>
             <dd>

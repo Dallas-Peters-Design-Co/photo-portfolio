@@ -1,3 +1,7 @@
+import {
+  paletteToken,
+  parsePaletteToken,
+} from "../../../config/paletteBinding.js";
 import type { BoardItem } from "../../types";
 
 /**
@@ -39,8 +43,19 @@ export const normalHex = (value: string): string | null => {
 export const rgbOf = (value: string): string | null =>
   normalHex(value)?.slice(0, 7) ?? null;
 
+export const boardPaintId = (id: string, alpha: string) =>
+  `board-${id}${alpha ? `-a${alpha}` : ""}`;
+
 /** The variable a colour is, ignoring transparency. */
 export const varFor = (value: string, vars: ColorVar[]): ColorVar | null => {
+  const assigned = parsePaletteToken(value);
+  if (assigned) {
+    return (
+      vars.find(
+        (v) => boardPaintId(v.id, assigned[2].slice(7)) === assigned[1]
+      ) ?? null
+    );
+  }
   const rgb = rgbOf(value);
   return rgb ? (vars.find((v) => rgbOf(v.value) === rgb) ?? null) : null;
 };
@@ -52,29 +67,46 @@ export const recolourString = (s: string, from: string, to: string): string =>
     return n && n.slice(0, 7) === from ? to + n.slice(7) : hex;
   });
 
-const recolourDeep = (value: unknown, from: string, to: string): unknown => {
+const recolourDeep = (
+  value: unknown,
+  from: string,
+  to: string,
+  id?: string
+): unknown => {
   if (typeof value === "string") {
+    const token = parsePaletteToken(value);
+    if (token) {
+      const alpha = token[2].slice(7);
+      return id && token[1] === boardPaintId(id, alpha)
+        ? paletteToken(token[1], to + alpha)
+        : value;
+    }
     return value.includes("#") ? recolourString(value, from, to) : value;
   }
   if (Array.isArray(value)) {
-    return value.map((v) => recolourDeep(v, from, to));
+    return value.map((v) => recolourDeep(v, from, to, id));
   }
   if (value && typeof value === "object") {
     return Object.fromEntries(
-      Object.entries(value).map(([k, v]) => [k, recolourDeep(v, from, to)])
+      Object.entries(value).map(([k, v]) => [k, recolourDeep(v, from, to, id)])
     );
   }
   return value;
 };
 
 /** A value with `from` swapped for `to` throughout, or the same value. */
-export const recoloured = <T>(value: T, from: string, to: string): T => {
+export const recoloured = <T>(
+  value: T,
+  from: string,
+  to: string,
+  id?: string
+): T => {
   const a = rgbOf(from);
   const b = rgbOf(to);
   if (!(a && b) || a === b) {
     return value;
   }
-  const next = recolourDeep(value, a, b) as T;
+  const next = recolourDeep(value, a, b, id) as T;
   return JSON.stringify(next) === JSON.stringify(value) ? value : next;
 };
 
@@ -86,12 +118,13 @@ export const recoloured = <T>(value: T, from: string, to: string): T => {
 export const recolourItems = (
   items: BoardItem[],
   from: string,
-  to: string
+  to: string,
+  id?: string
 ): { changed: string[]; items: BoardItem[] } => {
   const changed: string[] = [];
   const next = items.map((item) => {
-    const textStyle = recoloured(item.textStyle ?? null, from, to);
-    const config = recoloured(item.config, from, to);
+    const textStyle = recoloured(item.textStyle ?? null, from, to, id);
+    const config = recoloured(item.config, from, to, id);
     if (textStyle === (item.textStyle ?? null) && config === item.config) {
       return item;
     }

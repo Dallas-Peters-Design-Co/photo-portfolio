@@ -1,6 +1,4 @@
 import type { BoardItem } from "../../types";
-import { expandAll } from "../components/model";
-import { componentById } from "../components/store";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
 import {
@@ -12,6 +10,7 @@ import {
   layerHtml,
   placeOf,
 } from "./exportHtml5";
+import { exportLayers } from "./exportLayers";
 import { bleedBox, bleeds } from "./exportPng";
 import { escapeHtml } from "./htmlBits";
 import { rotationOf } from "./rotate";
@@ -179,7 +178,7 @@ export const printHtml = async (
   layout: SheetLayout
 ): Promise<string> => {
   // A placed component is drawn as its layers.
-  const layers = expandAll(given, componentById);
+  const layers = exportLayers(given);
   const scale = (layout.widthIn * CSS_PX_PER_IN) / frame.width;
   // The bleed in frame units, for growing layers out to it.
   const bleed = (layout.bleedIn * CSS_PX_PER_IN) / scale;

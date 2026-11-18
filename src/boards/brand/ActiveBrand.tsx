@@ -1,4 +1,5 @@
 import {
+  type CSSProperties,
   createContext,
   type ReactNode,
   useCallback,
@@ -6,6 +7,12 @@ import {
   useMemo,
   useState,
 } from "react";
+import {
+  paletteIds,
+  paletteProperties,
+  paletteToken,
+  parsePaletteToken,
+} from "../../../config/paletteBinding.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import type { BrandKit } from "../../services/brandKitService";
 
@@ -71,9 +78,22 @@ export function ActiveBrandProvider({
     }),
     [kits, kitId, setKitId]
   );
+  const variables = useMemo(
+    () =>
+      Object.assign(
+        {},
+        ...kits.map((k) => paletteProperties(k.resolvedDoc.palette, `${k.id}-`))
+      ),
+    [kits]
+  );
   return (
     <ActiveBrandContext.Provider value={value}>
-      {children}
+      <div
+        data-board-palette=""
+        style={{ display: "contents", ...variables } as CSSProperties}
+      >
+        {children}
+      </div>
     </ActiveBrandContext.Provider>
   );
 }
@@ -82,12 +102,42 @@ export function ActiveBrandProvider({
 export const useActiveBrand = (): ActiveBrandValue | null =>
   useContext(ActiveBrandContext);
 
-export const paletteSwatches = (palette?: BrandKit["resolvedDoc"]["palette"]) =>
-  palette?.map((entry) => ({
+export const paletteSwatches = (
+  palette?: BrandKit["resolvedDoc"]["palette"],
+  prefix?: string
+) => {
+  const ids = prefix === undefined ? [] : paletteIds(palette ?? []);
+  return palette?.map((entry, i) => ({
     color: entry.value,
     title: [entry.name, entry.role].filter(Boolean).join(" · ") || entry.value,
+    ...(prefix === undefined
+      ? {}
+      : { token: paletteToken(prefix + ids[i], entry.value) }),
   }));
+};
 
-/** The active brand's colours, as the colour picker's preset swatches. */
-export const useBrandSwatches = () =>
-  paletteSwatches(useActiveBrand()?.kit?.resolvedDoc.palette);
+export const useBrandSwatches = (bind = false, value = "") => {
+  const brand = useActiveBrand();
+  const active = paletteSwatches(
+    brand?.kit?.resolvedDoc.palette,
+    bind && brand?.kit ? `${brand.kit.id}-` : undefined
+  );
+  const id = bind && parsePaletteToken(value)?.[1];
+  if (!(id && brand) || (brand.kit && id.startsWith(`${brand.kit.id}-`))) {
+    return active;
+  }
+  const owner = brand.kits.find((kit) => id.startsWith(`${kit.id}-`));
+  if (!owner) {
+    return active;
+  }
+  const assigned = paletteSwatches(
+    owner.resolvedDoc.palette,
+    `${owner.id}-`
+  )?.find((s) => s.token && parsePaletteToken(s.token)?.[1] === id);
+  return assigned
+    ? [
+        ...(active ?? []),
+        { ...assigned, title: `${owner.name} · ${assigned.title}` },
+      ]
+    : active;
+};

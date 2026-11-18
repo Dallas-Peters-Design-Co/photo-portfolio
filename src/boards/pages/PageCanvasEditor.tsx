@@ -1,3 +1,4 @@
+import { paletteProperties } from "../../../config/paletteBinding.js";
 import "@fontsource-variable/public-sans/wght.css";
 import "@fontsource/archivo/latin-600.css";
 import { ArrowLeft, Copy, Play, Plus, Trash2 } from "lucide-react";
@@ -69,6 +70,7 @@ export function PageCanvasEditor({
       role="dialog"
       style={
         {
+          ...paletteProperties(doc?.palette),
           "--inspector-width": `${widths.panels.right}px`,
           "--library-width": `${widths.panels.left}px`,
         } as CSSProperties

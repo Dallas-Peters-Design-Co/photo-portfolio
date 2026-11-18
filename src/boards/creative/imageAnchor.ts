@@ -1,3 +1,4 @@
+import { parsePaletteToken } from "../../../config/paletteBinding.js";
 import type { BoardItem } from "../../types";
 
 /**
@@ -78,7 +79,9 @@ const TINT = /^#[0-9a-f]{6}([0-9a-f]{2})?$/i;
  */
 export const tintOf = (item: Pick<BoardItem, "config">): string | null => {
   const t = (item.config as { tint?: unknown } | null)?.tint;
-  return typeof t === "string" && TINT.test(t) ? t : null;
+  return typeof t === "string" && (TINT.test(t) || parsePaletteToken(t))
+    ? t
+    : null;
 };
 
 /**

@@ -86,7 +86,7 @@ it("carries one brand's colours into another kit", async () => {
   });
   expect(saved[0]?.id).toBe("kit-2");
   expect(saved[0]?.doc.palette).toEqual([
-    { name: "Old", role: "primary", value: "#041045" },
+    { id: expect.any(String), name: "Old", role: "primary", value: "#041045" },
     { name: "Sky", role: "accent", value: "#2f7cf6" },
   ]);
 });

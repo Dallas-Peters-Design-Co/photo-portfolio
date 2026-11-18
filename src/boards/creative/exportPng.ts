@@ -1,11 +1,10 @@
 import { sizeFromTitle } from "../../../config/adLayout";
 import type { BoardItem } from "../../types";
-import { expandAll } from "../components/model";
-import { componentById } from "../components/store";
 import { isDrawingConfig } from "../drawing/drawing";
 import { fillImageOf } from "../drawing/shapePaint";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { exportLayers } from "./exportLayers";
 import { drawCover, drawShape, drawTinted } from "./exportPaint";
 import { anchorFractions, anchorOf, fitOf, tintOf } from "./imageAnchor";
 import { imageRadius } from "./imageRadius";
@@ -322,7 +321,7 @@ export const renderCreative = async (
   background: string | null = null
 ): Promise<Blob> => {
   // A placed component is drawn as its layers.
-  const layers = expandAll(given, componentById);
+  const layers = exportLayers(given);
   const scale = pxWidth / frame.width;
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(frame.width * scale);

@@ -1,3 +1,4 @@
+import { parsePaletteToken } from "../../../config/paletteBinding.js";
 import "../../index.css";
 import { act } from "react";
 import { afterEach, expect, it, vi } from "vitest";
@@ -533,9 +534,11 @@ it("applies the selected kit's swatch from the page background OKLCH picker", as
     name: "Harbor · Accent",
   });
   await act(() => swatch.click());
-  expect(latest?.concept.background).toBe("#114477");
+  expect(parsePaletteToken(latest?.concept.background ?? "")?.[2]).toBe(
+    "#114477"
+  );
   expect(
-    host.querySelector<HTMLElement>(".page-design__sheet")?.style
+    getComputedStyle(host.querySelector(".page-design__sheet") as HTMLElement)
       .backgroundColor
   ).toBe("rgb(17, 68, 119)");
 });

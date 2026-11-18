@@ -1,5 +1,10 @@
 import type { BrandKitDoc, PaletteEntry, TypefaceEntry } from "./brandKit.js";
 import type { ConceptStyle } from "./conceptStyle.js";
+import {
+  paletteIds,
+  paletteToken,
+  parsePaletteToken,
+} from "./paletteBinding.js";
 
 /**
  * One brand's component styles followed by another, live.
@@ -36,6 +41,17 @@ const colourMap = (from: PaletteEntry[], to: PaletteEntry[]) => {
       map.set(entry.value, there.value);
     }
   });
+  const sourceIds = paletteIds(from);
+  const targetIds = paletteIds(to);
+  from.forEach((_entry, i) => {
+    const match = counterpart(from, to, i);
+    if (match) {
+      map.set(
+        sourceIds[i],
+        paletteToken(targetIds[to.indexOf(match)], match.value)
+      );
+    }
+  });
   return map;
 };
 
@@ -57,6 +73,10 @@ const carry = (
   faces: Map<string, string>
 ): unknown => {
   if (typeof value === "string") {
+    const binding = parsePaletteToken(value);
+    if (binding) {
+      return colours.get(binding[1]) ?? value;
+    }
     const hex = HEX.exec(value);
     const to = hex ? colours.get(`#${hex[1]?.toLowerCase()}`) : undefined;
     return to ? `${to}${hex?.[2] ?? ""}` : value;

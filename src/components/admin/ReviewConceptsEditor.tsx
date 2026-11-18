@@ -10,6 +10,7 @@ import {
   withStep,
 } from "../../../config/conceptSteps.js";
 import { styleElement } from "../../../config/conceptStyle.js";
+import { paletteProperties } from "../../../config/paletteBinding.js";
 import type {
   ReviewConcept,
   ReviewConceptElement,
@@ -335,7 +336,10 @@ export function ReviewConceptsEditor({
     onChange(concepts.map((concept) => (concept.id === id ? next : concept)));
 
   return (
-    <section className="review-concepts-editor">
+    <section
+      className="review-concepts-editor"
+      style={paletteProperties(brandDoc?.palette) as CSSProperties}
+    >
       <div className="review-concepts-editor__head">
         <div>
           <h3>Here’s what it could look like</h3>

@@ -26,7 +26,8 @@ export interface OklchPickerProps {
   /** Show the alpha strip; when false every colour is opaque. */
   alpha?: boolean;
   onChange: (hex: string) => void;
-  swatches?: { color: string; title: string }[];
+  selectedToken?: string;
+  swatches?: { color: string; title: string; token?: string }[];
   value: string;
 }
 
@@ -109,6 +110,7 @@ export function OklchPicker({
   alpha = true,
   onChange,
   swatches = [],
+  selectedToken,
   value,
 }: OklchPickerProps) {
   // Held locally so dragging hue on a grey (chroma 0) keeps the hue, which
@@ -206,9 +208,10 @@ export function OklchPicker({
           {swatches.map((s) => (
             <button
               aria-label={s.title}
+              aria-pressed={s.token ? s.token === selectedToken : undefined}
               className="oklch__swatch"
-              key={`${s.color}-${s.title}`}
-              onClick={() => set(seed(s.color))}
+              key={s.token ?? `${s.color}-${s.title}`}
+              onClick={() => (s.token ? onChange(s.token) : set(seed(s.color)))}
               style={{ background: s.color }}
               title={`${s.title} ${s.color}`}
               type="button"

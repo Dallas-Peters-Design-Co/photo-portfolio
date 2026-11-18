@@ -317,6 +317,7 @@ export function BoardTextTools({
             the words take the board's ink, which inverts with the theme. Pull
             the alpha to zero in the picker to hand it back. */}
         <ColorWell
+          bindPalette
           label="Text colour"
           onChange={(color) =>
             set({ color: isTransparent(color) ? null : color })

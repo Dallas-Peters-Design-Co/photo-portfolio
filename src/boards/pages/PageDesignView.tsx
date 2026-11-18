@@ -1,4 +1,11 @@
-import { memo, type ReactNode, useEffect, useRef, useState } from "react";
+import {
+  type CSSProperties,
+  memo,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { hasSlots } from "../../../config/conceptSlots.js";
 import { stepsOf } from "../../../config/conceptSteps.js";
@@ -7,9 +14,11 @@ import {
   type PageDesign,
   pageBoxStyle,
 } from "../../../config/pageDesign.js";
+import { paletteProperties } from "../../../config/paletteBinding.js";
 import { useSequencePlayer } from "../../components/review/conceptSequence";
 import { StepElements } from "../../components/review/ReviewConceptPreview";
 import { useConceptFont } from "../../components/review/useConceptFont";
+import { useActiveBrand } from "../brand/ActiveBrand";
 import { PageSelect } from "./PageFields";
 import "./PageDesignView.css";
 
@@ -26,6 +35,9 @@ export const PageDesignView = memo(function PageView({
   stepIndex?: number;
   selectedChild?: string | null;
 }) {
+  const brand = useActiveBrand();
+  const palette = brand?.kits.find((k) => k.id === page.kitId)?.resolvedDoc
+    .palette;
   const [at, setAt] = useState(0);
   const [scale, setScale] = useState(1);
   const holder = useRef<HTMLDivElement>(null);
@@ -57,7 +69,11 @@ export const PageDesignView = memo(function PageView({
   }, [page.width]);
   const { concept } = page;
   return (
-    <div className="page-design" ref={holder}>
+    <div
+      className="page-design"
+      ref={holder}
+      style={paletteProperties(palette) as CSSProperties}
+    >
       {playing && steps.length > 1 ? (
         <nav aria-label="Prototype steps" className="page-design__navigation">
           <button

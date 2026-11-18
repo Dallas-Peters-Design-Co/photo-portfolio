@@ -1,4 +1,4 @@
-import { CONCEPT_HEX } from "./conceptColor.js";
+import { isConceptPaint } from "./conceptColor.js";
 import {
   type ConceptIconSvg,
   cleanIconSvg,
@@ -170,7 +170,7 @@ const optionalHex = <K extends string>(
   key: K,
   value: unknown
 ): Partial<Record<K, string>> =>
-  typeof value === "string" && CONCEPT_HEX.test(value)
+  typeof value === "string" && isConceptPaint(value)
     ? ({ [key]: value } as Record<K, string>)
     : {};
 

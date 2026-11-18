@@ -1,5 +1,9 @@
 import { Plus, SlidersHorizontal } from "lucide-react";
-import { normalHex, varFor } from "./colorVars";
+import {
+  paletteToken,
+  parsePaletteToken,
+} from "../../../config/paletteBinding.js";
+import { boardPaintId, normalHex, varFor } from "./colorVars";
 import { useColorVars } from "./useColorVars";
 import "./ColorVars.css";
 
@@ -11,9 +15,11 @@ import "./ColorVars.css";
 export function ColorVarsRow({
   onChange,
   onManage,
+  bindPalette = false,
   value,
 }: {
   onChange: (colour: string) => void;
+  bindPalette?: boolean;
   onManage?: () => void;
   value: string;
 }) {
@@ -26,7 +32,8 @@ export function ColorVarsRow({
     ctx.open();
   };
   const current = varFor(value, ctx.vars);
-  const alpha = normalHex(value)?.slice(7) ?? "";
+  const alpha =
+    normalHex(parsePaletteToken(value)?.[2] ?? value)?.slice(7) ?? "";
   return (
     <div className="color-vars-row">
       <span className="color-vars-row__label">
@@ -39,7 +46,13 @@ export function ColorVarsRow({
             aria-pressed={current?.id === v.id}
             className="color-vars-row__swatch"
             key={v.id}
-            onClick={() => onChange(v.value + alpha)}
+            onClick={() =>
+              onChange(
+                bindPalette
+                  ? paletteToken(boardPaintId(v.id, alpha), v.value + alpha)
+                  : v.value + alpha
+              )
+            }
             style={{ background: v.value }}
             title={v.name}
             type="button"

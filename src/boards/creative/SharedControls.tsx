@@ -53,6 +53,7 @@ export function SharedControls({
     <span className="creative__field">
       <span>Colour</span>
       <ColorWell
+        bindPalette
         label="Colour of the selected layers"
         onChange={(color) =>
           onPatch(

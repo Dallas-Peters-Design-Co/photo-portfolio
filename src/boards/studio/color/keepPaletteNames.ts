@@ -1,4 +1,5 @@
 import type { PaletteEntry } from "../../../../config/brandKit.js";
+import { paletteIds } from "../../../../config/paletteBinding.js";
 
 /**
  * New colours saved into a kit's palette, the kit keeping its names.
@@ -15,13 +16,19 @@ export const keepPaletteNames = (
   values: string[],
   loaded?: ({ name?: string; role?: string } | null | undefined)[] | null
 ): PaletteEntry[] => {
+  const ids = paletteIds(target);
   const next = values.map((raw, i) => {
     const value = raw.toLowerCase();
     const had = target[i];
     const from = loaded?.[i];
+    const name = had?.name || from?.name || "";
+    const role = had?.role || from?.role || "";
     return {
-      name: had?.name || from?.name || "",
-      role: had?.role || from?.role || "",
+      ...(had && (had.id || had.name !== name || had.role !== role)
+        ? { id: ids[i] }
+        : {}),
+      name,
+      role,
       value,
     };
   });

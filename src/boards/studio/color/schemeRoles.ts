@@ -1,4 +1,5 @@
 import type { PaletteEntry } from "../../../../config/brandKit.js";
+import { paletteIds } from "../../../../config/paletteBinding.js";
 
 import { keepPaletteNames } from "./keepPaletteNames";
 
@@ -28,6 +29,7 @@ export function schemePalette(
       source
     );
   }
+  const ids = paletteIds(target);
   const result = [...target];
   const used = new Set<number>();
   const slots = source.map((entry, i) => {
@@ -57,8 +59,12 @@ export function schemePalette(
       (transfer && STATUS_ROLES.includes(incoming.toLowerCase())
         ? incoming
         : had?.role || incoming);
+    const name = had?.name || entry.name || roleLabel(role);
     result[slot] = {
-      name: had?.name || entry.name || roleLabel(role),
+      ...(had && (had.id || role !== had.role || name !== had.name)
+        ? { id: ids[slot] }
+        : {}),
+      name,
       role,
       value: entry.value,
     };

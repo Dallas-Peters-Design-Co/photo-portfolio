@@ -1,4 +1,4 @@
-import { CONCEPT_HEX } from "./conceptColor.js";
+import { isConceptPaint } from "./conceptColor.js";
 /**
  * A concept card's drop shadow: one CSS box-shadow, edited field by field.
  *
@@ -67,7 +67,7 @@ export const cleanShadow = (value: unknown): ConceptShadow | undefined => {
     ...(raw.custom === true ? { custom: true } : {}),
     blur: clamp(raw.blur, SHADOW_LIMITS.blur),
     color:
-      typeof raw.color === "string" && CONCEPT_HEX.test(raw.color)
+      typeof raw.color === "string" && isConceptPaint(raw.color)
         ? raw.color
         : "#000000",
     opacity: clamp(raw.opacity, SHADOW_LIMITS.opacity),

@@ -12,6 +12,7 @@ import {
   MAX_PALETTE,
   paletteFromCss,
 } from "../../../config/brandKit.js";
+import { paletteIds } from "../../../config/paletteBinding.js";
 import { paletteSwatches } from "../../boards/brand/ActiveBrand";
 import { ColorWell } from "../../boards/ColorWell";
 import { LOOK_FAMILIES, LOOKS } from "../../editor/presets";
@@ -344,6 +345,7 @@ const PALETTE_ROLES = [
   ["success", "Success"],
   ["warning", "Warning"],
   ["error", "Error"],
+  ["danger", "Danger"],
   ["info", "Info"],
   ["decorative", "Decorative / other"],
 ] as const;
@@ -356,10 +358,15 @@ export function PaletteEditor({
   doc: BrandKitDoc;
   onChange: (next: BrandKitDoc) => void;
 }) {
+  const paletteKeys = paletteIds(doc.palette);
+  const identified = doc.palette.map((entry, i) => ({
+    ...entry,
+    id: paletteKeys[i],
+  }));
   const set = (index: number, patch: Partial<BrandKitDoc["palette"][number]>) =>
     onChange({
       ...doc,
-      palette: doc.palette.map((entry, i) =>
+      palette: identified.map((entry, i) =>
         i === index ? { ...entry, ...patch } : entry
       ),
     });
@@ -370,7 +377,7 @@ export function PaletteEditor({
     if (to < 0 || to >= doc.palette.length || from === to) {
       return;
     }
-    const palette = [...doc.palette];
+    const palette = [...identified];
     const [entry] = palette.splice(from, 1);
     if (entry) {
       palette.splice(to, 0, entry);
@@ -454,7 +461,7 @@ export function PaletteEditor({
             onClick={() =>
               onChange({
                 ...doc,
-                palette: doc.palette.filter((_, i) => i !== index),
+                palette: identified.filter((_, i) => i !== index),
               })
             }
             size="icon"
@@ -473,7 +480,12 @@ export function PaletteEditor({
               ...doc,
               palette: [
                 ...doc.palette,
-                { name: "", role: "", value: "#000000" },
+                {
+                  id: crypto.randomUUID(),
+                  name: "",
+                  role: "",
+                  value: "#000000",
+                },
               ],
             })
           }

@@ -44,7 +44,8 @@ const followThrough = async (
   refs: Refs,
   ids: string[],
   from: string,
-  to: string
+  to: string,
+  id: string
 ) => {
   const { change, latest } = refs.doc.current;
   try {
@@ -52,7 +53,7 @@ const followThrough = async (
       change(latest().map((i) => (i.id === oldId ? next : i)));
     const [pictures, components] = await Promise.all([
       redrawStudioLayers(latest(), ids, refs.palette.current, swap),
-      recolourComponents(latest(), from, to),
+      recolourComponents(latest(), from, to, id),
     ]);
     const done = [
       plural(pictures, "Studio picture"),
@@ -86,12 +87,12 @@ const setValueOf = (
     return;
   }
   const { change, latest, save } = refs.doc.current;
-  const { changed, items } = recolourItems(latest(), was.value, to);
+  const { changed, items } = recolourItems(latest(), was.value, to, id);
   if (changed.length > 0) {
     change(items);
   }
   void save(vars.map((v) => (v.id === id ? { ...v, value: to } : v)));
-  void followThrough(refs, changed, was.value, to);
+  void followThrough(refs, changed, was.value, to, id);
 };
 
 const valueFor = (vars: ColorVar[], refs: Refs): ColorVarsValue => {

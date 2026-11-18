@@ -1,4 +1,4 @@
-import { CONCEPT_HEX } from "./conceptColor.js";
+import { isConceptPaint } from "./conceptColor.js";
 import type { ReviewConceptElementKind } from "./reviewConcept.js";
 
 /**
@@ -28,7 +28,7 @@ export const takesMenu = (kind: ReviewConceptElementKind): boolean =>
   MENU_KINDS.has(kind);
 
 const hex = <K extends string>(key: K, value: unknown) =>
-  typeof value === "string" && CONCEPT_HEX.test(value)
+  typeof value === "string" && isConceptPaint(value)
     ? ({ [key]: value } as Record<K, string>)
     : {};
 

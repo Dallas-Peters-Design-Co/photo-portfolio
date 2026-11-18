@@ -6,12 +6,11 @@ import {
 } from "../../../config/fontRef";
 import { type ZipFile, zip } from "../../lib/zip";
 import type { BoardItem } from "../../types";
-import { expandAll } from "../components/model";
-import { componentById } from "../components/store";
 import { isDrawingConfig } from "../drawing/drawing";
 import { fillImageOf } from "../drawing/shapePaint";
 import { currentImageUrl } from "../itemOutput";
 import type { Box } from "./creativeModel";
+import { exportLayers } from "./exportLayers";
 import { escapeHtml, px, styleOf } from "./htmlBits";
 import {
   type Fit,
@@ -351,7 +350,7 @@ export const exportHtml5 = async (
   mode: AdPage["mode"] = "ad"
 ): Promise<Html5Export> => {
   // A placed component is drawn as its layers.
-  const layers = expandAll(given, componentById);
+  const layers = exportLayers(given);
   const scale = pxWidth / frame.width;
   const files: ZipFile[] = [];
   const looks = new Map<string, TextLook>();

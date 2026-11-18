@@ -17,6 +17,7 @@ import { describePalette } from "./colourWords.js";
 import { type ConceptStyle, cleanConceptStyles } from "./conceptStyle.js";
 import { isAdobeKitId, isFontFamilyName, isFontRef } from "./fontRef.js";
 import { cleanKitShaders, type KitShader } from "./kitShaders.js";
+import { PALETTE_ID } from "./paletteBinding.js";
 import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
 import { sanitizeTypeScale, type TypeScale } from "./typeScale.js";
 
@@ -42,6 +43,7 @@ export const MAX_VOICE = 2000;
 export const MAX_RULE_TEXT = 300;
 
 export interface PaletteEntry {
+  id?: string;
   name: string;
   /** Semantic role used by the guide; unknown legacy values remain readable. */
   role: string;
@@ -343,6 +345,9 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
         const e = (entry ?? {}) as Record<string, unknown>;
         return {
           name: clampText(e.name, MAX_KIT_NAME),
+          ...(typeof e.id === "string" && PALETTE_ID.test(e.id)
+            ? { id: e.id }
+            : {}),
           role: clampText(e.role, MAX_KIT_NAME),
           value:
             typeof e.value === "string" ? e.value.trim().toLowerCase() : "",

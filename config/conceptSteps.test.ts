@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { freshConcept, pasteStepsAfter, stepsOf } from "./conceptSteps.js";
+import { paintFallback } from "./paletteBinding.js";
 import { cleanConcept } from "./reviewConcept.js";
 
 const recommendation = cleanConcept({
@@ -53,9 +54,12 @@ describe("starting colours", () => {
         { name: "Night", role: "ink", value: "#0f172a" },
       ],
     } as never);
-    expect(look.color).toBe("#0f172a");
+    expect(paintFallback(look.color as string)).toBe("#0f172a");
     expect(
-      contrastRatio(look.color as string, look.background as string)
+      contrastRatio(
+        paintFallback(look.color as string),
+        paintFallback(look.background as string)
+      )
     ).toBeGreaterThanOrEqual(4.5);
   });
 });

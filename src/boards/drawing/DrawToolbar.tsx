@@ -156,6 +156,7 @@ export function DrawToolbar({
       <span className="draw-toolbar__well">
         Line
         <ColorWell
+          bindPalette
           label="Stroke color"
           onChange={(stroke) => onStyle({ ...style, stroke })}
           value={style.stroke}
@@ -165,6 +166,7 @@ export function DrawToolbar({
       <span className="draw-toolbar__well">
         Fill
         <ColorWell
+          bindPalette
           label="Fill color"
           onChange={(fill) => onStyle({ ...style, fill })}
           value={style.fill}

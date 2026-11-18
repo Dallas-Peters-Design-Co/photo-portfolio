@@ -2,6 +2,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import ColorPickerIcon from "@hugeicons-pro/core-stroke-standard/ColorPickerIcon";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { parsePaletteToken } from "../../config/paletteBinding.js";
 
 /** The picker's own size, used only to keep it on screen. */
 const PICKER_WIDTH = 240;
@@ -37,6 +38,8 @@ interface ColorWellProps {
   allowNone?: boolean;
   /** Offer alpha; false for values stored as plain six-digit hex. */
   alpha?: boolean;
+  /** Store a named paint in fields that support CSS colours. */
+  bindPalette?: boolean;
   label: string;
   /** Leave out the board's colour variables (a variable's own well). */
   noVars?: boolean;
@@ -57,6 +60,7 @@ export const pickerSeed = (value: string): string =>
 export function ColorWell({
   alpha = true,
   allowNone = false,
+  bindPalette = false,
   label,
   swatches,
   noVars = false,
@@ -64,11 +68,20 @@ export function ColorWell({
   value,
 }: ColorWellProps) {
   const vars = useColorVars();
+  const brandSwatches = useBrandSwatches(bindPalette, value);
+  const choices = swatches ?? brandSwatches;
+  const binding = parsePaletteToken(value);
+  const assigned =
+    binding &&
+    choices?.find(
+      (s) => s.token && parsePaletteToken(s.token)?.[1] === binding[1]
+    );
+  const paint = assigned?.color ?? binding?.[2] ?? value;
   const linked = noVars || !vars ? null : varFor(value, vars.vars);
   const [at, setAt] = useState<{ left: number; top: number } | null>(null);
   // The board's brand colours replace the picker's stock presets, so the
   // palette is one click away wherever a colour is chosen.
-  const brandSwatches = useBrandSwatches();
+
   const clear = isTransparent(value);
   const canSample = typeof window !== "undefined" && "EyeDropper" in window;
 
@@ -142,10 +155,12 @@ export function ColorWell({
       <button
         aria-label={label}
         className="color-well__swatch"
-        data-var={linked ? "" : undefined}
+        data-var={assigned || linked ? "" : undefined}
         onClick={open}
         onPointerDown={(e) => e.stopPropagation()}
-        title={linked ? `${label} · ${linked.name}` : label}
+        title={[label, assigned?.title ?? linked?.name]
+          .filter(Boolean)
+          .join(" · ")}
         type="button"
       >
         {/* A chequerboard under the swatch, so a transparent or translucent
@@ -153,7 +168,7 @@ export function ColorWell({
         <span
           className="color-well__fill"
           style={{
-            backgroundColor: clear ? "transparent" : value,
+            backgroundColor: clear ? "transparent" : paint,
             backgroundImage: clear
               ? "linear-gradient(45deg,#666 25%,transparent 25%,transparent 75%,#666 75%),linear-gradient(45deg,#666 25%,transparent 25%,transparent 75%,#666 75%)"
               : undefined,
@@ -182,8 +197,9 @@ export function ColorWell({
                 <OklchPicker
                   alpha={alpha}
                   onChange={onChange}
-                  swatches={swatches ?? brandSwatches}
-                  value={pickerSeed(value)}
+                  selectedToken={assigned?.token}
+                  swatches={choices}
+                  value={pickerSeed(paint)}
                 />
                 {/* Sampling beats matching by eye when the color wanted is
                     already on the board — a reference photograph, a logo, an
@@ -204,6 +220,7 @@ export function ColorWell({
                 ) : null}
                 {noVars ? null : (
                   <ColorVarsRow
+                    bindPalette={bindPalette}
                     onChange={onChange}
                     onManage={() => setAt(null)}
                     value={value}

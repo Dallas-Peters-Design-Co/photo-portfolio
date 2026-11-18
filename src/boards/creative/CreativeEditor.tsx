@@ -315,6 +315,7 @@ export function CreativeEditor({
         ) : null}
         <div className="creative__background">
           <ColorWell
+            bindPalette
             label="Background"
             onChange={setBackground}
             value={

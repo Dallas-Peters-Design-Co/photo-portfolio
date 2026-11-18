@@ -162,6 +162,7 @@ export function TextControls({
         </Select>
       </Field>
       <ColorWell
+        bindPalette
         label="Text colour"
         onChange={(color) => set({ color })}
         value={style?.color ?? "#ffffff"}

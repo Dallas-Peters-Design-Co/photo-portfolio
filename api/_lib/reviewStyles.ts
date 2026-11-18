@@ -2,6 +2,7 @@ import {
   applyConceptStyles,
   applyReviewStyles,
 } from "../../config/conceptStyle.js";
+import { refreshPalettePaints } from "../../config/paletteBinding.js";
 import { loadKit } from "./brandKitStore.js";
 import type { getSql } from "./db.js";
 import type { ReviewDto } from "./reviews.js";
@@ -37,9 +38,26 @@ export const withKitStyles = async (
   );
   const screens = await Promise.all(
     doc.screens.map(async (screen) => {
+      const palette = kit?.resolvedDoc.palette ?? [];
+      const resolvedScreen = {
+        ...screen,
+        pins: screen.pins.map((pin) =>
+          pin.concepts
+            ? { ...pin, concepts: refreshPalettePaints(pin.concepts, palette) }
+            : pin
+        ),
+      };
       const page = screen.pageDesign;
       if (!page?.kitId || page.kitId === review.brandKitId) {
-        return screen;
+        return page
+          ? {
+              ...resolvedScreen,
+              pageDesign: {
+                ...page,
+                concept: refreshPalettePaints(page.concept, palette),
+              },
+            }
+          : resolvedScreen;
       }
       const own = await getKit(page.kitId);
       const concept =
@@ -47,11 +65,27 @@ export const withKitStyles = async (
           [page.concept],
           own?.resolvedDoc.componentStyles ?? []
         )[0] ?? page.concept;
-      return { ...screen, pageDesign: { ...page, concept } };
+      return {
+        ...resolvedScreen,
+        pageDesign: {
+          ...page,
+          concept: refreshPalettePaints(
+            concept,
+            own?.resolvedDoc.palette ?? []
+          ),
+        },
+      };
     })
   );
   return {
     ...review,
-    doc: { ...doc, screens },
+    doc: {
+      ...doc,
+      concepts: refreshPalettePaints(
+        doc.concepts,
+        kit?.resolvedDoc.palette ?? []
+      ),
+      screens,
+    },
   };
 };

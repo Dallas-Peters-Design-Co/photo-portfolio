@@ -103,6 +103,7 @@ export function ComponentsSection({
               >
                 <span>{prop.name}</span>
                 <ColorWell
+                  bindPalette
                   label={prop.name}
                   onChange={(c) => comps.setProp(chosen, prop.id, c)}
                   value={value || values[0] || "#000000"}
@@ -280,6 +281,7 @@ function EditingSection({
           <p className="creative__label">Expose from this layer</p>
           {fields.map((f) => {
             const on = editing.props.some((p) => sets(p, link.l, f.field));
+            const Icon = on ? Check : Plus;
             return (
               <div className="components__expose-row" key={f.field}>
                 <button
@@ -290,7 +292,7 @@ function EditingSection({
                   title="A new property; layers with the same value share it"
                   type="button"
                 >
-                  {on ? <Check size={14} /> : <Plus size={14} />} {f.label}
+                  <Icon size={14} /> {f.label}
                 </button>
                 {on ? null : (
                   <JoinSelect

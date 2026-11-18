@@ -67,6 +67,7 @@ export function ShapeControls({
   return (
     <>
       <ColorWell
+        bindPalette
         label="Fill"
         onChange={(fill) => set({ fill })}
         value={config.fill ?? NO_FILL}
@@ -97,6 +98,7 @@ export function ShapeControls({
         </button>
       ) : null}
       <ColorWell
+        bindPalette
         label="Border"
         onChange={(stroke) => set({ stroke })}
         value={config.stroke}

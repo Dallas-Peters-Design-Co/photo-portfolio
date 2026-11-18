@@ -27,7 +27,8 @@ const componentIdsOn = (items: BoardItem[]): string[] => [
 export const recolourComponents = async (
   items: BoardItem[],
   from: string,
-  to: string
+  to: string,
+  variableId?: string
 ): Promise<number> => {
   const jobs = componentIdsOn(items).flatMap((id) => {
     const def = componentById(id);
@@ -35,7 +36,7 @@ export const recolourComponents = async (
       return [];
     }
     const was = { layers: def.layers, props: def.props };
-    const next = recoloured(was, from, to);
+    const next = recoloured(was, from, to, variableId);
     return next === was
       ? []
       : [

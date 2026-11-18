@@ -90,8 +90,8 @@ it("adds a kit style linked, marks an edit as its own, and resets it", async () 
   await userEvent.type(size, "24");
   expect(element()?.overrides).toEqual(["fontSize"]);
 
-  const reset = [...host.querySelectorAll("button")].find((button) =>
-    button.textContent?.includes("Reset")
+  const reset = [...host.querySelectorAll("button")].find(
+    (button) => button.getAttribute("aria-label") === "Reset"
   );
   expect(
     host.querySelector(".review-concepts__style-changes")?.textContent

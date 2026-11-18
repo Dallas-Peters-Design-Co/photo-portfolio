@@ -35,7 +35,6 @@ export function ImageControls({
   return (
     <>
       <SvgColoursButton item={item} onPatch={onPatch} />
-      {/* biome-ignore lint/a11y/noLabelWithoutControl: the control is inside */}
       <label className="creative__field">
         <span>Corners</span>
         <input
@@ -74,6 +73,7 @@ export function ImageControls({
         <span>Colour</span>
         <span className="creative-fit">
           <ColorWell
+            bindPalette
             label="Picture colour"
             onChange={(c) => set({ tint: c })}
             value={tintOf(item) ?? "#ffffff"}

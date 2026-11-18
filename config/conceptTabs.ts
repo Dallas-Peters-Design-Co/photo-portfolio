@@ -1,4 +1,4 @@
-import { CONCEPT_HEX } from "./conceptColor.js";
+import { isConceptPaint } from "./conceptColor.js";
 /**
  * A tabs element's look: the indicator under the active tab, the active and
  * inactive tab colours, and the row's height. Each is optional; without it
@@ -24,7 +24,7 @@ export const TAB_LIMITS = {
 } as const;
 
 const hex = <K extends string>(key: K, value: unknown) =>
-  typeof value === "string" && CONCEPT_HEX.test(value)
+  typeof value === "string" && isConceptPaint(value)
     ? ({ [key]: value } as Record<K, string>)
     : {};
 
