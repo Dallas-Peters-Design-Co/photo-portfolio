@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { flexSize } from "../../../config/conceptFlex.js";
 import {
   type ConceptSlot,
   type ConceptSlotName,
@@ -31,6 +32,9 @@ const padding = (slot: ConceptSlot): string =>
 /** How a slot lays out its elements: flex for a row or column, else grid. */
 const itemsStyle = (slot: ConceptSlot): CSSProperties => {
   const base: CSSProperties = {
+    ...(slot.layout === "row" && slot.wrap !== undefined
+      ? { flexWrap: slot.wrap ? "wrap" : "nowrap" }
+      : {}),
     alignItems: slot.align ? ALIGN[slot.align] : undefined,
     gap: slot.gap ?? SLOT_DEFAULTS.gap,
     justifyContent: slot.justify ? JUSTIFY[slot.justify] : undefined,
@@ -83,6 +87,7 @@ function Slot({
   lead,
   end,
   includeLead,
+  spacer,
   name,
   slot,
 }: {
@@ -91,11 +96,12 @@ function Slot({
   lead?: ReactNode;
   end?: ReactNode;
   includeLead?: boolean;
+  spacer?: boolean;
   name: ConceptSlotName;
   slot?: ConceptSlot;
 }) {
   const filled = slot?.elements.length ? slot : undefined;
-  if (!(lead || filled || end)) {
+  if (!(lead || filled || end || spacer || slot?.flex)) {
     return null;
   }
   const outsideLead = includeLead ? null : lead;
@@ -106,6 +112,7 @@ function Slot({
       data-led={(!includeLead && lead) || end ? true : undefined}
       data-slot={name}
       style={{
+        flex: slot?.flex ? flexSize(slot.flex) : undefined,
         gap: slot?.gap ?? SLOT_DEFAULTS.gap,
         padding: slotPadding ?? (end ? "8px" : undefined),
       }}
@@ -168,6 +175,7 @@ export function ConceptSlotsView({
           lead={name === "header" ? lead : undefined}
           name={name}
           slot={slots[name]}
+          spacer={bar && name === "body"}
         />
       ))}
     </div>

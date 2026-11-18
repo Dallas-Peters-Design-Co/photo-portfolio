@@ -258,7 +258,7 @@ it("spans a full-width group across its row, its items aligned and pushed apart"
   );
 });
 
-it("leaves room for a panel's ✕ in its own header only, not in its cards'", () => {
+it("keeps the toggle beside the panel when its body contains a card", () => {
   const panel = {
     ...createConceptElement("panel"),
     slots: {
@@ -276,9 +276,13 @@ it("leaves room for a panel's ✕ in its own header only, not in its cards'", ()
   act(() =>
     createRoot(host).render(<ReviewConceptElementView element={panel} />)
   );
-  const headers = [
-    ...host.querySelectorAll('.concept-slot[data-slot="header"]'),
-  ].map((h) => getComputedStyle(h).paddingRight);
-  expect(headers[0]).toBe("48px");
-  expect(headers[1]).not.toBe("48px");
+  const inner = host.querySelector(".concept-panel__inner") as HTMLElement;
+  const handle = host.querySelector(".concept-panel__hide") as HTMLElement;
+  expect(
+    inner.querySelectorAll('.concept-slot[data-slot="header"]')
+  ).toHaveLength(2);
+  expect(inner.getBoundingClientRect().right).toBeLessThanOrEqual(
+    handle.getBoundingClientRect().left
+  );
+  host.remove();
 });

@@ -36,6 +36,9 @@ export function StyleLink({
       ...linked,
       look: {
         ...lookOf(element),
+        ...(linked.look.groupContents
+          ? { groupContents: linked.look.groupContents }
+          : {}),
         ...(linked.look.tableContents
           ? { tableContents: linked.look.tableContents }
           : {}),

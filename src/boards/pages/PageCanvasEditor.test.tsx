@@ -412,3 +412,48 @@ it("removes a selected header item and keeps its panel and other slots", async (
     host.querySelector(".page-design__sheet [data-slot='header']")?.textContent
   ).toBe(panel.text);
 });
+
+it("wraps a placed item at its original position and moves a sibling into its group", async () => {
+  const first = createConceptElement("button");
+  const second = createConceptElement("badge");
+  const box = { height: 130, width: 420, x: 100, y: 80 };
+  await mount({
+    boxes: { [first.id]: box },
+    concept: { ...createConcept(), elements: [first, second] },
+    height: 600,
+    kitId: kit.id,
+    version: 1,
+    width: 900,
+  });
+  const select = async (kind: string) => {
+    const layer = [
+      ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
+    ].find((item) => item.textContent?.startsWith(kind));
+    if (!layer) {
+      throw new Error("Missing layer");
+    }
+    await act(() => layer.click());
+  };
+  const action = async (label: string) => {
+    const button = [
+      ...host.querySelectorAll<HTMLButtonElement>(
+        ".page-builder__inspector button"
+      ),
+    ].find((item) => item.textContent === label);
+    if (!button) {
+      throw new Error(label);
+    }
+    await act(() => button.click());
+  };
+  await select("button");
+  await action("Wrap in layout group");
+  await select("badge");
+  await action("Move into group above");
+  const group = latest?.concept.elements[0];
+  expect(latest?.concept.elements).toHaveLength(1);
+  expect(group?.group?.elements.map((item) => item.id)).toEqual([
+    first.id,
+    second.id,
+  ]);
+  expect(latest?.boxes[group?.id ?? ""]).toEqual(box);
+});

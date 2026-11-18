@@ -22,6 +22,7 @@ import {
 } from "./componentSourceParts.js";
 import { tableMarkup } from "./componentSourceTable.js";
 import { withTooltipSource } from "./componentSourceTooltip.js";
+import { flexSize } from "./conceptFlex.js";
 import { conceptFontStack } from "./conceptFont.js";
 import { takesBox } from "./conceptKinds.js";
 import { shadowCss, shadowOf } from "./conceptShadow.js";
@@ -241,6 +242,9 @@ const cssOf = (
   return [
     `.${cls} {\n${vars.join("\n")}\n\n${base.join("\n")}\n}`,
     extra,
+    element.flex
+      ? `.${cls} { flex: ${flexSize(element.flex)}; min-width: 0; }`
+      : "",
     children,
   ]
     .filter(Boolean)
@@ -273,7 +277,11 @@ const drawStatic: Draw = (element, cls) => {
   const inner = markup.passChildren
     ? escapeJsx(element.text || sampleText(element))
     : markup.body && literalInner(element, markup.body);
-  const attrs = [`className="${cls}"`, ...(markup.attrs ? [markup.attrs] : [])];
+  const attrs = [
+    `className="${cls}"`,
+    ...(element.flex ? ["data-flex-item"] : []),
+    ...(markup.attrs ? [markup.attrs] : []),
+  ];
   return {
     css: cssOf(element, markup, cls),
     jsx: wrap(markup.tag, attrs.join(" "), inner?.replaceAll("@@", cls)),

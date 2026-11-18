@@ -306,6 +306,9 @@ export const styleSample = (
     { ...createConceptElement(style.kind, brand), id: style.id },
     style
   );
+  if (linked.kind === "group" && style.look.groupContents) {
+    return { ...linked, group: style.look.groupContents };
+  }
   if (linked.table) {
     return applyColumnStyles(
       { ...linked, table: { ...linked.table, ...style.look.tableContents } },

@@ -19,6 +19,7 @@ import {
   NumberField,
   optionsOf,
 } from "./ConceptControls";
+import { ConceptFlexFields } from "./ConceptFlexFields";
 import { ConceptFontField } from "./ConceptFontField";
 import { LogoGroup } from "./ConceptLogoFields";
 import { MenuGroup } from "./ConceptMenuFields";
@@ -455,6 +456,10 @@ export function ReviewConceptElementFields({
               The component is saved with this review. Edit the original on the
               canvas, then insert it again to use its latest version.
             </p>
+            <ConceptFlexFields
+              flex={element.flex}
+              onChange={(flex) => onChange({ flex })}
+            />
             <ConceptTooltipFields
               brandDoc={brandDoc}
               element={element}
@@ -495,6 +500,10 @@ export function ReviewConceptElementFields({
               onChange={onChange}
             />
           ) : null}
+          <ConceptFlexFields
+            flex={element.flex}
+            onChange={(flex) => onChange({ flex })}
+          />
           <KindGroups
             brandDoc={brandDoc}
             element={element}
@@ -582,7 +591,9 @@ export function ReviewConceptElementFields({
           ) : null}
           {/* In the kit, a panel's or card's starting items are set here too
               (ConceptStyleLook.contents). */}
-          {lookOnly && !hasSlots(element.kind) ? null : (
+          {lookOnly &&
+          !hasSlots(element.kind) &&
+          element.kind !== "group" ? null : (
             <HolderFields
               brandDoc={brandDoc}
               depth={depth}

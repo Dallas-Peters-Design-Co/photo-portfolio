@@ -144,7 +144,10 @@ export function PageCanvasEditor({
           options={[
             { label: "Add an element…", value: NONE },
             ...ELEMENT_KINDS.filter((kind) => kind !== "canvas").map(
-              (kind) => ({ label: kind, value: kind })
+              (kind) => ({
+                label: kind === "group" ? "Layout group" : kind,
+                value: kind,
+              })
             ),
           ]}
           value={NONE}

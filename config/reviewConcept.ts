@@ -1,4 +1,5 @@
 import type { BrandComponent } from "../src/boards/components/model.js";
+import { type ConceptFlex, cleanFlex } from "./conceptFlex.js";
 import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
 import type { ConceptIconSvg } from "./conceptIcon.js";
 import {
@@ -154,6 +155,11 @@ export interface ReviewConceptElement {
   color: string;
   /** Cards and panels: a line between their slots. */
   dividers?: boolean;
+  /**
+   * Panels only: the side it slides in from when it appears, and out to
+   * when its hide slot is clicked. Absent: it just appears.
+   */
+  flex?: ConceptFlex;
   fontFamily: "sans" | "serif" | "mono" | "brand" | "app";
   fontId?: string;
   fontRef?: string;
@@ -197,10 +203,6 @@ export interface ReviewConceptElement {
   overrides?: ConceptStyleKey[];
   paddingX: number;
   paddingY: number;
-  /**
-   * Panels only: the side it slides in from when it appears, and out to
-   * when its hide slot is clicked. Absent: it just appears.
-   */
   panelCollapsed?: boolean;
   panelToggleSide?: "left" | "right";
   placeholder?: string;
@@ -265,6 +267,7 @@ export const ELEMENT_STYLE_KEYS = [
   "checkSize",
   "barHeight",
   "dividers",
+  "flex",
   "panelCollapsed",
   "panelToggleSide",
   "tabLook",
@@ -493,6 +496,7 @@ export const cleanElement = (
   const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
     ...cleanCanvas(raw, kind),
+    ...cleanFlex(raw.flex),
     ...cleanAttachedTooltip(raw, kind),
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),

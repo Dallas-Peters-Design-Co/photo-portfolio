@@ -1,3 +1,4 @@
+import { flexSize } from "./conceptFlex.js";
 import { type ConceptIconSvg, conceptIconName } from "./conceptIcon.js";
 import { iconSizeOf } from "./conceptKinds.js";
 import {
@@ -126,6 +127,9 @@ const ALIGN = {
 
 const itemsStyle = (slot: ConceptSlot): string => {
   const style: string[] = [`gap: ${slot.gap ?? SLOT_DEFAULTS.gap}`];
+  if (slot.layout === "row") {
+    style.push(`flexWrap: "${slot.wrap === false ? "nowrap" : "wrap"}"`);
+  }
   if (slot.align) {
     style.push(`alignItems: "${ALIGN[slot.align]}"`);
   }
@@ -151,7 +155,7 @@ const SLOTS_CSS = `&__slots { display: flex; flex-direction: column; min-width: 
 &__items[data-layout="row"] { flex-direction: row; align-items: center; }
 &__items[data-layout="grid"] { display: grid; }
 &__items[data-fill] > * { align-self: stretch; width: auto; min-width: 0; }
-&__items[data-fill][data-layout="row"] > * { flex: 1 1 0; }
+&__items[data-fill][data-layout="row"] > :not([data-flex-item]) { flex: 1 1 0; }
 &__slot[data-led] > &__items[data-fill] { flex: 1 1 0; }
 &__lead { flex: 1 1 8rem; min-width: 0; }`;
 
@@ -186,12 +190,20 @@ const slotsOf = (
     const filled = slot?.elements.length ? slot : undefined;
     const led = name === "header" && lead;
     const end = name === "header" ? headerEnd : "";
-    if (!(led || filled || end)) {
+    if (
+      !(
+        led ||
+        filled ||
+        end ||
+        slot?.flex ||
+        (element.kind === "navbar" && name === "body")
+      )
+    ) {
       return "";
     }
     const defaultStyle = end ? ' style={{ padding: "8px" }}' : "";
     const style = slot
-      ? ` style={{ gap: ${slot.gap ?? SLOT_DEFAULTS.gap}, padding: "${slot.paddingY ?? SLOT_DEFAULTS.paddingY}px ${slot.paddingX ?? SLOT_DEFAULTS.paddingX}px" }}`
+      ? ` style={{ ${slot.flex ? `flex: "${flexSize(slot.flex)}", ` : ""}gap: ${slot.gap ?? SLOT_DEFAULTS.gap}, padding: "${slot.paddingY ?? SLOT_DEFAULTS.paddingY}px ${slot.paddingX ?? SLOT_DEFAULTS.paddingX}px" }}`
       : defaultStyle;
     const titleInLayout = element.kind === "panel" && Boolean(led);
     const items =
@@ -224,7 +236,7 @@ export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
     body: items,
     childCss: css.join("\n"),
     css: `& { display: flex; min-width: 0;${group.full ? " width: 100%; align-self: stretch;" : ""} }
-& > .@@__items { flex: 1 1 auto; }
+& > &__items { flex: 1 1 auto; }
 ${SLOTS_CSS}`,
     tag: "div",
     tokens: [

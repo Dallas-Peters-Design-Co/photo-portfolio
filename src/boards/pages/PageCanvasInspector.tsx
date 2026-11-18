@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
+import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
 import { ReviewConceptElementFields } from "../../components/admin/ReviewConceptElementFields";
 import "../../components/admin/ReviewConceptsEditor.css";
 import { PageField, PageNumber, PageSelect } from "./PageFields";
@@ -157,6 +158,24 @@ export function PageCanvasInspector({
               ))}
             </div>
           ) : null}
+          {editor.canGroup ? (
+            <button
+              className="page-builder__button"
+              onClick={editor.groupSelected}
+              type="button"
+            >
+              Wrap in layout group
+            </button>
+          ) : null}
+          {editor.moveIntoGroup ? (
+            <button
+              className="page-builder__button"
+              onClick={editor.moveIntoGroup}
+              type="button"
+            >
+              Move into group above
+            </button>
+          ) : null}
           <button
             className="page-builder__button"
             onClick={removeSelected}
@@ -165,11 +184,17 @@ export function PageCanvasInspector({
             <Trash2 size={14} /> {box ? "Remove component" : "Remove item"}
           </button>
           {element.kind === "canvas" ? (
-            <PageTooltipFields
-              doc={doc}
-              element={element}
-              onChange={patchElement}
-            />
+            <>
+              <ConceptFlexFields
+                flex={element.flex}
+                onChange={(flex) => patchElement({ flex })}
+              />
+              <PageTooltipFields
+                doc={doc}
+                element={element}
+                onChange={patchElement}
+              />
+            </>
           ) : (
             <ReviewConceptElementFields
               brandDoc={doc}

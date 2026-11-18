@@ -4,7 +4,17 @@ import {
   createConcept,
   createConceptElement,
 } from "../../../config/conceptDefaults.js";
-import { everyElement, mapChildren } from "../../../config/conceptSlots.js";
+import {
+  fitsAtDepth,
+  groupAbove,
+  moveIntoGroupAbove,
+  wrapInGroup,
+} from "../../../config/conceptGroups.js";
+import {
+  everyElement,
+  MAX_SLOT_ELEMENTS,
+  mapChildren,
+} from "../../../config/conceptSlots.js";
 import {
   addStepAfter,
   removeStep,
@@ -148,6 +158,24 @@ export const usePageCanvas = (
       }
     }
   };
+  const canGroup = Boolean(element && box && fitsAtDepth(element, 1));
+  const above = elements[groupAbove(elements, rootIndex)];
+  const groupSelected = () => {
+    if (!(step && box && canGroup)) {
+      return;
+    }
+    const next = wrapInGroup(elements, rootIndex, doc);
+    const group = next[rootIndex];
+    if (!group) {
+      return;
+    }
+    write({
+      ...resolved,
+      boxes: { ...page.boxes, [group.id]: box },
+      concept: withStep(concept, at, { ...step, elements: next }),
+    });
+    setSelected(group.id);
+  };
   const setBox = (id: string, next: PageBox) =>
     write({ ...resolved, boxes: { ...page.boxes, [id]: next } });
   const add = (value: string) => {
@@ -230,13 +258,24 @@ export const usePageCanvas = (
     at,
     box,
     brand,
+    canGroup,
     canvasComponents,
     canvasError,
     concept,
     doc,
     element,
     elements,
+    groupSelected,
     index,
+    moveIntoGroup:
+      canGroup &&
+      above &&
+      (above.group?.elements.length ?? 0) < MAX_SLOT_ELEMENTS
+        ? () => {
+            setElements(moveIntoGroupAbove(elements, rootIndex));
+            setSelected(above.id);
+          }
+        : undefined,
     page,
     patchElement,
     playing,

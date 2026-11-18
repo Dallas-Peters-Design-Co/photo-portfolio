@@ -372,3 +372,38 @@ describe("a panel style's starting items", () => {
     expect(own.slots).toEqual(panel.slots);
   });
 });
+
+it("saves a kit grid group with sized children and inserts independent copies", () => {
+  const group = createConceptElement("group");
+  const child = {
+    ...createConceptElement("button"),
+    flex: { basis: 120, grow: 2, shrink: 0 },
+  };
+  const [style] = cleanConceptStyles([
+    {
+      id: "actions",
+      kind: "group",
+      look: {
+        groupContents: {
+          columns: 3,
+          elements: [child],
+          gap: 16,
+          layout: "grid",
+        },
+      },
+      name: "Actions",
+    },
+  ]);
+  if (!style) {
+    throw new Error("Missing group style");
+  }
+  const first = fromStyle(group, style);
+  const second = fromStyle(group, style);
+  expect(first.group).toMatchObject({
+    columns: 3,
+    elements: [{ flex: child.flex }],
+    gap: 16,
+    layout: "grid",
+  });
+  expect(first.group?.elements[0]?.id).not.toBe(second.group?.elements[0]?.id);
+});

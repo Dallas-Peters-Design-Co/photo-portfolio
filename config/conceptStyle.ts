@@ -48,6 +48,7 @@ export type ConceptStyleLook = Partial<
    * already follows the style keeps its own, since they are its content.
    */
   contents?: ConceptSlots;
+  groupContents?: ReviewConceptElement["group"];
   tableContents?: Pick<ConceptTable, "columns" | "rows" | "icons">;
   tableBorders?: ConceptTableBorders;
   tableHeader?: ConceptTableHeader;
@@ -114,6 +115,7 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   const look = (raw.look ?? {}) as ConceptStyleLook;
   const element = cleanElement({
     ...look,
+    group: look.groupContents,
     // A stand-in when the style sets no icon, so its icon size and colour
     // survive cleaning (cleanIcon keeps them only beside an icon).
     iconName: look.iconName ?? "StarIcon",
@@ -152,6 +154,9 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
     look: {
       ...(look.iconName ? cleaned : iconless),
       ...contents,
+      ...(look.groupContents && element.group
+        ? { groupContents: element.group }
+        : {}),
       ...(tableContents ? { tableContents } : {}),
     },
     name: name || "Untitled",
@@ -395,6 +400,12 @@ export const fromStyle = (
       : element,
     style
   );
+  if (style.kind === "group" && style.look.groupContents) {
+    return mapChildren(
+      { ...linked, group: style.look.groupContents },
+      withNewIds
+    );
+  }
   const { contents } = style.look;
   return contents && hasSlots(style.kind)
     ? mapChildren({ ...linked, slots: contents }, withNewIds)

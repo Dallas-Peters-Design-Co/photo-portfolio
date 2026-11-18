@@ -79,6 +79,9 @@ const styleLook = (
           },
         }
       : {}),
+    ...(next.kind === "group" && next.group
+      ? { groupContents: next.group }
+      : {}),
     ...(hasSlots(next.kind) && next.slots ? { contents: next.slots } : {}),
   };
 };

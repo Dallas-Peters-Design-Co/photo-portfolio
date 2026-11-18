@@ -26,6 +26,7 @@ import {
   optionsOf,
 } from "./ConceptControls";
 import { ConceptElementList } from "./ConceptElementList";
+import { ConceptFlexFields } from "./ConceptFlexFields";
 
 const LAYOUTS = optionsOf([
   ["column", "Column"],
@@ -68,11 +69,35 @@ const SLIDES = optionsOf([
   ["bottom", "Slides up from the bottom"],
 ]);
 
+function WrapField({
+  slot,
+  onChange,
+}: {
+  slot: ConceptSlot;
+  onChange: (wrap: boolean) => void;
+}) {
+  const id = useId();
+  if (slot.layout !== "row") {
+    return null;
+  }
+  return (
+    <label className="review-concepts__check" htmlFor={id}>
+      <Checkbox
+        checked={slot.wrap ?? true}
+        id={id}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      Wrap items
+    </label>
+  );
+}
+
 /** One slot: how it lays out what it holds, then what it holds. */
 export function SlotFields({
   brandDoc,
   depth,
   group = false,
+  navbar = false,
   label: named,
   listLabel,
   name = "body",
@@ -83,6 +108,7 @@ export function SlotFields({
   depth: number;
   /** A group's settings: it can span its row (Full width). */
   group?: boolean;
+  navbar?: boolean;
   /** What the settings are headed: the slot's name, or "Group". */
   label?: string;
   /** What the list of elements is headed. */
@@ -95,6 +121,7 @@ export function SlotFields({
   const fullId = useId();
   const label = named ?? `${SLOT_LABELS[name]} slot`;
   const set = (patch: Partial<ConceptSlot>) => onChange({ ...slot, ...patch });
+  const middle = name === "body" ? 1 : 0;
   const layout = slot.layout ?? "column";
   return (
     <div className="review-concepts__slot">
@@ -107,6 +134,7 @@ export function SlotFields({
             value={layout}
           />
         </ConceptField>
+        <WrapField onChange={(wrap) => set({ wrap })} slot={slot} />
         {layout === "grid" ? (
           <NumberField
             label="Columns"
@@ -169,6 +197,14 @@ export function SlotFields({
           value={slot.paddingY ?? SLOT_DEFAULTS.paddingY}
         />
       </ConceptGroup>
+      {navbar ? (
+        <ConceptFlexFields
+          flex={slot.flex}
+          grow={middle}
+          onChange={(flex) => set({ flex })}
+          shrink={middle}
+        />
+      ) : null}
       {name === "hide" && slot.elements.length === 0 ? (
         <Button
           onClick={() =>
@@ -283,6 +319,7 @@ export function ConceptSlotFields({
               element.kind === "navbar" ? `${BAR_LABELS[name]} slot` : undefined
             }
             name={name}
+            navbar={element.kind === "navbar"}
             onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
             slot={slots[name] ?? { elements: [] }}
           />

@@ -1,3 +1,4 @@
+import { type ConceptFlex, cleanFlex } from "./conceptFlex.js";
 import { PANEL_CHEVRON } from "./conceptIcon.js";
 import { bounded } from "./conceptValues.js";
 import type {
@@ -47,6 +48,7 @@ export interface ConceptSlot {
   elements: ReviewConceptElement[];
   /** Each element grows to share the slot's full width. */
   fill?: boolean;
+  flex?: ConceptFlex;
   /**
    * Groups only: the group spans its row, its elements keeping their own
    * size, so Align and Justify place them (Fill, which stretches each one,
@@ -59,6 +61,7 @@ export interface ConceptSlot {
   layout?: ConceptSlotLayout;
   paddingX?: number;
   paddingY?: number;
+  wrap?: boolean;
 }
 
 export type ConceptSlots = Partial<Record<ConceptSlotName, ConceptSlot>>;
@@ -126,6 +129,8 @@ export const cleanSlot = (
   const justify = oneOf(SLOT_JUSTIFIES, slot.justify);
   const layout = oneOf(SLOT_LAYOUTS, slot.layout);
   return {
+    ...cleanFlex(slot.flex),
+    ...(typeof slot.wrap === "boolean" ? { wrap: slot.wrap } : {}),
     ...(align ? { align } : {}),
     ...number("columns", slot.columns),
     elements: (Array.isArray(slot.elements) ? slot.elements : [])

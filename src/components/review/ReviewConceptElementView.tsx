@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react";
 import type { CSSProperties } from "react";
+import { flexSize } from "../../../config/conceptFlex.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { iconSizeOf, takesBox } from "../../../config/conceptKinds.js";
 import { shadowCss, shadowOf } from "../../../config/conceptShadow.js";
@@ -476,7 +477,7 @@ export function ReviewConceptElementView({
   element: ReviewConceptElement;
 }) {
   const marks = marksFor(element, useSequenceMarks());
-  return (
+  const child = (
     <ConceptTooltip
       fill={["card", "panel", "table", "navbar", "progress"].includes(
         element.kind
@@ -487,6 +488,13 @@ export function ReviewConceptElementView({
         <ElementBody element={element} />
       </ConceptHover>
     </ConceptTooltip>
+  );
+  return element.flex ? (
+    <div className="concept-flex-item" style={{ flex: flexSize(element.flex) }}>
+      {child}
+    </div>
+  ) : (
+    child
   );
 }
 

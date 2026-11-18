@@ -137,3 +137,8 @@
 .concept-slot__items:not([data-layout="row"]) > .concept-slot__lead {
   flex: none;
 }
+
+.concept-flex-item {
+  display: grid;
+  min-width: 0;
+}

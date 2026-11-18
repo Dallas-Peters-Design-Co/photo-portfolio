@@ -397,3 +397,37 @@ it("lays out the panel title and badge together when the header changes directio
     }
   }
 });
+
+it("keeps the empty navbar middle slot and sizes its neighbors using saved flex settings", () => {
+  const navbar = createConceptElement("navbar");
+  const button = {
+    ...createConceptElement("button"),
+    flex: { basis: 100, grow: 2, shrink: 0 },
+  };
+  const element = cleanConcept({
+    elements: [
+      {
+        ...navbar,
+        slots: {
+          body: { elements: [] },
+          footer: navbar.slots?.footer,
+          header: {
+            elements: [button],
+            flex: { basis: 0, grow: 1, shrink: 1 },
+            layout: "row",
+            wrap: false,
+          },
+        },
+      },
+    ],
+  }).elements[0] as ReviewConceptElement;
+  act(() => root.render(<ReviewConceptElementView element={element} />));
+  const start = host.querySelector('[data-slot="header"]') as HTMLElement;
+  const item = start.querySelector(".concept-flex-item") as HTMLElement;
+  expect(getComputedStyle(start).flex).toBe("1 1 0px");
+  expect(getComputedStyle(item).flex).toBe("2 0 100px");
+  expect(getComputedStyle(item.parentElement as HTMLElement).flexWrap).toBe(
+    "nowrap"
+  );
+  expect(host.querySelector('[data-slot="body"]')?.textContent).toBe("");
+});
