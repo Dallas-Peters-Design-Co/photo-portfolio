@@ -114,7 +114,7 @@
           {
             "group": "Brands",
             "pages": [
-              "components/pretext",
+              "components/pretex-t",
               "components/viaskai"
             ]
           }
