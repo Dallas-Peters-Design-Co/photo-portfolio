@@ -1,4 +1,5 @@
 import { escapeJsx, iconSvgJsx, type Markup } from "./componentSourceParts.js";
+import { conceptFontStack } from "./conceptFont.js";
 import { iconSizeOf } from "./conceptKinds.js";
 import { shadowCss, shadowOf } from "./conceptShadow.js";
 import type { ReviewConceptElement } from "./reviewConcept.js";
@@ -105,25 +106,80 @@ ${FIELD_CSS}`,
   };
 };
 
-/**
- * A select showing its text as the chosen value, as the app does, with a
- * chevron of its own in place of the browser's, in the element's colour.
- */
+/** A styled select and its open list, matching the review's shared Select. */
 export const selectMarkup = (
   el: ReviewConceptElement,
-  focus: string
+  _focus: string
 ): Markup => {
   const shown = el.text.trim() || el.options?.[0] || "Choose";
   const options = [shown, ...(el.options ?? []).filter((o) => o !== shown)];
-  const chevron = encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${el.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`
-  );
+  const look = el.menuLook ?? {};
+  const fill = look.background ?? el.background;
+  const background = !fill || fill === "transparent" ? "#ffffff" : fill;
+  const ink = look.color ?? el.color;
+  const line =
+    look.borderColor ??
+    (el.borderColor && el.borderColor !== "transparent"
+      ? el.borderColor
+      : `color-mix(in srgb, ${ink} 15%, transparent)`);
+  const highlight =
+    look.highlight ?? `color-mix(in srgb, ${ink} 10%, transparent)`;
+  const items = options
+    .map(
+      (option) =>
+        `  <button className="@@__item" type="button">${escapeJsx(option)}</button>`
+    )
+    .join("\n");
   return {
-    attrs: `aria-label=${quote(el.placeholder || shown)} defaultValue=${quote(shown)}`,
-    body: options.map((o) => `<option>${escapeJsx(o)}</option>`).join("\n"),
-    css: `& { appearance: none; -webkit-appearance: none; padding-inline-end: calc(1em + 20px); cursor: pointer; background-image: url("data:image/svg+xml,${chevron}"); background-repeat: no-repeat; background-position: right 10px center; background-size: 1em; }
-${focus}`,
-    tag: "select",
+    attrs: `aria-label=${quote(el.placeholder || shown)}`,
+    body: `<summary className="@@__trigger">${escapeJsx(shown)}\n  ${CHEVRON("@@__chevron", el.fontSize).split("\n").join("\n  ")}\n</summary>\n<div className="@@__list">\n${items}\n</div>`,
+    css: `& { position: relative; display: inline-block; padding: 0; }
+&__trigger { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: space-between; gap: 1em; width: 100%; padding: var(--&-padding); cursor: pointer; list-style: none; }
+&__trigger::-webkit-details-marker { display: none; }
+&__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+&__positioner { z-index: 100; }
+&__list { box-sizing: border-box; z-index: 100; min-width: max(100%, 9rem); max-height: 16rem; overflow-y: auto; padding: 4px; background: ${background}; color: ${ink}; border: 1px solid ${line}; border-radius: ${look.radius ?? el.radius}px; box-shadow: 0 8px 24px color-mix(in srgb, #000 16%, transparent); font-family: ${conceptFontStack(el.fontFamily, el.fontRef, el.fontId)}; font-size: ${el.fontSize}px; font-weight: ${el.fontWeight}; }
+& > &__list { position: absolute; top: calc(100% + 4px); left: 0; }
+&__item { box-sizing: border-box; display: flex; align-items: center; width: 100%; padding: 4px 8px; border: 0; border-radius: 4px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; outline: none; }
+&__item:hover, &__item:focus, &__item[data-highlighted] { background: ${highlight}; color: ${look.highlightColor ?? ink}; }`,
+    tag: "details",
+    tsx: (name, cls) => `import { Select } from "@base-ui/react/select";
+import "./${name}.css";
+
+interface ${name}Props {
+  className?: string;
+  onValueChange?: (value: string | null) => void;
+  options?: string[];
+  value?: string;
+}
+
+/** ${name}: requires @base-ui/react for its accessible dropdown. */
+export function ${name}({ className, onValueChange, options = ${JSON.stringify(options)}, value }: ${name}Props) {
+  return (
+    <Select.Root defaultValue={${quote(shown)}} value={value} onValueChange={onValueChange}>
+      <div className={className ? \`${cls} \${className}\` : "${cls}"}>
+        <Select.Trigger className="${cls}__trigger" aria-label=${quote(el.placeholder || shown)}>
+          <Select.Value />
+          <Select.Icon>${CHEVRON(`${cls}__chevron`, el.fontSize)}</Select.Icon>
+        </Select.Trigger>
+      </div>
+      <Select.Portal>
+        <Select.Positioner className="${cls}__positioner" sideOffset={4} alignItemWithTrigger={false}>
+          <Select.Popup className="${cls}__list">
+            <Select.List>
+              {options.map((option) => (
+                <Select.Item className="${cls}__item" key={option} value={option}>
+                  <Select.ItemText>{option}</Select.ItemText>
+                </Select.Item>
+              ))}
+            </Select.List>
+          </Select.Popup>
+        </Select.Positioner>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+`,
   };
 };
 

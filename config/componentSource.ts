@@ -36,9 +36,8 @@ import {
  *
  * Plain CSS on one BEM class, with the look in custom properties at the top,
  * so the receiving project can retheme it without reading the rules. No
- * dependency beyond React: the markup is native elements with their ARIA,
- * which is enough for a static look and is where a behaviour library (focus,
- * dismissal, keyboard) would be wired in by the project that adopts it.
+ * Most use native elements. The select uses Base UI for its styled popup,
+ * keyboard behavior and focus management.
  */
 
 export interface ComponentSource {
@@ -53,6 +52,8 @@ export interface ComponentSource {
    * import the component.
    */
   preview: string;
+  /** Initial value for the interactive select preview in the docs. */
+  previewValue?: string;
   tsx: string;
 }
 
@@ -282,7 +283,19 @@ export const componentSource = (
   const markup = markupOf(element, drawStatic);
   const { css, jsx: preview } = drawStatic(element, className);
   if (markup.tsx) {
-    return { className, css, name, preview, tsx: markup.tsx(name, className) };
+    return {
+      className,
+      css,
+      name,
+      preview,
+      ...(element.kind === "select"
+        ? {
+            previewValue:
+              element.text.trim() || element.options?.[0] || "Choose",
+          }
+        : {}),
+      tsx: markup.tsx(name, className),
+    };
   }
 
   const props = [

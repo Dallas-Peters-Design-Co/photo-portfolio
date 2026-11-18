@@ -150,6 +150,45 @@ describe("componentSource names what a screen reader needs named", () => {
   });
 });
 
+it("exports the styled select dropdown and its menu look", () => {
+  const [selectElement] = cleanConcept({
+    elements: [
+      {
+        kind: "select",
+        menuLook: {
+          background: "#112233",
+          borderColor: "#abcdef",
+          color: "#ffffff",
+          highlight: "#334455",
+          highlightColor: "#eeeeee",
+          radius: 9,
+        },
+        options: ["Overview", "Settings"],
+        text: "Choose",
+      },
+    ],
+  }).elements;
+  const source = componentSource(
+    selectElement as ReviewConceptElement,
+    "Primary"
+  );
+  expect(source.tsx).toContain('from "@base-ui/react/select"');
+  expect(source.tsx).toContain("<Select.Popup");
+  expect(source.tsx).toContain("<Select.Item");
+  expect(source.preview).toContain("<details");
+  expect(source.preview).toContain("Overview");
+  for (const value of [
+    "#112233",
+    "#ffffff",
+    "#abcdef",
+    "#334455",
+    "#eeeeee",
+    "9px",
+  ]) {
+    expect(source.css).toContain(value);
+  }
+});
+
 describe("a table in the copied code", () => {
   it("clips to its corners, and its kit-styled buttons match the kit's", () => {
     const table = createConceptElement("table");
