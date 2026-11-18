@@ -13,7 +13,7 @@ import { LOOKS } from "../../editor/presets";
 import { useCollectionImages } from "../../hooks/useCollectionImages";
 import { loadFontRef } from "../../theme/remoteFonts";
 import { facesFor, familyFor } from "../typeScale/faces";
-import { colourName, groupPalette, inkOn, valuesOf } from "./guideModel";
+import { colourName, inkOn, valuesOf } from "./guideModel";
 import { readableOn } from "./guideTheme";
 import { useLogoTone } from "./logoTone";
 
@@ -42,17 +42,15 @@ function CopyValue({ label, value }: { label: string; value: string }) {
 
 function ColourCard({
   entry,
-  large,
   palette,
 }: {
   entry: PaletteEntry;
-  large: boolean;
   palette: PaletteEntry[];
 }) {
   const v = valuesOf(entry.value);
   return (
     <article
-      className={["guide-colour", large ? "guide-colour--large" : ""].join(" ")}
+      className="guide-colour"
       style={{
         background: entry.value,
         ["--on" as string]: readableOn(
@@ -77,55 +75,19 @@ function ColourCard({
 }
 
 export function ColourSection({ doc }: { doc: BrandKitDoc }) {
-  const groups = groupPalette(doc.palette);
   if (doc.palette.length === 0) {
     return <p className="guide-empty">No colours in this kit yet.</p>;
   }
   return (
-    <>
-      {groups.brand.length > 0 ? (
-        <div className="guide-colours guide-colours--brand">
-          {groups.brand.map((entry) => (
-            <ColourCard
-              entry={entry}
-              key={entry.value + entry.name}
-              large
-              palette={doc.palette}
-            />
-          ))}
-        </div>
-      ) : null}
-      {groups.neutral.length > 0 ? (
-        <>
-          <h3 className="guide-subhead">Neutral</h3>
-          <div className="guide-colours">
-            {groups.neutral.map((entry) => (
-              <ColourCard
-                entry={entry}
-                key={entry.value + entry.name}
-                large={false}
-                palette={doc.palette}
-              />
-            ))}
-          </div>
-        </>
-      ) : null}
-      {groups.signal.length > 0 ? (
-        <>
-          <h3 className="guide-subhead">Signal</h3>
-          <div className="guide-colours">
-            {groups.signal.map((entry) => (
-              <ColourCard
-                entry={entry}
-                key={entry.value + entry.name}
-                large={false}
-                palette={doc.palette}
-              />
-            ))}
-          </div>
-        </>
-      ) : null}
-    </>
+    <div className="guide-colours">
+      {doc.palette.map((entry) => (
+        <ColourCard
+          entry={entry}
+          key={entry.value + entry.name}
+          palette={doc.palette}
+        />
+      ))}
+    </div>
   );
 }
 

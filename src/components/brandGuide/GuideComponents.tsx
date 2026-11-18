@@ -14,7 +14,13 @@ function GuideComponent({
   style: ConceptStyle;
 }) {
   return (
-    <article className="guide-component">
+    <article
+      className={
+        style.kind === "navbar"
+          ? "guide-component guide-component--wide"
+          : "guide-component"
+      }
+    >
       <h3 className="guide-subhead">{styleTitle(style)}</h3>
       <div className="guide-component__sample concept-canvas">
         <ReviewConceptElementView element={styleSample(style, doc)} />
