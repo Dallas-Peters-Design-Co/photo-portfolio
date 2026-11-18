@@ -1,4 +1,5 @@
 import type { BrandKitDoc } from "./brandKit.js";
+import { PANEL_CHEVRON } from "./conceptIcon.js";
 import { columnStyleOf } from "./conceptStyle.js";
 import { type ConceptTable, DEFAULT_TABLE } from "./conceptTable.js";
 import type {
@@ -128,7 +129,7 @@ export const progressLook = (
 /**
  * A panel's close control for its hide slot: an icon-only button, so it has
  * every button setting (fill, border, corners, shadow, padding, icon colour
- * and size, hover) and can follow a kit button style. A clear round ✕ to start.
+ * and size, hover) and can follow a kit button style. A clear round chevron to start.
  */
 export const closeButton = (
   make: (
@@ -151,7 +152,7 @@ export const closeButton = (
     color: ink,
     hover: { background: paletteColor(brandDoc, ["border"], "#e4e7ec") },
     iconColor: ink,
-    iconName: "Cancel01Icon",
+    ...PANEL_CHEVRON,
     iconSize: 16,
     paddingX: 8,
     paddingY: 8,

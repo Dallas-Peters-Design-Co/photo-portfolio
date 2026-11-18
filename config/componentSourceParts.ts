@@ -5,6 +5,7 @@ import {
   type ConceptSlotName,
   LAYOUT_SLOTS,
   mapChildren,
+  panelHandleElements,
   SLOT_DEFAULTS,
 } from "./conceptSlots.js";
 import { type ReviewConceptElement, splitCardText } from "./reviewConcept.js";
@@ -249,7 +250,7 @@ ${SLOTS_CSS}`,
 };
 
 export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
-  const controls = (el.slots?.hide?.elements ?? []).map((child, i) =>
+  const controls = panelHandleElements(el).map((child, i) =>
     draw(child, `@@__hide-${i + 1}`)
   );
   const slotted = withSlots(
@@ -258,7 +259,9 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
     el.text ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>` : ""
   );
   const label = JSON.stringify(el.text || "Panel");
-  const handle = controls.map((child) => child.jsx).join("\n") || "×";
+  const handle =
+    controls.map((child) => child.jsx).join("\n") ||
+    '<span className="@@__chevron">‹</span>';
   const hasTrigger = controls.length > 0 || el.panelCollapsed;
   const surface = `<div className="@@__surface">\n${slotted.body}\n</div>`;
   const control = (trigger: string) =>
@@ -283,6 +286,7 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
 &__hide { display: flex; position: relative; flex: none; }
 &__hide > [inert] { display: flex; }
 &__trigger { position: absolute; inset: 0; z-index: 1; background: transparent; border: 0; cursor: pointer; }
+&__trigger[aria-expanded="false"] + [inert] svg:first-of-type, &__trigger[aria-expanded="false"] + [inert] &__chevron { rotate: 180deg; }
 &__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { &__inner { transition: none; } }
 ${SLOTS_CSS}`,

@@ -1,3 +1,4 @@
+import { PANEL_CHEVRON } from "./conceptIcon.js";
 import { bounded } from "./conceptValues.js";
 import type {
   ReviewConceptElement,
@@ -212,3 +213,14 @@ export const everyElement = (
       ...(element.group?.elements ?? []),
     ]),
   ]);
+
+/** Apply the directional glyph to existing kit controls while keeping their button styling. */
+export function panelHandleElements(
+  element: ReviewConceptElement
+): ReviewConceptElement[] {
+  return (element.slots?.hide?.elements ?? []).map((child) =>
+    child.kind === "icon" || child.kind === "button"
+      ? { ...child, ...PANEL_CHEVRON }
+      : child
+  );
+}

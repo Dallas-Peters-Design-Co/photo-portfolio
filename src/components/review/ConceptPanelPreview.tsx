@@ -1,5 +1,6 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { type CSSProperties, type ReactNode, useCallback, useRef } from "react";
+import { panelHandleElements } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { ConceptSlotsView } from "./ConceptSlotsView";
 import { PANEL_HIDDEN, useSequenceMarks } from "./conceptSequence";
@@ -15,7 +16,7 @@ export function ConceptPanelPreview({
 }) {
   const root = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
-  const hide = element.slots?.hide?.elements ?? [];
+  const hide = panelHandleElements(element);
   const { editing } = useSequenceMarks();
   // Base UI removes the panel after its closing transition, including when
   // reduced motion skips that transition. Advance a sequence at that point.
@@ -64,7 +65,11 @@ export function ConceptPanelPreview({
                 className="concept-panel__trigger"
               />
               <div aria-hidden="true" inert>
-                {hide.length ? hide.map(draw) : "×"}
+                {hide.length ? (
+                  hide.map(draw)
+                ) : (
+                  <span className="concept-panel__chevron">‹</span>
+                )}
               </div>
             </>
           )}

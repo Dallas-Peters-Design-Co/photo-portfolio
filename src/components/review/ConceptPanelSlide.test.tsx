@@ -68,6 +68,8 @@ it("puts the hide slot in a panel's copied code", () => {
   const source = componentSource(element, "Drawer");
   expect(source.tsx).toContain('className="panel-drawer__hide"');
   expect(source.css).toContain(".panel-drawer__hide {");
+  expect(source.tsx).toContain('d="m15 5-7 7 7 7"');
+  expect(source.css).toContain('.panel-drawer__trigger[aria-expanded="false"]');
 });
 
 it("reopens a saved collapsed panel with the same external keyboard control", async () => {
@@ -82,11 +84,16 @@ it("reopens a saved collapsed panel with the same external keyboard control", as
     const trigger = host.querySelector(
       ".concept-panel__trigger"
     ) as HTMLButtonElement;
+    const chevron = host.querySelector(
+      ".concept-panel__hide svg"
+    ) as SVGElement;
+    expect(getComputedStyle(chevron).rotate).toBe("180deg");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(host.querySelector(".concept-panel__inner")).toBeNull();
     trigger.focus();
     await userEvent.keyboard("{Enter}");
     expect(trigger.getAttribute("aria-expanded")).toBe("true");
+    expect(getComputedStyle(chevron).rotate).toBe("none");
     expect(
       host.querySelector(".concept-panel__surface")?.textContent
     ).toContain("Filters");

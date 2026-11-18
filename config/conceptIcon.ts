@@ -5,6 +5,25 @@
  */
 export type ConceptIconSvg = [string, Record<string, string | number>][];
 
+/** The panel handle points toward the body while expanded. */
+export const PANEL_CHEVRON = {
+  iconName: "ArrowLeft01Icon",
+  iconSvg: [
+    [
+      "path",
+      {
+        d: "m15 5-7 7 7 7",
+        fill: "none",
+        key: "chevron",
+        stroke: "currentColor",
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        strokeWidth: 2,
+      },
+    ],
+  ] satisfies ConceptIconSvg,
+};
+
 const SVG_TAGS = new Set(["path", "circle", "rect", "ellipse", "line"]);
 const SVG_ATTRS = new Set([
   "clipRule",

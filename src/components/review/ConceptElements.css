@@ -237,6 +237,16 @@
   border: 0;
 }
 
+.concept-panel__trigger[aria-expanded="false"]
+  + [inert]
+  :is(button, [role="img"])
+  svg:first-of-type,
+.concept-panel__trigger[aria-expanded="false"]
+  + [inert]
+  .concept-panel__chevron {
+  rotate: 180deg;
+}
+
 .concept-panel__trigger:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
