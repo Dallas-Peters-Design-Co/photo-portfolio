@@ -112,7 +112,10 @@ export const selectMarkup = (
   _focus: string
 ): Markup => {
   const shown = el.text.trim() || el.options?.[0] || "Choose";
-  const options = [shown, ...(el.options ?? []).filter((o) => o !== shown)];
+  const placeholder = el.placeholder?.trim();
+  const options = placeholder
+    ? (el.options ?? [])
+    : [shown, ...(el.options ?? []).filter((o) => o !== shown)];
   const look = el.menuLook ?? {};
   const fill = look.background ?? el.background;
   const background = !fill || fill === "transparent" ? "#ffffff" : fill;
@@ -132,7 +135,7 @@ export const selectMarkup = (
     .join("\n");
   return {
     attrs: `aria-label=${quote(el.placeholder || shown)}`,
-    body: `<summary className="@@__trigger">${escapeJsx(shown)}\n  ${CHEVRON("@@__chevron", el.fontSize).split("\n").join("\n  ")}\n</summary>\n<div className="@@__list">\n${items}\n</div>`,
+    body: `<summary className="@@__trigger">${escapeJsx(placeholder || shown)}\n  ${CHEVRON("@@__chevron", el.fontSize).split("\n").join("\n  ")}\n</summary>\n<div className="@@__list">\n${items}\n</div>`,
     css: `& { position: relative; display: inline-block; padding: 0; }
 &__trigger { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: space-between; gap: 1em; width: 100%; padding: var(--&-padding); cursor: pointer; list-style: none; }
 &__trigger::-webkit-details-marker { display: none; }
@@ -150,16 +153,17 @@ interface ${name}Props {
   className?: string;
   onValueChange?: (value: string | null) => void;
   options?: string[];
-  value?: string;
+  placeholder?: string;
+  value?: string | null;
 }
 
 /** ${name}: requires @base-ui/react for its accessible dropdown. */
-export function ${name}({ className, onValueChange, options = ${JSON.stringify(options)}, value }: ${name}Props) {
+export function ${name}({ className, onValueChange, options = ${JSON.stringify(options)}, placeholder = ${quote(placeholder ?? "")}, value }: ${name}Props) {
   return (
-    <Select.Root defaultValue={${quote(shown)}} value={value} onValueChange={onValueChange}>
+    <Select.Root defaultValue={placeholder ? null : ${quote(shown)}} value={value} onValueChange={onValueChange}>
       <div className={className ? \`${cls} \${className}\` : "${cls}"}>
-        <Select.Trigger className="${cls}__trigger" aria-label=${quote(el.placeholder || shown)}>
-          <Select.Value />
+        <Select.Trigger className="${cls}__trigger" aria-label={placeholder || ${quote(shown)}}>
+          <Select.Value placeholder={placeholder} />
           <Select.Icon>${CHEVRON(`${cls}__chevron`, el.fontSize)}</Select.Icon>
         </Select.Trigger>
       </div>

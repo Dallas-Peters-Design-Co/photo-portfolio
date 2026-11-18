@@ -532,3 +532,43 @@ it("applies the selected kit's swatch from the page background OKLCH picker", as
       .backgroundColor
   ).toBe("rgb(17, 68, 119)");
 });
+
+const SELECT_LAYER = /^select\s*Choose an option/i;
+
+it("edits the Select placeholder and keeps it when the page reopens", async () => {
+  const select = createConceptElement("select");
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [select] },
+    height: 450,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const layer = page.getByRole("button", {
+    name: SELECT_LAYER,
+  });
+  await act(() => layer.click());
+  await act(() =>
+    page
+      .getByRole("textbox", { exact: true, name: "Placeholder" })
+      .fill("Choose a country")
+  );
+  const saved = latest;
+  if (!saved) {
+    throw new Error("Expected the placeholder edit to save");
+  }
+  const trigger = () =>
+    host.querySelector(".page-design__sheet [data-slot='select-trigger']");
+  expect(
+    trigger()?.querySelector('[data-slot="select-value"]')?.textContent
+  ).toBe("Choose a country");
+  expect(saved.concept.elements[0]?.options).toEqual(select.options);
+  await act(() => root.unmount());
+  host.remove();
+  await mount(saved);
+  expect(
+    trigger()?.querySelector('[data-slot="select-value"]')?.textContent
+  ).toBe("Choose a country");
+  expect(trigger()?.hasAttribute("data-placeholder")).toBe(true);
+});

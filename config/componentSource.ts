@@ -332,7 +332,10 @@ export const componentSource = (
         ...(element.kind === "select"
           ? {
               previewValue:
-                element.text.trim() || element.options?.[0] || "Choose",
+                element.placeholder?.trim() ||
+                element.text.trim() ||
+                element.options?.[0] ||
+                "Choose",
             }
           : {}),
         tsx: markup.tsx(name, className),

@@ -85,7 +85,9 @@ function ContentGroup({
   return (
     <ConceptGroup name="Content">
       <ReviewConceptContentField element={element} onChange={onChange} />
-      {element.kind === "input" || element.kind === "textarea" ? (
+      {element.kind === "input" ||
+      element.kind === "textarea" ||
+      element.kind === "select" ? (
         <ConceptField label="Placeholder" wide>
           <Input
             aria-label="Placeholder"

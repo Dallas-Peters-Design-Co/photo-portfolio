@@ -140,7 +140,6 @@ function InputPreview({
  * A select drawn with the project's own Select, so it opens and reads the way
  * the site's menus do. The element's colours, type, padding and corners still
  * apply: the preview shows the design, the component supplies the behaviour.
- * The text is the placeholder, as it was on the old native menu.
  */
 function SelectPreview({
   element,
@@ -152,23 +151,24 @@ function SelectPreview({
   text: string;
 }) {
   const options = element.options ?? [];
-  // The element's text is what the select shows, as a chosen value — not a
-  // placeholder, which the Select draws at 60% and which made a select look
-  // faded beside an input in the same look.
+  const placeholder = element.placeholder?.trim();
+  // Older selects used their content as the initially displayed value.
+  const initialValue = placeholder ? null : text;
   return (
     <Select
-      defaultValue={text}
+      defaultValue={initialValue}
       items={Object.fromEntries(
         [text, ...options].map((option) => [option, option])
       )}
+      key={initialValue}
     >
       <SelectTrigger
-        aria-label={text}
+        aria-label={placeholder || text}
         style={{ ...style, height: "auto" }}
         tone="inherit"
         width="fit"
       >
-        <SelectValue />
+        <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent {...conceptMenuProps(element)}>
         {options.map((option) => (
