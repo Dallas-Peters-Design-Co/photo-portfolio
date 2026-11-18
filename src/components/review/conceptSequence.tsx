@@ -42,7 +42,7 @@ export const marksFor = (
   const trigger = marks.trigger === element.id;
   const enter =
     marks.enter?.element === element.id ? marks.enter.animation : undefined;
-  if (marks.editing) {
+  if (marks.editing || marks.selected === element.id) {
     return {
       id: element.id,
       ...(enter ? { enter } : {}),

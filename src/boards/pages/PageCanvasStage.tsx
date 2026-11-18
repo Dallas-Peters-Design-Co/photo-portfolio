@@ -1,4 +1,10 @@
-import { type KeyboardEvent, type PointerEvent, useRef, useState } from "react";
+import {
+  Fragment,
+  type KeyboardEvent,
+  type PointerEvent,
+  useRef,
+  useState,
+} from "react";
 import { stepsOf } from "../../../config/conceptSteps.js";
 import {
   boxOf,
@@ -34,6 +40,7 @@ export function PageCanvasStage({
   const drag = useRef<Drag | null>(null);
   const [preview, setPreview] = useState<Drag | null>(null);
   const elements = stepsOf(page.concept)[stepIndex]?.elements ?? [];
+  const selectedRoot = elements.find((element) => element.id === selected);
   const shown = preview
     ? { ...page, boxes: { ...page.boxes, [preview.id]: preview.box } }
     : page;
@@ -100,7 +107,7 @@ export function PageCanvasStage({
     const d = drag.current;
     drag.current = null;
     setPreview(null);
-    if (d) {
+    if (d && d.box !== d.before) {
       onBox(d.id, d.box);
     }
   };
@@ -136,13 +143,13 @@ export function PageCanvasStage({
   };
   return (
     <div className="page-builder__stage">
-      <PageDesignView page={shown} stepIndex={stepIndex}>
+      <PageDesignView
+        page={shown}
+        selectedChild={selectedRoot ? null : selected}
+        stepIndex={stepIndex}
+      >
         {elements.map((el, i) => (
-          <div
-            className={`page-builder__selection ${selected === el.id ? "page-builder__selection--active" : ""}`}
-            key={el.id}
-            style={pageBoxStyle(boxOf(shown, el.id, i))}
-          >
+          <Fragment key={el.id}>
             <button
               aria-label={`Move ${el.text || el.kind}`}
               className="page-builder__move"
@@ -152,20 +159,26 @@ export function PageCanvasStage({
               onPointerDown={(e) => start(e, el.id, i, false)}
               onPointerMove={move}
               onPointerUp={finish}
+              style={pageBoxStyle(boxOf(shown, el.id, i))}
               type="button"
             />
             {selected === el.id ? (
-              <button
-                aria-label={`Resize ${el.text || el.kind}`}
-                className="page-builder__resize"
-                onPointerCancel={cancel}
-                onPointerDown={(e) => start(e, el.id, i, true)}
-                onPointerMove={move}
-                onPointerUp={finish}
-                type="button"
-              />
+              <div
+                className="page-builder__selection"
+                style={pageBoxStyle(boxOf(shown, el.id, i))}
+              >
+                <button
+                  aria-label={`Resize ${el.text || el.kind}`}
+                  className="page-builder__resize"
+                  onPointerCancel={cancel}
+                  onPointerDown={(e) => start(e, el.id, i, true)}
+                  onPointerMove={move}
+                  onPointerUp={finish}
+                  type="button"
+                />
+              </div>
             ) : null}
-          </div>
+          </Fragment>
         ))}
       </PageDesignView>
     </div>

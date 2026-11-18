@@ -219,7 +219,19 @@ export function PageCanvasEditor({
             ? "Try the controls in the page. Back and Next move between states."
             : "Drag to move. Drag the corner to resize. Arrow keys nudge; Shift moves 10 px."}
         </p>
-        <div className="page-builder__workspace">
+        <div
+          className="page-builder__workspace"
+          onPointerDown={(event) => {
+            if (
+              !playing &&
+              event.button === 0 &&
+              event.target instanceof Element &&
+              !event.target.closest(".page-design__component, button")
+            ) {
+              setSelected(null);
+            }
+          }}
+        >
           <div
             className="page-builder__screen"
             style={{ maxWidth: page.width }}

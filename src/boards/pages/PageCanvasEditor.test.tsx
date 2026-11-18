@@ -700,3 +700,53 @@ it("edits multiline Text content inside a panel with its child properties folded
     copy
   );
 });
+
+it("shows only the selected component or group outline and clears it on blank canvas", async () => {
+  const child = { ...createConceptElement("text"), text: "Nested copy" };
+  const group = {
+    ...createConceptElement("group"),
+    group: { elements: [child] },
+  };
+  const button = { ...createConceptElement("button"), text: "Continue" };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [group, button] },
+    height: 500,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const outlines = () =>
+    host.querySelectorAll(
+      ".page-builder__selection, .page-builder__stage [data-selected]"
+    );
+  expect(outlines()).toHaveLength(0);
+  await act(() =>
+    page.getByRole("button", { exact: true, name: "Move group" }).click()
+  );
+  expect(outlines()).toHaveLength(1);
+  expect(
+    host.querySelector(".page-builder__resize")?.getAttribute("aria-label")
+  ).toBe("Resize group");
+  const nestedLayer = [
+    ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
+  ].find((layer) => layer.textContent?.includes("Nested copy"));
+  await act(() => nestedLayer?.click());
+  expect(outlines()).toHaveLength(1);
+  expect(outlines()[0]?.textContent).toBe("Nested copy");
+  await act(() =>
+    page.getByRole("button", { exact: true, name: "Move Continue" }).click()
+  );
+  expect(outlines()).toHaveLength(1);
+  expect(
+    host.querySelector(".page-builder__resize")?.getAttribute("aria-label")
+  ).toBe("Resize Continue");
+  const sheet = host.querySelector(".page-design__sheet");
+  await act(() => {
+    sheet?.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true, button: 0 })
+    );
+  });
+  expect(outlines()).toHaveLength(0);
+  expect(host.querySelector(".page-builder__resize")).toBeNull();
+});

@@ -16,12 +16,14 @@ import "./PageDesignView.css";
 export const PageDesignView = memo(function PageView({
   page,
   stepIndex,
+  selectedChild,
   children,
 }: {
   children?: ReactNode;
   page: PageDesign;
   /** Controlled while editing; absent when the viewer plays the prototype. */
   stepIndex?: number;
+  selectedChild?: string | null;
 }) {
   const [at, setAt] = useState(0);
   const [scale, setScale] = useState(1);
@@ -101,7 +103,11 @@ export const PageDesignView = memo(function PageView({
             >
               <StepElements
                 elements={[element]}
-                marks={{ enter: step.enter, trigger: step.trigger }}
+                marks={{
+                  enter: step.enter,
+                  selected: selectedChild,
+                  trigger: step.trigger,
+                }}
               />
             </div>
           ))}
