@@ -141,7 +141,9 @@ export function ShadowGroup({
         <ConceptSelect
           label="Shadow preset"
           onChange={(name) => {
-            if (name !== CUSTOM) {
+            if (name === CUSTOM) {
+              set({ custom: true });
+            } else {
               onChange({ shadow: SHADOW_PRESETS[name as ShadowPreset] });
             }
           }}
@@ -149,7 +151,7 @@ export function ShadowGroup({
             { label: "None", value: "none" },
             { label: "Soft", value: "soft" },
             { label: "Strong", value: "strong" },
-            { disabled: true, label: "Custom", value: CUSTOM },
+            { label: "Custom", value: CUSTOM },
           ]}
           value={preset ?? CUSTOM}
         />

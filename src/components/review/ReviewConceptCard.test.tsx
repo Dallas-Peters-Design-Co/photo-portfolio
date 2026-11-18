@@ -1,8 +1,9 @@
 import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { userEvent } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
+import { cleanShadow } from "../../../config/conceptShadow.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { ReviewConceptElementFields } from "../admin/ReviewConceptElementFields";
 import "../admin/ReviewConceptsEditor.css";
@@ -22,7 +23,13 @@ function CardHarness() {
     <>
       <ReviewConceptElementFields
         element={card}
-        onChange={(patch) => setCard({ ...card, ...patch })}
+        onChange={(patch) =>
+          setCard({
+            ...card,
+            ...patch,
+            ...(patch.shadow ? { shadow: cleanShadow(patch.shadow) } : {}),
+          })
+        }
         onDuplicate={() => undefined}
         onRemove={() => undefined}
       />
@@ -114,6 +121,23 @@ describe("concept card", () => {
     expect(getComputedStyle(card()).fontSize).toBe("24px");
     const body = card().querySelector("p");
     expect(body && getComputedStyle(body).fontSize).toBe("12px");
+  });
+
+  it("selects Custom from a preset, edits the shadow and switches back", async () => {
+    const preset = page.getByRole("combobox", { name: "Shadow preset" });
+    const initial = card().style.boxShadow;
+    await preset.click();
+    await page.getByRole("option", { exact: true, name: "Custom" }).click();
+    await expect.element(preset).toHaveTextContent("Custom");
+    expect(card().style.boxShadow).toBe(initial);
+    await page
+      .getByRole("spinbutton", { exact: true, name: "Blur" })
+      .fill("31");
+    expect(card().style.boxShadow).toContain("31px");
+    await preset.click();
+    await page.getByRole("option", { exact: true, name: "None" }).click();
+    expect(card().style.boxShadow).toBe("none");
+    await expect.element(preset).toHaveTextContent("None");
   });
 
   it("sizes and colors the icon, and tunes the shadow", async () => {

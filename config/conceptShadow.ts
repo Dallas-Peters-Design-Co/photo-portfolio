@@ -8,6 +8,8 @@ import { CONCEPT_HEX } from "./conceptColor.js";
 export interface ConceptShadow {
   blur: number;
   color: string;
+  /** Keep explicit Custom selection even when its values match a preset. */
+  custom?: true;
   /** 0–100, how much of `color` shows. 0 is no shadow. */
   opacity: number;
   spread: number;
@@ -42,7 +44,7 @@ export const SHADOW_LIMITS = {
   x: [-64, 64],
   y: [-64, 64],
 } as const satisfies Record<
-  Exclude<keyof ConceptShadow, "color">,
+  Exclude<keyof ConceptShadow, "color" | "custom">,
   readonly [number, number]
 >;
 
@@ -62,6 +64,7 @@ export const cleanShadow = (value: unknown): ConceptShadow | undefined => {
   }
   const raw = value as Partial<ConceptShadow>;
   return {
+    ...(raw.custom === true ? { custom: true } : {}),
     blur: clamp(raw.blur, SHADOW_LIMITS.blur),
     color:
       typeof raw.color === "string" && CONCEPT_HEX.test(raw.color)
@@ -75,12 +78,20 @@ export const cleanShadow = (value: unknown): ConceptShadow | undefined => {
 };
 
 /** The preset a shadow matches exactly, or null when it has been tuned. */
-export const presetOf = (shadow: ConceptShadow): ShadowPreset | null =>
-  (Object.keys(SHADOW_PRESETS) as ShadowPreset[]).find((name) =>
-    (Object.keys(shadow) as (keyof ConceptShadow)[]).every(
-      (key) => SHADOW_PRESETS[name][key] === shadow[key]
-    )
-  ) ?? null;
+export const presetOf = (shadow: ConceptShadow): ShadowPreset | null => {
+  if (shadow.custom) {
+    return null;
+  }
+  return (
+    (Object.keys(SHADOW_PRESETS) as ShadowPreset[]).find((name) =>
+      (
+        Object.keys(
+          SHADOW_PRESETS[name]
+        ) as (keyof typeof SHADOW_PRESETS.none)[]
+      ).every((key) => SHADOW_PRESETS[name][key] === shadow[key])
+    ) ?? null
+  );
+};
 
 export const shadowCss = (shadow: ConceptShadow = DEFAULT_SHADOW): string =>
   shadow.opacity === 0
