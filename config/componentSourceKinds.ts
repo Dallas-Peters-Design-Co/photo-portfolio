@@ -136,7 +136,8 @@ export const selectMarkup = (
   return {
     attrs: `aria-label=${quote(el.placeholder || shown)}`,
     body: `<summary className="@@__trigger">${escapeJsx(placeholder || shown)}\n  ${CHEVRON("@@__chevron", el.fontSize).split("\n").join("\n  ")}\n</summary>\n<div className="@@__list">\n${items}\n</div>`,
-    css: `& { position: relative; display: inline-block; padding: 0; }
+    css: `& { position: relative; display: block; box-sizing: border-box; min-width: 0; width: 100%; padding: 0; }
+&__with-tooltip { width: 100%; }
 &__trigger { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: space-between; gap: 1em; width: 100%; padding: var(--&-padding); cursor: pointer; list-style: none; }
 &__trigger::-webkit-details-marker { display: none; }
 &__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }

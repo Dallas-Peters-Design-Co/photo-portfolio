@@ -166,7 +166,6 @@ function SelectPreview({
         aria-label={placeholder || text}
         style={{ ...style, height: "auto" }}
         tone="inherit"
-        width="fit"
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
@@ -488,7 +487,7 @@ export function ReviewConceptElementView({
   const marks = marksFor(element, useSequenceMarks());
   const child = (
     <ConceptTooltip
-      fill={["card", "panel", "table", "navbar", "progress"].includes(
+      fill={["card", "panel", "table", "navbar", "progress", "select"].includes(
         element.kind
       )}
       tooltip={element.tooltip}

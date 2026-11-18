@@ -572,3 +572,31 @@ it("edits the Select placeholder and keeps it when the page reopens", async () =
   ).toBe("Choose a country");
   expect(trigger()?.hasAttribute("data-placeholder")).toBe(true);
 });
+
+it("fills the assigned Select box at different widths", async () => {
+  const select = createConceptElement("select");
+  await page.viewport(1440, 900);
+  await mount({
+    boxes: { [select.id]: { height: 60, width: 460, x: 0, y: 0 } },
+    concept: { ...createConcept(), elements: [select] },
+    height: 450,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const box = host.querySelector(".page-design__component");
+  const trigger = box?.querySelector("[data-slot='select-trigger']");
+  if (!(box && trigger)) {
+    throw new Error("Expected a Select on the page");
+  }
+  const checkWidth = (width: number) => {
+    expect(box.getBoundingClientRect().width).toBeCloseTo(width, 0);
+    expect(trigger.getBoundingClientRect().width).toBeCloseTo(width, 0);
+  };
+  checkWidth(460);
+  await act(() => page.getByRole("button", { name: SELECT_LAYER }).click());
+  await act(() =>
+    page.getByRole("spinbutton", { exact: true, name: "WIDTH" }).fill("240")
+  );
+  checkWidth(240);
+});
