@@ -70,3 +70,39 @@ it("says so when the kit has none", () => {
   expect(host.textContent).toContain("No component styles yet.");
   host.remove();
 });
+
+it("gives the table its own row above the toast at desktop and mobile widths", () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  try {
+    act(() =>
+      root.render(
+        <ComponentSection
+          doc={{
+            ...EMPTY_KIT,
+            componentStyles: [
+              { id: "table", kind: "table", look: {}, name: "Primary" },
+              { id: "toast", kind: "toast", look: {}, name: "Primary" },
+            ],
+          }}
+        />
+      )
+    );
+    const [table, toast] = host.querySelectorAll("article");
+    if (!(table && toast)) {
+      throw new Error("Missing guide components");
+    }
+    for (const width of [1080, 320]) {
+      host.style.width = `${width}px`;
+      expect(table.getBoundingClientRect().width).toBe(width);
+      expect(table.scrollWidth).toBe(width);
+      expect(toast.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+        table.getBoundingClientRect().bottom
+      );
+    }
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+  }
+});

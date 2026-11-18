@@ -16,7 +16,7 @@ function GuideComponent({
   return (
     <article
       className={
-        style.kind === "navbar"
+        style.kind === "navbar" || style.kind === "table"
           ? "guide-component guide-component--wide"
           : "guide-component"
       }
