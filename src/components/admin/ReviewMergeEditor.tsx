@@ -68,15 +68,21 @@ const replaceOption = (from: MergeOption, to: MergeOption): MergeOption => {
 function KitPicker({
   id,
   label,
+  logo,
   onChange,
+  onLogo,
   value,
 }: {
   id: string;
   label: string;
+  /** The logo the page shows for this brand. */
+  logo: string | null;
   onChange: (id: string | null) => void;
+  onLogo: (url: string) => void;
   value: string | null;
 }) {
   const { kits } = useBrandKits();
+  const logos = logosOf(kits, value);
   const items = [
     { label: "Pick a brand kit", value: "" },
     ...kits.map((kit) => ({
@@ -103,6 +109,24 @@ function KitPicker({
           ))}
         </SelectContent>
       </Select>
+      {logos.length > 1 ? (
+        <div className="review-merge__logos">
+          {/* On the page's own dark ground, so a dark mark shows it won't read. */}
+          {logos.map((l) => (
+            <button
+              aria-label={`Use ${l.label || "this logo"} for ${label}`}
+              aria-pressed={l.url === logo}
+              className="review-merge__logo-choice"
+              key={l.url}
+              onClick={() => onLogo(l.url)}
+              title={l.label}
+              type="button"
+            >
+              <img alt="" height={32} src={l.url} width={96} />
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -390,18 +414,33 @@ function Pictures({
   );
 }
 
-const logoOf = (kits: BrandKit[], id: string | null): string | null =>
-  kits.find((k) => k.id === id)?.resolvedDoc.logos[0]?.url ?? null;
+/** The kit's logos, as the merge can show them. */
+const logosOf = (kits: BrandKit[], id: string | null) =>
+  kits.find((k) => k.id === id)?.resolvedDoc.logos ?? [];
 
 /**
- * Each kit's first logo, copied onto the merge: the writeup's page is behind
+ * The logo the merge shows for a kit: the one chosen, while the kit still
+ * has it, else its first. A light mark is often not the first, and the page
+ * is dark.
+ */
+const logoOf = (
+  kits: BrandKit[],
+  id: string | null,
+  chosen: string | null
+): string | null => {
+  const logos = logosOf(kits, id);
+  return logos.find((l) => l.url === chosen)?.url ?? logos[0]?.url ?? null;
+};
+
+/**
+ * Each kit's chosen logo (its first until one is picked), copied onto the merge: the writeup's page is behind
  * the review's password, and can't read the kits themselves. Kept in step
  * when a kit is changed or its logo is.
  */
 const useKitLogos = (merge: BrandMerge, update: Update) => {
   const { isLoading, kits } = useBrandKits();
-  const logoA = logoOf(kits, merge.brandA);
-  const logoB = logoOf(kits, merge.brandB);
+  const logoA = logoOf(kits, merge.brandA, merge.logoA);
+  const logoB = logoOf(kits, merge.brandB, merge.logoB);
   const stale = merge.logoA !== logoA || merge.logoB !== logoB;
   // biome-ignore lint/correctness/useExhaustiveDependencies: update is a fresh closure each render; the logos are what change
   useEffect(() => {
@@ -478,13 +517,17 @@ export function ReviewMergeEditor({
           <KitPicker
             id="merge-a"
             label="Brand A"
+            logo={merge.logoA}
             onChange={(brandA) => update((m) => ({ ...m, brandA }))}
+            onLogo={(logoA) => update((m) => ({ ...m, logoA }))}
             value={merge.brandA}
           />
           <KitPicker
             id="merge-b"
             label="Brand B"
+            logo={merge.logoB}
             onChange={(brandB) => update((m) => ({ ...m, brandB }))}
+            onLogo={(logoB) => update((m) => ({ ...m, logoB }))}
             value={merge.brandB}
           />
         </div>

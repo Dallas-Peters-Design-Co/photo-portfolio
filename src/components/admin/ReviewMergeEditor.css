@@ -138,3 +138,33 @@
   aspect-ratio: 3 / 2;
   object-fit: cover;
 }
+
+/* A brand's logos to choose from, on a dark ground like the page's. */
+.review-merge__logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 2);
+}
+
+.review-merge__logo-choice {
+  display: grid;
+  place-items: center;
+  width: 7rem;
+  height: 3rem;
+  padding: calc(var(--spacing) * 1.5);
+  cursor: pointer;
+  background: oklch(0.16 0.01 265);
+  border: var(--border-hairline) solid transparent;
+  border-radius: var(--radius-sm);
+}
+
+.review-merge__logo-choice[aria-pressed="true"] {
+  outline: 2px solid currentcolor;
+  outline-offset: 1px;
+}
+
+.review-merge__logo-choice img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
