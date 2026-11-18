@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import type { PaletteEntry } from "../../../../config/brandKit.js";
+import type {
+  LightnessRamp,
+  PaletteEntry,
+} from "../../../../config/brandKit.js";
 import { MAX_PALETTE } from "../../../../config/brandKit.js";
 import { paletteIds } from "../../../../config/paletteBinding.js";
 import { hexToOklch, oklchToHex, toSrgbGamut } from "../../../lib/oklch";
@@ -15,6 +18,7 @@ import {
   alignedColors,
   emptyArrangement,
   type Member,
+  spreadMembers,
   swatchOrder,
 } from "./schemeArrangement";
 
@@ -31,6 +35,22 @@ export type Settings = Omit<SchemeOptions, "anchor" | "locked" | "manual">;
 
 const START = "#2f7cf6";
 const turn = (h: number) => ((h % 360) + 360) % 360;
+
+function editMember(member: Member, change: Manual, selected: boolean): Member {
+  const { ramp } = member;
+  if (ramp) {
+    return {
+      ...member,
+      ramp: { ...ramp, c: change.c ?? ramp.c, h: change.h ?? ramp.h },
+    };
+  }
+  return {
+    ...member,
+    c: change.c ?? member.c,
+    h: selected ? (change.h ?? member.h) : member.h,
+    l: change.l ?? member.l,
+  };
+}
 
 export const lchOf = (hex: string): Lch => {
   const c = hexToOklch(hex) ?? hexToOklch(START);
@@ -150,7 +170,12 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
       const color = lchOf(entry.value);
       const tone = tones.get(entry.group) ?? color;
       tones.set(entry.group, tone);
-      next.members[i] = { ...tone, group: entry.group, h: color.h };
+      next.members[i] = {
+        ...tone,
+        group: entry.group,
+        h: color.h,
+        ramp: entry.ramp,
+      };
     }
     if (kitId) {
       next.targetIds[kitId] = paletteIds(entries);
@@ -198,10 +223,11 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
   // Where the anchor sits: first, except in a ramp, where it takes the step
   // nearest its own lightness.
   const anchorAt = Math.max(0, generated.indexOf(anchor.toLowerCase()));
+  const order = swatchOrder(generated.length, arrangement.order);
+  const displayedMembers = spreadMembers(arrangement.members, order);
   const colors = individual
-    ? alignedColors(generated, arrangement.members, locked)
+    ? alignedColors(generated, displayedMembers, locked)
     : generated;
-  const order = swatchOrder(colors.length, arrangement.order);
   // The colour the dials point at: the anchor unless another is picked (and
   // single colours are on, and it's still there).
   const selected =
@@ -211,7 +237,7 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
 
   /** The selected colour's numbers: what was set by hand over what it is. */
   const selectedLch: Lch =
-    (individual && arrangement.members[selected]) ||
+    (individual && displayedMembers[selected]) ||
     (selected === anchorAt
       ? lch
       : { ...lchOf(colors[selected] ?? ""), ...(manual[selected] ?? {}) });
@@ -230,12 +256,7 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
           if (peer.group !== member.group) {
             continue;
           }
-          members[Number(slot)] = {
-            ...peer,
-            c: clean.c ?? peer.c,
-            h: Number(slot) === i ? (clean.h ?? peer.h) : peer.h,
-            l: clean.l ?? peer.l,
-          };
+          members[Number(slot)] = editMember(peer, clean, Number(slot) === i);
         }
         return { ...was, members };
       });
@@ -281,6 +302,7 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
           group,
           h: color.h,
           l: peer?.l ?? color.l,
+          ramp: peer?.ramp,
         };
       } else {
         delete members[selected];
@@ -289,7 +311,28 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     });
   };
 
+  const addShade = () => {
+    const member = arrangement.members[selected];
+    const index = colors.length;
+    if (!member?.ramp || index >= MAX_PALETTE) {
+      return;
+    }
+    const slots = order.filter(
+      (i) => arrangement.members[i]?.group === member.group
+    );
+    const next = [...order];
+    next.splice(order.indexOf(slots.at(-1) ?? selected) + 1, 0, index);
+    setArrangement((was) => ({
+      ...was,
+      members: { ...was.members, [index]: { ...member } },
+      order: next,
+    }));
+    setLocked((was) => was.map((value, i) => (i === index ? null : value)));
+    setSettings((was) => ({ ...was, count: index + 1 }));
+  };
+
   return {
+    addShade,
     anchor,
     anchorAt,
     arrangement,
@@ -319,6 +362,18 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     setColour,
     setGroup,
     setIndividual,
+    setRamp: (ramp: LightnessRamp | undefined) => {
+      setArrangement((was) => {
+        const group = was.members[selected]?.group;
+        const next = { ...was.members };
+        for (const [i, member] of Object.entries(was.members)) {
+          if (member.group === group) {
+            next[Number(i)] = { ...member, ramp };
+          }
+        }
+        return { ...was, members: next };
+      });
+    },
     setRole: (index: number, role: string) =>
       setRoles((was) => ({ ...was, [index]: role })),
     setSettings: (next: Partial<Settings>) =>

@@ -170,3 +170,44 @@ it("keeps shared tone, independent wheel hues, variable identities and bar order
     host.remove();
   }
 });
+
+it("edits the group's lightness endpoints and saves evenly spaced shades of its hue", async () => {
+  const { SchemeTool } = await import("./SchemeTool");
+  const { sanitizeKitDoc } = await import("../../../../config/brandKit.js");
+  const { hexToOklch } = await import("../../../lib/oklch");
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  act(() => root.render(<SchemeTool onAdd={() => undefined} />));
+  try {
+    await page.getByRole("button", { name: "Load brand colours" }).click();
+    const group = page.getByLabelText("Hue group");
+    const assign = async (label: string) => {
+      await page.getByRole("button", { exact: true, name: label }).click();
+      await group.fill("Leaf shades");
+      await userEvent.keyboard("{Enter}");
+    };
+    await assign("Edit anchor, primary");
+    await assign("Edit colour 2, text");
+    await assign("Edit colour 3");
+    await page.getByLabelText("Same-hue lightness ramp").click();
+    await page.getByLabelText("Minimum lightness", { exact: true }).fill("30");
+    await page.getByLabelText("Maximum lightness", { exact: true }).fill("80");
+    await page.getByRole("button", { name: "Move left" }).click();
+    await page.getByRole("button", { name: "Add shade" }).click();
+    await page.getByRole("button", { name: "Save to RoleModel" }).click();
+    const { palette } = sanitizeKitDoc(saved.at(-1));
+    expect(palette.map((e) => e.name)).toEqual(["Blue", "Leaf", "Ink", ""]);
+    for (const [i, entry] of palette.entries()) {
+      expect(entry.ramp).toMatchObject({ max: 0.8, min: 0.3 });
+      const color = hexToOklch(entry.value);
+      expect(color?.l).toBeCloseTo(0.3 + (i * 0.5) / 3, 2);
+      expect(
+        Math.abs((color?.h ?? -999) - (entry.ramp?.h ?? 999))
+      ).toBeLessThan(2);
+    }
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+  }
+});

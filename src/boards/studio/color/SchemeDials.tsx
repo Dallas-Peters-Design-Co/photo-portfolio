@@ -56,12 +56,14 @@ const DIALS = [
 ] as const;
 
 export function SchemeDials({
+  lightnessFromGroup,
   name,
   onChange,
   value,
 }: {
   /** Whose dials these are: "Anchor", "Colour 3". */
   name: string;
+  lightnessFromGroup?: boolean;
   onChange: (next: Lch) => void;
   value: Lch;
 }) {
@@ -78,6 +80,7 @@ export function SchemeDials({
             <input
               aria-label={`${name} ${dial.label.toLowerCase()}`}
               className="studio-dials__track"
+              disabled={lightnessFromGroup && dial.key === "l"}
               max={dial.max}
               min={0}
               onChange={(e) =>

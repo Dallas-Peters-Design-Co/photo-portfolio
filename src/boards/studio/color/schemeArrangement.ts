@@ -1,4 +1,7 @@
-import type { PaletteEntry } from "../../../../config/brandKit.js";
+import type {
+  LightnessRamp,
+  PaletteEntry,
+} from "../../../../config/brandKit.js";
 import { paletteIds } from "../../../../config/paletteBinding.js";
 import { oklchToHex, toSrgbGamut } from "../../../lib/oklch";
 import type { Lch } from "./SchemeDials";
@@ -6,6 +9,7 @@ import { STATUS_ROLES } from "./schemeRoles";
 
 export interface Member extends Lch {
   group: string;
+  ramp?: LightnessRamp;
 }
 
 export interface Arrangement {
@@ -28,6 +32,41 @@ export function swatchOrder(count: number, saved: number[]) {
   return [...new Set([...saved.filter((i) => slots.includes(i)), ...slots])];
 }
 
+/** Derive steps from visible group members in bar order. Locked slots keep their place. */
+export function spreadMembers(
+  members: Record<number, Member>,
+  order: number[]
+) {
+  const groups = new Map<string, number[]>();
+  const result = { ...members };
+  for (const i of order) {
+    const member = members[i];
+    if (!member?.ramp) {
+      continue;
+    }
+    const slots = groups.get(member.group) ?? [];
+    slots.push(i);
+    groups.set(member.group, slots);
+  }
+  for (const slots of groups.values()) {
+    for (const [position, i] of slots.entries()) {
+      const member = members[i];
+      const { ramp } = member;
+      if (!ramp) {
+        continue;
+      }
+      const t = slots.length === 1 ? 0.5 : position / (slots.length - 1);
+      result[i] = {
+        ...member,
+        c: ramp.c,
+        h: ramp.h,
+        l: ramp.min + t * (ramp.max - ramp.min),
+      };
+    }
+  }
+  return result;
+}
+
 /** Fit each group to the chroma every member can display at its own hue. */
 export function alignedColors(
   colors: string[],
@@ -37,7 +76,7 @@ export function alignedColors(
   const limits = new Map<string, number>();
   for (const [i] of colors.entries()) {
     const member = members[i];
-    if (!member || locked[i]) {
+    if (!member || member.ramp || locked[i]) {
       continue;
     }
     const fit = toSrgbGamut({ ...member, a: 1 });
@@ -49,7 +88,11 @@ export function alignedColors(
   return colors.map((hex, i) => {
     const m = members[i];
     return m && !locked[i]
-      ? oklchToHex({ ...m, a: 1, c: limits.get(m.group) ?? m.c })
+      ? oklchToHex({
+          ...m,
+          a: 1,
+          c: m.ramp ? m.c : (limits.get(m.group) ?? m.c),
+        })
       : hex;
   });
 }
@@ -95,6 +138,7 @@ export function arrangedPalette(
     const group = draft.members[i]?.group;
     return {
       ...(group ? { group } : {}),
+      ...(draft.members[i]?.ramp ? { ramp: draft.members[i].ramp } : {}),
       id: ids[slot] ?? crypto.randomUUID(),
       name: draft.names[i] ?? (had?.name || entry.name),
       role: roles[i] ?? (had?.role || entry.role),

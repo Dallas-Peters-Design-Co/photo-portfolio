@@ -15,7 +15,16 @@ export const keepPaletteNames = (
   target: PaletteEntry[],
   values: string[],
   loaded?:
-    | ({ group?: string; name?: string; role?: string } | null | undefined)[]
+    | (
+        | {
+            group?: string;
+            name?: string;
+            role?: string;
+            ramp?: PaletteEntry["ramp"];
+          }
+        | null
+        | undefined
+      )[]
     | null
 ): PaletteEntry[] => {
   const ids = paletteIds(target);
@@ -23,6 +32,7 @@ export const keepPaletteNames = (
     const value = raw.toLowerCase();
     const had = target[i];
     const from = loaded?.[i];
+    const ramp = had?.ramp ?? from?.ramp;
     const name = had?.name || from?.name || "";
     const role = had?.role || from?.role || "";
     return {
@@ -32,6 +42,7 @@ export const keepPaletteNames = (
       ...((had?.group ?? from?.group)
         ? { group: had?.group ?? from?.group }
         : {}),
+      ...(ramp ? { ramp } : {}),
       name,
       role,
       value,

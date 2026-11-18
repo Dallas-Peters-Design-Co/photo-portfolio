@@ -18,12 +18,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { MAX_KIT_NAME } from "../../../../config/brandKit.js";
+import { MAX_KIT_NAME, MAX_PALETTE } from "../../../../config/brandKit.js";
 import { contrastRatio } from "../../../../config/theme.js";
 import { formatOklch, hexToOklch } from "../../../lib/oklch";
 import { ColorWell } from "../../ColorWell";
 import { ImagePick } from "../ImagePick";
 import { saveBlob, svgToPngBlob } from "../render";
+import { GroupLightnessControls } from "./GroupLightnessControls";
 import { paletteFromUrl } from "./harmony";
 import { SchemeContrast } from "./SchemeContrast";
 import { SchemeControls } from "./SchemeControls";
@@ -151,6 +152,9 @@ function SchemeBuilder({
   const dragSlot = useRef<number | null>(null);
   const selectedPosition = order.indexOf(selected);
   const selectedGroup = arrangement.members[selected]?.group ?? "";
+  const ramp = scheme.individual
+    ? arrangement.members[selected]?.ramp
+    : undefined;
   const save = async () => {
     if (!target) {
       return;
@@ -394,11 +398,15 @@ function SchemeBuilder({
               <option key={group} value={group} />
             ))}
           </datalist>
-          {selectedGroup.length > 0 && (
-            <span>
-              Lightness and chroma are shared with {selectedGroup}. Drag a wheel
-              handle to change its hue.
-            </span>
+          {scheme.individual && selectedGroup.length > 0 && (
+            <GroupLightnessControls
+              canAddShade={colors.length < MAX_PALETTE}
+              color={scheme.selectedLch}
+              group={selectedGroup}
+              onAddShade={scheme.addShade}
+              onChange={scheme.setRamp}
+              ramp={ramp}
+            />
           )}
           <div className="studio__actions">
             <button
@@ -419,6 +427,7 @@ function SchemeBuilder({
             </button>
           </div>
           <SchemeDials
+            lightnessFromGroup={Boolean(ramp)}
             name={nameOf(selected)}
             onChange={(next) => scheme.setColour(selected, next)}
             value={scheme.selectedLch}
@@ -442,7 +451,9 @@ function SchemeBuilder({
             fixed: i !== anchorAt && (!scheme.individual || Boolean(locked[i])),
             held: scheme.held(i) && !arrangement.members[i],
             hex,
-            hue: scheme.individual ? arrangement.members[i]?.h : undefined,
+            hue: scheme.individual
+              ? (arrangement.members[i]?.ramp?.h ?? arrangement.members[i]?.h)
+              : undefined,
             isAnchor: i === anchorAt,
             label:
               arrangement.names[i] || roleLabel(roles[i]) || source[i].name,

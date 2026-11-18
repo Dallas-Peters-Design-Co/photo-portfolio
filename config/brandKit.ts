@@ -42,10 +42,38 @@ export const MAX_VOICE = 2000;
 
 export const MAX_RULE_TEXT = 300;
 
+export interface LightnessRamp {
+  c: number;
+  h: number;
+  max: number;
+  min: number;
+}
+
+function readLightnessRamp(value: unknown): LightnessRamp | undefined {
+  if (!value || typeof value !== "object") {
+    return;
+  }
+  const { min, max, h, c } = value as Partial<LightnessRamp>;
+  if (
+    typeof min !== "number" ||
+    !(min >= 0 && min <= 1) ||
+    typeof max !== "number" ||
+    !(max >= min && max <= 1) ||
+    typeof h !== "number" ||
+    !Number.isFinite(h) ||
+    typeof c !== "number" ||
+    !(c >= 0 && c <= 0.4)
+  ) {
+    return;
+  }
+  return { c, h: ((h % 360) + 360) % 360, max, min };
+}
+
 export interface PaletteEntry {
   group?: string;
   id?: string;
   name: string;
+  ramp?: LightnessRamp;
   /** Semantic role used by the guide; unknown legacy values remain readable. */
   role: string;
   /** Lower-cased six-digit hex. Anything else is dropped, never stored. */
@@ -344,7 +372,11 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
     palette: asArray(raw.palette)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
+        const ramp = clampText(e.group, MAX_KIT_NAME)
+          ? readLightnessRamp(e.ramp)
+          : undefined;
         return {
+          ...(ramp ? { ramp } : {}),
           name: clampText(e.name, MAX_KIT_NAME),
           ...(clampText(e.group, MAX_KIT_NAME)
             ? { group: clampText(e.group, MAX_KIT_NAME) }
