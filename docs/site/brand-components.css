@@ -1512,7 +1512,7 @@
 }
 .bk-pretex-t {
 .card-disabled {
-  --card-disabled-background: #f2f2f2;
+  --card-disabled-background: #e8e6dd;
   --card-disabled-color: #373b3a;
   --card-disabled-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --card-disabled-font-size: 18px;
@@ -3036,7 +3036,7 @@
 }
 .bk-viaskai {
 .card-disabled {
-  --card-disabled-background: #f2f2f2;
+  --card-disabled-background: #e8e6dd;
   --card-disabled-color: #586f75;
   --card-disabled-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --card-disabled-font-size: 18px;
