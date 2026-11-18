@@ -207,7 +207,15 @@ it("inserts a canvas component beside the page's other elements", async () => {
       ],
       name: "Canvas header",
       placement: {},
-      props: [],
+      props: [
+        {
+          field: "body",
+          id: "heading",
+          lid: "title",
+          name: "Heading",
+          type: "text",
+        },
+      ],
       updatedAt: "",
       width: 400,
     },
@@ -227,6 +235,48 @@ it("inserts a canvas component beside the page's other elements", async () => {
     "Canvas title"
   );
   expect(host.textContent).toContain("Canvas title");
+  const panel = createConceptElement("panel");
+  const sibling = createConceptElement("text");
+  panel.slots = { body: { elements: [sibling], layout: "row" } };
+  await act(() => root.unmount());
+  host.remove();
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [panel] },
+    height: 480,
+    kitId: kit.id,
+    version: 1,
+    width: 700,
+  });
+  await act(() =>
+    host.querySelector<HTMLButtonElement>(".page-builder__layer")?.click()
+  );
+  await act(() =>
+    page
+      .getByRole("combobox", { exact: true, name: "Add to in the body" })
+      .click()
+  );
+  await act(() =>
+    page.getByRole("option", { exact: true, name: "Canvas header" }).click()
+  );
+  const saved = cleanPageDesign(latest);
+  if (!saved) {
+    throw new Error("Missing saved page");
+  }
+  const children = saved.concept.elements[0]?.slots?.body?.elements;
+  expect(children?.map((item) => item.kind)).toEqual(["text", "canvas"]);
+  expect(children?.[1]?.canvasComponent).toMatchObject({
+    id: "page-component",
+    props: [{ id: "heading", lid: "title" }],
+  });
+  await act(() => root.unmount());
+  host.remove();
+  await mount(saved);
+  expect(
+    host.querySelector(
+      '.concept-panel__surface [data-slot="body"] .review-canvas-component'
+    )?.textContent
+  ).toContain("Canvas title");
 });
 
 it("keeps keyboard focus in the editor and lets an added state be removed", async () => {

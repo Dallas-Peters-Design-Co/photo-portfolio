@@ -1,3 +1,7 @@
+import { cleanProps as cleanCanvasProps } from "../../config/canvasComponentProps.js";
+
+import type { ComponentProp } from "../../src/boards/components/model.js";
+
 import type { getSql } from "./db.js";
 import { sanitizeText } from "./httpUrl.js";
 
@@ -26,18 +30,8 @@ const UUID = /^[0-9a-f-]{36}$/i;
 const LAYER_ID = /^[a-zA-Z0-9_-]{1,64}$/;
 const KINDS = new Set(["text", "note", "reference", "photo", "drawing"]);
 
-/** A property an instance may set: a layer's text or one of its colours. */
-type Field = "background" | "body" | "color" | "fill" | "stroke" | "tint";
-
-export interface ComponentPropDto {
-  field: Field;
-  id: string;
-  lid: string;
-  /** Other layers' fields the same value sets. */
-  more?: { field: Field; lid: string }[];
-  name: string;
-  type: "color" | "text";
-}
+export const cleanProps = cleanCanvasProps;
+export type ComponentPropDto = ComponentProp;
 
 export interface BrandComponentDto {
   height: number;
@@ -136,60 +130,6 @@ export const cleanComponentLayers = (
   });
   return ok ? (value as Record<string, unknown>[]) : null;
 };
-
-const PROP_ID = /^[a-zA-Z0-9_-]{1,40}$/;
-const FIELDS = new Set([
-  "background",
-  "body",
-  "color",
-  "fill",
-  "stroke",
-  "tint",
-]);
-
-/** A property's shared targets: well-formed ones only, a few hundred at most. */
-const moreOf = (value: unknown): { more?: { field: Field; lid: string }[] } => {
-  const more = (Array.isArray(value) ? value : [])
-    .slice(0, 300)
-    .map(bagOf)
-    .filter(
-      (o): o is Record<string, unknown> =>
-        o !== null &&
-        typeof o.lid === "string" &&
-        LAYER_ID.test(o.lid) &&
-        typeof o.field === "string" &&
-        FIELDS.has(o.field)
-    )
-    .map((o) => ({ field: o.field as Field, lid: o.lid as string }));
-  return more.length > 0 ? { more } : {};
-};
-
-/** The properties, keeping only well-formed ones. */
-export const cleanProps = (value: unknown): ComponentPropDto[] =>
-  (Array.isArray(value) ? value : [])
-    .slice(0, 40)
-    .map(bagOf)
-    .filter(
-      (o): o is Record<string, unknown> =>
-        o !== null &&
-        typeof o.id === "string" &&
-        PROP_ID.test(o.id) &&
-        typeof o.lid === "string" &&
-        LAYER_ID.test(o.lid) &&
-        typeof o.field === "string" &&
-        FIELDS.has(o.field) &&
-        (o.type === "text" || o.type === "color")
-    )
-    .map((o) => ({
-      field: o.field as Field,
-      id: o.id as string,
-      lid: o.lid as string,
-      ...moreOf(o.more),
-      name:
-        (typeof o.name === "string" ? sanitizeText(o.name) : "").slice(0, 40) ||
-        "Property",
-      type: o.type as ComponentPropDto["type"],
-    }));
 
 /**
  * The components a board's items place, for drawing them: sent with the

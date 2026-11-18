@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import useSWR from "swr";
+
 import {
   createConcept,
   createConceptElement,
@@ -38,9 +38,9 @@ import {
   type ReviewConceptElement,
   type ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
+import { useKitCanvasComponents } from "../../components/admin/ReviewCanvasComponents";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
-import { componentsApi } from "../creative/components/componentsApi";
 
 export const usePageCanvas = (
   frame: BoardItem,
@@ -60,10 +60,8 @@ export const usePageCanvas = (
     width: Math.max(320, Math.min(4096, Math.round(frame.width * 2))),
   }));
   const page = pageDesignOf(frame.config) ?? initial;
-  const { data: canvasComponents = [], error: canvasError } = useSWR(
-    page.kitId ? ["kit-components", page.kitId] : null,
-    () => componentsApi.list(page.kitId as string)
-  );
+  const { data: canvasComponents = [], error: canvasError } =
+    useKitCanvasComponents(page.kitId);
   const kit = brand?.kits.find((k) => k.id === page.kitId) ?? null;
   const doc = kit?.resolvedDoc;
   const concept = useMemo(

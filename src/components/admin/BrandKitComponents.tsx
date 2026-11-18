@@ -30,6 +30,7 @@ import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
+import { CanvasComponentKit } from "./ReviewCanvasComponents";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import { SortableList } from "./SortableList";
 import "./ReviewConceptsEditor.css";
@@ -302,32 +303,34 @@ export function BrandKitComponents({
           value=""
         />
       </div>
-      <SortableList
-        itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
-        items={styles}
-        onReorder={(ids) =>
-          set(
-            ids
-              .map((id) => styles.find((s) => s.id === id))
-              .filter((s): s is ConceptStyle => s !== undefined)
-          )
-        }
-      >
-        {(style, { compact, handle }) => (
-          <StyleEditor
-            brand={effective}
-            handle={handle}
-            onChange={(next) =>
-              set(styles.map((s) => (s.id === style.id ? next : s)))
-            }
-            onRemove={() => set(styles.filter((s) => s.id !== style.id))}
-            onToggle={() => toggle(style.id)}
-            // Folded while a style is dragged, so it is easy to carry.
-            open={open.has(style.id) && !compact}
-            style={style}
-          />
-        )}
-      </SortableList>
+      <CanvasComponentKit.Provider value={kitId}>
+        <SortableList
+          itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
+          items={styles}
+          onReorder={(ids) =>
+            set(
+              ids
+                .map((id) => styles.find((s) => s.id === id))
+                .filter((s): s is ConceptStyle => s !== undefined)
+            )
+          }
+        >
+          {(style, { compact, handle }) => (
+            <StyleEditor
+              brand={effective}
+              handle={handle}
+              onChange={(next) =>
+                set(styles.map((s) => (s.id === style.id ? next : s)))
+              }
+              onRemove={() => set(styles.filter((s) => s.id !== style.id))}
+              onToggle={() => toggle(style.id)}
+              // Folded while a style is dragged, so it is easy to carry.
+              open={open.has(style.id) && !compact}
+              style={style}
+            />
+          )}
+        </SortableList>
+      </CanvasComponentKit.Provider>
     </div>
   );
 }

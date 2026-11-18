@@ -1,5 +1,7 @@
 import type { BrandComponent } from "../src/boards/components/model.js";
 
+import { cleanProps } from "./canvasComponentProps.js";
+
 const KINDS = new Set(["text", "note", "reference", "photo", "drawing"]);
 const ID = /^[a-zA-Z0-9_-]{1,64}$/;
 
@@ -85,7 +87,7 @@ export const cleanReviewCanvasComponent = (
     layers: raw.layers,
     name: raw.name,
     placement: {},
-    props: [],
+    props: cleanProps(raw.props),
     updatedAt: "",
     width: raw.width,
   };

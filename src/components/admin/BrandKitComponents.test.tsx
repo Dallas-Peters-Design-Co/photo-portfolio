@@ -12,6 +12,7 @@ import {
   styleSample,
 } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
+import { componentsApi } from "../../boards/creative/components/componentsApi";
 import { BrandKitComponents } from "./BrandKitComponents";
 
 (
@@ -76,7 +77,7 @@ it("keeps the parent's styles when a sub-brand adds its first own", async () => 
   host.remove();
 });
 
-function OneCard() {
+function OneCard({ kitId = "kit-1" }: { kitId?: string } = {}) {
   const [doc, setDoc] = useState<BrandKitDoc>({
     ...EMPTY_KIT,
     componentStyles: [{ id: "c1", kind: "card", look: {}, name: "Card" }],
@@ -86,7 +87,7 @@ function OneCard() {
     <BrandKitComponents
       doc={doc}
       effective={doc}
-      kitId="kit-1"
+      kitId={kitId}
       onChange={setDoc}
     />
   );
@@ -285,5 +286,75 @@ it("uses the kit button and saves the chosen tag style in a table slot", async (
   } finally {
     act(() => root.unmount());
     host.remove();
+  }
+});
+
+it("saves a canvas component in a code card's starting slot", async () => {
+  const list = vi.spyOn(componentsApi, "list").mockResolvedValue([
+    {
+      height: 24,
+      id: "canvas-mark",
+      kitId: "canvas-slot-kit",
+      layers: [
+        {
+          body: "Kit mark",
+          config: null,
+          fontSize: 12,
+          height: 24,
+          imageUrl: null,
+          kind: "text",
+          lid: "caption",
+          thumbUrl: null,
+          width: 60,
+          x: 0,
+          y: 0,
+        },
+      ],
+      name: "Canvas mark",
+      placement: {},
+      props: [],
+      updatedAt: "",
+      width: 60,
+    },
+  ]);
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  try {
+    await act(() => root.render(<OneCard kitId="canvas-slot-kit" />));
+    const open = host.querySelector<HTMLButtonElement>(
+      '[aria-label="Open Card Card"]'
+    );
+    if (open) {
+      await userEvent.click(open);
+    }
+    const add = host.querySelector<HTMLElement>(
+      '[aria-label="Add to in the footer"]'
+    );
+    if (!add) {
+      throw new Error("Missing card footer picker");
+    }
+    await vi.waitFor(() =>
+      expect(list).toHaveBeenCalledWith("canvas-slot-kit")
+    );
+    await userEvent.click(add);
+    const option = await vi.waitFor(() => {
+      const match = [
+        ...document.querySelectorAll<HTMLElement>('[role="option"]'),
+      ].find((item) => item.textContent === "Canvas mark");
+      if (!match) {
+        throw new Error("Missing kit canvas component");
+      }
+      return match;
+    });
+    await userEvent.click(option);
+    const [style] = sanitizeKitDoc(saved).componentStyles;
+    expect(
+      style?.look.contents?.footer?.elements.at(-1)?.canvasComponent?.id
+    ).toBe("canvas-mark");
+  } finally {
+    await act(() => root.unmount());
+    host.remove();
+    list.mockRestore();
   }
 });

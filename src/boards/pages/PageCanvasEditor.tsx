@@ -8,6 +8,7 @@ import {
   ELEMENT_KINDS,
   MAX_CONCEPT_ELEMENTS,
 } from "../../../config/reviewConcept.js";
+import { CanvasComponentKit } from "../../components/admin/ReviewCanvasComponents";
 import type { BoardItem } from "../../types";
 import { PanelEdge } from "../creative/PanelEdge";
 import { usePanelWidths } from "../creative/usePanelWidths";
@@ -251,7 +252,9 @@ export function PageCanvasEditor({
         </div>
       </main>
       <PanelEdge label="inspector" panels={widths} side="right" />
-      <PageCanvasInspector editor={editor} />
+      <CanvasComponentKit.Provider value={page.kitId}>
+        <PageCanvasInspector editor={editor} />
+      </CanvasComponentKit.Provider>
     </div>
   );
 }
