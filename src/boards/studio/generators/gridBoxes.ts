@@ -341,15 +341,27 @@ export const gridBoxesTool: ImageTool = {
       const fill = paintOf(
         typeof cell === "object" ? cell.colour : groundOf(v)
       );
-      if (fill) {
-        // A hair over size, so boxes side by side show no seam between them.
+      // A hair over size, so boxes side by side show no seam between them,
+      // and cut at the picture's edges: the last row can run past the
+      // bottom (rows are rounded), which left a strip of dark cells hanging
+      // under the picture wherever the SVG isn't clipped.
+      const x = c * grid.cell;
+      const y = r * grid.cell;
+      const bw = Math.min(grid.cell + 0.5, w - x);
+      const bh = Math.min(grid.cell + 0.5, h - y);
+      if (fill && bw > 0 && bh > 0) {
         parts.push(
-          `<rect x="${r2(c * grid.cell)}" y="${r2(r * grid.cell)}" width="${r2(grid.cell + 0.5)}" height="${r2(grid.cell + 0.5)}" ${fill}/>`
+          `<rect x="${r2(x)}" y="${r2(y)}" width="${r2(bw)}" height="${r2(bh)}" ${fill}/>`
         );
       }
     });
     parts.push(gridSvg(grid, linesLook(v), ctx));
-    return svgDoc(w, h, parts.join(""));
+    // Held to the picture's box as well, for the grid's crosses at the edge.
+    return svgDoc(
+      w,
+      h,
+      `<clipPath id="grid-boxes-edge"><rect width="${w}" height="${h}"/></clipPath><g clip-path="url(#grid-boxes-edge)">${parts.join("")}</g>`
+    );
   },
   // The boxes and grid stay vector; the picture rides inside as a JPEG, its
   // black and white and contrast already baked in, so nothing needs a filter.
