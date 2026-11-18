@@ -45,19 +45,6 @@ const hintFor = (
   return OUTPUTS[output].hint;
 };
 
-/** The converter loads on first use; a big poster takes it a while. */
-const asCmyk = async (pdf: Blob): Promise<Blob> => {
-  const note = toast.loading("Converting to CMYK…", {
-    description: "Large pictures can take up to a minute.",
-  });
-  try {
-    const { toCmykPdf } = await import("../io/cmykPdf");
-    return await toCmykPdf(pdf);
-  } finally {
-    toast.dismiss(note);
-  }
-};
-
 const savePrintPdf = async (
   frame: BoardItem,
   layers: BoardItem[],
@@ -65,13 +52,12 @@ const savePrintPdf = async (
   options: PrintOptions,
   name: string
 ) => {
-  const { blob: rgb, spec } = await exportPrintPdf(
+  const { blob, spec } = await exportPrintPdf(
     frame,
     layers,
     textElementFor,
     options
   );
-  const blob = options.cmyk ? await asCmyk(rgb) : rgb;
   downloadBlob(blob, name, "pdf");
   const extras = [
     options.cmyk ? "CMYK" : "",
@@ -79,7 +65,7 @@ const savePrintPdf = async (
     options.marks ? "crop marks" : "",
   ].filter(Boolean);
   toast.success("Print PDF exported", {
-    description: [`${trimLabel(spec)}, vector`, ...extras].join(", "),
+    description: [`${trimLabel(spec)}, outlined text`, ...extras].join(", "),
   });
 };
 

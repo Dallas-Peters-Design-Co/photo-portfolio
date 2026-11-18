@@ -17,7 +17,7 @@ import { pdfFrom, sheetPayload } from "./printTransport";
 
 export interface PrintOptions {
   bleed: boolean;
-  /** Converted to CMYK after it's printed (io/cmykPdf.ts). */
+  /** Converted to CMYK after it's printed (io/outlinePdf.ts). */
   cmyk: boolean;
   marks: boolean;
 }
@@ -49,8 +49,8 @@ export const printSpecFor = (frame: BoardItem): PrintSpec => {
 
 /**
  * The print PDF, made on the server: the sheet goes as HTML and comes back
- * as a vector PDF (text stays text, shapes stay paths), with its TrimBox and
- * BleedBox set.
+ * with the trim and bleed boxes set. The final pass outlines the text and
+ * applies the requested print colour space before download.
  */
 export const exportPrintPdf = async (
   frame: BoardItem,
@@ -78,5 +78,7 @@ export const exportPrintPdf = async (
   if (!res.ok) {
     throw new Error(await readPageError(res, "Could not make the print PDF"));
   }
-  return { blob: await pdfFrom(res), spec };
+  const pdf = await pdfFrom(res);
+  const { outlinePdf } = await import("../io/outlinePdf");
+  return { blob: await outlinePdf(pdf, options.cmyk), spec };
 };
