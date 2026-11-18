@@ -1,5 +1,6 @@
 import { memo, type ReactNode, useEffect, useRef, useState } from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
+import { hasSlots } from "../../../config/conceptSlots.js";
 import { stepsOf } from "../../../config/conceptSteps.js";
 import {
   boxOf,
@@ -92,6 +93,9 @@ export const PageDesignView = memo(function PageView({
           {step?.elements.map((element, i) => (
             <div
               className="page-design__component"
+              data-layout-container={
+                element.kind === "group" || hasSlots(element.kind) || undefined
+              }
               key={element.id}
               style={pageBoxStyle(boxOf(page, element.id, i))}
             >

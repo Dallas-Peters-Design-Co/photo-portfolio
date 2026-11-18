@@ -15,6 +15,10 @@
   position: absolute;
   overflow: auto;
 }
+/* Layout groups and slotted surfaces paint into the page around their box. */
+.page-design__component[data-layout-container] {
+  overflow: visible;
+}
 .page-design__component > * {
   max-width: 100%;
 }

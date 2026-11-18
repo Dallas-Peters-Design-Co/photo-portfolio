@@ -64,20 +64,15 @@
 .concept-panel__inner {
   width: 100%;
   min-width: 0;
-  transition: width 260ms ease;
+  transition:
+    width 260ms ease,
+    overflow 0s 260ms allow-discrete;
 }
 
 .concept-panel__inner:is([data-starting-style], [data-ending-style]) {
   width: 0;
-}
-
-.concept-panel__inner:is(
-  [data-starting-style],
-  [data-ending-style],
-  [data-open]
-) {
   overflow: clip;
-  overflow-clip-margin: 2px;
+  transition-delay: 0s;
 }
 
 .concept-panel__surface {

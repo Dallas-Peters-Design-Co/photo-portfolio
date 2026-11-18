@@ -308,8 +308,8 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
 &[data-toggle-side="left"] { flex-direction: row-reverse; }
 &[data-toggle-side="left"] > &__hide :is(svg:first-of-type, &__chevron) { scale: -1 1; }
 &__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--&-background); padding: var(--&-padding); border: var(--&-border); border-radius: var(--&-radius); box-shadow: var(--&-shadow); }
-&__inner { width: 100%; min-width: 0; overflow: clip; transition: width 260ms ease; }
-&__inner[data-starting-style], &__inner[data-ending-style], &__inner[data-panel-open="false"] { width: 0; }
+&__inner { width: 100%; min-width: 0; transition: width 260ms ease, overflow 0s 260ms allow-discrete; }
+&__inner[data-starting-style], &__inner[data-ending-style], &__inner[data-panel-open="false"] { width: 0; overflow: clip; transition-delay: 0s; }
 &__hide { display: flex; position: relative; flex: none; }
 &__hide > [inert] { display: flex; }
 &__trigger { position: absolute; inset: 0; z-index: 1; background: transparent; border: 0; cursor: pointer; }
