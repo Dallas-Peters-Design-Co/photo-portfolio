@@ -180,3 +180,23 @@ export const cleanProgress = (
   progress: bounded(raw.progress, ...PROGRESS_LIMITS.progress, 60),
   ...(typeof raw.showValue === "boolean" ? { showValue: raw.showValue } : {}),
 });
+
+const AVATAR_URL = /^https?:\/\//i;
+const HTTPS = /^https:\/\//i;
+export const cleanAvatar = (raw: Partial<ReviewConceptElement>) => {
+  const url = str(raw.avatarUrl, 2048).trim();
+  return {
+    avatarInitials: str(raw.avatarInitials, 8),
+    ...(AVATAR_URL.test(url) && URL.canParse(url) ? { avatarUrl: url } : {}),
+  };
+};
+
+/** A logo's picture and height; a picture not on https is dropped. */
+export const cleanLogo = (
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "logoHeight" | "logoUrl"> => ({
+  logoHeight: bounded(raw.logoHeight, 12, 160, 32),
+  ...(typeof raw.logoUrl === "string" && HTTPS.test(raw.logoUrl)
+    ? { logoUrl: raw.logoUrl.slice(0, 2048) }
+    : {}),
+});

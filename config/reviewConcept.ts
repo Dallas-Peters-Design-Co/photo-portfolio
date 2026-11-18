@@ -3,10 +3,12 @@ import { type ConceptFlex, cleanFlex } from "./conceptFlex.js";
 import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
 import type { ConceptIconSvg } from "./conceptIcon.js";
 import {
+  cleanAvatar,
   cleanBox,
   cleanCard,
   cleanCheckbox,
   cleanIcon,
+  cleanLogo,
   cleanProgress,
   cleanToast,
 } from "./conceptKinds.js";
@@ -406,26 +408,6 @@ const cleanOptions = (value: unknown): string[] | undefined => {
     .slice(0, 8)
     .map((option) => str(option, 100));
 };
-
-const AVATAR_URL = /^https?:\/\//i;
-const HTTPS = /^https:\/\//i;
-const cleanAvatar = (raw: Partial<ReviewConceptElement>) => {
-  const url = str(raw.avatarUrl, 2048).trim();
-  return {
-    avatarInitials: str(raw.avatarInitials, 8),
-    ...(AVATAR_URL.test(url) && URL.canParse(url) ? { avatarUrl: url } : {}),
-  };
-};
-
-/** A logo's picture and height; a picture not on https is dropped. */
-const cleanLogo = (
-  raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "logoHeight" | "logoUrl"> => ({
-  logoHeight: bounded(raw.logoHeight, 12, 160, 32),
-  ...(typeof raw.logoUrl === "string" && HTTPS.test(raw.logoUrl)
-    ? { logoUrl: raw.logoUrl.slice(0, 2048) }
-    : {}),
-});
 
 /** A card's or panel's slots and whether lines divide them. */
 const cleanSlotted = (

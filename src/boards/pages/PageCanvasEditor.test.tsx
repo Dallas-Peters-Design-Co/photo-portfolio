@@ -1,95 +1,35 @@
 import "../../index.css";
-import { act, useState } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { act } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 import { page, userEvent } from "vitest/browser";
-import { EMPTY_KIT } from "../../../config/brandKit.js";
 import {
   createConcept,
   createConceptElement,
 } from "../../../config/conceptDefaults.js";
-import { lookOf } from "../../../config/conceptStyle.js";
 import {
   cleanPageDesign,
   type PageDesign,
 } from "../../../config/pageDesign.js";
-import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
-import type { BoardItem } from "../../types";
 import { componentsApi } from "../creative/components/componentsApi";
-import { PageCanvasEditor } from "./PageCanvasEditor";
 import { PageDesignView } from "./PageDesignView";
 
-(
-  globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
-).IS_REACT_ACT_ENVIRONMENT = true;
+import {
+  changed,
+  cleanup,
+  closed,
+  host,
+  kit,
+  latest,
+  mount,
+  root,
+} from "./pageCanvasTestHarness";
 
-const kit = {
-  id: "12345678-1234-1234-1234-123456789012",
-  name: "Pretext",
-  resolvedDoc: {
-    ...EMPTY_KIT,
-    componentStyles: [
-      {
-        id: "primary",
-        kind: "button" as const,
-        look: lookOf(createConceptElement("button")),
-        name: "Primary",
-      },
-    ],
-    palette: [{ name: "Harbor", role: "Accent", value: "#114477" }],
-  },
-};
 vi.mock("../brand/ActiveBrand", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../brand/ActiveBrand")>()),
   useActiveBrand: () => ({ kit, kits: [kit] }),
 }));
-const changed = vi.fn();
-const closed = vi.fn();
-let latest: PageDesign | null = null;
-const frame: BoardItem = {
-  ...BLANK_ITEM,
-  body: "Results & findings",
-  height: 450,
-  id: "frame",
-  kind: "frame",
-  width: 720,
-  x: 0,
-  y: 0,
-  z: 0,
-};
-function Harness({ initial }: { initial?: PageDesign }) {
-  const [item, setItem] = useState({
-    ...frame,
-    config: initial ? { pageDesign: initial } : null,
-  });
-  return (
-    <PageCanvasEditor
-      frame={item}
-      onChange={(next) => {
-        latest = next;
-        changed(next);
-        setItem({ ...item, config: { pageDesign: next } });
-      }}
-      onClose={closed}
-    />
-  );
-}
-let host: HTMLDivElement;
-let root: Root;
-const mount = async (initial?: PageDesign) => {
-  changed.mockClear();
-  closed.mockClear();
-  latest = null;
-  host = document.createElement("div");
-  document.body.append(host);
-  root = createRoot(host);
-  await act(() => root.render(<Harness initial={initial} />));
-};
-afterEach(async () => {
-  await act(() => root.unmount());
-  host.remove();
-  vi.restoreAllMocks();
-});
+
+afterEach(cleanup);
 
 it("inserts a linked brand component and commits a drag only on release", async () => {
   await page.viewport(1440, 900);
@@ -384,7 +324,14 @@ it("plays the chosen click target in the same live page renderer", async () => {
   design.concept = {
     ...design.concept,
     elements: [button],
-    steps: [{ caption: "Results", elements: [result], id: "result" }],
+    steps: [
+      {
+        caption: "Results",
+        elements: [result],
+        id: "result",
+        trigger: result.id,
+      },
+    ],
     stepTrigger: button.id,
   };
   await act(() => root.render(<PageDesignView page={design} />));
@@ -393,6 +340,13 @@ it("plays the chosen click target in the same live page renderer", async () => {
   );
   expect(host.textContent).toContain("The findings are open");
   expect(host.textContent).not.toContain("Open findings");
+  await userEvent.click(
+    page.getByText("The findings are open", { exact: true })
+  );
+  expect(host.textContent).toContain("Open findings");
+  await page.getByRole("combobox", { name: "Prototype state" }).click();
+  await page.getByRole("option", { exact: true, name: "Results" }).click();
+  expect(host.textContent).toContain("The findings are open");
 });
 
 it("edits the placed panel's toggle position from the page inspector", async () => {
@@ -584,219 +538,4 @@ it("applies the selected kit's swatch from the page background OKLCH picker", as
     host.querySelector<HTMLElement>(".page-design__sheet")?.style
       .backgroundColor
   ).toBe("rgb(17, 68, 119)");
-});
-
-const SELECT_LAYER = /^select\s*Choose an option/i;
-
-it("edits the Select placeholder and keeps it when the page reopens", async () => {
-  const select = createConceptElement("select");
-  await mount({
-    boxes: {},
-    concept: { ...createConcept(), elements: [select] },
-    height: 450,
-    kitId: null,
-    version: 1,
-    width: 720,
-  });
-  const layer = page.getByRole("button", {
-    name: SELECT_LAYER,
-  });
-  await act(() => layer.click());
-  await act(() =>
-    page
-      .getByRole("textbox", { exact: true, name: "Placeholder" })
-      .fill("Choose a country")
-  );
-  const saved = latest;
-  if (!saved) {
-    throw new Error("Expected the placeholder edit to save");
-  }
-  const trigger = () =>
-    host.querySelector(".page-design__sheet [data-slot='select-trigger']");
-  expect(
-    trigger()?.querySelector('[data-slot="select-value"]')?.textContent
-  ).toBe("Choose a country");
-  expect(saved.concept.elements[0]?.options).toEqual(select.options);
-  await act(() => root.unmount());
-  host.remove();
-  await mount(saved);
-  expect(
-    trigger()?.querySelector('[data-slot="select-value"]')?.textContent
-  ).toBe("Choose a country");
-  expect(trigger()?.hasAttribute("data-placeholder")).toBe(true);
-});
-
-it("fills the assigned Select box at different widths", async () => {
-  const select = createConceptElement("select");
-  await page.viewport(1440, 900);
-  await mount({
-    boxes: { [select.id]: { height: 60, width: 460, x: 0, y: 0 } },
-    concept: { ...createConcept(), elements: [select] },
-    height: 450,
-    kitId: null,
-    version: 1,
-    width: 720,
-  });
-  const box = host.querySelector(".page-design__component");
-  const trigger = box?.querySelector("[data-slot='select-trigger']");
-  if (!(box && trigger)) {
-    throw new Error("Expected a Select on the page");
-  }
-  const checkWidth = (width: number) => {
-    expect(box.getBoundingClientRect().width).toBeCloseTo(width, 0);
-    expect(trigger.getBoundingClientRect().width).toBeCloseTo(width, 0);
-  };
-  checkWidth(460);
-  await act(() => page.getByRole("button", { name: SELECT_LAYER }).click());
-  await act(() =>
-    page.getByRole("spinbutton", { exact: true, name: "WIDTH" }).fill("240")
-  );
-  checkWidth(240);
-});
-
-it("sets and removes a table button's icon independently of other rows", async () => {
-  const table = createConceptElement("table");
-  table.table = {
-    columns: [{ kind: "button", label: "Action" }],
-    rows: [["Open"], ["Edit"]],
-  };
-  await page.viewport(1440, 900);
-  await mount({
-    boxes: {},
-    concept: { ...createConcept(), elements: [table] },
-    height: 500,
-    kitId: null,
-    version: 1,
-    width: 720,
-  });
-  const layer = host.querySelector<HTMLButtonElement>(".page-builder__layer");
-  await act(() => layer?.click());
-  const controls = page.getByLabelText("Row 2, Action icons", { exact: true });
-  await act(() => controls.click());
-  const trailing = page.getByRole("button", {
-    name: "Row 2, Action, Trailing icon",
-  });
-  await act(() => trailing.click());
-  await act(() => page.getByTitle("Favourite", { exact: true }).click());
-  const buttons = () =>
-    host.querySelectorAll(".page-design__sheet .concept-table__button");
-  expect(buttons()[0]?.querySelector("svg")).toBeNull();
-  expect(buttons()[1]?.querySelector("svg")).toBeTruthy();
-  const saved = cleanPageDesign(latest);
-  if (!saved) {
-    throw new Error("Missing saved page");
-  }
-  expect(
-    saved.concept.elements[0]?.table?.columns[0]?.itemIcons?.[1]?.end
-  ).toBe("FavouriteIcon");
-  await act(() => root.unmount());
-  host.remove();
-  await mount(saved);
-  expect(buttons()[1]?.querySelector("svg")).toBeTruthy();
-  await act(() =>
-    host.querySelector<HTMLButtonElement>(".page-builder__layer")?.click()
-  );
-  await act(() => controls.click());
-  await act(() => trailing.click());
-  await act(() => page.getByRole("option", { name: "No icon" }).click());
-  expect(buttons()[1]?.textContent).toBe("Edit");
-  expect(buttons()[1]?.querySelector("svg")).toBeNull();
-});
-
-it("edits multiline Text content inside a panel with its child properties folded", async () => {
-  const child = { ...createConceptElement("text"), text: "Panel copy" };
-  const panel = {
-    ...createConceptElement("panel"),
-    slots: { body: { elements: [child] } },
-  };
-  await mount({
-    boxes: {},
-    concept: { ...createConcept(), elements: [panel] },
-    height: 450,
-    kitId: null,
-    version: 1,
-    width: 720,
-  });
-  const layer = host.querySelector<HTMLButtonElement>(".page-builder__layer");
-  await act(() => layer?.click());
-  const childSection = host.querySelector(
-    '.page-builder__inspector section[aria-label="text"]'
-  );
-  expect(
-    childSection
-      ?.querySelector(".review-concepts__element-toggle")
-      ?.getAttribute("aria-expanded")
-  ).toBe("false");
-  const content = page.getByRole("textbox", {
-    exact: true,
-    name: "Text content",
-  });
-  const copy = "A new heading\nA second line";
-  await act(() => content.fill(copy));
-  const saved = cleanPageDesign(latest);
-  if (!saved) {
-    throw new Error("Missing saved page");
-  }
-  expect(saved.concept.elements[0]?.slots?.body?.elements[0]?.text).toBe(copy);
-  await act(() => root.unmount());
-  host.remove();
-  await mount(saved);
-  const textLayer = [
-    ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
-  ].find((item) => item.textContent?.includes("A new heading"));
-  await act(() => textLayer?.click());
-  expect((content.element() as HTMLTextAreaElement).value).toBe(copy);
-  expect(host.querySelector(".concept-panel__surface")?.textContent).toContain(
-    copy
-  );
-});
-
-it("shows only the selected component or group outline and clears it on blank canvas", async () => {
-  const child = { ...createConceptElement("text"), text: "Nested copy" };
-  const group = {
-    ...createConceptElement("group"),
-    group: { elements: [child] },
-  };
-  const button = { ...createConceptElement("button"), text: "Continue" };
-  await mount({
-    boxes: {},
-    concept: { ...createConcept(), elements: [group, button] },
-    height: 500,
-    kitId: null,
-    version: 1,
-    width: 720,
-  });
-  const outlines = () =>
-    host.querySelectorAll(
-      ".page-builder__selection, .page-builder__stage [data-selected]"
-    );
-  expect(outlines()).toHaveLength(0);
-  await act(() =>
-    page.getByRole("button", { exact: true, name: "Move group" }).click()
-  );
-  expect(outlines()).toHaveLength(1);
-  expect(
-    host.querySelector(".page-builder__resize")?.getAttribute("aria-label")
-  ).toBe("Resize group");
-  const nestedLayer = [
-    ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
-  ].find((layer) => layer.textContent?.includes("Nested copy"));
-  await act(() => nestedLayer?.click());
-  expect(outlines()).toHaveLength(1);
-  expect(outlines()[0]?.textContent).toBe("Nested copy");
-  await act(() =>
-    page.getByRole("button", { exact: true, name: "Move Continue" }).click()
-  );
-  expect(outlines()).toHaveLength(1);
-  expect(
-    host.querySelector(".page-builder__resize")?.getAttribute("aria-label")
-  ).toBe("Resize Continue");
-  const sheet = host.querySelector(".page-design__sheet");
-  await act(() => {
-    sheet?.dispatchEvent(
-      new PointerEvent("pointerdown", { bubbles: true, button: 0 })
-    );
-  });
-  expect(outlines()).toHaveLength(0);
-  expect(host.querySelector(".page-builder__resize")).toBeNull();
 });
