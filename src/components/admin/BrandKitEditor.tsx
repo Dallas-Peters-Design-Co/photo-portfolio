@@ -15,6 +15,7 @@ import { useProofBoard } from "../../boards/brand/useProofBoard";
 import type { BrandKit } from "../../services/brandKitService";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { BrandKitCanvasComponents } from "./BrandKitCanvasComponents";
 import { BrandKitComponents } from "./BrandKitComponents";
 import {
   CssImport,
@@ -68,6 +69,7 @@ const SAVE_LABELS: Record<KitSaveState, string> = {
 /** The editor's blocks, for Collapse all. */
 const BLOCK_IDS = [
   "components",
+  "canvasComponents",
   "preview",
   "palette",
   "css",
@@ -309,6 +311,16 @@ export function KitEditor({
             effective={effective}
             kitId={kit.id}
             onChange={setDoc}
+          />
+        )}
+        {block(
+          "canvasComponents",
+          "Canvas components",
+          <BrandKitCanvasComponents
+            doc={doc}
+            effective={effective}
+            kitId={kit.id}
+            setDoc={setDoc}
           />
         )}
         {block(

@@ -3,7 +3,7 @@ import type { BoardItem } from "../../types";
 import { LayerBody } from "../creative/ArtboardLayers";
 import { opacityCss } from "../creative/layerOpacity";
 import { rotateCss, rotationOf } from "../creative/rotate";
-import { expandInstance, instanceOf } from "./model";
+import { type BrandComponent, expandInstance, instanceOf } from "./model";
 import { useComponentDefs } from "./store";
 import "../creative/CreativeEditor.css";
 import "../itemBodies.css";
@@ -27,16 +27,33 @@ export const InstanceView = memo(function InstanceBody({
   const lookup = useComponentDefs();
   const instance = instanceOf(item);
   const component = instance ? lookup(instance.component) : null;
+  if (!component) {
+    return <div className="instance instance--missing">Component</div>;
+  }
+  return <InstanceLayers component={component} item={item} textRef={textRef} />;
+});
+
+/**
+ * An instance drawn from a definition handed in, not looked up: the brand
+ * kit's list draws a component as it is being changed, before it is saved
+ * (and so before the page's store knows the change).
+ */
+export function InstanceLayers({
+  component,
+  item,
+  textRef,
+}: {
+  component: BrandComponent;
+  item: BoardItem;
+  textRef?: (id: string, el: HTMLElement | null) => void;
+}) {
   // Worked out once per change, not per render: every inner text layer
   // re-measures itself whenever its style object is new, and a board of
   // thirty instances re-rendering while zooming made that a lot of layout.
   const layers = useMemo(
-    () => (component ? expandInstance(item, component) : []),
+    () => expandInstance(item, component),
     [component, item]
   );
-  if (!component) {
-    return <div className="instance instance--missing">Component</div>;
-  }
   return (
     <div className="instance">
       {layers.map((layer) => (
@@ -63,6 +80,6 @@ export const InstanceView = memo(function InstanceBody({
       ))}
     </div>
   );
-});
+}
 
 const noop = () => undefined;

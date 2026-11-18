@@ -1,0 +1,95 @@
+/* The kit's canvas components (BrandKitCanvasComponents.tsx): each a row of
+   its preview and its settings. */
+.kit-canvas-components {
+  display: grid;
+  gap: calc(var(--spacing) * 4);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.kit-canvas-components__item {
+  display: grid;
+  grid-template-columns: 18rem minmax(0, 1fr);
+  gap: calc(var(--spacing) * 4);
+  align-items: start;
+  padding-block-end: calc(var(--spacing) * 4);
+  border-block-end: var(--border-hairline) solid
+    color-mix(in oklch, currentcolor 12%, transparent);
+}
+
+.kit-canvas-components__item:last-child {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+/* The preview's box is the component at its drawn size; the layers inside
+   are laid out at full size and scaled down from the corner. */
+.kit-canvas-components__preview {
+  position: relative;
+  overflow: hidden;
+  background: oklch(0.96 0.004 265);
+  border-radius: var(--radius-sm);
+}
+
+.kit-canvas-components__scaled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+}
+
+.kit-canvas-components__body {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  min-width: 0;
+}
+
+.kit-canvas-components__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+}
+
+.kit-canvas-components__meta {
+  font-size: var(--text-sm-ui);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.6;
+}
+
+.kit-canvas-components__props {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.kit-canvas-components__prop {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 12rem) minmax(0, 1fr) auto;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+}
+
+.kit-canvas-components__prop-kind {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 1.5);
+  align-items: center;
+  font-size: var(--text-sm-ui);
+  opacity: 0.7;
+}
+
+.kit-canvas-components__text {
+  min-height: 0;
+  resize: vertical;
+}
+
+@media (max-width: 60rem) {
+  .kit-canvas-components__item,
+  .kit-canvas-components__prop {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
