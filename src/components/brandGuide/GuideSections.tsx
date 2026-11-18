@@ -297,11 +297,11 @@ export function ImagerySection({ doc }: { doc: BrandKitDoc }) {
             {library.map((item) => (
               <img
                 alt={item.alt ?? ""}
-                height={300}
+                height={item.height ?? undefined}
                 key={item.id}
                 loading="lazy"
                 src={item.url}
-                width={300}
+                width={item.width ?? undefined}
               />
             ))}
           </div>
