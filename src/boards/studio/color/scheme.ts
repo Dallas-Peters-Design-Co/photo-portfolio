@@ -1,3 +1,4 @@
+import { MAX_PALETTE } from "../../../../config/brandKit.js";
 import {
   hexToOklch,
   type Oklch,
@@ -262,7 +263,7 @@ export const buildScheme = (options: SchemeOptions): string[] => {
     return [];
   }
   // The slider stops at 9; a loaded brand palette can be longer.
-  const count = Math.round(clamp(options.count, 2, 16));
+  const count = Math.round(clamp(options.count, 2, MAX_PALETTE));
   const isRamp =
     options.model === "sequential" || options.model === "diverging";
   let colours: Oklch[];

@@ -18,15 +18,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { contrastRatio } from "../../../../config/theme.js";
 import { formatOklch, hexToOklch } from "../../../lib/oklch";
 import { ColorWell } from "../../ColorWell";
 import { ImagePick } from "../ImagePick";
 import { saveBlob, svgToPngBlob } from "../render";
-import { inkOn, paletteFromUrl } from "./harmony";
+import { paletteFromUrl } from "./harmony";
+import { SchemeContrast } from "./SchemeContrast";
 import { SchemeControls } from "./SchemeControls";
 import { SchemeDials } from "./SchemeDials";
 import { HueMap } from "./SchemeHueMap";
 import { simulate, type Vision } from "./scheme";
+import { roleLabel, STATUS_ROLES, schemePalette } from "./schemeRoles";
 import { swatchesSvg } from "./swatches";
 import { useKitPalette } from "./useKitPalette";
 import { lchOf, useScheme } from "./useScheme";
@@ -44,9 +47,12 @@ const oklchOf = (hex: string) => {
   return c ? formatOklch(c) : hex;
 };
 
-const cssOf = (colors: string[]) =>
+const cssOf = (colors: string[], roles: string[]) =>
   `:root {\n${colors
-    .map((c, i) => `  --color-${i + 1}: ${oklchOf(c)}; /* ${c} */`)
+    .map(
+      (c, i) =>
+        `  --color-${STATUS_ROLES.includes(roles[i]) && roles.indexOf(roles[i]) === i ? roles[i] : i + 1}: ${oklchOf(c)}; /* ${c} */`
+    )
     .join("\n")}\n}`;
 
 export function SchemeTool({
@@ -121,7 +127,7 @@ function SchemeBuilder({
   selectedImage?: string | null;
   storageKey: string;
 }) {
-  const { entries, kit, kits, save, saveTo, saving } = useKitPalette();
+  const { entries, kit, kits, saving, updateFor } = useKitPalette();
   const scheme = useScheme(entries[0]?.value, storageKey);
   // Where Save writes and Load reads: the board's brand to start with, any
   // kit after. Changing it keeps the colours, so one brand's palette can be
@@ -132,8 +138,19 @@ function SchemeBuilder({
   const { anchorAt, colors, locked, selected, settings } = scheme;
   const [vision, setVision] = useState<Vision>("none");
 
+  const source = colors.map((value, i) => ({
+    name: scheme.base?.[i]?.name ?? "",
+    role: scheme.base?.[i]?.role ?? "",
+    value,
+  }));
+  const roles = source.map((entry, i) => scheme.roles[i] ?? entry.role);
+  const selectedRole = roles[selected] ?? "";
   const nameOf = (i: number) => (i === anchorAt ? "Anchor" : `Colour ${i + 1}`);
 
+  const swatchInk = (hex: string) =>
+    contrastRatio(hex, "#ffffff") >= 4.5 ? "#ffffff" : "#000000";
+  const editLabel = (i: number) =>
+    [nameOf(i).toLowerCase(), roles[i]].filter(Boolean).join(", ");
   const copy = (text: string, what: string) => {
     void navigator.clipboard?.writeText(text);
     toast.success(`${what} copied`);
@@ -162,7 +179,7 @@ function SchemeBuilder({
 
   return (
     <div className="studio-palette-tool">
-      <div className="studio-palette">
+      <div className="studio-palette studio-scheme__swatches">
         {colors.map((c, i) => {
           const shown = simulate(c, vision);
           return (
@@ -171,10 +188,10 @@ function SchemeBuilder({
               data-selected={i === selected ? "" : undefined}
               // biome-ignore lint/suspicious/noArrayIndexKey: a slot is its position
               key={i}
-              style={{ background: shown, color: inkOn(shown) }}
+              style={{ background: shown, color: swatchInk(shown) }}
             >
               <button
-                aria-label={`Edit ${nameOf(i).toLowerCase()}`}
+                aria-label={`Edit ${editLabel(i)}`}
                 aria-pressed={i === selected}
                 className="studio-palette__pick"
                 disabled={!scheme.individual && i !== anchorAt}
@@ -201,17 +218,13 @@ function SchemeBuilder({
               >
                 {c.slice(1).toUpperCase()}
               </button>
+              {roles[i] ? <strong>{roleLabel(roles[i])}</strong> : null}
               {i === anchorAt ? (
                 <span className="studio-scheme__anchor">Anchor</span>
               ) : null}
-              {scheme.base?.[i]?.name ? (
-                <span className="studio-scheme__by-hand">
-                  {scheme.base[i]?.name}
-                </span>
-              ) : null}
-              {scheme.held(i) && !scheme.base?.[i]?.name ? (
-                <span className="studio-scheme__by-hand">By hand</span>
-              ) : null}
+              <span className="studio-scheme__by-hand">
+                {source[i].name || (scheme.held(i) ? "By hand" : "")}
+              </span>
             </div>
           );
         })}
@@ -248,6 +261,29 @@ function SchemeBuilder({
               Individual colours
             </label>
           </div>
+          <label className="studio__field">
+            Semantic role
+            <select
+              aria-label="Semantic role"
+              onChange={(event) => scheme.setRole(selected, event.target.value)}
+              value={selectedRole}
+            >
+              <option value="">Unassigned</option>
+              {[
+                ...new Set(
+                  [
+                    ...STATUS_ROLES,
+                    ...source.map((e) => e.role).filter(Boolean),
+                    selectedRole,
+                  ].filter(Boolean)
+                ),
+              ].map((role) => (
+                <option key={role} value={role}>
+                  {roleLabel(role)}
+                </option>
+              ))}
+            </select>
+          </label>
           <SchemeDials
             name={nameOf(selected)}
             onChange={(next) => scheme.setColour(selected, next)}
@@ -281,6 +317,12 @@ function SchemeBuilder({
           onRelease={scheme.release}
         />
       </div>
+      <SchemeContrast
+        colors={colors}
+        labels={roles.map(
+          (role, i) => roleLabel(role) || source[i].name || nameOf(i)
+        )}
+      />
       <div className="studio__actions">
         {kits.length > 1 ? (
           <KitPicker kits={kits} onChange={setTargetId} value={target?.id} />
@@ -290,14 +332,18 @@ function SchemeBuilder({
             className="studio__button studio__button--primary"
             disabled={saving}
             onClick={() =>
-              void (target.id === kit?.id
-                ? save(colors, scheme.base)
-                : saveTo(
-                    target.id,
-                    colors,
-                    colors.map((_, i) => scheme.base?.[i]?.role ?? ""),
-                    colors.map((_, i) => scheme.base?.[i]?.name ?? "")
-                  ))
+              void updateFor(
+                target,
+                {
+                  palette: schemePalette(
+                    target.resolvedDoc.palette,
+                    source,
+                    scheme.roles,
+                    target.id !== kit?.id
+                  ),
+                },
+                "palette"
+              )
             }
             title="Saves a new version of that kit; its old palette stays in its history"
             type="button"
@@ -349,7 +395,7 @@ function SchemeBuilder({
         </button>
         <button
           className="studio__button"
-          onClick={() => copy(cssOf(colors), "CSS")}
+          onClick={() => copy(cssOf(colors, roles), "CSS")}
           type="button"
         >
           <Copy size={14} /> CSS

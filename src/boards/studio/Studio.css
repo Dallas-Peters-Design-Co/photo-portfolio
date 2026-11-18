@@ -1010,3 +1010,35 @@
 .studio-pick__slot:hover .studio-pick__remove {
   opacity: 1;
 }
+
+.studio-scheme__swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(5rem, 100%), 1fr));
+  height: auto;
+}
+
+.studio-scheme__swatches .studio-palette__swatch {
+  min-height: 8rem;
+  overflow-wrap: anywhere;
+}
+
+.studio-scheme__contrast summary {
+  cursor: pointer;
+}
+
+.studio-scheme__checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 3);
+  align-items: center;
+  margin-block: calc(var(--spacing) * 2);
+}
+
+.studio-scheme__sample {
+  padding: calc(var(--spacing) * 2);
+}
+
+.studio-scheme__swatches .studio-scheme__anchor,
+.studio-scheme__swatches .studio-scheme__by-hand {
+  opacity: 1;
+}

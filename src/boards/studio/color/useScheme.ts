@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PaletteEntry } from "../../../../config/brandKit.js";
+import { MAX_PALETTE } from "../../../../config/brandKit.js";
 import { hexToOklch, oklchToHex, toSrgbGamut } from "../../../lib/oklch";
 import type { Lch } from "./SchemeDials";
 import {
@@ -21,8 +22,6 @@ import {
 export type Settings = Omit<SchemeOptions, "anchor" | "locked" | "manual">;
 
 const START = "#2f7cf6";
-/** As many brand colours as the builder takes in. */
-export const MAX_LOADED = 16;
 const turn = (h: number) => ((h % 360) + 360) % 360;
 
 export const lchOf = (hex: string): Lch => {
@@ -38,6 +37,7 @@ interface Saved {
   lch: Lch;
   locked: (string | null)[];
   manual: (Manual | null)[];
+  roles: Record<number, string>;
   settings: Settings;
 }
 
@@ -87,16 +87,25 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
   const [base, setBase] = useState<PaletteEntry[] | null>(
     Array.isArray(saved.base) ? saved.base : null
   );
+  const [roles, setRoles] = useState<Record<number, string>>(saved.roles ?? {});
   const [picked, setPicked] = useState<number | null>(null);
 
   useEffect(() => {
-    const keep: Saved = { base, individual, lch, locked, manual, settings };
+    const keep: Saved = {
+      base,
+      individual,
+      lch,
+      locked,
+      manual,
+      roles,
+      settings,
+    };
     try {
       localStorage.setItem(storageKey, JSON.stringify(keep));
     } catch {
       // Remembering is a convenience.
     }
-  }, [base, individual, lch, locked, manual, settings, storageKey]);
+  }, [base, individual, lch, locked, manual, roles, settings, storageKey]);
 
   /**
    * The brand's own palette, loaded to be edited: its first colour is the
@@ -105,7 +114,7 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
    * position, for saving back.
    */
   const loadBrand = (entries: PaletteEntry[]) => {
-    const [head, ...rest] = entries.slice(0, MAX_LOADED);
+    const [head, ...rest] = entries.slice(0, MAX_PALETTE);
     if (!head) {
       return;
     }
@@ -113,8 +122,9 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     setManual([null, ...rest.map((e) => lchOf(e.value))]);
     setLocked([]);
     setIndividual(true);
+    setRoles({});
     setPicked(null);
-    setBase(entries.slice(0, MAX_LOADED));
+    setBase(entries.slice(0, MAX_PALETTE));
     setSettings((was) => ({
       ...was,
       count: Math.max(2, rest.length + 1),
@@ -130,6 +140,7 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     setManual([]);
     setLocked([]);
     setBase(null);
+    setRoles({});
     setPicked(null);
     setSettings(SCHEME_DEFAULTS);
   };
@@ -195,12 +206,15 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     /** Gives a hand-set colour back to the anchor and the settings. */
     release: (i: number) =>
       setManual((was) => was.map((m, k) => (k === i ? null : m))),
+    roles,
     select: setPicked,
     selected,
     selectedLch,
     setAnchor: (hex: string) => setLch(lchOf(hex)),
     setColour,
     setIndividual,
+    setRole: (index: number, role: string) =>
+      setRoles((was) => ({ ...was, [index]: role })),
     setSettings: (next: Partial<Settings>) =>
       setSettings((was) => ({ ...was, ...next })),
     settings,

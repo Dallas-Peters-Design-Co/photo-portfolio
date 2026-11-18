@@ -40,7 +40,7 @@ describe("buildScheme", () => {
       "companion",
       "composition",
     ] as const) {
-      for (const count of [2, 4, 9]) {
+      for (const count of [2, 4, 9, 24]) {
         const out = make({ count, model });
         expect(out).toHaveLength(count);
         expect(out[0]).toBe(ANCHOR);

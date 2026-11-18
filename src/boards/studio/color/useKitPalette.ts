@@ -95,5 +95,5 @@ export const useKitPalette = () => {
     }
   };
 
-  return { entries, kit, kits, save, saveTo, saving, update };
+  return { entries, kit, kits, save, saveTo, saving, update, updateFor };
 };

@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MAX_PALETTE } from "../../../../config/brandKit.js";
 import {
   HUE_MODES,
   MODELS,
@@ -29,14 +30,33 @@ function Segments<T extends string>({
 }) {
   return (
     <div aria-label={label} className="studio-segments" role="radiogroup">
-      {options.map((o) => (
+      {options.map((o, index) => (
         // biome-ignore lint/a11y/useSemanticElements: a segmented control; radio inputs can't be styled as one bar here
         <button
           aria-checked={o.id === value}
           className="studio-segments__option"
           key={o.id}
           onClick={() => onPick(o.id)}
+          onKeyDown={(event) => {
+            const offset = {
+              ArrowDown: 1,
+              ArrowLeft: -1,
+              ArrowRight: 1,
+              ArrowUp: -1,
+            }[event.key];
+            if (!offset) {
+              return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            const next = (index + offset + options.length) % options.length;
+            onPick(options[next].id);
+            event.currentTarget.parentElement
+              ?.querySelectorAll("button")
+              [next]?.focus();
+          }}
           role="radio"
+          tabIndex={o.id === value ? 0 : -1}
           type="button"
         >
           {o.label}
@@ -110,7 +130,7 @@ export function SchemeControls({
       <p className="studio__blurb">{model?.blurb}</p>
       <Slider
         label="Colour count"
-        max={Math.max(9, settings.count)}
+        max={MAX_PALETTE}
         min={2}
         onChange={(count) => onChange({ count })}
         value={settings.count}

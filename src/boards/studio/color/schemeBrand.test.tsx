@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, expect, it, vi } from "vitest";
+import { page } from "vitest/browser";
 
 /**
  * The brand's own colours loaded into the Palette Builder, one changed, and
@@ -83,6 +84,25 @@ it("loads the brand's colours, changes one, and saves them back named", async ()
   });
   expect(hexes()).toEqual(["#2f7cf6", "#001a1f", "#aa3311"]);
 
+  act(() =>
+    (document.querySelector(".color-well__scrim") as HTMLButtonElement).click()
+  );
+  await page.getByLabelText("Semantic role").selectOptions("danger");
+  expect(
+    host.querySelectorAll(".studio-palette__swatch")[2]?.textContent
+  ).toContain("Danger");
+  await page.getByText("Check contrast", { exact: true }).click();
+  await page
+    .getByLabelText("Foreground", { exact: true })
+    .selectOptions("#000000");
+  const result = host.querySelector(".studio-scheme__checks output");
+  expect(result?.textContent).toContain("21.00:1");
+  expect(result?.textContent).toContain("Normal text (4.5:1) · Pass");
+  await page
+    .getByLabelText("Background", { exact: true })
+    .selectOptions("#000000");
+  expect(result?.textContent).toContain("Large text (3:1) · Fail");
+
   await act(async () => {
     press("Save to RoleModel");
     await vi.waitFor(() => expect(saved).toHaveLength(1));
@@ -90,7 +110,7 @@ it("loads the brand's colours, changes one, and saves them back named", async ()
   expect((saved[0] as { palette: unknown }).palette).toEqual([
     PALETTE[0],
     PALETTE[1],
-    { name: "Leaf", role: "", value: "#aa3311" },
+    { name: "Leaf", role: "danger", value: "#aa3311" },
   ]);
   act(() => root.unmount());
   host.remove();
