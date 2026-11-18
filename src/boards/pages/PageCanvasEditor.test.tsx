@@ -9,7 +9,10 @@ import {
   createConceptElement,
 } from "../../../config/conceptDefaults.js";
 import { lookOf } from "../../../config/conceptStyle.js";
-import type { PageDesign } from "../../../config/pageDesign.js";
+import {
+  cleanPageDesign,
+  type PageDesign,
+} from "../../../config/pageDesign.js";
 import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
 import type { BoardItem } from "../../types";
 import { componentsApi } from "../creative/components/componentsApi";
@@ -599,4 +602,53 @@ it("fills the assigned Select box at different widths", async () => {
     page.getByRole("spinbutton", { exact: true, name: "WIDTH" }).fill("240")
   );
   checkWidth(240);
+});
+
+it("sets and removes a table button's icon independently of other rows", async () => {
+  const table = createConceptElement("table");
+  table.table = {
+    columns: [{ kind: "button", label: "Action" }],
+    rows: [["Open"], ["Edit"]],
+  };
+  await page.viewport(1440, 900);
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [table] },
+    height: 500,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const layer = host.querySelector<HTMLButtonElement>(".page-builder__layer");
+  await act(() => layer?.click());
+  const controls = page.getByLabelText("Row 2, Action icons", { exact: true });
+  await act(() => controls.click());
+  const trailing = page.getByRole("button", {
+    name: "Row 2, Action, Trailing icon",
+  });
+  await act(() => trailing.click());
+  await act(() => page.getByTitle("Favourite", { exact: true }).click());
+  const buttons = () =>
+    host.querySelectorAll(".page-design__sheet .concept-table__button");
+  expect(buttons()[0]?.querySelector("svg")).toBeNull();
+  expect(buttons()[1]?.querySelector("svg")).toBeTruthy();
+  const saved = cleanPageDesign(latest);
+  if (!saved) {
+    throw new Error("Missing saved page");
+  }
+  expect(
+    saved.concept.elements[0]?.table?.columns[0]?.itemIcons?.[1]?.end
+  ).toBe("FavouriteIcon");
+  await act(() => root.unmount());
+  host.remove();
+  await mount(saved);
+  expect(buttons()[1]?.querySelector("svg")).toBeTruthy();
+  await act(() =>
+    host.querySelector<HTMLButtonElement>(".page-builder__layer")?.click()
+  );
+  await act(() => controls.click());
+  await act(() => trailing.click());
+  await act(() => page.getByRole("option", { name: "No icon" }).click());
+  expect(buttons()[1]?.textContent).toBe("Edit");
+  expect(buttons()[1]?.querySelector("svg")).toBeNull();
 });

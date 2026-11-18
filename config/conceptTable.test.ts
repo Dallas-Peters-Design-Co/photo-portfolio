@@ -10,6 +10,7 @@ import {
   removeRow,
   reorderColumns,
   setCell,
+  setCellItemIcon,
   setColumnKind,
   setIconCell,
   tableOf,
@@ -253,4 +254,14 @@ describe("columns that follow kit styles", () => {
     expect(setColumnKind(table, 0, "chips").columns[0]?.styleId).toBe("pill");
     expect(setColumnKind(table, 0, "text").columns[0]?.styleId).toBeUndefined();
   });
+});
+
+it("keeps cell icons with their items when rows are deleted and columns move", () => {
+  const table = setCellItemIcon(DEFAULT_TABLE, 1, 1, "start", "StarIcon", [
+    ["path", { d: "M1 1" }],
+  ]);
+  const edited = cleanTable(reorderColumns(removeRow(table, 0), [1, 0, 2]));
+  expect(edited?.columns[0]?.itemIcons).toEqual({ 0: { start: "StarIcon" } });
+  expect(edited?.icons?.StarIcon).toEqual([["path", { d: "M1 1" }]]);
+  expect(cleanTable(removeColumn(table, 1))?.icons).toBeUndefined();
 });

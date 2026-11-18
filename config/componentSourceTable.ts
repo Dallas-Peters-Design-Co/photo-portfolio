@@ -1,7 +1,8 @@
-import { escapeJsx, type Markup } from "./componentSourceParts.js";
+import { escapeJsx, iconSvgJsx, type Markup } from "./componentSourceParts.js";
 import { shadowCss } from "./conceptShadow.js";
 import {
   type ConceptCellLook,
+  type ConceptTable,
   type ConceptTableColumn,
   chipsOf,
   DEFAULT_BORDERS,
@@ -47,36 +48,48 @@ const lookCss = (look: ConceptCellLook): string =>
     .filter(Boolean)
     .join(" ");
 
-const cellOf = (column: ConceptTableColumn, value: string): string => {
+const cellOf = (
+  column: ConceptTableColumn,
+  value: string,
+  row: number,
+  icons: ConceptTable["icons"]
+): string => {
+  const pair = column.itemIcons?.[row];
+  const start = pair?.start && iconSvgJsx(icons?.[pair.start], 16);
+  const end = pair?.end && iconSvgJsx(icons?.[pair.end], 16);
+  const label = (text: string) =>
+    start || end
+      ? `<span className="@@__item-label">${start || ""}${escapeJsx(text)}${end || ""}</span>`
+      : escapeJsx(text);
   switch (column.kind) {
     case "stacked": {
       const { body, title } = splitCardText(value);
-      return `<span className="@@__stack"><span>${escapeJsx(title)}</span>${body ? `<small>${escapeJsx(body)}</small>` : ""}</span>`;
+      return `<span className="@@__stack"><span>${label(title)}</span>${body ? `<small>${escapeJsx(body)}</small>` : ""}</span>`;
     }
     case "tag":
-      return value
-        ? `<span className="@@__tag">${escapeJsx(value)}</span>`
-        : "";
+      return value ? `<span className="@@__tag">${label(value)}</span>` : "";
     case "chips":
       return `<span className="@@__chips">${chipsOf(value)
-        .map((chip) => `<span className="@@__chip">${escapeJsx(chip)}</span>`)
+        .map((chip) => `<span className="@@__chip">${label(chip)}</span>`)
         .join("")}</span>`;
     case "button":
       return value
-        ? `<button className="@@__button" type="button" data-style="${column.buttonStyle ?? "solid"}">${escapeJsx(value)}</button>`
+        ? `<button className="@@__button" type="button" data-style="${column.buttonStyle ?? "solid"}">${label(value)}</button>`
         : "";
     case "progress": {
       const percent = Math.round(progressOf(value));
-      const label = progressLabelOf(value);
-      return `<span className="@@__progress"><span className="@@__progress-head"><span>${escapeJsx(label)}</span><small>${percent}%</small></span><span className="@@__bar" role="progressbar" aria-label=${JSON.stringify(label || `${percent}%`)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={${percent}}><span style={{ inlineSize: "${percent}%" }} /></span></span>`;
+      const description = progressLabelOf(value);
+      return `<span className="@@__progress"><span className="@@__progress-head"><span>${label(description)}</span><small>${percent}%</small></span><span className="@@__bar" role="progressbar" aria-label=${JSON.stringify(description || `${percent}%`)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={${percent}}><span style={{ inlineSize: "${percent}%" }} /></span></span>`;
     }
     default:
-      return escapeJsx(value);
+      return label(value);
   }
 };
 
 /** The app's table CSS, under the block's class. */
 const TABLE_CSS = `& { width: 100%; border-spacing: 0; border-collapse: separate; padding: 0; contain: paint; }
+&__item-label { display: inline-flex; gap: 0.35em; align-items: center; }
+&__item-label svg { flex: none; width: 1em; height: 1em; }
 & th, & td { padding: 8px 12px; vertical-align: middle; text-align: start; }
 & th { font-size: 0.85em; font-weight: 600; color: var(--&-head-color, color-mix(in srgb, currentColor 65%, transparent)); }
 & thead { background: var(--&-head-background, transparent); }
@@ -143,9 +156,12 @@ export const tableMarkup = (el: ReviewConceptElement): Markup => {
   const rows = table.rows
     .slice(0, SAMPLE_ROWS)
     .map(
-      (row) =>
+      (row, rowIndex) =>
         `  <tr>\n${table.columns
-          .map((column, i) => `    <td>${cellOf(column, row[i] ?? "")}</td>`)
+          .map(
+            (column, i) =>
+              `    <td>${cellOf(column, row[i] ?? "", rowIndex, table.icons)}</td>`
+          )
           .join("\n")}\n  </tr>`
     )
     .join("\n");

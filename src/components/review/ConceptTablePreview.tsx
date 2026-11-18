@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import { shadowCss } from "../../../config/conceptShadow.js";
 import {
+  type CellIcons,
   type ConceptCellLook,
   type ConceptTableColumn,
   chipsOf,
@@ -68,18 +69,36 @@ const pill = (column: ConceptTableColumn): CSSProperties => ({
 function Cell({
   column,
   icons,
+  itemIcons,
   value,
 }: {
   column: ConceptTableColumn;
   icons?: Record<string, ConceptIconSvg>;
+  itemIcons?: CellIcons;
   value: string;
 }) {
+  const start = itemIcons?.start && icons?.[itemIcons.start];
+  const end = itemIcons?.end && icons?.[itemIcons.end];
+  const label = (text: string) =>
+    start || end ? (
+      <span className="concept-table__item-label">
+        {start ? (
+          <HugeiconsIcon aria-hidden="true" icon={start} size="1em" />
+        ) : null}
+        {text}
+        {end ? (
+          <HugeiconsIcon aria-hidden="true" icon={end} size="1em" />
+        ) : null}
+      </span>
+    ) : (
+      text
+    );
   switch (column.kind) {
     case "stacked": {
       const { body, title } = splitCardText(value);
       return (
         <span className="concept-table__stack">
-          <span>{title}</span>
+          <span>{label(title)}</span>
           {body ? <small>{body}</small> : null}
         </span>
       );
@@ -87,7 +106,7 @@ function Cell({
     case "tag":
       return value ? (
         <span className="concept-table__tag" style={pill(column)}>
-          {value}
+          {label(value)}
         </span>
       ) : null;
     case "chips":
@@ -101,7 +120,7 @@ function Cell({
               key={`${index}-${chip}`}
               style={lookStyle(column.look)}
             >
-              {chip}
+              {label(chip)}
             </span>
           ))}
         </span>
@@ -127,12 +146,12 @@ function Cell({
           data-style={column.buttonStyle ?? "solid"}
           style={pill(column)}
         >
-          {value}
+          {label(value)}
         </span>
       ) : null;
     case "progress": {
       const percent = progressOf(value);
-      const label = progressLabelOf(value);
+      const description = progressLabelOf(value);
       // The description and the percent head the bar: the text at the
       // start, the percent at the end.
       return (
@@ -141,13 +160,13 @@ function Cell({
           style={lookStyle(column.look)}
         >
           <span className="concept-table__progress-head">
-            <span>{label}</span>
+            <span>{label(description)}</span>
             <small>{Math.round(percent)}%</small>
           </span>
           <ProgressBar
             color={tintOf(column)}
             height={6}
-            label={label || `${Math.round(percent)}%`}
+            label={description || `${Math.round(percent)}%`}
             radius={999}
             track="color-mix(in srgb, currentColor 12%, transparent)"
             value={percent}
@@ -156,7 +175,7 @@ function Cell({
       );
     }
     default:
-      return <>{value}</>;
+      return <>{label(value)}</>;
   }
 }
 
@@ -230,6 +249,7 @@ export function ConceptTablePreview({
                   <Cell
                     column={column}
                     icons={icons}
+                    itemIcons={column.itemIcons?.[rowIndex]}
                     value={row[index] ?? ""}
                   />
                 </td>

@@ -56,11 +56,15 @@ export interface ConceptCellLook {
   shadow?: ConceptShadow;
 }
 
+export type CellIcons = Partial<Record<"start" | "end", string>>;
+
 export interface ConceptTableColumn {
   /** Button columns: filled with the colour, or outlined in it. */
   buttonStyle?: ButtonStyle;
   /** Tag, chip, icon and button colour, as hex. */
   color?: string;
+  /** Decorative icons for each row in this column. */
+  itemIcons?: Record<number, CellIcons>;
   kind: ConceptCellKind;
   label: string;
   /** The kit style's look, while the column follows one. */
@@ -210,7 +214,22 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
   return Object.keys(look).length > 0 ? look : undefined;
 };
 
-const cleanColumn = (value: unknown): ConceptTableColumn => {
+const cleanItemIcons = (
+  value: ConceptTableColumn["itemIcons"],
+  count: number
+) => {
+  const icons: Record<number, CellIcons> = {};
+  for (let row = 0; row < count; row += 1) {
+    const start = conceptIconName(value?.[row]?.start);
+    const end = conceptIconName(value?.[row]?.end);
+    if (start || end) {
+      icons[row] = { ...(start && { start }), ...(end && { end }) };
+    }
+  }
+  return Object.keys(icons).length ? icons : undefined;
+};
+
+const cleanColumn = (value: unknown, rowCount: number): ConceptTableColumn => {
   const raw = (value ?? {}) as Partial<ConceptTableColumn>;
   const kind = CELL_KINDS.includes(raw.kind as ConceptCellKind)
     ? (raw.kind as ConceptCellKind)
@@ -220,12 +239,15 @@ const cleanColumn = (value: unknown): ConceptTableColumn => {
     typeof raw.styleId === "string" &&
     STYLE_ID.test(raw.styleId);
   const look = cleanCellLook(raw.look);
+  const itemIcons =
+    kind === "icon" ? undefined : cleanItemIcons(raw.itemIcons, rowCount);
   return {
     ...(kind === "button" && raw.buttonStyle === "outline"
       ? { buttonStyle: "outline" as const }
       : {}),
     ...optionalHex("color", raw.color),
     kind,
+    ...(itemIcons ? { itemIcons } : {}),
     label: text(raw.label, MAX_LABEL),
     ...(look ? { look } : {}),
     ...(linked ? { styleId: raw.styleId } : {}),
@@ -268,19 +290,21 @@ export const cleanTable = (value: unknown): ConceptTable | undefined => {
     return undefined;
   }
   const raw = value as Partial<ConceptTable>;
+  const inputRows = (Array.isArray(raw.rows) ? raw.rows : []).slice(
+    0,
+    MAX_TABLE_ROWS
+  );
   const columns = (Array.isArray(raw.columns) ? raw.columns : [])
     .slice(0, MAX_TABLE_COLUMNS)
-    .map(cleanColumn);
+    .map((column) => cleanColumn(column, inputRows.length));
   if (columns.length === 0) {
     return undefined;
   }
-  const rows = (Array.isArray(raw.rows) ? raw.rows : [])
-    .slice(0, MAX_TABLE_ROWS)
-    .map((row) =>
-      columns.map((_, index) =>
-        text(Array.isArray(row) ? row[index] : "", MAX_CELL)
-      )
-    );
+  const rows = inputRows.map((row) =>
+    columns.map((_, index) =>
+      text(Array.isArray(row) ? row[index] : "", MAX_CELL)
+    )
+  );
   const borders = cleanBorders(raw.borders);
   const header = {
     ...optionalHex("background", raw.header?.background),
@@ -309,17 +333,26 @@ const cleanIcons = (
     return undefined;
   }
   const raw = value as Record<string, unknown>;
-  const iconColumns = [...columns.keys()].filter(
-    (index) => columns[index]?.kind === "icon"
-  );
-  const icons: Record<string, ConceptIconSvg> = {};
-  for (const row of rows) {
-    for (const index of iconColumns) {
-      const name = conceptIconName(row[index]);
-      const svg = name ? cleanIconSvg(raw[name]) : undefined;
-      if (name && svg) {
-        icons[name] = svg;
+  const names = new Set<string>();
+  for (const [index, column] of columns.entries()) {
+    for (const [rowIndex, row] of rows.entries()) {
+      const cell = column.itemIcons?.[rowIndex];
+      for (const name of [
+        cell?.start,
+        cell?.end,
+        column.kind === "icon" ? conceptIconName(row[index]) : null,
+      ]) {
+        if (name) {
+          names.add(name);
+        }
       }
+    }
+  }
+  const icons: Record<string, ConceptIconSvg> = {};
+  for (const name of names) {
+    const svg = cleanIconSvg(raw[name]);
+    if (svg) {
+      icons[name] = svg;
     }
   }
   return Object.keys(icons).length > 0 ? icons : undefined;
@@ -507,10 +540,55 @@ export const setIconCell = (
     : next;
 };
 
+export const setCellItemIcon = (
+  table: ConceptTable,
+  row: number,
+  index: number,
+  side: keyof CellIcons,
+  name: string | null,
+  svg?: ConceptIconSvg
+): ConceptTable => {
+  const column = table.columns[index];
+  if (!(column && table.rows[row]) || column.kind === "icon") {
+    return table;
+  }
+  const itemIcons = { ...column.itemIcons };
+  const cell = { ...itemIcons[row] };
+  if (name && svg) {
+    cell[side] = name;
+  } else {
+    delete cell[side];
+  }
+  if (cell.start || cell.end) {
+    itemIcons[row] = cell;
+  } else {
+    delete itemIcons[row];
+  }
+  const next = updateColumn(table, index, { itemIcons });
+  return name && svg
+    ? { ...next, icons: { ...table.icons, [name]: svg } }
+    : next;
+};
+
 export const removeRow = (
   table: ConceptTable,
   index: number
 ): ConceptTable => ({
   ...table,
+  columns: table.columns.map((column) =>
+    column.itemIcons
+      ? {
+          ...column,
+          itemIcons: Object.fromEntries(
+            Object.entries(column.itemIcons)
+              .filter(([row]) => Number(row) !== index)
+              .map(([row, icons]) => [
+                Number(row) > index ? Number(row) - 1 : Number(row),
+                icons,
+              ])
+          ),
+        }
+      : column
+  ),
   rows: table.rows.filter((_, at) => at !== index),
 });
