@@ -18,6 +18,19 @@ export function ReviewConceptContentField({
   element: ReviewConceptElement;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
 }) {
+  if (element.kind === "text") {
+    return (
+      <label className="review-concepts__field review-concepts__field--full">
+        <span>Text content</span>
+        <textarea
+          maxLength={500}
+          onChange={(event) => onChange({ text: event.target.value })}
+          rows={3}
+          value={element.text}
+        />
+      </label>
+    );
+  }
   if (element.kind === "icon") {
     return (
       <ConceptField label="Icon" wide>

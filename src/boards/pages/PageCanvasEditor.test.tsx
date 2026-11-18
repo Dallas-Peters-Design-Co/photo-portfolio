@@ -652,3 +652,51 @@ it("sets and removes a table button's icon independently of other rows", async (
   expect(buttons()[1]?.textContent).toBe("Edit");
   expect(buttons()[1]?.querySelector("svg")).toBeNull();
 });
+
+it("edits multiline Text content inside a panel with its child properties folded", async () => {
+  const child = { ...createConceptElement("text"), text: "Panel copy" };
+  const panel = {
+    ...createConceptElement("panel"),
+    slots: { body: { elements: [child] } },
+  };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [panel] },
+    height: 450,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const layer = host.querySelector<HTMLButtonElement>(".page-builder__layer");
+  await act(() => layer?.click());
+  const childSection = host.querySelector(
+    '.page-builder__inspector section[aria-label="text"]'
+  );
+  expect(
+    childSection
+      ?.querySelector(".review-concepts__element-toggle")
+      ?.getAttribute("aria-expanded")
+  ).toBe("false");
+  const content = page.getByRole("textbox", {
+    exact: true,
+    name: "Text content",
+  });
+  const copy = "A new heading\nA second line";
+  await act(() => content.fill(copy));
+  const saved = cleanPageDesign(latest);
+  if (!saved) {
+    throw new Error("Missing saved page");
+  }
+  expect(saved.concept.elements[0]?.slots?.body?.elements[0]?.text).toBe(copy);
+  await act(() => root.unmount());
+  host.remove();
+  await mount(saved);
+  const textLayer = [
+    ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
+  ].find((item) => item.textContent?.includes("A new heading"));
+  await act(() => textLayer?.click());
+  expect((content.element() as HTMLTextAreaElement).value).toBe(copy);
+  expect(host.querySelector(".concept-panel__surface")?.textContent).toContain(
+    copy
+  );
+});

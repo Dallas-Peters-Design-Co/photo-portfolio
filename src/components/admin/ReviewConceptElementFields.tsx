@@ -181,6 +181,7 @@ function KindGroups({
       ) : null}
       {/* A logo is its picture and a navbar its slots: no text of their own. */}
       {element.kind === "table" ||
+      element.kind === "text" ||
       element.kind === "avatar" ||
       element.kind === "logo" ||
       element.kind === "navbar" ||
@@ -502,6 +503,9 @@ export function ReviewConceptElementFields({
           styles={styles}
         />
       )}
+      {element.kind === "text" && !lookOnly ? (
+        <ReviewConceptContentField element={element} onChange={onChange} />
+      ) : null}
       {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
           {!lookOnly && element.kind !== "tooltip" ? (
