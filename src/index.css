@@ -165,7 +165,7 @@
   --board-ink: oklch(1 0 0);
   --board-surface: oklch(0 0 0);
   --board-panel: oklch(7.3% 0 0);
-  --board-ground: oklch(17.3% 0 0);
+  --board-ground: oklch(7.3% 0 0);
   /* The board's own near-black, faintly green. Kept exactly as it was rather
      than swapped for --board-ground: this is what the canvas has always looked
      like, and it is not a neutral grey. */
