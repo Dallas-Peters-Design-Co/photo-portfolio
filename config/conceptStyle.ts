@@ -1,10 +1,12 @@
 import { type ConceptSlots, hasSlots, mapChildren } from "./conceptSlots.js";
 import {
-  CELL_STYLE_KIND,
   type ConceptCellLook,
+  type ConceptTable,
   type ConceptTableBorders,
   type ConceptTableColumn,
   type ConceptTableHeader,
+  cellStyleKinds,
+  cleanTable,
   tableOf,
 } from "./conceptTable.js";
 import { cleanTooltip } from "./conceptTooltip.js";
@@ -46,6 +48,7 @@ export type ConceptStyleLook = Partial<
    * already follows the style keeps its own, since they are its content.
    */
   contents?: ConceptSlots;
+  tableContents?: Pick<ConceptTable, "columns" | "rows" | "icons">;
   tableBorders?: ConceptTableBorders;
   tableHeader?: ConceptTableHeader;
 };
@@ -124,6 +127,14 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
       rows: [],
     },
   });
+  const table = element.kind === "table" && cleanTable(look.tableContents);
+  const tableContents = table
+    ? {
+        columns: table.columns,
+        rows: table.rows,
+        ...(table.icons ? { icons: table.icons } : {}),
+      }
+    : undefined;
   const name =
     typeof raw.name === "string"
       ? raw.name.trim().slice(0, MAX_STYLE_NAME)
@@ -138,7 +149,11 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   return {
     id: raw.id,
     kind: element.kind,
-    look: { ...(look.iconName ? cleaned : iconless), ...contents },
+    look: {
+      ...(look.iconName ? cleaned : iconless),
+      ...contents,
+      ...(tableContents ? { tableContents } : {}),
+    },
     name: name || "Untitled",
   };
 };
@@ -227,14 +242,22 @@ export const columnStyleOf = (
   column: ConceptTableColumn,
   styles: ConceptStyle[]
 ): ConceptStyle | undefined => {
-  const kind = CELL_STYLE_KIND[column.kind];
-  if (!kind || column.styleId === CUSTOM_CELL_STYLE) {
-    return undefined;
+  const kinds = cellStyleKinds(column.kind);
+  if (column.styleId) {
+    return styles.find(
+      (s) =>
+        s.id === column.styleId &&
+        column.styleId !== CUSTOM_CELL_STYLE &&
+        kinds.includes(s.kind)
+    );
   }
-  const ofKind = styles.filter((s) => s.kind === kind);
-  return column.styleId
-    ? ofKind.find((s) => s.id === column.styleId)
-    : ofKind[0];
+  for (const kind of kinds) {
+    const style = styles.find((s) => s.kind === kind);
+    if (style) {
+      return style;
+    }
+  }
+  return undefined;
 };
 
 /**
@@ -366,7 +389,12 @@ export const fromStyle = (
   element: ReviewConceptElement,
   style: ConceptStyle
 ): ReviewConceptElement => {
-  const linked = linkStyle(element, style);
+  const linked = linkStyle(
+    style.kind === "table" && style.look.tableContents
+      ? { ...element, table: style.look.tableContents }
+      : element,
+    style
+  );
   const { contents } = style.look;
   return contents && hasSlots(style.kind)
     ? mapChildren({ ...linked, slots: contents }, withNewIds)

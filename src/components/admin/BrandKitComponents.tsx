@@ -14,7 +14,6 @@ import {
 import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import { hasSlots } from "../../../config/conceptSlots.js";
 import {
-  applyColumnStyles,
   type ConceptStyle,
   lookOf,
   MAX_CONCEPT_STYLES,
@@ -71,6 +70,15 @@ const styleLook = (
   const next = { ...sample, ...patch };
   return {
     ...lookOf(next),
+    ...(next.kind === "table" && next.table
+      ? {
+          tableContents: {
+            columns: next.table.columns,
+            icons: next.table.icons,
+            rows: next.table.rows,
+          },
+        }
+      : {}),
     ...(hasSlots(next.kind) && next.slots ? { contents: next.slots } : {}),
   };
 };
@@ -121,13 +129,7 @@ function StyleEditor({
         />
         <Button
           aria-label={`Copy ${style.name} source code`}
-          onClick={() =>
-            copySource(
-              // A table's columns in the kit's badge and button styles.
-              applyColumnStyles(sample, brand.componentStyles),
-              style.name
-            )
-          }
+          onClick={() => copySource(sample, style.name)}
           size="icon-sm"
           title="Copy React + CSS"
           type="button"

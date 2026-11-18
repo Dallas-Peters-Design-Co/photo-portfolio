@@ -172,7 +172,6 @@ function KindGroups({
         <ConceptTableFields
           brandDoc={brandDoc}
           element={element}
-          lookOnly={lookOnly}
           onChange={onChange}
         />
       ) : null}

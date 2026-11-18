@@ -79,6 +79,17 @@ export const CELL_STYLE_KIND: Partial<
   Record<ConceptCellKind, "badge" | "button">
 > = { button: "button", chips: "badge", tag: "badge" };
 
+/** Status pills and tag lists can use either kit component. */
+export function cellStyleKinds(kind: ConceptCellKind): readonly string[] {
+  if (kind === "chips") {
+    return ["tag", "badge"];
+  }
+  if (kind === "tag") {
+    return ["badge", "tag"];
+  }
+  return kind === "button" ? ["button"] : [];
+}
+
 /** Where lines are drawn: none, between rows (the default), or every cell. */
 export type TableLines = "none" | "rows" | "grid";
 

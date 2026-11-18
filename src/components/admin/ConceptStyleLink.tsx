@@ -32,7 +32,15 @@ export function StyleLink({
     if (!(kit && linked)) {
       return;
     }
-    const next = { ...linked, look: lookOf(element) };
+    const next = {
+      ...linked,
+      look: {
+        ...lookOf(element),
+        ...(linked.look.tableContents
+          ? { tableContents: linked.look.tableContents }
+          : {}),
+      },
+    };
     if (await kit.save(next)) {
       onLink(next);
     }

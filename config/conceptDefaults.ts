@@ -10,7 +10,11 @@ import {
   tableFromKit,
   tagLook,
 } from "./conceptStarters.js";
-import { type ConceptStyle, linkStyle } from "./conceptStyle.js";
+import {
+  applyColumnStyles,
+  type ConceptStyle,
+  linkStyle,
+} from "./conceptStyle.js";
 import { newItemId } from "./proposal.js";
 import type {
   ReviewConcept,
@@ -302,6 +306,12 @@ export const styleSample = (
     { ...createConceptElement(style.kind, brand), id: style.id },
     style
   );
+  if (linked.table) {
+    return applyColumnStyles(
+      { ...linked, table: { ...linked.table, ...style.look.tableContents } },
+      brand.componentStyles
+    );
+  }
   // The kit's own starting items, as they were set, ids and all.
   return style.look.contents
     ? { ...linked, slots: style.look.contents }

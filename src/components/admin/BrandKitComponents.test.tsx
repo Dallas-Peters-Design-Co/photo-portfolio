@@ -2,8 +2,15 @@ import { act, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { expect, it, vi } from "vitest";
 import { userEvent } from "vitest/browser";
-import { type BrandKitDoc, EMPTY_KIT } from "../../../config/brandKit.js";
-import { createConceptElement } from "../../../config/conceptDefaults.js";
+import {
+  type BrandKitDoc,
+  EMPTY_KIT,
+  sanitizeKitDoc,
+} from "../../../config/brandKit.js";
+import {
+  createConceptElement,
+  styleSample,
+} from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { BrandKitComponents } from "./BrandKitComponents";
 
@@ -205,4 +212,78 @@ it("reorders a kit's styles from a style's handle, and keeps remove at the row's
     "s1",
     "s3",
   ]);
+});
+
+it("uses the kit button and saves the chosen tag style in a table slot", async () => {
+  const table: ConceptStyle = {
+    id: "table-slots",
+    kind: "table",
+    look: {},
+    name: "Records",
+  };
+  const tag: ConceptStyle = {
+    id: "tag-blue",
+    kind: "tag",
+    look: { background: "#1111ff" },
+    name: "Blue",
+  };
+  const green: ConceptStyle = {
+    ...tag,
+    id: "tag-green",
+    look: { background: "#119922" },
+    name: "Green",
+  };
+  function TableKit() {
+    const [doc, setDoc] = useState<BrandKitDoc>({
+      ...EMPTY_KIT,
+      componentStyles: [table, parentStyle, tag, green],
+    });
+    saved = doc;
+    return (
+      <BrandKitComponents
+        doc={doc}
+        effective={doc}
+        kitId="kit-1"
+        onChange={setDoc}
+      />
+    );
+  }
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  try {
+    act(() => root.render(<TableKit />));
+    await userEvent.click(
+      host.querySelector('[aria-label="Open Table Records"]') as HTMLElement
+    );
+    const fill = (selector: string) =>
+      getComputedStyle(host.querySelector(selector) as HTMLElement)
+        .backgroundColor;
+    expect(fill(".concept-table__button")).toBe("rgb(255, 0, 0)");
+    expect(fill(".concept-table__chip")).toBe("rgb(17, 17, 255)");
+    await userEvent.click(
+      host.querySelector('[aria-label="Column 3 kit style"]') as HTMLElement
+    );
+    const option = [
+      ...document.querySelectorAll<HTMLElement>('[role="option"]'),
+    ].find((item) => item.textContent === "Tag / Green");
+    if (!option) {
+      throw new Error("Missing Green tag option");
+    }
+    await userEvent.click(option);
+    expect(fill(".concept-table__chip")).toBe("rgb(17, 153, 34)");
+    const kit = sanitizeKitDoc(saved);
+    const stored = kit.componentStyles.find((style) => style.id === table.id);
+    if (!stored) {
+      throw new Error("Missing saved table style");
+    }
+    const sample = styleSample(stored, kit);
+    expect(sample.table?.columns[2]).toMatchObject({
+      look: { background: "#119922" },
+      styleId: "tag-green",
+    });
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+  }
 });

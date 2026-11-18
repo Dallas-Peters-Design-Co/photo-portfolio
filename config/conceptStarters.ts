@@ -1,4 +1,5 @@
 import type { BrandKitDoc } from "./brandKit.js";
+import { columnStyleOf } from "./conceptStyle.js";
 import { type ConceptTable, DEFAULT_TABLE } from "./conceptTable.js";
 import type {
   ReviewConceptElement,
@@ -20,19 +21,15 @@ export const paletteColor = (
     ?.value ?? fallback;
 
 /**
- * A new table's sample, drawn with the kit's own components: its Status and
- * Tags follow the first Badge style, and when there is a Button style an
- * Action column of buttons follows it.
+ * Status, Tags and Action start with the kit's matching component styles.
  */
 export const tableFromKit = (brandDoc?: BrandKitDoc | null): ConceptTable => {
   const styles = brandDoc?.componentStyles ?? [];
-  const badge = styles.find((style) => style.kind === "badge");
   const button = styles.find((style) => style.kind === "button");
-  const columns = DEFAULT_TABLE.columns.map((column) =>
-    badge && (column.kind === "tag" || column.kind === "chips")
-      ? { ...column, styleId: badge.id }
-      : column
-  );
+  const columns = DEFAULT_TABLE.columns.map((column) => {
+    const style = columnStyleOf(column, styles);
+    return style ? { ...column, styleId: style.id } : column;
+  });
   return button
     ? {
         columns: [
