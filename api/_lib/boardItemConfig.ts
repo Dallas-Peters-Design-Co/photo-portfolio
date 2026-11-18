@@ -484,10 +484,16 @@ export const parseShaderConfig = (
   if (typeof raw !== "object" || raw === null) {
     return null;
   }
-  const { layers } = raw as { layers?: unknown };
+  const { imageFit, layers } = raw as { imageFit?: unknown; layers?: unknown };
   if (!Array.isArray(layers)) {
     return null;
   }
   const parsed = parseLayers(layers, 0);
-  return parsed.length > 0 ? { layers: parsed } : null;
+  // How a wired picture fills the shader. Dropped here once, and every save
+  // sent a shader set to Cover back as Contain.
+  const fit =
+    imageFit === "cover" || imageFit === "contain" ? { imageFit } : {};
+  return parsed.length > 0 || "imageFit" in fit
+    ? { layers: parsed, ...fit }
+    : null;
 };

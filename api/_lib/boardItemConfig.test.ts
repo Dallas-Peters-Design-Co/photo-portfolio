@@ -5,6 +5,7 @@ import {
   DRAW_TOOLS,
   parseDrawingConfig,
   parseNodeConfig,
+  parseShaderConfig,
 } from "./boardItemConfig.js";
 import { parseImageConfig, parseTextConfig } from "./layerConfig.js";
 
@@ -192,5 +193,26 @@ describe("a picture's and text layer's own settings", () => {
       },
     });
     expect(parseImageConfig({ studio: { tool: "Bad Tool!" } })).toBeNull();
+  });
+});
+
+describe("parseShaderConfig", () => {
+  const layers = [{ id: "a", name: "Dithering", props: {} }];
+
+  it("keeps how a wired picture fills the shader", () => {
+    expect(parseShaderConfig({ imageFit: "cover", layers })).toMatchObject({
+      imageFit: "cover",
+    });
+    expect(
+      parseShaderConfig({ imageFit: "stretch", layers })
+    ).not.toHaveProperty("imageFit");
+  });
+
+  it("keeps an empty stack set to Cover, and drops one with nothing", () => {
+    expect(parseShaderConfig({ imageFit: "cover", layers: [] })).toEqual({
+      imageFit: "cover",
+      layers: [],
+    });
+    expect(parseShaderConfig({ layers: [] })).toBeNull();
   });
 });
