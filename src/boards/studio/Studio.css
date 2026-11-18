@@ -1042,3 +1042,11 @@
 .studio-scheme__swatches .studio-scheme__by-hand {
   opacity: 1;
 }
+
+.studio-scheme__swatches .studio-scheme__semantic-name,
+.studio-scheme__swatches .studio-scheme__by-hand {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 400;
+  pointer-events: none;
+}

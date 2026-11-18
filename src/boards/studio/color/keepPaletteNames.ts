@@ -14,7 +14,9 @@ import { paletteIds } from "../../../../config/paletteBinding.js";
 export const keepPaletteNames = (
   target: PaletteEntry[],
   values: string[],
-  loaded?: ({ name?: string; role?: string } | null | undefined)[] | null
+  loaded?:
+    | ({ group?: string; name?: string; role?: string } | null | undefined)[]
+    | null
 ): PaletteEntry[] => {
   const ids = paletteIds(target);
   const next = values.map((raw, i) => {
@@ -26,6 +28,9 @@ export const keepPaletteNames = (
     return {
       ...(had && (had.id || had.name !== name || had.role !== role)
         ? { id: ids[i] }
+        : {}),
+      ...((had?.group ?? from?.group)
+        ? { group: had?.group ?? from?.group }
         : {}),
       name,
       role,

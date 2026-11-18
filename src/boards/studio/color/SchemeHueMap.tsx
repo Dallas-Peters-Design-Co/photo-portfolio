@@ -24,7 +24,10 @@ export interface HueHandle {
   /** Its hue was set by hand. */
   held?: boolean;
   hex: string;
+  hue?: number;
   isAnchor?: boolean;
+  label?: string;
+  position?: number;
 }
 
 const hueOf = (hex: string) => hexToOklch(hex)?.h ?? 0;
@@ -77,7 +80,9 @@ export function HueMap({
   };
 
   const spacing = hueSpacing(
-    handles.filter((h) => !h.fixed || h.isAnchor).map((h) => hueOf(h.hex))
+    handles
+      .filter((h) => !h.fixed || h.isAnchor)
+      .map((h) => h.hue ?? hueOf(h.hex))
   );
 
   return (
@@ -92,8 +97,9 @@ export function HueMap({
           <span>least hue spacing</span>
         </div>
         {handles.map((handle, i) => {
-          const h = hueOf(handle.hex);
-          const name = handle.isAnchor ? "Anchor" : `Colour ${i + 1}`;
+          const h = handle.hue ?? hueOf(handle.hex);
+          const name =
+            handle.label || (handle.isAnchor ? "Anchor" : `Colour ${i + 1}`);
           return (
             <button
               aria-label={`${name} on the hue wheel`}
@@ -108,6 +114,9 @@ export function HueMap({
               key={i}
               onDoubleClick={() => onRelease(i)}
               onKeyDown={(e) => nudge(e, i, h)}
+              onLostPointerCapture={() => {
+                dragging.current = null;
+              }}
               onPointerDown={(e) => {
                 e.currentTarget.setPointerCapture(e.pointerId);
                 dragging.current = i;
@@ -129,7 +138,7 @@ export function HueMap({
               }
               type="button"
             >
-              {i + 1}
+              {handle.position ?? i + 1}
             </button>
           );
         })}

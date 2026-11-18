@@ -64,6 +64,7 @@ export function schemePalette(
       ...(had && (had.id || role !== had.role || name !== had.name)
         ? { id: ids[slot] }
         : {}),
+      ...had,
       name,
       role,
       value: entry.value,

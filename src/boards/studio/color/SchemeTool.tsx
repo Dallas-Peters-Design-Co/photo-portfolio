@@ -9,7 +9,7 @@ import {
   RotateCcw,
   Save,
 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Select,
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MAX_KIT_NAME } from "../../../../config/brandKit.js";
 import { contrastRatio } from "../../../../config/theme.js";
 import { formatOklch, hexToOklch } from "../../../lib/oklch";
 import { ColorWell } from "../../ColorWell";
@@ -29,6 +30,7 @@ import { SchemeControls } from "./SchemeControls";
 import { SchemeDials } from "./SchemeDials";
 import { HueMap } from "./SchemeHueMap";
 import { simulate, type Vision } from "./scheme";
+import { arrangedPalette } from "./schemeArrangement";
 import { roleLabel, STATUS_ROLES, schemePalette } from "./schemeRoles";
 import { swatchesSvg } from "./swatches";
 import { useKitPalette } from "./useKitPalette";
@@ -51,7 +53,7 @@ const cssOf = (colors: string[], roles: string[]) =>
   `:root {\n${colors
     .map(
       (c, i) =>
-        `  --color-${STATUS_ROLES.includes(roles[i]) && roles.indexOf(roles[i]) === i ? roles[i] : i + 1}: ${oklchOf(c)}; /* ${c} */`
+        `  --color-${roles[i]?.trim() && roles.indexOf(roles[i]) === i ? CSS.escape(roles[i].trim()) : i + 1}: ${oklchOf(c)}; /* ${c} */`
     )
     .join("\n")}\n}`;
 
@@ -144,6 +146,53 @@ function SchemeBuilder({
     value,
   }));
   const roles = source.map((entry, i) => scheme.roles[i] ?? entry.role);
+  const { arrangement, order } = scheme;
+  const displayed = order.map((i) => colors[i]);
+  const dragSlot = useRef<number | null>(null);
+  const selectedPosition = order.indexOf(selected);
+  const selectedGroup = arrangement.members[selected]?.group ?? "";
+  const save = async () => {
+    if (!target) {
+      return;
+    }
+    const customized =
+      arrangement.order.length > 0 ||
+      Object.keys(arrangement.names).length > 0 ||
+      Object.keys(arrangement.members).length > 0 ||
+      scheme.base?.some((e) => e.group) ||
+      arrangement.targetIds[target.id]?.some((id) =>
+        target.resolvedDoc.palette.some((e) => e.id === id)
+      );
+    if (!customized) {
+      await updateFor(
+        target,
+        {
+          palette: schemePalette(
+            target.resolvedDoc.palette,
+            source,
+            scheme.roles,
+            target.id !== kit?.id
+          ),
+        },
+        "palette"
+      );
+      return;
+    }
+    const result = arrangedPalette(
+      target.resolvedDoc.palette,
+      source,
+      scheme.roles,
+      arrangement,
+      target.id,
+      target.id !== kit?.id
+    );
+    if (await updateFor(target, { palette: result.palette }, "palette")) {
+      scheme.setArrangement((was) => ({
+        ...was,
+        targetIds: { ...was.targetIds, [target.id]: result.ids },
+      }));
+    }
+  };
   const selectedRole = roles[selected] ?? "";
   const nameOf = (i: number) => (i === anchorAt ? "Anchor" : `Colour ${i + 1}`);
 
@@ -171,7 +220,7 @@ function SchemeBuilder({
   };
 
   const add = async () => {
-    const { h, svg, w } = swatchesSvg([{ colors }]);
+    const { h, svg, w } = swatchesSvg([{ colors: displayed }]);
     const png = await svgToPngBlob(svg, w, h);
     onAdd(new File([png], "palette.png", { type: "image/png" }));
     toast.success("Palette added to the board");
@@ -180,13 +229,13 @@ function SchemeBuilder({
   return (
     <div className="studio-palette-tool">
       <div className="studio-palette studio-scheme__swatches">
-        {colors.map((c, i) => {
+        {order.map((i) => {
+          const c = colors[i];
           const shown = simulate(c, vision);
           return (
             <div
               className="studio-palette__swatch"
               data-selected={i === selected ? "" : undefined}
-              // biome-ignore lint/suspicious/noArrayIndexKey: a slot is its position
               key={i}
               style={{ background: shown, color: swatchInk(shown) }}
             >
@@ -195,7 +244,27 @@ function SchemeBuilder({
                 aria-pressed={i === selected}
                 className="studio-palette__pick"
                 disabled={!scheme.individual && i !== anchorAt}
+                draggable
                 onClick={() => scheme.select(i)}
+                onDragEnd={() => {
+                  dragSlot.current = null;
+                }}
+                onDragOver={(event) => {
+                  if (dragSlot.current !== null) {
+                    event.preventDefault();
+                  }
+                }}
+                onDragStart={(event) => {
+                  dragSlot.current = i;
+                  event.dataTransfer.setData("text/plain", c);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  if (dragSlot.current !== null) {
+                    scheme.move(dragSlot.current, i);
+                  }
+                  dragSlot.current = null;
+                }}
                 title={`${nameOf(i)}: click to set it with the dials`}
                 type="button"
               />
@@ -218,12 +287,17 @@ function SchemeBuilder({
               >
                 {c.slice(1).toUpperCase()}
               </button>
-              {roles[i] ? <strong>{roleLabel(roles[i])}</strong> : null}
+              {roles[i] ? (
+                <span className="studio-scheme__semantic-name">
+                  {roleLabel(roles[i])}
+                </span>
+              ) : null}
               {i === anchorAt ? (
                 <span className="studio-scheme__anchor">Anchor</span>
               ) : null}
               <span className="studio-scheme__by-hand">
-                {source[i].name || (scheme.held(i) ? "By hand" : "")}
+                {(arrangement.names[i] ?? source[i].name) ||
+                  (scheme.held(i) ? "By hand" : "")}
               </span>
             </div>
           );
@@ -242,7 +316,7 @@ function SchemeBuilder({
               }}
               value={colors[selected] ?? scheme.anchor}
             />
-            {scheme.held(selected) ? (
+            {scheme.held(selected) && !selectedGroup ? (
               <button
                 className="studio__button"
                 onClick={() => scheme.release(selected)}
@@ -263,27 +337,87 @@ function SchemeBuilder({
           </div>
           <label className="studio__field">
             Semantic role
-            <select
+            <input
               aria-label="Semantic role"
+              list="scheme-semantic-roles"
+              maxLength={MAX_KIT_NAME}
               onChange={(event) => scheme.setRole(selected, event.target.value)}
+              placeholder="Unassigned"
               value={selectedRole}
-            >
-              <option value="">Unassigned</option>
-              {[
-                ...new Set(
-                  [
-                    ...STATUS_ROLES,
-                    ...source.map((e) => e.role).filter(Boolean),
-                    selectedRole,
-                  ].filter(Boolean)
-                ),
-              ].map((role) => (
-                <option key={role} value={role}>
-                  {roleLabel(role)}
-                </option>
-              ))}
-            </select>
+            />
+            <datalist id="scheme-semantic-roles">
+              {[...new Set([...STATUS_ROLES, ...roles.filter(Boolean)])].map(
+                (role) => (
+                  <option key={role} value={role} />
+                )
+              )}
+            </datalist>
           </label>
+          <label className="studio__field">
+            Swatch name
+            <input
+              maxLength={MAX_KIT_NAME}
+              onChange={(event) => {
+                const name = event.target.value;
+                scheme.setArrangement((was) => ({
+                  ...was,
+                  names: { ...was.names, [selected]: name },
+                }));
+              }}
+              value={arrangement.names[selected] ?? source[selected].name}
+            />
+          </label>
+          <label className="studio__field">
+            Hue group
+            <input
+              defaultValue={selectedGroup}
+              disabled={!scheme.individual}
+              key={`${selected}-${selectedGroup}`}
+              list="scheme-hue-groups"
+              maxLength={MAX_KIT_NAME}
+              onBlur={(event) => scheme.setGroup(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.currentTarget.blur();
+                }
+              }}
+              placeholder="Choose or name a group"
+            />
+          </label>
+          <datalist id="scheme-hue-groups">
+            {[
+              ...new Set([
+                "Status",
+                ...Object.values(arrangement.members).map((m) => m.group),
+              ]),
+            ].map((group) => (
+              <option key={group} value={group} />
+            ))}
+          </datalist>
+          {selectedGroup.length > 0 && (
+            <span>
+              Lightness and chroma are shared with {selectedGroup}. Drag a wheel
+              handle to change its hue.
+            </span>
+          )}
+          <div className="studio__actions">
+            <button
+              className="studio__button"
+              disabled={selectedPosition === 0}
+              onClick={() => scheme.move(selected, order[selectedPosition - 1])}
+              type="button"
+            >
+              Move left
+            </button>
+            <button
+              className="studio__button"
+              disabled={selectedPosition === order.length - 1}
+              onClick={() => scheme.move(selected, order[selectedPosition + 1])}
+              type="button"
+            >
+              Move right
+            </button>
+          </div>
           <SchemeDials
             name={nameOf(selected)}
             onChange={(next) => scheme.setColour(selected, next)}
@@ -306,9 +440,13 @@ function SchemeBuilder({
             // The anchor always turns. Another colour moves when single
             // colours are on and it isn't locked.
             fixed: i !== anchorAt && (!scheme.individual || Boolean(locked[i])),
-            held: scheme.held(i),
+            held: scheme.held(i) && !arrangement.members[i],
             hex,
+            hue: scheme.individual ? arrangement.members[i]?.h : undefined,
             isAnchor: i === anchorAt,
+            label:
+              arrangement.names[i] || roleLabel(roles[i]) || source[i].name,
+            position: order.indexOf(i) + 1,
           }))}
           onHue={(i, h) => {
             scheme.select(i);
@@ -318,10 +456,15 @@ function SchemeBuilder({
         />
       </div>
       <SchemeContrast
-        colors={colors}
-        labels={roles.map(
-          (role, i) => roleLabel(role) || source[i].name || nameOf(i)
+        colors={displayed}
+        labels={order.map(
+          (i) =>
+            arrangement.names[i] ||
+            roleLabel(roles[i]) ||
+            source[i].name ||
+            nameOf(i)
         )}
+        slots={order}
       />
       <div className="studio__actions">
         {kits.length > 1 ? (
@@ -331,20 +474,7 @@ function SchemeBuilder({
           <button
             className="studio__button studio__button--primary"
             disabled={saving}
-            onClick={() =>
-              void updateFor(
-                target,
-                {
-                  palette: schemePalette(
-                    target.resolvedDoc.palette,
-                    source,
-                    scheme.roles,
-                    target.id !== kit?.id
-                  ),
-                },
-                "palette"
-              )
-            }
+            onClick={() => void save()}
             title="Saves a new version of that kit; its old palette stays in its history"
             type="button"
           >
@@ -354,7 +484,9 @@ function SchemeBuilder({
         {target && target.resolvedDoc.palette.length > 0 ? (
           <button
             className="studio__button"
-            onClick={() => scheme.loadBrand(target.resolvedDoc.palette)}
+            onClick={() =>
+              scheme.loadBrand(target.resolvedDoc.palette, target.id)
+            }
             title="Loads that kit's colours, with their names, to edit or save into another kit"
             type="button"
           >
@@ -381,21 +513,31 @@ function SchemeBuilder({
         </button>
         <button
           className="studio__button"
-          onClick={() => copy(colors.join(", "), "Hex values")}
+          onClick={() => copy(displayed.join(", "), "Hex values")}
           type="button"
         >
           <Copy size={14} /> Hex
         </button>
         <button
           className="studio__button"
-          onClick={() => copy(colors.map(oklchOf).join("\n"), "OKLCH values")}
+          onClick={() =>
+            copy(displayed.map(oklchOf).join("\n"), "OKLCH values")
+          }
           type="button"
         >
           <Copy size={14} /> OKLCH
         </button>
         <button
           className="studio__button"
-          onClick={() => copy(cssOf(colors, roles), "CSS")}
+          onClick={() =>
+            copy(
+              cssOf(
+                displayed,
+                order.map((i) => roles[i])
+              ),
+              "CSS"
+            )
+          }
           type="button"
         >
           <Copy size={14} /> CSS
@@ -404,7 +546,7 @@ function SchemeBuilder({
           className="studio__button"
           onClick={() =>
             saveBlob(
-              new Blob([swatchesSvg([{ colors }]).svg], {
+              new Blob([swatchesSvg([{ colors: displayed }]).svg], {
                 type: "image/svg+xml",
               }),
               "palette.svg"

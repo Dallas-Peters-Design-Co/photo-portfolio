@@ -43,6 +43,7 @@ export const MAX_VOICE = 2000;
 export const MAX_RULE_TEXT = 300;
 
 export interface PaletteEntry {
+  group?: string;
   id?: string;
   name: string;
   /** Semantic role used by the guide; unknown legacy values remain readable. */
@@ -345,6 +346,9 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
         const e = (entry ?? {}) as Record<string, unknown>;
         return {
           name: clampText(e.name, MAX_KIT_NAME),
+          ...(clampText(e.group, MAX_KIT_NAME)
+            ? { group: clampText(e.group, MAX_KIT_NAME) }
+            : {}),
           ...(typeof e.id === "string" && PALETTE_ID.test(e.id)
             ? { id: e.id }
             : {}),

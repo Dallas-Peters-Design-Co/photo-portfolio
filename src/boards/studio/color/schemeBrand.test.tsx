@@ -1,7 +1,7 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { beforeEach, expect, it, vi } from "vitest";
-import { page } from "vitest/browser";
+import { page, userEvent } from "vitest/browser";
 
 /**
  * The brand's own colours loaded into the Palette Builder, one changed, and
@@ -87,7 +87,7 @@ it("loads the brand's colours, changes one, and saves them back named", async ()
   act(() =>
     (document.querySelector(".color-well__scrim") as HTMLButtonElement).click()
   );
-  await page.getByLabelText("Semantic role").selectOptions("danger");
+  await page.getByLabelText("Semantic role").fill("danger");
   expect(
     host.querySelectorAll(".studio-palette__swatch")[2]?.textContent
   ).toContain("Danger");
@@ -114,4 +114,59 @@ it("loads the brand's colours, changes one, and saves them back named", async ()
   ]);
   act(() => root.unmount());
   host.remove();
+});
+
+it("keeps shared tone, independent wheel hues, variable identities and bar order across a save", async () => {
+  const { SchemeTool } = await import("./SchemeTool");
+  const { paletteIds } = await import("../../../../config/paletteBinding.js");
+  const { hexToOklch } = await import("../../../lib/oklch");
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  act(() => root.render(<SchemeTool onAdd={() => undefined} />));
+  try {
+    await page.getByRole("button", { name: "Load brand colours" }).click();
+    const group = page.getByLabelText("Hue group");
+    await group.fill("Status");
+    await userEvent.keyboard("{Enter}");
+    await page
+      .getByRole("button", { exact: true, name: "Edit colour 3" })
+      .click();
+    await page.getByLabelText("Swatch name").fill("Approved");
+    await page.getByLabelText("Semantic role").fill("approved");
+    await group.fill("Status");
+    await userEvent.keyboard("{Enter}");
+    const slider = page.getByRole("slider", {
+      name: "Approved on the hue wheel",
+    });
+    const dial = () => slider.element().getAttribute("aria-valuenow");
+    const oldHue = Number(dial());
+    await slider.click();
+    await userEvent.keyboard("{Shift>}{ArrowRight}{/Shift}");
+    expect(Number(dial())).toBe((oldHue + 10) % 360);
+    await page.getByRole("button", { name: "Move left" }).click();
+    await page.getByRole("button", { name: "Save to RoleModel" }).click();
+    const { palette } = saved.at(-1) as {
+      palette: ((typeof PALETTE)[number] & { group?: string; id: string })[];
+    };
+    expect(palette.map((e) => e.name)).toEqual(["Blue", "Approved", "Ink"]);
+    expect(palette.map((e) => e.id)).toEqual([
+      paletteIds(PALETTE)[0],
+      paletteIds(PALETTE)[2],
+      paletteIds(PALETTE)[1],
+    ]);
+    expect(palette[0].group).toBe("Status");
+    expect(palette[1].group).toBe("Status");
+    expect(palette[2].value).toBe(PALETTE[1].value);
+    const first = hexToOklch(palette[0].value);
+    const second = hexToOklch(palette[1].value);
+    if (!(first && second)) {
+      throw new Error("Expected two saved hex colors");
+    }
+    expect(first.l).toBeCloseTo(second.l, 2);
+    expect(first.c).toBeCloseTo(second.c, 2);
+  } finally {
+    act(() => root.unmount());
+    host.remove();
+  }
 });

@@ -4,16 +4,18 @@ import { contrastRatio } from "../../../../config/theme.js";
 export function SchemeContrast({
   colors,
   labels,
+  slots,
 }: {
   colors: string[];
   labels: string[];
+  slots: number[];
 }) {
   const [foreground, setForeground] = useState("0");
   const [background, setBackground] = useState("#ffffff");
   const choices = [
     ...colors.map((hex, i) => ({
       hex,
-      id: String(i),
+      id: String(slots[i]),
       label: `${labels[i]} · ${hex}`,
     })),
     { hex: "#ffffff", id: "#ffffff", label: "White" },

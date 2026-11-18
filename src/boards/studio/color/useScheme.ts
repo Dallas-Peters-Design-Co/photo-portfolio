@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { PaletteEntry } from "../../../../config/brandKit.js";
 import { MAX_PALETTE } from "../../../../config/brandKit.js";
+import { paletteIds } from "../../../../config/paletteBinding.js";
 import { hexToOklch, oklchToHex, toSrgbGamut } from "../../../lib/oklch";
 import type { Lch } from "./SchemeDials";
 import {
@@ -9,6 +10,13 @@ import {
   SCHEME_DEFAULTS,
   type SchemeOptions,
 } from "./scheme";
+import {
+  type Arrangement,
+  alignedColors,
+  emptyArrangement,
+  type Member,
+  swatchOrder,
+} from "./schemeArrangement";
 
 /**
  * The Palette Builder's state: the anchor, the settings, and what's been
@@ -31,6 +39,7 @@ export const lchOf = (hex: string): Lch => {
 
 /** What's kept between visits: everything the palette is made from. */
 interface Saved {
+  arrangement: Arrangement;
   /** The brand colours it was loaded from, by position: their names and roles. */
   base: PaletteEntry[] | null;
   individual: boolean;
@@ -88,10 +97,14 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     Array.isArray(saved.base) ? saved.base : null
   );
   const [roles, setRoles] = useState<Record<number, string>>(saved.roles ?? {});
+  const [arrangement, setArrangement] = useState<Arrangement>(
+    saved.arrangement ?? emptyArrangement()
+  );
   const [picked, setPicked] = useState<number | null>(null);
 
   useEffect(() => {
     const keep: Saved = {
+      arrangement,
       base,
       individual,
       lch,
@@ -105,7 +118,17 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     } catch {
       // Remembering is a convenience.
     }
-  }, [base, individual, lch, locked, manual, roles, settings, storageKey]);
+  }, [
+    arrangement,
+    base,
+    individual,
+    lch,
+    locked,
+    manual,
+    roles,
+    settings,
+    storageKey,
+  ]);
 
   /**
    * The brand's own palette, loaded to be edited: its first colour is the
@@ -113,11 +136,26 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
    * nothing changes until something is changed. Names and roles are kept by
    * position, for saving back.
    */
-  const loadBrand = (entries: PaletteEntry[]) => {
+  const loadBrand = (entries: PaletteEntry[], kitId?: string) => {
     const [head, ...rest] = entries.slice(0, MAX_PALETTE);
     if (!head) {
       return;
     }
+    const next = emptyArrangement();
+    const tones = new Map<string, Lch>();
+    for (const [i, entry] of entries.entries()) {
+      if (!entry.group) {
+        continue;
+      }
+      const color = lchOf(entry.value);
+      const tone = tones.get(entry.group) ?? color;
+      tones.set(entry.group, tone);
+      next.members[i] = { ...tone, group: entry.group, h: color.h };
+    }
+    if (kitId) {
+      next.targetIds[kitId] = paletteIds(entries);
+    }
+    setArrangement(next);
     setLch(lchOf(head.value));
     setManual([null, ...rest.map((e) => lchOf(e.value))]);
     setLocked([]);
@@ -140,12 +178,13 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     setManual([]);
     setLocked([]);
     setBase(null);
+    setArrangement(emptyArrangement());
     setRoles({});
     setPicked(null);
     setSettings(SCHEME_DEFAULTS);
   };
 
-  const colors = useMemo(
+  const generated = useMemo(
     () =>
       buildScheme({
         ...settings,
@@ -158,7 +197,11 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
 
   // Where the anchor sits: first, except in a ramp, where it takes the step
   // nearest its own lightness.
-  const anchorAt = Math.max(0, colors.indexOf(anchor.toLowerCase()));
+  const anchorAt = Math.max(0, generated.indexOf(anchor.toLowerCase()));
+  const colors = individual
+    ? alignedColors(generated, arrangement.members, locked)
+    : generated;
+  const order = swatchOrder(colors.length, arrangement.order);
   // The colour the dials point at: the anchor unless another is picked (and
   // single colours are on, and it's still there).
   const selected =
@@ -168,9 +211,10 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
 
   /** The selected colour's numbers: what was set by hand over what it is. */
   const selectedLch: Lch =
-    selected === anchorAt
+    (individual && arrangement.members[selected]) ||
+    (selected === anchorAt
       ? lch
-      : { ...lchOf(colors[selected] ?? ""), ...(manual[selected] ?? {}) };
+      : { ...lchOf(colors[selected] ?? ""), ...(manual[selected] ?? {}) });
 
   /** Sets some of a colour's lightness, chroma and hue. */
   const setColour = (i: number, next: Manual) => {
@@ -178,6 +222,25 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
       ...next,
       ...(next.h === undefined ? {} : { h: turn(next.h) }),
     };
+    if (individual && arrangement.members[i]) {
+      setArrangement((was) => {
+        const member = was.members[i];
+        const members = { ...was.members };
+        for (const [slot, peer] of Object.entries(was.members)) {
+          if (peer.group !== member.group) {
+            continue;
+          }
+          members[Number(slot)] = {
+            ...peer,
+            c: clean.c ?? peer.c,
+            h: Number(slot) === i ? (clean.h ?? peer.h) : peer.h,
+            l: clean.l ?? peer.l,
+          };
+        }
+        return { ...was, members };
+      });
+      return;
+    }
     if (i === anchorAt) {
       setLch((was) => ({ ...was, ...clean }));
       return;
@@ -192,9 +255,44 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     });
   };
 
+  const setGroup = (label: string) => {
+    const group = label.trim();
+    if (group === (arrangement.members[selected]?.group ?? "")) {
+      return;
+    }
+    const color = group ? selectedLch : lchOf(colors[selected]);
+    if (!group && arrangement.members[selected]) {
+      if (selected === anchorAt) {
+        setLch(color);
+      } else {
+        setManual((was) => {
+          const next = [...was];
+          next[selected] = color;
+          return next;
+        });
+      }
+    }
+    setArrangement((was) => {
+      const members: Record<number, Member> = { ...was.members };
+      if (group) {
+        const peer = Object.values(members).find((m) => m.group === group);
+        members[selected] = {
+          c: peer?.c ?? color.c,
+          group,
+          h: color.h,
+          l: peer?.l ?? color.l,
+        };
+      } else {
+        delete members[selected];
+      }
+      return { ...was, members };
+    });
+  };
+
   return {
     anchor,
     anchorAt,
+    arrangement,
     /** The brand colours this was loaded from, when it was. */
     base,
     colors,
@@ -203,6 +301,12 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     individual,
     loadBrand,
     locked,
+    move: (slot: number, to: number) => {
+      const next = order.filter((i) => i !== slot);
+      next.splice(order.indexOf(to), 0, slot);
+      setArrangement((was) => ({ ...was, order: next }));
+    },
+    order,
     /** Gives a hand-set colour back to the anchor and the settings. */
     release: (i: number) =>
       setManual((was) => was.map((m, k) => (k === i ? null : m))),
@@ -211,7 +315,9 @@ export const useScheme = (first: string | undefined, storageKey: string) => {
     selected,
     selectedLch,
     setAnchor: (hex: string) => setLch(lchOf(hex)),
+    setArrangement,
     setColour,
+    setGroup,
     setIndividual,
     setRole: (index: number, role: string) =>
       setRoles((was) => ({ ...was, [index]: role })),
