@@ -1,6 +1,8 @@
 import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
+import { ReviewConceptElementFields } from "../../components/admin/ReviewConceptElementFields";
+import "../../components/admin/ReviewConceptsEditor.css";
 import { PageField, PageNumber, PageSelect } from "./PageFields";
 import { PageTooltipFields } from "./PageTooltipFields";
 import type { usePageCanvas } from "./usePageCanvas";
@@ -31,11 +33,7 @@ export function PageCanvasInspector({
     box,
     setBox,
     doc,
-    rootIndex,
-    setElements,
-    elements,
-    selected,
-    setSelected,
+    removeSelected,
     write,
     patchElement,
   } = editor;
@@ -159,81 +157,41 @@ export function PageCanvasInspector({
               ))}
             </div>
           ) : null}
-          <PageField label="Text">
-            <textarea
-              aria-label="Component text"
-              className="page-builder__text"
-              onChange={(e) => patchElement({ text: e.target.value })}
-              rows={4}
-              value={element.text}
-            />
-          </PageField>
-          <div className="page-builder__numbers">
-            <PageNumber
-              label="Font size"
-              max={72}
-              min={10}
-              onChange={(fontSize) => patchElement({ fontSize })}
-              value={element.fontSize}
-            />
-            <PageNumber
-              label="Radius"
-              max={48}
-              onChange={(radius) => patchElement({ radius })}
-              value={element.radius}
-            />
-          </div>
-          {(["color", "background"] as const).map((field) => (
-            <PageField key={field} label={field}>
-              <input
-                aria-label={`Component ${field}`}
-                className="page-builder__color"
-                onChange={(e) => patchElement({ [field]: e.target.value })}
-                type="color"
-                value={
-                  element[field].startsWith("#") ? element[field] : "#ffffff"
-                }
-              />
-            </PageField>
-          ))}
-          {element.kind === "tooltip" ? null : (
+          <button
+            className="page-builder__button"
+            onClick={removeSelected}
+            type="button"
+          >
+            <Trash2 size={14} /> {box ? "Remove component" : "Remove item"}
+          </button>
+          {element.kind === "canvas" ? (
             <PageTooltipFields
               doc={doc}
               element={element}
               onChange={patchElement}
             />
+          ) : (
+            <ReviewConceptElementFields
+              brandDoc={doc}
+              element={element}
+              initiallyOpen
+              key={element.id}
+              onChange={patchElement}
+              onLink={(style) =>
+                patchElement(
+                  {
+                    ...linkStyle(element, style),
+                    overrides: [],
+                    styleId: style?.id,
+                  },
+                  true
+                )
+              }
+              styles={doc?.componentStyles.filter(
+                (style) => style.kind === element.kind
+              )}
+            />
           )}
-          {element.styleId ? (
-            <button
-              className="page-builder__button"
-              onClick={() => {
-                const style = doc?.componentStyles.find(
-                  (s) => s.id === element.styleId
-                );
-                if (style) {
-                  patchElement(
-                    { ...linkStyle(element, style), overrides: [] },
-                    true
-                  );
-                }
-              }}
-              type="button"
-            >
-              Reset to brand style
-            </button>
-          ) : null}
-          {rootIndex >= 0 ? (
-            <button
-              className="page-builder__button"
-              onClick={() => {
-                setElements(elements.filter((e) => e.id !== selected));
-                setSelected(null);
-              }}
-              type="button"
-            >
-              <Trash2 size={14} /> Remove component
-            </button>
-          ) : null}
         </>
       ) : (
         <p className="page-builder__hint">

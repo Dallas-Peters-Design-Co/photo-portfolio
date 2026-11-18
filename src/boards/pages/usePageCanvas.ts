@@ -91,16 +91,62 @@ export const usePageCanvas = (
   };
   const patchElement = (
     patch: Partial<ReviewConceptElement>,
-    followStyle = false
+    followStyle = false,
+    targetId = selected
   ) => {
     const change = (e: ReviewConceptElement): ReviewConceptElement => {
       const next =
-        e.id === selected
+        e.id === targetId
           ? { ...e, ...(followStyle ? patch : withOverrides(e, patch)) }
           : e;
       return mapChildren(next, change);
     };
     setElements(elements.map(change));
+  };
+  const removeSelected = () => {
+    if (!selected) {
+      return;
+    }
+    const keep = (item: ReviewConceptElement) => item.id !== selected;
+    if (rootIndex >= 0) {
+      setElements(elements.filter(keep));
+      setSelected(null);
+      return;
+    }
+    for (const parent of all) {
+      const slot = Object.entries(parent.slots ?? {}).find(([, value]) =>
+        value.elements.some((item) => item.id === selected)
+      );
+      if (slot) {
+        const [name, value] = slot;
+        patchElement(
+          {
+            slots: {
+              ...parent.slots,
+              [name]: { ...value, elements: value.elements.filter(keep) },
+            },
+          },
+          false,
+          parent.id
+        );
+        setSelected(parent.id);
+        return;
+      }
+      if (parent.group?.elements.some((item) => item.id === selected)) {
+        patchElement(
+          {
+            group: {
+              ...parent.group,
+              elements: parent.group.elements.filter(keep),
+            },
+          },
+          false,
+          parent.id
+        );
+        setSelected(parent.id);
+        return;
+      }
+    }
   };
   const setBox = (id: string, next: PageBox) =>
     write({ ...resolved, boxes: { ...page.boxes, [id]: next } });
@@ -194,12 +240,11 @@ export const usePageCanvas = (
     page,
     patchElement,
     playing,
+    removeSelected,
     removeState,
     resolved,
-    rootIndex,
     selected,
     setBox,
-    setElements,
     setIndex,
     setPlaying,
     setSelected,

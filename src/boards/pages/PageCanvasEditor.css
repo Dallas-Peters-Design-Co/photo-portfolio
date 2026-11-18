@@ -108,12 +108,14 @@
   gap: 0.25rem;
   font-size: 0.75rem;
 }
-.page-builder__text {
-  width: 100%;
-  padding: 0.5rem;
-  background: var(--color-board-surface);
-  border: 1px solid color-mix(in oklch, var(--color-board-ink) 20%, transparent);
+.page-builder__inspector .review-concepts__group {
+  grid-template-columns: minmax(0, 1fr);
 }
+
+.page-builder__inspector .review-concepts__group-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .page-builder__numbers {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

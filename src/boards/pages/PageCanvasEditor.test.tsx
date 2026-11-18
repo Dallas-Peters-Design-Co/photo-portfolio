@@ -35,7 +35,8 @@ const kit = {
     ],
   },
 };
-vi.mock("../brand/ActiveBrand", () => ({
+vi.mock("../brand/ActiveBrand", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../brand/ActiveBrand")>()),
   useActiveBrand: () => ({ kit, kits: [kit] }),
 }));
 const changed = vi.fn();
@@ -140,7 +141,7 @@ it("inserts a linked brand component and commits a drag only on release", async 
   );
   expect(latest?.boxes[id]?.x).toBe(114);
   await userEvent.fill(
-    host.querySelector('[aria-label="Component text"]') as HTMLTextAreaElement,
+    host.querySelector('[aria-label="Content"]') as HTMLInputElement,
     "Continue"
   );
   expect(latest?.concept.elements[0]).toMatchObject({
@@ -338,4 +339,76 @@ it("plays the chosen click target in the same live page renderer", async () => {
   );
   expect(host.textContent).toContain("The findings are open");
   expect(host.textContent).not.toContain("Open findings");
+});
+
+it("edits the placed panel's toggle position from the page inspector", async () => {
+  const panel = createConceptElement("panel");
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [panel] },
+    height: 600,
+    kitId: kit.id,
+    version: 1,
+    width: 900,
+  });
+  await act(() =>
+    host.querySelector<HTMLButtonElement>(".page-builder__layer")?.click()
+  );
+  const picker = host.querySelector<HTMLElement>(
+    '[aria-label="Panel toggle position"]'
+  );
+  if (!picker) {
+    throw new Error("Missing panel toggle position");
+  }
+  await userEvent.click(picker);
+  const option = [
+    ...document.querySelectorAll<HTMLElement>('[role="option"]'),
+  ].find((item) => item.textContent === "Left");
+  if (!option) {
+    throw new Error("Missing left toggle option");
+  }
+  await userEvent.click(option);
+  expect(latest?.concept.elements[0]?.panelToggleSide).toBe("left");
+  expect(
+    host
+      .querySelector(".page-design__sheet .concept-panel")
+      ?.getAttribute("data-toggle-side")
+  ).toBe("left");
+});
+
+it("removes a selected header item and keeps its panel and other slots", async () => {
+  const panel = createConceptElement("panel");
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [panel] },
+    height: 600,
+    kitId: kit.id,
+    version: 1,
+    width: 900,
+  });
+  const layer = [
+    ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
+  ].find((item) => item.textContent?.startsWith("badge"));
+  if (!layer) {
+    throw new Error("Missing badge layer");
+  }
+  await act(() => layer.click());
+  const remove = [
+    ...host.querySelectorAll<HTMLButtonElement>(
+      ".page-builder__inspector button"
+    ),
+  ].find((item) => item.textContent?.trim() === "Remove item");
+  if (!remove) {
+    throw new Error("Missing slot item removal");
+  }
+  await act(() => remove.click());
+  const saved = latest?.concept.elements[0];
+  expect(saved?.id).toBe(panel.id);
+  expect(saved?.slots?.header?.elements ?? []).toHaveLength(0);
+  expect(saved?.slots?.body?.elements.length).toBe(
+    panel.slots?.body?.elements.length
+  );
+  expect(
+    host.querySelector(".page-design__sheet [data-slot='header']")?.textContent
+  ).toBe(panel.text);
 });
