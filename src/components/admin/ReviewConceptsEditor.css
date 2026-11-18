@@ -195,9 +195,6 @@
   white-space: nowrap;
 }
 
-/* The table editor spans its row: columns as name / cells / width / colour /
-   remove,
-   then the rows as a grid with one column per table column. */
 .review-concepts__table-editor {
   display: grid;
   grid-column: 1 / -1;
@@ -240,24 +237,49 @@
 
 .review-concepts__table-row {
   display: grid;
-  grid-template-columns:
-    repeat(var(--table-columns), minmax(0, 1fr))
-    calc(var(--spacing) * 8);
-  gap: calc(var(--spacing) * 1.5);
+  gap: calc(var(--spacing) * 2);
+  min-width: 0;
+}
+.review-concepts__table-row + .review-concepts__table-row {
+  padding-top: calc(var(--spacing) * 2);
+  margin-top: calc(var(--spacing) * 2);
+  border-top: 1px solid color-mix(in oklch, currentColor 15%, transparent);
+}
+.review-concepts__table-row-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-xs-ui);
+}
+.review-concepts__table-cells {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: calc(var(--spacing) * 3);
   align-items: start;
 }
-
-.review-concepts__table-head {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: var(--text-xs-ui);
-  color: color-mix(in oklch, currentColor 65%, transparent);
-  white-space: nowrap;
-}
-
+.review-concepts__table-cell,
 .review-concepts__table-stack {
   display: grid;
-  gap: calc(var(--spacing) * 1);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing);
+  min-width: 0;
+}
+.review-concepts__table-caption,
+.review-concepts__table-icons summary {
+  font-size: var(--text-xs-ui);
+  color: color-mix(in oklch, currentColor 70%, transparent);
+}
+.review-concepts__table-caption {
+  overflow-wrap: anywhere;
+}
+.review-concepts__table-icons summary {
+  width: fit-content;
+  padding-block: var(--spacing);
+  cursor: pointer;
+}
+.review-concepts__table-icons .review-concepts__field {
+  grid-template-columns: minmax(0, 1fr);
+  padding-block-start: var(--spacing);
 }
 
 .review-concepts__element-body {

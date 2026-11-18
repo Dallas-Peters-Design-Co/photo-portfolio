@@ -25,6 +25,8 @@ interface IconPickerProps {
   /** False when something must always be chosen, as for an icon element. */
   allowNone?: boolean;
   id?: string;
+  /** Expand within the form when a floating list would overlap adjacent fields. */
+  inline?: boolean;
   /** Names the trigger when no visible label points at it. */
   label?: string;
   /**
@@ -112,6 +114,7 @@ const searchIcons = (
 export function IconPicker({
   allowNone = true,
   id,
+  inline = false,
   label,
   library = "curated",
   onChange,
@@ -193,7 +196,7 @@ export function IconPicker({
 
       {open ? (
         <div
-          className="absolute z-50 mt-1 max-h-72 w-full min-w-70 overflow-y-auto rounded-surface border border-white/15 bg-black shadow-2xl"
+          className={`mt-1 max-h-72 w-full overflow-y-auto rounded-surface border border-white/15 bg-black ${inline ? "" : "absolute z-50 min-w-70 shadow-2xl"}`}
           role="listbox"
         >
           {/* Sticky so the field stays reachable while scrolling 185 icons. */}

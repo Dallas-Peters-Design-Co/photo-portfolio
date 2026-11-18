@@ -1,5 +1,4 @@
 import { Plus, Trash2 } from "lucide-react";
-import type { CSSProperties } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
   type ConceptIconSvg,
@@ -105,6 +104,7 @@ function CellInput({
   if (column.kind === "icon") {
     return (
       <IconPicker
+        inline
         label={label}
         library="full"
         onChange={(name, svg) =>
@@ -296,10 +296,6 @@ export function ConceptTableFields({
   const table = tableOf(element);
   const borders = table.borders ?? DEFAULT_BORDERS;
   const set = (next: ConceptTable) => onChange({ table: next });
-  const gridStyle = {
-    "--table-columns": table.columns.length,
-  } as CSSProperties;
-
   return (
     <>
       <ConceptGroup name="Columns">
@@ -391,84 +387,85 @@ export function ConceptTableFields({
 
       <ConceptGroup name="Rows">
         <div className="review-concepts__table-editor">
-          <div className="review-concepts__table-row" style={gridStyle}>
-            {table.columns.map((column, index) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: as above
-              <span className="review-concepts__table-head" key={index}>
-                {column.label}
-              </span>
-            ))}
-            <span />
-          </div>
           {table.rows.map((row, rowIndex) => (
             <div
               className="review-concepts__table-row"
               // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
               key={rowIndex}
-              style={gridStyle}
             >
-              {table.columns.map((column, index) => {
-                const label = `Row ${rowIndex + 1}, ${column.label || `column ${index + 1}`}`;
-                return (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: table cells follow column order
-                  <div className="review-concepts__table-stack" key={index}>
-                    <CellInput
-                      column={column}
-                      icons={table.icons}
-                      label={label}
-                      onChange={(value) =>
-                        set(setCell(table, rowIndex, index, value))
-                      }
-                      onIcon={(name, svg) =>
-                        set(setIconCell(table, rowIndex, index, name, svg))
-                      }
-                      value={row[index] ?? ""}
-                    />
-                    {column.kind !== "icon" && (
-                      <details>
-                        <summary aria-label={`${label} icons`}>Icons</summary>
-                        {(["start", "end"] as const).map((side) => {
-                          const name = column.itemIcons?.[rowIndex]?.[side];
-                          const position =
-                            side === "start" ? "Leading icon" : "Trailing icon";
-                          return (
-                            <ConceptField key={side} label={position}>
-                              <IconPicker
-                                label={`${label}, ${position}`}
-                                library="full"
-                                onChange={(icon, svg) =>
-                                  set(
-                                    setCellItemIcon(
-                                      table,
-                                      rowIndex,
-                                      index,
-                                      side,
-                                      icon,
-                                      svg as ConceptIconSvg | undefined
+              <div className="review-concepts__table-row-heading">
+                <strong>Row {rowIndex + 1}</strong>
+                <Button
+                  aria-label={`Remove row ${rowIndex + 1}`}
+                  onClick={() => set(removeRow(table, rowIndex))}
+                  size="icon-sm"
+                  type="button"
+                  variant="ghost"
+                >
+                  <Trash2 size={13} />
+                </Button>
+              </div>
+              <div className="review-concepts__table-cells">
+                {table.columns.map((column, index) => {
+                  const label = `Row ${rowIndex + 1}, ${column.label || `column ${index + 1}`}`;
+                  return (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: table cells follow column order
+                    <div className="review-concepts__table-cell" key={index}>
+                      <span className="review-concepts__table-caption">
+                        {column.label || `Column ${index + 1}`}
+                      </span>
+                      <CellInput
+                        column={column}
+                        icons={table.icons}
+                        label={label}
+                        onChange={(value) =>
+                          set(setCell(table, rowIndex, index, value))
+                        }
+                        onIcon={(name, svg) =>
+                          set(setIconCell(table, rowIndex, index, name, svg))
+                        }
+                        value={row[index] ?? ""}
+                      />
+                      {column.kind !== "icon" && (
+                        <details className="review-concepts__table-icons">
+                          <summary aria-label={`${label} icons`}>Icons</summary>
+                          {(["start", "end"] as const).map((side) => {
+                            const name = column.itemIcons?.[rowIndex]?.[side];
+                            const position =
+                              side === "start"
+                                ? "Leading icon"
+                                : "Trailing icon";
+                            return (
+                              <ConceptField key={side} label={position}>
+                                <IconPicker
+                                  inline
+                                  label={`${label}, ${position}`}
+                                  library="full"
+                                  onChange={(icon, svg) =>
+                                    set(
+                                      setCellItemIcon(
+                                        table,
+                                        rowIndex,
+                                        index,
+                                        side,
+                                        icon,
+                                        svg as ConceptIconSvg | undefined
+                                      )
                                     )
-                                  )
-                                }
-                                size="sm"
-                                svg={name ? table.icons?.[name] : undefined}
-                                value={name ?? null}
-                              />
-                            </ConceptField>
-                          );
-                        })}
-                      </details>
-                    )}
-                  </div>
-                );
-              })}
-              <Button
-                aria-label={`Remove row ${rowIndex + 1}`}
-                onClick={() => set(removeRow(table, rowIndex))}
-                size="icon-sm"
-                type="button"
-                variant="ghost"
-              >
-                <Trash2 size={13} />
-              </Button>
+                                  }
+                                  size="sm"
+                                  svg={name ? table.icons?.[name] : undefined}
+                                  value={name ?? null}
+                                />
+                              </ConceptField>
+                            );
+                          })}
+                        </details>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ))}
           <div>
