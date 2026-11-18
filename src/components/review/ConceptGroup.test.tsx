@@ -9,6 +9,7 @@ import {
   type ReviewConceptElement,
 } from "../../../config/reviewConcept.js";
 import { ConceptElementList } from "../admin/ConceptElementList";
+import "../admin/ReviewConceptsEditor.css";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 import { ReviewConceptPreview } from "./ReviewConceptPreview";
 
@@ -81,8 +82,10 @@ function List() {
 
 it("groups an element, moves the next into the group, and ungroups", async () => {
   const host = document.createElement("div");
+  host.style.width = "240px";
   document.body.append(host);
-  act(() => createRoot(host).render(<List />));
+  const root = createRoot(host);
+  act(() => root.render(<List />));
   const button = (text: string) =>
     [...host.querySelectorAll("button")].find(
       (b) => b.textContent === text
@@ -95,6 +98,121 @@ it("groups an element, moves the next into the group, and ungroups", async () =>
   expect(latest[0]?.group?.elements.map((e) => e.id)).toEqual(["a", "b"]);
   await userEvent.click(button("Ungroup"));
   expect(latest.map((e) => e.id)).toEqual(["a", "b"]);
+  act(() => root.unmount());
+  host.remove();
+});
+
+it("moves an element into the nearest group above even with items between them", async () => {
+  const initial = [
+    { ...createConceptElement("group"), id: "first" },
+    { ...createConceptElement("text"), id: "middle" },
+    { ...createConceptElement("group"), id: "nearest" },
+    { ...createConceptElement("text"), id: "between" },
+    { ...createConceptElement("button"), id: "target" },
+  ];
+  let current = initial;
+  function Harness() {
+    const [elements, setElements] = useState(initial);
+    current = elements;
+    return (
+      <ConceptElementList
+        elements={elements}
+        label="Elements"
+        onChange={setElements}
+      />
+    );
+  }
+  const host = document.createElement("div");
+  host.style.width = "240px";
+  document.body.append(host);
+  const root = createRoot(host);
+  await act(async () => root.render(<Harness />));
+  const target = [...host.querySelectorAll(".review-concepts__sortable")].find(
+    (node) => node.querySelector('[aria-label="Remove button"]')
+  );
+  const move = [...(target?.querySelectorAll("button") ?? [])].find(
+    (button) => button.textContent === "Into group above"
+  );
+  expect(move).toBeDefined();
+  const header = target
+    ?.querySelector(".review-concepts__element-main")
+    ?.getBoundingClientRect();
+  const buttonBox = move?.getBoundingClientRect();
+  expect(buttonBox?.right).toBeLessThanOrEqual((header?.right ?? 0) + 1);
+  await userEvent.click(move as HTMLElement);
+  expect(current.map((element) => element.id)).toEqual([
+    "first",
+    "middle",
+    "nearest",
+    "between",
+  ]);
+  expect(current[2]?.group?.elements.map((element) => element.id)).toEqual([
+    "target",
+  ]);
+  expect(
+    cleanConcept({ elements: current }).elements[2]?.group?.elements[0]?.id
+  ).toBe("target");
+  await act(async () => root.unmount());
+  host.remove();
+});
+
+it("does not move an element into a full group", () => {
+  const group = createConceptElement("group");
+  const full = {
+    ...group,
+    group: {
+      ...group.group,
+      elements: Array.from({ length: 24 }, (_, index) => ({
+        ...createConceptElement("text"),
+        id: `child-${index}`,
+      })),
+    },
+  };
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  act(() =>
+    root.render(
+      <ConceptElementList
+        elements={[full, createConceptElement("button")]}
+        label="Elements"
+        onChange={() => undefined}
+      />
+    )
+  );
+  const move = [...host.querySelectorAll("button")].find(
+    (button) => button.textContent === "Into group above"
+  );
+  expect(move?.disabled).toBe(true);
+  expect(move?.title).toBe("This group is full");
+  act(() => root.unmount());
+  host.remove();
+});
+
+it("prevents a move that would discard nested group contents on save", () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  act(() =>
+    root.render(
+      <ConceptElementList
+        depth={3}
+        elements={[
+          createConceptElement("group"),
+          createConceptElement("group"),
+        ]}
+        label="Elements"
+        onChange={() => undefined}
+      />
+    )
+  );
+  const move = [...host.querySelectorAll("button")].find(
+    (button) => button.textContent === "Into group above"
+  );
+  expect(move?.disabled).toBe(true);
+  expect(move?.title).toContain("too deeply nested");
+  act(() => root.unmount());
+  host.remove();
 });
 
 it("spans a full-width group across its row, its items aligned and pushed apart", () => {

@@ -3,6 +3,11 @@ import { type DragEvent, useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
+  MAX_GROUP_DEPTH,
+  MAX_SLOT_DEPTH,
+  MAX_SLOT_ELEMENTS,
+} from "../../../config/conceptSlots.js";
+import {
   type ConceptStyle,
   fromStyle,
   linkStyle,
@@ -62,21 +67,55 @@ const ungroup = (
     i === index && e.kind === "group" ? (e.group?.elements ?? []) : [e]
   );
 
-/** This element moved to the end of the group just above it. */
+/** The closest group earlier in this same list. */
+const groupAbove = (
+  elements: ReviewConceptElement[],
+  index: number
+): number => {
+  for (let i = index - 1; i >= 0; i -= 1) {
+    if (elements[i]?.kind === "group") {
+      return i;
+    }
+  }
+  return -1;
+};
+
+/** Moving a holder deeper must not make its contents disappear on save. */
+const fitsAtDepth = (element: ReviewConceptElement, depth: number): boolean => {
+  if (element.group && depth >= MAX_GROUP_DEPTH) {
+    return false;
+  }
+  if (element.slots && depth >= MAX_SLOT_DEPTH) {
+    return false;
+  }
+  const children = [
+    ...(element.group?.elements ?? []),
+    ...Object.values(element.slots ?? {}).flatMap(
+      (slot) => slot?.elements ?? []
+    ),
+  ];
+  return children.every((child) => fitsAtDepth(child, depth + 1));
+};
+
+/** This element moved to the end of the nearest group above it. */
 const moveIntoGroupAbove = (
   elements: ReviewConceptElement[],
   index: number
 ): ReviewConceptElement[] => {
-  const above = elements[index - 1];
+  const groupIndex = groupAbove(elements, index);
+  const above = elements[groupIndex];
   const element = elements[index];
-  if (!(above?.kind === "group" && element)) {
+  if (
+    !(above?.kind === "group" && element) ||
+    (above.group?.elements.length ?? 0) >= MAX_SLOT_ELEMENTS
+  ) {
     return elements;
   }
   return elements.flatMap((e, i) => {
     if (i === index) {
       return [];
     }
-    if (i === index - 1) {
+    if (i === groupIndex) {
       return [
         {
           ...e,
@@ -98,20 +137,31 @@ function GroupActions({
   onGroup,
   onIntoAbove,
   onUngroup,
+  depth,
 }: {
   above?: ReviewConceptElement;
   element: ReviewConceptElement;
   onGroup: () => void;
   onIntoAbove: () => void;
   onUngroup: () => void;
+  depth: number;
 }) {
+  const full = (above?.group?.elements.length ?? 0) >= MAX_SLOT_ELEMENTS;
+  const tooDeep = depth >= MAX_GROUP_DEPTH || !fitsAtDepth(element, depth + 1);
+  let moveTitle = "Move into the nearest group above";
+  if (full) {
+    moveTitle = "This group is full";
+  } else if (tooDeep) {
+    moveTitle = "This component is too deeply nested to move into this group";
+  }
   return (
     <>
       {above?.kind === "group" ? (
         <Button
+          disabled={full || tooDeep}
           onClick={onIntoAbove}
           size="xs"
-          title="Move into the group above"
+          title={moveTitle}
           type="button"
           variant="ghost"
         >
@@ -274,7 +324,8 @@ export function ConceptElementList({
           <ReviewConceptElementFields
             actions={
               <GroupActions
-                above={elements[index - 1]}
+                above={elements[groupAbove(elements, index)]}
+                depth={depth}
                 element={element}
                 onGroup={() => onChange(wrapInGroup(elements, index, brandDoc))}
                 onIntoAbove={() =>
