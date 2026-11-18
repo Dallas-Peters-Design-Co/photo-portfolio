@@ -8,6 +8,7 @@ import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { Avatar } from "../ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -412,6 +413,14 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       );
     case "progress":
       return <ConceptProgressPreview element={element} style={style} />;
+    case "avatar":
+      return (
+        <Avatar
+          initials={element.avatarInitials ?? ""}
+          src={element.avatarUrl}
+          style={style}
+        />
+      );
     case "logo":
       return <LogoPreview element={element} style={style} />;
     case "navbar":

@@ -12,6 +12,7 @@ import { iconLabel } from "../review/ConceptIcon";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { ConceptAvatarFields } from "./ConceptAvatarFields";
 import {
   ConceptField,
   ConceptGroup,
@@ -178,6 +179,7 @@ function KindGroups({
       ) : null}
       {/* A logo is its picture and a navbar its slots: no text of their own. */}
       {element.kind === "table" ||
+      element.kind === "avatar" ||
       element.kind === "logo" ||
       element.kind === "navbar" ||
       lookOnly ? null : (
@@ -188,6 +190,13 @@ function KindGroups({
       ) : null}
       {element.kind === "toast" ? (
         <ToastGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      ) : null}
+      {element.kind === "avatar" ? (
+        <ConceptAvatarFields
+          element={element}
+          key={element.id}
+          onChange={onChange}
+        />
       ) : null}
       {element.kind === "logo" ? (
         <LogoGroup brandDoc={brandDoc} element={element} onChange={onChange} />

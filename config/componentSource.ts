@@ -131,6 +131,31 @@ const quote = (value: string): string => JSON.stringify(value);
 
 const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
   const byKind: Partial<Record<ReviewConceptElementKind, () => Markup>> = {
+    avatar: () => {
+      const initials = el.avatarInitials || "?";
+      return {
+        attrs: `role="img" aria-label={${quote(initials)}}`,
+        body: el.avatarUrl
+          ? `<img src={${quote(el.avatarUrl)}} alt={${quote(initials)}} />`
+          : escapeJsx(initials),
+        css: "& { display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem; overflow: hidden; }\n& > img { width: 100%; height: 100%; object-fit: cover; }",
+        tag: "span",
+        tsx: (name, cls) => `import { Avatar } from "@base-ui/react/avatar";
+import "./${name}.css";
+
+type ${name}Props = { src?: string; initials?: string; alt?: string; className?: string };
+
+export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote(initials)}, alt, className }: ${name}Props) {
+  return (
+    <Avatar.Root role="img" aria-label={alt || initials || "Avatar"} className={[${quote(cls)}, className].filter(Boolean).join(" ")}>
+      {src ? <Avatar.Image src={src} alt="" /> : null}
+      <Avatar.Fallback>{initials || "?"}</Avatar.Fallback>
+    </Avatar.Root>
+  );
+}
+`,
+      };
+    },
     badge: () => withIcons(el, { passChildren: true, tag: "span" }),
     button: () =>
       withIcons(el, {

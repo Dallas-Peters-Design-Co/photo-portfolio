@@ -79,6 +79,7 @@ const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
 ]);
 
 const elementText: Record<ReviewConceptElementKind, string> = {
+  avatar: "",
   badge: "New",
   button: "Get started",
   canvas: "Canvas component",
@@ -248,6 +249,13 @@ export const createConceptElement = (
     ...(options ? { options } : {}),
     ...elementState(kind),
     ...(kind === "table" ? { table: tableFromKit(brandDoc) } : {}),
+    ...(kind === "avatar"
+      ? {
+          avatarInitials: "AB",
+          background: paletteColor(brandDoc, ["tint", "surface"], "#e4e7ec"),
+          radius: 48,
+        }
+      : {}),
     ...(kind === "badge" ? badgeLook(brandDoc) : {}),
     ...(kind === "tag" ? tagLook(brandDoc) : {}),
     ...(kind === "progress" ? progressLook(brandDoc) : {}),

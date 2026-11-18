@@ -82,6 +82,7 @@ export const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "panel",
   "upload",
   "group",
+  "avatar",
   "logo",
   "navbar",
   "canvas",
@@ -121,6 +122,7 @@ export type ReviewConceptElementKind =
   | "panel"
   | "upload"
   | "group"
+  | "avatar"
   | "logo"
   | "navbar"
   | "canvas"
@@ -138,6 +140,8 @@ export interface ReviewConceptElement {
    * action's colour.
    */
   accentColor?: string;
+  avatarInitials?: string;
+  avatarUrl?: string;
   background: string;
   /** Progress bars: the bar's height in px. The track is `background`. */
   barHeight?: number;
@@ -273,6 +277,8 @@ export const ELEMENT_STYLE_KEYS = [
   "tabLook",
   "menuLook",
   "hover",
+  "avatarUrl",
+  "avatarInitials",
   // A Logo style sets which of the kit's logos, and at what height.
   "logoUrl",
   "logoHeight",
@@ -397,7 +403,15 @@ const cleanOptions = (value: unknown): string[] | undefined => {
     .map((option) => str(option, 100));
 };
 
+const AVATAR_URL = /^https?:\/\//i;
 const HTTPS = /^https:\/\//i;
+const cleanAvatar = (raw: Partial<ReviewConceptElement>) => {
+  const url = str(raw.avatarUrl, 2048).trim();
+  return {
+    avatarInitials: str(raw.avatarInitials, 8),
+    ...(AVATAR_URL.test(url) && URL.canParse(url) ? { avatarUrl: url } : {}),
+  };
+};
 
 /** A logo's picture and height; a picture not on https is dropped. */
 const cleanLogo = (
@@ -515,6 +529,7 @@ export const cleanElement = (
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(kind === "progress" ? cleanProgress(raw) : {}),
+    ...(kind === "avatar" ? cleanAvatar(raw) : {}),
     ...(kind === "logo" ? cleanLogo(raw) : {}),
     ...cleanSlotted(kind, raw, depth),
     ...cleanHolder(kind, raw, depth),
