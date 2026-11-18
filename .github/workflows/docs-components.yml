@@ -7,7 +7,7 @@ name: Docs components
 # only when a page changed; Mintlify deploys from that commit.
 on:
   schedule:
-    - cron: "17 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -23,11 +23,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check for component changes
+        id: changes
+        run: node scripts/docs-components-feed.mjs
+
       - uses: pnpm/action-setup@v6
+        if: steps.changes.outputs.changed == 'true'
         with:
           version: 11
 
       - uses: actions/setup-node@v5
+        if: steps.changes.outputs.changed == 'true'
         with:
           node-version: 22
           cache: pnpm
@@ -35,17 +41,25 @@ jobs:
       # The accessibility scan needs Playwright and axe-core, so the app's
       # dependencies are installed as in CI (Hugeicons Pro needs its token).
       - run: pnpm config set //npm.hugeicons.com/:_authToken "$HUGEICONS_TOKEN"
+        if: steps.changes.outputs.changed == 'true'
         env:
           HUGEICONS_TOKEN: ${{ secrets.HUGEICONS_TOKEN }}
 
       - run: pnpm install --frozen-lockfile
+        if: steps.changes.outputs.changed == 'true'
 
       - name: Install Chromium for the accessibility scan
+        if: steps.changes.outputs.changed == 'true'
         run: pnpm exec playwright install --with-deps chromium
 
       - run: node scripts/docs-components.mjs
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          DOCS_FEED_FILE: /tmp/docs-components-feed.json
+          DOCS_FEED_HASH_FILE: /tmp/docs-components-hash
 
       - name: Commit changed pages
+        if: steps.changes.outputs.changed == 'true'
         run: |
           git add docs/site
           if git diff --cached --quiet; then

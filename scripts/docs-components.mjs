@@ -295,6 +295,14 @@ const main = async () => {
   writeFileSync(CSS, css);
   setNavigation(kits);
 
+  // Record the exact snapshot only after generation and the scan succeeded.
+  if (process.env.DOCS_FEED_HASH_FILE) {
+    writeFileSync(
+      path.join(SITE, ".component-feed-hash"),
+      readFileSync(process.env.DOCS_FEED_HASH_FILE, "utf8")
+    );
+  }
+
   const total = kits.reduce((n, kit) => n + kit.components.length, 0);
   const passed = kits.reduce((n, kit) => n + passing(kit, scan), 0);
   process.stdout.write(
