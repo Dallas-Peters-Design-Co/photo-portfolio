@@ -20,6 +20,7 @@ import {
   optionsOf,
 } from "./ConceptControls";
 import { ConceptFontField } from "./ConceptFontField";
+import { LogoGroup } from "./ConceptLogoFields";
 import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields, SlotFields } from "./ConceptSlotFields";
 import { StyleLink } from "./ConceptStyleLink";
@@ -174,7 +175,11 @@ function KindGroups({
           onChange={onChange}
         />
       ) : null}
-      {element.kind === "table" || lookOnly ? null : (
+      {/* A logo is its picture and a navbar its slots: no text of their own. */}
+      {element.kind === "table" ||
+      element.kind === "logo" ||
+      element.kind === "navbar" ||
+      lookOnly ? null : (
         <ContentGroup element={element} onChange={onChange} />
       )}
       {takesHover(element.kind) ? (
@@ -182,6 +187,9 @@ function KindGroups({
       ) : null}
       {element.kind === "toast" ? (
         <ToastGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      ) : null}
+      {element.kind === "logo" ? (
+        <LogoGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
       {element.kind === "progress" ? (
         <ProgressGroup

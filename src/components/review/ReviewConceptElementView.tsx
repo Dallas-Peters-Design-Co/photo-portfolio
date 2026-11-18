@@ -399,6 +399,19 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       );
     case "progress":
       return <ConceptProgressPreview element={element} style={style} />;
+    case "logo":
+      return <LogoPreview element={element} style={style} />;
+    case "navbar":
+      return (
+        <nav aria-label="Navigation" className="concept-navbar" style={style}>
+          <ConceptSlotsView
+            bar
+            dividers={element.dividers}
+            draw={drawElement}
+            slots={element.slots}
+          />
+        </nav>
+      );
     case "skeleton":
       return (
         <div
@@ -414,6 +427,34 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
     default:
       return <div style={{ ...style, whiteSpace: "pre-line" }}>{text}</div>;
   }
+}
+
+/** The brand's logo at its height, or a stand-in until one is chosen. */
+function LogoPreview({
+  element,
+  style,
+}: {
+  element: ReviewConceptElement;
+  style: CSSProperties;
+}) {
+  const height = element.logoHeight ?? 32;
+  return element.logoUrl ? (
+    <img
+      alt="Logo"
+      className="concept-logo"
+      height={height}
+      src={element.logoUrl}
+      style={{ ...style, height, width: "auto" }}
+      width={height * 3}
+    />
+  ) : (
+    <span
+      className="concept-logo concept-logo--empty"
+      style={{ ...style, height, minWidth: height * 3 }}
+    >
+      Logo
+    </span>
+  );
 }
 
 /** An element as a concept draws it, with its hover look when it has one. */

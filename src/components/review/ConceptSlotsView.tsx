@@ -112,11 +112,17 @@ function Slot({
  * its own way, with a line between them when the element asks for one.
  */
 export function ConceptSlotsView({
+  bar = false,
   dividers = false,
   draw,
   slots = {},
   lead,
 }: {
+  /**
+   * A navbar: header, body and footer side by side as its start, middle and
+   * end, the middle taking the free width.
+   */
+  bar?: boolean;
   dividers?: boolean;
   draw: Draw;
   slots?: ConceptSlots;
@@ -127,7 +133,11 @@ export function ConceptSlotsView({
   lead?: ReactNode;
 }) {
   return (
-    <div className="concept-slots" data-dividers={dividers || undefined}>
+    <div
+      className="concept-slots"
+      data-bar={bar || undefined}
+      data-dividers={dividers || undefined}
+    >
       {LAYOUT_SLOTS.map((name) => (
         <Slot
           draw={draw}

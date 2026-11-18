@@ -78,6 +78,8 @@ const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "panel",
   "upload",
   "group",
+  "logo",
+  "navbar",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
 const INPUT_TYPES = [
@@ -112,7 +114,9 @@ export type ReviewConceptElementKind =
   | "progress"
   | "panel"
   | "upload"
-  | "group";
+  | "group"
+  | "logo"
+  | "navbar";
 
 /**
  * A Hugeicons export name from the site's icon set (src/cms/icons.ts), the
@@ -170,6 +174,10 @@ export interface ReviewConceptElement {
   inputType?: "text" | "email" | "search" | "url" | "tel" | "password";
   kind: ReviewConceptElementKind;
   lineHeight: number;
+  /** A logo's height in pixels; its width follows the picture. */
+  logoHeight?: number;
+  /** A logo's picture: one of the brand kit's logos, by its address. */
+  logoUrl?: string;
   /** Selects and dropdown menus: how the open list looks (conceptMenu.ts). */
   menuLook?: ConceptMenuLook;
   options?: string[];
@@ -247,6 +255,9 @@ export const ELEMENT_STYLE_KEYS = [
   "tabLook",
   "menuLook",
   "hover",
+  // A Logo style sets which of the kit's logos, and at what height.
+  "logoUrl",
+  "logoHeight",
 ] as const satisfies readonly (keyof ReviewConceptElement)[];
 
 export const CONCEPT_STYLE_KEYS = [
@@ -366,6 +377,18 @@ const cleanOptions = (value: unknown): string[] | undefined => {
     .map((option) => str(option, 100));
 };
 
+const HTTPS = /^https:\/\//i;
+
+/** A logo's picture and height; a picture not on https is dropped. */
+const cleanLogo = (
+  raw: Partial<ReviewConceptElement>
+): Pick<ReviewConceptElement, "logoHeight" | "logoUrl"> => ({
+  logoHeight: bounded(raw.logoHeight, 12, 160, 32),
+  ...(typeof raw.logoUrl === "string" && HTTPS.test(raw.logoUrl)
+    ? { logoUrl: raw.logoUrl.slice(0, 2048) }
+    : {}),
+});
+
 /** A card's or panel's slots and whether lines divide them. */
 const cleanSlotted = (
   kind: ReviewConceptElementKind,
@@ -441,6 +464,7 @@ export const cleanElement = (
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),
     ...(kind === "toast" ? cleanToast(raw) : {}),
     ...(kind === "progress" ? cleanProgress(raw) : {}),
+    ...(kind === "logo" ? cleanLogo(raw) : {}),
     ...cleanSlotted(kind, raw, depth),
     ...cleanHolder(kind, raw, depth),
     ...(tabLook ? { tabLook } : {}),

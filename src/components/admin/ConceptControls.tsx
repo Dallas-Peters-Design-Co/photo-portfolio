@@ -181,6 +181,8 @@ export const ELEMENT_KINDS = optionsOf([
   ["panel", "Panel"],
   ["upload", "File upload"],
   ["group", "Group"],
+  ["logo", "Logo"],
+  ["navbar", "Navbar"],
 ]);
 
 /** A kind's menu label ("Dropdown menu" for menu), or the kind itself. */

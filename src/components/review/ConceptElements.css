@@ -278,3 +278,24 @@
   > .concept-slot[data-slot="header"] {
   padding-right: 48px !important;
 }
+
+/* A logo: the brand's mark at its height, its width following the picture. */
+.concept-logo {
+  display: block;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.concept-logo--empty {
+  display: inline-grid;
+  place-items: center;
+  font-size: 0.75rem;
+  border: 1px dashed color-mix(in oklch, currentColor 40%, transparent);
+  opacity: 0.7;
+}
+
+/* A navbar spans what holds it. */
+.concept-navbar {
+  display: block;
+  width: 100%;
+}

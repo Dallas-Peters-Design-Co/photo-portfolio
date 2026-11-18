@@ -50,6 +50,14 @@ const SLOT_LABELS: Record<ConceptSlotName, string> = {
   hide: "Hide button",
 };
 
+/** A navbar's slots, as it lays them out: start, middle, end. */
+const BAR_LABELS: Record<ConceptSlotName, string> = {
+  ...SLOT_LABELS,
+  body: "Middle",
+  footer: "End",
+  header: "Start",
+};
+
 const SLIDES = optionsOf([
   ["none", "Just appears"],
   ["right", "Slides in from the right"],
@@ -241,6 +249,9 @@ export function ConceptSlotFields({
           brandDoc={brandDoc}
           depth={depth}
           key={name}
+          label={
+            element.kind === "navbar" ? `${BAR_LABELS[name]} slot` : undefined
+          }
           name={name}
           onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
           slot={slots[name] ?? { elements: [] }}

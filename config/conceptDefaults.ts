@@ -2,6 +2,8 @@ import type { BrandKitDoc, TypefaceEntry } from "./brandKit.js";
 import { DEFAULT_SHADOW } from "./conceptShadow.js";
 import {
   badgeLook,
+  logoLook,
+  navbarLook,
   paletteColor,
   panelLook,
   progressLook,
@@ -82,7 +84,9 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   input: "",
   label: "Email address",
   link: "Learn more",
+  logo: "",
   menu: "Actions",
+  navbar: "",
   panel: "Panel title",
   progress: "Upload progress",
   select: "Choose an option",
@@ -240,6 +244,8 @@ export const createConceptElement = (
     ...(kind === "tag" ? tagLook(brandDoc) : {}),
     ...(kind === "progress" ? progressLook(brandDoc) : {}),
     ...(kind === "panel" ? panelLook(brandDoc, createConceptElement) : {}),
+    ...(kind === "navbar" ? navbarLook(brandDoc, createConceptElement) : {}),
+    ...(kind === "logo" ? logoLook(brandDoc) : {}),
     ...controlLook(kind, brandDoc),
     // A group is layout, not a surface: clear, and empty to fill.
     ...(kind === "group"

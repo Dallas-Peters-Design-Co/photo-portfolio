@@ -271,6 +271,30 @@ ${SLOTS_CSS}`,
   };
 };
 
+/** A navbar: start, middle and end in one row, the middle taking the rest. */
+export const navbarMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
+  const slotted = withSlots(el, draw, "");
+  return {
+    attrs: 'aria-label="Navigation"',
+    body: slotted.body,
+    childCss: slotted.childCss,
+    css: `& { display: block; width: 100%; }
+${SLOTS_CSS}
+&__slots { flex-direction: row; align-items: center; }
+&__slots:not([data-dividers]) { gap: 0; }
+&__slot { flex: 0 0 auto; }
+&__slot[data-slot="body"] { flex: 1 1 auto; }`,
+    tag: "nav",
+  };
+};
+
+/** A logo: the brand's mark at its height, its width following the picture. */
+export const logoMarkup = (el: ReviewConceptElement): Markup => ({
+  attrs: `src=${JSON.stringify(el.logoUrl ?? "")} alt="Logo"`,
+  css: `& { display: block; height: ${el.logoHeight ?? 32}px; width: auto; max-width: 100%; object-fit: contain; }`,
+  tag: "img",
+});
+
 /** The slots' body and their children's CSS; the class is filled in later. */
 const withSlots = (
   el: ReviewConceptElement,

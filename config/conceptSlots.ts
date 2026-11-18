@@ -77,7 +77,12 @@ export const SLOT_DEFAULTS = {
 } as const;
 
 /** The kinds that have slots. */
-const SLOT_KINDS = new Set<ReviewConceptElementKind>(["card", "panel"]);
+const SLOT_KINDS = new Set<ReviewConceptElementKind>([
+  "card",
+  "panel",
+  // A navbar's header, body and footer are its start, middle and end.
+  "navbar",
+]);
 
 export const hasSlots = (kind: ReviewConceptElementKind): boolean =>
   SLOT_KINDS.has(kind);

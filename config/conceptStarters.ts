@@ -214,3 +214,77 @@ export const panelLook = (
     },
   };
 };
+
+/**
+ * A logo starts as the kit's first logo, 32 px high, on nothing: no fill, no
+ * padding, so it sits in a navbar or a card as the mark itself.
+ */
+export const logoLook = (
+  brandDoc?: BrandKitDoc | null
+): Partial<ReviewConceptElement> => ({
+  background: "transparent",
+  logoHeight: 32,
+  ...(brandDoc?.logos[0]?.url ? { logoUrl: brandDoc.logos[0].url } : {}),
+  paddingX: 0,
+  paddingY: 0,
+  radius: 0,
+});
+
+/**
+ * A navbar starts as a full-width bar on the kit's paper with a line under
+ * it: the logo at the start (its header slot), links in the middle (body),
+ * and a sign-in link and a button at the end (footer). Each slot is a row;
+ * the slots carry the spacing, so the bar has no padding of its own.
+ */
+export const navbarLook = (
+  brandDoc: BrandKitDoc | null | undefined,
+  make: (
+    kind: ReviewConceptElementKind,
+    brandDoc?: BrandKitDoc | null
+  ) => ReviewConceptElement
+): Partial<ReviewConceptElement> => {
+  const sample = (
+    kind: ReviewConceptElementKind,
+    text: string
+  ): ReviewConceptElement => ({ ...make(kind, brandDoc), text });
+  return {
+    background: paletteColor(brandDoc, ["background", "paper"], "#ffffff"),
+    borderColor: paletteColor(
+      brandDoc,
+      ["border", "outline", "stroke"],
+      "#e4e7ec"
+    ),
+    paddingX: 0,
+    paddingY: 0,
+    radius: 0,
+    slots: {
+      body: {
+        align: "center",
+        elements: [
+          sample("link", "Product"),
+          sample("link", "Pricing"),
+          sample("link", "About"),
+        ],
+        gap: 24,
+        justify: "center",
+        layout: "row",
+        paddingY: 12,
+      },
+      footer: {
+        align: "center",
+        elements: [sample("link", "Sign in"), sample("button", "Get started")],
+        gap: 12,
+        layout: "row",
+        paddingX: 20,
+        paddingY: 12,
+      },
+      header: {
+        align: "center",
+        elements: [make("logo", brandDoc)],
+        layout: "row",
+        paddingX: 20,
+        paddingY: 12,
+      },
+    },
+  };
+};

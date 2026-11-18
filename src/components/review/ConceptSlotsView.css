@@ -111,3 +111,25 @@
   align-self: stretch;
   width: 100%;
 }
+
+/* A navbar: start, middle and end in one row, the middle taking what is
+   left. Lines between slots run top to bottom here. */
+.concept-slots[data-bar] {
+  flex-direction: row;
+  align-items: center;
+}
+
+.concept-slots[data-bar] > .concept-slot[data-slot] {
+  flex: 0 0 auto;
+}
+
+.concept-slots[data-bar] > .concept-slot[data-slot="body"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.concept-slots[data-bar][data-dividers] > .concept-slot + .concept-slot {
+  border-block-start: 0;
+  border-inline-start: 1px solid
+    var(--concept-divider, color-mix(in oklch, currentColor 15%, transparent));
+}

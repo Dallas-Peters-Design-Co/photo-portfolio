@@ -510,3 +510,33 @@
     );
   }
 }
+
+/* The brand kit's logos to pick from, on a mid grey so light and dark marks both show. */
+.review-concepts__logos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1.5);
+}
+
+.review-concepts__logo-choice {
+  display: grid;
+  place-items: center;
+  width: 6rem;
+  height: 2.5rem;
+  padding: calc(var(--spacing) * 1);
+  cursor: pointer;
+  background: oklch(0.5 0.01 265);
+  border: 0;
+  border-radius: var(--radius-sm);
+}
+
+.review-concepts__logo-choice[aria-pressed="true"] {
+  outline: 2px solid currentcolor;
+  outline-offset: 1px;
+}
+
+.review-concepts__logo-choice img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
