@@ -7,7 +7,7 @@ description: "24 components from the Pretext brand kit, as React and CSS to copy
 
 Each component below is drawn with the Pretext brand kit's style. Copy the React file and its CSS into your project. The look is in the custom properties at the top of the CSS.
 
-**Accessibility:** 18 of 24 components pass an automated scan with axe-core 4.14.0 against WCAG 2.2 AA. Each component is scanned in a browser as drawn here, at rest. Hover and focus states, keyboard use and screen reader output still need a person to check.
+**Accessibility:** 19 of 24 components pass an automated scan with axe-core 4.14.0 against WCAG 2.2 AA. Each component is scanned in a browser as drawn here, at rest. Hover and focus states, keyboard use and screen reader output still need a person to check.
 
 ## Button · Primary
 
@@ -16,7 +16,7 @@ Each component below is drawn with the Pretext brand kit's style. Copy the React
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.33:1, needs 4.5:1 (#f2f0e7 on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 4.12:1, needs 4.5:1 (#022732 on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
@@ -43,15 +43,15 @@ export function ButtonPrimary({ className, children = "Get started", onClick }: 
 ```css ButtonPrimary.css
 .button-primary {
   --button-primary-background: #009387;
-  --button-primary-color: #f2f0e7;
+  --button-primary-color: #022732;
   --button-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-primary-font-size: 15px;
-  --button-primary-font-weight: 500;
+  --button-primary-font-weight: 600;
   --button-primary-line-height: 1.25;
   --button-primary-padding: 11px 18px;
   --button-primary-radius: 39px;
   --button-primary-border: none;
-  --button-primary-shadow: 0px 0px 0px 3px color-mix(in srgb, #009387 40%, transparent);
+  --button-primary-shadow: 0px 0px 0px 3px color-mix(in srgb, #022732 48%, transparent);
   --button-primary-hover-background: #132218;
 
   box-sizing: border-box;
@@ -302,7 +302,7 @@ export function ButtonNoBorder({ className, children = "Get started", onClick }:
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.35:1, needs 4.5:1 (#f8f9f9 on #f9470b). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 4.08:1, needs 4.5:1 (#f8f9f9 on #cc550e). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
@@ -327,7 +327,7 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
 
 ```css BadgeWarning.css
 .badge-warning {
-  --badge-warning-background: #f9470b;
+  --badge-warning-background: #cc550e;
   --badge-warning-color: #f8f9f9;
   --badge-warning-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-warning-font-size: 14px;
@@ -335,9 +335,9 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
   --badge-warning-line-height: 1;
   --badge-warning-padding: 4px 12px;
   --badge-warning-radius: 48px;
-  --badge-warning-border: 1px solid #f9470b;
+  --badge-warning-border: 1px solid #cc550e;
   --badge-warning-shadow: none;
-  --badge-warning-icon-color: #f9470b;
+  --badge-warning-icon-color: #cc550e;
 
   box-sizing: border-box;
   background: var(--badge-warning-background);
@@ -354,61 +354,61 @@ export function BadgeWarning({ className, children = "New" }: BadgeWarningProps)
 ```
 </CodeGroup>
 
-## Badge · Notes
+## Badge · Info
 
-<PreviewBadgeNotes />
+<PreviewBadgeInfo />
 
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 4.45:1, needs 4.5:1 (#486dca on #f2f5fb). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.94:1, needs 4.5:1 (#985ce7 on #faf7fe). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
-```tsx BadgeNotes.tsx
+```tsx BadgeInfo.tsx
 import type * as React from "react";
-import "./BadgeNotes.css";
+import "./BadgeInfo.css";
 
-interface BadgeNotesProps {
+interface BadgeInfoProps {
   className?: string;
   children?: React.ReactNode;
 }
 
-/** Notes badge, from the brand kit. */
-export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
+/** Info badge, from the brand kit. */
+export function BadgeInfo({ className, children = "New" }: BadgeInfoProps) {
   return (
-    <span className={className ? `badge-notes ${className}` : "badge-notes"}>
+    <span className={className ? `badge-info ${className}` : "badge-info"}>
       {children}
     </span>
   );
 }
 ```
 
-```css BadgeNotes.css
-.badge-notes {
-  --badge-notes-background: #486dca12;
-  --badge-notes-color: #486dca;
-  --badge-notes-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --badge-notes-font-size: 14px;
-  --badge-notes-font-weight: 600;
-  --badge-notes-line-height: 1;
-  --badge-notes-padding: 4px 12px;
-  --badge-notes-radius: 48px;
-  --badge-notes-border: 1px solid #486dca;
-  --badge-notes-shadow: none;
-  --badge-notes-icon-color: #009387;
+```css BadgeInfo.css
+.badge-info {
+  --badge-info-background: #985ce70d;
+  --badge-info-color: #985ce7;
+  --badge-info-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --badge-info-font-size: 14px;
+  --badge-info-font-weight: 600;
+  --badge-info-line-height: 1;
+  --badge-info-padding: 4px 12px;
+  --badge-info-radius: 48px;
+  --badge-info-border: 1px solid #985ce7;
+  --badge-info-shadow: none;
+  --badge-info-icon-color: #009387;
 
   box-sizing: border-box;
-  background: var(--badge-notes-background);
-  color: var(--badge-notes-color);
-  font-family: var(--badge-notes-font-family);
-  font-size: var(--badge-notes-font-size);
-  font-weight: var(--badge-notes-font-weight);
-  line-height: var(--badge-notes-line-height);
-  padding: var(--badge-notes-padding);
-  border-radius: var(--badge-notes-radius);
-  border: var(--badge-notes-border);
-  box-shadow: var(--badge-notes-shadow);
+  background: var(--badge-info-background);
+  color: var(--badge-info-color);
+  font-family: var(--badge-info-font-family);
+  font-size: var(--badge-info-font-size);
+  font-weight: var(--badge-info-font-weight);
+  line-height: var(--badge-info-line-height);
+  padding: var(--badge-info-padding);
+  border-radius: var(--badge-info-radius);
+  border: var(--badge-info-border);
+  box-shadow: var(--badge-info-shadow);
 }
 ```
 </CodeGroup>
@@ -417,11 +417,9 @@ export function BadgeNotes({ className, children = "New" }: BadgeNotesProps) {
 
 <PreviewBadgeSuccess />
 
-<Warning>
-**Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
-
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.57:1, needs 4.5:1 (#022732 on #3d8570). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
-</Warning>
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 1 WCAG 2.2 AA check on this component.
+</Check>
 
 <CodeGroup>
 ```tsx BadgeSuccess.tsx
@@ -445,15 +443,15 @@ export function BadgeSuccess({ className, children = "New" }: BadgeSuccessProps)
 
 ```css BadgeSuccess.css
 .badge-success {
-  --badge-success-background: #3d8570;
-  --badge-success-color: #022732;
+  --badge-success-background: #1a6344;
+  --badge-success-color: #f8f9f9;
   --badge-success-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-success-font-size: 14px;
   --badge-success-font-weight: 600;
   --badge-success-line-height: 1;
-  --badge-success-padding: 4px 16px;
+  --badge-success-padding: 4px 12px;
   --badge-success-radius: 48px;
-  --badge-success-border: 1px solid #3d8570;
+  --badge-success-border: 1px solid #1a6344;
   --badge-success-shadow: none;
 
   box-sizing: border-box;
@@ -1251,7 +1249,7 @@ export function TabsPrimary({
 <Warning>
 **Accessibility: 1 issue** found by axe-core 4.14.0 (WCAG 2.2 AA).
 
-- **Elements must meet minimum color contrast ratio thresholds** (serious): 3.35:1, needs 4.5:1 (#f8f9f9 on #f9470b); 3.33:1, needs 4.5:1 (#f2f0e7 on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
+- **Elements must meet minimum color contrast ratio thresholds** (serious): 4.08:1, needs 4.5:1 (#f8f9f9 on #cc550e); 4.12:1, needs 4.5:1 (#022732 on #009387). [About this rule](https://dequeuniversity.com/rules/axe/4.14/color-contrast)
 </Warning>
 
 <CodeGroup>
@@ -1342,11 +1340,11 @@ export function TablePrimary({ className }: TablePrimaryProps) {
 .table-primary__bar > span { display: block; block-size: 100%; background: var(--table-primary-tint); border-radius: inherit; }
 .table-primary th, .table-primary td { border-bottom: 1px solid #acb3ad; }
 .table-primary td:nth-child(2) { --table-primary-tint: #f8f9f9; }
-.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9470b; border: 1px solid #f9470b; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.table-primary td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #cc550e; border: 1px solid #cc550e; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
 .table-primary td:nth-child(3) { --table-primary-tint: #f8f9f9; }
-.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #f9470b; border: 1px solid #f9470b; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
-.table-primary td:nth-child(4) { --table-primary-tint: #f2f0e7; }
-.table-primary td:nth-child(4) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #009387; border: none; border-radius: 39px; box-shadow: 0px 0px 0px 3px color-mix(in srgb, #009387 40%, transparent); color: #f2f0e7; font-size: 15px; font-weight: 500; line-height: 1.25; padding: 11px 18px; }
+.table-primary td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #cc550e; border: 1px solid #cc550e; border-radius: 48px; color: #f8f9f9; font-size: 14px; font-weight: 600; line-height: 1; padding: 4px 12px; }
+.table-primary td:nth-child(4) { --table-primary-tint: #022732; }
+.table-primary td:nth-child(4) :is(.table-primary__tag, .table-primary__chip, .table-primary__button) { background: #009387; border: none; border-radius: 39px; box-shadow: 0px 0px 0px 3px color-mix(in srgb, #022732 48%, transparent); color: #022732; font-size: 15px; font-weight: 600; line-height: 1.25; padding: 11px 18px; }
 ```
 </CodeGroup>
 
@@ -1652,7 +1650,7 @@ export function PanelPrimary({ className }: PanelPrimaryProps) {
   outline-offset: 2px;
 }
 .panel-primary__hide-1 {
-  --panel-primary__hide-1-background: #93bfb5;
+  --panel-primary__hide-1-background: transparent;
   --panel-primary__hide-1-color: #344054;
   --panel-primary__hide-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --panel-primary__hide-1-font-size: 14px;
@@ -1741,7 +1739,7 @@ export function ProgressPrimary({ className }: ProgressPrimaryProps) {
   --progress-primary-radius: 0px;
   --progress-primary-border: none;
   --progress-primary-shadow: none;
-  --progress-primary-accent: #486dca;
+  --progress-primary-accent: #373b3a;
   --progress-primary-bar-height: 4px;
 
   box-sizing: border-box;
@@ -1983,9 +1981,9 @@ export const PreviewBadgeWarning = () => (
   </div>
 );
 
-export const PreviewBadgeNotes = () => (
+export const PreviewBadgeInfo = () => (
   <div className="not-prose bk-preview bk-pretext">
-    <span className="badge-notes">
+    <span className="badge-info">
       New
     </span>
   </div>

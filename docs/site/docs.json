@@ -41,11 +41,17 @@
         "pages": [
           {
             "group": "Get started",
-            "pages": ["index", "guide/quickstart"]
+            "pages": [
+              "index",
+              "guide/quickstart"
+            ]
           },
           {
             "group": "Sites and photos",
-            "pages": ["guide/photos", "guide/site-settings"]
+            "pages": [
+              "guide/photos",
+              "guide/site-settings"
+            ]
           },
           {
             "group": "Studio",
@@ -64,7 +70,10 @@
         "groups": [
           {
             "group": "Get started",
-            "pages": ["developers/overview", "developers/local-setup"]
+            "pages": [
+              "developers/overview",
+              "developers/local-setup"
+            ]
           },
           {
             "group": "Operations",
@@ -81,7 +90,9 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["developers/api"]
+            "pages": [
+              "developers/api"
+            ]
           },
           {
             "group": "Endpoints",
@@ -96,11 +107,16 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": ["components/index"]
+            "pages": [
+              "components/index"
+            ]
           },
           {
             "group": "Brands",
-            "pages": ["components/pretext"]
+            "pages": [
+              "components/pretext",
+              "components/viaskai"
+            ]
           }
         ],
         "tab": "Components"
