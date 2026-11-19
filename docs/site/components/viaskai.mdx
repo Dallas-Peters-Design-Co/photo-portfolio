@@ -561,7 +561,7 @@ export function TagNeedsFullText({ className, children = "Needs full text" }: Ta
   --tag-needs-full-text-font-weight: 500;
   --tag-needs-full-text-line-height: 1.25;
   --tag-needs-full-text-padding: 0px 9px;
-  --tag-needs-full-text-radius: 4px;
+  --tag-needs-full-text-radius: 0px;
   --tag-needs-full-text-border: 1px solid transparent;
   --tag-needs-full-text-shadow: none;
   --tag-needs-full-text-icon-color: var(--kit-hnp52d, #3f69db);
@@ -649,6 +649,72 @@ export function TagReadyToReview({ className, children = "Ready to review" }: Ta
 ```
 </CodeGroup>
 
+## Tag · Unreviewed
+
+<PreviewTagUnreviewed />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
+</Check>
+
+<CodeGroup>
+```tsx TagUnreviewed.tsx
+import type * as React from "react";
+import "./TagUnreviewed.css";
+
+interface TagUnreviewedProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+/** Unreviewed tag, from the brand kit. */
+export function TagUnreviewed({ className, children = "Unreviewed" }: TagUnreviewedProps) {
+  return (
+    <span className={className ? `tag-unreviewed ${className}` : "tag-unreviewed"}>
+      <svg className="tag-unreviewed__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" />
+        <path d="M12 8V12L14 14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+      <span>{children}</span>
+    </span>
+  );
+}
+```
+
+```css TagUnreviewed.css
+.tag-unreviewed {
+  --tag-unreviewed-background: transparent;
+  --tag-unreviewed-color: #000000;
+  --tag-unreviewed-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --tag-unreviewed-font-size: 13px;
+  --tag-unreviewed-font-weight: 500;
+  --tag-unreviewed-line-height: 1;
+  --tag-unreviewed-padding: 0px 0px;
+  --tag-unreviewed-radius: 0px;
+  --tag-unreviewed-border: 0px solid #acb3ad;
+  --tag-unreviewed-shadow: none;
+  --tag-unreviewed-icon-color: var(--kit-1krkxs8, #ce693a);
+  --tag-unreviewed-hover-background: #5b5952;
+  --tag-unreviewed-hover-color: #f2f2f2;
+
+  box-sizing: border-box;
+  background: var(--tag-unreviewed-background);
+  color: var(--tag-unreviewed-color);
+  font-family: var(--tag-unreviewed-font-family);
+  font-size: var(--tag-unreviewed-font-size);
+  font-weight: var(--tag-unreviewed-font-weight);
+  line-height: var(--tag-unreviewed-line-height);
+  padding: var(--tag-unreviewed-padding);
+  border-radius: var(--tag-unreviewed-radius);
+  border: var(--tag-unreviewed-border);
+  box-shadow: var(--tag-unreviewed-shadow);
+}
+
+.tag-unreviewed { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }
+.tag-unreviewed__icon { flex: none; color: var(--tag-unreviewed-icon-color, currentColor); }
+```
+</CodeGroup>
+
 ## Tag · Reviewed
 
 <PreviewTagReviewed />
@@ -710,6 +776,138 @@ export function TagReviewed({ className, children = "Reviewed" }: TagReviewedPro
 
 .tag-reviewed { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }
 .tag-reviewed__icon { flex: none; color: var(--tag-reviewed-icon-color, currentColor); }
+```
+</CodeGroup>
+
+## Tag · Shortlisted
+
+<PreviewTagShortlisted />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
+</Check>
+
+<CodeGroup>
+```tsx TagShortlisted.tsx
+import type * as React from "react";
+import "./TagShortlisted.css";
+
+interface TagShortlistedProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+/** Shortlisted tag, from the brand kit. */
+export function TagShortlisted({ className, children = "Shortlisted" }: TagShortlistedProps) {
+  return (
+    <span className={className ? `tag-shortlisted ${className}` : "tag-shortlisted"}>
+      <svg className="tag-shortlisted__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M11.3598 2.53349L9 4.5L5.5 4.5C4.94772 4.5 4.5 4.94772 4.5 5.5L4.5 9L2.53349 11.3598C2.22445 11.7307 2.22445 12.2693 2.53349 12.6402L4.5 15L4.5 18.5C4.5 19.0523 4.94772 19.5 5.5 19.5L9 19.5L11.3598 21.4665C11.7307 21.7756 12.2693 21.7756 12.6402 21.4665L15 19.5H18.5C19.0523 19.5 19.5 19.0523 19.5 18.5L19.5 15L21.4665 12.6402C21.7756 12.2693 21.7756 11.7307 21.4665 11.3598L19.5 9L19.5 5.5C19.5 4.94772 19.0523 4.5 18.5 4.5L15 4.5L12.6402 2.53349C12.2693 2.22445 11.7307 2.22445 11.3598 2.53349Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M9 13L11 15L15.5 9.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+      <span>{children}</span>
+    </span>
+  );
+}
+```
+
+```css TagShortlisted.css
+.tag-shortlisted {
+  --tag-shortlisted-background: transparent;
+  --tag-shortlisted-color: #000000;
+  --tag-shortlisted-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --tag-shortlisted-font-size: 13px;
+  --tag-shortlisted-font-weight: 500;
+  --tag-shortlisted-line-height: 1;
+  --tag-shortlisted-padding: 0px 0px;
+  --tag-shortlisted-radius: 0px;
+  --tag-shortlisted-border: 0px solid #acb3ad;
+  --tag-shortlisted-shadow: none;
+  --tag-shortlisted-icon-color: var(--kit-uv4dhm, #006733);
+  --tag-shortlisted-hover-background: #5b5952;
+  --tag-shortlisted-hover-color: #f2f2f2;
+
+  box-sizing: border-box;
+  background: var(--tag-shortlisted-background);
+  color: var(--tag-shortlisted-color);
+  font-family: var(--tag-shortlisted-font-family);
+  font-size: var(--tag-shortlisted-font-size);
+  font-weight: var(--tag-shortlisted-font-weight);
+  line-height: var(--tag-shortlisted-line-height);
+  padding: var(--tag-shortlisted-padding);
+  border-radius: var(--tag-shortlisted-radius);
+  border: var(--tag-shortlisted-border);
+  box-shadow: var(--tag-shortlisted-shadow);
+}
+
+.tag-shortlisted { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }
+.tag-shortlisted__icon { flex: none; color: var(--tag-shortlisted-icon-color, currentColor); }
+```
+</CodeGroup>
+
+## Tag · Excluded
+
+<PreviewTagExcluded />
+
+<Check>
+**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
+</Check>
+
+<CodeGroup>
+```tsx TagExcluded.tsx
+import type * as React from "react";
+import "./TagExcluded.css";
+
+interface TagExcludedProps {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+/** Excluded tag, from the brand kit. */
+export function TagExcluded({ className, children = "Excluded" }: TagExcludedProps) {
+  return (
+    <span className={className ? `tag-excluded ${className}` : "tag-excluded"}>
+      <svg className="tag-excluded__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M14.9994 15L9 9M9.00064 15L15 9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+      <span>{children}</span>
+    </span>
+  );
+}
+```
+
+```css TagExcluded.css
+.tag-excluded {
+  --tag-excluded-background: transparent;
+  --tag-excluded-color: #000000;
+  --tag-excluded-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
+  --tag-excluded-font-size: 13px;
+  --tag-excluded-font-weight: 500;
+  --tag-excluded-line-height: 1;
+  --tag-excluded-padding: 0px 0px;
+  --tag-excluded-radius: 0px;
+  --tag-excluded-border: 0px solid #acb3ad;
+  --tag-excluded-shadow: none;
+  --tag-excluded-icon-color: #ad001f;
+  --tag-excluded-hover-background: #5b5952;
+  --tag-excluded-hover-color: #f2f2f2;
+
+  box-sizing: border-box;
+  background: var(--tag-excluded-background);
+  color: var(--tag-excluded-color);
+  font-family: var(--tag-excluded-font-family);
+  font-size: var(--tag-excluded-font-size);
+  font-weight: var(--tag-excluded-font-weight);
+  line-height: var(--tag-excluded-line-height);
+  padding: var(--tag-excluded-padding);
+  border-radius: var(--tag-excluded-radius);
+  border: var(--tag-excluded-border);
+  box-shadow: var(--tag-excluded-shadow);
+}
+
+.tag-excluded { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }
+.tag-excluded__icon { flex: none; color: var(--tag-excluded-icon-color, currentColor); }
 ```
 </CodeGroup>
 
@@ -3644,206 +3842,6 @@ export function Divider({ className }: DividerProps) {
 ```
 </CodeGroup>
 
-## Tag · Text Only
-
-<PreviewTagTextOnly />
-
-<Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
-</Check>
-
-<CodeGroup>
-```tsx TagTextOnly.tsx
-import type * as React from "react";
-import "./TagTextOnly.css";
-
-interface TagTextOnlyProps {
-  className?: string;
-  children?: React.ReactNode;
-}
-
-/** Text Only tag, from the brand kit. */
-export function TagTextOnly({ className, children = "Text Only" }: TagTextOnlyProps) {
-  return (
-    <span className={className ? `tag-text-only ${className}` : "tag-text-only"}>
-      <svg className="tag-text-only__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M10.1504 5.1504C10.73 5.05323 11.346 5 12 5C19.5 5 22 12 22 12C22 12 21.4602 13.5115 20.1297 15.1297M6.51987 6.51987C3.22188 8.57873 2 12 2 12C2 12 4.5 19 12 19C14.2567 19 16.0607 18.3662 17.4801 17.4801" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M9.87868 9.87868C9.33579 10.4216 9 11.1716 9 12C9 13.6569 10.3431 15 12 15C12.8284 15 13.5784 14.6642 14.1213 14.1213" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-        <path d="M2 2L22 22" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      </svg>
-      <span>{children}</span>
-    </span>
-  );
-}
-```
-
-```css TagTextOnly.css
-.tag-text-only {
-  --tag-text-only-background: transparent;
-  --tag-text-only-color: #000000;
-  --tag-text-only-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --tag-text-only-font-size: 13px;
-  --tag-text-only-font-weight: 500;
-  --tag-text-only-line-height: 1;
-  --tag-text-only-padding: 5px 0px;
-  --tag-text-only-radius: 32px;
-  --tag-text-only-border: 0px solid #acb3ad;
-  --tag-text-only-shadow: none;
-  --tag-text-only-icon-color: #cc550e;
-  --tag-text-only-hover-background: #5b5952;
-  --tag-text-only-hover-color: #f2f2f2;
-
-  box-sizing: border-box;
-  background: var(--tag-text-only-background);
-  color: var(--tag-text-only-color);
-  font-family: var(--tag-text-only-font-family);
-  font-size: var(--tag-text-only-font-size);
-  font-weight: var(--tag-text-only-font-weight);
-  line-height: var(--tag-text-only-line-height);
-  padding: var(--tag-text-only-padding);
-  border-radius: var(--tag-text-only-radius);
-  border: var(--tag-text-only-border);
-  box-shadow: var(--tag-text-only-shadow);
-}
-
-.tag-text-only { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }
-.tag-text-only__icon { flex: none; color: var(--tag-text-only-icon-color, currentColor); }
-```
-</CodeGroup>
-
-## Tag · Text Only Danger
-
-<PreviewTagTextOnlyDanger />
-
-<Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
-</Check>
-
-<CodeGroup>
-```tsx TagTextOnlyDanger.tsx
-import type * as React from "react";
-import "./TagTextOnlyDanger.css";
-
-interface TagTextOnlyDangerProps {
-  className?: string;
-  children?: React.ReactNode;
-}
-
-/** Text Only Danger tag, from the brand kit. */
-export function TagTextOnlyDanger({ className, children = "Text Only Danger" }: TagTextOnlyDangerProps) {
-  return (
-    <span className={className ? `tag-text-only-danger ${className}` : "tag-text-only-danger"}>
-      <svg className="tag-text-only-danger__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M14.9994 15L9 9M9.00064 15L15 9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      </svg>
-      <span>{children}</span>
-    </span>
-  );
-}
-```
-
-```css TagTextOnlyDanger.css
-.tag-text-only-danger {
-  --tag-text-only-danger-background: transparent;
-  --tag-text-only-danger-color: #000000;
-  --tag-text-only-danger-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --tag-text-only-danger-font-size: 13px;
-  --tag-text-only-danger-font-weight: 500;
-  --tag-text-only-danger-line-height: 1;
-  --tag-text-only-danger-padding: 5px 0px;
-  --tag-text-only-danger-radius: 32px;
-  --tag-text-only-danger-border: 0px solid #acb3ad;
-  --tag-text-only-danger-shadow: none;
-  --tag-text-only-danger-icon-color: #ad001f;
-  --tag-text-only-danger-hover-background: #5b5952;
-  --tag-text-only-danger-hover-color: #f2f2f2;
-
-  box-sizing: border-box;
-  background: var(--tag-text-only-danger-background);
-  color: var(--tag-text-only-danger-color);
-  font-family: var(--tag-text-only-danger-font-family);
-  font-size: var(--tag-text-only-danger-font-size);
-  font-weight: var(--tag-text-only-danger-font-weight);
-  line-height: var(--tag-text-only-danger-line-height);
-  padding: var(--tag-text-only-danger-padding);
-  border-radius: var(--tag-text-only-danger-radius);
-  border: var(--tag-text-only-danger-border);
-  box-shadow: var(--tag-text-only-danger-shadow);
-}
-
-.tag-text-only-danger { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }
-.tag-text-only-danger__icon { flex: none; color: var(--tag-text-only-danger-icon-color, currentColor); }
-```
-</CodeGroup>
-
-## Tag · Text Only Success
-
-<PreviewTagTextOnlySuccess />
-
-<Check>
-**Accessibility: no issues found.** axe-core 4.14.0 passed 2 WCAG 2.2 AA checks on this component.
-</Check>
-
-<CodeGroup>
-```tsx TagTextOnlySuccess.tsx
-import type * as React from "react";
-import "./TagTextOnlySuccess.css";
-
-interface TagTextOnlySuccessProps {
-  className?: string;
-  children?: React.ReactNode;
-}
-
-/** Text Only Success tag, from the brand kit. */
-export function TagTextOnlySuccess({ className, children = "Text Only Success" }: TagTextOnlySuccessProps) {
-  return (
-    <span className={className ? `tag-text-only-success ${className}` : "tag-text-only-success"}>
-      <svg className="tag-text-only-success__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M22 8C22 8 17.5228 3 12 3C6.47715 3 2 8 2 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M12 7C7.08671 7 3.43133 11.7818 2 14C3.43133 16.2182 7.08671 21 12 21C16.9133 21 20.5687 16.2182 22 14C20.5687 11.7818 16.9133 7 12 7Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M15 14C15 12.3431 13.6569 11 12 11C10.3431 11 9 12.3431 9 14C9 15.6569 10.3431 17 12 17C13.6569 17 15 15.6569 15 14Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      </svg>
-      <span>{children}</span>
-    </span>
-  );
-}
-```
-
-```css TagTextOnlySuccess.css
-.tag-text-only-success {
-  --tag-text-only-success-background: transparent;
-  --tag-text-only-success-color: #000000;
-  --tag-text-only-success-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --tag-text-only-success-font-size: 13px;
-  --tag-text-only-success-font-weight: 500;
-  --tag-text-only-success-line-height: 1;
-  --tag-text-only-success-padding: 5px 0px;
-  --tag-text-only-success-radius: 32px;
-  --tag-text-only-success-border: 0px solid #acb3ad;
-  --tag-text-only-success-shadow: none;
-  --tag-text-only-success-icon-color: #2c591a;
-  --tag-text-only-success-hover-background: #5b5952;
-  --tag-text-only-success-hover-color: #f2f2f2;
-
-  box-sizing: border-box;
-  background: var(--tag-text-only-success-background);
-  color: var(--tag-text-only-success-color);
-  font-family: var(--tag-text-only-success-font-family);
-  font-size: var(--tag-text-only-success-font-size);
-  font-weight: var(--tag-text-only-success-font-weight);
-  line-height: var(--tag-text-only-success-line-height);
-  padding: var(--tag-text-only-success-padding);
-  border-radius: var(--tag-text-only-success-radius);
-  border: var(--tag-text-only-success-border);
-  box-shadow: var(--tag-text-only-success-shadow);
-}
-
-.tag-text-only-success { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }
-.tag-text-only-success__icon { flex: none; color: var(--tag-text-only-success-icon-color, currentColor); }
-```
-</CodeGroup>
-
 ## Avatar · Primary
 
 <PreviewAvatarPrimary />
@@ -4103,7 +4101,7 @@ export const PreviewBadgeActive = () => (
 
 export const PreviewTagNeedsFullText = () => (
   <div className="not-prose bk-preview bk-viaskai">
-    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-needs-full-text {\n  --tag-needs-full-text-background: transparent;\n  --tag-needs-full-text-color: var(--kit-18u0jwu, #000609);\n  --tag-needs-full-text-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-needs-full-text-font-size: 14px;\n  --tag-needs-full-text-font-weight: 500;\n  --tag-needs-full-text-line-height: 1.25;\n  --tag-needs-full-text-padding: 0px 9px;\n  --tag-needs-full-text-radius: 4px;\n  --tag-needs-full-text-border: 1px solid transparent;\n  --tag-needs-full-text-shadow: none;\n  --tag-needs-full-text-icon-color: var(--kit-hnp52d, #3f69db);\n  --tag-needs-full-text-icon-size: 13px;\n\n  box-sizing: border-box;\n  background: var(--tag-needs-full-text-background);\n  color: var(--tag-needs-full-text-color);\n  font-family: var(--tag-needs-full-text-font-family);\n  font-size: var(--tag-needs-full-text-font-size);\n  font-weight: var(--tag-needs-full-text-font-weight);\n  line-height: var(--tag-needs-full-text-line-height);\n  padding: var(--tag-needs-full-text-padding);\n  border-radius: var(--tag-needs-full-text-radius);\n  border: var(--tag-needs-full-text-border);\n  box-shadow: var(--tag-needs-full-text-shadow);\n}\n\n.tag-needs-full-text { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }\n.tag-needs-full-text__icon { flex: none; color: var(--tag-needs-full-text-icon-color, currentColor); }\n}"}</style>
+    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-needs-full-text {\n  --tag-needs-full-text-background: transparent;\n  --tag-needs-full-text-color: var(--kit-18u0jwu, #000609);\n  --tag-needs-full-text-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-needs-full-text-font-size: 14px;\n  --tag-needs-full-text-font-weight: 500;\n  --tag-needs-full-text-line-height: 1.25;\n  --tag-needs-full-text-padding: 0px 9px;\n  --tag-needs-full-text-radius: 0px;\n  --tag-needs-full-text-border: 1px solid transparent;\n  --tag-needs-full-text-shadow: none;\n  --tag-needs-full-text-icon-color: var(--kit-hnp52d, #3f69db);\n  --tag-needs-full-text-icon-size: 13px;\n\n  box-sizing: border-box;\n  background: var(--tag-needs-full-text-background);\n  color: var(--tag-needs-full-text-color);\n  font-family: var(--tag-needs-full-text-font-family);\n  font-size: var(--tag-needs-full-text-font-size);\n  font-weight: var(--tag-needs-full-text-font-weight);\n  line-height: var(--tag-needs-full-text-line-height);\n  padding: var(--tag-needs-full-text-padding);\n  border-radius: var(--tag-needs-full-text-radius);\n  border: var(--tag-needs-full-text-border);\n  box-shadow: var(--tag-needs-full-text-shadow);\n}\n\n.tag-needs-full-text { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }\n.tag-needs-full-text__icon { flex: none; color: var(--tag-needs-full-text-icon-color, currentColor); }\n}"}</style>
     <span className="tag-needs-full-text">
       <svg className="tag-needs-full-text__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <circle r="10" cx="12" cy="12" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
@@ -4125,6 +4123,19 @@ export const PreviewTagReadyToReview = () => (
   </div>
 );
 
+export const PreviewTagUnreviewed = () => (
+  <div className="not-prose bk-preview bk-viaskai">
+    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-unreviewed {\n  --tag-unreviewed-background: transparent;\n  --tag-unreviewed-color: #000000;\n  --tag-unreviewed-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-unreviewed-font-size: 13px;\n  --tag-unreviewed-font-weight: 500;\n  --tag-unreviewed-line-height: 1;\n  --tag-unreviewed-padding: 0px 0px;\n  --tag-unreviewed-radius: 0px;\n  --tag-unreviewed-border: 0px solid #acb3ad;\n  --tag-unreviewed-shadow: none;\n  --tag-unreviewed-icon-color: var(--kit-1krkxs8, #ce693a);\n  --tag-unreviewed-hover-background: #5b5952;\n  --tag-unreviewed-hover-color: #f2f2f2;\n\n  box-sizing: border-box;\n  background: var(--tag-unreviewed-background);\n  color: var(--tag-unreviewed-color);\n  font-family: var(--tag-unreviewed-font-family);\n  font-size: var(--tag-unreviewed-font-size);\n  font-weight: var(--tag-unreviewed-font-weight);\n  line-height: var(--tag-unreviewed-line-height);\n  padding: var(--tag-unreviewed-padding);\n  border-radius: var(--tag-unreviewed-radius);\n  border: var(--tag-unreviewed-border);\n  box-shadow: var(--tag-unreviewed-shadow);\n}\n\n.tag-unreviewed { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }\n.tag-unreviewed__icon { flex: none; color: var(--tag-unreviewed-icon-color, currentColor); }\n}"}</style>
+    <span className="tag-unreviewed">
+      <svg className="tag-unreviewed__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" strokeWidth="2" />
+        <path d="M12 8V12L14 14" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+      <span>Unreviewed</span>
+    </span>
+  </div>
+);
+
 export const PreviewTagReviewed = () => (
   <div className="not-prose bk-preview bk-viaskai">
     <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-reviewed {\n  --tag-reviewed-background: transparent;\n  --tag-reviewed-color: var(--kit-18u0jwu, #000609);\n  --tag-reviewed-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-reviewed-font-size: 14px;\n  --tag-reviewed-font-weight: 500;\n  --tag-reviewed-line-height: 1.25;\n  --tag-reviewed-padding: 0px 9px;\n  --tag-reviewed-radius: 4px;\n  --tag-reviewed-border: 1px solid transparent;\n  --tag-reviewed-shadow: none;\n  --tag-reviewed-icon-color: var(--kit-uv4dhm, #006733);\n  --tag-reviewed-icon-size: 13px;\n\n  box-sizing: border-box;\n  background: var(--tag-reviewed-background);\n  color: var(--tag-reviewed-color);\n  font-family: var(--tag-reviewed-font-family);\n  font-size: var(--tag-reviewed-font-size);\n  font-weight: var(--tag-reviewed-font-weight);\n  line-height: var(--tag-reviewed-line-height);\n  padding: var(--tag-reviewed-padding);\n  border-radius: var(--tag-reviewed-radius);\n  border: var(--tag-reviewed-border);\n  box-shadow: var(--tag-reviewed-shadow);\n}\n\n.tag-reviewed { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0; white-space: nowrap; }\n.tag-reviewed__icon { flex: none; color: var(--tag-reviewed-icon-color, currentColor); }\n}"}</style>
@@ -4133,6 +4144,32 @@ export const PreviewTagReviewed = () => (
         <path d="M1.25 12C1.25 6.06294 6.06294 1.25 12 1.25C17.9371 1.25 22.75 6.06294 22.75 12C22.75 17.9371 17.9371 22.75 12 22.75C6.06294 22.75 1.25 17.9371 1.25 12Z" fill="currentColor" clipRule="evenodd" fillRule="evenodd" strokeWidth="2" />
       </svg>
       <span>Reviewed</span>
+    </span>
+  </div>
+);
+
+export const PreviewTagShortlisted = () => (
+  <div className="not-prose bk-preview bk-viaskai">
+    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-shortlisted {\n  --tag-shortlisted-background: transparent;\n  --tag-shortlisted-color: #000000;\n  --tag-shortlisted-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-shortlisted-font-size: 13px;\n  --tag-shortlisted-font-weight: 500;\n  --tag-shortlisted-line-height: 1;\n  --tag-shortlisted-padding: 0px 0px;\n  --tag-shortlisted-radius: 0px;\n  --tag-shortlisted-border: 0px solid #acb3ad;\n  --tag-shortlisted-shadow: none;\n  --tag-shortlisted-icon-color: var(--kit-uv4dhm, #006733);\n  --tag-shortlisted-hover-background: #5b5952;\n  --tag-shortlisted-hover-color: #f2f2f2;\n\n  box-sizing: border-box;\n  background: var(--tag-shortlisted-background);\n  color: var(--tag-shortlisted-color);\n  font-family: var(--tag-shortlisted-font-family);\n  font-size: var(--tag-shortlisted-font-size);\n  font-weight: var(--tag-shortlisted-font-weight);\n  line-height: var(--tag-shortlisted-line-height);\n  padding: var(--tag-shortlisted-padding);\n  border-radius: var(--tag-shortlisted-radius);\n  border: var(--tag-shortlisted-border);\n  box-shadow: var(--tag-shortlisted-shadow);\n}\n\n.tag-shortlisted { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }\n.tag-shortlisted__icon { flex: none; color: var(--tag-shortlisted-icon-color, currentColor); }\n}"}</style>
+    <span className="tag-shortlisted">
+      <svg className="tag-shortlisted__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M11.3598 2.53349L9 4.5L5.5 4.5C4.94772 4.5 4.5 4.94772 4.5 5.5L4.5 9L2.53349 11.3598C2.22445 11.7307 2.22445 12.2693 2.53349 12.6402L4.5 15L4.5 18.5C4.5 19.0523 4.94772 19.5 5.5 19.5L9 19.5L11.3598 21.4665C11.7307 21.7756 12.2693 21.7756 12.6402 21.4665L15 19.5H18.5C19.0523 19.5 19.5 19.0523 19.5 18.5L19.5 15L21.4665 12.6402C21.7756 12.2693 21.7756 11.7307 21.4665 11.3598L19.5 9L19.5 5.5C19.5 4.94772 19.0523 4.5 18.5 4.5L15 4.5L12.6402 2.53349C12.2693 2.22445 11.7307 2.22445 11.3598 2.53349Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M9 13L11 15L15.5 9.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+      <span>Shortlisted</span>
+    </span>
+  </div>
+);
+
+export const PreviewTagExcluded = () => (
+  <div className="not-prose bk-preview bk-viaskai">
+    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-excluded {\n  --tag-excluded-background: transparent;\n  --tag-excluded-color: #000000;\n  --tag-excluded-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-excluded-font-size: 13px;\n  --tag-excluded-font-weight: 500;\n  --tag-excluded-line-height: 1;\n  --tag-excluded-padding: 0px 0px;\n  --tag-excluded-radius: 0px;\n  --tag-excluded-border: 0px solid #acb3ad;\n  --tag-excluded-shadow: none;\n  --tag-excluded-icon-color: #ad001f;\n  --tag-excluded-hover-background: #5b5952;\n  --tag-excluded-hover-color: #f2f2f2;\n\n  box-sizing: border-box;\n  background: var(--tag-excluded-background);\n  color: var(--tag-excluded-color);\n  font-family: var(--tag-excluded-font-family);\n  font-size: var(--tag-excluded-font-size);\n  font-weight: var(--tag-excluded-font-weight);\n  line-height: var(--tag-excluded-line-height);\n  padding: var(--tag-excluded-padding);\n  border-radius: var(--tag-excluded-radius);\n  border: var(--tag-excluded-border);\n  box-shadow: var(--tag-excluded-shadow);\n}\n\n.tag-excluded { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }\n.tag-excluded__icon { flex: none; color: var(--tag-excluded-icon-color, currentColor); }\n}"}</style>
+    <span className="tag-excluded">
+      <svg className="tag-excluded__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+        <path d="M14.9994 15L9 9M9.00064 15L15 9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+      <span>Excluded</span>
     </span>
   </div>
 );
@@ -4677,47 +4714,6 @@ export const PreviewDivider = () => (
   <div className="not-prose bk-preview bk-viaskai">
     <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.divider {\n  --divider-background: transparent;\n  --divider-color: var(--kit-yr89bp, #a8a6a4);\n  --divider-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --divider-font-size: 14px;\n  --divider-font-weight: 400;\n  --divider-line-height: 1.25;\n  --divider-padding: 0px 0px;\n  --divider-radius: 0px;\n  --divider-border: none;\n  --divider-shadow: none;\n\n  box-sizing: border-box;\n  background: var(--divider-background);\n  color: var(--divider-color);\n  font-family: var(--divider-font-family);\n  font-size: var(--divider-font-size);\n  font-weight: var(--divider-font-weight);\n  line-height: var(--divider-line-height);\n  padding: var(--divider-padding);\n  border-radius: var(--divider-radius);\n  border: var(--divider-border);\n  box-shadow: var(--divider-shadow);\n}\n\n.divider { border: 0; border-top: var(--divider-border); padding: 0; margin: 0; }\n}"}</style>
     <hr className="divider" />
-  </div>
-);
-
-export const PreviewTagTextOnly = () => (
-  <div className="not-prose bk-preview bk-viaskai">
-    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-text-only {\n  --tag-text-only-background: transparent;\n  --tag-text-only-color: #000000;\n  --tag-text-only-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-text-only-font-size: 13px;\n  --tag-text-only-font-weight: 500;\n  --tag-text-only-line-height: 1;\n  --tag-text-only-padding: 5px 0px;\n  --tag-text-only-radius: 32px;\n  --tag-text-only-border: 0px solid #acb3ad;\n  --tag-text-only-shadow: none;\n  --tag-text-only-icon-color: #cc550e;\n  --tag-text-only-hover-background: #5b5952;\n  --tag-text-only-hover-color: #f2f2f2;\n\n  box-sizing: border-box;\n  background: var(--tag-text-only-background);\n  color: var(--tag-text-only-color);\n  font-family: var(--tag-text-only-font-family);\n  font-size: var(--tag-text-only-font-size);\n  font-weight: var(--tag-text-only-font-weight);\n  line-height: var(--tag-text-only-line-height);\n  padding: var(--tag-text-only-padding);\n  border-radius: var(--tag-text-only-radius);\n  border: var(--tag-text-only-border);\n  box-shadow: var(--tag-text-only-shadow);\n}\n\n.tag-text-only { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }\n.tag-text-only__icon { flex: none; color: var(--tag-text-only-icon-color, currentColor); }\n}"}</style>
-    <span className="tag-text-only">
-      <svg className="tag-text-only__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M10.1504 5.1504C10.73 5.05323 11.346 5 12 5C19.5 5 22 12 22 12C22 12 21.4602 13.5115 20.1297 15.1297M6.51987 6.51987C3.22188 8.57873 2 12 2 12C2 12 4.5 19 12 19C14.2567 19 16.0607 18.3662 17.4801 17.4801" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M9.87868 9.87868C9.33579 10.4216 9 11.1716 9 12C9 13.6569 10.3431 15 12 15C12.8284 15 13.5784 14.6642 14.1213 14.1213" stroke="currentColor" strokeLinecap="round" strokeWidth="2" />
-        <path d="M2 2L22 22" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      </svg>
-      <span>Text Only</span>
-    </span>
-  </div>
-);
-
-export const PreviewTagTextOnlyDanger = () => (
-  <div className="not-prose bk-preview bk-viaskai">
-    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-text-only-danger {\n  --tag-text-only-danger-background: transparent;\n  --tag-text-only-danger-color: #000000;\n  --tag-text-only-danger-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-text-only-danger-font-size: 13px;\n  --tag-text-only-danger-font-weight: 500;\n  --tag-text-only-danger-line-height: 1;\n  --tag-text-only-danger-padding: 5px 0px;\n  --tag-text-only-danger-radius: 32px;\n  --tag-text-only-danger-border: 0px solid #acb3ad;\n  --tag-text-only-danger-shadow: none;\n  --tag-text-only-danger-icon-color: #ad001f;\n  --tag-text-only-danger-hover-background: #5b5952;\n  --tag-text-only-danger-hover-color: #f2f2f2;\n\n  box-sizing: border-box;\n  background: var(--tag-text-only-danger-background);\n  color: var(--tag-text-only-danger-color);\n  font-family: var(--tag-text-only-danger-font-family);\n  font-size: var(--tag-text-only-danger-font-size);\n  font-weight: var(--tag-text-only-danger-font-weight);\n  line-height: var(--tag-text-only-danger-line-height);\n  padding: var(--tag-text-only-danger-padding);\n  border-radius: var(--tag-text-only-danger-radius);\n  border: var(--tag-text-only-danger-border);\n  box-shadow: var(--tag-text-only-danger-shadow);\n}\n\n.tag-text-only-danger { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }\n.tag-text-only-danger__icon { flex: none; color: var(--tag-text-only-danger-icon-color, currentColor); }\n}"}</style>
-    <span className="tag-text-only-danger">
-      <svg className="tag-text-only-danger__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M14.9994 15L9 9M9.00064 15L15 9" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      </svg>
-      <span>Text Only Danger</span>
-    </span>
-  </div>
-);
-
-export const PreviewTagTextOnlySuccess = () => (
-  <div className="not-prose bk-preview bk-viaskai">
-    <style>{"@import url(\"https://api.fontshare.com/v2/css?f[]=general-sans%40100%2C200%2C300%2C400%2C500%2C600%2C700%2C800%2C900&display=swap\");\n/* Generated by scripts/docs-components.mjs. Do not edit. */\n.bk-preview {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: flex-start;\n  gap: 1rem;\n  padding: 2rem;\n  margin: 1rem 0;\n  border: 1px solid rgb(127 127 127 / 0.2);\n  border-radius: 0.75rem;\n  background: #fff;\n  overflow-x: auto;\n  /* A light box on a dark page: native controls (a select's list, a\n     checkbox) draw light, as they do where the kit is used. */\n  color-scheme: light;\n}\n\n/*\n * The docs theme stops at the preview. Its typography reaches inside even\n * with not-prose: in the dark theme bold text turned near-white, so card\n * and panel titles vanished on the white box, and table rows took its\n * rules. Those rules are in a cascade layer, so these plain ones win over\n * them, while each component's own rules (two classes) still win over these.\n */\n.bk-preview :is(strong, b) {\n  color: inherit;\n}\n\n.bk-preview :is(thead, tbody, tr) {\n  border: 0;\n}\n\n/* The theme's checkbox margin is not layered; this outweighs it. */\n.bk-preview input[type=\"checkbox\"] {\n  margin: 0;\n}\n\n/* Keep open menus inside the preview, including Mintlify's snippet frame. */\n.bk-preview details[open] > [class$=\"__list\"] {\n  position: static;\n  margin-block-start: 4px;\n}\n\n.bk-viaskai {\n.tag-text-only-success {\n  --tag-text-only-success-background: transparent;\n  --tag-text-only-success-color: #000000;\n  --tag-text-only-success-font-family: \"General Sans\", ui-sans-serif, system-ui, sans-serif;\n  --tag-text-only-success-font-size: 13px;\n  --tag-text-only-success-font-weight: 500;\n  --tag-text-only-success-line-height: 1;\n  --tag-text-only-success-padding: 5px 0px;\n  --tag-text-only-success-radius: 32px;\n  --tag-text-only-success-border: 0px solid #acb3ad;\n  --tag-text-only-success-shadow: none;\n  --tag-text-only-success-icon-color: #2c591a;\n  --tag-text-only-success-hover-background: #5b5952;\n  --tag-text-only-success-hover-color: #f2f2f2;\n\n  box-sizing: border-box;\n  background: var(--tag-text-only-success-background);\n  color: var(--tag-text-only-success-color);\n  font-family: var(--tag-text-only-success-font-family);\n  font-size: var(--tag-text-only-success-font-size);\n  font-weight: var(--tag-text-only-success-font-weight);\n  line-height: var(--tag-text-only-success-line-height);\n  padding: var(--tag-text-only-success-padding);\n  border-radius: var(--tag-text-only-success-radius);\n  border: var(--tag-text-only-success-border);\n  box-shadow: var(--tag-text-only-success-shadow);\n}\n\n.tag-text-only-success { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; white-space: nowrap; }\n.tag-text-only-success__icon { flex: none; color: var(--tag-text-only-success-icon-color, currentColor); }\n}"}</style>
-    <span className="tag-text-only-success">
-      <svg className="tag-text-only-success__icon" width={13} height={13} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M22 8C22 8 17.5228 3 12 3C6.47715 3 2 8 2 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M12 7C7.08671 7 3.43133 11.7818 2 14C3.43133 16.2182 7.08671 21 12 21C16.9133 21 20.5687 16.2182 22 14C20.5687 11.7818 16.9133 7 12 7Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-        <path d="M15 14C15 12.3431 13.6569 11 12 11C10.3431 11 9 12.3431 9 14C9 15.6569 10.3431 17 12 17C13.6569 17 15 15.6569 15 14Z" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
-      </svg>
-      <span>Text Only Success</span>
-    </span>
   </div>
 );
 
