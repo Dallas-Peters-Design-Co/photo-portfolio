@@ -694,7 +694,7 @@
 }
 .bk-pretex-t {
 .badge-provided {
-  --badge-provided-background: var(--kit-hz1nhj, #37cdab);
+  --badge-provided-background: var(--kit-15n1ybb, #00a36d);
   --badge-provided-color: var(--kit-18u0jwu, #000609);
   --badge-provided-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-provided-font-size: 14px;
@@ -702,7 +702,7 @@
   --badge-provided-line-height: 1;
   --badge-provided-padding: 4px 10px;
   --badge-provided-radius: 6px;
-  --badge-provided-border: 1px solid var(--kit-hz1nhj, #37cdab);
+  --badge-provided-border: 1px solid var(--kit-15n1ybb, #00a36d);
   --badge-provided-shadow: none;
   --badge-provided-icon-color: var(--kit-18u0jwu, #000609);
 
@@ -2898,7 +2898,7 @@
 }
 .bk-viaskai {
 .badge-provided {
-  --badge-provided-background: var(--kit-hz1nhj, #37cdab);
+  --badge-provided-background: var(--kit-15n1ybb, #00a36d);
   --badge-provided-color: var(--kit-18u0jwu, #000609);
   --badge-provided-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-provided-font-size: 14px;
@@ -2906,7 +2906,7 @@
   --badge-provided-line-height: 1;
   --badge-provided-padding: 4px 10px;
   --badge-provided-radius: 6px;
-  --badge-provided-border: 1px solid var(--kit-hz1nhj, #37cdab);
+  --badge-provided-border: 1px solid var(--kit-15n1ybb, #00a36d);
   --badge-provided-shadow: none;
   --badge-provided-icon-color: var(--kit-18u0jwu, #000609);
 
