@@ -1,4 +1,4 @@
-import { Palette, Trash2, Type } from "lucide-react";
+import { Copy, Palette, Trash2, Type } from "lucide-react";
 import {
   type Dispatch,
   type SetStateAction,
@@ -165,6 +165,7 @@ function ComponentCard({
   const [state, setState] = useState<"idle" | "dirty" | "saving" | "failed">(
     "idle"
   );
+  const [isDuplicating, setIsDuplicating] = useState(false);
   // The newest draft, for the save that fires after the pause.
   const latest = useRef(draft);
   latest.current = draft;
@@ -223,6 +224,24 @@ function ComponentCard({
     }
   };
 
+  const duplicate = async () => {
+    setIsDuplicating(true);
+    try {
+      const { id: _id, kitId: _kitId, updatedAt: _updatedAt, ...copy } = draft;
+      const next = await componentsApi.save({
+        ...copy,
+        kitId: saved.kitId,
+        name: `${draft.name.slice(0, 54)} copy`,
+      });
+      savedRef.current(next);
+      toast.success(`Duplicated ${draft.name}`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't duplicate it");
+    } finally {
+      setIsDuplicating(false);
+    }
+  };
+
   const STATUS = {
     dirty: "Saving…",
     failed: "Not saved",
@@ -250,6 +269,17 @@ function ComponentCard({
           <span aria-live="polite" className="kit-canvas-components__meta">
             {STATUS[state]}
           </span>
+          <Button
+            aria-label={`Duplicate ${saved.name}`}
+            disabled={isDuplicating}
+            onClick={() => void duplicate()}
+            size="icon-sm"
+            title="Duplicate the component"
+            type="button"
+            variant="ghost"
+          >
+            <Copy aria-hidden size={13} />
+          </Button>
           <Button
             aria-label={`Delete ${saved.name}`}
             onClick={() => void remove()}

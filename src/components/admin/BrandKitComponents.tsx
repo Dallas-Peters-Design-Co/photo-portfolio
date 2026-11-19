@@ -1,4 +1,4 @@
-import { ChevronDown, Code2, Trash2 } from "lucide-react";
+import { ChevronDown, Code2, Copy, Trash2 } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { toast } from "sonner";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
@@ -93,6 +93,7 @@ function StyleEditor({
   brand,
   handle,
   onChange,
+  onDuplicate,
   onRemove,
   onToggle,
   open,
@@ -102,6 +103,7 @@ function StyleEditor({
   /** The drag handle that moves the style in the list. */
   handle: ReactNode;
   onChange: (next: ConceptStyle) => void;
+  onDuplicate: () => void;
   onRemove: () => void;
   onToggle: () => void;
   open: boolean;
@@ -135,6 +137,16 @@ function StyleEditor({
           value={style.name}
         />
         <ComponentStyleClipboard element={sample} onChange={changeLook} />
+        <Button
+          aria-label={`Duplicate ${style.name}`}
+          onClick={onDuplicate}
+          size="icon-sm"
+          title="Duplicate component style"
+          type="button"
+          variant="ghost"
+        >
+          <Copy aria-hidden size={13} />
+        </Button>
         <Button
           aria-label={`Copy ${style.name} source code`}
           onClick={() => copySource(sample, style.name)}
@@ -252,6 +264,23 @@ export function BrandKitComponents({
     ]);
   };
 
+  const duplicate = (style: ConceptStyle) => {
+    if (styles.length >= MAX_CONCEPT_STYLES) {
+      toast.error("The kit has reached its component style limit.");
+      return;
+    }
+    const id = newItemId();
+    const index = styles.findIndex((item) => item.id === style.id);
+    const copy: ConceptStyle = {
+      ...style,
+      id,
+      look: structuredClone(style.look),
+      name: `${style.name} copy`,
+    };
+    setOpen((was) => new Set(was).add(id));
+    set([...styles.slice(0, index + 1), copy, ...styles.slice(index + 1)]);
+  };
+
   return (
     <div className="stack stack--snug">
       <p className="brand-kit__hint">
@@ -324,6 +353,7 @@ export function BrandKitComponents({
               onChange={(next) =>
                 set(styles.map((s) => (s.id === style.id ? next : s)))
               }
+              onDuplicate={() => duplicate(style)}
               onRemove={() => set(styles.filter((s) => s.id !== style.id))}
               onToggle={() => toggle(style.id)}
               // Folded while a style is dragged, so it is easy to carry.
