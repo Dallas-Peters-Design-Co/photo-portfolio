@@ -49,12 +49,14 @@ function Tracks({
 
 export function PageFrameGridFields({
   grid,
+  workspace,
   save,
 }: {
   grid?: FrameGrid;
+  workspace?: FrameGrid;
   save: (grid: FrameGrid) => void;
 }) {
-  const current = grid ?? DEFAULT_FRAME_GRID;
+  const current = grid ?? workspace ?? DEFAULT_FRAME_GRID;
   return (
     <>
       <PageSelect
@@ -66,6 +68,15 @@ export function PageFrameGridFields({
         ]}
         value={grid?.enabled ? "grid" : "free"}
       />
+      {workspace ? (
+        <button
+          className="page-builder__button"
+          onClick={() => save(workspace)}
+          type="button"
+        >
+          Arrange navbar, card row and panels
+        </button>
+      ) : null}
       {grid?.enabled === true && (
         <>
           <Tracks

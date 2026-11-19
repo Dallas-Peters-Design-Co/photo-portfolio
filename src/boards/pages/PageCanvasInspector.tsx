@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
+import { workspaceGrid } from "../../../config/pageWorkspaceGrid.js";
 import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
 import { ConceptColorField } from "../../components/admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../../components/admin/ReviewConceptElementFields";
@@ -121,6 +122,7 @@ export function PageCanvasInspector({
       <PageFrameGridFields
         grid={page.grid}
         save={(grid) => write({ ...resolved, grid })}
+        workspace={workspaceGrid(page, step?.elements ?? [])}
       />
       <div className="page-builder__numbers">
         <PageNumber
