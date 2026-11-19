@@ -1,6 +1,7 @@
 import type React from "react";
 import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
+import { useComponentVersion } from "../../../boards/components/store";
 import {
   framesIntoShaders,
   framesToRender,
@@ -80,6 +81,9 @@ export const useLiveFrameRenders = ({
   latest.current = { pending, save, setItems };
   // Unrelated board activity must not restart the debounce. Include the
   // design fingerprint so an edit during an upload schedules its own render.
+  const componentVersion = useComponentVersion();
+  // The frame fingerprint reads component definitions from the external store.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: componentVersion invalidates that lookup
   const work = useMemo(
     () =>
       JSON.stringify(
@@ -88,7 +92,7 @@ export const useLiveFrameRenders = ({
           frameKeyOf(frame, items),
         ])
       ),
-    [items, wires]
+    [items, wires, componentVersion]
   );
 
   useEffect(() => {

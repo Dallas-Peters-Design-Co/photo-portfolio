@@ -2,6 +2,7 @@ import { textStyleCss } from "../../../config/textStyle";
 import { loadFontRef } from "../../theme/remoteFonts";
 import type { BoardItem } from "../../types";
 import "../itemBodies.css";
+import { exportLayers } from "./exportLayers";
 
 /**
  * Text layers set off screen exactly as the artboard sets them, for frames
@@ -24,7 +25,7 @@ export const withTextGhosts = async <T>(
     "position:fixed;left:-100000px;top:0;visibility:hidden;pointer-events:none";
   parent.append(holder);
   const els = new Map<string, HTMLElement>();
-  for (const item of items) {
+  for (const item of exportLayers(items)) {
     if (item.kind !== "text" && item.kind !== "note") {
       continue;
     }

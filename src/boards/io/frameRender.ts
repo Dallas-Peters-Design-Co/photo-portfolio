@@ -119,11 +119,12 @@ export const withFrameRenders = async (
   // One at a time: each is a full canvas, and posters are big.
   for (const frame of frames) {
     try {
+      const renderKey = frameKeyOf(frame, items);
       // biome-ignore lint/performance/noAwaitInLoops: sequential for memory (above)
       const png = await renderFrameBlob(frame, items);
       done.set(frame.id, {
         ...(frame.config ?? {}),
-        renderKey: frameKeyOf(frame, items),
+        renderKey,
         renderUrl: await upload(png),
       });
     } catch (e) {

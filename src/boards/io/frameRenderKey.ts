@@ -1,5 +1,7 @@
 import { containedBy } from "../../../config/graph.js";
 import type { BoardItem } from "../../types";
+import { instanceOf } from "../components/model";
+import { componentById } from "../components/store";
 
 /**
  * A designed frame as one picture, for the nodes it's wired into.
@@ -46,6 +48,9 @@ export const frameKeyOf = (frame: BoardItem, items: BoardItem[]): string =>
         i.imageUrl,
         i.result?.url ?? null,
         i.config ?? null,
+        ...(i.kind === "component"
+          ? [componentById(instanceOf(i)?.component ?? "")?.updatedAt ?? null]
+          : []),
       ]),
     ])
   );

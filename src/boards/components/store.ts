@@ -36,12 +36,15 @@ const subscribe = (fn: () => void) => {
   return () => listeners.delete(fn);
 };
 
-/** Re-renders when any definition changes; returns the lookup. */
-export const useComponentDefs = (): ((id: string) => BrandComponent | null) => {
+export const useComponentVersion = () =>
   useSyncExternalStore(
     subscribe,
     () => version,
     () => version
   );
+
+/** Re-renders when any definition changes; returns the lookup. */
+export const useComponentDefs = (): ((id: string) => BrandComponent | null) => {
+  useComponentVersion();
   return componentById;
 };
