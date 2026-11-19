@@ -126,7 +126,7 @@ const widgetOf = (source) => {
 const widgetMarkup = (source, preview, state) => {
   const start = state ? `() => {\n${state}\n  return (` : "() => (";
   const end = state ? ");\n};" : ");";
-  return `export const Preview${source.name} = ${start}\n  <div className="not-prose bk-preview bk-${source.slug}">\n    <style>{${JSON.stringify(`${source.fonts.map((href) => `@import url(${JSON.stringify(href)});`).join("\n")}\n${BASE_CSS}\n${scopeSourceCss(source, source.slug)}`)}}</style>\n${preview
+  return `export const Preview${source.name} = ${start}\n  <div className="not-prose bk-preview bk-${source.slug}"${source.previewBackground ? ` style={{ background: ${JSON.stringify(source.previewBackground)} }}` : ""}>\n    <style>{${JSON.stringify(`${source.fonts.map((href) => `@import url(${JSON.stringify(href)});`).join("\n")}\n${BASE_CSS}\n${scopeSourceCss(source, source.slug)}`)}}</style>\n${preview
     .split("\n")
     .map((line) => `    ${line}`)
     .join("\n")}\n  </div>\n${end}`;
@@ -188,8 +188,13 @@ const kitPage = (kit, scan) => {
       "</CodeGroup>",
     ].join("\n")
   );
-  const widgets = kit.components.map(({ source }) =>
-    widgetOf({ ...source, fonts: kit.fonts ?? [], slug: kit.slug })
+  const widgets = kit.components.map(({ source, previewBackground }) =>
+    widgetOf({
+      ...source,
+      fonts: kit.fonts ?? [],
+      previewBackground,
+      slug: kit.slug,
+    })
   );
   const count = kit.components.length;
   return `---

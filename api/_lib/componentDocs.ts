@@ -32,6 +32,7 @@ export interface ComponentDocsKit {
   components: {
     id: string;
     kind: string;
+    previewBackground?: string;
     /** The preview as plain HTML, for the docs script's accessibility scan. */
     html: string;
     name: string;
@@ -108,7 +109,22 @@ export const componentDocs = async (
           source = componentSource(sample, name);
         }
         classes.add(source.className);
+        // Show transparent links on their authored navbar surface, including
+        // inverse links whose intended background is supplied by the parent.
+        const navbar =
+          style.kind === "link" && sample.background === "transparent"
+            ? ownOrLinked(kit).find(
+                (candidate) =>
+                  candidate.kind === "navbar" &&
+                  Object.values(candidate.look.contents ?? {}).some((slot) =>
+                    slot.elements.some((child) => child.styleId === style.id)
+                  )
+              )
+            : undefined;
+        const previewBackground =
+          navbar && styleSample(navbar, kit.resolvedDoc).background;
         return {
+          ...(previewBackground ? { previewBackground } : {}),
           html: jsxToHtml(source.preview),
           id: style.id,
           kind: style.kind,

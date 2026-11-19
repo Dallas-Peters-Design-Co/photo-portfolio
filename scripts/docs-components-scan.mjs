@@ -80,8 +80,8 @@ export const scanKits = async (kits, { css }) => {
         const page = await browser.newPage();
         const body = kit.components
           .map(
-            ({ html, source }) =>
-              `<section class="bk-preview bk-${kit.slug}" data-component="${source.className}">${html}</section>`
+            ({ html, source, previewBackground }) =>
+              `<section class="bk-preview bk-${kit.slug}" data-component="${source.className}"${previewBackground ? ` style="background:${previewBackground}"` : ""}>${html}</section>`
           )
           .join("\n");
         await page.setContent(

@@ -17,6 +17,8 @@ const INSTANCE_KEYS = new Set<string>([
   "avatarUrl",
   "avatarInitials",
   "logoUrl",
+  "summaryIconName",
+  "summaryIconSvg",
   "iconName",
   "iconSvg",
   "panelCollapsed",

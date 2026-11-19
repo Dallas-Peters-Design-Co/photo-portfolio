@@ -100,7 +100,7 @@ const TABLE_CSS = `& { width: 100%; border-spacing: 0; border-collapse: separate
 & th { font-size: 0.85em; font-weight: 600; color: var(--&-head-color, color-mix(in srgb, currentColor 65%, transparent)); }
 & thead { background: var(--&-head-background, transparent); }
 &__stack { display: grid; gap: 0.15em; }
-&__stack > small { font-size: 0.85em; color: color-mix(in srgb, currentColor 60%, transparent); }
+&__stack > small { font-size: 0.85em; color: color-mix(in srgb, currentColor 72%, transparent); }
 &__tag, &__chip { display: inline-flex; align-items: center; padding: 0.15em 0.6em; font-size: 0.8em; font-weight: 600; line-height: 1.4; color: var(--&-tint); white-space: nowrap; border-radius: 999px; }
 &__tag { background: color-mix(in srgb, var(--&-tint) 16%, transparent); }
 &__chip { border: 1px solid color-mix(in srgb, var(--&-tint) 40%, transparent); }

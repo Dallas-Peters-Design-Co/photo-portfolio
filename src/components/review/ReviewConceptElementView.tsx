@@ -446,6 +446,16 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
               />
             ) : null
           }
+          leadingIcon={
+            element.summaryIconName && (
+              <ConceptIcon
+                color={element.iconColor}
+                name={element.summaryIconName}
+                size={iconSizeOf(element)}
+                svg={element.summaryIconSvg}
+              />
+            )
+          }
           style={style}
           summary={
             <Slot

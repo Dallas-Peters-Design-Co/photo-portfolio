@@ -65,6 +65,8 @@ export interface ConceptStyle {
 export const MAX_CONCEPT_STYLES = 256;
 /** Icon settings a style may leave unset; the element's own then stand. */
 const ICON_KEYS = new Set<ConceptStyleKey>([
+  "summaryIconName",
+  "summaryIconSvg",
   "iconColor",
   "iconName",
   "iconSize",
@@ -86,6 +88,7 @@ const REQUIRED_KEYS = new Set<ConceptStyleKey>([
 const LINKED_KEYS: readonly ReadonlySet<ConceptStyleKey>[] = [
   new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]),
   new Set<ConceptStyleKey>(["iconName", "iconSvg"]),
+  new Set<ConceptStyleKey>(["summaryIconName", "summaryIconSvg"]),
 ];
 const MAX_STYLE_NAME = 60;
 

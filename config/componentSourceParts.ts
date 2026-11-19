@@ -26,6 +26,10 @@ export const withIconDrawings = (
 ): ReviewConceptElement => {
   const name = element.iconSvg ? null : conceptIconName(element.iconName);
   const svg = name ? lookup(name) : undefined;
+  const summarySvg =
+    !element.summaryIconSvg && element.summaryIconName
+      ? lookup(element.summaryIconName)
+      : undefined;
   const endName = element.iconEndSvg
     ? null
     : conceptIconName(element.iconEndName);
@@ -36,6 +40,7 @@ export const withIconDrawings = (
       ? { table: tableIconDrawings(element.table, lookup) }
       : {}),
     ...(svg ? { iconSvg: svg } : {}),
+    ...(summarySvg ? { summaryIconSvg: summarySvg } : {}),
     ...(endSvg ? { iconEndSvg: endSvg } : {}),
   };
 };
@@ -493,17 +498,21 @@ export const accordionMarkup = (
   const summary = slot("header");
   const details = slot("body");
   const icon = svgJsx(el);
+  const leadingIcon = iconSvgJsx(el.summaryIconSvg, iconSizeOf(el));
   const title = escapeJsx(el.text);
   const open = Boolean(el.accordionExpanded);
   return {
-    body: `<div className="@@__summary"><details className="@@__disclosure"${open ? " open" : ""}><summary className="@@__trigger">${title}${icon}</summary></details>${summary.body}</div><div className="@@__details">${details.body}</div>`,
+    body: `<div className="@@__summary"><details className="@@__disclosure"${open ? " open" : ""}><summary className="@@__trigger"><span className="@@__label">${leadingIcon}${title}</span>${icon ? `<span className="@@__indicator">${icon}</span>` : ""}</summary></details>${summary.body}</div><div className="@@__details">${details.body}</div>`,
     childCss: [summary.childCss, details.childCss].filter(Boolean).join("\n"),
     css: `& { width: 100%; min-width: 0; }
-&__summary { display: flex; align-items: center; gap: .5em; }
-&__disclosure { flex: 1; margin: 0; font: inherit; }
-&__trigger { width: 100%; min-height: 1.5em; display: flex; align-items: center; justify-content: space-between; gap: .5em; font: inherit; color: inherit; border: 0; background: transparent; cursor: pointer; }
+&__summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .5em; }
+&__summary > :not(&__disclosure) { position: relative; grid-area: 1 / 2; }
+&__label { display: flex; align-items: center; gap: .5em; text-align: start; }
+&__indicator { display: inline-flex; grid-column: 3; }
+&__disclosure { display: grid; grid-template-columns: subgrid; grid-area: 1 / 1 / 2 / -1; margin: 0; font: inherit; }
+&__trigger { width: 100%; min-height: 1.5em; display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: .5em; font: inherit; color: inherit; border: 0; background: transparent; cursor: pointer; }
 &__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
-&__trigger[aria-expanded="true"] > svg, &__disclosure[open] > summary > svg { rotate: 180deg; }
+&__trigger[aria-expanded="true"] > &__indicator, &__disclosure[open] > summary > &__indicator { rotate: 180deg; }
 &__icon { color: var(--&-icon-color, currentColor); }
 &__summary:has(> details:not([open])) + &__details { display: none; }
 ${SLOTS_CSS}`,
@@ -512,13 +521,13 @@ ${SLOTS_CSS}`,
 import type { ReactNode } from "react";
 import "./${name}.css";
 
-type ${name}Props = { title?: string; summary?: ReactNode; details?: ReactNode; icon?: ReactNode; defaultOpen?: boolean };
+type ${name}Props = { title?: string; summary?: ReactNode; details?: ReactNode; icon?: ReactNode; leadingIcon?: ReactNode; defaultOpen?: boolean };
 
-export function ${name}({ title = ${JSON.stringify(el.text)}, summary = (${summary.body?.replaceAll("@@", cls)}), details = (${details.body?.replaceAll("@@", cls)}), icon = ${icon ? `(${icon.replaceAll("@@", cls)})` : "null"}, defaultOpen = ${open} }: ${name}Props) {
+export function ${name}({ title = ${JSON.stringify(el.text)}, summary = (${summary.body?.replaceAll("@@", cls) || "null"}), details = (${details.body?.replaceAll("@@", cls) || "null"}), leadingIcon = ${leadingIcon ? `(${leadingIcon.replaceAll("@@", cls)})` : "null"}, icon = ${icon ? `(${icon.replaceAll("@@", cls)})` : "null"}, defaultOpen = ${open} }: ${name}Props) {
   return <Accordion.Root className="${cls}" defaultValue={defaultOpen ? ["details"] : []}>
     <Accordion.Item value="details">
       <div className="${cls}__summary">
-        <Accordion.Header className="${cls}__disclosure"><Accordion.Trigger aria-label={title || "Toggle details"} className="${cls}__trigger">{title}{icon}</Accordion.Trigger></Accordion.Header>
+        <Accordion.Header className="${cls}__disclosure"><Accordion.Trigger aria-label={title || "Toggle details"} className="${cls}__trigger"><span className="${cls}__label">{leadingIcon}{title}</span>{icon && <span className="${cls}__indicator">{icon}</span>}</Accordion.Trigger></Accordion.Header>
         {summary}
       </div>
       <Accordion.Panel>{details}</Accordion.Panel>

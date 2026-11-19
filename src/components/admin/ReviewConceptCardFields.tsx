@@ -54,10 +54,29 @@ export function ElementIconGroup({
 }) {
   const kind = element.kind[0]?.toUpperCase() + element.kind.slice(1);
   // Buttons, badges and tags have a slot each side of their text.
+  const singleIconLabel =
+    element.kind === "accordion" ? "Disclosure icon" : "Icon";
   const twoSlots = takesEndIcon(element.kind);
   return (
     <ConceptGroup name={twoSlots ? "Icons" : "Icon"}>
-      <ConceptField label={twoSlots ? "Start icon" : "Icon"} wide>
+      {element.kind === "accordion" && (
+        <ConceptField label="Leading summary icon" wide>
+          <IconPicker
+            label="Leading summary icon"
+            library="full"
+            onChange={(icon, svg) =>
+              onChange({
+                summaryIconName: icon ?? undefined,
+                summaryIconSvg: svg as ConceptIconSvg | undefined,
+              })
+            }
+            size="sm"
+            svg={element.summaryIconSvg}
+            value={conceptIconName(element.summaryIconName)}
+          />
+        </ConceptField>
+      )}
+      <ConceptField label={twoSlots ? "Start icon" : singleIconLabel} wide>
         <IconPicker
           label={twoSlots ? `${kind} start icon` : `${kind} icon`}
           library="full"
@@ -89,7 +108,10 @@ export function ElementIconGroup({
           />
         </ConceptField>
       ) : null}
-      {element.iconName || element.iconEndName || lookOnly ? (
+      {element.iconName ||
+      element.iconEndName ||
+      element.summaryIconName ||
+      lookOnly ? (
         <>
           <NumberField
             label="Icon size"

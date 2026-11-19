@@ -237,6 +237,8 @@ export interface ReviewConceptElement {
   slots?: ConceptSlots;
   /** The brand kit component style this element follows, if any. */
   styleId?: string;
+  summaryIconName?: ReviewConceptIcon;
+  summaryIconSvg?: ConceptIconSvg;
   /** Tabs only: indicator, active and inactive colours, height. */
   tabLook?: ConceptTabLook;
   /** Tables only: typed columns and rows (see conceptTable.ts). */
@@ -287,6 +289,8 @@ export const ELEMENT_STYLE_KEYS = [
   "dividers",
   "flex",
   "accordionExpanded",
+  "summaryIconName",
+  "summaryIconSvg",
   "panelCollapsed",
   "panelToggleSide",
   "tabLook",

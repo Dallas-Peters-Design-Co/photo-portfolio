@@ -35,22 +35,21 @@ const counterpart = <T extends { role: string }>(
 
 const colourMap = (from: PaletteEntry[], to: PaletteEntry[]) => {
   const map = new Map<string, string>();
-  from.forEach((entry, i) => {
-    const there = counterpart(from, to, i);
-    if (there && !map.has(entry.value)) {
-      map.set(entry.value, there.value);
-    }
-  });
   const sourceIds = paletteIds(from);
   const targetIds = paletteIds(to);
-  from.forEach((_entry, i) => {
-    const match = counterpart(from, to, i);
-    if (match) {
-      map.set(
-        sourceIds[i],
-        paletteToken(targetIds[to.indexOf(match)], match.value)
-      );
+  from.forEach((entry, i) => {
+    const there =
+      to[targetIds.indexOf(sourceIds[i])] ?? counterpart(from, to, i);
+    if (!there) {
+      return;
     }
+    if (!map.has(entry.value)) {
+      map.set(entry.value, there.value);
+    }
+    map.set(
+      sourceIds[i],
+      paletteToken(targetIds[to.indexOf(there)], there.value)
+    );
   });
   return map;
 };

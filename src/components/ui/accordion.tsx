@@ -5,6 +5,7 @@ import "./accordion.css";
 export function Accordion({
   title,
   summary,
+  leadingIcon,
   children,
   icon,
   style,
@@ -12,6 +13,7 @@ export function Accordion({
 }: {
   title: string;
   defaultOpen?: boolean;
+  leadingIcon?: ReactNode;
   summary?: ReactNode;
   children?: ReactNode;
   icon?: ReactNode;
@@ -31,8 +33,13 @@ export function Accordion({
               aria-label={title || "Toggle details"}
               className="ui-accordion__trigger"
             >
-              {title}
-              {icon}
+              <span className="ui-accordion__label">
+                {leadingIcon}
+                {title}
+              </span>
+              {icon ? (
+                <span className="ui-accordion__indicator">{icon}</span>
+              ) : null}
             </BaseAccordion.Trigger>
           </BaseAccordion.Header>
           {summary}

@@ -443,6 +443,8 @@ it("switches accordion states and keeps summary controls independent of the trig
             ...accordion,
             accordionExpanded: expanded,
             slots: { ...accordion.slots, header: { elements: [summary] } },
+            summaryIconName: "InformationCircleIcon",
+            summaryIconSvg: accordion.iconSvg,
           }}
         />
       )
@@ -455,6 +457,17 @@ it("switches accordion states and keeps summary controls independent of the trig
     '[data-slot="header"] button'
   );
   expect(action?.textContent).toBe("Review");
+  const leading = host.querySelector(".ui-accordion__label svg");
+  const indicator = host.querySelector(".ui-accordion__indicator");
+  if (!(leading && action && indicator)) {
+    throw new Error("Missing accordion content");
+  }
+  expect(leading.getBoundingClientRect().right).toBeLessThanOrEqual(
+    action.getBoundingClientRect().left
+  );
+  expect(action.getBoundingClientRect().right).toBeLessThanOrEqual(
+    indicator.getBoundingClientRect().left
+  );
   expect(trigger()?.contains(action)).toBe(false);
   act(() => action?.click());
   expect(trigger()?.getAttribute("aria-expanded")).toBe("false");

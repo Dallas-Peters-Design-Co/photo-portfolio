@@ -47,6 +47,8 @@ export const cleanIcon = (
   raw: Partial<ReviewConceptElement>
 ): Pick<
   ReviewConceptElement,
+  | "summaryIconName"
+  | "summaryIconSvg"
   | "iconColor"
   | "iconEndName"
   | "iconEndSvg"
@@ -61,12 +63,17 @@ export const cleanIcon = (
   const iconEndName = takesEndIcon(kind)
     ? conceptIconName(raw.iconEndName)
     : null;
-  if (!(iconName || iconEndName)) {
+  const summaryIconName =
+    kind === "accordion" ? conceptIconName(raw.summaryIconName) : null;
+  if (!(iconName || iconEndName || summaryIconName)) {
     return {};
   }
   const iconSvg = iconName ? cleanIconSvg(raw.iconSvg) : undefined;
   const iconEndSvg = iconEndName ? cleanIconSvg(raw.iconEndSvg) : undefined;
   return {
+    ...(summaryIconName
+      ? { summaryIconName, summaryIconSvg: cleanIconSvg(raw.summaryIconSvg) }
+      : {}),
     ...(iconName ? { iconName } : {}),
     ...(iconSvg ? { iconSvg } : {}),
     ...(iconEndName ? { iconEndName } : {}),

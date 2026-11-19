@@ -91,7 +91,7 @@
 
 .concept-table__stack > small {
   font-size: 0.85em;
-  color: color-mix(in srgb, currentColor 60%, transparent);
+  color: color-mix(in srgb, currentColor 72%, transparent);
 }
 
 .concept-table__tag,

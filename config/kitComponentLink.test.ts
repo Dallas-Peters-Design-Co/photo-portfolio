@@ -80,3 +80,18 @@ test("a kit with no colours follows the linked kit's palette; its own win", () =
   expect(withLinkedPalette(own, own, source).palette).toEqual(own.palette);
   expect(withLinkedPalette(following, following, null).palette).toEqual([]);
 });
+
+test("keeps linked swatches distinct when multiple colors have the same role", () => {
+  const kit = {
+    ...ROLEMODEL,
+    palette: [
+      { id: "mint", name: "Mint", role: "accent", value: "#37cdab" },
+      { id: "green", name: "Green", role: "accent", value: "#006733" },
+    ],
+  };
+  const style = {
+    ...BUTTON,
+    look: { background: "#0067332b", color: "var(--kit-green, #006733)" },
+  };
+  expect(carryStyles([style], kit, kit)[0].look).toEqual(style.look);
+});
