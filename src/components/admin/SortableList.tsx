@@ -50,6 +50,7 @@ export interface SortableContext {
 export function SortableList<T extends { id: string }>({
   children,
   itemLabel,
+  layout = "list",
   nativeDrag = false,
   items,
   onReorder,
@@ -57,6 +58,7 @@ export function SortableList<T extends { id: string }>({
   children: (item: T, context: SortableContext) => ReactNode;
   /** Names an item for the handle's label, e.g. "Move Home". */
   itemLabel: (item: T) => string;
+  layout?: "grid" | "list";
   nativeDrag?: boolean;
   items: T[];
   onReorder: (ids: string[]) => void;
@@ -98,7 +100,44 @@ export function SortableList<T extends { id: string }>({
     return rest;
   };
 
-  const overIndex = (id: string, y: number): number => {
+  const overIndex = (id: string, x: number, y: number): number => {
+    if (layout === "grid") {
+      const candidates = ids
+        .filter((other) => other !== id)
+        .flatMap((other, position) => {
+          const box = wrapperOf(other)?.getBoundingClientRect();
+          return box ? [{ box, position }] : [];
+        });
+      const nearest = candidates.reduce<{
+        distance: number;
+        index: number;
+        x: number;
+        y: number;
+        box: DOMRect;
+      } | null>((picked, candidate) => {
+        const centerX = candidate.box.left + candidate.box.width / 2;
+        const centerY = candidate.box.top + candidate.box.height / 2;
+        const distance = (x - centerX) ** 2 + (y - centerY) ** 2;
+        return !picked || distance < picked.distance
+          ? {
+              box: candidate.box,
+              distance,
+              index: candidate.position,
+              x: centerX,
+              y: centerY,
+            }
+          : picked;
+      }, null);
+      if (!nearest) {
+        return 0;
+      }
+      const horizontal =
+        Math.abs(x - nearest.x) / Math.max(nearest.box.width, 1);
+      const vertical =
+        Math.abs(y - nearest.y) / Math.max(nearest.box.height, 1);
+      const after = horizontal > vertical ? x > nearest.x : y > nearest.y;
+      return nearest.index + Number(after);
+    }
     let index = 0;
     for (const other of ids) {
       if (other === id) {
@@ -148,7 +187,7 @@ export function SortableList<T extends { id: string }>({
     }
     setDrag({
       ...live,
-      over: overIndex(live.id, e.clientY),
+      over: overIndex(live.id, e.clientX, e.clientY),
       top: e.clientY - live.grip,
     });
   };
@@ -205,7 +244,10 @@ export function SortableList<T extends { id: string }>({
   }
 
   return (
-    <div className={`sortable ${drag ? "sortable--dragging" : ""}`} ref={list}>
+    <div
+      className={`sortable sortable--${layout} ${drag ? "sortable--dragging" : ""}`}
+      ref={list}
+    >
       {items.map((item) => {
         const lifted = drag?.id === item.id;
         const style: CSSProperties | undefined = lifted

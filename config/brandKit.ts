@@ -165,6 +165,8 @@ export interface BrandKitDoc {
    * Families from it are listed on the kit's typefaces by ref.
    */
   adobeKitId: string | null;
+  /** Manual order of the canvas components stored separately for this kit. */
+  canvasComponentOrder: string[];
   /**
    * Buttons, badges, cards, tables… styled once here and followed by every
    * review concept that picks them (config/conceptStyle.ts).
@@ -213,6 +215,7 @@ export interface BrandKitDoc {
 
 export const EMPTY_KIT: BrandKitDoc = {
   adobeKitId: null,
+  canvasComponentOrder: [],
   componentStyles: [],
   componentsFrom: null,
   libraryCollectionId: null,
@@ -321,6 +324,10 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
   const raw = (input ?? {}) as Record<string, unknown>;
   return {
     adobeKitId: isAdobeKitId(raw.adobeKitId) ? raw.adobeKitId : null,
+    canvasComponentOrder: asArray(raw.canvasComponentOrder)
+      .filter((id): id is string => typeof id === "string" && UUID.test(id))
+      .map((id) => id.toLowerCase())
+      .slice(0, 1000),
     componentStyles: cleanConceptStyles(raw.componentStyles),
     componentsFrom:
       typeof raw.componentsFrom === "string" && UUID.test(raw.componentsFrom)
@@ -446,6 +453,7 @@ export const resolveKitDoc = (
   }
   return {
     adobeKitId: child.adobeKitId ?? parent.adobeKitId,
+    canvasComponentOrder: child.canvasComponentOrder,
     componentStyles:
       child.componentStyles.length > 0
         ? child.componentStyles

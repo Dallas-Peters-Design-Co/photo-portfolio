@@ -191,16 +191,18 @@ it("reorders a kit's styles from a style's handle, and keeps remove at the row's
   document.body.append(host);
   act(() => createRoot(host).render(<Kit />));
 
-  const row = host.querySelector(".brand-kit-components__head") as HTMLElement;
-  const remove = row.querySelector(
+  const footer = host.querySelector(
+    ".brand-kit-components__footer"
+  ) as HTMLElement;
+  const remove = footer.querySelector(
     '[aria-label="Remove Primary"]'
   ) as HTMLElement;
-  // One line, the remove button at its far right.
+  // Actions stay together in the footer, with remove at its far right.
   expect(remove.getBoundingClientRect().top).toBeLessThan(
-    row.getBoundingClientRect().top + 20
+    footer.getBoundingClientRect().top + 20
   );
   expect(
-    row.getBoundingClientRect().right - remove.getBoundingClientRect().right
+    footer.getBoundingClientRect().right - remove.getBoundingClientRect().right
   ).toBeLessThan(4);
 
   const handle = host.querySelector(

@@ -1,6 +1,7 @@
 import { Copy, Palette, Trash2, Type } from "lucide-react";
 import {
   type Dispatch,
+  type ReactNode,
   type SetStateAction,
   useEffect,
   useMemo,
@@ -30,6 +31,7 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { useConfirm } from "./ConfirmProvider";
 import { ConceptColorField } from "./ReviewConceptBrand";
+import { SortableList } from "./SortableList";
 import "./ReviewConceptsEditor.css";
 import "./BrandKitCanvasComponents.css";
 
@@ -151,11 +153,15 @@ function PropRow({
 /** One component: its preview, its name, its properties. Saves itself. */
 function ComponentCard({
   brandDoc,
+  compact,
+  handle,
   onDeleted,
   onSaved,
   saved,
 }: {
   brandDoc: BrandKitDoc;
+  compact: boolean;
+  handle: ReactNode;
   onDeleted: () => void;
   onSaved: (component: BrandComponent) => void;
   saved: BrandComponent;
@@ -250,7 +256,7 @@ function ComponentCard({
   } as const;
 
   return (
-    <li className="kit-canvas-components__item">
+    <article className="kit-canvas-components__item">
       <Preview component={draft} />
       <div className="kit-canvas-components__body">
         <div className="kit-canvas-components__head">
@@ -269,48 +275,52 @@ function ComponentCard({
           <span aria-live="polite" className="kit-canvas-components__meta">
             {STATUS[state]}
           </span>
-          <Button
-            aria-label={`Duplicate ${saved.name}`}
-            disabled={isDuplicating}
-            onClick={() => void duplicate()}
-            size="icon-sm"
-            title="Duplicate the component"
-            type="button"
-            variant="ghost"
-          >
-            <Copy aria-hidden size={13} />
-          </Button>
-          <Button
-            aria-label={`Delete ${saved.name}`}
-            onClick={() => void remove()}
-            size="icon-sm"
-            title="Delete the component"
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 size={13} />
-          </Button>
         </div>
-        {draft.props.length > 0 ? (
-          <ul className="kit-canvas-components__props">
-            {draft.props.map((prop) => (
-              <PropRow
-                brandDoc={brandDoc}
-                component={draft}
-                key={prop.id}
-                onChange={change}
-                prop={prop}
-              />
-            ))}
-          </ul>
-        ) : (
-          <p className="brand-kit__hint">
-            No properties yet. On a board, select a copy and choose Add property
-            to let each copy change a text or a colour.
-          </p>
-        )}
+        {!compact &&
+          (draft.props.length > 0 ? (
+            <ul className="kit-canvas-components__props">
+              {draft.props.map((prop) => (
+                <PropRow
+                  brandDoc={brandDoc}
+                  component={draft}
+                  key={prop.id}
+                  onChange={change}
+                  prop={prop}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="brand-kit__hint">
+              No properties yet. On a board, select a copy and choose Add
+              property to let each copy change a text or a colour.
+            </p>
+          ))}
       </div>
-    </li>
+      <footer className="kit-canvas-components__footer">
+        {handle}
+        <Button
+          aria-label={`Duplicate ${saved.name}`}
+          disabled={isDuplicating}
+          onClick={() => void duplicate()}
+          size="icon-sm"
+          title="Duplicate the component"
+          type="button"
+          variant="ghost"
+        >
+          <Copy aria-hidden size={13} />
+        </Button>
+        <Button
+          aria-label={`Delete ${saved.name}`}
+          onClick={() => void remove()}
+          size="icon-sm"
+          title="Delete the component"
+          type="button"
+          variant="ghost"
+        >
+          <Trash2 size={13} />
+        </Button>
+      </footer>
+    </article>
   );
 }
 
@@ -335,10 +345,27 @@ export function BrandKitCanvasComponents({
   // A logo that follows a component is drawn again from its new look, into
   // the kit as it is being edited (not saved behind the editor's back).
   const follows = (id: string) => doc.logos.some((l) => l.componentId === id);
+  const ordered = [...components].sort((a, b) => {
+    const aIndex = doc.canvasComponentOrder.indexOf(a.id);
+    const bIndex = doc.canvasComponentOrder.indexOf(b.id);
+    if (aIndex < 0 && bIndex < 0) {
+      return 0;
+    }
+    if (aIndex < 0) {
+      return 1;
+    }
+    if (bIndex < 0) {
+      return -1;
+    }
+    return aIndex - bIndex;
+  });
   const saved = async (component: BrandComponent) => {
     rememberComponents([component]);
     await mutate(
-      (list = []) => list.map((c) => (c.id === component.id ? component : c)),
+      (list = []) =>
+        list.some((c) => c.id === component.id)
+          ? list.map((c) => (c.id === component.id ? component : c))
+          : [...list, component],
       { revalidate: false }
     );
     if (!follows(component.id)) {
@@ -372,22 +399,37 @@ export function BrandKitCanvasComponents({
         starts as here; every copy follows. To change its layers, select a copy
         on a board and choose Edit component.
       </p>
-      <ul className="kit-canvas-components">
-        {components.map((component) => (
+      <SortableList
+        itemLabel={(component) => component.name}
+        items={ordered}
+        layout="grid"
+        onReorder={(ids) =>
+          setDoc((current) => ({ ...current, canvasComponentOrder: ids }))
+        }
+      >
+        {(component, { compact, handle }) => (
           <ComponentCard
             brandDoc={effective}
+            compact={compact}
+            handle={handle}
             key={component.id}
-            onDeleted={() =>
+            onDeleted={() => {
+              setDoc((current) => ({
+                ...current,
+                canvasComponentOrder: current.canvasComponentOrder.filter(
+                  (id) => id !== component.id
+                ),
+              }));
               void mutate(
                 (list = []) => list.filter((c) => c.id !== component.id),
                 { revalidate: false }
-              )
-            }
+              );
+            }}
             onSaved={(next) => void saved(next)}
             saved={component}
           />
-        ))}
-      </ul>
+        )}
+      </SortableList>
     </div>
   );
 }

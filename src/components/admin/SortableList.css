@@ -10,6 +10,16 @@
   gap: calc(var(--spacing) * 3);
 }
 
+.sortable--grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 24rem), 1fr));
+  align-items: stretch;
+}
+
+.sortable--grid .sortable__item {
+  min-width: 0;
+}
+
 .sortable__item--lifted {
   position: fixed;
   z-index: var(--z-menu);

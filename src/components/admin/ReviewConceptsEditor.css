@@ -444,31 +444,47 @@
   }
 }
 
-/* Brand kit component styles: a name bar, a sample on paper, the look. */
+/* Brand kit component styles: draggable cards, with controls in the footer. */
 .brand-kit-components__add {
   width: 14rem;
 }
 
 .brand-kit-components__style {
   display: grid;
-  gap: calc(var(--spacing) * 3);
+  grid-template-rows: auto 1fr auto;
+  gap: calc(var(--spacing) * 2);
+  height: 100%;
   padding: calc(var(--spacing) * 3);
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
+  border-radius: var(--radius-md);
 }
 
-/* Handle, type, name and copy at the start; remove at the far end. */
 .brand-kit-components__head {
   display: grid;
-  grid-template-columns: auto minmax(0, 9rem) minmax(0, 18rem) repeat(3, auto) minmax(
-      max-content,
-      1fr
-    );
+  grid-template-columns: auto minmax(0, 1fr);
   gap: calc(var(--spacing) * 2);
   align-items: center;
 }
 
-.brand-kit-components__remove {
-  justify-self: end;
+.brand-kit-components__kind {
+  font-size: var(--text-micro-xs);
+  color: color-mix(in oklch, currentColor 60%, transparent);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-micro-caps);
+}
+
+.brand-kit-components__footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--spacing) * 1);
+  align-items: center;
+  padding-block-start: calc(var(--spacing) * 1.5);
+  border-block-start: 1px solid
+    color-mix(in oklch, currentColor 12%, transparent);
+}
+
+.brand-kit-components__footer > :last-child {
+  margin-inline-start: auto;
 }
 
 .brand-kit-components__body {
@@ -483,6 +499,11 @@
   padding: calc(var(--spacing) * 6);
   color: #172033;
   background: #f2f4f7;
+}
+
+.brand-kit-components__style .brand-kit-components__sample {
+  align-items: center;
+  min-height: 10rem;
 }
 
 /* Each element in a list can be dragged to a new place by its handle. */

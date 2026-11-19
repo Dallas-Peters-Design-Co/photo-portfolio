@@ -88,7 +88,7 @@ const styleLook = (
   };
 };
 
-/** One style: a row (fold, type, name, remove) that opens to its sample and look. */
+/** One style card: name, sample and look, with actions grouped in its footer. */
 function StyleEditor({
   brand,
   handle,
@@ -116,19 +116,9 @@ function StyleEditor({
   return (
     <section className="brand-kit-components__style">
       <header className="brand-kit-components__head">
-        {handle}
-        <button
-          aria-controls={bodyId}
-          aria-expanded={open}
-          aria-label={`${open ? "Fold" : "Open"} ${kindLabel(style.kind)} ${style.name}`}
-          // The same fold control as an element's, so the two read alike.
-          className="review-concepts__element-toggle"
-          onClick={onToggle}
-          type="button"
-        >
-          <ChevronDown aria-hidden size={14} />
-          <span>{kindLabel(style.kind)}</span>
-        </button>
+        <span className="brand-kit-components__kind">
+          {kindLabel(style.kind)}
+        </span>
         <Input
           aria-label={`${kindLabel(style.kind)} style name`}
           onChange={(event) => onChange({ ...style, name: event.target.value })}
@@ -136,6 +126,38 @@ function StyleEditor({
           size="sm"
           value={style.name}
         />
+      </header>
+      {open ? (
+        <div className="brand-kit-components__body" id={bodyId}>
+          <div className="brand-kit-components__sample concept-canvas">
+            <ReviewConceptElementView element={sample} />
+          </div>
+          <ReviewConceptElementFields
+            brandDoc={brand}
+            element={sample}
+            lookOnly
+            onChange={changeLook}
+          />
+        </div>
+      ) : null}
+      <footer className="brand-kit-components__footer">
+        {handle}
+        <Button
+          aria-controls={bodyId}
+          aria-expanded={open}
+          aria-label={`${open ? "Fold" : "Open"} ${kindLabel(style.kind)} ${style.name}`}
+          onClick={onToggle}
+          size="icon-sm"
+          title={open ? "Fold component style" : "Edit component style"}
+          type="button"
+          variant="ghost"
+        >
+          <ChevronDown
+            aria-hidden
+            className={open ? "" : "-rotate-90"}
+            size={14}
+          />
+        </Button>
         <ComponentStyleClipboard element={sample} onChange={changeLook} />
         <Button
           aria-label={`Duplicate ${style.name}`}
@@ -157,31 +179,16 @@ function StyleEditor({
         >
           <Code2 size={13} />
         </Button>
-        <span className="brand-kit-components__remove">
-          <Button
-            aria-label={`Remove ${style.name}`}
-            onClick={onRemove}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 size={13} />
-          </Button>
-        </span>
-      </header>
-      {open ? (
-        <div className="brand-kit-components__body" id={bodyId}>
-          <div className="brand-kit-components__sample concept-canvas">
-            <ReviewConceptElementView element={sample} />
-          </div>
-          <ReviewConceptElementFields
-            brandDoc={brand}
-            element={sample}
-            lookOnly
-            onChange={changeLook}
-          />
-        </div>
-      ) : null}
+        <Button
+          aria-label={`Remove ${style.name}`}
+          onClick={onRemove}
+          size="icon-sm"
+          type="button"
+          variant="ghost"
+        >
+          <Trash2 size={13} />
+        </Button>
+      </footer>
     </section>
   );
 }
@@ -338,6 +345,7 @@ export function BrandKitComponents({
         <SortableList
           itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
           items={styles}
+          layout="grid"
           onReorder={(ids) =>
             set(
               ids
