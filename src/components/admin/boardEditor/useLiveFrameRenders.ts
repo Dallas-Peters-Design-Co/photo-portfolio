@@ -1,11 +1,12 @@
 import type React from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import {
   framesIntoShaders,
   framesToRender,
   withFrameRenders,
 } from "../../../boards/io/frameRender";
+import { frameKeyOf } from "../../../boards/io/frameRenderKey";
 import { portfolioService } from "../../../services/portfolioService";
 import type { BoardItem, BoardWire } from "../../../types";
 
@@ -45,18 +46,17 @@ export interface LiveFrameDeps {
 }
 
 /** Every frame a live item reads that needs drawing, each once. */
-const staleFrames = (
-  items: BoardItem[],
-  wires: BoardWire[],
-  live: Set<string>
-) => {
+const staleFrames = (items: BoardItem[], wires: BoardWire[]) => {
+  const targets = new Set(items.filter(drawsLive).map((item) => item.id));
+  const liveWires = wires.filter((w) => targets.has(w.targetItemId));
+  if (!liveWires.length) {
+    return [];
+  }
   const all = [
-    ...framesToRender(items, wires),
-    ...framesIntoShaders(items, wires),
+    ...framesToRender(items, liveWires),
+    ...framesIntoShaders(items, liveWires),
   ];
-  return all.filter(
-    (f, i) => live.has(f.id) && all.findIndex((g) => g.id === f.id) === i
-  );
+  return all.filter((f, i) => all.findIndex((g) => g.id === f.id) === i);
 };
 
 const upload = async (png: Blob): Promise<string> =>
@@ -75,57 +75,90 @@ export const useLiveFrameRenders = ({
   setItems,
   wires,
 }: LiveFrameDeps): void => {
-  const busy = useRef(false);
+  const queue = useRef(Promise.resolve());
+  const latest = useRef({ pending, save, setItems });
+  latest.current = { pending, save, setItems };
+  // Unrelated board activity must not restart the debounce. Include the
+  // design fingerprint so an edit during an upload schedules its own render.
+  const work = useMemo(
+    () =>
+      JSON.stringify(
+        staleFrames(items, wires).map((frame) => [
+          frame.id,
+          frameKeyOf(frame, items),
+        ])
+      ),
+    [items, wires]
+  );
 
   useEffect(() => {
-    const live = new Set(
-      wires
-        .filter((w) =>
-          items.some((i) => i.id === w.targetItemId && drawsLive(i))
-        )
-        .map((w) => w.sourceItemId)
-    );
-    if (live.size === 0) {
+    if (work === "[]") {
       return;
     }
-    const stale = staleFrames(items, wires, live);
-    if (stale.length === 0 || busy.current) {
-      return;
-    }
-    const timer = setTimeout(async () => {
-      busy.current = true;
-      try {
-        // Rendered from the board as it is now, not as it was when the
-        // timer was set: the design may have moved on during the wait.
-        const now = pending.current.items;
-        const again = staleFrames(now, pending.current.wires, live);
-        if (again.length === 0) {
-          return;
-        }
-        const rendered = await withFrameRenders(again, now, upload, (m) =>
-          toast.error(m)
-        );
-        const changed = new Map<string, BoardItem["config"]>();
-        rendered.forEach((item, i) => {
-          if (item !== now[i]) {
-            changed.set(item.id, item.config);
-          }
-        });
-        if (changed.size === 0) {
-          return;
-        }
-        // Merged onto the freshest items, for the reason useBoardRun gives:
-        // seconds have passed, and only the renders should land.
-        const merged = pending.current.items.map((item) => {
-          const config = changed.get(item.id);
-          return config === undefined ? item : { ...item, config };
-        });
-        setItems(merged);
-        await save({ items: merged });
-      } finally {
-        busy.current = false;
+    let cancelled = false;
+    const render = async () => {
+      if (cancelled) {
+        return;
       }
+      const graph = latest.current.pending.current;
+      const frames = staleFrames(graph.items, graph.wires);
+      const rendered = await withFrameRenders(
+        frames,
+        graph.items,
+        upload,
+        (m) => {
+          if (!cancelled) {
+            toast.error(m);
+          }
+        }
+      );
+      if (cancelled) {
+        return;
+      }
+      const updates = new Map(
+        rendered
+          .filter((item, i) => item !== graph.items[i])
+          .map((item) => [item.id, item.config])
+      );
+      if (!updates.size) {
+        return;
+      }
+      const { current } = latest.current.pending;
+      let changed = false;
+      const merged = current.items.map((item) => {
+        const update = updates.get(item.id);
+        if (!update || update.renderKey !== frameKeyOf(item, current.items)) {
+          return item;
+        }
+        changed = true;
+        return {
+          ...item,
+          config: {
+            ...item.config,
+            renderKey: update.renderKey,
+            renderUrl: update.renderUrl,
+          },
+        };
+      });
+      if (changed) {
+        latest.current.setItems(merged);
+        await latest.current.save({ items: merged });
+      }
+    };
+    const timer = setTimeout(() => {
+      queue.current = queue.current.then(render).catch((err) => {
+        if (!cancelled) {
+          toast.error(
+            err instanceof Error
+              ? err.message
+              : "Couldn't update the frame render"
+          );
+        }
+      });
     }, SETTLE_MS);
-    return () => clearTimeout(timer);
-  }, [items, wires, pending, save, setItems]);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [work]);
 };

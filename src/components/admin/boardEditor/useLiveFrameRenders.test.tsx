@@ -1,6 +1,7 @@
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { wiredImageFor } from "../../../boards/canvas/wiredPreviews";
 import type { BoardItem, BoardWire } from "../../../types";
 import { useLiveFrameRenders } from "./useLiveFrameRenders";
 
@@ -157,6 +158,46 @@ describe("a frame feeding a shader", () => {
     vi.useRealTimers();
     await vi.waitFor(() => expect(save).toHaveBeenCalled());
     expect(uploads).toHaveLength(1);
+  });
+
+  it("delivers the edited frame when its design changes during the first save", async () => {
+    let finishSave: () => void = () => undefined;
+    const firstSave = new Promise<void>((resolve) => {
+      finishSave = resolve;
+    });
+    const save = vi
+      .fn()
+      .mockReturnValueOnce(firstSave)
+      .mockResolvedValue(undefined);
+    const onItems = vi.fn();
+    host = document.createElement("div");
+    document.body.append(host);
+    root = createRoot(host);
+    const show = (items: BoardItem[]) =>
+      act(() =>
+        root?.render(
+          <Host items={items} onItems={onItems} save={save} wires={[wire]} />
+        )
+      );
+    show([frame, text, shader]);
+    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1), {
+      timeout: 4000,
+    });
+    const before = onItems.mock.calls[0][0] as BoardItem[];
+    const edited = before.map((i) =>
+      i.id === text.id ? { ...i, body: "New artwork" } : i
+    );
+    show(edited);
+    finishSave();
+    await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(2), {
+      timeout: 4000,
+    });
+    expect(
+      wiredImageFor(shader.id, {
+        items: onItems.mock.calls[1][0],
+        wires: [wire],
+      })
+    ).toBe("https://blob.test/frame-2.png");
   });
 
   it("leaves a frame alone when nothing live is wired to it", async () => {

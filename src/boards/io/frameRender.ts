@@ -63,10 +63,10 @@ export const renderFrameBlob = async (
   frame: BoardItem,
   items: BoardItem[]
 ): Promise<Blob> => {
-  if (pageDesignOf(frame.config)) {
-    throw new Error(
-      "Publish this page to its review to share the live interface. Image export is not available for page designs yet."
-    );
+  const page = pageDesignOf(frame.config);
+  if (page) {
+    const { renderPageFrame } = await import("../pages/renderPageFrame");
+    return await renderPageFrame(page, MAX_WIDTH);
   }
   const layers = layersOf(frame, items);
   const width = Math.min(exportWidthFor(frame), MAX_WIDTH);

@@ -30,6 +30,7 @@ export const frameKeyOf = (frame: BoardItem, items: BoardItem[]): string =>
       frame.width,
       frame.height,
       frame.body,
+      ...(frame.config?.pageDesign ? [frame.config.pageDesign] : []),
       ...containedBy(frame, items).map((i) => [
         i.id,
         i.kind,
