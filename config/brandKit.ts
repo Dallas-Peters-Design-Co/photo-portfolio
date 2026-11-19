@@ -16,6 +16,7 @@
 import { describePalette } from "./colourWords.js";
 import { type ConceptStyle, cleanConceptStyles } from "./conceptStyle.js";
 import { isAdobeKitId, isFontFamilyName, isFontRef } from "./fontRef.js";
+import { cleanGuidePosts, type GuidePost } from "./guideSocialPosts.js";
 import { cleanKitShaders, type KitShader } from "./kitShaders.js";
 import { PALETTE_ID } from "./paletteBinding.js";
 import { type SiteScan, sanitizeScans, sanitizeWebsites } from "./siteScan.js";
@@ -201,6 +202,7 @@ export interface BrandKitDoc {
   scans: SiteScan[];
   /** Named shader stacks, placed on boards from the Brand panel. */
   shaders: KitShader[];
+  socialPosts: GuidePost[];
   typefaces: TypefaceEntry[];
   /** Named text styles and spacing steps (config/typeScale.ts), or none. */
   typeScale: TypeScale | null;
@@ -223,6 +225,7 @@ export const EMPTY_KIT: BrandKitDoc = {
   references: [],
   scans: [],
   shaders: [],
+  socialPosts: [],
   typefaces: [],
   typeScale: null,
   voice: "",
@@ -398,6 +401,7 @@ export const sanitizeKitDoc = (input: unknown): BrandKitDoc => {
     references: sanitizeReferences(raw.references),
     scans: sanitizeScans(raw.scans),
     shaders: cleanKitShaders(raw.shaders),
+    socialPosts: cleanGuidePosts(raw.socialPosts),
     typefaces: asArray(raw.typefaces)
       .map((entry) => {
         const e = (entry ?? {}) as Record<string, unknown>;
@@ -459,6 +463,7 @@ export const resolveKitDoc = (
       child.references.length > 0 ? child.references : parent.references,
     scans: child.websites.length > 0 ? child.scans : parent.scans,
     shaders: child.shaders.length > 0 ? child.shaders : parent.shaders,
+    socialPosts: child.socialPosts,
     typefaces: child.typefaces.length > 0 ? child.typefaces : parent.typefaces,
     typeScale: child.typeScale ?? parent.typeScale,
     voice: child.voice.trim() ? child.voice : parent.voice,

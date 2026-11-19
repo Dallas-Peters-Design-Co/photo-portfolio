@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { BoardItem } from "../types";
 import { FrameLogoButton } from "./brand/FrameLogoButton";
+import { FrameSocialPosts } from "./brand/FrameSocialPosts";
 import { tintOf } from "./creative/imageAnchor";
 import { useFrameActions } from "./FrameOpenContext";
 import { PANEL_GAP } from "./geometry/panelPlacement";
@@ -297,7 +298,7 @@ export function BoardToolBar({
   // has no download of its own, so without the bar its only way off the board
   // was a right-click nobody knew to try.
   const clipOnly = item.nodeType === "clip" && shown !== null;
-  if (applicable.length === 0 && !clipOnly) {
+  if (applicable.length === 0 && !clipOnly && item.kind !== "frame") {
     return null;
   }
 
@@ -368,6 +369,7 @@ export function BoardToolBar({
          */}
         <FrameLinkButton href={frameHref} />
         <FrameLogoButton item={item} />
+        <FrameSocialPosts item={item} />
         {isRunning ? (
           <span className="board-toolbar__status">Working…</span>
         ) : (

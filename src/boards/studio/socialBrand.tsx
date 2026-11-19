@@ -7,6 +7,7 @@ import {
 
 export type { SocialBrand } from "../../../config/socialPreview";
 
+import type { BrandKit } from "../../services/brandKitService";
 import { useActiveBrand } from "../brand/ActiveBrand";
 
 /**
@@ -66,9 +67,10 @@ export const SavedSocialBrand = createContext<SocialBrand | null>(null);
 /** The board's chosen brand, as a mock-up shows it; null when none is chosen. */
 export const useChosenSocialBrand = (): SocialBrand | null => {
   const kit = useActiveBrand()?.kit;
-  if (!kit) {
-    return null;
-  }
+  return kit ? socialBrandFor(kit) : null;
+};
+
+export const socialBrandFor = (kit: BrandKit): SocialBrand => {
   const handle = kit.name.toLowerCase().replace(NOT_HANDLE, "");
   return {
     handle: handle || PLACEHOLDER.handle,

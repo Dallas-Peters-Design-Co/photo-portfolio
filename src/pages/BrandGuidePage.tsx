@@ -12,6 +12,7 @@ import {
   ReferenceSection,
   TypeSection,
 } from "../components/brandGuide/GuideSections";
+import { GuideSocialPosts } from "../components/brandGuide/GuideSocialPosts";
 import { brandFaces } from "../components/brandGuide/guideModel";
 import { guideTheme } from "../components/brandGuide/guideTheme";
 import { brandKitsApi } from "../services/brandKitService";
@@ -34,6 +35,7 @@ const SECTIONS = [
   ["components", "Components"],
   ["logo", "Logo"],
   ["imagery", "Imagery"],
+  ["social-posts", "Social posts"],
   ["references", "References"],
 ] as const;
 
@@ -143,7 +145,9 @@ export function BrandGuidePage() {
             </div>
           </>
         }
-        contents={SECTIONS.map(([id, label]) => ({ id, label }))}
+        contents={SECTIONS.filter(
+          ([id]) => id !== "social-posts" || doc.socialPosts?.length
+        ).map(([id, label]) => ({ id, label }))}
         foot={
           <p className="doc-shell__colophon">
             {kit.parentName
@@ -211,6 +215,12 @@ export function BrandGuidePage() {
           <ImagerySection doc={doc} />
         </section>
 
+        {Boolean(doc.socialPosts?.length) && (
+          <section className="doc-band" id="social-posts">
+            <h2 className="doc-band__title">Social posts</h2>
+            <GuideSocialPosts kit={kit} />
+          </section>
+        )}
         <section className="doc-band" id="references">
           <h2 className="doc-band__title">References</h2>
           <ReferenceSection doc={doc} />

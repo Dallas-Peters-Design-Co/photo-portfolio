@@ -1,0 +1,17 @@
+.guide-social {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 2rem;
+  align-items: start;
+}
+
+.guide-social__post {
+  min-width: 0;
+  margin: 0;
+  break-inside: avoid;
+}
+
+.guide-social__post .studio-social-preview,
+.guide-social__post .social-mock {
+  height: auto;
+}
