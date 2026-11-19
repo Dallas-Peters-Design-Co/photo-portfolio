@@ -56,7 +56,7 @@ const styleOf = (body: string): string =>
     .join("; ");
 
 const ATTR =
-  /^\s*([\w:-]+)(?:=(?:"((?:[^"\\]|\\.)*)"|\{\{([^}]*)\}\}|\{([^}]*)\}))?/;
+  /^\s*([\w:-]+)(?:=(?:"((?:[^"\\]|\\.)*)"|\{\{((?:"(?:[^"\\]|\\.)*"|[^}"])*)\}\}|\{("(?:[^"\\]|\\.)*"|[^}]*)\}))?/;
 const TAG_END = /^\s*(\/?)>/;
 const CLOSING_TAG = /^<\/([\w-]+)\s*>/;
 const OPENING_TAG = /^<([\w-]+)/;
@@ -110,39 +110,28 @@ const readAttrs = (
   }
 };
 
-const TEXT_ESCAPE = /\{("(?:[^"\\]|\\.)*")\}/g;
-/** Stands in for an escaped piece of text while tags are found. */
-const HOLD = /\uE000(\d+)\uE001/g;
+/** Only scan text between tags for escaped JSX literals. Attribute values are
+ * consumed by readAttrs, including quoted strings containing angle brackets. */
+const TEXT_TOKEN = /<|\{("(?:[^"\\]|\\.)*")\}/g;
 
-/**
- * The JSX with each `{"<"}`-style escape set aside, so a `<` in text is not
- * read as a tag, and the pieces to put back.
- */
-const holdEscapes = (jsx: string): { held: string[]; source: string } => {
-  const held: string[] = [];
-  const source = jsx.replace(TEXT_ESCAPE, (_, json: string) => {
-    held.push(JSON.parse(json) as string);
-    return `\uE000${held.length - 1}\uE001`;
-  });
-  return { held, source };
-};
-
-export const jsxToHtml = (input: string): string => {
-  const { held, source: jsx } = holdEscapes(input);
-  /** Text between tags, its escapes put back. */
-  const textOf = (raw: string): string =>
-    escapeHtml(raw).replace(HOLD, (_, i: string) =>
-      escapeHtml(held[Number(i)] ?? "")
-    );
+export const jsxToHtml = (jsx: string): string => {
+  const tokens = new RegExp(TEXT_TOKEN);
   let html = "";
   let at = 0;
   while (at < jsx.length) {
-    const open = jsx.indexOf("<", at);
-    if (open === -1) {
-      html += textOf(jsx.slice(at));
+    tokens.lastIndex = at;
+    const token = tokens.exec(jsx);
+    if (!token) {
+      html += escapeHtml(jsx.slice(at));
       break;
     }
-    html += textOf(jsx.slice(at, open));
+    const open = token.index;
+    html += escapeHtml(jsx.slice(at, open));
+    if (token[1] !== undefined) {
+      html += escapeHtml(JSON.parse(token[1]) as string);
+      at = tokens.lastIndex;
+      continue;
+    }
     const closing = CLOSING_TAG.exec(jsx.slice(open));
     if (closing) {
       html += `</${closing[1]}>`;

@@ -14,6 +14,25 @@ describe("jsxToHtml", () => {
     );
   });
 
+  it("reads an avatar image and escapes literal strings in attributes and text", () => {
+    const element = cleanConcept({
+      elements: [
+        {
+          avatarUrl: "https://example.com/image.png?x=1&y=2",
+          kind: "avatar",
+          text: "DP",
+        },
+      ],
+    }).elements[0] as ReviewConceptElement;
+    const html = jsxToHtml(componentSource(element, "Primary").preview);
+    expect(html).toContain(
+      '<img src="https://example.com/image.png?x=1&amp;y=2" alt='
+    );
+    expect(jsxToHtml('<span title={"a} <b>"}>{"<tag>"}</span>')).toBe(
+      '<span title="a} &lt;b&gt;">&lt;tag&gt;</span>'
+    );
+  });
+
   it("closes SVG shapes and keeps void elements void", () => {
     expect(
       jsxToHtml(
@@ -26,6 +45,7 @@ describe("jsxToHtml", () => {
 
   it("reads every preview the generator writes", () => {
     const kinds = [
+      "avatar",
       "button",
       "card",
       "panel",
