@@ -5,7 +5,11 @@
   border-block: 1px solid color-mix(in oklch, currentColor 15%, transparent);
 }
 
-.review-concepts-editor__head,
+.review-concepts-editor__head {
+  display: grid;
+  place-content: start strech;
+}
+
 .review-concepts__card-head,
 .review-concepts__element-head {
   display: flex;

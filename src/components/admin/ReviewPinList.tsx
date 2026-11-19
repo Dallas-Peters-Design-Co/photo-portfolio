@@ -232,7 +232,7 @@ export function ReviewPinList({
                 Note
               </label>
               <textarea
-                className={`${proposalTextareaClass} min-h-20`}
+                className={`${proposalTextareaClass} min-h-40`}
                 id={`pin-body-${pin.id}`}
                 onChange={(e) => onUpdate(pin.id, { body: e.target.value })}
                 onFocus={() => onSelect(pin.id)}
