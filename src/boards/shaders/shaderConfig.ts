@@ -96,6 +96,8 @@ export type ImageFit = "contain" | "cover";
 export interface ShaderConfig {
   /** For the picture wired in; an ImageTexture layer has its own setting. */
   imageFit?: ImageFit;
+  /** The kit shader this board item came from, so Brand can update it. */
+  kitShaderId?: string;
   layers: ShaderLayer[];
 }
 

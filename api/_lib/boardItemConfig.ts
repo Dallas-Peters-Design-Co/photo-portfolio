@@ -16,6 +16,7 @@ import { clamp, num, text } from "./values.js";
  * rebuilt on every one of those is work for nothing.
  */
 const HEX_COLOR = /^#[0-9a-f]{3,8}$/i;
+const KIT_SHADER_ID = /^[\w-]{1,40}$/;
 
 /**
  * What a node's `config` blob may contain, per node type.
@@ -484,7 +485,11 @@ export const parseShaderConfig = (
   if (typeof raw !== "object" || raw === null) {
     return null;
   }
-  const { imageFit, layers } = raw as { imageFit?: unknown; layers?: unknown };
+  const { imageFit, kitShaderId, layers } = raw as {
+    imageFit?: unknown;
+    kitShaderId?: unknown;
+    layers?: unknown;
+  };
   if (!Array.isArray(layers)) {
     return null;
   }
@@ -493,7 +498,11 @@ export const parseShaderConfig = (
   // sent a shader set to Cover back as Contain.
   const fit =
     imageFit === "cover" || imageFit === "contain" ? { imageFit } : {};
-  return parsed.length > 0 || "imageFit" in fit
-    ? { layers: parsed, ...fit }
+  const link =
+    typeof kitShaderId === "string" && KIT_SHADER_ID.test(kitShaderId)
+      ? { kitShaderId }
+      : {};
+  return parsed.length > 0 || "imageFit" in fit || "kitShaderId" in link
+    ? { layers: parsed, ...fit, ...link }
     : null;
 };

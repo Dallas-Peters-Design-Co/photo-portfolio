@@ -4,7 +4,10 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { Toaster, toast } from "sonner";
 import useSWR from "swr";
 import { parseFontRef } from "../../config/fontRef.js";
-import { ComponentSection } from "../components/brandGuide/GuideComponents";
+import {
+  ComponentSection,
+  ShaderSection,
+} from "../components/brandGuide/GuideComponents";
 import {
   ColourSection,
   ImagerySection,
@@ -33,6 +36,7 @@ const SECTIONS = [
   ["colour", "Colour"],
   ["type", "Type"],
   ["components", "Components"],
+  ["shaders", "Shaders"],
   ["logo", "Logo"],
   ["imagery", "Imagery"],
   ["social-posts", "Social posts"],
@@ -61,7 +65,8 @@ export function BrandGuidePage() {
   const [authed] = useState(() => Boolean(authStorage.getToken()));
   const { data: kit, error } = useSWR(
     authed && kitId ? ["kit", kitId] : null,
-    () => brandKitsApi.get(kitId as string)
+    () => brandKitsApi.get(kitId as string),
+    { refreshInterval: 5000 }
   );
 
   useEffect(() => {
@@ -146,7 +151,9 @@ export function BrandGuidePage() {
           </>
         }
         contents={SECTIONS.filter(
-          ([id]) => id !== "social-posts" || doc.socialPosts?.length
+          ([id]) =>
+            (id !== "social-posts" || doc.socialPosts?.length) &&
+            (id !== "shaders" || doc.shaders.length > 0)
         ).map(([id, label]) => ({ id, label }))}
         foot={
           <p className="doc-shell__colophon">
@@ -204,6 +211,13 @@ export function BrandGuidePage() {
           <h2 className="doc-band__title">Components</h2>
           <ComponentSection doc={doc} />
         </section>
+
+        {doc.shaders.length > 0 ? (
+          <section className="doc-band" id="shaders">
+            <h2 className="doc-band__title">Shaders</h2>
+            <ShaderSection shaders={doc.shaders} />
+          </section>
+        ) : null}
 
         <section className="doc-band" id="logo">
           <h2 className="doc-band__title">Logo</h2>

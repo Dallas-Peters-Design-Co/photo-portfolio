@@ -6,6 +6,7 @@ import "./KitShaderPreview.css";
 /** A kit shader's stack, as the board's shader item takes it. */
 export const shaderConfigOf = (shader: KitShader): ShaderConfig => ({
   ...(shader.imageFit ? { imageFit: shader.imageFit } : {}),
+  kitShaderId: shader.id,
   layers: shader.layers,
 });
 

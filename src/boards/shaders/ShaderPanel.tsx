@@ -94,7 +94,7 @@ export function ShaderPanel({
               onClick={async () => {
                 setSaving(true);
                 try {
-                  await kitShader.save(
+                  const kitShaderId = await kitShader.save(
                     config,
                     config.layers[0]?.name ?? "Shader",
                     () =>
@@ -102,16 +102,23 @@ export function ShaderPanel({
                         ? resolveImage(selected.id)
                         : Promise.resolve(imageUrl ?? null)
                   );
+                  if (kitShaderId && kitShaderId !== config.kitShaderId) {
+                    onConfigChange(selected.id, { ...config, kitShaderId });
+                  }
                 } finally {
                   setSaving(false);
                 }
               }}
               onPointerDown={(e) => e.stopPropagation()}
-              title={`Save this shader to ${kitShader.kitName}, to place on any board`}
+              title={
+                config.kitShaderId
+                  ? `Update this shader in ${kitShader.kitName}`
+                  : `Save this shader to ${kitShader.kitName}, to place on any board`
+              }
               type="button"
             >
               <HugeiconsIcon icon={PaintBoardIcon} size={13} />
-              Brand
+              {config.kitShaderId ? "Update" : "Brand"}
             </button>
           ) : null}
           {onCopyReact && !isHalftone ? (

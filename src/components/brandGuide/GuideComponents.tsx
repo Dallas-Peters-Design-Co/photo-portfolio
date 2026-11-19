@@ -2,7 +2,9 @@ import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { styleSample } from "../../../config/conceptDefaults.js";
 import type { ConceptStyle } from "../../../config/conceptStyle.js";
 import { styleFacts, styleTitle } from "../../../config/conceptStyleFacts.js";
+import type { KitShader } from "../../../config/kitShaders.js";
 import { refreshPalettePaints } from "../../../config/paletteBinding.js";
+import { KitShaderPreview } from "../../boards/brand/KitShaderPreview";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import "../admin/ReviewConceptsEditor.css";
 
@@ -66,6 +68,25 @@ export function ComponentSection({ doc }: { doc: BrandKitDoc }) {
             <GuideComponent doc={doc} key={style.id} style={style} />
           ))
       )}
+    </div>
+  );
+}
+
+/** The kit's reusable shader stacks, drawn with their saved settings. */
+export function ShaderSection({ shaders }: { shaders: KitShader[] }) {
+  if (shaders.length === 0) {
+    return <p className="guide-empty">No shaders in this kit yet.</p>;
+  }
+  return (
+    <div className="guide-shaders">
+      {shaders.map((shader) => (
+        <article className="guide-shader" key={shader.id}>
+          <div className="guide-shader__preview">
+            <KitShaderPreview shader={shader} />
+          </div>
+          <h3 className="guide-shader__name">{shader.name}</h3>
+        </article>
+      ))}
     </div>
   );
 }

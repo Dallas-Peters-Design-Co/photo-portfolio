@@ -11,6 +11,14 @@ import {
 } from "../shaders/shaderConfig";
 import { useActiveBrand } from "./ActiveBrand";
 
+const nameForShader = async (
+  existingName: string | undefined,
+  ask: () => Promise<string | null>
+): Promise<string | undefined> => existingName ?? (await ask())?.trim();
+
+const atShaderLimit = (base: KitShader[], existing: KitShader | undefined) =>
+  !existing && base.length >= MAX_KIT_SHADERS;
+
 /**
  * Saves a board's shader stack into the board's brand kit (the Brand
  * panel's choice), named, so any board in that brand can place it again.
@@ -26,46 +34,53 @@ export const useSaveKitShader = () => {
     config: ShaderConfig,
     suggested: string,
     resolveImage: () => Promise<string | null>
-  ) => {
+  ): Promise<string | null> => {
     if (!kit) {
-      return;
+      return null;
     }
-    const name = (
-      await prompt({
+    const base =
+      kit.doc.shaders.length > 0 ? kit.doc.shaders : kit.resolvedDoc.shaders;
+    const existing = base.find((shader) => shader.id === config.kitShaderId);
+    const name = await nameForShader(existing?.name, () =>
+      prompt({
         confirmLabel: "Save to brand",
         defaultValue: suggested,
         placeholder: "Brand glow",
         title: `Save this shader to ${kit.name}`,
       })
-    )?.trim();
+    );
     if (!name) {
-      return;
+      return null;
     }
-    const base =
-      kit.doc.shaders.length > 0 ? kit.doc.shaders : kit.resolvedDoc.shaders;
-    if (base.length >= MAX_KIT_SHADERS) {
+    if (atShaderLimit(base, existing)) {
       toast.error(`${kit.name} already has ${MAX_KIT_SHADERS} shaders.`);
-      return;
+      return null;
     }
     try {
       const url = await resolveImage();
       const shader: KitShader = {
-        id: newItemId(),
+        id: existing?.id ?? newItemId(),
         ...(config.imageFit ? { imageFit: config.imageFit } : {}),
         layers: withImage(normalizeLayers(config.layers), url, config.imageFit),
         name,
       };
       await brandKitsApi.save(kit.id, {
         ...kit.doc,
-        shaders: [...base, shader],
+        shaders: existing
+          ? base.map((item) => (item.id === shader.id ? shader : item))
+          : [...base, shader],
       });
-      // Every reader of the kits (the Brand panel, pickers) sees it now.
+      // The board's Brand panel, kit editor and pickers all refresh this list.
       await mutate((key) => Array.isArray(key) && key[0] === "brand-kits");
-      toast.success(`Saved to ${kit.name}`);
+      toast.success(
+        existing ? `Updated ${name} in ${kit.name}` : `Saved to ${kit.name}`
+      );
+      return shader.id;
     } catch (err) {
       toast.error(
         err instanceof Error ? err.message : "Couldn't save the shader."
       );
+      return null;
     }
   };
 

@@ -541,8 +541,38 @@
   border-radius: 50%;
 }
 
+.guide-shaders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: calc(var(--spacing) * 6);
+}
+
+.guide-shader {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+  align-content: start;
+  min-width: 0;
+}
+
+.guide-shader__preview {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--guide-surface);
+  border: 1px solid var(--guide-rule);
+  border-radius: var(--radius-md);
+}
+
+.guide-shader__name {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
 @media print {
   .guide-component {
+    break-inside: avoid;
+  }
+
+  .guide-shader {
     break-inside: avoid;
   }
 }
