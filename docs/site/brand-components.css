@@ -577,7 +577,7 @@
   --card-disabled-line-height: 1.25;
   --card-disabled-padding: 16px 16px;
   --card-disabled-radius: 8px;
-  --card-disabled-border: 1px solid #bdbcbb;
+  --card-disabled-border: 1px solid var(--kit-17e2dceb-2877-475d-a85c-c2a066a2bded, #d3d3d0);
   --card-disabled-shadow: 0px 0px 0px 2px color-mix(in srgb, #586f75 11%, transparent);
   --card-disabled-body-size: 14px;
   --card-disabled-title-weight: 600;
@@ -2475,7 +2475,7 @@
   --card-disabled-line-height: 1.25;
   --card-disabled-padding: 16px 16px;
   --card-disabled-radius: 8px;
-  --card-disabled-border: 1px solid #bdbcbb;
+  --card-disabled-border: 1px solid var(--kit-17e2dceb-2877-475d-a85c-c2a066a2bded, #d3d3d0);
   --card-disabled-shadow: 0px 0px 0px 2px color-mix(in srgb, #586f75 11%, transparent);
   --card-disabled-body-size: 14px;
   --card-disabled-title-weight: 600;
