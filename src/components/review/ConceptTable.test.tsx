@@ -4,6 +4,8 @@ import { afterEach, beforeEach, expect, it } from "vitest";
 import { userEvent } from "vitest/browser";
 import { componentSource } from "../../../config/componentSource.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
+import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
+import { applyColumnStyles } from "../../../config/conceptStyle.js";
 import {
   cleanConcept,
   type ReviewConceptElement,
@@ -263,4 +265,54 @@ it("scrolls a table wider than its space, columns at their set widths", () => {
   // It scrolls without a bar: the bar takes no height.
   expect(getComputedStyle(box as HTMLElement).scrollbarWidth).toBe("none");
   expect(box?.offsetHeight).toBe(box?.clientHeight);
+});
+
+it("reopens and exports a borderless kit button with its icons and row overrides", () => {
+  const button = {
+    id: "borderless",
+    kind: "button" as const,
+    look: {
+      borderWidth: 0,
+      iconColor: "#345678",
+      iconEndName: "ArrowRight01Icon",
+      iconEndSvg: [["path", { d: "M2 2h4" }]] as ConceptIconSvg,
+      iconName: "HeartIcon",
+      iconSize: 20,
+      iconSvg: [["path", { d: "M1 1h2" }]] as ConceptIconSvg,
+    },
+    name: "Borderless",
+  };
+  const table = applyColumnStyles(
+    {
+      ...createConceptElement("table"),
+      table: {
+        columns: [
+          {
+            itemIcons: { 1: { end: "StarIcon", start: null } },
+            kind: "button",
+            label: "Actions",
+            styleId: "borderless",
+          },
+        ],
+        icons: { StarIcon: [["path", { d: "M3 3h6" }]] },
+        rows: [[""], ["Open"]],
+      },
+    },
+    [button]
+  );
+  const [saved] = cleanConcept({ elements: [table] }).elements;
+  act(() => root.render(<ReviewConceptElementView element={saved} />));
+  const buttons = host.querySelectorAll(".concept-table__button");
+  expect(buttons).toHaveLength(2);
+  const paths = (el: Element) =>
+    [...el.querySelectorAll("path")].map((p) => p.getAttribute("d"));
+  expect(paths(buttons[0])).toEqual(["M1 1h2", "M2 2h4"]);
+  expect(paths(buttons[1])).toEqual(["M3 3h6"]);
+  const icon = buttons[0].querySelector("svg") as SVGElement;
+  expect(getComputedStyle(icon).width).toBe("20px");
+  expect(getComputedStyle(icon).color).toBe("rgb(52, 86, 120)");
+  const markup = componentSource(saved, "Primary").preview;
+  expect(markup).toContain('aria-label={"Actions"}');
+  expect(markup.match(/d="M1 1h2"/g)).toHaveLength(1);
+  expect(markup).toContain('d="M3 3h6"');
 });

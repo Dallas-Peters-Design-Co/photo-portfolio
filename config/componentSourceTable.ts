@@ -11,6 +11,7 @@ import {
   tableOf,
 } from "./conceptTable.js";
 import { type ReviewConceptElement, splitCardText } from "./reviewConcept.js";
+import { tableItemIcon } from "./tableItemIcons.js";
 
 /**
  * A table for componentSource, drawn as the app draws one
@@ -54,9 +55,11 @@ const cellOf = (
   row: number,
   icons: ConceptTable["icons"]
 ): string => {
-  const pair = column.itemIcons?.[row];
-  const start = pair?.start && iconSvgJsx(icons?.[pair.start], 16);
-  const end = pair?.end && iconSvgJsx(icons?.[pair.end], 16);
+  const first = tableItemIcon(column, row, "start", icons);
+  const last = tableItemIcon(column, row, "end", icons);
+  const size = column.look?.iconSize ?? 16;
+  const start = iconSvgJsx(first?.svg, size);
+  const end = iconSvgJsx(last?.svg, size);
   const label = (text: string) =>
     start || end
       ? `<span className="@@__item-label">${start || ""}${escapeJsx(text)}${end || ""}</span>`
@@ -73,8 +76,8 @@ const cellOf = (
         .map((chip) => `<span className="@@__chip">${label(chip)}</span>`)
         .join("")}</span>`;
     case "button":
-      return value
-        ? `<button className="@@__button" type="button" data-style="${column.buttonStyle ?? "solid"}">${label(value)}</button>`
+      return value || start || end
+        ? `<button className="@@__button" type="button"${value ? "" : ` aria-label={${JSON.stringify(column.label || first?.name || last?.name || "Action")}}`} data-style="${column.buttonStyle ?? "solid"}">${label(value)}</button>`
         : "";
     case "progress": {
       const percent = Math.round(progressOf(value));
@@ -134,6 +137,12 @@ const columnsCss = (columns: ConceptTableColumn[]): string =>
     .flatMap((column, index) => {
       const cell = `& td:nth-child(${index + 1})`;
       const rules = [`${cell} { --&-tint: ${tintOf(column)}; }`];
+      if (column.look?.iconSize || column.look?.iconColor) {
+        const size = column.look.iconSize ? `${column.look.iconSize}px` : "1em";
+        rules.push(
+          `${cell} &__item-label svg { width: ${size}; height: ${size}; color: ${column.look.iconColor ?? "inherit"}; }`
+        );
+      }
       const look = column.look ? lookCss(column.look) : "";
       if (look) {
         if (column.kind === "text" || column.kind === "stacked") {

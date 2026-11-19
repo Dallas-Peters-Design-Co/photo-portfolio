@@ -10,6 +10,7 @@ import {
   SLOT_DEFAULTS,
 } from "./conceptSlots.js";
 import { type ReviewConceptElement, splitCardText } from "./reviewConcept.js";
+import { tableIconDrawings } from "./tableItemIcons.js";
 
 /** Looks an icon's drawing up by its Hugeicons name. */
 export type IconLookup = (name: string) => ConceptIconSvg | undefined;
@@ -31,6 +32,9 @@ export const withIconDrawings = (
   const endSvg = endName ? lookup(endName) : undefined;
   return {
     ...mapChildren(element, (child) => withIconDrawings(child, lookup)),
+    ...(element.table
+      ? { table: tableIconDrawings(element.table, lookup) }
+      : {}),
     ...(svg ? { iconSvg: svg } : {}),
     ...(endSvg ? { iconEndSvg: endSvg } : {}),
   };

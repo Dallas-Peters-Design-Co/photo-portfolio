@@ -4,7 +4,9 @@ import {
   cleanIconSvg,
   conceptIconName,
 } from "./conceptIcon.js";
+import { cleanIcon } from "./conceptKinds.js";
 import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
+import { type CellIcons, cleanItemIcons } from "./tableItemIcons.js";
 
 /**
  * A concept table: typed columns, and rows of cell text.
@@ -41,7 +43,7 @@ export type ButtonStyle = "solid" | "outline";
  * kit component style: that style's look, copied in whenever the review is
  * drawn (config/conceptStyle.ts applyColumnStyles) and kept as a fallback.
  */
-export interface ConceptCellLook {
+export interface ConceptCellLook extends ReturnType<typeof cleanIcon> {
   background?: string;
   borderColor?: string;
   borderWidth?: number;
@@ -56,7 +58,7 @@ export interface ConceptCellLook {
   shadow?: ConceptShadow;
 }
 
-export type CellIcons = Partial<Record<"start" | "end", string>>;
+export type { CellIcons } from "./tableItemIcons.js";
 
 export interface ConceptTableColumn {
   /** Button columns: filled with the colour, or outlined in it. */
@@ -199,6 +201,7 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
   const raw = value as Record<string, unknown>;
   const shadow = cleanShadow(raw.shadow);
   const look: ConceptCellLook = {
+    ...cleanIcon("button", raw),
     ...optionalPaint("background", raw.background),
     ...optionalPaint("borderColor", raw.borderColor),
     ...num("borderWidth", raw.borderWidth, 0, 8),
@@ -212,21 +215,6 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
     ...(shadow ? { shadow } : {}),
   };
   return Object.keys(look).length > 0 ? look : undefined;
-};
-
-const cleanItemIcons = (
-  value: ConceptTableColumn["itemIcons"],
-  count: number
-) => {
-  const icons: Record<number, CellIcons> = {};
-  for (let row = 0; row < count; row += 1) {
-    const start = conceptIconName(value?.[row]?.start);
-    const end = conceptIconName(value?.[row]?.end);
-    if (start || end) {
-      icons[row] = { ...(start && { start }), ...(end && { end }) };
-    }
-  }
-  return Object.keys(icons).length ? icons : undefined;
 };
 
 const cleanColumn = (value: unknown, rowCount: number): ConceptTableColumn => {
@@ -340,6 +328,8 @@ const cleanIcons = (
       for (const name of [
         cell?.start,
         cell?.end,
+        column.look?.iconName,
+        column.look?.iconEndName,
         column.kind === "icon" ? conceptIconName(row[index]) : null,
       ]) {
         if (name) {
@@ -557,9 +547,9 @@ export const setCellItemIcon = (
   if (name && svg) {
     cell[side] = name;
   } else {
-    delete cell[side];
+    cell[side] = null;
   }
-  if (cell.start || cell.end) {
+  if (Object.keys(cell).length) {
     itemIcons[row] = cell;
   } else {
     delete itemIcons[row];

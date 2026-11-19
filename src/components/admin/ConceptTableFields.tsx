@@ -42,6 +42,7 @@ import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { tableItemIcon } from "../../../config/tableItemIcons";
 import { IconPicker } from "../../cms/IconPicker";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -430,7 +431,12 @@ export function ConceptTableFields({
                         <details className="review-concepts__table-icons">
                           <summary aria-label={`${label} icons`}>Icons</summary>
                           {(["start", "end"] as const).map((side) => {
-                            const name = column.itemIcons?.[rowIndex]?.[side];
+                            const item = tableItemIcon(
+                              column,
+                              rowIndex,
+                              side,
+                              table.icons
+                            );
                             const position =
                               side === "start"
                                 ? "Leading icon"
@@ -454,8 +460,8 @@ export function ConceptTableFields({
                                     )
                                   }
                                   size="sm"
-                                  svg={name ? table.icons?.[name] : undefined}
-                                  value={name ?? null}
+                                  svg={item?.svg}
+                                  value={item?.name ?? null}
                                 />
                               </ConceptField>
                             );

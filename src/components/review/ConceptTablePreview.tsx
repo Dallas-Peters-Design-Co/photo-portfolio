@@ -3,7 +3,6 @@ import type { CSSProperties } from "react";
 import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import { shadowCss } from "../../../config/conceptShadow.js";
 import {
-  type CellIcons,
   type ConceptCellLook,
   type ConceptTableColumn,
   chipsOf,
@@ -16,6 +15,8 @@ import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { tableItemIcon } from "../../../config/tableItemIcons.js";
+import { ConceptIcon } from "./ConceptIcon";
 import { ProgressBar } from "./ConceptProgressPreview";
 import "./ConceptTablePreview.css";
 
@@ -69,25 +70,26 @@ const pill = (column: ConceptTableColumn): CSSProperties => ({
 function Cell({
   column,
   icons,
-  itemIcons,
+  row,
   value,
 }: {
   column: ConceptTableColumn;
   icons?: Record<string, ConceptIconSvg>;
-  itemIcons?: CellIcons;
+  row: number;
   value: string;
 }) {
-  const start = itemIcons?.start && icons?.[itemIcons.start];
-  const end = itemIcons?.end && icons?.[itemIcons.end];
+  const start = tableItemIcon(column, row, "start", icons);
+  const end = tableItemIcon(column, row, "end", icons);
+  const size = column.look?.iconSize ?? "1em";
   const label = (text: string) =>
     start || end ? (
       <span className="concept-table__item-label">
         {start ? (
-          <HugeiconsIcon aria-hidden="true" icon={start} size="1em" />
+          <ConceptIcon {...start} color={column.look?.iconColor} size={size} />
         ) : null}
         {text}
         {end ? (
-          <HugeiconsIcon aria-hidden="true" icon={end} size="1em" />
+          <ConceptIcon {...end} color={column.look?.iconColor} size={size} />
         ) : null}
       </span>
     ) : (
@@ -140,12 +142,15 @@ function Cell({
       ) : null;
     }
     case "button":
-      return value ? (
+      return value || start || end ? (
         <span
           className="concept-table__button"
           data-style={column.buttonStyle ?? "solid"}
           style={pill(column)}
         >
+          {!value && (
+            <span className="sr-only">{column.label || "Action"}</span>
+          )}
           {label(value)}
         </span>
       ) : null;
@@ -249,7 +254,7 @@ export function ConceptTablePreview({
                   <Cell
                     column={column}
                     icons={icons}
-                    itemIcons={column.itemIcons?.[rowIndex]}
+                    row={rowIndex}
                     value={row[index] ?? ""}
                   />
                 </td>

@@ -1,3 +1,4 @@
+import { cleanIcon } from "./conceptKinds.js";
 import { type ConceptSlots, hasSlots, mapChildren } from "./conceptSlots.js";
 import {
   type ConceptCellLook,
@@ -221,6 +222,7 @@ export const applyConceptStyle = (
 
 /** The part of a badge or button style a table cell draws with. */
 export const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
+  ...cleanIcon("button", look),
   background: look.background,
   borderColor: look.borderColor,
   borderWidth: look.borderColor ? look.borderWidth : 0,

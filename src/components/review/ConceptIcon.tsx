@@ -21,7 +21,7 @@ export function ConceptIcon({
 }: {
   color?: string;
   name?: string;
-  size: number;
+  size: number | string;
   /** The saved drawing; without one (older concepts) the name is looked up. */
   svg?: ConceptIconSvg;
 }) {
