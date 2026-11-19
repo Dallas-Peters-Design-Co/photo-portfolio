@@ -130,7 +130,11 @@ export const PageDesignView = memo(function PageView({
               style={pageBoxStyle(boxOf(page, element.id, i))}
             >
               <StepElements
-                elements={[element]}
+                elements={[
+                  element.kind === "canvas" || element.kind === "shader"
+                    ? { ...element, canvasSize: boxOf(page, element.id, i) }
+                    : element,
+                ]}
                 marks={{
                   enter: step.enter,
                   selected: selectedChild,

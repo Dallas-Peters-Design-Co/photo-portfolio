@@ -9,8 +9,10 @@ import "./ReviewCanvasComponent.css";
 /** A review carries the component's layers, so visitors need no kit access. */
 export function ReviewCanvasComponent({
   component,
+  size,
 }: {
   component: BrandComponent;
+  size?: { width: number; height: number };
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(component.width);
@@ -31,16 +33,19 @@ export function ReviewCanvasComponent({
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
-  const scale = Math.min(1, width / component.width);
+  const scale = width / component.width;
+  const height = size
+    ? (size.height * width) / size.width
+    : component.height * scale;
   return (
     <div
       className="review-canvas-component"
       ref={container}
-      style={{ width: `min(100%, ${component.width}px)` }}
+      style={{ width: `min(100%, ${size?.width ?? component.width}px)` }}
     >
       <div
         style={{
-          height: component.height * scale,
+          height,
           width: component.width * scale,
         }}
       >
@@ -48,7 +53,7 @@ export function ReviewCanvasComponent({
           className="review-canvas-component__layers"
           style={{
             height: component.height,
-            transform: `scale(${scale})`,
+            transform: `scale(${scale}, ${height / component.height})`,
             width: component.width,
           }}
         >

@@ -39,8 +39,12 @@ import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
 import { type ConceptTooltip, cleanTooltip } from "./conceptTooltip.js";
 import { bounded, cleanColor, str } from "./conceptValues.js";
 import { isFontRef } from "./fontRef.js";
+import type { KitShader } from "./kitShaders.js";
 import { newItemId } from "./proposal.js";
-import { cleanReviewCanvasComponent } from "./reviewCanvasComponent.js";
+import {
+  cleanCanvas,
+  cleanReviewCanvasComponent,
+} from "./reviewCanvasComponent.js";
 
 /**
  * Concepts in one whole review, across every note. 8 was too few: a review
@@ -89,6 +93,7 @@ export const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "logo",
   "navbar",
   "canvas",
+  "shader",
   "tooltip",
 ];
 const FONT_WEIGHTS = [400, 500, 600, 700] as const;
@@ -130,6 +135,7 @@ export type ReviewConceptElementKind =
   | "logo"
   | "navbar"
   | "canvas"
+  | "shader"
   | "tooltip";
 
 /**
@@ -158,6 +164,7 @@ export interface ReviewConceptElement {
   borderWidth?: number;
   /** A copy of a canvas component, drawn in the concept alongside other elements. */
   canvasComponent?: BrandComponent;
+  canvasSize?: { width: number; height: number };
   checked?: boolean;
   /** Checkboxes: the box's size in px. */
   checkSize?: number;
@@ -218,6 +225,7 @@ export interface ReviewConceptElement {
   /** Progress bars: how far along, 0–100. The bar is `accentColor`. */
   progress?: number;
   radius: number;
+  shader?: KitShader;
   shadow?: ConceptShadow;
   /** Progress bars: whether the percentage shows beside the label. */
   showValue?: boolean;
@@ -465,15 +473,6 @@ const cleanHolder = (
     };
   }
   return {};
-};
-
-const cleanCanvas = (
-  raw: Partial<ReviewConceptElement>,
-  kind: ReviewConceptElementKind
-) => {
-  const canvasComponent =
-    kind === "canvas" ? cleanReviewCanvasComponent(raw.canvasComponent) : null;
-  return canvasComponent ? { canvasComponent } : {};
 };
 
 const cleanAttachedTooltip = (

@@ -18,6 +18,58 @@ const ANIMATIONS = [
   "from-left",
   "pop",
 ] as const;
+function PlacementFields({
+  editor,
+}: {
+  editor: ReturnType<typeof usePageCanvas>;
+}) {
+  const { element, box, setBox, patchElement } = editor;
+  if (!element) {
+    return null;
+  }
+  if (box) {
+    return (
+      <div className="page-builder__numbers">
+        {(["x", "y", "width", "height"] as const).map((field) => (
+          <PageNumber
+            key={field}
+            label={field.toUpperCase()}
+            min={field === "width" || field === "height" ? 1 : 0}
+            onChange={(value) => setBox(element.id, { ...box, [field]: value })}
+            value={box[field]}
+          />
+        ))}
+      </div>
+    );
+  }
+  if (element.kind !== "canvas" && element.kind !== "shader") {
+    return null;
+  }
+  const canvasSize = element.canvasSize ??
+    element.canvasComponent ?? { height: 240, width: 360 };
+  return (
+    <div className="page-builder__numbers">
+      {(["width", "height"] as const).map((field) => (
+        <PageNumber
+          key={field}
+          label={field.toUpperCase()}
+          min={1}
+          onChange={(value) =>
+            patchElement({
+              canvasSize: {
+                height: canvasSize.height,
+                width: canvasSize.width,
+                [field]: value,
+              },
+            })
+          }
+          value={canvasSize[field]}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function PageCanvasInspector({
   editor,
 }: {
@@ -33,12 +85,12 @@ export function PageCanvasInspector({
     at,
     element,
     box,
-    setBox,
     doc,
     removeSelected,
     write,
     patchElement,
   } = editor;
+  const isArtwork = ["canvas", "shader"].includes(element?.kind ?? "");
   return (
     <aside className="page-builder__inspector">
       <h2>Page</h2>
@@ -140,21 +192,7 @@ export function PageCanvasInspector({
       <h2>{element ? element.kind : "Properties"}</h2>
       {element ? (
         <>
-          {box ? (
-            <div className="page-builder__numbers">
-              {(["x", "y", "width", "height"] as const).map((field) => (
-                <PageNumber
-                  key={field}
-                  label={field.toUpperCase()}
-                  min={field === "width" || field === "height" ? 1 : 0}
-                  onChange={(value) =>
-                    setBox(element.id, { ...box, [field]: value })
-                  }
-                  value={box[field]}
-                />
-              ))}
-            </div>
-          ) : null}
+          <PlacementFields editor={editor} />
           {editor.canGroup ? (
             <button
               className="page-builder__button"
@@ -180,7 +218,7 @@ export function PageCanvasInspector({
           >
             <Trash2 size={14} /> {box ? "Remove component" : "Remove item"}
           </button>
-          {element.kind === "canvas" ? (
+          {isArtwork ? (
             <>
               <ConceptFlexFields
                 flex={element.flex}

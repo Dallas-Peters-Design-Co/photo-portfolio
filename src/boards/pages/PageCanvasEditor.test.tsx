@@ -200,12 +200,26 @@ it("inserts a canvas component beside the page's other elements", async () => {
   await act(() =>
     page.getByRole("option", { exact: true, name: "Canvas header" }).click()
   );
+  await act(() =>
+    page
+      .getByRole("complementary")
+      .filter({ has: page.getByRole("heading", { name: "Layers" }) })
+      .getByRole("button", { exact: true, name: "canvas Canvas header" })
+      .click()
+  );
+  await act(() =>
+    page.getByRole("spinbutton", { exact: true, name: "WIDTH" }).fill("183")
+  );
+  await act(() =>
+    page.getByRole("spinbutton", { exact: true, name: "HEIGHT" }).fill("63")
+  );
   const saved = cleanPageDesign(latest);
   if (!saved) {
     throw new Error("Missing saved page");
   }
   const children = saved.concept.elements[0]?.slots?.body?.elements;
   expect(children?.map((item) => item.kind)).toEqual(["text", "canvas"]);
+  expect(children?.[1]?.canvasSize).toEqual({ height: 63, width: 183 });
   expect(children?.[1]?.canvasComponent).toMatchObject({
     id: "page-component",
     props: [{ id: "heading", lid: "title" }],
@@ -213,6 +227,11 @@ it("inserts a canvas component beside the page's other elements", async () => {
   await act(() => root.unmount());
   host.remove();
   await mount(saved);
+  await vi.waitFor(() => {
+    const artwork = host.querySelector<HTMLElement>(".review-canvas-component");
+    expect(artwork?.offsetWidth).toBe(183);
+    expect(artwork?.offsetHeight).toBe(63);
+  });
   expect(
     host.querySelector(
       '.concept-panel__surface [data-slot="body"] .review-canvas-component'
@@ -593,4 +612,28 @@ it("reorders page layers, group children and slot items while preserving positio
   const components = host.querySelectorAll(".page-design__component");
   expect(components[0].textContent).toContain("Two");
   expect(components[1].textContent).toContain("Second");
+});
+
+it("inserts a live shader and keeps its stack when the page reopens", async () => {
+  await mount();
+  await act(() =>
+    page.getByRole("combobox", { name: "Insert shader" }).click()
+  );
+  await act(() =>
+    page.getByRole("option", { exact: true, name: "Plasma" }).click()
+  );
+  const saved = cleanPageDesign(latest);
+  expect(saved?.concept.elements[0]).toMatchObject({
+    kind: "shader",
+    shader: { layers: [{ name: "Plasma" }], name: "Plasma" },
+  });
+  if (!saved) {
+    throw new Error("Shader page missing");
+  }
+  await act(() => root.unmount());
+  host.remove();
+  await mount(saved);
+  await vi.waitFor(() =>
+    expect(host.querySelector(".shader-view")).toBeTruthy()
+  );
 });

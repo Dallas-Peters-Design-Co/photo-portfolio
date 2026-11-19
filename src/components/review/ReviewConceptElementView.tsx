@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import type { CSSProperties } from "react";
+import { type CSSProperties, lazy, Suspense } from "react";
 import { flexSize } from "../../../config/conceptFlex.js";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { iconSizeOf, takesBox } from "../../../config/conceptKinds.js";
@@ -38,6 +38,10 @@ import { ConceptToastPreview } from "./ConceptToastPreview";
 import { ConceptUploadPreview } from "./ConceptUploadPreview";
 import { ReviewCanvasComponent } from "./ReviewCanvasComponent";
 import { useConceptFont } from "./useConceptFont";
+
+const ShaderView = lazy(async () => ({
+  default: (await import("../../boards/shaders/ShaderView")).ShaderView,
+}));
 
 const ICON_SUFFIX = /Icon$/;
 
@@ -279,9 +283,25 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
           {text}
         </span>
       );
+    case "shader":
+      return element.shader ? (
+        <div
+          style={{
+            height: element.canvasSize?.height ?? 240,
+            width: element.canvasSize?.width ?? 360,
+          }}
+        >
+          <Suspense fallback={null}>
+            <ShaderView config={element.shader} />
+          </Suspense>
+        </div>
+      ) : null;
     case "canvas":
       return element.canvasComponent ? (
-        <ReviewCanvasComponent component={element.canvasComponent} />
+        <ReviewCanvasComponent
+          component={element.canvasComponent}
+          size={element.canvasSize}
+        />
       ) : null;
     case "icon": {
       const iconName = element.iconName ?? "StarIcon";

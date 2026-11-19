@@ -14,6 +14,11 @@ import { CanvasComponentKit } from "../../components/admin/ReviewCanvasComponent
 import type { BoardItem } from "../../types";
 import { PanelEdge } from "../creative/PanelEdge";
 import { usePanelWidths } from "../creative/usePanelWidths";
+import {
+  ALL_SHADERS,
+  newLayerId,
+  newShaderConfig,
+} from "../shaders/shaderConfig";
 import { PageCanvasInspector } from "./PageCanvasInspector";
 import { PageCanvasStage } from "./PageCanvasStage";
 import { PageDesignView } from "./PageDesignView";
@@ -158,15 +163,41 @@ export function PageCanvasEditor({
           }}
           options={[
             { label: "Add an element…", value: NONE },
-            ...ELEMENT_KINDS.filter((kind) => kind !== "canvas").map(
-              (kind) => ({
-                label: kind === "group" ? "Layout group" : kind,
-                value: kind,
-              })
-            ),
+            ...ELEMENT_KINDS.filter(
+              (kind) => kind !== "canvas" && kind !== "shader"
+            ).map((kind) => ({
+              label: kind === "group" ? "Layout group" : kind,
+              value: kind,
+            })),
           ]}
           value={NONE}
         />
+        {!playing && elements.length < MAX_CONCEPT_ELEMENTS && (
+          <PageSelect
+            label="Insert shader"
+            onChange={(value) => {
+              const saved = doc?.shaders.find((s) => `kit:${s.id}` === value);
+              if (saved) {
+                add("shader", saved);
+              } else if (ALL_SHADERS.some((s) => s.name === value)) {
+                add("shader", {
+                  id: newLayerId(),
+                  name: value,
+                  ...newShaderConfig(value),
+                });
+              }
+            }}
+            options={[
+              { label: "Choose a shader…", value: NONE },
+              ...(doc?.shaders ?? []).map((s) => ({
+                label: `${s.name} · Kit`,
+                value: `kit:${s.id}`,
+              })),
+              ...ALL_SHADERS.map((s) => ({ label: s.name, value: s.name })),
+            ]}
+            value={NONE}
+          />
+        )}
         <h2>Layers</h2>
         {elements.length > 1 && (
           <p className="page-builder__hint">

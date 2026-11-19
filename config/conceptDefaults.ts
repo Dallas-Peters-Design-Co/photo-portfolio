@@ -103,6 +103,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   panel: "Panel title",
   progress: "Upload progress",
   select: "Choose an option",
+  shader: "Shader",
   skeleton: "",
   table: "Project name",
   tabs: "Overview",

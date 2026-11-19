@@ -26,6 +26,7 @@ import {
   fromStyle,
   withOverrides,
 } from "../../../config/conceptStyle.js";
+import type { KitShader } from "../../../config/kitShaders.js";
 import {
   boxOf,
   cleanPageDesign,
@@ -158,11 +159,19 @@ export const usePageCanvas = (
   };
   const canGroup = Boolean(element && box && fitsAtDepth(element, 1));
   const above = elements[groupAbove(elements, rootIndex)];
+  const elementsForGrouping = () =>
+    elements.map((el) =>
+      el.id === selected &&
+      box &&
+      (el.kind === "canvas" || el.kind === "shader")
+        ? { ...el, canvasSize: { height: box.height, width: box.width } }
+        : el
+    );
   const groupSelected = () => {
     if (!(step && box && canGroup)) {
       return;
     }
-    const next = wrapInGroup(elements, rootIndex, doc);
+    const next = wrapInGroup(elementsForGrouping(), rootIndex, doc);
     const group = next[rootIndex];
     if (!group) {
       return;
@@ -176,7 +185,7 @@ export const usePageCanvas = (
   };
   const setBox = (id: string, next: PageBox) =>
     write({ ...resolved, boxes: { ...page.boxes, [id]: next } });
-  const add = (value: string) => {
+  const add = (value: string, shader?: KitShader) => {
     if (elements.length >= MAX_CONCEPT_ELEMENTS) {
       return;
     }
@@ -190,6 +199,9 @@ export const usePageCanvas = (
     let next = createConceptElement(kind, doc);
     if (component) {
       next = { ...next, canvasComponent: component, text: component.name };
+    }
+    if (shader) {
+      next = { ...next, shader, text: shader.name };
     }
     if (style) {
       next = fromStyle(next, style);
@@ -270,7 +282,7 @@ export const usePageCanvas = (
       above &&
       (above.group?.elements.length ?? 0) < MAX_SLOT_ELEMENTS
         ? () => {
-            setElements(moveIntoGroupAbove(elements, rootIndex));
+            setElements(moveIntoGroupAbove(elementsForGrouping(), rootIndex));
             setSelected(above.id);
           }
         : undefined,

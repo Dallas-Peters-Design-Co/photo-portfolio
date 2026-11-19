@@ -1,6 +1,11 @@
 import type { BrandComponent } from "../src/boards/components/model.js";
-
 import { cleanProps } from "./canvasComponentProps.js";
+import { bounded } from "./conceptValues.js";
+import { cleanKitShader } from "./kitShaders.js";
+import type {
+  ReviewConceptElement,
+  ReviewConceptElementKind,
+} from "./reviewConcept.js";
 
 const KINDS = new Set(["text", "note", "reference", "photo", "drawing"]);
 const ID = /^[a-zA-Z0-9_-]{1,64}$/;
@@ -90,5 +95,30 @@ export const cleanReviewCanvasComponent = (
     props: cleanProps(raw.props),
     updatedAt: "",
     width: raw.width,
+  };
+};
+
+export const cleanCanvas = (
+  raw: Partial<ReviewConceptElement>,
+  kind: ReviewConceptElementKind
+) => {
+  const canvasComponent =
+    kind === "canvas" ? cleanReviewCanvasComponent(raw.canvasComponent) : null;
+  if (kind !== "canvas" && kind !== "shader") {
+    return {};
+  }
+  const shader = kind === "shader" ? cleanKitShader(raw.shader) : null;
+  const size = raw.canvasSize;
+  return {
+    ...(shader ? { shader } : {}),
+    ...(canvasComponent ? { canvasComponent } : {}),
+    ...(size && Number.isFinite(size.width) && Number.isFinite(size.height)
+      ? {
+          canvasSize: {
+            height: bounded(size.height, 1, 100_000, 1),
+            width: bounded(size.width, 1, 100_000, 1),
+          },
+        }
+      : {}),
   };
 };
