@@ -27,7 +27,7 @@ import { ConceptFontField } from "./ConceptFontField";
 import { LogoGroup } from "./ConceptLogoFields";
 import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields, SlotFields } from "./ConceptSlotFields";
-import { StyleLink } from "./ConceptStyleLink";
+import { StyleLink, StylePicker } from "./ConceptStyleLink";
 import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptTooltipFields } from "./ConceptTooltipFields";
 import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
@@ -239,85 +239,6 @@ function KindGroups({
   );
 }
 
-/** The element's name (the fold control), its kit style, and its actions. */
-function ElementBar({
-  actions,
-  bodyId,
-  element,
-  handle,
-  onChange,
-  onDuplicate,
-  onLink,
-  onRemove,
-  onToggle,
-  open,
-  styles,
-}: {
-  /** Actions the list offers on this element (group, ungroup). */
-  actions?: ReactNode;
-  bodyId: string;
-  element: ReviewConceptElement;
-  /** The control that moves the element within its list. */
-  handle?: ReactNode;
-  onChange?: (patch: Patch) => void;
-  onDuplicate?: () => void;
-  onLink?: (style: ConceptStyle | null) => void;
-  onRemove?: () => void;
-  onToggle: () => void;
-  open: boolean;
-  styles: ConceptStyle[];
-}) {
-  return (
-    <header className="review-concepts__element-bar">
-      {/* The name and quick actions on one line; the kit style on its own
-          line below, where its buttons have room. */}
-      <div className="review-concepts__element-main">
-        {handle}
-        <button
-          aria-controls={bodyId}
-          aria-expanded={open}
-          className="review-concepts__element-toggle"
-          onClick={onToggle}
-          type="button"
-        >
-          <ChevronDown aria-hidden size={14} />
-          <span>{element.kind}</span>
-          {open ? null : <small>{summaryOf(element)}</small>}
-        </button>
-        {actions}
-        {onChange ? (
-          <ComponentStyleClipboard element={element} onChange={onChange} />
-        ) : null}
-        {onDuplicate ? (
-          <Button
-            aria-label={`Duplicate ${element.kind}`}
-            onClick={onDuplicate}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <Copy size={13} />
-          </Button>
-        ) : null}
-        {onRemove ? (
-          <Button
-            aria-label={`Remove ${element.kind}`}
-            onClick={onRemove}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 size={13} />
-          </Button>
-        ) : null}
-      </div>
-      {onLink ? (
-        <StyleLink element={element} onLink={onLink} styles={styles} />
-      ) : null}
-    </header>
-  );
-}
-
 /** What a group or a card or panel holds, and how it lays it out. */
 function HolderFields({
   brandDoc,
@@ -415,6 +336,61 @@ export function ReviewConceptElementFields({
       );
     }
   }, [focus.nonce]);
+  const linkStyle = element.kind !== "canvas" && onLink;
+  const header = (
+    <header className="review-concepts__element-main">
+      <button
+        aria-controls={bodyId}
+        aria-expanded={open}
+        className="review-concepts__element-toggle"
+        onClick={() => setOpen(!open)}
+        type="button"
+      >
+        <ChevronDown aria-hidden size={14} />
+        <span>{element.kind}</span>
+        {open ? null : <small>{summaryOf(element)}</small>}
+      </button>
+      {linkStyle ? (
+        <StylePicker element={element} onLink={linkStyle} styles={styles} />
+      ) : null}
+    </header>
+  );
+  const footer = (
+    <footer className="review-concepts__element-footer">
+      {handle}
+      {actions}
+      {element.kind === "canvas" ? null : (
+        <ComponentStyleClipboard element={element} onChange={onChange} />
+      )}
+      {onDuplicate ? (
+        <Button
+          aria-label={`Duplicate ${element.kind}`}
+          onClick={onDuplicate}
+          size="icon-sm"
+          title={`Duplicate ${element.kind}`}
+          type="button"
+          variant="ghost"
+        >
+          <Copy size={13} />
+        </Button>
+      ) : null}
+      {onRemove ? (
+        <Button
+          aria-label={`Remove ${element.kind}`}
+          onClick={onRemove}
+          size="icon-sm"
+          title={`Remove ${element.kind}`}
+          type="button"
+          variant="ghost"
+        >
+          <Trash2 size={13} />
+        </Button>
+      ) : null}
+      {linkStyle ? (
+        <StyleLink element={element} onLink={linkStyle} styles={styles} />
+      ) : null}
+    </footer>
+  );
   if (element.kind === "canvas") {
     return (
       <section
@@ -423,17 +399,7 @@ export function ReviewConceptElementFields({
         data-picked={picked || undefined}
         ref={section}
       >
-        <ElementBar
-          actions={actions}
-          bodyId={bodyId}
-          element={element}
-          handle={handle}
-          onDuplicate={onDuplicate}
-          onRemove={onRemove}
-          onToggle={() => setOpen(!open)}
-          open={open}
-          styles={[]}
-        />
+        {header}
         {open ? (
           <div id={bodyId}>
             <p>
@@ -451,6 +417,7 @@ export function ReviewConceptElementFields({
             />
           </div>
         ) : null}
+        {Boolean(handle || actions || onDuplicate || onRemove) && footer}
       </section>
     );
   }
@@ -461,21 +428,7 @@ export function ReviewConceptElementFields({
       data-picked={picked || undefined}
       ref={section}
     >
-      {lookOnly ? null : (
-        <ElementBar
-          actions={actions}
-          bodyId={bodyId}
-          element={element}
-          handle={handle}
-          onChange={onChange}
-          onDuplicate={onDuplicate}
-          onLink={onLink}
-          onRemove={onRemove}
-          onToggle={() => setOpen(!open)}
-          open={open}
-          styles={styles}
-        />
-      )}
+      {!lookOnly && header}
       {element.kind === "text" && !lookOnly ? (
         <ReviewConceptContentField element={element} onChange={onChange} />
       ) : null}
@@ -591,6 +544,7 @@ export function ReviewConceptElementFields({
           )}
         </div>
       ) : null}
+      {!lookOnly && footer}
     </section>
   );
 }

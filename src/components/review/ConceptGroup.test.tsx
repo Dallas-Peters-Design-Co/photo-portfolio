@@ -88,7 +88,7 @@ it("groups an element, moves the next into the group, and ungroups", async () =>
   act(() => root.render(<List />));
   const button = (text: string) =>
     [...host.querySelectorAll("button")].find(
-      (b) => b.textContent === text
+      (b) => b.getAttribute("aria-label") === text
     ) as HTMLElement;
 
   await userEvent.click(button("Group"));
@@ -131,14 +131,14 @@ it("moves an element into the nearest group above even with items between them",
     (node) => node.querySelector('[aria-label="Remove button"]')
   );
   const move = [...(target?.querySelectorAll("button") ?? [])].find(
-    (button) => button.textContent === "Into group above"
+    (button) => button.getAttribute("aria-label") === "Into group above"
   );
   expect(move).toBeDefined();
-  const header = target
-    ?.querySelector(".review-concepts__element-main")
+  const footer = target
+    ?.querySelector(".review-concepts__element-footer")
     ?.getBoundingClientRect();
   const buttonBox = move?.getBoundingClientRect();
-  expect(buttonBox?.right).toBeLessThanOrEqual((header?.right ?? 0) + 1);
+  expect(buttonBox?.right).toBeLessThanOrEqual((footer?.right ?? 0) + 1);
   await userEvent.click(move as HTMLElement);
   expect(current.map((element) => element.id)).toEqual([
     "first",
@@ -181,7 +181,7 @@ it("does not move an element into a full group", () => {
     )
   );
   const move = [...host.querySelectorAll("button")].find(
-    (button) => button.textContent === "Into group above"
+    (button) => button.getAttribute("aria-label") === "Into group above"
   );
   expect(move?.disabled).toBe(true);
   expect(move?.title).toBe("This group is full");
@@ -207,7 +207,7 @@ it("prevents a move that would discard nested group contents on save", () => {
     )
   );
   const move = [...host.querySelectorAll("button")].find(
-    (button) => button.textContent === "Into group above"
+    (button) => button.getAttribute("aria-label") === "Into group above"
   );
   expect(move?.disabled).toBe(true);
   expect(move?.title).toContain("too deeply nested");

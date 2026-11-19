@@ -12,20 +12,33 @@ import { useKitStyleSync } from "./kitStyleSync";
 
 const CUSTOM = "custom";
 
-/**
- * Which kit style the element follows, and how many settings it has set
- * itself; Reset hands those back to the style.
- */
-export function StyleLink({
-  element,
-  onLink,
-  styles,
-}: {
+interface StyleLinkProps {
   element: ReviewConceptElement;
   onLink: (style: ConceptStyle | null) => void;
   styles: ConceptStyle[];
-}) {
-  const linked = styles.find((style) => style.id === element.styleId) ?? null;
+}
+
+export function StylePicker({ element, onLink, styles }: StyleLinkProps) {
+  const linked = styles.find((style) => style.id === element.styleId);
+  return (
+    <div className="review-concepts__style-pick">
+      <ConceptSelect
+        label={`${element.kind} style`}
+        onChange={(id) =>
+          onLink(styles.find((style) => style.id === id) ?? null)
+        }
+        options={[
+          { label: "Custom", value: CUSTOM },
+          ...styles.map((style) => ({ label: style.name, value: style.id })),
+        ]}
+        value={linked?.id ?? CUSTOM}
+      />
+    </div>
+  );
+}
+
+export function StyleLink({ element, onLink, styles }: StyleLinkProps) {
+  const linked = styles.find((style) => style.id === element.styleId);
   const own = element.overrides?.length ?? 0;
   const kit = useKitStyleSync();
   const [name, setName] = useState<string | null>(null);
@@ -87,37 +100,18 @@ export function StyleLink({
   };
 
   return (
-    <div className="review-concepts__style-link">
-      <span className="review-concepts__style-label">Kit style</span>
-      <div className="review-concepts__style-pick">
-        <ConceptSelect
-          label={`${element.kind} style`}
-          onChange={(id) =>
-            onLink(styles.find((style) => style.id === id) ?? null)
-          }
-          options={[
-            { label: "Custom", value: CUSTOM },
-            ...styles.map((style) => ({ label: style.name, value: style.id })),
-          ]}
-          value={linked ? linked.id : CUSTOM}
-        />
-      </div>
+    <>
       {linked && own > 0 ? (
-        <>
-          <span className="review-concepts__style-changes">
-            {own} {own === 1 ? "change" : "changes"} of its own
-          </span>
-          <Button
-            aria-label="Reset"
-            onClick={() => onLink(linked)}
-            size="icon-sm"
-            title="Hand these settings back to the kit style"
-            type="button"
-            variant="ghost"
-          >
-            <RotateCcw aria-hidden size={14} />
-          </Button>
-        </>
+        <Button
+          aria-label="Reset"
+          onClick={() => onLink(linked)}
+          size="icon-sm"
+          title="Hand these settings back to the kit style"
+          type="button"
+          variant="ghost"
+        >
+          <RotateCcw aria-hidden size={14} />
+        </Button>
       ) : null}
       {kit && linked && own > 0 ? (
         <Button
@@ -189,6 +183,6 @@ export function StyleLink({
           <ListPlus aria-hidden size={14} />
         </Button>
       ) : null}
-    </div>
+    </>
   );
 }

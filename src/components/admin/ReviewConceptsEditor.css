@@ -190,43 +190,30 @@
   border: 1px solid color-mix(in oklch, currentColor 14%, transparent);
 }
 
-/* The element's name, then its actions pushed to the far end. */
-/* An element's row: its name and quick actions, then its kit style. */
-.review-concepts__element-bar {
-  display: grid;
-  gap: calc(var(--spacing) * 1);
-  margin: calc(var(--spacing) * -1) calc(var(--spacing) * -1) 0 0;
-}
-
 .review-concepts__element-main {
   display: flex;
-  flex-wrap: wrap;
-  gap: calc(var(--spacing) * 1);
+  gap: calc(var(--spacing) * 2);
   align-items: center;
   min-width: 0;
 }
-
-/* The whole name is the fold control: a wide target, not a small chevron. */
-/* The kit style an element follows, beside its name. */
-.review-concepts__style-link {
+.review-concepts__style-pick {
+  flex: 0 1 8rem;
+  min-width: 0;
+  max-width: 42%;
+}
+.review-concepts__element-footer {
   display: flex;
   flex-wrap: wrap;
-  gap: calc(var(--spacing) * 1) calc(var(--spacing) * 2);
+  gap: calc(var(--spacing) * 0.5);
   align-items: center;
-  /* Under the name, past the drag handle and the chevron. */
-  padding-inline-start: calc(var(--spacing) * 9);
+  padding-block-start: calc(var(--spacing) * 2);
+  border-block-start: 1px solid
+    color-mix(in oklch, currentColor 14%, transparent);
 }
-
-.review-concepts__style-label,
-.review-concepts__style-changes {
-  font-size: var(--text-xs-ui);
-  color: color-mix(in oklch, currentColor 60%, transparent);
+.review-concepts__element-footer > input {
+  flex: 1 1 9rem;
+  min-width: 0;
 }
-
-.review-concepts__style-pick {
-  width: 11rem;
-}
-
 .review-concepts__element-toggle {
   display: flex;
   flex: 1 1 8rem;

@@ -1,4 +1,4 @@
-import { GripVertical } from "lucide-react";
+import { CornerLeftUp, GripVertical, Group, Ungroup } from "lucide-react";
 import { type DragEvent, useId, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
@@ -70,35 +70,38 @@ function GroupActions({
     <>
       {above?.kind === "group" ? (
         <Button
+          aria-label="Into group above"
           disabled={full || tooDeep}
           onClick={onIntoAbove}
-          size="xs"
+          size="icon-sm"
           title={moveTitle}
           type="button"
           variant="ghost"
         >
-          Into group above
+          <CornerLeftUp aria-hidden size={14} />
         </Button>
       ) : null}
       {element.kind === "group" ? (
         <Button
+          aria-label="Ungroup"
           onClick={onUngroup}
-          size="xs"
+          size="icon-sm"
           title="Put its elements back in this list"
           type="button"
           variant="ghost"
         >
-          Ungroup
+          <Ungroup aria-hidden size={14} />
         </Button>
       ) : (
         <Button
+          aria-label="Group"
           onClick={onGroup}
-          size="xs"
+          size="icon-sm"
           title="Put this in a group, to lay it out with others"
           type="button"
           variant="ghost"
         >
-          Group
+          <Group aria-hidden size={14} />
         </Button>
       )}
     </>
