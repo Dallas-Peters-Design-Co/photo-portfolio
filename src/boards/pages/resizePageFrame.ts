@@ -25,6 +25,9 @@ export function resizePageFrame(
   if (width === page.width && height === page.height) {
     return page;
   }
+  if (page.grid?.enabled) {
+    return { ...page, height, width };
+  }
   const boxes: Record<string, PageBox> = {};
   for (const step of stepsOf(page.concept)) {
     for (const [index, el] of step.elements.entries()) {

@@ -1,4 +1,5 @@
 import { stepsOf } from "./conceptSteps.js";
+import { cleanFrameGrid, type FrameGrid } from "./pageFrameGrid.js";
 import {
   cleanConcept,
   type ReviewConcept,
@@ -16,6 +17,7 @@ export interface PageBox {
 export interface PageDesign {
   boxes: Record<string, PageBox>;
   concept: ReviewConcept;
+  grid?: FrameGrid;
   height: number;
   kitId: string | null;
   version: 1;
@@ -79,7 +81,9 @@ export const cleanPageDesign = (value: unknown): PageDesign | null => {
       y,
     };
   }
+  const grid = cleanFrameGrid(raw.grid, ids);
   return {
+    ...(grid ? { grid } : {}),
     boxes,
     concept,
     height,

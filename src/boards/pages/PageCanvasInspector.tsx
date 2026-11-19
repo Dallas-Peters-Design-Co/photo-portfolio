@@ -6,6 +6,7 @@ import { ConceptColorField } from "../../components/admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../../components/admin/ReviewConceptElementFields";
 import "../../components/admin/ReviewConceptsEditor.css";
 import { PageNumber, PageSelect } from "./PageFields";
+import { PageFrameGridFields, PageGridPlacement } from "./PageFrameGridFields";
 import { PageTooltipFields } from "./PageTooltipFields";
 import type { usePageCanvas } from "./usePageCanvas";
 
@@ -26,6 +27,26 @@ function PlacementFields({
   const { element, box, setBox, patchElement } = editor;
   if (!element) {
     return null;
+  }
+  if (box && editor.page.grid?.enabled) {
+    return (
+      <>
+        <PageGridPlacement
+          elements={editor.step?.elements ?? []}
+          grid={editor.page.grid}
+          id={element.id}
+          save={(grid) => editor.write({ ...editor.resolved, grid })}
+        />
+        {element.kind === "panel" && (
+          <PageNumber
+            label="Open panel width"
+            min={1}
+            onChange={(width) => setBox(element.id, { ...box, width })}
+            value={box.width}
+          />
+        )}
+      </>
+    );
   }
   if (box) {
     const fields = element.fullHeight
@@ -97,6 +118,10 @@ export function PageCanvasInspector({
   return (
     <aside className="page-builder__inspector">
       <h2>Page</h2>
+      <PageFrameGridFields
+        grid={page.grid}
+        save={(grid) => write({ ...resolved, grid })}
+      />
       <div className="page-builder__numbers">
         <PageNumber
           label="Page width"

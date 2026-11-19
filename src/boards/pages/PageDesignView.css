@@ -62,3 +62,19 @@
   overflow: hidden;
   pointer-events: none;
 }
+
+.page-design__component[data-side-panel] {
+  width: var(--panel-open-width);
+}
+.page-design__component[data-side-panel]:has(
+  .concept-panel[data-closed]:not(.concept-panel .concept-panel)
+) {
+  width: max-content;
+}
+.page-design__component[data-side-panel]
+  .concept-panel[data-closed]
+  > .concept-panel__inner {
+  max-width: 0;
+  contain: inline-size;
+  overflow: clip;
+}

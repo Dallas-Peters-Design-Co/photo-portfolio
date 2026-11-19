@@ -18,6 +18,7 @@ import { closeButton } from "../../../config/conceptStarters.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
+import { Input } from "../ui/input";
 import {
   ConceptField,
   ConceptGroup,
@@ -175,14 +176,27 @@ export function SlotFields({
           />
         )}
         {group ? (
-          <label className="review-concepts__check" htmlFor={fullId}>
-            <Checkbox
-              checked={slot.full ?? false}
-              id={fullId}
-              onChange={(event) => set({ full: event.target.checked })}
-            />
-            <span>Full width</span>
-          </label>
+          <>
+            <ConceptField label="Collapsible row label">
+              <Input
+                aria-label="Collapsible row label"
+                maxLength={120}
+                onChange={(event) =>
+                  set({ disclosureLabel: event.target.value })
+                }
+                placeholder="Always expanded"
+                value={slot.disclosureLabel ?? ""}
+              />
+            </ConceptField>
+            <label className="review-concepts__check" htmlFor={fullId}>
+              <Checkbox
+                checked={slot.full ?? false}
+                id={fullId}
+                onChange={(event) => set({ full: event.target.checked })}
+              />
+              <span>Full width</span>
+            </label>
+          </>
         ) : null}
         <label className="review-concepts__check" htmlFor={fillId}>
           <Checkbox

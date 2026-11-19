@@ -8,6 +8,7 @@ import {
   SLOT_DEFAULTS,
 } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import { CollapsibleCardRow } from "./CollapsibleCardRow";
 import "./ConceptSlotsView.css";
 
 type Draw = (element: ReviewConceptElement) => ReactNode;
@@ -200,13 +201,22 @@ export function ConceptGroupView({
   style: CSSProperties;
 }) {
   const group = element.group ?? { elements: [] };
+  const items = (
+    <Items className="concept-group__items" draw={draw} slot={group} />
+  );
   return (
     <div
       className="concept-group"
       data-full={group.full || undefined}
       style={{ ...style, padding: padding(group) }}
     >
-      <Items className="concept-group__items" draw={draw} slot={group} />
+      {group.disclosureLabel ? (
+        <CollapsibleCardRow label={group.disclosureLabel}>
+          {items}
+        </CollapsibleCardRow>
+      ) : (
+        items
+      )}
     </div>
   );
 }

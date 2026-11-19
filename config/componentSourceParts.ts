@@ -242,10 +242,13 @@ export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   const css: string[] = [];
   const items = slotItems(group, "@@__item", draw, css);
   return {
-    body: items,
+    body: group.disclosureLabel
+      ? `<details open className="@@__disclosure"><summary>${escapeJsx(group.disclosureLabel)}</summary>\n${items}\n</details>`
+      : items,
     childCss: css.join("\n"),
     css: `& { display: flex; min-width: 0;${group.full ? " width: 100%; align-self: stretch;" : ""} }
 & > &__items { flex: 1 1 auto; }
+${group.disclosureLabel ? "&__disclosure { width: 100%; min-width: 0; } &__disclosure > summary { cursor: pointer; display: list-item; }" : ""}
 ${SLOTS_CSS}`,
     tag: "div",
     tokens: [

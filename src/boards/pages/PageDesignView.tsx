@@ -14,6 +14,11 @@ import {
   type PageDesign,
   pageElementBox,
 } from "../../../config/pageDesign.js";
+import {
+  gridCells,
+  trackCss,
+  tracksOf,
+} from "../../../config/pageFrameGrid.js";
 import { paletteProperties } from "../../../config/paletteBinding.js";
 import { useSequencePlayer } from "../../components/review/conceptSequence";
 import { StepElements } from "../../components/review/ReviewConceptPreview";
@@ -29,8 +34,10 @@ export const PageDesignView = memo(function PageView({
   stepIndex,
   selectedChild,
   children,
+  layerControl,
 }: {
   children?: ReactNode;
+  layerControl?: (id: string, label: string) => ReactNode;
   page: PageDesign;
   /** Controlled while editing; absent when the viewer plays the prototype. */
   stepIndex?: number;
@@ -49,6 +56,9 @@ export const PageDesignView = memo(function PageView({
   const grid = pageGrid(
     step?.elements.map((el, i) => pageElementBox(page, el, i)) ?? []
   );
+  const layout = page.grid?.enabled ? page.grid : undefined;
+  const cells = layout && gridCells(layout, step?.elements ?? []);
+  const columns = layout && tracksOf(layout.columns);
   const playing = stepIndex === undefined;
   const last = index === steps.length - 1;
   useConceptFont(
@@ -118,36 +128,60 @@ export const PageDesignView = memo(function PageView({
               concept.fontRef,
               concept.fontId
             ),
-            gridTemplateRows: grid.rows,
+            gap: layout?.gap,
+            gridTemplateColumns: layout ? trackCss(layout.columns) : undefined,
+            gridTemplateRows: layout ? trackCss(layout.rows) : grid.rows,
             height: page.height,
             transform: `scale(${scale})`,
             width: page.width,
           }}
         >
-          {step?.elements.map((element, i) => (
-            <div
-              className="page-design__component"
-              data-group={element.kind === "group" || undefined}
-              data-layout-container={
-                element.kind === "group" || hasSlots(element.kind) || undefined
-              }
-              key={element.id}
-              style={grid.style(pageElementBox(page, element, i))}
-            >
-              <StepElements
-                elements={[
-                  element.kind === "canvas" || element.kind === "shader"
-                    ? { ...element, canvasSize: boxOf(page, element.id, i) }
-                    : element,
-                ]}
-                marks={{
-                  enter: step.enter,
-                  selected: selectedChild,
-                  trigger: step.trigger,
-                }}
-              />
-            </div>
-          ))}
+          {step?.elements.map((element, i) => {
+            const cell = cells?.get(element.id);
+            const box = pageElementBox(page, element, i);
+            const sidePanel =
+              cell &&
+              element.kind === "panel" &&
+              cell.columnSpan === 1 &&
+              columns?.[cell.column - 1] === "panel";
+            return (
+              <div
+                className="page-design__component"
+                data-group={element.kind === "group" || undefined}
+                data-layout-container={
+                  element.kind === "group" ||
+                  hasSlots(element.kind) ||
+                  undefined
+                }
+                data-side-panel={sidePanel || undefined}
+                key={element.id}
+                style={
+                  cell
+                    ? ({
+                        "--panel-open-width": `${box.width}px`,
+                        gridColumn: `${cell.column} / span ${cell.columnSpan}`,
+                        gridRow: `${cell.row} / span ${cell.rowSpan}`,
+                        minWidth: 0,
+                      } as CSSProperties)
+                    : grid.style(box)
+                }
+              >
+                <StepElements
+                  elements={[
+                    element.kind === "canvas" || element.kind === "shader"
+                      ? { ...element, canvasSize: boxOf(page, element.id, i) }
+                      : element,
+                  ]}
+                  marks={{
+                    enter: step.enter,
+                    selected: selectedChild,
+                    trigger: step.trigger,
+                  }}
+                />
+                {layerControl?.(element.id, element.text || element.kind)}
+              </div>
+            );
+          })}
           {children}
         </div>
       </div>

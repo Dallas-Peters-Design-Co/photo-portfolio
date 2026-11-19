@@ -45,6 +45,7 @@ export interface ConceptSlot {
   align?: ConceptSlotAlign;
   /** Grid only: how many equal columns. */
   columns?: number;
+  disclosureLabel?: string;
   elements: ReviewConceptElement[];
   /** Each element grows to share the slot's full width. */
   fill?: boolean;
@@ -131,6 +132,9 @@ export const cleanSlot = (
   const layout = oneOf(SLOT_LAYOUTS, slot.layout);
   return {
     ...cleanFlex(slot.flex),
+    ...(typeof slot.disclosureLabel === "string" && slot.disclosureLabel.trim()
+      ? { disclosureLabel: slot.disclosureLabel.slice(0, 120) }
+      : {}),
     ...(typeof slot.wrap === "boolean" ? { wrap: slot.wrap } : {}),
     ...(align ? { align } : {}),
     ...number("columns", slot.columns),

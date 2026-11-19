@@ -142,3 +142,12 @@
   display: grid;
   min-width: 0;
 }
+
+.concept-group__disclosure {
+  width: 100%;
+  min-width: 0;
+}
+.concept-group__disclosure > summary {
+  display: list-item;
+  cursor: pointer;
+}

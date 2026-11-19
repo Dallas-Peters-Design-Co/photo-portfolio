@@ -252,3 +252,15 @@
 .page-builder__layer-row > .page-builder__layer-disclosure {
   grid-area: 1 / 2;
 }
+
+.page-builder__grid-select {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: transparent;
+}
+.page-builder .page-builder__grid-select[aria-pressed="true"] {
+  outline: 2px solid var(--color-board-ink);
+  outline-offset: -2px;
+  background: transparent;
+}

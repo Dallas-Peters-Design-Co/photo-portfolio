@@ -176,8 +176,17 @@ export const usePageCanvas = (
     if (!group) {
       return;
     }
+    const cell = page.grid?.cells[elements[rootIndex].id];
     write({
       ...resolved,
+      ...(cell && page.grid
+        ? {
+            grid: {
+              ...page.grid,
+              cells: { ...page.grid.cells, [group.id]: cell },
+            },
+          }
+        : {}),
       boxes: { ...page.boxes, [group.id]: box },
       concept: withStep(concept, at, { ...step, elements: next }),
     });
@@ -245,10 +254,20 @@ export const usePageCanvas = (
     const next = addStepAfter(concept, at);
     const copied = stepsOf(next)[at + 1]?.elements ?? [];
     const boxes = { ...page.boxes };
+    const cells = { ...page.grid?.cells };
     for (const [i, el] of copied.entries()) {
+      const source = page.grid?.cells[elements[i]?.id ?? ""];
+      if (source) {
+        cells[el.id] = source;
+      }
       boxes[el.id] = boxOf(page, elements[i]?.id ?? "", i);
     }
-    write({ ...resolved, boxes, concept: next });
+    write({
+      ...resolved,
+      boxes,
+      concept: next,
+      grid: page.grid && { ...page.grid, cells },
+    });
     setIndex(at + 1);
     setSelected(null);
   };

@@ -155,6 +155,26 @@ export function PageCanvasStage({
       ),
     });
   };
+  if (page.grid?.enabled) {
+    return (
+      <div className="page-builder__stage">
+        <PageDesignView
+          layerControl={(id, label) => (
+            <button
+              aria-label={`Select ${label}`}
+              aria-pressed={selected === id}
+              className="page-builder__grid-select"
+              onClick={() => onSelect(id)}
+              type="button"
+            />
+          )}
+          page={page}
+          selectedChild={selectedRoot ? null : selected}
+          stepIndex={stepIndex}
+        />
+      </div>
+    );
+  }
   return (
     <div className="page-builder__stage">
       <PageDesignView
