@@ -86,7 +86,10 @@ export function PageLayerList({
                       <ChevronRight aria-hidden size={14} />
                       {name}
                     </Collapsible.Trigger>
-                    <Collapsible.Panel keepMounted>
+                    <Collapsible.Panel
+                      className="page-builder__layer-children"
+                      keepMounted
+                    >
                       <PageLayerList
                         elements={slot.elements}
                         onChange={(next) =>
