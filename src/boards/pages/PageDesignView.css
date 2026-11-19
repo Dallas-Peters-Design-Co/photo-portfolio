@@ -2,6 +2,12 @@
   width: 100%;
   min-width: 0;
 }
+.page-design--contained {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  overflow: hidden;
+}
 .page-design__viewport {
   position: relative;
   overflow: hidden;

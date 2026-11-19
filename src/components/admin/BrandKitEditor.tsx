@@ -70,6 +70,7 @@ const SAVE_LABELS: Record<KitSaveState, string> = {
 const BLOCK_IDS = [
   "components",
   "canvasComponents",
+  "shaders",
   "preview",
   "palette",
   "css",

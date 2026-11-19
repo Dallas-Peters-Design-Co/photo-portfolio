@@ -34,8 +34,11 @@ export const PageDesignView = memo(function PageView({
   selectedChild,
   children,
   layerControl,
+  fitToBounds = false,
 }: {
   children?: ReactNode;
+  /** Shrink the whole page to fit its available width and height. */
+  fitToBounds?: boolean;
   layerControl?: (id: string, label: string) => ReactNode;
   page: PageDesign;
   /** Controlled while editing; absent when the viewer plays the prototype. */
@@ -73,17 +76,22 @@ export const PageDesignView = memo(function PageView({
     if (!el) {
       return;
     }
-    const observer = new ResizeObserver(() =>
-      setScale(Math.min(1, el.clientWidth / page.width))
-    );
+    const fit = () => {
+      const widthScale = el.clientWidth / page.width;
+      const heightScale = fitToBounds ? el.clientHeight / page.height : 1;
+      setScale(Math.min(1, widthScale, heightScale));
+    };
+    const observer = new ResizeObserver(fit);
     observer.observe(el);
-    setScale(Math.min(1, el.clientWidth / page.width));
+    fit();
     return () => observer.disconnect();
-  }, [page.width]);
+  }, [fitToBounds, page.height, page.width]);
   const { concept } = page;
   return (
     <div
-      className="page-design"
+      className={
+        fitToBounds ? "page-design--contained page-design" : "page-design"
+      }
       ref={holder}
       style={paletteProperties(palette) as CSSProperties}
     >
@@ -114,7 +122,10 @@ export const PageDesignView = memo(function PageView({
       ) : null}
       <div
         className="page-design__viewport"
-        style={{ height: page.height * scale }}
+        style={{
+          height: page.height * scale,
+          ...(fitToBounds ? { width: page.width * scale } : {}),
+        }}
       >
         <div
           className="page-design__sheet concept-canvas"

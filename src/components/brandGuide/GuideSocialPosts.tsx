@@ -82,7 +82,7 @@ function SocialPost({ post }: { post: GuidePost }) {
       {frame ? (
         <SocialPreview platform={post.platform}>
           {page ? (
-            <PageDesignView page={page} />
+            <PageDesignView fitToBounds page={page} />
           ) : (
             <FramePicture boardId={post.boardId} frame={frame} items={items} />
           )}
