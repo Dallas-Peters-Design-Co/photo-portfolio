@@ -1,5 +1,5 @@
 import { CornerLeftUp, GripVertical, Group, Ungroup } from "lucide-react";
-import { type DragEvent, useId, useState } from "react";
+import type { ReactNode } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
@@ -20,10 +20,18 @@ import {
   withOverrides,
 } from "../../../config/conceptStyle.js";
 import {
+  type DropPosition,
+  movePageLayer,
+} from "../../../config/pageLayerMove.js";
+import {
   MAX_CONCEPT_ELEMENTS,
   type ReviewConceptElement,
   type ReviewConceptElementKind,
 } from "../../../config/reviewConcept.js";
+import {
+  LayerDragProvider,
+  useLayerDrag,
+} from "../../boards/pages/PageLayerDrag";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
 import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
@@ -33,9 +41,6 @@ import {
   duplicateConceptElement,
 } from "./ReviewConceptBrand";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
-
-/** What a dragged element carries: its list, then its place in it. */
-const DRAG_TYPE = "text/x-concept-element";
 
 /**
  * A list of elements to edit — a concept's, or what a card or panel holds —
@@ -49,6 +54,7 @@ function GroupActions({
   onGroup,
   onIntoAbove,
   onUngroup,
+  canUngroup,
   depth,
 }: {
   above?: ReviewConceptElement;
@@ -56,6 +62,7 @@ function GroupActions({
   onGroup: () => void;
   onIntoAbove: () => void;
   onUngroup: () => void;
+  canUngroup: boolean;
   depth: number;
 }) {
   const full = (above?.group?.elements.length ?? 0) >= MAX_SLOT_ELEMENTS;
@@ -84,6 +91,7 @@ function GroupActions({
       {element.kind === "group" ? (
         <Button
           aria-label="Ungroup"
+          disabled={!canUngroup}
           onClick={onUngroup}
           size="icon-sm"
           title="Put its elements back in this list"
@@ -108,12 +116,46 @@ function GroupActions({
   );
 }
 
-export function ConceptElementList({
+export function LayerListBoundary({
+  elements,
+  onChange,
+  children,
+}: {
+  elements: ReviewConceptElement[];
+  onChange: (items: ReviewConceptElement[]) => void;
+  children: ReactNode;
+}) {
+  const drag = useLayerDrag();
+  if (drag.enabled) {
+    return children;
+  }
+  return (
+    <LayerDragProvider
+      move={(id, target, position) => {
+        const next = movePageLayer(elements, id, target, position);
+        if (next !== elements) {
+          onChange(next);
+        }
+      }}
+    >
+      {children}
+    </LayerDragProvider>
+  );
+}
+export function ConceptElementList(props: Parameters<typeof ElementList>[0]) {
+  return (
+    <LayerListBoundary elements={props.elements} onChange={props.onChange}>
+      <ElementList {...props} />
+    </LayerListBoundary>
+  );
+}
+function ElementList({
   brandDoc,
   depth = 0,
   elements,
   label,
   initiallyOpen = false,
+  destination,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
@@ -122,6 +164,7 @@ export function ConceptElementList({
   elements: ReviewConceptElement[];
   label: string;
   initiallyOpen?: boolean;
+  destination?: { id: string; position: DropPosition };
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
@@ -129,11 +172,7 @@ export function ConceptElementList({
     useReviewCanvasComponents();
   const limit = depth === 0 ? MAX_CONCEPT_ELEMENTS : MAX_SLOT_ELEMENTS;
   const full = elements.length >= limit;
-  // Which list a drag started in: a slot's list sits inside its card's, and
-  // a drop moves an element only within the list it came from.
-  const listId = useId();
-  const [over, setOver] = useState<number | null>(null);
-
+  const drag = useLayerDrag();
   /** Order is the order drawn: move one element to another place. */
   const move = (from: number, to: number) => {
     if (to < 0 || to >= elements.length || from === to) {
@@ -146,11 +185,6 @@ export function ConceptElementList({
       onChange(next);
     }
   };
-  const dragged = (event: DragEvent): number | null => {
-    const [list, index] = event.dataTransfer.getData(DRAG_TYPE).split("|");
-    return list === listId ? Number(index) : null;
-  };
-
   const update = (id: string, patch: Partial<ReviewConceptElement>) =>
     onChange(
       elements.map((element) =>
@@ -233,7 +267,10 @@ export function ConceptElementList({
 
   return (
     <div className="review-concepts__elements">
-      <div className="review-concepts__element-head">
+      <div
+        className="review-concepts__element-head"
+        {...(destination && drag.target(destination.id, destination.position))}
+      >
         <Label>{label}</Label>
         <div className="review-concepts__add-actions">
           <ConceptSelect
@@ -251,34 +288,19 @@ export function ConceptElementList({
         <p role="status">Couldn't load canvas components.</p>
       ) : null}
       {elements.map((element, index) => (
-        // biome-ignore lint/a11y/noStaticElementInteractions: the row is a drop target; the handle inside it is the keyboard route
-        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: same
         <div
           className="review-concepts__sortable"
-          data-drop-over={over === index || undefined}
           key={element.id}
-          onDragLeave={() => setOver(null)}
-          onDragOver={(event) => {
-            if (event.dataTransfer.types.includes(DRAG_TYPE)) {
-              event.preventDefault();
-              setOver(index);
-            }
-          }}
-          onDrop={(event) => {
-            setOver(null);
-            const from = dragged(event);
-            if (from !== null) {
-              // Handled here: the card's own list, around this one, keeps out.
-              event.preventDefault();
-              event.stopPropagation();
-              move(from, index);
-            }
-          }}
+          {...drag.target(element.id)}
         >
           <ReviewConceptElementFields
             actions={
               <GroupActions
                 above={elements[groupAbove(elements, index)]}
+                canUngroup={
+                  elements.length - 1 + (element.group?.elements.length ?? 0) <=
+                  limit
+                }
                 depth={depth}
                 element={element}
                 onGroup={() => onChange(wrapInGroup(elements, index, brandDoc))}
@@ -296,11 +318,8 @@ export function ConceptElementList({
                 aria-label={`Move ${kindLabel(element.kind)}: drag, or use the arrow keys`}
                 className="review-concepts__handle"
                 draggable
-                onDragStart={(event) => {
-                  event.stopPropagation();
-                  event.dataTransfer.setData(DRAG_TYPE, `${listId}|${index}`);
-                  event.dataTransfer.effectAllowed = "move";
-                }}
+                onDragEnd={drag.props(element.id, false).onDragEnd}
+                onDragStart={drag.props(element.id, false).onDragStart}
                 onKeyDown={(event) => {
                   if (event.key === "ArrowUp" || event.key === "ArrowDown") {
                     event.preventDefault();

@@ -274,3 +274,6 @@
 .page-builder__layer-row[data-drop="after"] {
   box-shadow: inset 0 -2px var(--color-board-ink);
 }
+.page-builder__slot-label[data-drop] {
+  outline: 2px solid var(--color-board-ink);
+}

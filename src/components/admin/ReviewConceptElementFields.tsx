@@ -22,6 +22,7 @@ import {
   NumberField,
   optionsOf,
 } from "./ConceptControls";
+import { LayerListBoundary } from "./ConceptElementList";
 import { ConceptFlexFields } from "./ConceptFlexFields";
 import { ConceptFontField } from "./ConceptFontField";
 import { LogoGroup } from "./ConceptLogoFields";
@@ -251,8 +252,16 @@ function HolderFields({
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
 }) {
+  const wrap = (body: ReactNode) => (
+    <LayerListBoundary
+      elements={[element]}
+      onChange={([next]) => onChange({ group: next.group, slots: next.slots })}
+    >
+      {body}
+    </LayerListBoundary>
+  );
   if (element.kind === "group") {
-    return (
+    return wrap(
       <SlotFields
         brandDoc={brandDoc}
         depth={depth}
@@ -260,18 +269,21 @@ function HolderFields({
         label="Group"
         listLabel="In the group"
         onChange={(group) => onChange({ group })}
+        ownerId={element.id}
         slot={element.group ?? { elements: [] }}
       />
     );
   }
-  return hasSlots(element.kind) && depth < MAX_SLOT_DEPTH ? (
-    <ConceptSlotFields
-      brandDoc={brandDoc}
-      depth={depth}
-      element={element}
-      onChange={onChange}
-    />
-  ) : null;
+  return hasSlots(element.kind) && depth < MAX_SLOT_DEPTH
+    ? wrap(
+        <ConceptSlotFields
+          brandDoc={brandDoc}
+          depth={depth}
+          element={element}
+          onChange={onChange}
+        />
+      )
+    : null;
 }
 
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the canvas element has a separate, read-only editor alongside the existing element controls

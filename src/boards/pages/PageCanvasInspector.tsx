@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
-import { layerDestination } from "../../../config/pageLayerMove.js";
+import { layerDestination, layerSlots } from "../../../config/pageLayerMove.js";
 import { workspaceGrid } from "../../../config/pageWorkspaceGrid.js";
 import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
 import { ConceptColorField } from "../../components/admin/ReviewConceptBrand";
@@ -96,6 +96,44 @@ function PlacementFields({
   );
 }
 
+function LayerDestination({
+  editor,
+  id,
+}: {
+  editor: ReturnType<typeof usePageCanvas>;
+  id: string;
+}) {
+  const options = editor.all.flatMap((layer, index) => {
+    const positions =
+      layer.kind === "group" ? ["inside" as const] : layerSlots(layer.kind);
+    const label =
+      layer.text.split("\n")[0].trim() || `${layer.kind} ${index + 1}`;
+    return positions
+      .filter((position) =>
+        layerDestination(editor.elements, id, layer.id, position)
+      )
+      .map((position) => ({
+        label: position === "inside" ? label : `${label} · ${position}`,
+        position,
+        target: layer.id,
+        value: `${layer.id}/${position}`,
+      }));
+  });
+  return options.length ? (
+    <PageSelect
+      label="Move to group or slot"
+      onChange={(key) => {
+        const dest = options.find((o) => o.value === key);
+        if (dest) {
+          editor.moveLayer(id, dest.target, dest.position);
+        }
+      }}
+      options={[{ label: "Choose destination…", value: "" }, ...options]}
+      value=""
+    />
+  ) : null;
+}
+
 export function PageCanvasInspector({
   editor,
 }: {
@@ -116,13 +154,6 @@ export function PageCanvasInspector({
     write,
     patchElement,
   } = editor;
-  const destinations = element
-    ? all.filter(
-        (el) =>
-          el.kind === "group" &&
-          layerDestination(editor.elements, element.id, el.id, "inside")
-      )
-    : [];
   const isArtwork = ["canvas", "shader"].includes(element?.kind ?? "");
   return (
     <aside className="page-builder__inspector">
@@ -231,21 +262,15 @@ export function PageCanvasInspector({
       {element ? (
         <>
           <PlacementFields editor={editor} />
-          {destinations.length > 0 && (
-            <PageSelect
-              label="Move to group"
-              onChange={(id) => editor.moveLayer(element.id, id, "inside")}
-              options={[
-                { label: "Choose destination…", value: "" },
-                ...destinations.map((group, i) => ({
-                  label:
-                    group.text.trim() ||
-                    `Group ${i + 1} · ${group.group?.elements[0]?.text.split("\n")[0] || "Empty"}`,
-                  value: group.id,
-                })),
-              ]}
-              value=""
-            />
+          <LayerDestination editor={editor} id={element.id} />
+          {element.kind === "group" && (
+            <button
+              className="page-builder__button"
+              onClick={editor.ungroupSelected}
+              type="button"
+            >
+              Ungroup
+            </button>
           )}
           {editor.canGroup ? (
             <button

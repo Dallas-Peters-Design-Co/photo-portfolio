@@ -153,6 +153,7 @@ export const PageDesignView = memo(function PageView({
                   hasSlots(element.kind) ||
                   undefined
                 }
+                data-page-layer={element.id}
                 data-side-panel={sidePanel || undefined}
                 key={element.id}
                 style={

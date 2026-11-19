@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { createStatefulComponent } from "../../../config/componentStates.js";
-
 import {
   createConcept,
   createConceptElement,
@@ -38,6 +37,7 @@ import {
 import {
   type DropPosition,
   movePageLayer,
+  ungroupPageLayer,
 } from "../../../config/pageLayerMove.js";
 import {
   MAX_CONCEPT_ELEMENTS,
@@ -47,6 +47,7 @@ import {
 import { useKitCanvasComponents } from "../../components/admin/ReviewCanvasComponents";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
+import { ungroupPlacement } from "./groupChildBoxes";
 
 const createPageElement = (
   value: string,
@@ -364,6 +365,21 @@ export const usePageCanvas = (
     setSelected,
     step,
     steps,
+    ungroupSelected: () => {
+      if (!(element && step)) {
+        return;
+      }
+      const next = ungroupPageLayer(elements, element.id);
+      if (next === elements) {
+        return;
+      }
+      write({
+        ...resolved,
+        ...(box ? ungroupPlacement(page, elements, element, box) : {}),
+        concept: withStep(concept, at, { ...step, elements: next }),
+      });
+      setSelected(element.group?.elements[0]?.id ?? null);
+    },
     write,
   };
 };

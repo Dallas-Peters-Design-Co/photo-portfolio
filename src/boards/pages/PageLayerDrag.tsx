@@ -32,7 +32,7 @@ export function LayerDragProvider({
 }
 export function useLayerDrag() {
   const drag = useContext(LayerDrag);
-  function props(id: string, group: boolean) {
+  function props(id: string, group: boolean, fixed?: DropPosition) {
     if (!drag) {
       return {};
     }
@@ -41,6 +41,9 @@ export function useLayerDrag() {
       drag.setHover(null);
     };
     const position = (event: DragEvent): DropPosition => {
+      if (fixed) {
+        return fixed;
+      }
       const rect = event.currentTarget.getBoundingClientRect();
       const ratio = (event.clientY - rect.top) / rect.height;
       if (group && ratio >= 0.2 && ratio <= 0.8) {
@@ -48,10 +51,11 @@ export function useLayerDrag() {
       }
       return ratio < 0.5 ? "before" : "after";
     };
+    const hoverPosition = drag.hover?.startsWith(`${id}/`)
+      ? drag.hover.slice(id.length + 1)
+      : undefined;
     return {
-      "data-drop": drag.hover?.startsWith(`${id}/`)
-        ? drag.hover.slice(id.length + 1)
-        : undefined,
+      "data-drop": fixed ? hoverPosition === fixed || undefined : hoverPosition,
       draggable: true,
       onDragEnd: end,
       onDragOver: (event: DragEvent) => {
@@ -79,5 +83,13 @@ export function useLayerDrag() {
       },
     };
   }
-  return { enabled: Boolean(drag), props };
+  function target(id: string, position?: DropPosition) {
+    const {
+      "data-drop": indicator,
+      onDrop,
+      onDragOver,
+    } = props(id, false, position);
+    return { "data-drop": indicator, onDragOver, onDrop };
+  }
+  return { dragging: Boolean(drag?.id), enabled: Boolean(drag), props, target };
 }

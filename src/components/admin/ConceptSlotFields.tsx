@@ -95,6 +95,17 @@ function WrapField({
   );
 }
 
+function slotDestination(
+  id: string | undefined,
+  group: boolean,
+  name: ConceptSlotName
+) {
+  if (!id) {
+    return;
+  }
+  return { id, position: group ? ("inside" as const) : name };
+}
+
 /** One slot: how it lays out what it holds, then what it holds. */
 export function SlotFields({
   brandDoc,
@@ -103,6 +114,7 @@ export function SlotFields({
   navbar = false,
   label: named,
   listLabel,
+  ownerId,
   name = "body",
   onChange,
   slot,
@@ -116,6 +128,7 @@ export function SlotFields({
   label?: string;
   /** What the list of elements is headed. */
   listLabel?: string;
+  ownerId?: string;
   name?: ConceptSlotName;
   onChange: (slot: ConceptSlot) => void;
   slot: ConceptSlot;
@@ -186,7 +199,7 @@ export function SlotFields({
                 onChange={(event) =>
                   set({ disclosureLabel: event.target.value })
                 }
-                placeholder="Always expanded"
+                placeholder="Row label"
                 value={slot.disclosureLabel ?? ""}
               />
             </ConceptField>
@@ -248,6 +261,7 @@ export function SlotFields({
       <ConceptElementList
         brandDoc={brandDoc}
         depth={depth + 1}
+        destination={slotDestination(ownerId, group, name)}
         elements={slot.elements}
         initiallyOpen={name === "hide"}
         label={
@@ -307,6 +321,7 @@ export function ConceptSlotFields({
               onChange={(slot) =>
                 onChange({ slots: { ...slots, [name]: slot } })
               }
+              ownerId={element.id}
               slot={slots[name] ?? { elements: [] }}
             />
           );
@@ -385,6 +400,7 @@ export function ConceptSlotFields({
             name={name}
             navbar={element.kind === "navbar"}
             onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
+            ownerId={element.id}
             slot={slots[name] ?? { elements: [] }}
           />
         ))}

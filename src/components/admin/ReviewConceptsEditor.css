@@ -639,3 +639,13 @@
   height: 100%;
   object-fit: contain;
 }
+.review-concepts__element-head[data-drop] {
+  outline: 2px solid currentColor;
+}
+.review-concepts__sortable[data-drop="before"] {
+  box-shadow: inset 0 2px currentColor;
+}
+
+.review-concepts__sortable[data-drop="after"] {
+  box-shadow: inset 0 -2px currentColor;
+}

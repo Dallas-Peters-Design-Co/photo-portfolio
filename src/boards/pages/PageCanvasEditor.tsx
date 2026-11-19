@@ -64,7 +64,7 @@ export function PageCanvasEditor({
     removeState,
     setBox,
   } = editor;
-  return (
+  const builder = (
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: the dialog scopes editor shortcuts away from the board
     <div
       aria-label={`Build page ${frame.body || "Page"}`}
@@ -113,7 +113,10 @@ export function PageCanvasEditor({
           }
           options={[
             { label: "No brand kit", value: NONE },
-            ...(brand?.kits ?? []).map((k) => ({ label: k.name, value: k.id })),
+            ...(brand?.kits ?? []).map((k) => ({
+              label: k.name,
+              value: k.id,
+            })),
           ]}
           value={page.kitId ?? NONE}
         />
@@ -207,17 +210,15 @@ export function PageCanvasEditor({
           </p>
         )}
         <div className="page-builder__layers">
-          <LayerDragProvider move={editor.moveLayer}>
-            <PageLayerList
-              elements={elements}
-              onChange={reorderLayers}
-              onSelect={(id) => {
-                setSelected(id);
-                setPlaying(false);
-              }}
-              selected={selected}
-            />
-          </LayerDragProvider>
+          <PageLayerList
+            elements={elements}
+            onChange={reorderLayers}
+            onSelect={(id) => {
+              setSelected(id);
+              setPlaying(false);
+            }}
+            selected={selected}
+          />
         </div>
       </aside>
       <PanelEdge label="component library" panels={widths} side="left" />
@@ -298,5 +299,8 @@ export function PageCanvasEditor({
         </KitStyleSyncProvider>
       </CanvasComponentKit.Provider>
     </div>
+  );
+  return (
+    <LayerDragProvider move={editor.moveLayer}>{builder}</LayerDragProvider>
   );
 }

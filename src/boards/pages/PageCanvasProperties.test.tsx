@@ -238,3 +238,109 @@ it("shows only the selected component or group outline and clears it on blank ca
   expect(outlines()).toHaveLength(0);
   expect(host.querySelector(".page-builder__resize")).toBeNull();
 });
+
+it("moves a group into a missing slot from Layers and ungroups its children there", async () => {
+  const children = [
+    createConceptElement("button"),
+    createConceptElement("text"),
+  ];
+  const group = {
+    ...createConceptElement("group"),
+    group: { elements: children },
+    text: "Actions",
+  };
+  const card = {
+    ...createConceptElement("card"),
+    slots: { header: { elements: [group] } },
+    text: "Account",
+  };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [card] },
+    height: 500,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const handle = host.querySelector(
+    `[data-sortable-id="${group.id}"] .sortable__handle`
+  );
+  if (!handle) {
+    throw new Error("Missing group handle");
+  }
+  const init = {
+    bubbles: true,
+    cancelable: true,
+    dataTransfer: new DataTransfer(),
+  };
+  await act(() => {
+    handle.dispatchEvent(new DragEvent("dragstart", init));
+  });
+  const footer = page
+    .getByRole("button", { name: "footer slot of Account" })
+    .element();
+  await act(() => {
+    footer.dispatchEvent(new DragEvent("dragover", init));
+    footer.dispatchEvent(new DragEvent("drop", init));
+  });
+  expect(latest?.concept.elements[0].slots?.footer?.elements[0].id).toBe(
+    group.id
+  );
+  await act(() =>
+    page.getByRole("button", { exact: true, name: "Ungroup" }).click()
+  );
+  const slots = cleanPageDesign(latest)?.concept.elements[0].slots;
+  expect(slots?.header?.elements).toHaveLength(0);
+  expect(slots?.footer?.elements.map((el) => el.id)).toEqual(
+    children.map((el) => el.id)
+  );
+});
+
+it("drags from a card footer handle onto another slot in the inspector", async () => {
+  const child = createConceptElement("button");
+  const card = {
+    ...createConceptElement("card"),
+    slots: { body: { elements: [child] }, footer: { elements: [], gap: 17 } },
+    text: "Inspector card",
+  };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [card] },
+    height: 500,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  await act(() =>
+    page
+      .getByRole("button", { exact: true, name: "Move Inspector card" })
+      .click()
+  );
+  const panel = host.querySelector(".page-builder__inspector");
+  const handle = panel?.querySelector(
+    ".review-concepts__element-footer [draggable=true]"
+  );
+  const footer = [
+    ...(panel?.querySelectorAll(".review-concepts__element-head") ?? []),
+  ].find((el) => el.textContent?.includes("In the footer"));
+  if (!(handle && footer)) {
+    throw new Error("Missing inspector drag target");
+  }
+  const init = {
+    bubbles: true,
+    cancelable: true,
+    dataTransfer: new DataTransfer(),
+  };
+  await act(() => {
+    handle.dispatchEvent(new DragEvent("dragstart", init));
+  });
+  await act(() => {
+    footer.dispatchEvent(new DragEvent("drop", init));
+  });
+  const slots = cleanPageDesign(latest)?.concept.elements[0].slots;
+  expect(slots?.body?.elements).toHaveLength(0);
+  expect(slots?.footer).toMatchObject({
+    elements: [{ id: child.id }],
+    gap: 17,
+  });
+});

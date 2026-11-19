@@ -1,12 +1,14 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { ChevronRight } from "lucide-react";
-import { SLOT_NAMES } from "../../../config/conceptSlots.js";
+import { MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
+import { layerSlots } from "../../../config/pageLayerMove.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { SortableList } from "../../components/admin/SortableList";
 
 import { useLayerDrag } from "./PageLayerDrag";
 
 interface LayerListProps {
+  depth?: number;
   elements: ReviewConceptElement[];
   onChange: (elements: ReviewConceptElement[]) => void;
   onSelect: (id: string) => void;
@@ -15,6 +17,7 @@ interface LayerListProps {
 
 export function PageLayerList({
   elements,
+  depth = 0,
   selected,
   onSelect,
   onChange,
@@ -42,9 +45,12 @@ export function PageLayerList({
     >
       {(el, { compact, handle }) => {
         const label = el.text.split("\n")[0] || "Untitled";
-        const slots = SLOT_NAMES.flatMap((name) => {
+        const slots = layerSlots(el.kind).flatMap((name) => {
           const slot = el.slots?.[name];
-          return slot?.elements.length ? [{ name, slot }] : [];
+          return slot?.elements.length ||
+            (drag.dragging && depth < MAX_SLOT_DEPTH)
+            ? [{ name, slot: slot ?? { elements: [] } }]
+            : [];
         });
         const hasChildren = Boolean(el.group?.elements.length || slots.length);
         const row = (
@@ -87,6 +93,7 @@ export function PageLayerList({
                     key={name}
                   >
                     <Collapsible.Trigger
+                      {...drag.target(el.id, name)}
                       aria-label={`${name} slot of ${label}`}
                       className="page-builder__layer-disclosure page-builder__slot-label"
                     >
@@ -98,6 +105,7 @@ export function PageLayerList({
                       keepMounted
                     >
                       <PageLayerList
+                        depth={depth + 1}
                         elements={slot.elements}
                         onChange={(next) =>
                           update({
@@ -117,6 +125,7 @@ export function PageLayerList({
                 {el.group?.elements.length ? (
                   <div className="page-builder__layer-children">
                     <PageLayerList
+                      depth={depth + 1}
                       elements={el.group.elements}
                       onChange={(next) =>
                         update({
