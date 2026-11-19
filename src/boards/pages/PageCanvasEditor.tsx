@@ -18,6 +18,7 @@ import { PageCanvasInspector } from "./PageCanvasInspector";
 import { PageCanvasStage } from "./PageCanvasStage";
 import { PageDesignView } from "./PageDesignView";
 import { PageSelect } from "./PageFields";
+import { PageLayerList } from "./PageLayerList";
 import { usePageCanvas } from "./usePageCanvas";
 import { usePageEditorDialog } from "./usePageEditorDialog";
 import "./PageCanvasEditor.css";
@@ -49,7 +50,7 @@ export function PageCanvasEditor({
     steps,
     at,
     setIndex,
-    all,
+    reorderLayers,
     write,
     resolved,
     add,
@@ -98,7 +99,7 @@ export function PageCanvasEditor({
           {playing ? "Edit page" : "Play"}
         </button>
       </header>
-      <aside className="page-builder__library">
+      <aside className="page-builder__library" data-sortable-scroll="">
         <PageSelect
           label="Brand kit"
           onChange={(id) =>
@@ -167,21 +168,22 @@ export function PageCanvasEditor({
           value={NONE}
         />
         <h2>Layers</h2>
-        {all.map((el) => (
-          <button
-            aria-pressed={selected === el.id}
-            className="page-builder__layer"
-            key={el.id}
-            onClick={() => {
-              setSelected(el.id);
+        {elements.length > 1 && (
+          <p className="page-builder__hint">
+            Page layers stack from back to front.
+          </p>
+        )}
+        <div className="page-builder__layers">
+          <PageLayerList
+            elements={elements}
+            onChange={reorderLayers}
+            onSelect={(id) => {
+              setSelected(id);
               setPlaying(false);
             }}
-            type="button"
-          >
-            {el.kind}
-            <span>{el.text.split("\n")[0] || "Untitled"}</span>
-          </button>
-        ))}
+            selected={selected}
+          />
+        </div>
       </aside>
       <PanelEdge label="component library" panels={widths} side="left" />
       <main className="page-builder__main">

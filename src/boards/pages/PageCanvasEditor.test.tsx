@@ -542,3 +542,55 @@ it("applies the selected kit's swatch from the page background OKLCH picker", as
       .backgroundColor
   ).toBe("rgb(17, 68, 119)");
 });
+
+it("reorders page layers, group children and slot items while preserving positions", async () => {
+  const text = (label: string) => ({
+    ...createConceptElement("text"),
+    text: label,
+  });
+  const group = {
+    ...createConceptElement("group"),
+    group: { elements: [text("First"), text("Second")] },
+    text: "Stack",
+  };
+  const panel = {
+    ...createConceptElement("panel"),
+    slots: { body: { elements: [text("One"), text("Two")] } },
+    text: "Surface",
+  };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [group, panel] },
+    height: 700,
+    kitId: kit.id,
+    version: 1,
+    width: 900,
+  });
+  const move = async (label: string) => {
+    const handle = page.getByRole("button", {
+      exact: true,
+      name: `Move ${label} (drag, or use the arrow keys)`,
+    });
+    (handle.element() as HTMLButtonElement).focus();
+    await act(() => userEvent.keyboard("{ArrowDown}"));
+  };
+  await move("text layer First");
+  await move("text layer One");
+  await move("group layer Stack");
+  const saved = cleanPageDesign(latest);
+  expect(saved?.concept.elements.map((el) => el.id)).toEqual([
+    panel.id,
+    group.id,
+  ]);
+  expect(saved?.boxes[group.id]?.y).toBe(24);
+  expect(saved?.boxes[panel.id]?.y).toBe(168);
+  expect(
+    saved?.concept.elements[0].slots?.body?.elements.map((el) => el.text)
+  ).toEqual(["Two", "One"]);
+  expect(
+    saved?.concept.elements[1].group?.elements.map((el) => el.text)
+  ).toEqual(["Second", "First"]);
+  const components = host.querySelectorAll(".page-design__component");
+  expect(components[0].textContent).toContain("Two");
+  expect(components[1].textContent).toContain("Second");
+});

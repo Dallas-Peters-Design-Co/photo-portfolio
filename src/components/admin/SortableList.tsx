@@ -136,10 +136,13 @@ export function SortableList<T extends { id: string }>({
     if (!live) {
       return;
     }
-    if (e.clientY < EDGE) {
-      window.scrollBy(0, -SCROLL_STEP);
-    } else if (e.clientY > window.innerHeight - EDGE) {
-      window.scrollBy(0, SCROLL_STEP);
+    const panel = list.current?.closest<HTMLElement>("[data-sortable-scroll]");
+    const bounds = panel?.getBoundingClientRect();
+    const scroller = panel ?? window;
+    if (e.clientY < (bounds?.top ?? 0) + EDGE) {
+      scroller.scrollBy(0, -SCROLL_STEP);
+    } else if (e.clientY > (bounds?.bottom ?? window.innerHeight) - EDGE) {
+      scroller.scrollBy(0, SCROLL_STEP);
     }
     setDrag({
       ...live,

@@ -279,6 +279,25 @@ export const usePageCanvas = (
     playing,
     removeSelected,
     removeState,
+    reorderLayers: (next: ReviewConceptElement[]) => {
+      if (!step) {
+        return;
+      }
+      // Older designs can position a layer by its index. Preserve that box
+      // before changing paint order so the layer stays at the same coordinates.
+      const boxes = { ...page.boxes };
+      for (const [i, el] of elements.entries()) {
+        if (next[i]?.id !== el.id) {
+          boxes[el.id] ??= boxOf(page, el.id, i);
+        }
+      }
+      write({
+        ...resolved,
+        boxes,
+        concept: withStep(concept, at, { ...step, elements: next }),
+      });
+      setPlaying(false);
+    },
     resolved,
     selected,
     setBox,
