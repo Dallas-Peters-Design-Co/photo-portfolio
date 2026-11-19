@@ -44,7 +44,7 @@ export function StudioControls({
   return (
     <div className="studio__controls">
       {shown.map((p) => {
-        const v = values[p.key];
+        const v = values[p.key] ?? ("default" in p ? p.default : null);
         switch (p.type) {
           case "range":
             return (

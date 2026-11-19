@@ -17,6 +17,7 @@ export type Prim =
       t: "poly";
     }
   | {
+      clip?: string;
       d: string;
       fill?: string | null;
       /** An affine transform [a, b, c, d, e, f], as SVG's matrix(). */
@@ -40,7 +41,7 @@ const strokeOf = (colour: string | null | undefined, width = 1) => {
 const fillOf = (colour: string | null | undefined) =>
   colour ? (paintOf(colour) ?? 'fill="none"') : 'fill="none"';
 
-const primSvg = (p: Prim): string => {
+const primSvg = (p: Prim, index: number): string => {
   if (p.t === "circle") {
     const paint = paintOf(p.fill);
     return paint
@@ -53,7 +54,12 @@ const primSvg = (p: Prim): string => {
   const m = p.m
     ? ` transform="matrix(${p.m.map((n) => Math.round(n * 1e4) / 1e4).join(" ")})"`
     : "";
-  return `<path d="${p.d}"${m} ${fillOf(p.fill)}${strokeOf(p.stroke, p.sw)}/>`;
+  const clipId = `ridge-clip-${index}`;
+  const def = p.clip
+    ? `<defs><clipPath id="${clipId}"><path d="${p.clip}"/></clipPath></defs>`
+    : "";
+  const clip = p.clip ? ` clip-path="url(#${clipId})"` : "";
+  return `${def}<path${clip} d="${p.d}"${m} ${fillOf(p.fill)}${strokeOf(p.stroke, p.sw)}/>`;
 };
 
 /** The shapes as an SVG document, over a ground colour if there is one. */
@@ -138,6 +144,9 @@ export const drawPrims = (
       if (p.m) {
         const [a = 1, b = 0, c = 0, d = 1, e = 0, f = 0] = p.m;
         g.transform(a, b, c, d, e, f);
+      }
+      if (p.clip) {
+        g.clip(new Path2D(p.clip));
       }
       paint(g, p, new Path2D(p.d));
       g.restore();

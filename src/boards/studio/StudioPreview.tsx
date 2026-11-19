@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { compositing } from "./imageComposite";
 import type { ImageTool, RenderContext, StudioValues } from "./types";
 
 /**
@@ -20,7 +21,7 @@ export function StudioPreview({
   tool: ImageTool;
   values: StudioValues;
 }) {
-  if (!tool.draw) {
+  if (!tool.draw || (ctx.image && compositing(values))) {
     return <SvgPreview ctx={ctx} tool={tool} values={values} />;
   }
   return <CanvasPreview ctx={ctx} tool={tool} values={values} />;

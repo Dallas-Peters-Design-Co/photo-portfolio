@@ -87,23 +87,33 @@ const linesOf = (v: StudioValues, ctx: RenderContext): Prim[] => {
   const field = fieldOf(v, ctx, s.fieldCols, s.fieldRows);
   const sw = numOr(v.stroke, 2);
   const hide = v.hidden === true && !s.vertical;
-  const ground = groundOf(v) ?? "#000000";
   const out: Prim[] = [];
-  for (let i = 0; i < s.count; i += 1) {
+  // Walk toward the back. The nearest ridge at each sample bounds the
+  // visible part of the next stroke, without painting over the gaps.
+  let silhouette: number[] | undefined;
+  for (let i = s.count - 1; i >= 0; i -= 1) {
     const pts = lineOf(i, s, field, v, ctx);
-    const ink = inkOf(v, ctx, i, s.count);
-    const d = pathOf(pts);
+    const clip = silhouette
+      ? `${pathOf(silhouette)}L${ctx.width} ${-s.amp - sw}L0 ${-s.amp - sw}Z`
+      : undefined;
+    out.push({
+      clip,
+      d: pathOf(pts),
+      stroke: inkOf(v, ctx, i, s.count),
+      sw,
+      t: "path",
+    });
     if (hide) {
-      // Closed down to the bottom and filled with the ground, so each line
-      // hides the ones above it where it rises past them.
-      out.push({
-        d: `${d}L${ctx.width} ${ctx.height}L0 ${ctx.height}Z`,
-        fill: ground,
-        t: "path",
-      });
+      if (silhouette) {
+        for (let y = 1; y < pts.length; y += 2) {
+          silhouette[y] = Math.min(silhouette[y], pts[y]);
+        }
+      } else {
+        silhouette = pts;
+      }
     }
-    out.push({ d, stroke: ink, sw, t: "path" });
   }
+  out.reverse();
   return out;
 };
 

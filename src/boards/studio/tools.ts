@@ -13,6 +13,7 @@ import { patternTool } from "./generators/pattern";
 import { pixelFieldTool } from "./generators/pixelField";
 import { radialTool } from "./generators/radial";
 import { typeEchoTool } from "./generators/typeEcho";
+import { withCompositing } from "./imageComposite";
 import type { ImageTool, StudioParam, StudioValues } from "./types";
 
 /** Every image tool in the Studio, in the order the panel lists them. */
@@ -32,7 +33,7 @@ export const IMAGE_TOOLS: ImageTool[] = [
   radialTool,
   lineWavesTool,
   isoBlocksTool,
-];
+].map(withCompositing);
 
 /** Neutral colours for when no brand is chosen. */
 export interface StudioToolInfo {
