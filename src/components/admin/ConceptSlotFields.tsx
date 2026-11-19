@@ -18,7 +18,6 @@ import { closeButton } from "../../../config/conceptStarters.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
-import { Input } from "../ui/input";
 import { ComponentStateFields } from "./ComponentStateFields";
 import {
   ConceptField,
@@ -142,6 +141,19 @@ export function SlotFields({
   return (
     <div className="review-concepts__slot">
       <ConceptGroup compact name={label}>
+        {group ? (
+          <>
+            <ComponentStateFields change={set} group={slot} />
+            <label className="review-concepts__check" htmlFor={fullId}>
+              <Checkbox
+                checked={slot.full ?? false}
+                id={fullId}
+                onChange={(event) => set({ full: event.target.checked })}
+              />
+              <span>Full width</span>
+            </label>
+          </>
+        ) : null}
         <ConceptField label="Layout">
           <ConceptSelect
             label={`${label} layout`}
@@ -189,30 +201,6 @@ export function SlotFields({
             slot={slot}
           />
         )}
-        {group ? (
-          <>
-            <ComponentStateFields change={set} group={slot} />
-            <ConceptField label="Collapsible row label">
-              <Input
-                aria-label="Collapsible row label"
-                maxLength={120}
-                onChange={(event) =>
-                  set({ disclosureLabel: event.target.value })
-                }
-                placeholder="Row label"
-                value={slot.disclosureLabel ?? ""}
-              />
-            </ConceptField>
-            <label className="review-concepts__check" htmlFor={fullId}>
-              <Checkbox
-                checked={slot.full ?? false}
-                id={fullId}
-                onChange={(event) => set({ full: event.target.checked })}
-              />
-              <span>Full width</span>
-            </label>
-          </>
-        ) : null}
         <label className="review-concepts__check" htmlFor={fillId}>
           <Checkbox
             checked={slot.fill ?? false}

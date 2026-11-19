@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
   groupDisclosure,
-  usesNamedStates,
+  initialState,
 } from "../../../config/componentStates.js";
 import { flexSize } from "../../../config/conceptFlex.js";
 import {
@@ -207,16 +207,17 @@ export function ConceptGroupView({
 }) {
   const group = element.group ?? { elements: [] };
   const disclosure = groupDisclosure(group);
-  const items = usesNamedStates(group) ? (
+  const items = group.stateful ? (
     <ComponentStateView
-      draw={(active) => (
+      draw={(elements) => (
         <Items
           className="concept-group__items"
           draw={draw}
-          slot={{ ...group, elements: [active] }}
+          slot={{ ...group, elements }}
         />
       )}
-      states={group.elements}
+      group={group}
+      key={initialState(group)}
     />
   ) : (
     <Items className="concept-group__items" draw={draw} slot={group} />

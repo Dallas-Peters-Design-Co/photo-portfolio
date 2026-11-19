@@ -1,30 +1,39 @@
-import type { Draw, Markup } from "./componentSourceParts.js";
-import { stateLabel } from "./componentStates.js";
+import type { Markup } from "./componentSourceParts.js";
+import { initialState, stateNames } from "./componentStates.js";
 import type { ConceptSlot } from "./conceptSlots.js";
 
-export function componentStateSource(group: ConceptSlot, draw: Draw): Markup {
-  const children = group.elements.map((el, i) =>
-    draw(el, `@@__state-${i + 1}`)
-  );
-  const names = group.elements.map(stateLabel);
+export function componentStateSource(
+  group: ConceptSlot,
+  bodies: string[],
+  css: string,
+  childCss: string
+): Markup {
+  const names = stateNames(group);
+  const initial = initialState(group);
   return {
-    body: children[0]?.jsx,
-    childCss: children.map((c) => c.css).join("\n"),
-    css: "& {display:grid; min-width:0; gap:0.5em;} &__choices {display:flex; gap:0.75em; flex-wrap:wrap;} &__choices > button[aria-pressed=true] {text-decoration:underline;}",
+    body: bodies[initial],
+    childCss,
+    css:
+      css +
+      "\n& { display:grid; align-content:start; min-width:0; gap:0.5em; } &__selector { justify-self:start; max-width:100%; font:inherit; }",
     tag: "div",
     tsx: (name, cls) => `import { useState } from "react";
 import "./${name}.css";
 
 export function ${name}({ className = "" }: { className?: string }) {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(${initial});
   return (
     <div className={["${cls}", className].filter(Boolean).join(" ")}>
-      <fieldset aria-label="Component states" className="${cls}__choices">
-        {${JSON.stringify(names)}.map((label, index) => (
-          <button type="button" key={index} aria-pressed={index === active} onClick={() => setActive(index)}>{label}</button>
-        ))}
-      </fieldset>
-${children.map((child, index) => `      {active === ${index} && (${child.jsx.replaceAll("@@", cls)})}`).join("\n")}
+      <select aria-label="Component state" className="${cls}__selector" value={active} onChange={(event) => setActive(Number(event.target.value))}>
+        {${JSON.stringify(names)}.map((label, index) => <option key={index} value={index}>{label}</option>)}
+      </select>
+${bodies
+  .map(
+    (body, index) =>
+      body && `      {active === ${index} && (${body.replaceAll("@@", cls)})}`
+  )
+  .filter(Boolean)
+  .join("\n")}
     </div>
   );
 }`,

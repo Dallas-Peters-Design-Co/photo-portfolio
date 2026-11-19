@@ -46,10 +46,12 @@ const SHARED_KEYS = new Set<string>([
 ]);
 
 function slotLayout(source: ConceptSlot, target?: ConceptSlot): ConceptSlot {
-  const { stateful: _stateful, ...layout } = source;
+  const { stateful: _stateful, initialState: _initial, ...layout } = source;
   return {
     ...layout,
-    ...(target?.stateful ? { stateful: true } : {}),
+    ...(target?.stateful
+      ? { initialState: target.initialState, stateful: true }
+      : {}),
     elements: target?.elements ?? [],
   };
 }

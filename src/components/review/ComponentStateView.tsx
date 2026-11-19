@@ -1,48 +1,65 @@
 import { type ReactNode, useState } from "react";
-import { stateLabel } from "../../../config/componentStates.js";
-import { everyElement } from "../../../config/conceptSlots.js";
+import {
+  initialState,
+  stateNames,
+  usesNamedStates,
+} from "../../../config/componentStates.js";
+import {
+  type ConceptSlot,
+  everyElement,
+} from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { useSequenceMarks } from "./conceptSequence";
 
 export function ComponentStateView({
-  states,
+  group,
   draw,
 }: {
-  states: ReviewConceptElement[];
-  draw: (el: ReviewConceptElement) => ReactNode;
+  group: ConceptSlot;
+  draw: (elements: ReviewConceptElement[]) => ReactNode;
 }) {
-  const [choice, setChoice] = useState<string | null>(null);
   const { selected } = useSequenceMarks();
-  const editing =
-    selected &&
-    states.find((state) =>
-      everyElement([state]).some((el) => el.id === selected)
-    );
-  const active = editing || states.find((el) => el.id === choice) || states[0];
-  if (!active) {
-    return null;
+  const [choice, setChoice] = useState<{
+    index: number;
+    selection?: string | null;
+  } | null>(null);
+  const named = usesNamedStates(group);
+  const names = stateNames(group);
+  const selectedIndex = group.elements.findIndex(
+    (state) =>
+      selected && everyElement([state]).some((el) => el.id === selected)
+  );
+  let active = initialState(group);
+  if (selectedIndex >= 0 && named) {
+    active = selectedIndex;
+  }
+  if (choice && choice.selection === selected && choice.index < names.length) {
+    active = choice.index;
+  }
+  let { elements } = group;
+  if (named) {
+    elements = elements.slice(active, active + 1);
+  } else if (active === 1) {
+    elements = [];
   }
   return (
     <div className="concept-states">
-      <fieldset
-        aria-label="Component states"
-        className="concept-states__choices"
+      <select
+        aria-label="Component state"
+        className="concept-states__selector"
+        onChange={(event) =>
+          setChoice({ index: Number(event.target.value), selection: selected })
+        }
+        onClick={(event) => event.stopPropagation()}
+        value={active}
       >
-        {states.map((state, i) => (
-          <button
-            aria-pressed={active.id === state.id}
-            key={state.id}
-            onClick={(e) => {
-              e.stopPropagation();
-              setChoice(state.id);
-            }}
-            type="button"
-          >
-            {stateLabel(state, i)}
-          </button>
+        {names.map((name, index) => (
+          <option key={group.elements[index]?.id ?? name} value={index}>
+            {name}
+          </option>
         ))}
-      </fieldset>
-      {draw(active)}
+      </select>
+      {elements.length > 0 && draw(elements)}
     </div>
   );
 }

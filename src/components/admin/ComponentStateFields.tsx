@@ -1,5 +1,7 @@
 import {
+  initialState,
   stateLabel,
+  stateNames,
   usesNamedStates,
 } from "../../../config/componentStates.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
@@ -8,7 +10,7 @@ import { MAX_SLOT_ELEMENTS } from "../../../config/conceptSlots.js";
 import { freshIds } from "../../../config/conceptSteps.js";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-import { ConceptField } from "./ConceptControls";
+import { ConceptField, ConceptSelect } from "./ConceptControls";
 
 export function ComponentStateFields({
   group,
@@ -36,15 +38,42 @@ export function ComponentStateFields({
             group.stateful
               ? { disclosureLabel: undefined, stateful: false }
               : {
-                  disclosureLabel: group.disclosureLabel || "Cards",
+                  disclosureLabel: undefined,
+                  initialState: 0,
                   stateful: true,
                 }
           )
         }
         type="button"
       >
-        {group.stateful ? "Use as layout group" : "Make collapsible component"}
+        {group.stateful ? "Use as layout group" : "Make stateful component"}
       </Button>
+      {!group.stateful && (
+        <ConceptField label="Collapsible row label">
+          <Input
+            aria-label="Collapsible row label"
+            maxLength={120}
+            onChange={(event) =>
+              change({ disclosureLabel: event.target.value })
+            }
+            placeholder="Row label"
+            value={group.disclosureLabel ?? ""}
+          />
+        </ConceptField>
+      )}
+      {group.stateful === true && (
+        <ConceptField label="Component state">
+          <ConceptSelect
+            label="Component state"
+            onChange={(value) => change({ initialState: Number(value) })}
+            options={stateNames(group).map((label, index) => ({
+              label,
+              value: String(index),
+            }))}
+            value={String(initialState(group))}
+          />
+        </ConceptField>
+      )}
       {group.stateful && !usesNamedStates(group) && (
         <Button
           disabled={!group.elements.length}

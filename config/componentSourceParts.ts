@@ -243,8 +243,14 @@ export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   const group = el.group ?? { elements: [] };
   const css: string[] = [];
   const disclosure = groupDisclosure(group);
-  if (usesNamedStates(group)) {
-    return componentStateSource(group, draw);
+  if (group.stateful) {
+    const layouts = usesNamedStates(group)
+      ? group.elements.map((element) => ({ ...group, elements: [element] }))
+      : [group];
+    const bodies = layouts.map((layout, index) =>
+      slotItems(layout, `@@__state-${index + 1}`, draw, css)
+    );
+    return componentStateSource(group, bodies, SLOTS_CSS, css.join("\n"));
   }
   const items = slotItems(group, "@@__item", draw, css);
   return {

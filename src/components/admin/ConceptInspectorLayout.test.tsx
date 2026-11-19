@@ -83,3 +83,36 @@ it("packs swatches and numbers together and maps all nine flex positions to the 
     host.remove();
   }
 });
+
+it("exposes the state selector on an existing Cards group and updates its starting state", async () => {
+  let slot: ConceptSlot = {
+    disclosureLabel: "Cards",
+    elements: [],
+    stateful: true,
+  };
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  try {
+    await act(() =>
+      root.render(
+        <SlotFields
+          depth={0}
+          group
+          onChange={(next) => {
+            slot = next;
+          }}
+          slot={slot}
+        />
+      )
+    );
+    await page
+      .getByRole("combobox", { exact: true, name: "Component state" })
+      .click();
+    await page.getByRole("option", { name: "Collapsed" }).click();
+    expect(slot.initialState).toBe(1);
+  } finally {
+    await act(() => root.unmount());
+    host.remove();
+  }
+});

@@ -57,6 +57,7 @@ export interface ConceptSlot {
    */
   full?: boolean;
   gap?: number;
+  initialState?: number;
   /** Main-axis distribution: "between" pushes the first and last apart. */
   justify?: ConceptSlotJustify;
   layout?: ConceptSlotLayout;
@@ -134,6 +135,11 @@ export const cleanSlot = (
   return {
     ...cleanFlex(slot.flex),
     ...(slot.stateful === true ? { stateful: true } : {}),
+    ...(slot.stateful &&
+    Number.isSafeInteger(slot.initialState) &&
+    Number(slot.initialState) > 0
+      ? { initialState: slot.initialState }
+      : {}),
     ...(typeof slot.disclosureLabel === "string" && slot.disclosureLabel.trim()
       ? { disclosureLabel: slot.disclosureLabel.slice(0, 120) }
       : {}),

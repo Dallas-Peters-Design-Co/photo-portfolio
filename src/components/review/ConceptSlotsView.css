@@ -159,12 +159,11 @@
   align-content: start;
   min-width: 0;
 }
-.concept-states__choices {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75em;
-}
-.concept-states__choices > button[aria-pressed="true"] {
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
+.concept-states__selector {
+  justify-self: start;
+  max-width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background-color: inherit;
 }
