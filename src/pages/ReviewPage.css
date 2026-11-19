@@ -161,7 +161,7 @@
   text-underline-offset: 3px;
 }
 
-@media (min-width: 60rem) {
+@media screen and (min-width: 60rem) {
   .review-page__hero-foot {
     grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
   }
@@ -219,7 +219,7 @@
   gap: calc(var(--spacing) * 8);
 }
 
-@media (min-width: 60rem) {
+@media screen and (min-width: 60rem) {
   .review-page__screen {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
@@ -365,7 +365,7 @@
  * often taller than the window, so it is held to the window's height and
  * scrolls on its own; the pins scroll with it. Print undoes this below.
  */
-@media (min-width: 60rem) {
+@media screen and (min-width: 60rem) {
   /* A phone stays in view whole; the capture scrolls in its screen. It is
      narrow enough that all of it (1 : 2) fits the window. */
   .review-page__phone {
@@ -572,7 +572,60 @@
   font-weight: 400;
 }
 
+.review-page__print-capture {
+  display: none;
+}
+
 @media print {
+  .review-page__print-capture {
+    display: block;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .review-page__print-capture[data-mobile] {
+    max-width: 3.5in;
+  }
+
+  .review-page__print-strip {
+    position: relative;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+
+  .review-page__print-strip + .review-page__print-strip {
+    margin-block-start: 12pt;
+  }
+
+  .review-page__print-strip img {
+    position: absolute;
+    width: 100%;
+    height: auto;
+  }
+
+  .review-page__section--screen {
+    display: flex;
+    flex-direction: column;
+    gap: 14pt;
+  }
+
+  .review-page__screen {
+    display: block;
+    padding: 0;
+  }
+
+  .review-page__notes {
+    display: block;
+    margin: 0;
+  }
+
+  .review-page__pin {
+    width: 14pt;
+    height: 14pt;
+    font-size: 7pt;
+    box-shadow: none;
+  }
+
   /* Paper is white whatever the site's theme: back to the light sheet. */
   .review-page {
     --sheet: #fff;
@@ -626,39 +679,25 @@
     break-inside: avoid;
   }
 
-  /*
-   * A screenshot is shrunk until it fits a page (about 8.5in tall after the
-   * heading), but never below half the width: a very long full-page capture
-   * would turn to a sliver, and is better split across pages at a readable
-   * size.
-   */
-  .review-page__figure {
-    max-width: max(50%, min(100%, calc(8.5in * var(--shot-ratio, 1))));
+  .review-page__screen .review-page__figure {
+    position: relative;
+    width: min(100%, calc(8in * var(--shot-ratio, 1)));
+    max-height: none;
     margin-inline: auto;
+    overflow: visible;
     break-inside: avoid;
   }
 
-  /* The whole picture on paper, not a scrolling pane. */
-  .review-page__screen .review-page__figure {
-    position: relative;
-    max-height: none;
-    overflow: hidden;
-  }
-
-  /* A phone capture sits beside its notes, as on a wide screen. */
-  .review-page__screen--mobile {
-    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-    align-items: start;
-  }
-
-  .review-page__screen--mobile .review-page__figure {
-    max-width: none;
-  }
-
-  /* On paper the whole capture shows, without the phone around it. */
   .review-page__phone {
-    max-width: none;
+    max-width: 3.5in;
     aspect-ratio: auto;
+    margin-inline: auto;
+    container-type: normal;
+  }
+
+  .review-page__screen--print-capture .review-page__figure,
+  .review-page__screen--print-capture .review-page__phone {
+    display: none;
   }
 
   .review-page__phone-button,
@@ -670,8 +709,10 @@
   .review-page__phone-screen,
   .review-page__phone-view {
     position: static;
+    display: block;
     padding: 0;
     margin: 0;
+    overflow: visible;
     background: none;
     border: 0;
     border-radius: 0;
@@ -679,7 +720,7 @@
   }
 
   .review-page__phone .review-page__figure {
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--sheet-rule);
   }
 }

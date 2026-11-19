@@ -32,6 +32,7 @@ import {
   ScreenComments,
 } from "./ReviewFeedback";
 import { ReviewLock } from "./ReviewLock";
+import { ReviewPrintCapture } from "./ReviewPrintCapture";
 import { ReviewSidebar, reviewAnchor } from "./ReviewSidebar";
 
 /**
@@ -364,13 +365,17 @@ function Screen({
     });
     setShown(id);
   };
-  const cls = "doc-band review-page__section--screen";
-  const figureCls =
-    screen.viewport === "mobile"
-      ? "review-page__screen review-page__screen--mobile"
-      : "review-page__screen";
+  const hasPrintCapture = screen.pins.length > 0 || screen.marks.length > 0;
+  const cls = cn(
+    "review-page__screen",
+    screen.viewport === "mobile" && "review-page__screen--mobile",
+    hasPrintCapture && "review-page__screen--print-capture"
+  );
   return (
-    <section className={cls} id={reviewAnchor.screen(screen.id)}>
+    <section
+      className="doc-band review-page__section--screen"
+      id={reviewAnchor.screen(screen.id)}
+    >
       <div className="review-page__screen-head">
         <h2 className="doc-band__title">{screen.title || "Screen"}</h2>
         {screen.sourceUrl ? (
@@ -382,7 +387,14 @@ function Screen({
         ) : null}
       </div>
       {isRichTextEmpty(screen.note) ? null : <Prose text={screen.note} />}
-      <div className={figureCls}>
+      {hasPrintCapture ? (
+        <ReviewPrintCapture
+          image={image}
+          mobile={screen.viewport === "mobile"}
+          title={`${screen.title || "Screen"} without annotations`}
+        />
+      ) : null}
+      <div className={cls}>
         <Device mobile={screen.viewport === "mobile"}>
           <figure
             className="review-page__figure"
