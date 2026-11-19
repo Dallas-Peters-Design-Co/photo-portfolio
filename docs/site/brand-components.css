@@ -486,7 +486,7 @@
   box-shadow: var(--card-primary-shadow);
 }
 
-.card-primary { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-primary { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-primary:hover {
   background: var(--card-primary-hover-background, var(--card-primary-background));
   color: var(--card-primary-hover-color, var(--card-primary-color));
@@ -542,7 +542,7 @@
   box-shadow: var(--card-stats-shadow);
 }
 
-.card-stats { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-stats { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-stats:hover {
   background: var(--card-stats-hover-background, var(--card-stats-background));
   color: var(--card-stats-hover-color, var(--card-stats-color));
@@ -599,7 +599,7 @@
   box-shadow: var(--card-disabled-shadow);
 }
 
-.card-disabled { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-disabled { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-disabled:hover {
   background: var(--card-disabled-hover-background, var(--card-disabled-background));
   color: var(--card-disabled-hover-color, var(--card-disabled-color));
@@ -652,7 +652,7 @@
   box-shadow: var(--card-plain-shadow);
 }
 
-.card-plain { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-plain { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-plain:hover {
   background: var(--card-plain-hover-background, var(--card-plain-background));
   color: var(--card-plain-hover-color, var(--card-plain-color));
@@ -1144,6 +1144,7 @@
 }
 
 .panel-primary { display: flex; align-items: flex-start; width: 100%; min-width: 0; background: transparent; border: 0; padding: 0; box-shadow: none; }
+
 .panel-primary[data-toggle-side="left"] { flex-direction: row-reverse; }
 .panel-primary[data-toggle-side="left"] > .panel-primary__hide :is(svg:first-of-type, .panel-primary__chevron) { scale: -1 1; }
 .panel-primary__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--panel-primary-background); padding: var(--panel-primary-padding); border: var(--panel-primary-border); border-radius: var(--panel-primary-radius); box-shadow: var(--panel-primary-shadow); }
@@ -1497,7 +1498,7 @@
 }
 .bk-pretex-t {
 .navbar-primary {
-  --navbar-primary-background: var(--kit-hnp52d, #3f69db);
+  --navbar-primary-background: var(--kit-18u0jwu, #000609);
   --navbar-primary-color: #172033;
   --navbar-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --navbar-primary-font-size: 14px;
@@ -1565,7 +1566,7 @@
   box-shadow: var(--navbar-primary__header-1-shadow);
 }
 
-.navbar-primary__header-1 { display: block; height: 39px; width: auto; max-width: 100%; object-fit: contain; }
+.navbar-primary__header-1 { display: block; height: 44px; width: auto; max-width: 100%; object-fit: contain; }
 .navbar-primary__body-1 {
   --navbar-primary__body-1-background: transparent;
   --navbar-primary__body-1-color: var(--kit-xoaop8, #fffefc);
@@ -2426,7 +2427,7 @@
   box-shadow: var(--card-primary-shadow);
 }
 
-.card-primary { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-primary { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-primary:hover {
   background: var(--card-primary-hover-background, var(--card-primary-background));
   color: var(--card-primary-hover-color, var(--card-primary-color));
@@ -2482,7 +2483,7 @@
   box-shadow: var(--card-stats-shadow);
 }
 
-.card-stats { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-stats { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-stats:hover {
   background: var(--card-stats-hover-background, var(--card-stats-background));
   color: var(--card-stats-hover-color, var(--card-stats-color));
@@ -2539,7 +2540,7 @@
   box-shadow: var(--card-disabled-shadow);
 }
 
-.card-disabled { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-disabled { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-disabled:hover {
   background: var(--card-disabled-hover-background, var(--card-disabled-background));
   color: var(--card-disabled-hover-color, var(--card-disabled-color));
@@ -2592,7 +2593,7 @@
   box-shadow: var(--card-plain-shadow);
 }
 
-.card-plain { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+.card-plain { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0;  }
 .card-plain:hover {
   background: var(--card-plain-hover-background, var(--card-plain-background));
   color: var(--card-plain-hover-color, var(--card-plain-color));
@@ -3084,6 +3085,7 @@
 }
 
 .panel-primary { display: flex; align-items: flex-start; width: 100%; min-width: 0; background: transparent; border: 0; padding: 0; box-shadow: none; }
+
 .panel-primary[data-toggle-side="left"] { flex-direction: row-reverse; }
 .panel-primary[data-toggle-side="left"] > .panel-primary__hide :is(svg:first-of-type, .panel-primary__chevron) { scale: -1 1; }
 .panel-primary__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--panel-primary-background); padding: var(--panel-primary-padding); border: var(--panel-primary-border); border-radius: var(--panel-primary-radius); box-shadow: var(--panel-primary-shadow); }
@@ -3437,7 +3439,7 @@
 }
 .bk-viaskai {
 .navbar-primary {
-  --navbar-primary-background: var(--kit-hnp52d, #3f69db);
+  --navbar-primary-background: var(--kit-18u0jwu, #000609);
   --navbar-primary-color: #172033;
   --navbar-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --navbar-primary-font-size: 14px;
@@ -3505,7 +3507,7 @@
   box-shadow: var(--navbar-primary__header-1-shadow);
 }
 
-.navbar-primary__header-1 { display: block; height: 39px; width: auto; max-width: 100%; object-fit: contain; }
+.navbar-primary__header-1 { display: block; height: 44px; width: auto; max-width: 100%; object-fit: contain; }
 .navbar-primary__body-1 {
   --navbar-primary__body-1-background: transparent;
   --navbar-primary__body-1-color: var(--kit-xoaop8, #fffefc);
