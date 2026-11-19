@@ -18,10 +18,12 @@ import {
   type ConceptStyleKey,
   cleanElement,
   ELEMENT_STYLE_KEYS,
+  joinCardText,
   type ReviewConcept,
   type ReviewConceptElement,
   type ReviewConceptElementKind,
   STYLE_ID,
+  splitCardText,
 } from "./reviewConcept.js";
 
 /**
@@ -434,7 +436,10 @@ export const fromStyle = (
     ? {
         ...linked,
         ...(usesPlaceholder ? { placeholder: name } : {}),
-        text: name,
+        text:
+          style.kind === "card"
+            ? joinCardText(name, splitCardText(linked.text).body)
+            : name,
       }
     : linked;
   if (style.kind === "group" && style.look.groupContents) {

@@ -126,22 +126,6 @@ function StyleEditor({
           size="sm"
           value={style.name}
         />
-      </header>
-      {open ? (
-        <div className="brand-kit-components__body" id={bodyId}>
-          <div className="brand-kit-components__sample concept-canvas">
-            <ReviewConceptElementView element={sample} />
-          </div>
-          <ReviewConceptElementFields
-            brandDoc={brand}
-            element={sample}
-            lookOnly
-            onChange={changeLook}
-          />
-        </div>
-      ) : null}
-      <footer className="brand-kit-components__footer">
-        {handle}
         <Button
           aria-controls={bodyId}
           aria-expanded={open}
@@ -158,6 +142,22 @@ function StyleEditor({
             size={14}
           />
         </Button>
+      </header>
+      {open ? (
+        <div className="brand-kit-components__body" id={bodyId}>
+          <div className="brand-kit-components__sample concept-canvas">
+            <ReviewConceptElementView element={sample} />
+          </div>
+          <ReviewConceptElementFields
+            brandDoc={brand}
+            element={sample}
+            lookOnly
+            onChange={changeLook}
+          />
+        </div>
+      ) : null}
+      <footer className="brand-kit-components__footer">
+        {handle}
         <ComponentStyleClipboard element={sample} onChange={changeLook} />
         <Button
           aria-label={`Duplicate ${style.name}`}
@@ -342,34 +342,36 @@ export function BrandKitComponents({
         />
       </div>
       <CanvasComponentKit.Provider value={kitId}>
-        <SortableList
-          itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
-          items={styles}
-          layout="grid"
-          onReorder={(ids) =>
-            set(
-              ids
-                .map((id) => styles.find((s) => s.id === id))
-                .filter((s): s is ConceptStyle => s !== undefined)
-            )
-          }
-        >
-          {(style, { compact, handle }) => (
-            <StyleEditor
-              brand={effective}
-              handle={handle}
-              onChange={(next) =>
-                set(styles.map((s) => (s.id === style.id ? next : s)))
-              }
-              onDuplicate={() => duplicate(style)}
-              onRemove={() => set(styles.filter((s) => s.id !== style.id))}
-              onToggle={() => toggle(style.id)}
-              // Folded while a style is dragged, so it is easy to carry.
-              open={open.has(style.id) && !compact}
-              style={style}
-            />
-          )}
-        </SortableList>
+        <div className="brand-kit-components__grid">
+          <SortableList
+            itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
+            items={styles}
+            layout="grid"
+            onReorder={(ids) =>
+              set(
+                ids
+                  .map((id) => styles.find((s) => s.id === id))
+                  .filter((s): s is ConceptStyle => s !== undefined)
+              )
+            }
+          >
+            {(style, { compact, handle }) => (
+              <StyleEditor
+                brand={effective}
+                handle={handle}
+                onChange={(next) =>
+                  set(styles.map((s) => (s.id === style.id ? next : s)))
+                }
+                onDuplicate={() => duplicate(style)}
+                onRemove={() => set(styles.filter((s) => s.id !== style.id))}
+                onToggle={() => toggle(style.id)}
+                // Folded while a style is dragged, so it is easy to carry.
+                open={open.has(style.id) && !compact}
+                style={style}
+              />
+            )}
+          </SortableList>
+        </div>
       </CanvasComponentKit.Provider>
     </div>
   );
