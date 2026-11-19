@@ -9,17 +9,14 @@ import {
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { hasSlots } from "../../../config/conceptSlots.js";
 import { stepsOf } from "../../../config/conceptSteps.js";
-import {
-  boxOf,
-  type PageDesign,
-  pageBoxStyle,
-} from "../../../config/pageDesign.js";
+import { boxOf, type PageDesign } from "../../../config/pageDesign.js";
 import { paletteProperties } from "../../../config/paletteBinding.js";
 import { useSequencePlayer } from "../../components/review/conceptSequence";
 import { StepElements } from "../../components/review/ReviewConceptPreview";
 import { useConceptFont } from "../../components/review/useConceptFont";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { PageSelect } from "./PageFields";
+import { pageGrid } from "./pageGrid";
 import "./PageDesignView.css";
 
 /** The same DOM and geometry in the editor, on the board, and in the review. */
@@ -45,6 +42,9 @@ export const PageDesignView = memo(function PageView({
   const steps = stepsOf(page.concept);
   const index = Math.min(stepIndex ?? at, steps.length - 1);
   const step = steps[index];
+  const grid = pageGrid(
+    step?.elements.map((el, i) => boxOf(page, el.id, i)) ?? []
+  );
   const playing = stepIndex === undefined;
   const last = index === steps.length - 1;
   useConceptFont(
@@ -114,6 +114,7 @@ export const PageDesignView = memo(function PageView({
               concept.fontRef,
               concept.fontId
             ),
+            gridTemplateRows: grid.rows,
             height: page.height,
             transform: `scale(${scale})`,
             width: page.width,
@@ -127,7 +128,7 @@ export const PageDesignView = memo(function PageView({
                 element.kind === "group" || hasSlots(element.kind) || undefined
               }
               key={element.id}
-              style={pageBoxStyle(boxOf(page, element.id, i))}
+              style={grid.style(boxOf(page, element.id, i))}
             >
               <StepElements
                 elements={[

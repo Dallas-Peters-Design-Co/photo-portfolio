@@ -62,6 +62,7 @@ import { usePanModifier } from "./hooks/usePanModifier";
 import { useWireGesture } from "./hooks/useWireGesture";
 import { isBoardDrop } from "./io/isVideo";
 import { BOARD_IMAGE_TYPE } from "./itemOutput";
+import { resizePageFrame } from "./pages/resizePageFrame";
 import { CanvasMenu, type CanvasMenuTarget } from "./panels/CanvasMenu";
 import { PortMenu, type PortTarget } from "./panels/PortMenu";
 import { useBoardTools } from "./tools/useBoardTools";
@@ -267,6 +268,7 @@ type Gesture =
       startY: number;
       /** The box when the drag began; the pinned corner is derived from it. */
       origin: SnapBox;
+      originalItem: BoardItem;
       /** Which corner was taken. Decides which corner stays still. */
       handle: ResizeHandle;
       /** Snap targets, built once when the gesture began. */
@@ -783,6 +785,7 @@ export function BoardCanvas({
           x: item.x,
           y: item.y,
         },
+        originalItem: item,
         // Built once, here: the one-shot helper rebuilt its coordinate arrays
         // on every pointermove, which is the per-frame cost the indexed version
         // exists to remove. The item being resized is excluded so it cannot
@@ -892,11 +895,13 @@ export function BoardCanvas({
         scale: view.viewport.scale,
       });
       setGuides(sized.guides);
+      const pageDesign = resizePageFrame(g.originalItem, sized);
       onChange(
         items.map((it, i) =>
           i === g.index
             ? {
                 ...it,
+                ...(pageDesign ? { config: { ...it.config, pageDesign } } : {}),
                 height: sized.height,
                 width: sized.width,
                 x: sized.x,

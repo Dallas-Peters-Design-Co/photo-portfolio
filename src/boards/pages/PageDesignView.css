@@ -8,11 +8,15 @@
 }
 .page-design__sheet {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   overflow: hidden;
   transform-origin: top left;
 }
 .page-design__component {
-  position: absolute;
+  position: relative;
+  min-height: min-content;
   overflow: auto;
 }
 /* Layout groups and slotted surfaces paint into the page around their box. */

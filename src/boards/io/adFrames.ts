@@ -10,6 +10,7 @@ import { MAX_FONT_SIZE, MIN_FONT_SIZE } from "../../../config/canvas";
 import { containedBy, withinFrame } from "../../../config/graph";
 import type { BoardItem } from "../../types";
 import { clearSpotRightOf } from "../geometry/placement";
+import { resizePageFrame } from "../pages/resizePageFrame";
 import { newItemId } from "./newItemId";
 
 /**
@@ -55,7 +56,13 @@ export const resizeFrame = (
   );
   return items.map((item) => {
     if (item.id === frame.id) {
-      return { ...item, ...box, body: sizeTitle(size) };
+      const pageDesign = resizePageFrame(frame, box);
+      return {
+        ...item,
+        ...box,
+        ...(pageDesign ? { config: { ...item.config, pageDesign } } : {}),
+        body: sizeTitle(size),
+      };
     }
     return placed.get(item.id) ?? item;
   });
@@ -98,7 +105,14 @@ export const copyFrameAtSizes = (
     frameIds.push(id);
     // The frame goes under its contents: frames sit at the back already, so
     // the copy keeps the original's z and the contents stack above it.
-    added.push({ ...frame, ...next, body: sizeTitle(size), id });
+    const pageDesign = resizePageFrame(frame, next);
+    added.push({
+      ...frame,
+      ...next,
+      ...(pageDesign ? { config: { ...frame.config, pageDesign } } : {}),
+      body: sizeTitle(size),
+      id,
+    });
     fit(frame, next, inside).forEach((item, i) => {
       added.push({
         ...item,

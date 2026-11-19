@@ -8,13 +8,6 @@ export interface PageBox {
   y: number;
 }
 
-export const pageBoxStyle = ({ x, y, width, height }: PageBox) => ({
-  height,
-  left: x,
-  top: y,
-  width,
-});
-
 /** A live UI page, kept on a frame and carried intact into its review. */
 export interface PageDesign {
   boxes: Record<string, PageBox>;
@@ -62,9 +55,10 @@ export const cleanPageDesign = (value: unknown): PageDesign | null => {
       continue;
     }
     const x = bounded(box.x, 0, width - 1, 0);
-    const y = bounded(box.y, 0, height - 1, 0);
+    // A shorter viewport can leave authored content below the fold.
+    const y = bounded(box.y, 0, 11_999, 0);
     boxes[id] = {
-      height: bounded(box.height, 1, height - y, Math.min(120, height - y)),
+      height: bounded(box.height, 1, 12_000 - y, Math.min(120, 12_000 - y)),
       width: bounded(box.width, 1, width - x, Math.min(320, width - x)),
       x,
       y,

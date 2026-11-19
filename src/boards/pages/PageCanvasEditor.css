@@ -146,7 +146,7 @@
   user-select: none;
 }
 .page-builder__selection {
-  position: absolute;
+  position: relative;
   z-index: 1;
   pointer-events: none;
 }
@@ -155,7 +155,7 @@
   outline: 1px solid var(--color-board-ink);
 }
 .page-builder__move {
-  position: absolute;
+  position: relative;
   pointer-events: auto;
   touch-action: none;
   cursor: move;

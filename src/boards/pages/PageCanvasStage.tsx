@@ -10,9 +10,9 @@ import {
   boxOf,
   type PageBox,
   type PageDesign,
-  pageBoxStyle,
 } from "../../../config/pageDesign.js";
 import { PageDesignView } from "./PageDesignView";
+import { pageGrid } from "./pageGrid";
 
 interface Drag {
   before: PageBox;
@@ -44,6 +44,7 @@ export function PageCanvasStage({
   const shown = preview
     ? { ...page, boxes: { ...page.boxes, [preview.id]: preview.box } }
     : page;
+  const grid = pageGrid(elements.map((el, i) => boxOf(shown, el.id, i)));
   const start = (
     e: PointerEvent<HTMLButtonElement>,
     id: string,
@@ -159,13 +160,13 @@ export function PageCanvasStage({
               onPointerDown={(e) => start(e, el.id, i, false)}
               onPointerMove={move}
               onPointerUp={finish}
-              style={pageBoxStyle(boxOf(shown, el.id, i))}
+              style={grid.style(boxOf(shown, el.id, i))}
               type="button"
             />
             {selected === el.id ? (
               <div
                 className="page-builder__selection"
-                style={pageBoxStyle(boxOf(shown, el.id, i))}
+                style={grid.style(boxOf(shown, el.id, i))}
               >
                 <button
                   aria-label={`Resize ${el.text || el.kind}`}
