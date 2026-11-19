@@ -10,6 +10,7 @@ import {
   cleanIcon,
   cleanLogo,
   cleanProgress,
+  cleanStateName,
   cleanToast,
 } from "./conceptKinds.js";
 import {
@@ -166,7 +167,6 @@ export interface ReviewConceptElement {
   canvasComponent?: BrandComponent;
   canvasSize?: { width: number; height: number };
   checked?: boolean;
-  /** Checkboxes: the box's size in px. */
   checkSize?: number;
   color: string;
   /** Cards and panels: a line between their slots. */
@@ -236,6 +236,7 @@ export interface ReviewConceptElement {
    * elements (see conceptSlots.ts).
    */
   slots?: ConceptSlots;
+  stateName?: string;
   /** The brand kit component style this element follows, if any. */
   styleId?: string;
   summaryIconName?: ReviewConceptIcon;
@@ -313,7 +314,6 @@ export const CONCEPT_STYLE_KEYS = [
 
 export type ConceptStyleKey = (typeof CONCEPT_STYLE_KEYS)[number];
 
-/** A kit style's id, and an element's link to one. */
 export const STYLE_ID = /^[a-z0-9-]{1,64}$/i;
 
 const cleanLink = (
@@ -508,6 +508,7 @@ export const cleanElement = (
   const menuLook = takesMenu(kind) ? cleanMenuLook(raw.menuLook) : undefined;
   const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
+    ...cleanStateName(raw.stateName),
     ...cleanCanvas(raw, kind),
     ...cleanFlex(raw.flex),
     ...cleanAttachedTooltip(raw, kind),

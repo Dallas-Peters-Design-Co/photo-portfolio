@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
+import { layerDestination } from "../../../config/pageLayerMove.js";
 import { workspaceGrid } from "../../../config/pageWorkspaceGrid.js";
 import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
 import { ConceptColorField } from "../../components/admin/ReviewConceptBrand";
@@ -115,6 +116,13 @@ export function PageCanvasInspector({
     write,
     patchElement,
   } = editor;
+  const destinations = element
+    ? all.filter(
+        (el) =>
+          el.kind === "group" &&
+          layerDestination(editor.elements, element.id, el.id, "inside")
+      )
+    : [];
   const isArtwork = ["canvas", "shader"].includes(element?.kind ?? "");
   return (
     <aside className="page-builder__inspector">
@@ -223,6 +231,22 @@ export function PageCanvasInspector({
       {element ? (
         <>
           <PlacementFields editor={editor} />
+          {destinations.length > 0 && (
+            <PageSelect
+              label="Move to group"
+              onChange={(id) => editor.moveLayer(element.id, id, "inside")}
+              options={[
+                { label: "Choose destination…", value: "" },
+                ...destinations.map((group, i) => ({
+                  label:
+                    group.text.trim() ||
+                    `Group ${i + 1} · ${group.group?.elements[0]?.text.split("\n")[0] || "Empty"}`,
+                  value: group.id,
+                })),
+              ]}
+              value=""
+            />
+          )}
           {editor.canGroup ? (
             <button
               className="page-builder__button"

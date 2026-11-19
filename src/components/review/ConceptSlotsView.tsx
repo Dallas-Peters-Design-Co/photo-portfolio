@@ -9,6 +9,7 @@ import {
 } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { CollapsibleCardRow } from "./CollapsibleCardRow";
+import { ComponentStateView } from "./ComponentStateView";
 import "./ConceptSlotsView.css";
 
 type Draw = (element: ReviewConceptElement) => ReactNode;
@@ -201,7 +202,18 @@ export function ConceptGroupView({
   style: CSSProperties;
 }) {
   const group = element.group ?? { elements: [] };
-  const items = (
+  const items = group.stateful ? (
+    <ComponentStateView
+      draw={(active) => (
+        <Items
+          className="concept-group__items"
+          draw={draw}
+          slot={{ ...group, elements: [active] }}
+        />
+      )}
+      states={group.elements}
+    />
+  ) : (
     <Items className="concept-group__items" draw={draw} slot={group} />
   );
   return (

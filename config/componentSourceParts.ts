@@ -1,3 +1,4 @@
+import { componentStateSource } from "./componentStateSource.js";
 import { flexSize } from "./conceptFlex.js";
 import { type ConceptIconSvg, conceptIconName } from "./conceptIcon.js";
 import { iconSizeOf } from "./conceptKinds.js";
@@ -240,6 +241,9 @@ const slotsOf = (
 export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   const group = el.group ?? { elements: [] };
   const css: string[] = [];
+  if (group.stateful) {
+    return componentStateSource(group, draw);
+  }
   const items = slotItems(group, "@@__item", draw, css);
   return {
     body: group.disclosureLabel

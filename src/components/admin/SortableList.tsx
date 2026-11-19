@@ -50,12 +50,14 @@ export interface SortableContext {
 export function SortableList<T extends { id: string }>({
   children,
   itemLabel,
+  nativeDrag = false,
   items,
   onReorder,
 }: {
   children: (item: T, context: SortableContext) => ReactNode;
   /** Names an item for the handle's label, e.g. "Move Home". */
   itemLabel: (item: T) => string;
+  nativeDrag?: boolean;
   items: T[];
   onReorder: (ids: string[]) => void;
 }) {
@@ -222,13 +224,18 @@ export function SortableList<T extends { id: string }>({
                 <button
                   aria-label={`Move ${itemLabel(item)} (drag, or use the arrow keys)`}
                   className="sortable__handle"
+                  draggable={nativeDrag || undefined}
                   onKeyDown={nudge(item.id)}
                   onLostPointerCapture={drop}
                   onPointerCancel={drop}
-                  onPointerDown={pickUp(item.id)}
+                  onPointerDown={nativeDrag ? undefined : pickUp(item.id)}
                   onPointerMove={carry}
                   onPointerUp={drop}
-                  title="Drag to reorder"
+                  title={
+                    nativeDrag
+                      ? "Drag to reorder or move into a group"
+                      : "Drag to reorder"
+                  }
                   type="button"
                 >
                   <GripVertical aria-hidden size={14} />

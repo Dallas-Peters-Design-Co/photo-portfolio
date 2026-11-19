@@ -46,7 +46,12 @@ const SHARED_KEYS = new Set<string>([
 ]);
 
 function slotLayout(source: ConceptSlot, target?: ConceptSlot): ConceptSlot {
-  return { ...source, elements: target?.elements ?? [] };
+  const { stateful: _stateful, ...layout } = source;
+  return {
+    ...layout,
+    ...(target?.stateful ? { stateful: true } : {}),
+    elements: target?.elements ?? [],
+  };
 }
 
 function transferSlots(
@@ -121,7 +126,9 @@ export function newComponentStyleLook(
 ): ConceptStyleLook {
   const look = lookOf(element);
   if (element.group) {
-    look.groupContents = slotLayout(element.group);
+    look.groupContents = element.group.stateful
+      ? element.group
+      : slotLayout(element.group);
   }
   if (element.slots) {
     look.contents = transferSlots(

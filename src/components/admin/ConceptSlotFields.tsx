@@ -19,6 +19,7 @@ import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { ComponentStateFields } from "./ComponentStateFields";
 import {
   ConceptField,
   ConceptGroup,
@@ -177,6 +178,7 @@ export function SlotFields({
         )}
         {group ? (
           <>
+            <ComponentStateFields change={set} group={slot} />
             <ConceptField label="Collapsible row label">
               <Input
                 aria-label="Collapsible row label"

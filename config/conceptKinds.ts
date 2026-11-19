@@ -214,3 +214,6 @@ export const cleanLogo = (
     ? { logoUrl: raw.logoUrl.slice(0, 2048) }
     : {}),
 });
+
+export const cleanStateName = (value: unknown) =>
+  typeof value === "string" ? { stateName: value.slice(0, 64) } : {};

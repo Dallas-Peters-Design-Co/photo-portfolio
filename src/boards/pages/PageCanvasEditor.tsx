@@ -23,6 +23,7 @@ import { PageCanvasInspector } from "./PageCanvasInspector";
 import { PageCanvasStage } from "./PageCanvasStage";
 import { PageDesignView } from "./PageDesignView";
 import { PageSelect } from "./PageFields";
+import { LayerDragProvider } from "./PageLayerDrag";
 import { PageLayerList } from "./PageLayerList";
 import { usePageCanvas } from "./usePageCanvas";
 import { usePageEditorDialog } from "./usePageEditorDialog";
@@ -163,6 +164,7 @@ export function PageCanvasEditor({
           }}
           options={[
             { label: "Add an element…", value: NONE },
+            { label: "Stateful component", value: "stateful-component" },
             ...ELEMENT_KINDS.filter(
               (kind) => kind !== "canvas" && kind !== "shader"
             ).map((kind) => ({
@@ -205,15 +207,17 @@ export function PageCanvasEditor({
           </p>
         )}
         <div className="page-builder__layers">
-          <PageLayerList
-            elements={elements}
-            onChange={reorderLayers}
-            onSelect={(id) => {
-              setSelected(id);
-              setPlaying(false);
-            }}
-            selected={selected}
-          />
+          <LayerDragProvider move={editor.moveLayer}>
+            <PageLayerList
+              elements={elements}
+              onChange={reorderLayers}
+              onSelect={(id) => {
+                setSelected(id);
+                setPlaying(false);
+              }}
+              selected={selected}
+            />
+          </LayerDragProvider>
         </div>
       </aside>
       <PanelEdge label="component library" panels={widths} side="left" />

@@ -4,6 +4,8 @@ import { SLOT_NAMES } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { SortableList } from "../../components/admin/SortableList";
 
+import { useLayerDrag } from "./PageLayerDrag";
+
 interface LayerListProps {
   elements: ReviewConceptElement[];
   onChange: (elements: ReviewConceptElement[]) => void;
@@ -17,6 +19,7 @@ export function PageLayerList({
   onSelect,
   onChange,
 }: LayerListProps) {
+  const drag = useLayerDrag();
   const update = (item: ReviewConceptElement) =>
     onChange(elements.map((el) => (el.id === item.id ? item : el)));
   return (
@@ -25,6 +28,7 @@ export function PageLayerList({
         `${el.kind} layer ${el.text.split("\n")[0] || "Untitled"}`
       }
       items={elements}
+      nativeDrag={drag.enabled}
       onReorder={(ids) => {
         const byId = new Map(elements.map((el) => [el.id, el]));
         const next = ids.map((id) => byId.get(id));
@@ -44,8 +48,11 @@ export function PageLayerList({
         });
         const hasChildren = Boolean(el.group?.elements.length || slots.length);
         const row = (
-          <div className="page-builder__layer-row">
-            {elements.length > 1 ? handle : null}
+          <div
+            className="page-builder__layer-row"
+            {...drag.props(el.id, el.kind === "group")}
+          >
+            {(drag.enabled || elements.length > 1) && handle}
             {hasChildren && (
               <Collapsible.Trigger
                 aria-label={`Children of ${el.kind} layer ${label}`}

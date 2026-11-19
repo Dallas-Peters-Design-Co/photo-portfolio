@@ -62,6 +62,7 @@ export interface ConceptSlot {
   layout?: ConceptSlotLayout;
   paddingX?: number;
   paddingY?: number;
+  stateful?: boolean;
   wrap?: boolean;
 }
 
@@ -132,6 +133,7 @@ export const cleanSlot = (
   const layout = oneOf(SLOT_LAYOUTS, slot.layout);
   return {
     ...cleanFlex(slot.flex),
+    ...(slot.stateful === true ? { stateful: true } : {}),
     ...(typeof slot.disclosureLabel === "string" && slot.disclosureLabel.trim()
       ? { disclosureLabel: slot.disclosureLabel.slice(0, 120) }
       : {}),

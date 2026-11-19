@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { createStatefulComponent } from "../../../config/componentStates.js";
 
 import {
   createConcept,
@@ -35,6 +36,10 @@ import {
   pageDesignOf,
 } from "../../../config/pageDesign.js";
 import {
+  type DropPosition,
+  movePageLayer,
+} from "../../../config/pageLayerMove.js";
+import {
   MAX_CONCEPT_ELEMENTS,
   type ReviewConceptElement,
   type ReviewConceptElementKind,
@@ -42,6 +47,15 @@ import {
 import { useKitCanvasComponents } from "../../components/admin/ReviewCanvasComponents";
 import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
+
+const createPageElement = (
+  value: string,
+  kind: ReviewConceptElementKind,
+  doc: Parameters<typeof createConceptElement>[1]
+) =>
+  value === "stateful-component"
+    ? createStatefulComponent(doc)
+    : createConceptElement(kind, doc);
 
 export const usePageCanvas = (
   frame: BoardItem,
@@ -202,10 +216,8 @@ export const usePageCanvas = (
     const component = canvasComponents.find(
       (item) => `canvas:${item.id}` === value
     );
-    const kind = component
-      ? "canvas"
-      : (style?.kind ?? (value as ReviewConceptElementKind));
-    let next = createConceptElement(kind, doc);
+    const kind = style?.kind ?? (value as ReviewConceptElementKind);
+    let next = createPageElement(value, component ? "canvas" : kind, doc);
     if (component) {
       next = { ...next, canvasComponent: component, text: component.name };
     }
@@ -216,8 +228,8 @@ export const usePageCanvas = (
       next = fromStyle(next, style);
     }
     let width = Math.min(360, page.width - 48);
-    let height = kind === "navbar" ? 80 : 240;
-    if (kind === "navbar" || kind === "table") {
+    let height = next.kind === "navbar" ? 80 : 240;
+    if (next.kind === "navbar" || next.kind === "table") {
       width = page.width - 48;
     }
     if (component) {
@@ -280,6 +292,25 @@ export const usePageCanvas = (
     setSelected(null);
     setPlaying(false);
   };
+  const reorderLayers = (next: ReviewConceptElement[]) => {
+    if (!step) {
+      return;
+    }
+    // Older designs can position a layer by its index. Preserve that box
+    // before changing paint order so the layer stays at the same coordinates.
+    const boxes = { ...page.boxes };
+    for (const [i, el] of elements.entries()) {
+      if (next[i]?.id !== el.id) {
+        boxes[el.id] ??= boxOf(page, el.id, i);
+      }
+    }
+    write({
+      ...resolved,
+      boxes,
+      concept: withStep(concept, at, { ...step, elements: next }),
+    });
+    setPlaying(false);
+  };
   return {
     add,
     addStep,
@@ -305,30 +336,26 @@ export const usePageCanvas = (
             setSelected(above.id);
           }
         : undefined,
+    moveLayer: (id: string, target: string, position: DropPosition) => {
+      const i = elements.findIndex((el) => el.id === id);
+      const next = movePageLayer(
+        elements,
+        id,
+        target,
+        position,
+        i < 0 ? undefined : boxOf(page, id, i)
+      );
+      if (next !== elements) {
+        reorderLayers(next);
+        setSelected(id);
+      }
+    },
     page,
     patchElement,
     playing,
     removeSelected,
     removeState,
-    reorderLayers: (next: ReviewConceptElement[]) => {
-      if (!step) {
-        return;
-      }
-      // Older designs can position a layer by its index. Preserve that box
-      // before changing paint order so the layer stays at the same coordinates.
-      const boxes = { ...page.boxes };
-      for (const [i, el] of elements.entries()) {
-        if (next[i]?.id !== el.id) {
-          boxes[el.id] ??= boxOf(page, el.id, i);
-        }
-      }
-      write({
-        ...resolved,
-        boxes,
-        concept: withStep(concept, at, { ...step, elements: next }),
-      });
-      setPlaying(false);
-    },
+    reorderLayers,
     resolved,
     selected,
     setBox,

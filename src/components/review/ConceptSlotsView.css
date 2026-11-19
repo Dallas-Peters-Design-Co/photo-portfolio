@@ -151,3 +151,20 @@
   display: list-item;
   cursor: pointer;
 }
+
+.concept-states {
+  display: grid;
+  flex: 1;
+  gap: 0.5em;
+  align-content: start;
+  min-width: 0;
+}
+.concept-states__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+}
+.concept-states__choices > button[aria-pressed="true"] {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
