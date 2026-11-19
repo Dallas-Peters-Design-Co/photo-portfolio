@@ -152,6 +152,21 @@ describe("parseDrawingConfig vector outlines", () => {
 });
 
 describe("parseImageConfig", () => {
+  it("preserves bound paints across repeated saves and reloads", () => {
+    const paint =
+      "var(--kit-board-86753090-1912-4050-80e0-ee06f5c99ad8-a80, #11447780)";
+    const picture = parseImageConfig({ tint: paint });
+    expect(parseImageConfig(picture)?.tint).toBe(paint);
+    const shape = parseDrawingConfig({
+      fill: paint,
+      stroke: paint,
+      tool: "rect",
+    });
+    expect(parseDrawingConfig(shape)).toMatchObject({
+      fill: paint,
+      stroke: paint,
+    });
+  });
   it("keeps a picture's corner radius and nothing else", () => {
     expect(parseImageConfig({ radius: 24, script: "x" })).toEqual({
       radius: 24,

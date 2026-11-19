@@ -9,7 +9,7 @@ import { paletteIds } from "../../../../config/paletteBinding.js";
  * colours and keeps those: each place keeps the name and role it had.
  * `loaded` (the entries the colours came from, maybe another kit's) only
  * names a place the kit had nothing in. Colours the kit had past the end of
- * the new ones stay too, unless one of the new colours is the same.
+ * the new ones stay too: different semantic roles can share a colour.
  */
 export const keepPaletteNames = (
   target: PaletteEntry[],
@@ -48,9 +48,5 @@ export const keepPaletteNames = (
       value,
     };
   });
-  const taken = new Set(next.map((entry) => entry.value));
-  return [
-    ...next,
-    ...target.slice(values.length).filter((entry) => !taken.has(entry.value)),
-  ];
+  return [...next, ...target.slice(values.length)];
 };

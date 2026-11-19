@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { type BrandKitDoc, sanitizeKitDoc } from "../../../config/brandKit.js";
+import { useBeforeSiteReload } from "../../hooks/beforeSiteReload";
 import { type BrandKit, brandKitsApi } from "../../services/brandKitService";
 
 /** How long edits pause before the kit saves itself. */
@@ -78,6 +79,20 @@ export const useKitAutosave = ({
     const timer = window.setTimeout(() => void flush(), AUTOSAVE_MS);
     return () => window.clearTimeout(timer);
   }, [doc, name, flush]);
+
+  const saveBeforeReload = useCallback(async () => {
+    do {
+      // A second edit can arrive while the previous request is finishing.
+      // biome-ignore lint/performance/noAwaitInLoops: reload must wait for edits made during the previous save.
+      if (!(await flush())) {
+        return false;
+      }
+    } while (
+      printOf(latest.current.doc, latest.current.name) !== saved.current.print
+    );
+    return true;
+  }, [flush]);
+  useBeforeSiteReload(saveBeforeReload);
 
   // Leaving mid-pause still keeps the last change.
   useEffect(() => () => void flush(), [flush]);

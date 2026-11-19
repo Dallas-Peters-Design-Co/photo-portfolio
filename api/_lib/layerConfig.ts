@@ -1,3 +1,4 @@
+import { parsePaletteToken } from "../../config/paletteBinding.js";
 import { clamp, text } from "./values.js";
 
 /**
@@ -77,7 +78,8 @@ export const parseStudioRecipe = (raw: unknown): Bag | null => {
 
 const COMPONENT_ID = /^[0-9a-f-]{36}$/i;
 const SHORT_ID = /^[a-zA-Z0-9_-]{1,64}$/;
-const COLOR = (v: unknown) => text(v, 32);
+export const layerPaint = (v: unknown) =>
+  typeof v === "string" && parsePaletteToken(v) ? v : text(v, 32);
 
 /**
  * A layer's link to a brand component: which component (c), which copy of it
@@ -117,7 +119,7 @@ export const parseComponentLink = (raw: unknown): Bag | null => {
     }
   }
   for (const key of ["color", "background", "fill", "stroke"]) {
-    const c = COLOR(b[key]);
+    const c = layerPaint(b[key]);
     if (c) {
       base[key] = c;
     }
@@ -190,7 +192,8 @@ export const parseImageConfig = (raw: unknown): Bag | null => {
     ...(finite(radius) && radius > 0 ? { radius: clamp(radius, 0, 5000) } : {}),
     ...(POSITIONS.has(position) ? { position } : {}),
     ...(o?.fit === "contain" ? { fit: "contain" } : {}),
-    ...(typeof o?.tint === "string" && TINT.test(o.tint)
+    ...(typeof o?.tint === "string" &&
+    (TINT.test(o.tint) || parsePaletteToken(o.tint))
       ? { tint: o.tint }
       : {}),
     ...opacityOf(o),

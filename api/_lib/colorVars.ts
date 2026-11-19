@@ -9,7 +9,6 @@ export interface ColorVarDto {
   value: string;
 }
 
-export const MAX_COLOR_VARS = 40;
 const HEX = /^#[0-9a-f]{6}$/i;
 const ID = /^[\w-]{1,64}$/;
 
@@ -19,7 +18,7 @@ export const parseColorVars = (value: unknown): ColorVarDto[] | null => {
   }
   const seen = new Set<string>();
   const out: ColorVarDto[] = [];
-  for (const raw of value.slice(0, MAX_COLOR_VARS)) {
+  for (const raw of value) {
     const v = raw as Partial<ColorVarDto> | null;
     if (
       !v ||

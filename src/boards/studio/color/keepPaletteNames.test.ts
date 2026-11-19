@@ -33,7 +33,8 @@ test("a place the kit had nothing in takes the loaded name", () => {
   expect(next[1]).toEqual({ name: "Panel", role: "surface", value: "#222222" });
 });
 
-test("a colour kept past the end isn't doubled", () => {
+test("keeps a named variable even when another role uses the same colour", () => {
   const next = keepPaletteNames(PRETEXT, ["#000000"]);
-  expect(next.map((e) => e.value)).toEqual(["#000000", "#401348"]);
+  expect(next.map((e) => e.name)).toEqual(["Primary", "Accent", "Ink"]);
+  expect(next[2]).toEqual(PRETEXT[2]);
 });

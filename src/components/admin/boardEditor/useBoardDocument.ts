@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import type { DrawTool } from "../../../boards/drawing/drawing";
 import { shadersShapedToFrames } from "../../../boards/geometry/shaderShape";
 import type { useBoardHistory } from "../../../boards/hooks/useBoardHistory";
+import { useBeforeSiteReload } from "../../../hooks/beforeSiteReload";
 import type { BoardComment } from "../../../services/comments";
 import { commentsApi } from "../../../services/comments";
 import {
@@ -348,7 +349,16 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
     setIsPublishing(true);
     try {
       const saved = await updateDetails({ isPublic });
-      setBoard(saved);
+      setBoard((current) =>
+        current
+          ? {
+              ...current,
+              isPublic: saved.isPublic,
+              slug: saved.slug,
+              updatedAt: saved.updatedAt,
+            }
+          : saved
+      );
       toast.success(isPublic ? "Board published" : "Board unpublished");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not publish");
@@ -384,7 +394,12 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
       return;
     }
     try {
-      setBoard(await updateDetails({ title }));
+      const saved = await updateDetails({ title });
+      setBoard((current) =>
+        current
+          ? { ...current, title: saved.title, updatedAt: saved.updatedAt }
+          : saved
+      );
       toast.success("Board renamed");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not rename");
@@ -395,15 +410,44 @@ export const useBoardDocument = (deps: BoardDocumentDeps) => {
    * The board's colour variables: shown at once, written as a detail (like a
    * rename) so it never waits on the canvas save.
    */
+  const pendingColors = useRef<Board["colorVars"]>(undefined);
+  const colorQueue = useRef(Promise.resolve(true));
+  const flushColors = useCallback(() => {
+    const write = async () => {
+      const colors = pendingColors.current;
+      if (!colors) {
+        return true;
+      }
+      try {
+        await updateDetails({ colorVars: colors });
+        if (pendingColors.current === colors) {
+          pendingColors.current = undefined;
+        }
+        return true;
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Couldn't save the colours"
+        );
+        return false;
+      }
+    };
+    colorQueue.current = colorQueue.current.then(write);
+    return colorQueue.current;
+  }, [updateDetails]);
+  const saveColorsBeforeReload = useCallback(async () => {
+    while (pendingColors.current) {
+      // biome-ignore lint/performance/noAwaitInLoops: reload must wait for edits made during the previous save.
+      if (!(await flushColors())) {
+        return false;
+      }
+    }
+    return true;
+  }, [flushColors]);
+  useBeforeSiteReload(saveColorsBeforeReload);
   const saveColorVars = async (colorVars: NonNullable<Board["colorVars"]>) => {
     setBoard((b) => (b ? { ...b, colorVars } : b));
-    try {
-      await updateDetails({ colorVars });
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Couldn't save the colours"
-      );
-    }
+    pendingColors.current = colorVars;
+    await flushColors();
   };
 
   const publicUrl =

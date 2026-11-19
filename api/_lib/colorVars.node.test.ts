@@ -16,3 +16,14 @@ it("keeps good colour variables and drops the rest", () => {
   ]);
   expect(parseColorVars("nope")).toBeNull();
 });
+
+it("reads every named variable back after a board save", () => {
+  const vars = Array.from({ length: 55 }, (_, i) => ({
+    id: `color-${i}`,
+    name: `Color ${i}`,
+    value: "#114477",
+  }));
+  expect(
+    parseColorVars(JSON.parse(JSON.stringify(parseColorVars(vars))))
+  ).toEqual(vars);
+});

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { saveBeforeSiteReload } from "./beforeSiteReload";
 
 /**
  * Says so when a newer build of the site has been deployed than the one this
@@ -44,7 +45,19 @@ export const useNewVersion = () => {
         if (live && live !== running) {
           told = true;
           toast("A new version of the site is out", {
-            action: { label: "Reload", onClick: () => location.reload() },
+            action: {
+              label: "Reload",
+              onClick: async () => {
+                if (await saveBeforeSiteReload()) {
+                  location.reload();
+                } else {
+                  told = false;
+                  toast.error(
+                    "Couldn’t save all changes. The editor is still open."
+                  );
+                }
+              },
+            },
             duration: Number.POSITIVE_INFINITY,
           });
         }

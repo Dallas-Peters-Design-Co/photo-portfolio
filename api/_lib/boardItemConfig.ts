@@ -6,7 +6,7 @@ import {
 import { nodeTypeFor, type SettingDef } from "../../config/nodeTypes.js";
 import { cleanSocialBrand } from "../../config/socialPreview.js";
 import { UUID_RE } from "./boardItemParse.js";
-import { componentOf, parseStudioRecipe } from "./layerConfig.js";
+import { componentOf, layerPaint, parseStudioRecipe } from "./layerConfig.js";
 import { clamp, num, text } from "./values.js";
 
 /**
@@ -428,8 +428,8 @@ export const parseDrawingConfig = (
   }
 
   const config: Record<string, unknown> = {
-    fill: text(o.fill, 32),
-    stroke: text(o.stroke, 32) ?? "#ffffff",
+    fill: layerPaint(o.fill),
+    stroke: layerPaint(o.stroke) ?? "#ffffff",
     strokeWidth: clamp(num(o.strokeWidth, 4), 0, 200),
     tool,
   };

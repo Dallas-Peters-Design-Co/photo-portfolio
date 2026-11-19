@@ -2,6 +2,7 @@ import { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { EMPTY_KIT } from "../../../config/brandKit.js";
+import { saveBeforeSiteReload } from "../../hooks/beforeSiteReload";
 import type { BrandKit } from "../../services/brandKitService";
 
 const save = vi.fn(async () => ({}) as BrandKit);
@@ -106,4 +107,23 @@ it("says when a save failed, and saves again later", async () => {
     await vi.advanceTimersByTimeAsync(1300);
   });
   expect(state).toBe("saved");
+});
+
+it("waits for pending kit edits before updating the site, including after a failed save", async () => {
+  act(() => edit("Fresh palette edits"));
+  save.mockRejectedValueOnce(new Error("offline"));
+  let ready = true;
+  await act(async () => {
+    ready = await saveBeforeSiteReload();
+  });
+  expect(ready).toBe(false);
+  await act(async () => {
+    ready = await saveBeforeSiteReload();
+  });
+  expect(ready).toBe(true);
+  expect(save).toHaveBeenLastCalledWith(
+    "kit-1",
+    expect.objectContaining({ voice: "Fresh palette edits" }),
+    { autosave: true }
+  );
 });
