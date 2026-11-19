@@ -1879,7 +1879,7 @@
   --accordion-primary-padding: 8px 14px;
   --accordion-primary-radius: 8px;
   --accordion-primary-border: 1px solid var(--kit-17e2dceb-2877-475d-a85c-c2a066a2bded, #d3d3d0);
-  --accordion-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, var(--kit-18u0jwu, #000609) 5%, transparent);
+  --accordion-primary-shadow: 0px 0px 0px 2px color-mix(in srgb, var(--kit-18u0jwu, #000609) 3%, transparent);
 
   box-sizing: border-box;
   background: var(--accordion-primary-background);
@@ -3777,7 +3777,7 @@
   --accordion-primary-padding: 8px 14px;
   --accordion-primary-radius: 8px;
   --accordion-primary-border: 1px solid var(--kit-17e2dceb-2877-475d-a85c-c2a066a2bded, #d3d3d0);
-  --accordion-primary-shadow: 0px 0px 0px 4px color-mix(in srgb, var(--kit-18u0jwu, #000609) 5%, transparent);
+  --accordion-primary-shadow: 0px 0px 0px 2px color-mix(in srgb, var(--kit-18u0jwu, #000609) 3%, transparent);
 
   box-sizing: border-box;
   background: var(--accordion-primary-background);
