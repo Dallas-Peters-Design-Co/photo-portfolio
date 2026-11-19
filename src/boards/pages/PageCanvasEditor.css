@@ -216,3 +216,21 @@
   font-size: 0.6875rem;
   text-transform: capitalize;
 }
+.page-builder__layer-disclosure {
+  display: inline-flex;
+  flex: none;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  color: inherit;
+  cursor: pointer;
+}
+.page-builder__layer-disclosure[aria-expanded="true"] > svg {
+  transform: rotate(90deg);
+}
+.page-builder__layer-disclosure:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: -1px;
+}

@@ -593,6 +593,23 @@ it("reorders page layers, group children and slot items while preserving positio
     (handle.element() as HTMLButtonElement).focus();
     await act(() => userEvent.keyboard("{ArrowDown}"));
   };
+  const slot = page.getByRole("button", { name: "body slot of Surface" });
+  const branch = page.getByRole("button", {
+    name: "Children of panel layer Surface",
+  });
+  const firstChild = page.getByRole("button", {
+    name: "Move text layer One (drag, or use the arrow keys)",
+  });
+  await act(() => slot.click());
+  expect(slot.element().getAttribute("aria-expanded")).toBe("false");
+  expect(firstChild.query()).toBeNull();
+  (branch.element() as HTMLButtonElement).focus();
+  await act(() => userEvent.keyboard("{Enter}"));
+  expect(branch.element().getAttribute("aria-expanded")).toBe("false");
+  expect(slot.query()).toBeNull();
+  await act(() => userEvent.keyboard("{Enter}"));
+  expect(slot.element().getAttribute("aria-expanded")).toBe("false");
+  await act(() => slot.click());
   await move("text layer First");
   await move("text layer One");
   await move("group layer Stack");
