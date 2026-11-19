@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { ComponentProps, CSSProperties, ReactNode } from "react";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import "./ConceptProgressPreview.css";
 
@@ -56,26 +56,50 @@ export function ConceptProgressPreview({
   style: CSSProperties;
 }) {
   const value = element.progress ?? 60;
-  const showValue = element.showValue !== false;
+  return (
+    <ProgressIndicator
+      bar={{
+        color: element.accentColor ?? element.color,
+        height: element.barHeight ?? 8,
+        label: element.text || "Progress",
+        radius: element.radius,
+        track: element.background,
+        value,
+      }}
+      label={element.text}
+      showValue={element.showValue !== false}
+      style={style}
+    />
+  );
+}
+
+export function ProgressIndicator({
+  style,
+  label,
+  showValue,
+  bar,
+  table = false,
+}: {
+  style: CSSProperties;
+  label: ReactNode;
+  showValue: boolean;
+  bar: ComponentProps<typeof ProgressBar>;
+  table?: boolean;
+}) {
   return (
     <div
-      className="concept-progress"
+      className={
+        table ? "concept-progress concept-table__progress" : "concept-progress"
+      }
       style={{ ...style, background: "transparent", borderRadius: 0 }}
     >
-      {element.text || showValue ? (
+      {label || showValue ? (
         <span className="concept-progress__label">
-          <span>{element.text}</span>
-          {showValue ? <span>{Math.round(value)}%</span> : null}
+          <span>{label}</span>
+          {showValue ? <small>{Math.round(bar.value)}%</small> : null}
         </span>
       ) : null}
-      <ProgressBar
-        color={element.accentColor ?? element.color}
-        height={element.barHeight ?? 8}
-        label={element.text || "Progress"}
-        radius={element.radius}
-        track={element.background}
-        value={value}
-      />
+      <ProgressBar {...bar} />
     </div>
   );
 }

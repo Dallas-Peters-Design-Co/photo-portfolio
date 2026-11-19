@@ -42,6 +42,7 @@ import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import { cellColumn } from "../../../config/tableCellStyles.js";
 import { tableItemIcon } from "../../../config/tableItemIcons";
 import { IconPicker } from "../../cms/IconPicker";
 import { Button } from "../ui/button";
@@ -56,6 +57,7 @@ import {
 import { ConceptTableCellStyleFields } from "./ConceptTableCellStyleFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import { SortableList } from "./SortableList";
+import { TableCellAppearance } from "./TableCellAppearance";
 
 const KIND_OPTIONS = optionsOf([
   ["text", "Text"],
@@ -272,8 +274,13 @@ function ColumnLook({
         <ConceptTableCellStyleFields
           brandDoc={brandDoc}
           column={column}
-          index={index}
-          onChange={(look) => onChange({ look, styleId: CUSTOM_CELL_STYLE })}
+          fieldLabel={`Column ${index + 1}`}
+          onChange={(patch) =>
+            onChange({
+              look: { ...column.look, ...patch },
+              styleId: CUSTOM_CELL_STYLE,
+            })
+          }
           textColor={textColor}
         />
       )}
@@ -427,12 +434,28 @@ export function ConceptTableFields({
                         }
                         value={row[index] ?? ""}
                       />
+                      <TableCellAppearance
+                        brandDoc={brandDoc}
+                        column={column}
+                        label={label}
+                        onChange={(cell) => {
+                          const cells = { ...column.cells };
+                          if (cell) {
+                            cells[rowIndex] = cell;
+                          } else {
+                            delete cells[rowIndex];
+                          }
+                          set(updateColumn(table, index, { cells }));
+                        }}
+                        row={rowIndex}
+                        textColor={element.color}
+                      />
                       {column.kind !== "icon" && (
                         <details className="review-concepts__table-icons">
                           <summary aria-label={`${label} icons`}>Icons</summary>
                           {(["start", "end"] as const).map((side) => {
                             const item = tableItemIcon(
-                              column,
+                              cellColumn(column, rowIndex),
                               rowIndex,
                               side,
                               table.icons

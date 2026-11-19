@@ -1,5 +1,6 @@
 import { type ConceptIconSvg, conceptIconName } from "./conceptIcon.js";
 import type { ConceptTable, ConceptTableColumn } from "./conceptTable.js";
+import { cellColumn } from "./tableCellStyles.js";
 
 export type CellIcons = Partial<Record<"start" | "end", string | null>>;
 
@@ -56,7 +57,7 @@ export function tableIconDrawings(
   for (const column of table.columns) {
     for (const [row] of table.rows.entries()) {
       for (const side of ["start", "end"] as const) {
-        const item = tableItemIcon(column, row, side, icons);
+        const item = tableItemIcon(cellColumn(column, row), row, side, icons);
         if (item && !item.svg) {
           const svg = lookup(item.name);
           if (svg) {

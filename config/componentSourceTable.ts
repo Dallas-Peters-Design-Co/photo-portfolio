@@ -11,6 +11,7 @@ import {
   tableOf,
 } from "./conceptTable.js";
 import { type ReviewConceptElement, splitCardText } from "./reviewConcept.js";
+import { cellColumn, progressCellBar } from "./tableCellStyles.js";
 import { tableItemIcon } from "./tableItemIcons.js";
 
 /**
@@ -79,10 +80,12 @@ const cellOf = (
       return value || start || end
         ? `<button className="@@__button" type="button"${value ? "" : ` aria-label={${JSON.stringify(column.label || first?.name || last?.name || "Action")}}`} data-style="${column.buttonStyle ?? "solid"}">${label(value)}</button>`
         : "";
+    case "icon":
+      return iconSvgJsx(icons?.[value], column.look?.fontSize ?? 20);
     case "progress": {
       const percent = Math.round(progressOf(value));
       const description = progressLabelOf(value);
-      return `<span className="@@__progress"><span className="@@__progress-head"><span>${label(description)}</span><small>${percent}%</small></span><span className="@@__bar" role="progressbar" aria-label=${JSON.stringify(description || `${percent}%`)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={${percent}}><span style={{ inlineSize: "${percent}%" }} /></span></span>`;
+      return `<span className="@@__progress"><span className="@@__progress-head"><span>${label(description)}</span>${column.look?.showValue === false ? "" : `<small>${percent}%</small>`}</span><span className="@@__bar" role="progressbar" aria-label=${JSON.stringify(description || `${percent}%`)} aria-valuemin={0} aria-valuemax={100} aria-valuenow={${percent}}><span style={{ inlineSize: "${percent}%" }} /></span></span>`;
     }
     default:
       return label(value);
@@ -105,9 +108,9 @@ const TABLE_CSS = `& { width: 100%; border-spacing: 0; border-collapse: separate
 &__button { display: inline-flex; align-items: center; padding: 0.35em 0.9em; font: inherit; font-size: 0.85em; font-weight: 600; line-height: 1.3; white-space: nowrap; cursor: pointer; border: 1px solid var(--&-tint); border-radius: 0.4em; }
 &__button[data-style="solid"] { color: #fff; background: var(--&-tint); }
 &__button[data-style="outline"] { color: var(--&-tint); background: transparent; }
-&__progress { display: flex; flex-direction: column; gap: 0.35em; min-inline-size: 6rem; }
-&__progress small { font-variant-numeric: tabular-nums; opacity: 0.7; }
-&__progress-head { display: flex; gap: 0.5em; align-items: baseline; justify-content: space-between; }
+&__progress { display: flex; flex-direction: column; gap: 0.35em; width: 100%; min-inline-size: 8rem; }
+&__progress small { font-size: inherit; font-variant-numeric: tabular-nums; }
+&__progress-head { display: flex; gap: 1em; justify-content: space-between; }
 &__bar { display: block; block-size: 6px; overflow: hidden; background: color-mix(in srgb, currentColor 12%, transparent); border-radius: 999px; }
 &__bar > span { display: block; block-size: 100%; background: var(--&-tint); border-radius: inherit; }`;
 
@@ -132,30 +135,57 @@ const linesCss = (el: ReviewConceptElement): string => {
 };
 
 /** Each tinted column's colour, and its kit style's look on its cells. */
-const columnsCss = (columns: ConceptTableColumn[]): string =>
-  columns
+function cellRules(column: ConceptTableColumn, cell: string) {
+  const rules = [`${cell} { --&-tint: ${tintOf(column)}; }`];
+  if (column.kind === "icon") {
+    rules.push(`${cell} > svg { color: ${tintOf(column)}; }`);
+  }
+  if (column.look?.iconSize || column.look?.iconColor) {
+    const size = column.look.iconSize ? `${column.look.iconSize}px` : "1em";
+    rules.push(
+      `${cell} &__item-label svg { width: ${size}; height: ${size}; color: ${column.look.iconColor ?? "inherit"}; }`
+    );
+  }
+  const look = column.look ? lookCss(column.look) : "";
+  if (look) {
+    if (column.kind === "text" || column.kind === "stacked") {
+      rules.push(`${cell} { ${look} }`);
+    } else {
+      rules.push(
+        `${cell} :is(&__tag, &__chip, &__button, &__progress) { ${look} }`
+      );
+    }
+  }
+  if (column.kind === "progress") {
+    const bar = progressCellBar(column);
+    rules.push(
+      `${cell} &__progress { background: transparent; border-radius: 0; }`,
+      `${cell} &__bar { block-size: ${bar.height}px; border-radius: ${bar.radius}px; background: ${bar.track}; }`,
+      `${cell} &__bar > span { background: ${bar.color}; }`
+    );
+  }
+  return rules;
+}
+
+function columnsCss(table: ConceptTable) {
+  return table.columns
     .flatMap((column, index) => {
-      const cell = `& td:nth-child(${index + 1})`;
-      const rules = [`${cell} { --&-tint: ${tintOf(column)}; }`];
-      if (column.look?.iconSize || column.look?.iconColor) {
-        const size = column.look.iconSize ? `${column.look.iconSize}px` : "1em";
-        rules.push(
-          `${cell} &__item-label svg { width: ${size}; height: ${size}; color: ${column.look.iconColor ?? "inherit"}; }`
-        );
+      const td = `td:nth-child(${index + 1})`;
+      if (!(column.cells && Object.keys(column.cells).length)) {
+        return cellRules(column, `& ${td}`);
       }
-      const look = column.look ? lookCss(column.look) : "";
-      if (look) {
-        if (column.kind === "text" || column.kind === "stacked") {
-          rules.push(`${cell} { ${look} }`);
-        } else {
-          rules.push(
-            `${cell} :is(&__tag, &__chip, &__button, &__progress) { ${look} }`
-          );
+      return table.rows.slice(0, SAMPLE_ROWS).flatMap((_, row) => {
+        const selector = `& tbody > tr:nth-child(${row + 1}) > ${td}`;
+        const rules = cellRules(cellColumn(column, row), selector);
+        const box = column.cells?.[row]?.box;
+        if (box) {
+          rules.push(`${selector} { ${lookCss(box)} }`);
         }
-      }
-      return rules;
+        return rules;
+      });
     })
     .join("\n");
+}
 
 export const tableMarkup = (el: ReviewConceptElement): Markup => {
   const table = tableOf(el);
@@ -169,7 +199,7 @@ export const tableMarkup = (el: ReviewConceptElement): Markup => {
         `  <tr>\n${table.columns
           .map(
             (column, i) =>
-              `    <td>${cellOf(column, row[i] ?? "", rowIndex, table.icons)}</td>`
+              `    <td>${cellOf(cellColumn(column, rowIndex), row[i] ?? "", rowIndex, table.icons)}</td>`
           )
           .join("\n")}\n  </tr>`
     )
@@ -179,8 +209,8 @@ export const tableMarkup = (el: ReviewConceptElement): Markup => {
     css: [
       TABLE_CSS,
       linesCss(el),
-      columnsCss(table.columns),
-      "& > tbody > tr:last-child > td { border-block-end: 0; }",
+      columnsCss(table),
+      "& > tbody > tr:last-child > td { border-block-end: 0 !important; }",
     ]
       .filter(Boolean)
       .join("\n"),

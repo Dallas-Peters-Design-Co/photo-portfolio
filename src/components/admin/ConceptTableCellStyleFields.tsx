@@ -10,26 +10,29 @@ import { ConceptColorField } from "./ReviewConceptBrand";
 export function ConceptTableCellStyleFields({
   brandDoc,
   column,
-  index,
+  fieldLabel,
+  summary = "Cell item style",
+  box = false,
   onChange,
   textColor,
 }: {
   brandDoc?: BrandKitDoc | null;
   column: ConceptTableColumn;
-  index: number;
+  fieldLabel: string;
+  summary?: string;
+  box?: boolean;
   onChange: (look: ConceptCellLook) => void;
   textColor: string;
 }) {
   const look = column.look ?? {};
-  const set = (patch: Partial<ConceptCellLook>) =>
-    onChange({ ...look, ...patch });
-  const boxed = ["tag", "chips", "button"].includes(column.kind);
+  const set = onChange;
+  const boxed = box || column.kind !== "icon";
   return (
     <details className="review-concepts__cell-style">
-      <summary>Cell item style</summary>
+      <summary>{summary}</summary>
       <div className="review-concepts__cell-style-fields">
         <ConceptColorField
-          ariaLabel={`Column ${index + 1} item text color`}
+          ariaLabel={`${fieldLabel} item text color`}
           brandDoc={brandDoc}
           label="Text"
           onChange={(color) => set({ color })}
@@ -49,19 +52,45 @@ export function ConceptTableCellStyleFields({
           onChange={(fontWeight) => set({ fontWeight })}
           value={look.fontWeight ?? 400}
         />
+        {!box && column.kind === "progress" && (
+          <>
+            <ConceptColorField
+              ariaLabel={`${fieldLabel} progress fill`}
+              brandDoc={brandDoc}
+              label="Bar fill"
+              onChange={(accentColor) => set({ accentColor })}
+              value={look.accentColor ?? look.color ?? textColor}
+            />
+            <NumberField
+              label="Bar height"
+              max={24}
+              min={2}
+              onChange={(barHeight) => set({ barHeight })}
+              value={look.barHeight ?? 6}
+            />
+            <label>
+              <input
+                checked={look.showValue !== false}
+                onChange={(event) => set({ showValue: event.target.checked })}
+                type="checkbox"
+              />{" "}
+              Show percentage
+            </label>
+          </>
+        )}
         {boxed ? (
           <>
             <ConceptColorField
               allowNone
-              ariaLabel={`Column ${index + 1} item fill`}
+              ariaLabel={`${fieldLabel} item fill`}
               brandDoc={brandDoc}
-              label="Fill"
+              label={!box && column.kind === "progress" ? "Track" : "Fill"}
               onChange={(background) => set({ background })}
               value={look.background ?? "transparent"}
             />
             <ConceptColorField
               allowNone
-              ariaLabel={`Column ${index + 1} item border`}
+              ariaLabel={`${fieldLabel} item border`}
               brandDoc={brandDoc}
               label="Border"
               onChange={(borderColor) => set({ borderColor })}

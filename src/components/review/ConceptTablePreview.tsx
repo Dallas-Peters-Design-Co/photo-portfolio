@@ -15,9 +15,13 @@ import {
   type ReviewConceptElement,
   splitCardText,
 } from "../../../config/reviewConcept.js";
+import {
+  cellColumn,
+  progressCellBar,
+} from "../../../config/tableCellStyles.js";
 import { tableItemIcon } from "../../../config/tableItemIcons.js";
 import { ConceptIcon } from "./ConceptIcon";
-import { ProgressBar } from "./ConceptProgressPreview";
+import { ProgressIndicator } from "./ConceptProgressPreview";
 import "./ConceptTablePreview.css";
 
 const ICON_SUFFIX = /Icon$/;
@@ -69,7 +73,7 @@ const pill = (column: ConceptTableColumn): CSSProperties => ({
 
 function Cell({
   column,
-  icons,
+  icons = {},
   row,
   value,
 }: {
@@ -128,7 +132,7 @@ function Cell({
         </span>
       );
     case "icon": {
-      const svg = icons?.[value];
+      const svg = icons[value];
       return svg ? (
         <HugeiconsIcon
           aria-label={value.replace(ICON_SUFFIX, "")}
@@ -157,26 +161,18 @@ function Cell({
     case "progress": {
       const percent = progressOf(value);
       const description = progressLabelOf(value);
-      // The description and the percent head the bar: the text at the
-      // start, the percent at the end.
       return (
-        <span
-          className="concept-table__progress"
+        <ProgressIndicator
+          bar={{
+            ...progressCellBar(column),
+            label: description || `${Math.round(percent)}%`,
+            value: percent,
+          }}
+          label={label(description)}
+          showValue={column.look?.showValue !== false}
           style={lookStyle(column.look)}
-        >
-          <span className="concept-table__progress-head">
-            <span>{label(description)}</span>
-            <small>{Math.round(percent)}%</small>
-          </span>
-          <ProgressBar
-            color={tintOf(column)}
-            height={6}
-            label={description || `${Math.round(percent)}%`}
-            radius={999}
-            track="color-mix(in srgb, currentColor 12%, transparent)"
-            value={percent}
-          />
-        </span>
+          table
+        />
       );
     }
     default:
@@ -241,24 +237,28 @@ export function ConceptTablePreview({
           {rows.map((row, rowIndex) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
             <tr key={rowIndex}>
-              {columns.map((column, index) => (
-                <td
-                  // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
-                  key={index}
-                  style={
-                    column.kind === "text" || column.kind === "stacked"
-                      ? lookStyle(column.look)
-                      : undefined
-                  }
-                >
-                  <Cell
-                    column={column}
-                    icons={icons}
-                    row={rowIndex}
-                    value={row[index] ?? ""}
-                  />
-                </td>
-              ))}
+              {columns.map((source, index) => {
+                const column = cellColumn(source, rowIndex);
+                const box = source.cells?.[rowIndex]?.box;
+                const textCell =
+                  column.kind === "text" || column.kind === "stacked";
+                return (
+                  <td
+                    // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
+                    key={index}
+                    style={lookStyle(
+                      textCell ? { ...column.look, ...box } : box
+                    )}
+                  >
+                    <Cell
+                      column={column}
+                      icons={icons}
+                      row={rowIndex}
+                      value={row[index] ?? ""}
+                    />
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

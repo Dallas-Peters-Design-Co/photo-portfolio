@@ -6,6 +6,11 @@ import {
 } from "./conceptIcon.js";
 import { cleanIcon } from "./conceptKinds.js";
 import { type ConceptShadow, cleanShadow } from "./conceptShadow.js";
+import {
+  cleanCells,
+  type TableCellStyle,
+  withoutRow,
+} from "./tableCellStyles.js";
 import { type CellIcons, cleanItemIcons } from "./tableItemIcons.js";
 
 /**
@@ -44,7 +49,9 @@ export type ButtonStyle = "solid" | "outline";
  * drawn (config/conceptStyle.ts applyColumnStyles) and kept as a fallback.
  */
 export interface ConceptCellLook extends ReturnType<typeof cleanIcon> {
+  accentColor?: string;
   background?: string;
+  barHeight?: number;
   borderColor?: string;
   borderWidth?: number;
   color?: string;
@@ -56,6 +63,7 @@ export interface ConceptCellLook extends ReturnType<typeof cleanIcon> {
   paddingY?: number;
   radius?: number;
   shadow?: ConceptShadow;
+  showValue?: boolean;
 }
 
 export type { CellIcons } from "./tableItemIcons.js";
@@ -63,6 +71,7 @@ export type { CellIcons } from "./tableItemIcons.js";
 export interface ConceptTableColumn {
   /** Button columns: filled with the colour, or outlined in it. */
   buttonStyle?: ButtonStyle;
+  cells?: Record<number, TableCellStyle>;
   /** Tag, chip, icon and button colour, as hex. */
   color?: string;
   /** Decorative icons for each row in this column. */
@@ -82,8 +91,8 @@ export const COLUMN_WIDTH = { max: 640, min: 40 } as const;
 
 /** Which kind of kit style a column's cells can follow. */
 export const CELL_STYLE_KIND: Partial<
-  Record<ConceptCellKind, "badge" | "button">
-> = { button: "button", chips: "badge", tag: "badge" };
+  Record<ConceptCellKind, "badge" | "button" | "progress">
+> = { button: "button", chips: "badge", progress: "progress", tag: "badge" };
 
 /** Status pills and tag lists can use either kit component. */
 export function cellStyleKinds(kind: ConceptCellKind): readonly string[] {
@@ -93,7 +102,7 @@ export function cellStyleKinds(kind: ConceptCellKind): readonly string[] {
   if (kind === "tag") {
     return ["badge", "tag"];
   }
-  return kind === "button" ? ["button"] : [];
+  return CELL_STYLE_KIND[kind] ? [kind] : [];
 }
 
 /** Where lines are drawn: none, between rows (the default), or every cell. */
@@ -202,6 +211,9 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
   const shadow = cleanShadow(raw.shadow);
   const look: ConceptCellLook = {
     ...cleanIcon("button", raw),
+    ...optionalHex("accentColor", raw.accentColor),
+    ...num("barHeight", raw.barHeight, 2, 24),
+    ...(typeof raw.showValue === "boolean" && { showValue: raw.showValue }),
     ...optionalPaint("background", raw.background),
     ...optionalPaint("borderColor", raw.borderColor),
     ...num("borderWidth", raw.borderWidth, 0, 8),
@@ -227,6 +239,7 @@ const cleanColumn = (value: unknown, rowCount: number): ConceptTableColumn => {
     typeof raw.styleId === "string" &&
     STYLE_ID.test(raw.styleId);
   const look = cleanCellLook(raw.look);
+  const cells = cleanCells(raw.cells, rowCount, cleanCellLook, STYLE_ID);
   const itemIcons =
     kind === "icon" ? undefined : cleanItemIcons(raw.itemIcons, rowCount);
   return {
@@ -236,6 +249,7 @@ const cleanColumn = (value: unknown, rowCount: number): ConceptTableColumn => {
     ...optionalHex("color", raw.color),
     kind,
     ...(itemIcons ? { itemIcons } : {}),
+    ...(cells && { cells }),
     label: text(raw.label, MAX_LABEL),
     ...(look ? { look } : {}),
     ...(linked ? { styleId: raw.styleId } : {}),
@@ -440,7 +454,14 @@ export const setColumnKind = (
   const retyped = updateColumn(
     table,
     index,
-    keepsStyle ? { kind } : { kind, look: undefined, styleId: undefined }
+    keepsStyle
+      ? { kind }
+      : {
+          cells: was?.kind === kind ? was.cells : undefined,
+          kind,
+          look: undefined,
+          styleId: undefined,
+        }
   );
   if (kind === "stacked") {
     return retyped;
@@ -565,20 +586,10 @@ export const removeRow = (
   index: number
 ): ConceptTable => ({
   ...table,
-  columns: table.columns.map((column) =>
-    column.itemIcons
-      ? {
-          ...column,
-          itemIcons: Object.fromEntries(
-            Object.entries(column.itemIcons)
-              .filter(([row]) => Number(row) !== index)
-              .map(([row, icons]) => [
-                Number(row) > index ? Number(row) - 1 : Number(row),
-                icons,
-              ])
-          ),
-        }
-      : column
-  ),
+  columns: table.columns.map((column) => ({
+    ...column,
+    ...(column.itemIcons && { itemIcons: withoutRow(column.itemIcons, index) }),
+    ...(column.cells && { cells: withoutRow(column.cells, index) }),
+  })),
   rows: table.rows.filter((_, at) => at !== index),
 });

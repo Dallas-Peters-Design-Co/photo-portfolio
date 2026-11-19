@@ -316,3 +316,52 @@ it("reopens and exports a borderless kit button with its icons and row overrides
   expect(markup.match(/d="M1 1h2"/g)).toHaveLength(1);
   expect(markup).toContain('d="M3 3h6"');
 });
+
+it("edits one cell's item and box and resets it to its column", async () => {
+  const cell = host.querySelector(
+    '[aria-label="Row 1, Status style"]'
+  ) as HTMLElement;
+  await userEvent.click(cell);
+  const panel = cell.parentElement as HTMLElement;
+  const expand = async (title: string) => {
+    const summary = [...panel.querySelectorAll("summary")].find(
+      (s) => s.textContent === title
+    ) as HTMLElement;
+    await userEvent.click(summary);
+    return summary.parentElement as HTMLElement;
+  };
+  const change = async (
+    panelElement: HTMLElement,
+    name: string,
+    value: string
+  ) => {
+    const input = panelElement.querySelector(
+      `[aria-label="${name}"]`
+    ) as HTMLInputElement;
+    await userEvent.clear(input);
+    await userEvent.type(input, value);
+  };
+  await change(await expand("Cell item style"), "Radius", "17");
+  await change(await expand("Cell box"), "Padding X", "31");
+  const [first, second] = host.querySelectorAll<HTMLElement>(
+    '[data-testid="preview"] .concept-table__tag'
+  );
+  expect(getComputedStyle(first).borderRadius).toBe("17px");
+  expect(getComputedStyle(second).borderRadius).not.toBe("17px");
+  expect(getComputedStyle(first.closest("td") as HTMLElement).paddingLeft).toBe(
+    "31px"
+  );
+  const [saved] = cleanConcept({ elements: [latest] }).elements;
+  expect(saved.table?.columns[1].cells?.[0]).toEqual({
+    box: { paddingX: 31 },
+    overrides: { radius: 17 },
+  });
+  await userEvent.click(
+    [...panel.querySelectorAll("button")].find(
+      (b) => b.textContent === "Reset to column"
+    ) as HTMLElement
+  );
+  expect(getComputedStyle(first).borderRadius).toBe(
+    getComputedStyle(second).borderRadius
+  );
+});

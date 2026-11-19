@@ -275,6 +275,7 @@ export const ELEMENT_STYLE_KEYS = [
   "accentColor",
   "checkSize",
   "barHeight",
+  "showValue",
   "dividers",
   "flex",
   "accordionExpanded",

@@ -223,6 +223,9 @@ export const applyConceptStyle = (
 /** The part of a badge or button style a table cell draws with. */
 export const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
   ...cleanIcon("button", look),
+  ...(look.accentColor && { accentColor: look.accentColor }),
+  ...(look.barHeight !== undefined && { barHeight: look.barHeight }),
+  ...(look.showValue !== undefined && { showValue: look.showValue }),
   background: look.background,
   borderColor: look.borderColor,
   borderWidth: look.borderColor ? look.borderWidth : 0,
@@ -280,7 +283,24 @@ export const applyColumnStyles = (
   }
   const columns = element.table.columns.map((column) => {
     const style = columnStyleOf(column, styles);
-    return style ? { ...column, look: cellLookOf(style.look) } : column;
+    const cells =
+      column.cells &&
+      Object.fromEntries(
+        Object.entries(column.cells).map(([row, cell]) => {
+          const linked =
+            cell.styleId &&
+            columnStyleOf({ ...column, styleId: cell.styleId }, styles);
+          return [
+            row,
+            linked ? { ...cell, look: cellLookOf(linked.look) } : cell,
+          ];
+        })
+      );
+    return {
+      ...column,
+      ...(style && { look: cellLookOf(style.look) }),
+      ...(cells && { cells }),
+    };
   });
   return { ...element, table: { ...element.table, columns } };
 };

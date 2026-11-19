@@ -1,13 +1,20 @@
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, expect, it } from "vitest";
+import { componentSource } from "../../../config/componentSource.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
+import { applyColumnStyles } from "../../../config/conceptStyle.js";
 import {
   addColumn,
+  type ConceptTable,
+  removeRow,
   setCell,
   setColumnKind,
 } from "../../../config/conceptTable.js";
-import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import {
+  cleanConcept,
+  type ReviewConceptElement,
+} from "../../../config/reviewConcept.js";
 import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
 (
@@ -125,4 +132,63 @@ it("heads a table's progress bar with its description, words kept as one", () =>
         plainBar.getBoundingClientRect().right
     )
   ).toBeLessThan(2);
+});
+
+it("uses the kit progress style, retains each cell's value, and exports a cell's chosen variant", () => {
+  const base = {
+    id: "primary",
+    kind: "progress" as const,
+    look: {
+      accentColor: "#ee0000",
+      background: "#dddddd",
+      barHeight: 11,
+      radius: 4,
+      showValue: false,
+    },
+    name: "Primary",
+  };
+  const alternate = {
+    ...base,
+    id: "secondary",
+    look: { ...base.look, accentColor: "#0000ee", barHeight: 15 },
+  };
+  const table = applyColumnStyles(
+    {
+      ...createConceptElement("table"),
+      table: {
+        columns: [
+          {
+            cells: {
+              1: {
+                box: { paddingX: 23 },
+                overrides: { radius: 2 },
+                styleId: "secondary",
+              },
+            },
+            kind: "progress",
+            label: "Stage",
+          },
+        ],
+        rows: [["25\nFirst"], ["80\nSecond"]],
+      },
+    },
+    [base, alternate]
+  );
+  const [saved] = cleanConcept({ elements: [table] }).elements;
+  draw(saved);
+  const bars = host.querySelectorAll<HTMLElement>('[role="progressbar"]');
+  expect(bars[0].getAttribute("aria-valuenow")).toBe("25");
+  expect(bars[1].getAttribute("aria-valuenow")).toBe("80");
+  expect(getComputedStyle(bars[0]).height).toBe("11px");
+  expect(getComputedStyle(bars[1]).height).toBe("15px");
+  expect(getComputedStyle(bars[1]).borderRadius).toBe("2px");
+  expect(
+    getComputedStyle(bars[1].firstElementChild as HTMLElement).backgroundColor
+  ).toBe("rgb(0, 0, 238)");
+  expect(host.querySelector("small")).toBeNull();
+  const source = componentSource(saved, "Primary");
+  expect(source.css).toContain("block-size: 15px");
+  expect(source.preview).toContain("Second");
+  const remaining = removeRow(saved.table as ConceptTable, 0);
+  expect(remaining.columns[0].cells?.[0].styleId).toBe("secondary");
 });
