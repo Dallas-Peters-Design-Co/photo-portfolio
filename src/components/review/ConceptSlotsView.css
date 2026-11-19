@@ -138,6 +138,7 @@
   flex: none;
 }
 
+.concept-grid-item,
 .concept-flex-item {
   display: grid;
   min-width: 0;

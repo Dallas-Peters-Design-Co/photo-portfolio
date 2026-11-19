@@ -4,6 +4,7 @@ import {
   initialState,
 } from "../../../config/componentStates.js";
 import { flexSize } from "../../../config/conceptFlex.js";
+import { gridItemStyle } from "../../../config/conceptGridItem.js";
 import {
   type ConceptSlot,
   type ConceptSlotName,
@@ -82,7 +83,22 @@ function Items({
     >
       {lead}
       {/* draw keys each element by its id. */}
-      {slot.elements.map(draw)}
+      {slot.elements.map((element) =>
+        layout === "grid" && element.gridPlacement ? (
+          <div
+            className="concept-grid-item"
+            key={element.id}
+            style={gridItemStyle(
+              element.gridPlacement,
+              slot.columns ?? SLOT_DEFAULTS.columns
+            )}
+          >
+            {draw(element)}
+          </div>
+        ) : (
+          draw(element)
+        )
+      )}
     </div>
   );
 }

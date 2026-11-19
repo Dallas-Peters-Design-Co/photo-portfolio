@@ -1,6 +1,7 @@
 import { componentStateSource } from "./componentStateSource.js";
 import { groupDisclosure, usesNamedStates } from "./componentStates.js";
 import { flexSize } from "./conceptFlex.js";
+import { gridItemStyle } from "./conceptGridItem.js";
 import { type ConceptIconSvg, conceptIconName } from "./conceptIcon.js";
 import { iconSizeOf } from "./conceptKinds.js";
 import {
@@ -181,6 +182,19 @@ const slotItems = (
   const children = slot.elements.map((child, index) => {
     const drawn = draw(child, `${prefix}-${index + 1}`);
     css.push(drawn.css);
+    if (slot.layout === "grid" && child.gridPlacement) {
+      const style = {
+        display: "grid",
+        minWidth: 0,
+        ...gridItemStyle(
+          child.gridPlacement,
+          slot.columns ?? SLOT_DEFAULTS.columns
+        ),
+      };
+      return indent(`<div style={${JSON.stringify(style)}}>
+${indent(drawn.jsx)}
+</div>`);
+    }
     return indent(drawn.jsx);
   });
   return `<div className="@@__items" data-layout="${slot.layout ?? "column"}"${slot.fill ? " data-fill" : ""} style=${itemsStyle(slot)}>\n${[lead, ...children].filter(Boolean).join("\n")}\n</div>`;

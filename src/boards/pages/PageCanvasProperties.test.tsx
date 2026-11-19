@@ -344,3 +344,44 @@ it("drags from a card footer handle onto another slot in the inspector", async (
     gap: 17,
   });
 });
+
+it("places a nested component across grid tracks and restores automatic placement", async () => {
+  const child = { ...createConceptElement("button"), text: "Grid action" };
+  const group = {
+    ...createConceptElement("group"),
+    group: { columns: 4, elements: [child], layout: "grid" as const },
+  };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [group] },
+    height: 450,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  const layer = [
+    ...host.querySelectorAll<HTMLButtonElement>(".page-builder__layer"),
+  ].find((button) => button.textContent?.includes("Grid action"));
+  if (!layer) {
+    throw new Error("Missing nested layer");
+  }
+  await act(() => layer.click());
+  const edit = (name: string, value: string) =>
+    act(() => page.getByRole("spinbutton", { exact: true, name }).fill(value));
+  await edit("Column", "2");
+  await edit("Row", "3");
+  await edit("Column span", "2");
+  await edit("Row span", "4");
+  const placed = host.querySelector(".concept-grid-item");
+  if (!placed) {
+    throw new Error("Missing placed item");
+  }
+  expect(getComputedStyle(placed).gridColumn).toBe("2 / span 2");
+  expect(getComputedStyle(placed).gridRow).toBe("3 / span 4");
+  expect(
+    cleanPageDesign(latest)?.concept.elements[0].group?.elements[0]
+      .gridPlacement
+  ).toEqual({ column: 2, columnSpan: 2, row: 3, rowSpan: 4 });
+  await edit("Column", "");
+  expect(getComputedStyle(placed).gridColumn).toBe("auto / span 2");
+});

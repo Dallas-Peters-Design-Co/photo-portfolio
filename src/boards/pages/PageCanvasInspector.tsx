@@ -6,6 +6,7 @@ import { workspaceGrid } from "../../../config/pageWorkspaceGrid.js";
 import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
 import { ConceptColorField } from "../../components/admin/ReviewConceptBrand";
 import { ReviewConceptElementFields } from "../../components/admin/ReviewConceptElementFields";
+import { NestedGridPlacement } from "./NestedGridPlacement";
 import "../../components/admin/ReviewConceptsEditor.css";
 import { PageNumber, PageSelect } from "./PageFields";
 import { PageFrameGridFields, PageGridPlacement } from "./PageFrameGridFields";
@@ -262,6 +263,11 @@ export function PageCanvasInspector({
       {element ? (
         <>
           <PlacementFields editor={editor} />
+          <NestedGridPlacement
+            element={element}
+            layers={editor.all}
+            save={(gridPlacement) => patchElement({ gridPlacement })}
+          />
           <LayerDestination editor={editor} id={element.id} />
           {element.kind === "group" && (
             <button

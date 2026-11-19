@@ -1,5 +1,6 @@
 import type { BrandComponent } from "../src/boards/components/model.js";
 import { type ConceptFlex, cleanFlex } from "./conceptFlex.js";
+import { cleanGridPlacement, type GridPlacement } from "./conceptGridItem.js";
 import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
 import type { ConceptIconSvg } from "./conceptIcon.js";
 import {
@@ -182,6 +183,7 @@ export interface ReviewConceptElement {
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
   fullHeight?: boolean;
+  gridPlacement?: GridPlacement;
   /**
    * Groups only: the elements it holds and how it lays them out (row,
    * column or grid, gap, alignment, padding), as a slot does.
@@ -511,6 +513,7 @@ export const cleanElement = (
     ...cleanStateName(raw.stateName),
     ...cleanCanvas(raw, kind),
     ...cleanFlex(raw.flex),
+    ...cleanGridPlacement(raw.gridPlacement),
     ...cleanAttachedTooltip(raw, kind),
     background: cleanColor(raw.background, "transparent"),
     color: cleanColor(raw.color, "#172033"),
