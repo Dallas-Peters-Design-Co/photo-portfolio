@@ -2,6 +2,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import ArrowDown01Icon from "@hugeicons-pro/core-stroke-standard/ArrowDown01Icon";
 import UnavailableIcon from "@hugeicons-pro/core-stroke-standard/UnavailableIcon";
 import { useEffect, useRef, useState } from "react";
+import "./IconPicker.css";
 import { type IconLibrary, type IconSet, useIconLibrary } from "./iconLibrary";
 import { ICON_GROUPS, type IconGroup } from "./icons";
 import { resolveIcon } from "./resolveIcon";
@@ -44,8 +45,8 @@ interface IconPickerProps {
   value: string | null;
 }
 
-/** Enough to scan; a longer list means the search should be narrower. */
-const MAX_RESULTS = 240;
+/** Add icons to the scrollable grid in batches so opening a pack stays quick. */
+const ICON_BATCH_SIZE = 240;
 
 const TRIGGER_SIZES = {
   default: "min-h-11 px-3",
@@ -60,8 +61,8 @@ interface IconSearch {
 /**
  * The groups to show for a query. The curated set matches on icon name or
  * group label, so "nature" and "leaf" both land. With the full library
- * (`full` loaded, or null while loading), a query searches every icon and
- * every word must appear in the name.
+ * (`full` loaded, or null while loading), the chooser includes every icon;
+ * a query narrows that set and every word must appear in the name.
  */
 const searchIcons = (
   query: string,
@@ -69,17 +70,15 @@ const searchIcons = (
 ): IconSearch => {
   const needle = query.trim().toLowerCase();
   const words = needle.split(WHITESPACE).filter(Boolean);
-  if (full && words.length > 0) {
-    const found = full.names.filter((name) => {
-      const lower = name.toLowerCase();
-      return words.every((word) => lower.includes(word));
-    });
-    const label =
-      found.length > MAX_RESULTS
-        ? `${MAX_RESULTS} of ${found.length} — narrow the search`
-        : `All icons · ${found.length}`;
+  if (full) {
+    const found = words.length
+      ? full.names.filter((name) => {
+          const lower = name.toLowerCase();
+          return words.every((word) => lower.includes(word));
+        })
+      : full.names;
     return {
-      matches: [{ icons: found.slice(0, MAX_RESULTS), label }],
+      matches: [{ icons: found, label: `All icons · ${found.length}` }],
       status: null,
     };
   }
@@ -98,8 +97,6 @@ const searchIcons = (
   let status: string | null = null;
   if (full === null) {
     status = "Loading the full library…";
-  } else if (full) {
-    status = `Search all ${full.names.length.toLocaleString()} icons`;
   }
   return { matches: curated, status };
 };
@@ -139,6 +136,7 @@ export function IconPicker({
 }: IconPickerProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(ICON_BATCH_SIZE);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close on outside click and on Escape, the way a native select behaves.
@@ -180,6 +178,15 @@ export function IconPicker({
     query,
     library === "full" ? full : undefined
   );
+  const visibleMatches = matches.map((group) => ({
+    ...group,
+    icons: full ? group.icons.slice(0, visibleCount) : group.icons,
+  }));
+  const totalMatches = matches.reduce(
+    (count, group) => count + group.icons.length,
+    0
+  );
+  const hasMore = Boolean(full) && visibleCount < totalMatches;
 
   return (
     <div className="relative" ref={containerRef}>
@@ -224,18 +231,30 @@ export function IconPicker({
       {open ? (
         <div
           className={`mt-1 max-h-72 w-full overflow-y-auto rounded-surface border border-white/15 bg-black ${inline ? "" : "absolute z-50 min-w-70 shadow-2xl"}`}
+          onScroll={(event) => {
+            const target = event.currentTarget;
+            if (
+              hasMore &&
+              target.scrollTop + target.clientHeight >= target.scrollHeight - 80
+            ) {
+              setVisibleCount((count) =>
+                Math.min(count + ICON_BATCH_SIZE, totalMatches)
+              );
+            }
+          }}
           role="listbox"
         >
-          {/* Sticky so the field stays reachable while scrolling 185 icons. */}
+          {/* Keep the controls reachable while scrolling through the icon set. */}
           <div className="sticky top-0 z-10 border-white/10 border-b bg-black p-2">
             <label className="flex items-center gap-2 pb-2 text-xs">
               Icon set
               <select
-                onChange={(event) =>
+                onChange={(event) => {
                   setIconSet(
                     event.target.value === "filled" ? "filled" : "stroke"
-                  )
-                }
+                  );
+                  setVisibleCount(ICON_BATCH_SIZE);
+                }}
                 value={set}
               >
                 <option value="stroke">Hugeicons Stroke</option>
@@ -245,7 +264,10 @@ export function IconPicker({
             <input
               autoFocus
               className="min-h-9 w-full rounded-control border border-white/10 bg-black/60 px-2 text-white/90 text-xs outline-none focus:border-white/40"
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setVisibleCount(ICON_BATCH_SIZE);
+              }}
               placeholder="Search icons…"
               type="search"
               value={query}
@@ -277,12 +299,12 @@ export function IconPicker({
             </p>
           ) : null}
 
-          {matches.map((group) => (
+          {visibleMatches.map((group) => (
             <div className="border-white/6 border-t" key={group.label}>
               <p className="px-3 pt-3 pb-1.5 text-sm text-white/80 uppercase tracking-micro-widest">
                 {group.label}
               </p>
-              <div className="grid grid-cols-6 gap-px p-1">
+              <div className="icon-picker__grid">
                 {group.icons.map((name) => {
                   const Icon = iconOf(name);
                   if (!Icon) {
@@ -291,7 +313,7 @@ export function IconPicker({
                   return (
                     <button
                       aria-selected={value === storedName(name)}
-                      className={`flex aspect-square items-center justify-center rounded-inner transition-colors ${
+                      className={`flex h-8 w-8 items-center justify-center rounded-inner transition-colors ${
                         value === storedName(name)
                           ? "bg-white text-black"
                           : "text-white/90 hover:bg-white/8 hover:text-white"
