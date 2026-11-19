@@ -1,6 +1,6 @@
 .review-canvas-component {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .review-canvas-component__layers {

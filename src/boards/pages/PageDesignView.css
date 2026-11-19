@@ -17,10 +17,6 @@
 .page-design__component {
   position: relative;
   min-height: min-content;
-  overflow: auto;
-}
-/* Layout groups and slotted surfaces paint into the page around their box. */
-.page-design__component[data-layout-container] {
   overflow: visible;
 }
 /* A placed group uses its authored frame for alignment and paint. */

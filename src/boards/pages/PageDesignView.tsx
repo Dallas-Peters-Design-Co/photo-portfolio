@@ -7,7 +7,6 @@ import {
   useState,
 } from "react";
 import { conceptFontStack } from "../../../config/conceptFont.js";
-import { hasSlots } from "../../../config/conceptSlots.js";
 import { stepsOf } from "../../../config/conceptSteps.js";
 import {
   boxOf,
@@ -148,11 +147,6 @@ export const PageDesignView = memo(function PageView({
               <div
                 className="page-design__component"
                 data-group={element.kind === "group" || undefined}
-                data-layout-container={
-                  element.kind === "group" ||
-                  hasSlots(element.kind) ||
-                  undefined
-                }
                 data-page-layer={element.id}
                 data-side-panel={sidePanel || undefined}
                 key={element.id}
