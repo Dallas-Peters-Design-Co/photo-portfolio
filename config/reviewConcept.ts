@@ -1,5 +1,6 @@
 import type { BrandComponent } from "../src/boards/components/model.js";
 import { type ConceptFlex, cleanFlex } from "./conceptFlex.js";
+import { type ConceptFocus, cleanFocus, takesFocus } from "./conceptFocus.js";
 import { cleanGridPlacement, type GridPlacement } from "./conceptGridItem.js";
 import { type ConceptHover, cleanHover, takesHover } from "./conceptHover.js";
 import type { ConceptIconSvg } from "./conceptIcon.js";
@@ -177,6 +178,8 @@ export interface ReviewConceptElement {
    * when its hide slot is clicked. Absent: it just appears.
    */
   flex?: ConceptFlex;
+  /** How it looks while focused (see conceptFocus.ts). */
+  focus?: ConceptFocus;
   fontFamily: "sans" | "serif" | "mono" | "brand" | "app";
   fontId?: string;
   fontRef?: string;
@@ -301,6 +304,7 @@ export const ELEMENT_STYLE_KEYS = [
   "tabLook",
   "menuLook",
   "hover",
+  "focus",
   "avatarUrl",
   "avatarInitials",
   // A Logo style sets which of the kit's logos, and at what height.
@@ -491,6 +495,14 @@ const cleanAttachedTooltip = (
   return tooltip ? { tooltip } : {};
 };
 
+const cleanElementFocus = (
+  raw: Partial<ReviewConceptElement>,
+  kind: ReviewConceptElementKind
+) => {
+  const focus = takesFocus(kind) ? cleanFocus(raw.focus) : undefined;
+  return focus ? { focus } : {};
+};
+
 export const cleanElement = (
   value: unknown,
   /** How many slots deep this element sits. */
@@ -539,6 +551,7 @@ export const cleanElement = (
     ...(tabLook ? { tabLook } : {}),
     ...(menuLook ? { menuLook } : {}),
     ...(hover ? { hover } : {}),
+    ...cleanElementFocus(raw, kind),
     ...(table ? { table } : {}),
     ...cleanLink(raw),
     text: str(raw.text, 500),

@@ -1,8 +1,12 @@
 import { Input as InputPrimitive } from "@base-ui/react/input";
 import { cva, type VariantProps } from "class-variance-authority";
+import { Eye, EyeOff } from "lucide-react";
 import type * as React from "react";
+import { useState } from "react";
+import "./input.css";
 
 import { cn } from "@/lib/utils";
+import { Button } from "./button";
 
 /**
  * Every text field in the app. Its look lives here, not at the call site
@@ -10,7 +14,7 @@ import { cn } from "@/lib/utils";
  * spacing on a wrapper around it.
  */
 const inputVariants = cva(
-  "w-full min-w-0 rounded-control border px-2.5 py-1 outline-none transition-colors file:inline-flex file:h-6 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
+  "w-full min-w-0 rounded-control border px-2.5 py-1 outline-none transition-colors file:inline-flex file:h-6 file:border-0 file:bg-transparent file:font-medium file:text-foreground file:text-sm focus:ring-3 focus:ring-ring disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20",
   {
     defaultVariants: { face: "sans", size: "default", tone: "admin" },
     variants: {
@@ -51,15 +55,44 @@ const Input = function Input({
   type,
   ...props
 }: InputProps) {
-  return (
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const input = (
     <InputPrimitive
-      className={cn(inputVariants({ face, size, tone }), className)}
+      className={cn(
+        inputVariants({ face, size, tone }),
+        type === "password" && "pr-10",
+        className
+      )}
       data-slot="input"
       // Base UI Input is typed as HTMLElement ref; forwardRef uses HTMLInputElement — same node at runtime.
       ref={ref as never}
-      type={type}
+      type={type === "password" && passwordVisible ? "text" : type}
       {...props}
     />
+  );
+
+  if (type !== "password") {
+    return input;
+  }
+
+  return (
+    <span className="password-input">
+      {input}
+      <span className="password-input__action">
+        <Button
+          aria-label={passwordVisible ? "Hide password" : "Show password"}
+          aria-pressed={passwordVisible}
+          onClick={() => setPasswordVisible((visible) => !visible)}
+          onMouseDown={(event) => event.preventDefault()}
+          size="icon-xs"
+          title={passwordVisible ? "Hide password" : "Show password"}
+          type="button"
+          variant="ghost"
+        >
+          {passwordVisible ? <EyeOff aria-hidden /> : <Eye aria-hidden />}
+        </Button>
+      </span>
+    </span>
   );
 };
 

@@ -79,8 +79,7 @@ export const withIcons = (el: ReviewConceptElement, base: Markup): Markup => {
 };
 
 const FIELD_CSS = `&__field { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
-&__field::placeholder { color: inherit; opacity: 0.6; }
-&:focus-within { outline: 2px solid var(--&-accent, currentColor); outline-offset: 2px; }`;
+&__field::placeholder { color: inherit; opacity: 0.6; }`;
 
 /** An input, with its leading icon inside the box when it has one. */
 export const inputMarkup = (
@@ -101,7 +100,8 @@ export const inputMarkup = (
     body: `${icon}\n<input className="@@__field" type=${type} placeholder=${placeholder} aria-label=${quote(el.placeholder || "Search")} />`,
     css: `& { display: inline-flex; align-items: center; gap: ${Math.round(el.fontSize * 0.5)}px; cursor: text; }
 &__icon { flex: none; color: var(--&-icon-color, currentColor); }
-${FIELD_CSS}`,
+${FIELD_CSS}
+${focus}`,
     tag: "label",
   };
 };
@@ -109,7 +109,7 @@ ${FIELD_CSS}`,
 /** A styled select and its open list, matching the review's shared Select. */
 export const selectMarkup = (
   el: ReviewConceptElement,
-  _focus: string
+  focus: string
 ): Markup => {
   const shown = el.text.trim() || el.options?.[0] || "Choose";
   const placeholder = el.placeholder?.trim();
@@ -140,7 +140,7 @@ export const selectMarkup = (
 &__with-tooltip { width: 100%; }
 &__trigger { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: space-between; gap: 1em; width: 100%; padding: var(--&-padding); cursor: pointer; list-style: none; }
 &__trigger::-webkit-details-marker { display: none; }
-&__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+${focus}
 &__positioner { z-index: 100; }
 &__list { box-sizing: border-box; z-index: 100; min-width: max(100%, 9rem); max-height: 16rem; overflow-y: auto; padding: 4px; background: ${background}; color: ${ink}; border: 1px solid ${line}; border-radius: ${look.radius ?? el.radius}px; box-shadow: 0 8px 24px color-mix(in srgb, #000 16%, transparent); font-family: ${conceptFontStack(el.fontFamily, el.fontRef, el.fontId)}; font-size: ${el.fontSize}px; font-weight: ${el.fontWeight}; }
 & > &__list { position: absolute; top: calc(100% + 4px); left: 0; }

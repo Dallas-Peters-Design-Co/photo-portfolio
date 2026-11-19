@@ -4,10 +4,9 @@ import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import "./ConceptHover.css";
 
 /**
- * An element's hover look, around whatever draws it: a wrapper that takes
- * no space (display: contents) and carries the hover colours as custom
- * properties, with a data attribute for each one set, so the stylesheet
- * changes only what was asked for. Tabs handle their own (per tab).
+ * An element's hover and focus looks, around whatever draws it: a wrapper that
+ * takes no space and carries the state colours as custom properties. Tabs
+ * handle their own state treatment.
  */
 export function ConceptHover({
   children,
@@ -29,7 +28,8 @@ export function ConceptHover({
   } | null;
 }) {
   const hover = element.kind === "tabs" ? undefined : element.hover;
-  if (!(hover || marks)) {
+  const { focus } = element;
+  if (!(hover || focus || marks)) {
     return children;
   }
   const on = (value: unknown) => (value ? "" : undefined);
@@ -38,6 +38,12 @@ export function ConceptHover({
       className="concept-hover"
       data-concept-id={marks?.id}
       data-enter={marks?.enter}
+      data-focus-bg={on(focus?.background)}
+      data-focus-icon={on(focus?.iconColor)}
+      data-focus-ink={on(focus?.color)}
+      data-focus-line={on(focus?.borderColor)}
+      data-focus-ring={on(focus)}
+      data-focus-shadow={on(focus?.shadow)}
       data-hover-bg={on(hover?.background)}
       data-hover-icon={on(hover?.iconColor)}
       data-hover-ink={on(hover?.color)}
@@ -46,13 +52,25 @@ export function ConceptHover({
       data-selected={marks?.selected ? "" : undefined}
       data-trigger={marks?.trigger ? "" : undefined}
       style={
-        hover
+        hover || focus
           ? ({
-              "--hover-bg": hover.background,
-              "--hover-icon": hover.iconColor,
-              "--hover-ink": hover.color,
-              "--hover-line": hover.borderColor,
-              "--hover-shadow": hover.shadow
+              "--focus-bg": focus?.background,
+              "--focus-icon": focus?.iconColor,
+              "--focus-ink": focus?.color,
+              "--focus-line": focus?.borderColor,
+              "--focus-ring-color": focus?.ringColor ?? element.accentColor,
+              "--focus-ring-width":
+                focus?.ringWidth === undefined
+                  ? undefined
+                  : `${focus.ringWidth}px`,
+              "--focus-shadow": focus?.shadow
+                ? shadowCss(focus.shadow)
+                : undefined,
+              "--hover-bg": hover?.background,
+              "--hover-icon": hover?.iconColor,
+              "--hover-ink": hover?.color,
+              "--hover-line": hover?.borderColor,
+              "--hover-shadow": hover?.shadow
                 ? shadowCss(hover.shadow)
                 : undefined,
             } as CSSProperties)

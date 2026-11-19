@@ -42,6 +42,7 @@ const SHARED_KEYS = new Set<string>([
   "flex",
   "iconColor",
   "iconSize",
+  "focus",
   "hover",
 ]);
 

@@ -425,16 +425,28 @@ export const fromStyle = (
       : element,
     style
   );
+  const name = style.name.trim();
+  const usesPlaceholder =
+    style.kind === "input" ||
+    style.kind === "select" ||
+    style.kind === "textarea";
+  const named = name
+    ? {
+        ...linked,
+        ...(usesPlaceholder ? { placeholder: name } : {}),
+        text: name,
+      }
+    : linked;
   if (style.kind === "group" && style.look.groupContents) {
     return mapChildren(
-      { ...linked, group: style.look.groupContents },
+      { ...named, group: style.look.groupContents },
       withNewIds
     );
   }
   const { contents } = style.look;
   return contents && hasSlots(style.kind)
-    ? mapChildren({ ...linked, slots: contents }, withNewIds)
-    : linked;
+    ? mapChildren({ ...named, slots: contents }, withNewIds)
+    : named;
 };
 
 /** Follows a style from now on: its look, and no settings of its own. */

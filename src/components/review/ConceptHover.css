@@ -35,7 +35,36 @@
 
 /* An icon inside the element (a card's, an input's): its own colour on hover.
    Icons draw in currentColor (ConceptIcon), so the svg's colour is enough. */
-.concept-hover[data-hover-icon] > :hover > svg,
+.concept-hover[data-focus-bg]:focus-within > * {
+  background: var(--focus-bg) !important;
+}
+
+.concept-hover[data-focus-ink]:focus-within > * {
+  color: var(--focus-ink) !important;
+}
+
+.concept-hover[data-focus-line]:focus-within > * {
+  border-color: var(--focus-line) !important;
+}
+
+.concept-hover[data-focus-shadow]:focus-within > * {
+  box-shadow: var(--focus-shadow) !important;
+}
+
+.concept-hover[data-focus-ring]:focus-within > * {
+  outline: var(--focus-ring-width, 2px) solid
+    var(--focus-ring-color, currentColor) !important;
+  outline-offset: 2px;
+}
+
+.concept-hover[data-hover-icon] > :hover > svg {
+  color: var(--hover-icon) !important;
+}
+
+.concept-hover[data-focus-icon]:focus-within > * > svg {
+  color: var(--focus-icon) !important;
+}
+
 .concept-hover[data-hover-icon]
   > :hover
   > .concept-slots
@@ -43,6 +72,15 @@
   > .concept-slot__lead
   > svg {
   color: var(--hover-icon) !important;
+}
+
+.concept-hover[data-focus-icon]:focus-within
+  > *
+  > .concept-slots
+  > [data-slot="header"]
+  > .concept-slot__lead
+  > svg {
+  color: var(--focus-icon) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

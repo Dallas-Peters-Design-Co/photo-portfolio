@@ -328,17 +328,25 @@ export const createConcept = (brandDoc?: BrandKitDoc | null): ReviewConcept => {
 
 /**
  * What a style is drawn on: its kind's sample content, in the style's look.
- * Badge and tag samples use the style name as their label, so the kit and
- * guide show the named variant instead of generic element placeholder text.
+ * Samples use the style name as their default label or placeholder, so the
+ * kit and guide show the named variant instead of generic element text.
  */
 const buildStyleSample = (
   style: ConceptStyle,
   brand: BrandKitDoc
 ): ReviewConceptElement => {
   const element = createConceptElement(style.kind, brand);
-  if (style.kind === "badge" || style.kind === "tag") {
-    element.text =
-      style.name.trim() || (style.kind === "badge" ? "Badge" : "Tag");
+  const name = style.name.trim();
+  if (name) {
+    if (
+      style.kind === "input" ||
+      style.kind === "select" ||
+      style.kind === "textarea"
+    ) {
+      element.placeholder = name;
+    } else {
+      element.text = name;
+    }
   }
   const linked = linkStyle({ ...element, id: style.id }, style);
   if (linked.kind === "group" && style.look.groupContents) {

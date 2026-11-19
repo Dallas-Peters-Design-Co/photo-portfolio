@@ -556,6 +556,17 @@
   }
 }
 
+input:not([data-slot="input"]):not([type="button"]):not([type="submit"]):not(
+  [type="reset"]
+):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(
+  [type="color"]
+):not([type="file"]):not([type="hidden"]):focus-visible,
+textarea:focus-visible,
+select:not([data-slot="select-trigger"]):focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
 .vertical-text {
   writing-mode: vertical-rl;
   text-orientation: mixed;

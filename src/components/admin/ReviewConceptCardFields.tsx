@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
+import type { ConceptFocus } from "../../../config/conceptFocus.js";
 import type { ConceptHover } from "../../../config/conceptHover.js";
 import {
   type ConceptIconSvg,
@@ -456,6 +457,78 @@ export function HoverGroup({
           }
           options={HOVER_SHADOWS}
           value={(hover.shadow && presetOf(hover.shadow)) ?? "same"}
+        />
+      </ConceptField>
+    </ConceptGroup>
+  );
+}
+
+/** How a control looks while it has keyboard focus. */
+export function FocusGroup({
+  brandDoc,
+  element,
+  onChange,
+}: {
+  brandDoc?: BrandKitDoc | null;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  const focus = element.focus ?? {};
+  const set = (patch: Partial<ConceptFocus>) => {
+    const next = Object.fromEntries(
+      Object.entries({ ...focus, ...patch }).filter(
+        ([, value]) => value !== undefined && value !== "transparent"
+      )
+    ) as ConceptFocus;
+    onChange({ focus: Object.keys(next).length > 0 ? next : undefined });
+  };
+  const color = (
+    key: "background" | "borderColor" | "color" | "iconColor",
+    label: string
+  ) => (
+    <ConceptColorField
+      allowNone
+      ariaLabel={`focus ${label.toLowerCase()}`}
+      brandDoc={brandDoc}
+      label={label}
+      onChange={(value) => set({ [key]: value })}
+      value={focus[key] ?? "transparent"}
+    />
+  );
+  return (
+    <ConceptGroup compact name="Focus">
+      <ConceptColorField
+        allowNone
+        ariaLabel="focus ring color"
+        brandDoc={brandDoc}
+        label="Ring"
+        onChange={(ringColor) => set({ ringColor })}
+        value={focus.ringColor ?? "transparent"}
+      />
+      <NumberField
+        label="Ring width"
+        max={8}
+        min={0}
+        onChange={(ringWidth) => set({ ringWidth })}
+        value={focus.ringWidth ?? 2}
+      />
+      {color("background", "Fill")}
+      {color("color", "Text")}
+      {color("borderColor", "Border")}
+      {takesIcon(element.kind) ? color("iconColor", "Icon") : null}
+      <ConceptField label="Shadow">
+        <ConceptSelect
+          label="Focus shadow"
+          onChange={(name) =>
+            set({
+              shadow:
+                name === "same"
+                  ? undefined
+                  : SHADOW_PRESETS[name as ShadowPreset],
+            })
+          }
+          options={HOVER_SHADOWS}
+          value={(focus.shadow && presetOf(focus.shadow)) ?? "same"}
         />
       </ConceptField>
     </ConceptGroup>

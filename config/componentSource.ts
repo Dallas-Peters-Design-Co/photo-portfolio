@@ -119,14 +119,36 @@ const tokensOf = (el: ReviewConceptElement): [string, string][] => {
     ["hover-color", el.hover?.color],
     ["hover-border-color", el.hover?.borderColor],
     ["hover-shadow", el.hover?.shadow ? shadowCss(el.hover.shadow) : undefined],
+    ["focus-background", el.focus?.background],
+    ["focus-color", el.focus?.color],
+    ["focus-border-color", el.focus?.borderColor],
+    ["focus-shadow", el.focus?.shadow ? shadowCss(el.focus.shadow) : undefined],
+    ["focus-icon-color", el.focus?.iconColor],
+    [
+      "focus-ring-color",
+      el.focus?.ringColor ?? el.accentColor ?? "currentColor",
+    ],
+    ["focus-ring-width", px(el.focus?.ringWidth ?? 2)],
   ];
   return entries.filter((e): e is [string, string] => e[1] !== undefined);
 };
 
-const FOCUS_CSS = `&:focus-visible {
-  outline: 2px solid var(--&-accent, currentColor);
-  outline-offset: 2px;
-}`;
+const focusCss = (
+  el: ReviewConceptElement,
+  selector = "&:focus-visible"
+): string => {
+  const { focus } = el;
+  const declarations = [
+    focus?.background ? `background: ${focus.background} !important;` : "",
+    focus?.color ? `color: ${focus.color} !important;` : "",
+    focus?.borderColor ? `border-color: ${focus.borderColor} !important;` : "",
+    focus?.shadow ? `box-shadow: ${shadowCss(focus.shadow)} !important;` : "",
+    focus?.iconColor ? `--&-icon-color: ${focus.iconColor};` : "",
+    "outline: var(--&-focus-ring-width, 2px) solid var(--&-focus-ring-color, currentColor);",
+    "outline-offset: 2px;",
+  ].filter(Boolean);
+  return `${selector} {\n${declarations.map((line) => `  ${line}`).join("\n")}\n}`;
+};
 
 const quote = (value: string): string => JSON.stringify(value);
 
@@ -162,24 +184,28 @@ export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote
     button: () =>
       withIcons(el, {
         attrs: 'type="button"',
-        css: `& { cursor: pointer; }\n${HOVER_CSS}\n${FOCUS_CSS}`,
+        css: `& { cursor: pointer; }\n${HOVER_CSS}\n${focusCss(el)}`,
         passChildren: true,
         props: "onClick",
         tag: "button",
       }),
     card: () => cardMarkup(el, draw),
-    checkbox: () => checkboxMarkup(el),
+    checkbox: () => checkboxMarkup(el, focusCss(el, "&:focus-within")),
     dialog: () => dialogMarkup(el, sampleText(el)),
     divider: () => ({
       css: "& { border: 0; border-top: var(--&-border); padding: 0; margin: 0; }",
       tag: "hr",
     }),
     group: () => groupMarkup(el, draw),
-    input: () => inputMarkup(el, FOCUS_CSS),
+    input: () =>
+      inputMarkup(
+        el,
+        focusCss(el, el.iconSvg ? "&:focus-within" : "&:focus-visible")
+      ),
     label: () => ({ passChildren: true, tag: "label" }),
     link: () => ({
       attrs: 'href="#"',
-      css: `& { text-decoration: underline; text-underline-offset: 0.2em; }\n${HOVER_CSS}`,
+      css: `& { text-decoration: underline; text-underline-offset: 0.2em; }\n${HOVER_CSS}\n${focusCss(el)}`,
       passChildren: true,
       tag: "a",
     }),
@@ -188,7 +214,7 @@ export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote
     navbar: () => navbarMarkup(el, draw),
     panel: () => panelMarkup(el, draw),
     progress: () => progressMarkup(el),
-    select: () => selectMarkup(el, FOCUS_CSS),
+    select: () => selectMarkup(el, focusCss(el, "&__trigger:focus-visible")),
     skeleton: () => ({
       attrs: 'aria-hidden="true"',
       css: "& { min-block-size: 1em; }",
@@ -200,7 +226,7 @@ export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote
     text: () => ({ passChildren: true, tag: "p" }),
     textarea: () => ({
       attrs: `placeholder=${quote(el.placeholder ?? "")}`,
-      css: FOCUS_CSS,
+      css: focusCss(el),
       tag: "textarea",
     }),
     toast: () => toastMarkup(el),

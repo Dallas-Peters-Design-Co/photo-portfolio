@@ -42,6 +42,18 @@ const hoverParts = ({ hover }: Look): string[] =>
       ].filter(Boolean)
     : [];
 
+const focusParts = ({ focus }: Look): string[] =>
+  focus
+    ? [
+        focus.ringColor ? `ring ${focus.ringColor}` : "",
+        focus.ringWidth === undefined ? "" : `${focus.ringWidth}px ring`,
+        focus.background ? `fill ${focus.background}` : "",
+        focus.color ? `text ${focus.color}` : "",
+        focus.borderColor ? `border ${focus.borderColor}` : "",
+        focus.shadow ? "shadow" : "",
+      ].filter(Boolean)
+    : [];
+
 /** One per fact, in the order they read; each says nothing when unset. */
 const FACTS: Fact[] = [
   ({ background }) => colour("Fill", background),
@@ -81,6 +93,12 @@ const FACTS: Fact[] = [
     const parts = hoverParts(look);
     return parts.length > 0
       ? { label: "Hover", value: parts.join(", ") }
+      : null;
+  },
+  (look) => {
+    const parts = focusParts(look);
+    return parts.length > 0
+      ? { label: "Focus", value: parts.join(", ") }
       : null;
   },
 ];

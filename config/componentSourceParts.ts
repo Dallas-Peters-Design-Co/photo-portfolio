@@ -513,9 +513,12 @@ export const progressMarkup = (el: ReviewConceptElement): Markup => {
   };
 };
 
-export const checkboxMarkup = (el: ReviewConceptElement): Markup => ({
+export const checkboxMarkup = (
+  el: ReviewConceptElement,
+  focus: string
+): Markup => ({
   body: `<input type="checkbox"${el.checked ? " defaultChecked" : ""} />\n{children}`,
-  css: "& { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }\n& > input { accent-color: var(--&-accent); inline-size: var(--&-check-size, 1em); block-size: var(--&-check-size, 1em); margin: 0; }",
+  css: `& { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }\n& > input { accent-color: var(--&-accent); inline-size: var(--&-check-size, 1em); block-size: var(--&-check-size, 1em); margin: 0; }\n${focus}`,
   tag: "label",
 });
 
