@@ -167,7 +167,12 @@ export const tableMarkup = (el: ReviewConceptElement): Markup => {
     .join("\n");
   return {
     body: `<thead>\n  <tr>\n${head}\n  </tr>\n</thead>\n<tbody>\n${rows}\n</tbody>`,
-    css: [TABLE_CSS, linesCss(el), columnsCss(table.columns)]
+    css: [
+      TABLE_CSS,
+      linesCss(el),
+      columnsCss(table.columns),
+      "& > tbody > tr:last-child > td { border-block-end: 0; }",
+    ]
       .filter(Boolean)
       .join("\n"),
     tag: "table",

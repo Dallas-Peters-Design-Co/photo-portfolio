@@ -132,6 +132,19 @@ it("draws grid lines, an outline, or no lines, in the chosen width and colour", 
     getComputedStyle(host.querySelector("table") as HTMLElement).outlineStyle
   ).toBe("solid");
 
+  const lastCell = () =>
+    host.querySelector("tbody tr:last-child td") as HTMLTableCellElement;
+  expect(getComputedStyle(cell).borderBottomWidth).toBe("3px");
+  expect(getComputedStyle(lastCell()).borderBottomWidth).toBe("0px");
+  expect(getComputedStyle(lastCell()).borderRightWidth).toBe("3px");
+
+  draw({ lines: "rows", outline: false, width: 2 });
+  expect(
+    getComputedStyle(host.querySelector("td") as HTMLElement).borderBottomWidth
+  ).toBe("2px");
+  lastCell().style.border = "4px solid red";
+  expect(getComputedStyle(lastCell()).borderBottomWidth).toBe("0px");
+
   draw({ lines: "none", outline: false, width: 1 });
   expect(
     getComputedStyle(host.querySelector("td") as HTMLElement).borderBottomStyle

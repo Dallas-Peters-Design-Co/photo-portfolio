@@ -22,8 +22,7 @@
    the column's tint. */
 /* Separate borders, spaced 0: every line is drawn inside its own cell.
    Collapsed borders put half of each outer line outside the table's box,
-   where zoom or a clipping parent can drop it (the last row's line went
-   missing that way). */
+   where zoom or a clipping parent can drop it. */
 .concept-table {
   /* What a table draws stays inside it: a long chip row or a wide cell is
      clipped at the table's edge rather than painting over its neighbours,
@@ -73,6 +72,11 @@
 
 .concept-table[data-lines="grid"] thead th {
   border-block-start: var(--concept-line-width) solid var(--concept-line);
+}
+
+/* A text column can set its cell border inline. The final divider still ends here. */
+.concept-table > tbody > tr:last-child > td {
+  border-block-end: 0 !important;
 }
 
 .concept-table[data-outline] {
