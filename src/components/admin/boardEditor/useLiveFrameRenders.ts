@@ -8,7 +8,7 @@ import {
   renderFrameBlob,
 } from "../../../boards/io/frameRender";
 import { frameKeyOf } from "../../../boards/io/frameRenderKey";
-import { portfolioService } from "../../../services/portfolioService";
+import { uploadFrameRender } from "../../../boards/io/shaderFrameInput";
 import type { BoardItem, BoardWire } from "../../../types";
 
 /**
@@ -59,15 +59,6 @@ const staleFrames = (items: BoardItem[], wires: BoardWire[]) => {
   ];
   return all.filter((f, i) => all.findIndex((g) => g.id === f.id) === i);
 };
-
-const upload = async (png: Blob): Promise<string> =>
-  (
-    await portfolioService.uploadImageFile(
-      new File([png], "frame.png", { type: "image/png" }),
-      undefined,
-      "boards/frames"
-    )
-  ).url;
 
 export const useLiveFrameRenders = ({
   items,
@@ -128,7 +119,7 @@ export const useLiveFrameRenders = ({
           urls.add(url);
           setLocal((previous) => new Map(previous).set(frame.id, url));
           uploads.push(
-            upload(png)
+            uploadFrameRender(png)
               .then((renderUrl) => {
                 updates.set(frame.id, { renderKey, renderUrl });
               })

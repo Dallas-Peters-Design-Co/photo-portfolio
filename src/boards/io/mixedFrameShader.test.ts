@@ -1,13 +1,16 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { checkWire, outputPortsFor } from "../../../config/graph";
 import { normalizeTextStyle } from "../../../config/textStyle";
 import { BLANK_ITEM } from "../../components/admin/boardEditor/placement";
+import { portfolioService } from "../../services/portfolioService";
 import type { BoardItem } from "../../types";
 import { wiredImageFor } from "../canvas/wiredPreviews";
 import { draftFrom, newInstance } from "../components/model";
 import { rememberComponents } from "../components/store";
 import { framesIntoShaders, withFrameRenders } from "./frameRender";
 import { currentFrameRender } from "./frameRenderKey";
+
+import { shaderFrameInput } from "./shaderFrameInput";
 
 function context(canvas: HTMLCanvasElement) {
   const ctx = canvas.getContext("2d");
@@ -95,6 +98,21 @@ it("feeds a shader the Studio background and text inside a placed canvas compone
   expect(wiredImageFor(shader.id, { items: rendered, wires: [wire] })).toBe(
     "https://example.com/mixed.png"
   );
+  const upload = vi
+    .spyOn(portfolioService, "uploadImageFile")
+    .mockResolvedValue({ url: "https://example.com/fresh.png" });
+  try {
+    expect(
+      await shaderFrameInput(shader.id, { items: rendered, wires: [wire] })
+    ).toBe("https://example.com/mixed.png");
+    expect(upload).not.toHaveBeenCalled();
+    expect(await shaderFrameInput(shader.id, { items, wires: [wire] })).toBe(
+      "https://example.com/fresh.png"
+    );
+    expect(upload.mock.calls[0][0].type).toBe("image/png");
+  } finally {
+    upload.mockRestore();
+  }
   rememberComponents([
     { ...def, layers: [{ ...def.layers[0], body: "B" }], updatedAt: "v2" },
   ]);

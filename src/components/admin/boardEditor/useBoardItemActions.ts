@@ -14,6 +14,7 @@ import {
 } from "../../../boards/canvas/wiredPreviews";
 import { downloadBlob } from "../../../boards/io/downloadImage";
 import { newItemId } from "../../../boards/io/newItemId";
+import { shaderFrameInput } from "../../../boards/io/shaderFrameInput";
 import { outputImageOf } from "../../../boards/itemOutput";
 import { isShaderConfig } from "../../../boards/shaders/shaderConfig";
 import { type BoardComment, commentsApi } from "../../../services/comments";
@@ -191,7 +192,7 @@ export const useBoardItemActions = (deps: BoardItemActionDeps) => {
       const { reactSource } = await import(
         "../../../boards/shaders/shaderReact"
       );
-      const source = wiredImageFor(item.id, { items, wires });
+      const source = await shaderFrameInput(item.id, { items, wires });
       const config = isShaderConfig(item.config) ? item.config : { layers: [] };
       await navigator.clipboard.writeText(
         reactSource(config.layers, source, item.body, config.imageFit)

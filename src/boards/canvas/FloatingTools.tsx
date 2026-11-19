@@ -5,6 +5,7 @@ import type { DrawStyle } from "../drawing/DrawToolbar";
 import type { DrawTool } from "../drawing/drawing";
 import { MaskControls } from "../drawing/MaskControls";
 import type { MaskConfig } from "../drawing/mask";
+import { shaderFrameInput } from "../io/shaderFrameInput";
 import { NodeSettingsPanel } from "../panels/NodeSettingsPanel";
 import { type ShaderActions, ShaderPanel } from "../shaders/ShaderPanel";
 import { wiredImageFor } from "./wiredPreviews";
@@ -89,6 +90,7 @@ export function FloatingTools({
           onCopyReact={shaderActions.copyReact}
           onDownload={shaderActions.download}
           onExport={shaderActions.export}
+          resolveImage={(id) => shaderFrameInput(id, { items, wires })}
           selected={selected}
         />
       </div>

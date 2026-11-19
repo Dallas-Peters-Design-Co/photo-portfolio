@@ -4,7 +4,11 @@ import { type KitShader, MAX_KIT_SHADERS } from "../../../config/kitShaders.js";
 import { useConfirm } from "../../components/admin/ConfirmProvider";
 import { brandKitsApi } from "../../services/brandKitService";
 import { newItemId } from "../io/newItemId";
-import type { ShaderConfig } from "../shaders/shaderConfig";
+import {
+  normalizeLayers,
+  type ShaderConfig,
+  withImage,
+} from "../shaders/shaderConfig";
 import { useActiveBrand } from "./ActiveBrand";
 
 /**
@@ -18,7 +22,11 @@ export const useSaveKitShader = () => {
   const { prompt } = useConfirm();
   const { mutate } = useSWRConfig();
 
-  const save = async (config: ShaderConfig, suggested: string) => {
+  const save = async (
+    config: ShaderConfig,
+    suggested: string,
+    resolveImage: () => Promise<string | null>
+  ) => {
     if (!kit) {
       return;
     }
@@ -39,13 +47,14 @@ export const useSaveKitShader = () => {
       toast.error(`${kit.name} already has ${MAX_KIT_SHADERS} shaders.`);
       return;
     }
-    const shader: KitShader = {
-      id: newItemId(),
-      ...(config.imageFit ? { imageFit: config.imageFit } : {}),
-      layers: config.layers,
-      name,
-    };
     try {
+      const url = await resolveImage();
+      const shader: KitShader = {
+        id: newItemId(),
+        ...(config.imageFit ? { imageFit: config.imageFit } : {}),
+        layers: withImage(normalizeLayers(config.layers), url, config.imageFit),
+        name,
+      };
       await brandKitsApi.save(kit.id, {
         ...kit.doc,
         shaders: [...base, shader],

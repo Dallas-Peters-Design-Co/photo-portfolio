@@ -46,10 +46,12 @@ export interface ShaderPanelProps {
   onDownload?: (item: BoardItem) => Promise<void>;
   /** Renders the stack to a file and puts it on the board. */
   onExport: (item: BoardItem) => Promise<void>;
+  resolveImage?: (itemId: string) => Promise<string | null>;
   selected: BoardItem | null;
 }
 
 export function ShaderPanel({
+  resolveImage,
   imageUrl,
   onConfigChange,
   onCopyReact,
@@ -88,9 +90,22 @@ export function ShaderPanel({
           {kitShader.kitName && !isHalftone ? (
             <button
               className="shader-panel__action"
-              onClick={() =>
-                void kitShader.save(config, config.layers[0]?.name ?? "Shader")
-              }
+              disabled={saving}
+              onClick={async () => {
+                setSaving(true);
+                try {
+                  await kitShader.save(
+                    config,
+                    config.layers[0]?.name ?? "Shader",
+                    () =>
+                      resolveImage
+                        ? resolveImage(selected.id)
+                        : Promise.resolve(imageUrl ?? null)
+                  );
+                } finally {
+                  setSaving(false);
+                }
+              }}
               onPointerDown={(e) => e.stopPropagation()}
               title={`Save this shader to ${kitShader.kitName}, to place on any board`}
               type="button"
