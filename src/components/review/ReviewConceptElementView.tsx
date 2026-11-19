@@ -84,7 +84,11 @@ function CardPreview({
     </div>
   ) : undefined;
   return (
-    <article className="review-concepts__card-preview" style={style}>
+    <article
+      className="review-concepts__card-preview"
+      data-full-height={element.fullHeight || undefined}
+      style={style}
+    >
       <ConceptSlotsView
         dividers={element.dividers}
         draw={drawElement}
@@ -553,6 +557,7 @@ export function ReviewConceptElementView({
         "progress",
         "select",
       ].includes(element.kind)}
+      fullHeight={element.fullHeight}
       tooltip={element.tooltip}
     >
       <ConceptHover element={element} marks={marks}>
@@ -561,7 +566,11 @@ export function ReviewConceptElementView({
     </ConceptTooltip>
   );
   return element.flex ? (
-    <div className="concept-flex-item" style={{ flex: flexSize(element.flex) }}>
+    <div
+      className="concept-flex-item"
+      data-full-height={element.fullHeight || undefined}
+      style={{ flex: flexSize(element.flex) }}
+    >
       {child}
     </div>
   ) : (

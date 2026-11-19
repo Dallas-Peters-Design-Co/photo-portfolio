@@ -181,6 +181,7 @@ export interface ReviewConceptElement {
   fontRef?: string;
   fontSize: number;
   fontWeight: 400 | 500 | 600 | 700;
+  fullHeight?: boolean;
   /**
    * Groups only: the elements it holds and how it lays them out (row,
    * column or grid, gap, alignment, padding), as a slot does.
@@ -270,6 +271,7 @@ export const ELEMENT_STYLE_KEYS = [
   "lineHeight",
   "paddingX",
   "paddingY",
+  "fullHeight",
   "radius",
   "borderColor",
   "borderWidth",

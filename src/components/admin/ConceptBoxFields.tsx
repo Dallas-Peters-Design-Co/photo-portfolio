@@ -1,4 +1,6 @@
+import { useId } from "react";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import { Checkbox } from "../ui/checkbox";
 import { ConceptGroup, NumberField } from "./ConceptControls";
 /** The element's corner radius and its padding. */
 export function BoxGroup({
@@ -8,6 +10,7 @@ export function BoxGroup({
   element: ReviewConceptElement;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
 }) {
+  const id = useId();
   return (
     <ConceptGroup compact name="Box">
       <NumberField
@@ -30,6 +33,16 @@ export function BoxGroup({
           onChange={(paddingY) => onChange({ paddingY })}
           value={element.paddingY}
         />
+      )}
+      {(element.kind === "card" || element.kind === "panel") && (
+        <label className="review-concepts__check" htmlFor={id}>
+          <Checkbox
+            checked={element.fullHeight ?? false}
+            id={id}
+            onChange={(event) => onChange({ fullHeight: event.target.checked })}
+          />
+          Full height
+        </label>
       )}
     </ConceptGroup>
   );

@@ -32,6 +32,7 @@ export function ConceptPanelPreview({
     <Collapsible.Root
       aria-label={element.text || "Panel"}
       className="concept-panel"
+      data-full-height={element.fullHeight || undefined}
       data-slide={element.slideFrom}
       data-toggle-side={element.panelToggleSide}
       defaultOpen={!element.panelCollapsed}

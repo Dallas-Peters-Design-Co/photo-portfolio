@@ -333,3 +333,12 @@
   display: block;
   width: 100%;
 }
+
+[data-full-height],
+.concept-panel[data-full-height] > .concept-panel__inner,
+.concept-panel[data-full-height]
+  > .concept-panel__inner
+  > .concept-panel__surface {
+  box-sizing: border-box;
+  height: 100%;
+}

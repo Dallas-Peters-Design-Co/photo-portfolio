@@ -9,7 +9,11 @@ import {
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { hasSlots } from "../../../config/conceptSlots.js";
 import { stepsOf } from "../../../config/conceptSteps.js";
-import { boxOf, type PageDesign } from "../../../config/pageDesign.js";
+import {
+  boxOf,
+  type PageDesign,
+  pageElementBox,
+} from "../../../config/pageDesign.js";
 import { paletteProperties } from "../../../config/paletteBinding.js";
 import { useSequencePlayer } from "../../components/review/conceptSequence";
 import { StepElements } from "../../components/review/ReviewConceptPreview";
@@ -43,7 +47,7 @@ export const PageDesignView = memo(function PageView({
   const index = Math.min(stepIndex ?? at, steps.length - 1);
   const step = steps[index];
   const grid = pageGrid(
-    step?.elements.map((el, i) => boxOf(page, el.id, i)) ?? []
+    step?.elements.map((el, i) => pageElementBox(page, el, i)) ?? []
   );
   const playing = stepIndex === undefined;
   const last = index === steps.length - 1;
@@ -128,7 +132,7 @@ export const PageDesignView = memo(function PageView({
                 element.kind === "group" || hasSlots(element.kind) || undefined
               }
               key={element.id}
-              style={grid.style(boxOf(page, element.id, i))}
+              style={grid.style(pageElementBox(page, element, i))}
             >
               <StepElements
                 elements={[

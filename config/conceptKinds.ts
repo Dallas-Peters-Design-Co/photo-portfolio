@@ -114,12 +114,19 @@ export const takesBox = (kind: ReviewConceptElementKind): boolean =>
 export const cleanBox = (
   kind: ReviewConceptElementKind,
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "borderColor" | "borderWidth" | "shadow"> => {
+): Pick<
+  ReviewConceptElement,
+  "borderColor" | "borderWidth" | "shadow" | "fullHeight"
+> => {
   if (!takesBox(kind)) {
     return {};
   }
   const shadow = cleanShadow(raw.shadow);
   return {
+    ...((kind === "card" || kind === "panel") &&
+    typeof raw.fullHeight === "boolean"
+      ? { fullHeight: raw.fullHeight }
+      : {}),
     // "transparent" is the editor's None: kept, so it is not a fallback.
     ...(isHex(raw.borderColor) || raw.borderColor === "transparent"
       ? { borderColor: raw.borderColor }

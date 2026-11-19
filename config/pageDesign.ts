@@ -1,5 +1,9 @@
 import { stepsOf } from "./conceptSteps.js";
-import { cleanConcept, type ReviewConcept } from "./reviewConcept.js";
+import {
+  cleanConcept,
+  type ReviewConcept,
+  type ReviewConceptElement,
+} from "./reviewConcept.js";
 
 export interface PageBox {
   height: number;
@@ -31,6 +35,17 @@ export const boxOf = (page: PageDesign, id: string, index = 0): PageBox =>
     x: 24,
     y: Math.min(24 + index * 144, Math.max(0, page.height - 120)),
   };
+
+export function pageElementBox(
+  page: PageDesign,
+  element: ReviewConceptElement,
+  index: number
+): PageBox {
+  const box = boxOf(page, element.id, index);
+  return element.fullHeight
+    ? { ...box, height: Math.max(1, page.height - box.y) }
+    : box;
+}
 
 export const cleanPageDesign = (value: unknown): PageDesign | null => {
   if (

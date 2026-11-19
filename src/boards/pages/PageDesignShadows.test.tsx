@@ -164,3 +164,55 @@ it.each(["row", "column", "grid"] as const)(
     }
   }
 );
+
+it.each(["card", "panel"] as const)(
+  "fills the remaining page height with a %s",
+  async (kind) => {
+    const element = createConceptElement(kind);
+    const host = document.createElement("div");
+    host.style.width = "400px";
+    document.body.append(host);
+    const root = createRoot(host);
+    try {
+      for (const [height, fullHeight] of [
+        [400, true],
+        [600, true],
+        [600, false],
+      ] as const) {
+        // biome-ignore lint/performance/noAwaitInLoops: measure each resize before the next render.
+        await act(() =>
+          root.render(
+            <PageDesignView
+              page={{
+                boxes: {
+                  [element.id]: { height: 120, width: 380, x: 10, y: 30 },
+                },
+                concept: {
+                  ...createConcept(),
+                  elements: [{ ...element, fullHeight }],
+                },
+                height,
+                kitId: null,
+                version: 1,
+                width: 400,
+              }}
+            />
+          )
+        );
+        const surface = host.querySelector(
+          ".concept-panel__surface, .review-concepts__card-preview"
+        );
+        expect(surface).toBeTruthy();
+        const rendered = surface?.getBoundingClientRect().height;
+        if (fullHeight) {
+          expect(rendered).toBe(height - 30);
+        } else {
+          expect(rendered).toBeLessThan(height - 30);
+        }
+      }
+    } finally {
+      await act(() => root.unmount());
+      host.remove();
+    }
+  }
+);

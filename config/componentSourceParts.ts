@@ -270,7 +270,7 @@ export const cardMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
     "</div>",
   ].join("\n");
   return {
-    css: `& { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; }
+    css: `& { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; ${el.fullHeight ? "box-sizing: border-box; height: 100%;" : ""} }
 ${HOVER_CSS}
 &__text { display: grid; gap: 6px; align-content: start; }
 &__icon { color: var(--&-icon-color, currentColor); }
@@ -314,6 +314,7 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
       .filter(Boolean)
       .join("\n"),
     css: `& { display: flex; align-items: flex-start; width: 100%; min-width: 0; background: transparent; border: 0; padding: 0; box-shadow: none; }
+${el.fullHeight ? "&, &__inner, &__surface { box-sizing: border-box; height: 100%; }" : ""}
 &[data-toggle-side="left"] { flex-direction: row-reverse; }
 &[data-toggle-side="left"] > &__hide :is(svg:first-of-type, &__chevron) { scale: -1 1; }
 &__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--&-background); padding: var(--&-padding); border: var(--&-border); border-radius: var(--&-radius); box-shadow: var(--&-shadow); }

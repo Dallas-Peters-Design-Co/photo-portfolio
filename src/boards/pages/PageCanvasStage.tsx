@@ -10,6 +10,7 @@ import {
   boxOf,
   type PageBox,
   type PageDesign,
+  pageElementBox,
 } from "../../../config/pageDesign.js";
 import { PageDesignView } from "./PageDesignView";
 import { pageGrid } from "./pageGrid";
@@ -44,7 +45,7 @@ export function PageCanvasStage({
   const shown = preview
     ? { ...page, boxes: { ...page.boxes, [preview.id]: preview.box } }
     : page;
-  const grid = pageGrid(elements.map((el, i) => boxOf(shown, el.id, i)));
+  const grid = pageGrid(elements.map((el, i) => pageElementBox(shown, el, i)));
   const start = (
     e: PointerEvent<HTMLButtonElement>,
     id: string,
@@ -78,13 +79,19 @@ export function PageCanvasStage({
     }
     const dx = (e.clientX - d.x) / d.scale;
     const dy = (e.clientY - d.y) / d.scale;
+    const fullHeight = elements.find((el) => el.id === d.id)?.fullHeight;
     const box = d.resize
       ? {
           ...d.before,
-          height: Math.max(
-            24,
-            Math.min(page.height - d.before.y, Math.round(d.before.height + dy))
-          ),
+          height: fullHeight
+            ? d.before.height
+            : Math.max(
+                24,
+                Math.min(
+                  page.height - d.before.y,
+                  Math.round(d.before.height + dy)
+                )
+              ),
           width: Math.max(
             24,
             Math.min(page.width - d.before.x, Math.round(d.before.width + dx))
@@ -98,7 +105,10 @@ export function PageCanvasStage({
           ),
           y: Math.max(
             0,
-            Math.min(page.height - d.before.height, Math.round(d.before.y + dy))
+            Math.min(
+              page.height - (fullHeight ? 1 : d.before.height),
+              Math.round(d.before.y + dy)
+            )
           ),
         };
     drag.current = { ...d, box };
@@ -138,7 +148,10 @@ export function PageCanvasStage({
       ),
       y: Math.max(
         0,
-        Math.min(page.height - box.height, box.y + (direction[1] ?? 0) * by)
+        Math.min(
+          page.height - (elements[index]?.fullHeight ? 1 : box.height),
+          box.y + (direction[1] ?? 0) * by
+        )
       ),
     });
   };
@@ -160,13 +173,13 @@ export function PageCanvasStage({
               onPointerDown={(e) => start(e, el.id, i, false)}
               onPointerMove={move}
               onPointerUp={finish}
-              style={grid.style(boxOf(shown, el.id, i))}
+              style={grid.style(pageElementBox(shown, el, i))}
               type="button"
             />
             {selected === el.id ? (
               <div
                 className="page-builder__selection"
-                style={grid.style(boxOf(shown, el.id, i))}
+                style={grid.style(pageElementBox(shown, el, i))}
               >
                 <button
                   aria-label={`Resize ${el.text || el.kind}`}

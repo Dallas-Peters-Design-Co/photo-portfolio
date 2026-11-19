@@ -40,10 +40,12 @@ const position = (
 export function ConceptTooltip({
   children,
   fill = false,
+  fullHeight,
   tooltip,
 }: {
   children: ReactNode;
   fill?: boolean;
+  fullHeight?: boolean;
   tooltip?: TooltipConfig;
 }) {
   useConceptFont(
@@ -112,6 +114,7 @@ export function ConceptTooltip({
         aria-describedby={visible ? id : undefined}
         className="concept-tooltip__trigger"
         data-fill={fill || undefined}
+        data-full-height={fullHeight || undefined}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) {
             setFocused(false);

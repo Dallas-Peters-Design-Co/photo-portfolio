@@ -28,9 +28,12 @@ function PlacementFields({
     return null;
   }
   if (box) {
+    const fields = element.fullHeight
+      ? (["x", "y", "width"] as const)
+      : (["x", "y", "width", "height"] as const);
     return (
       <div className="page-builder__numbers">
-        {(["x", "y", "width", "height"] as const).map((field) => (
+        {fields.map((field) => (
           <PageNumber
             key={field}
             label={field.toUpperCase()}
