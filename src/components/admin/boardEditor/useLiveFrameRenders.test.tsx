@@ -12,14 +12,16 @@ import { useLiveFrameRenders } from "./useLiveFrameRenders";
  * handed the topmost picture inside the frame instead of the design.
  */
 
+const LOCAL_URL = /^blob:/;
 const uploads: Blob[] = [];
+let uploadGate: Promise<void> | undefined;
 vi.mock("../../../services/portfolioService", () => ({
   portfolioService: {
-    uploadImageFile: (file: File) => {
+    uploadImageFile: async (file: File) => {
       uploads.push(file);
-      return Promise.resolve({
-        url: `https://blob.test/frame-${uploads.length}.png`,
-      });
+      const url = `https://blob.test/frame-${uploads.length}.png`;
+      await uploadGate;
+      return { url };
     },
   },
 }));
@@ -85,7 +87,7 @@ function Host({
   wires: BoardWire[];
 }) {
   const pending = { current: { items, wires } };
-  useLiveFrameRenders({
+  const previews = useLiveFrameRenders({
     items,
     pending,
     save,
@@ -93,7 +95,7 @@ function Host({
       onItems(typeof next === "function" ? next(items) : next),
     wires,
   });
-  return null;
+  return <output>{previews.get(shader.id)}</output>;
 }
 
 describe("a frame feeding a shader", () => {
@@ -103,6 +105,7 @@ describe("a frame feeding a shader", () => {
     act(() => root?.unmount());
     host?.remove();
     uploads.length = 0;
+    uploadGate = undefined;
   });
 
   it("is rendered and the render saved on the frame, once", async () => {
@@ -198,6 +201,45 @@ describe("a frame feeding a shader", () => {
         wires: [wire],
       })
     ).toBe("https://blob.test/frame-2.png");
+  });
+
+  it("shows the local composite and its next edit while the first upload is blocked", async () => {
+    let finish: () => void = () => undefined;
+    uploadGate = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const save = vi.fn(() => Promise.resolve());
+    const onItems = vi.fn();
+    host = document.createElement("div");
+    root = createRoot(host);
+    const show = (layer: BoardItem) =>
+      act(() =>
+        root?.render(
+          <Host
+            items={[frame, layer, shader]}
+            onItems={onItems}
+            save={save}
+            wires={[wire]}
+          />
+        )
+      );
+    try {
+      show(text);
+      await vi.waitFor(() => expect(host?.textContent).toMatch(LOCAL_URL));
+      const first = host.textContent;
+      expect((await (await fetch(first)).blob()).type).toBe("image/png");
+      expect(save).not.toHaveBeenCalled();
+      uploadGate = undefined;
+      show({ ...text, body: "Second version" });
+      await vi.waitFor(() => expect(save).toHaveBeenCalledTimes(1));
+      expect(host.textContent).toMatch(LOCAL_URL);
+      expect(host.textContent).not.toBe(first);
+      expect(onItems.mock.calls[0][0][0].config.renderUrl).toBe(
+        "https://blob.test/frame-2.png"
+      );
+    } finally {
+      finish();
+    }
   });
 
   it("leaves a frame alone when nothing live is wired to it", async () => {

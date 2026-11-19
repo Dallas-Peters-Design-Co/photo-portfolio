@@ -272,7 +272,13 @@ export function BoardEditor({
     setItems,
     setWires,
   });
-  useLiveFrameRenders({ items, pending, save, setItems, wires });
+  const framePreviews = useLiveFrameRenders({
+    items,
+    pending,
+    save,
+    setItems,
+    wires,
+  });
 
   const colours = useColorVarsDoc(
     board?.colorVars,
@@ -368,6 +374,7 @@ export function BoardEditor({
               comments={comments}
               drawStyle={drawStyle}
               drawTool={drawTool}
+              framePreviews={framePreviews}
               items={items}
               keyOf={keyOf}
               onAddEffects={itemTools.addEffects}

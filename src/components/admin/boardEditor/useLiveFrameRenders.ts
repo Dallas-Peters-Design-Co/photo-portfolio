@@ -1,11 +1,11 @@
 import type React from "react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useComponentVersion } from "../../../boards/components/store";
 import {
   framesIntoShaders,
   framesToRender,
-  withFrameRenders,
+  renderFrameBlob,
 } from "../../../boards/io/frameRender";
 import { frameKeyOf } from "../../../boards/io/frameRenderKey";
 import { portfolioService } from "../../../services/portfolioService";
@@ -33,7 +33,7 @@ const drawsLive = (item: BoardItem): boolean =>
   item.nodeType === "social";
 
 /** Long enough to outlast a drag; short enough not to feel like waiting. */
-const SETTLE_MS = 900;
+const SETTLE_MS = 120;
 
 export interface LiveFrameDeps {
   items: BoardItem[];
@@ -75,8 +75,8 @@ export const useLiveFrameRenders = ({
   save,
   setItems,
   wires,
-}: LiveFrameDeps): void => {
-  const queue = useRef(Promise.resolve());
+}: LiveFrameDeps): ReadonlyMap<string, string> => {
+  const [local, setLocal] = useState(new Map<string, string>());
   const latest = useRef({ pending, save, setItems });
   latest.current = { pending, save, setItems };
   // Unrelated board activity must not restart the debounce. Include the
@@ -100,31 +100,46 @@ export const useLiveFrameRenders = ({
       return;
     }
     let cancelled = false;
+    const urls = new Set<string>();
     const render = async () => {
-      if (cancelled) {
-        return;
-      }
       const graph = latest.current.pending.current;
       const frames = staleFrames(graph.items, graph.wires);
-      const rendered = await withFrameRenders(
-        frames,
-        graph.items,
-        upload,
-        (m) => {
-          if (!cancelled) {
-            toast.error(m);
-          }
+      const updates = new Map<
+        string,
+        { renderKey: string; renderUrl: string }
+      >();
+      const uploads: Promise<void>[] = [];
+      const reportError = (err: unknown) => {
+        if (!cancelled) {
+          toast.error(
+            err instanceof Error ? err.message : "Couldn't render the frame"
+          );
         }
-      );
-      if (cancelled) {
-        return;
+      };
+      for (const frame of frames) {
+        try {
+          const renderKey = frameKeyOf(frame, graph.items);
+          // biome-ignore lint/performance/noAwaitInLoops: rasterize one full-size canvas at a time
+          const png = await renderFrameBlob(frame, graph.items);
+          if (cancelled) {
+            return;
+          }
+          const url = URL.createObjectURL(png);
+          urls.add(url);
+          setLocal((previous) => new Map(previous).set(frame.id, url));
+          uploads.push(
+            upload(png)
+              .then((renderUrl) => {
+                updates.set(frame.id, { renderKey, renderUrl });
+              })
+              .catch(reportError)
+          );
+        } catch (err) {
+          reportError(err);
+        }
       }
-      const updates = new Map(
-        rendered
-          .filter((item, i) => item !== graph.items[i])
-          .map((item) => [item.id, item.config])
-      );
-      if (!updates.size) {
+      await Promise.all(uploads);
+      if (cancelled || !updates.size) {
         return;
       }
       const { current } = latest.current.pending;
@@ -150,7 +165,7 @@ export const useLiveFrameRenders = ({
       }
     };
     const timer = setTimeout(() => {
-      queue.current = queue.current.then(render).catch((err) => {
+      render().catch((err) => {
         if (!cancelled) {
           toast.error(
             err instanceof Error
@@ -163,6 +178,33 @@ export const useLiveFrameRenders = ({
     return () => {
       cancelled = true;
       clearTimeout(timer);
+      if (urls.size) {
+        setLocal(
+          (previous) =>
+            new Map([...previous].filter(([, url]) => !urls.has(url)))
+        );
+        for (const url of urls) {
+          URL.revokeObjectURL(url);
+        }
+      }
     };
   }, [work]);
+
+  return useMemo(() => {
+    const previews = new Map<string, string>();
+    const shaders = new Set(
+      items.filter((item) => item.kind === "shader").map((item) => item.id)
+    );
+    for (const wire of wires) {
+      const url = local.get(wire.sourceItemId);
+      if (
+        url &&
+        wire.targetPort === "image" &&
+        shaders.has(wire.targetItemId)
+      ) {
+        previews.set(wire.targetItemId, url);
+      }
+    }
+    return previews;
+  }, [items, local, wires]);
 };

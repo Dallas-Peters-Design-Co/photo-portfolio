@@ -105,6 +105,7 @@ interface BoardCanvasProps {
   drawStyle?: { fill: string; stroke: string; strokeWidth: number };
   /** The active drawing tool, or null when the pointer selects and pans. */
   drawTool?: DrawTool | null;
+  framePreviews?: ReadonlyMap<string, string>;
   items: BoardItem[];
   /** Stable per-item React key. */
   keyOf: (item: BoardItem) => string;
@@ -281,6 +282,7 @@ type Gesture =
  * gesture belongs to the surface, and the surface knows which item owns it.
  */
 export function BoardCanvas({
+  framePreviews,
   items,
   onChange,
   onConfigChange,
@@ -1202,7 +1204,7 @@ export function BoardCanvas({
                 commentCount={openCommentCounts.get(item.id) ?? 0}
                 hasWiredPrompt={wiredPorts.has(`${item.id}:prompt`)}
                 imageCount={preview.imageCount}
-                imageUrl={preview.imageUrl}
+                imageUrl={framePreviews?.get(item.id) ?? preview.imageUrl}
                 index={index}
                 inFrame={framed.inFrame(item)}
                 isEditing={!readOnly && editingId === item.id}
