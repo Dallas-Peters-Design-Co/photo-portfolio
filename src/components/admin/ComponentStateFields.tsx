@@ -1,4 +1,7 @@
-import { stateLabel } from "../../../config/componentStates.js";
+import {
+  stateLabel,
+  usesNamedStates,
+} from "../../../config/componentStates.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import type { ConceptSlot } from "../../../config/conceptSlots.js";
 import { MAX_SLOT_ELEMENTS } from "../../../config/conceptSlots.js";
@@ -28,14 +31,41 @@ export function ComponentStateFields({
     <>
       <Button
         aria-pressed={Boolean(group.stateful)}
-        onClick={() => change({ stateful: !group.stateful })}
+        onClick={() =>
+          change(
+            group.stateful
+              ? { disclosureLabel: undefined, stateful: false }
+              : {
+                  disclosureLabel: group.disclosureLabel || "Cards",
+                  stateful: true,
+                }
+          )
+        }
         type="button"
       >
-        {group.stateful
-          ? "Use as layout group"
-          : "Use children as component states"}
+        {group.stateful ? "Use as layout group" : "Make collapsible component"}
       </Button>
-      {group.stateful ? (
+      {group.stateful && !usesNamedStates(group) && (
+        <Button
+          disabled={!group.elements.length}
+          onClick={() =>
+            change({
+              disclosureLabel: undefined,
+              elements: group.elements.map((child, i) => ({
+                ...child,
+                stateName:
+                  child.stateName?.trim() ||
+                  child.text.split("\n")[0].trim() ||
+                  stateLabel(child, i),
+              })),
+            })
+          }
+          type="button"
+        >
+          Use children as separate variants
+        </Button>
+      )}
+      {usesNamedStates(group) ? (
         <>
           {group.elements.map((child, index) => (
             <ConceptField key={child.id} label={`State ${index + 1} name`}>

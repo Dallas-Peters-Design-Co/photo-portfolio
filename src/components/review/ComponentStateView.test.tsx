@@ -11,6 +11,14 @@ import { ReviewConceptElementView } from "./ReviewConceptElementView";
 
 it("saves named states in the kit and switches only the chosen instance", async () => {
   const original = createStatefulComponent();
+  original.group = {
+    elements: ["Default", "Active"].map((name) => ({
+      ...createConceptElement("text"),
+      stateName: name,
+      text: name,
+    })),
+    stateful: true,
+  };
   const [style] = cleanConceptStyles([
     {
       id: "stateful",
@@ -50,5 +58,43 @@ it("saves named states in the kit and switches only the chosen instance", async 
   } finally {
     await act(() => root.unmount());
     host.remove();
+  }
+});
+
+it("opens every card in an existing unnamed stateful row and collapses them together", async () => {
+  const row = createStatefulComponent();
+  expect(row.group?.elements).toHaveLength(0);
+  row.group = {
+    elements: ["Ingestion", "Findings", "Screening"].map((text) => ({
+      ...createConceptElement("card"),
+      text,
+    })),
+    layout: "row",
+    stateful: true,
+  };
+  const source = componentSource(row, "Study cards").tsx;
+  expect(source).toContain("<details");
+  expect(source).toContain("Screening");
+  const rootNode = document.createElement("div");
+  document.body.append(rootNode);
+  const root = createRoot(rootNode);
+  try {
+    await act(() => root.render(<ReviewConceptElementView element={row} />));
+    const details = rootNode.querySelector("details");
+    expect(details?.open).toBe(true);
+    const cards = rootNode.querySelectorAll(".concept-group__items > *");
+    expect(Array.from(cards, (card) => card.textContent)).toEqual([
+      "Ingestion",
+      "Findings",
+      "Screening",
+    ]);
+    expect(rootNode.textContent).not.toContain("State 1");
+    await act(() => details?.querySelector("summary")?.click());
+    expect(details?.open).toBe(false);
+    await act(() => details?.querySelector("summary")?.click());
+    expect(details?.open).toBe(true);
+  } finally {
+    await act(() => root.unmount());
+    rootNode.remove();
   }
 });

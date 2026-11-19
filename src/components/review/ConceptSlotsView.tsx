@@ -1,4 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
+import {
+  groupDisclosure,
+  usesNamedStates,
+} from "../../../config/componentStates.js";
 import { flexSize } from "../../../config/conceptFlex.js";
 import {
   type ConceptSlot,
@@ -202,7 +206,8 @@ export function ConceptGroupView({
   style: CSSProperties;
 }) {
   const group = element.group ?? { elements: [] };
-  const items = group.stateful ? (
+  const disclosure = groupDisclosure(group);
+  const items = usesNamedStates(group) ? (
     <ComponentStateView
       draw={(active) => (
         <Items
@@ -222,10 +227,8 @@ export function ConceptGroupView({
       data-full={group.full || undefined}
       style={{ ...style, padding: padding(group) }}
     >
-      {group.disclosureLabel ? (
-        <CollapsibleCardRow label={group.disclosureLabel}>
-          {items}
-        </CollapsibleCardRow>
+      {disclosure ? (
+        <CollapsibleCardRow label={disclosure}>{items}</CollapsibleCardRow>
       ) : (
         items
       )}

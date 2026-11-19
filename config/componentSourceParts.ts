@@ -1,4 +1,5 @@
 import { componentStateSource } from "./componentStateSource.js";
+import { groupDisclosure, usesNamedStates } from "./componentStates.js";
 import { flexSize } from "./conceptFlex.js";
 import { type ConceptIconSvg, conceptIconName } from "./conceptIcon.js";
 import { iconSizeOf } from "./conceptKinds.js";
@@ -241,18 +242,19 @@ const slotsOf = (
 export const groupMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   const group = el.group ?? { elements: [] };
   const css: string[] = [];
-  if (group.stateful) {
+  const disclosure = groupDisclosure(group);
+  if (usesNamedStates(group)) {
     return componentStateSource(group, draw);
   }
   const items = slotItems(group, "@@__item", draw, css);
   return {
-    body: group.disclosureLabel
-      ? `<details open className="@@__disclosure"><summary>${escapeJsx(group.disclosureLabel)}</summary>\n${items}\n</details>`
+    body: disclosure
+      ? `<details open className="@@__disclosure"><summary>${escapeJsx(disclosure)}</summary>\n${items}\n</details>`
       : items,
     childCss: css.join("\n"),
     css: `& { display: flex; min-width: 0;${group.full ? " width: 100%; align-self: stretch;" : ""} }
 & > &__items { flex: 1 1 auto; }
-${group.disclosureLabel ? "&__disclosure { width: 100%; min-width: 0; } &__disclosure > summary { cursor: pointer; display: list-item; }" : ""}
+${disclosure ? "&__disclosure { width: 100%; min-width: 0; } &__disclosure > summary { cursor: pointer; display: list-item; }" : ""}
 ${SLOTS_CSS}`,
     tag: "div",
     tokens: [
