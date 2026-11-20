@@ -224,6 +224,23 @@
   letter-spacing: var(--tracking-micro);
 }
 
+.review-page__priority-group[data-priority="must-fix"] {
+  --review-fix-color: var(--review-pin-issue, #dc2626);
+}
+
+.review-page__priority-group[data-priority="recommended"] {
+  --review-fix-color: var(--review-pin-recommendation, #2563eb);
+}
+
+.review-page__priority-group[data-priority="later"] {
+  --review-fix-color: var(--review-pin-suggestion, #f59e0b);
+}
+
+.review-page__priority-group h3,
+.review-page__priority-number {
+  color: var(--review-fix-color, inherit);
+}
+
 .review-page__priority-group ol {
   display: grid;
   gap: calc(var(--spacing) * 2);
@@ -237,9 +254,11 @@
   grid-template-columns: 4.5rem minmax(0, 1fr);
   gap: calc(var(--spacing) * 3);
   padding-block: calc(var(--spacing) * 2);
+  padding-inline-start: calc(var(--spacing) * 3);
   color: inherit;
   text-decoration: none;
   border-block-end: 1px solid var(--sheet-rule);
+  border-inline-start: 3px solid var(--review-fix-color, transparent);
 }
 
 .review-page__priority-group li a:hover strong,

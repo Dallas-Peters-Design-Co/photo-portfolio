@@ -343,7 +343,11 @@ function PriorityFixList({ doc }: { doc: ReviewRecord["doc"] }) {
           }
 
           return (
-            <section className="review-page__priority-group" key={key}>
+            <section
+              className="review-page__priority-group"
+              data-priority={key}
+              key={key}
+            >
               <h3>{label}</h3>
               <ol>
                 {group.map((fix) => (
