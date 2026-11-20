@@ -22,6 +22,7 @@
 .review-page__concept-preview {
   min-height: 8rem;
   overflow: hidden;
+  isolation: isolate;
 }
 
 /* The step's trigger: what to click, pulsing gently until it is. */
