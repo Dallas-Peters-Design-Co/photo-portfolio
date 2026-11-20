@@ -195,7 +195,7 @@ export const componentPropOptionsOf = (
 
 /** Props shown as editable controls on an instance. */
 export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] =>
-  style.overridableProps ?? componentPropOptionsOf(style);
+  style.overridableProps ?? [];
 
 /** An element's look: the part a style holds. */
 export const lookOf = (element: ReviewConceptElement): ConceptStyleLook => {
@@ -276,7 +276,7 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
         (key, index, all): key is ConceptStyleProp =>
           props.includes(key as ConceptStyleProp) && all.indexOf(key) === index
       )
-    : props;
+    : [];
   return {
     id: raw.id,
     kind: element.kind,

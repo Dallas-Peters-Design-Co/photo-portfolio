@@ -232,7 +232,7 @@ function StyleEditor({
             </p>
             {componentPropOptionsOf(style).map((prop) => {
               const id = `${bodyId}-${prop}`;
-              const enabled = style.overridableProps?.includes(prop) ?? true;
+              const enabled = style.overridableProps?.includes(prop) ?? false;
               return (
                 <label
                   className="review-concepts__check"
