@@ -157,6 +157,7 @@ function ElementList({
   label,
   initiallyOpen = false,
   destination,
+  gridColumns,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
@@ -166,6 +167,7 @@ function ElementList({
   label: string;
   initiallyOpen?: boolean;
   destination?: { id: string; position: DropPosition };
+  gridColumns?: number;
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
@@ -340,6 +342,7 @@ function ElementList({
             brandDoc={brandDoc}
             depth={depth}
             element={element}
+            gridColumns={gridColumns}
             handle={
               <button
                 aria-label={`Move ${kindLabel(element.kind)}: drag, or use the arrow keys`}

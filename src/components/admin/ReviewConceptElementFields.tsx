@@ -26,6 +26,7 @@ import {
 import { LayerListBoundary } from "./ConceptElementList";
 import { ConceptFlexFields } from "./ConceptFlexFields";
 import { ConceptFontField } from "./ConceptFontField";
+import { ConceptGridItemFields } from "./ConceptGridItemFields";
 import { LogoGroup } from "./ConceptLogoFields";
 import { MenuGroup } from "./ConceptMenuFields";
 import { ConceptSlotFields, SlotFields } from "./ConceptSlotFields";
@@ -297,6 +298,7 @@ export function ReviewConceptElementFields({
   brandDoc,
   depth = 0,
   element,
+  gridColumns,
   handle,
   lookOnly = false,
   initiallyOpen = false,
@@ -312,6 +314,8 @@ export function ReviewConceptElementFields({
   /** How many slots deep the element sits; past the limit it has none. */
   depth?: number;
   element: ReviewConceptElement;
+  /** When the parent is a grid, allow explicit cell placement. */
+  gridColumns?: number;
   /** The control that moves the element within its list. */
   handle?: ReactNode;
   /**
@@ -462,6 +466,13 @@ export function ReviewConceptElementFields({
             flex={element.flex}
             onChange={(flex) => onChange({ flex })}
           />
+          {gridColumns ? (
+            <ConceptGridItemFields
+              columns={gridColumns}
+              onChange={(gridPlacement) => onChange({ gridPlacement })}
+              placement={element.gridPlacement}
+            />
+          ) : null}
           <KindGroups
             brandDoc={brandDoc}
             element={element}

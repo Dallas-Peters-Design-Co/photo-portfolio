@@ -229,7 +229,10 @@ export function ConceptGroupView({
   element: ReviewConceptElement;
   style: CSSProperties;
 }) {
-  const group = element.group ?? { elements: [] };
+  const group = {
+    ...(element.group ?? { elements: [] }),
+    wrap: element.group?.wrap ?? false,
+  };
   const disclosure = groupDisclosure(group);
   const items = group.stateful ? (
     <ComponentStateView

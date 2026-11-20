@@ -71,10 +71,15 @@ const SLIDES = optionsOf([
   ["bottom", "Slides up from the bottom"],
 ]);
 
+const gridColumnsOf = (layout: ConceptSlotLayout, slot: ConceptSlot) =>
+  layout === "grid" ? (slot.columns ?? SLOT_DEFAULTS.columns) : undefined;
+
 function WrapField({
+  group = false,
   slot,
   onChange,
 }: {
+  group?: boolean;
   slot: ConceptSlot;
   onChange: (wrap: boolean) => void;
 }) {
@@ -85,7 +90,7 @@ function WrapField({
   return (
     <label className="review-concepts__check" htmlFor={id}>
       <Checkbox
-        checked={slot.wrap ?? true}
+        checked={slot.wrap ?? !group}
         id={id}
         onChange={(event) => onChange(event.target.checked)}
       />
@@ -162,7 +167,11 @@ export function SlotFields({
             value={layout}
           />
         </ConceptField>
-        <WrapField onChange={(wrap) => set({ wrap })} slot={slot} />
+        <WrapField
+          group={group}
+          onChange={(wrap) => set({ wrap })}
+          slot={slot}
+        />
         {layout === "grid" ? (
           <NumberField
             label="Columns"
@@ -251,6 +260,7 @@ export function SlotFields({
         depth={depth + 1}
         destination={slotDestination(ownerId, group, name)}
         elements={slot.elements}
+        gridColumns={gridColumnsOf(layout, slot)}
         initiallyOpen={name === "hide"}
         label={
           listLabel ??

@@ -314,7 +314,13 @@ export const createConceptElement = (
     ...(kind === "group"
       ? {
           background: "transparent",
-          group: { align: "center", elements: [], gap: 8, layout: "row" },
+          group: {
+            align: "center",
+            elements: [],
+            gap: 8,
+            layout: "row",
+            wrap: false,
+          },
           paddingX: 0,
           paddingY: 0,
           radius: 0,
