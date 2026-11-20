@@ -351,7 +351,7 @@ export const createConcept = (brandDoc?: BrandKitDoc | null): ReviewConcept => {
     id: newItemId(),
     padding: 24,
     radius: 12,
-    title: "Homepage hero",
+    title: "Key finding and action",
   };
 };
 
