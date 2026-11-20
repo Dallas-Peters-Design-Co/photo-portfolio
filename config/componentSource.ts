@@ -159,28 +159,32 @@ const orderedListMarkup = (el: ReviewConceptElement): Markup => {
     .split(LIST_ITEM_BREAK)
     .map((item) => item.trim())
     .filter(Boolean);
+  const defaultItems = items
+    .map((item) => `      <li>${escapeJsx(item)}</li>`)
+    .join("\n");
   return {
     body: items.map((item) => `<li>${escapeJsx(item)}</li>`).join("\n"),
     css: `& { display: block; margin: 0; padding-inline-start: ${Math.round(el.fontSize * 1.5) + el.paddingX}px; list-style: decimal; }\n& > li + li { margin-block-start: 0.25em; }`,
     tag: "ol",
-    tsx: (name, cls) => `import "./${name}.css";
+    tsx: (name, cls) => `import type * as React from "react";
+import "./${name}.css";
 
 interface ${name}Props {
   className?: string;
-  items?: string[];
+  children?: React.ReactNode;
 }
 
 /** A numbered list, from the brand kit. */
 export function ${name}({
   className,
-  items = ${JSON.stringify(items)},
+  children = (
+    <>
+${defaultItems}
+    </>
+  ),
 }: ${name}Props) {
   return (
-    <ol className={[${quote(cls)}, className].filter(Boolean).join(" ")}>
-      {items.filter((item) => item.trim()).map((item, index) => (
-        <li key={index}>{item}</li>
-      ))}
-    </ol>
+    <ol className={[${quote(cls)}, className].filter(Boolean).join(" ")}>{children}</ol>
   );
 }
 `,

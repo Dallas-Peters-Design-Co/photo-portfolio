@@ -633,6 +633,8 @@
     --sheet-ink-soft: oklch(0.5 0 0);
     --sheet-rule: oklch(0.9 0 0);
     --sheet-tint: oklch(0.965 0 0);
+    /* Rich text uses the site's foreground token; reset it for white paper. */
+    --foreground: var(--sheet-ink);
 
     display: block;
     color: var(--sheet-ink);
