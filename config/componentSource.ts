@@ -241,14 +241,94 @@ export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote
     upload: () => ({
       body: `<input className="@@__input" type="file" />\n<span>{children}</span>${
         el.placeholder
-          ? `\n<span className="@@__file">${escapeJsx(el.placeholder)}</span>`
+          ? `\n<span className="@@__file" aria-live="polite">${escapeJsx(el.placeholder)}</span>`
           : ""
       }`,
-      css: `& { display: grid; gap: 8px; place-items: center; text-align: center; border-style: dashed; cursor: pointer; }
+      css: `& { position: relative; display: grid; gap: 8px; place-items: center; text-align: center; border-style: dashed; cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; }
+&[data-dragging] { background: color-mix(in srgb, currentColor 8%, transparent); border-color: currentColor; }
 &:focus-within { outline: 2px solid var(--&-accent, currentColor); outline-offset: 2px; }
 &__input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 &__file { padding: 4px 10px; font-weight: 600; background: color-mix(in srgb, currentColor 8%, transparent); border-radius: 999px; }`,
       tag: "label",
+      tsx: (name, cls) => `import { useState } from "react";
+import type * as React from "react";
+import "./${name}.css";
+
+interface ${name}Props {
+  accept?: string;
+  className?: string;
+  children?: React.ReactNode;
+  multiple?: boolean;
+  onFilesSelected?: (files: File[]) => void;
+}
+
+/** Upload dropzone, from the brand kit. */
+export function ${name}({
+  accept,
+  className,
+  children = ${quote(sampleText(el))},
+  multiple = false,
+  onFilesSelected,
+}: ${name}Props) {
+  const [fileNames, setFileNames] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
+  const selectFiles = (files: File[]) => {
+    const selected = multiple ? files : files.slice(0, 1);
+    if (selected.length === 0) {
+      return;
+    }
+    setFileNames(selected.map((file) => file.name));
+    onFilesSelected?.(selected);
+  };
+  const handleDragOver = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    if (event.dataTransfer.types.includes("Files")) {
+      setDragging(true);
+    }
+  };
+  const handleDragLeave = (event: React.DragEvent<HTMLLabelElement>) => {
+    const next = event.relatedTarget;
+    if (next instanceof Node && event.currentTarget.contains(next)) {
+      return;
+    }
+    setDragging(false);
+  };
+  const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setDragging(false);
+    selectFiles(Array.from(event.dataTransfer.files));
+  };
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    selectFiles(Array.from(event.currentTarget.files ?? []));
+    event.currentTarget.value = "";
+  };
+
+  return (
+    <label
+      className={[${quote(cls)}, className].filter(Boolean).join(" ")}
+      data-dragging={dragging || undefined}
+      onDragLeave={handleDragLeave}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <input
+        accept={accept}
+        aria-label="Choose file"
+        className="${cls}__input"
+        multiple={multiple}
+        onChange={handleChange}
+        type="file"
+      />
+      <span>{children}</span>
+      {fileNames.length > 0 ? (
+        <span aria-live="polite" className="${cls}__file">
+          {fileNames.join(", ")}
+        </span>
+      ) : null}
+    </label>
+  );
+}
+`,
     }),
   };
   return (byKind[el.kind]?.() ?? {
