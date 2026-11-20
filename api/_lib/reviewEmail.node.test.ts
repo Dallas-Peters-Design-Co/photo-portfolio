@@ -11,7 +11,7 @@ const review = (screens: unknown[]) =>
     title: "Back Acres Rentals",
   }) as unknown as ReviewDto;
 
-const send = (r: ReviewDto) =>
+const send = (r: ReviewDto, password?: string) =>
   reviewLinkEmail({
     brand: {
       domain: "dallaspeters.com",
@@ -21,6 +21,7 @@ const send = (r: ReviewDto) =>
     },
     note: "",
     ownerName: "Dallas",
+    password,
     review: r,
     url: "https://www.dallaspeters.com/review/back-acres",
   });
@@ -47,5 +48,12 @@ describe("reviewLinkEmail", () => {
   it("leaves the picture out when nothing has been captured", () => {
     const { html } = send(review([{ id: "a", image: null, title: "Empty" }]));
     expect(html).not.toContain("max-width:560px");
+  });
+
+  it("includes the review password in both email formats", () => {
+    const mail = send(review([]), "open <sesame>");
+    expect(mail.html).toContain("Review password:");
+    expect(mail.html).toContain("open &lt;sesame&gt;");
+    expect(mail.text).toContain("Review password: open <sesame>");
   });
 });

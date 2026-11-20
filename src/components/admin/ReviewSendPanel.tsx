@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { siteConfig } from "../../site";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { proposalTextareaClass } from "./proposalStyles";
 
@@ -18,15 +19,21 @@ export function ReviewSendPanel({
   onChange: (next: ReviewRecord) => void;
 }) {
   const [note, setNote] = useState("");
+  const [password, setPassword] = useState("");
   const [isSending, setIsSending] = useState(false);
   const url = `https://${siteConfig.domain}/review/${review.slug}`;
   const email = review.clientEmail?.trim() ?? "";
-  const canSend = review.status === "published" && Boolean(email);
+  const canSend =
+    review.status === "published" &&
+    Boolean(email) &&
+    (!review.hasPassword || Boolean(password));
   let reason = "";
   if (review.status !== "published") {
     reason = "Publish first";
   } else if (!email) {
     reason = "Add the client email and save";
+  } else if (review.hasPassword && !password) {
+    reason = "Enter the review password so the client can open the review";
   }
   let label = `Send to ${email || "client"}`;
   if (isSending) {
@@ -47,9 +54,10 @@ export function ReviewSendPanel({
   const send = async () => {
     setIsSending(true);
     try {
-      const next = await reviewsApi.send(review.slug, { note });
+      const next = await reviewsApi.send(review.slug, { note, password });
       onChange(next);
       setNote("");
+      setPassword("");
       toast.success(`Sent to ${next.sent?.to ?? email}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not send");
@@ -78,6 +86,23 @@ export function ReviewSendPanel({
           value={note}
         />
       </div>
+      {review.hasPassword ? (
+        <div className="space-y-2">
+          <Label htmlFor="review-send-password">
+            Review password (included in email)
+          </Label>
+          <Input
+            autoComplete="off"
+            id="review-send-password"
+            maxLength={200}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter the current review password"
+            size="lg"
+            type="password"
+            value={password}
+          />
+        </div>
+      ) : null}
       <div className="flex flex-wrap items-center gap-3 text-sm text-white/70">
         <Button
           disabled={busy || isSending || !canSend}

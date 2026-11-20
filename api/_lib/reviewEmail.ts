@@ -17,6 +17,7 @@ export interface ReviewLinkInput {
   brand: EmailBrand;
   note: string;
   ownerName: string;
+  password?: string;
   review: ReviewDto;
   url: string;
 }
@@ -30,6 +31,7 @@ export const reviewLinkEmail = ({
   review,
   note,
   ownerName,
+  password,
   url,
 }: ReviewLinkInput) => {
   const who = review.clientName.trim().split(WORD_BREAK)[0] ?? "";
@@ -40,6 +42,9 @@ export const reviewLinkEmail = ({
     : `Here's my review of the site: ${review.doc.screens.length} screens with ${notes} numbered notes on what works, what gets in the way, and what I'd change.`;
   const how =
     "Each screenshot has numbered pins; the notes under it match the numbers. Reply to this email with any questions.";
+  const passwordHtml = password
+    ? `<p ${P}>Review password: <strong>${escapeHtml(password)}</strong></p>`
+    : "";
   // The first captured screen, so the client sees the work before clicking
   // through. Plain screenshot: pins and markup live on the page, where they
   // can sit beside their notes.
@@ -61,6 +66,7 @@ export const reviewLinkEmail = ({
 ${paragraphs.map((p) => `<p ${P}>${escapeHtml(p).replace(LINE_BREAK, "<br>")}</p>`).join("")}
 ${preview}
 <p ${P}>${escapeHtml(how)}</p>
+${passwordHtml}
 ${button(url, "Open the review")}
 <p ${SOFT}><a href="${escapeHtml(url)}" style="color:inherit">${escapeHtml(url)}</a></p>
 <p ${P}>${escapeHtml(ownerName)}</p>`,
@@ -68,6 +74,17 @@ ${button(url, "Open the review")}
     preheader: paragraphs[0] ?? "",
     title: review.title,
   });
-  const text = [greeting, "", body, "", how, "", url, "", ownerName].join("\n");
+  const text = [
+    greeting,
+    "",
+    body,
+    "",
+    how,
+    ...(password ? ["", `Review password: ${password}`] : []),
+    "",
+    url,
+    "",
+    ownerName,
+  ].join("\n");
   return { html, subject: `Review: ${review.title}`, text };
 };

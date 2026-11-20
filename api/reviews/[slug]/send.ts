@@ -5,6 +5,7 @@ import { getSql } from "../../_lib/db.js";
 import { EmailNotConfiguredError, sendEmail } from "../../_lib/email.js";
 import { sanitizeText } from "../../_lib/httpUrl.js";
 import { parseJsonBody } from "../../_lib/parseBody.js";
+import { accessOf, passwordMatches } from "../../_lib/reviewAccess.js";
 import { reviewLinkEmail } from "../../_lib/reviewEmail.js";
 import { signDoc } from "../../_lib/reviewImages.js";
 import {
@@ -25,6 +26,23 @@ import { emailBrand, getSite } from "../../_lib/site.js";
  */
 
 const MAX_NOTE = 2000;
+
+const passwordForEmail = (
+  doc: unknown,
+  candidate: unknown
+): { error?: string; password?: string } => {
+  const access = accessOf(doc);
+  if (!access) {
+    return {};
+  }
+  if (typeof candidate !== "string" || !candidate) {
+    return { error: "Enter the review password to include it in the email." };
+  }
+  if (candidate.length > 200 || !passwordMatches(candidate, access)) {
+    return { error: "The password does not match this review." };
+  }
+  return { password: candidate };
+};
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (handleCors(req, res)) {
@@ -73,12 +91,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .json({ error: "Add the client's email to the review first." });
     }
 
+    const emailPassword = passwordForEmail(row.doc, body.password);
+    if (emailPassword.error) {
+      return res.status(400).json({ error: emailPassword.error });
+    }
+
     const site = getSite();
     const url = `https://${site.domain}/review/${slug}`;
     const mail = reviewLinkEmail({
       brand: emailBrand(site),
       note,
       ownerName: site.ownerName,
+      ...(emailPassword.password ? { password: emailPassword.password } : {}),
       review: rowToReviewDto(row),
       url,
     });

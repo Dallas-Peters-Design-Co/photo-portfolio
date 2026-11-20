@@ -326,7 +326,7 @@ export const reviewsApi = {
 
   send: async (
     slug: string,
-    input: { note?: string } = {}
+    input: { note?: string; password?: string } = {}
   ): Promise<ReviewRecord> =>
     json(
       await fetch(`${reviewsPath()}/${encodeURIComponent(slug)}/send`, {
