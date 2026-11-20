@@ -151,9 +151,7 @@ export function BrandGuidePage() {
           </>
         }
         contents={SECTIONS.filter(
-          ([id]) =>
-            (id !== "social-posts" || doc.socialPosts?.length) &&
-            (id !== "shaders" || doc.shaders.length > 0)
+          ([id]) => id !== "shaders" || doc.shaders.length > 0
         ).map(([id, label]) => ({ id, label }))}
         foot={
           <p className="doc-shell__colophon">
@@ -229,12 +227,21 @@ export function BrandGuidePage() {
           <ImagerySection doc={doc} />
         </section>
 
-        {Boolean(doc.socialPosts?.length) && (
-          <section className="doc-band" id="social-posts">
-            <h2 className="doc-band__title">Social posts</h2>
+        <section className="doc-band" id="social-posts">
+          <h2 className="doc-band__title">Social posts</h2>
+          {doc.socialPosts.length > 0 ? (
             <GuideSocialPosts kit={kit} />
-          </section>
-        )}
+          ) : (
+            <div className="guide-social__empty">
+              <p className="guide-subhead">No social posts yet</p>
+              <p>
+                Select a frame on a canvas board, then choose Social post in its
+                toolbar to add it to LinkedIn, X (Twitter), or Facebook. Saved
+                previews will appear here.
+              </p>
+            </div>
+          )}
+        </section>
         <section className="doc-band" id="references">
           <h2 className="doc-band__title">References</h2>
           <ReferenceSection doc={doc} />
