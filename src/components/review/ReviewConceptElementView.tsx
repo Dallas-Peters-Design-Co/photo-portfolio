@@ -44,6 +44,20 @@ const ShaderView = lazy(async () => ({
 }));
 
 const ICON_SUFFIX = /Icon$/;
+const LIST_ITEM_BREAK = /\r?\n/;
+
+const orderedListItems = (text: string): { key: string; text: string }[] => {
+  const occurrences = new Map<string, number>();
+  return text
+    .split(LIST_ITEM_BREAK)
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const occurrence = occurrences.get(item) ?? 0;
+      occurrences.set(item, occurrence + 1);
+      return { key: `${item}-${occurrence}`, text: item };
+    });
+};
 
 function CardPreview({
   element,
@@ -327,6 +341,22 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
         </span>
       );
     }
+    case "orderedList":
+      return (
+        <ol
+          style={{
+            ...style,
+            listStyleType: "decimal",
+            margin: 0,
+            paddingInlineStart:
+              element.paddingX + Math.round(element.fontSize * 1.5),
+          }}
+        >
+          {orderedListItems(element.text).map((item) => (
+            <li key={item.key}>{item.text}</li>
+          ))}
+        </ol>
+      );
     case "button":
       return <ConceptIconText as="button" element={element} style={style} />;
     case "buttonGroup":

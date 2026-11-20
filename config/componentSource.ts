@@ -62,6 +62,7 @@ export interface ComponentSource {
 }
 
 const WORD = /[a-z0-9]+/gi;
+const LIST_ITEM_BREAK = /\r?\n/;
 
 const words = (value: string): string[] =>
   value.match(WORD)?.map((w) => w.toLowerCase()) ?? [];
@@ -153,6 +154,39 @@ const focusCss = (
 
 const quote = (value: string): string => JSON.stringify(value);
 
+const orderedListMarkup = (el: ReviewConceptElement): Markup => {
+  const items = el.text
+    .split(LIST_ITEM_BREAK)
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return {
+    body: items.map((item) => `<li>${escapeJsx(item)}</li>`).join("\n"),
+    css: `& { display: block; margin: 0; padding-inline-start: ${Math.round(el.fontSize * 1.5) + el.paddingX}px; list-style: decimal; }\n& > li + li { margin-block-start: 0.25em; }`,
+    tag: "ol",
+    tsx: (name, cls) => `import "./${name}.css";
+
+interface ${name}Props {
+  className?: string;
+  items?: string[];
+}
+
+/** A numbered list, from the brand kit. */
+export function ${name}({
+  className,
+  items = ${JSON.stringify(items)},
+}: ${name}Props) {
+  return (
+    <ol className={[${quote(cls)}, className].filter(Boolean).join(" ")}>
+      {items.filter((item) => item.trim()).map((item, index) => (
+        <li key={index}>{item}</li>
+      ))}
+    </ol>
+  );
+}
+`,
+  };
+};
+
 const markupOf = (el: ReviewConceptElement, draw: Draw): Markup => {
   const byKind: Partial<Record<ReviewConceptElementKind, () => Markup>> = {
     accordion: () => accordionMarkup(el, draw),
@@ -214,6 +248,7 @@ export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote
     logo: () => logoMarkup(el),
     menu: () => menuMarkup(el),
     navbar: () => navbarMarkup(el, draw),
+    orderedList: () => orderedListMarkup(el),
     panel: () => panelMarkup(el, draw),
     progress: () => progressMarkup(el),
     select: () => selectMarkup(el, focusCss(el, "&__trigger:focus-visible")),

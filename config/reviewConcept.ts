@@ -74,6 +74,7 @@ export const ELEMENT_KINDS: ReviewConceptElementKind[] = [
   "buttonGroup",
   "input",
   "textarea",
+  "orderedList",
   "select",
   "checkbox",
   "card",
@@ -117,6 +118,7 @@ export type ReviewConceptElementKind =
   | "buttonGroup"
   | "input"
   | "textarea"
+  | "orderedList"
   | "select"
   | "checkbox"
   | "card"

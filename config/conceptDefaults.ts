@@ -103,6 +103,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   logo: "",
   menu: "Actions",
   navbar: "",
+  orderedList: "First item\nSecond item\nThird item",
   panel: "Panel title",
   progress: "Upload progress",
   select: "Choose an option",

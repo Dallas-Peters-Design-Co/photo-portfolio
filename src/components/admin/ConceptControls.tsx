@@ -169,6 +169,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["buttonGroup", "Button group"],
   ["input", "Input"],
   ["textarea", "Text area"],
+  ["orderedList", "Numbered list"],
   ["select", "Select"],
   ["checkbox", "Checkbox"],
   ["card", "Card"],

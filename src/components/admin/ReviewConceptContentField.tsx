@@ -31,6 +31,19 @@ export function ReviewConceptContentField({
       </label>
     );
   }
+  if (element.kind === "orderedList") {
+    return (
+      <label className="review-concepts__field review-concepts__field--full">
+        <span>List items (one per line)</span>
+        <textarea
+          maxLength={500}
+          onChange={(event) => onChange({ text: event.target.value })}
+          rows={4}
+          value={element.text}
+        />
+      </label>
+    );
+  }
   if (element.kind === "icon") {
     return (
       <ConceptField label="Icon" wide>
