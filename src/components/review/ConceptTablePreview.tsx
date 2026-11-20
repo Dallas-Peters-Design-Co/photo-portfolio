@@ -62,6 +62,7 @@ const lookStyle = (look?: ConceptCellLook): CSSProperties =>
         lineHeight: look.lineHeight,
         paddingBlock: look.paddingY,
         paddingInline: look.paddingX,
+        textAlign: look.textAlign,
       }
     : {};
 
@@ -246,9 +247,10 @@ export function ConceptTablePreview({
                   <td
                     // biome-ignore lint/suspicious/noArrayIndexKey: columns have no ids
                     key={index}
-                    style={lookStyle(
-                      textCell ? { ...column.look, ...box } : box
-                    )}
+                    style={{
+                      ...lookStyle(textCell ? { ...column.look, ...box } : box),
+                      textAlign: column.look?.textAlign,
+                    }}
                   >
                     <Cell
                       column={column}

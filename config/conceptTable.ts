@@ -64,6 +64,7 @@ export interface ConceptCellLook extends ReturnType<typeof cleanIcon> {
   radius?: number;
   shadow?: ConceptShadow;
   showValue?: boolean;
+  textAlign?: "left" | "center" | "right";
 }
 
 export type { CellIcons } from "./tableItemIcons.js";
@@ -209,6 +210,12 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
   }
   const raw = value as Record<string, unknown>;
   const shadow = cleanShadow(raw.shadow);
+  const textAlign =
+    raw.textAlign === "left" ||
+    raw.textAlign === "center" ||
+    raw.textAlign === "right"
+      ? raw.textAlign
+      : undefined;
   const look: ConceptCellLook = {
     ...cleanIcon("button", raw),
     ...optionalHex("accentColor", raw.accentColor),
@@ -225,6 +232,7 @@ const cleanCellLook = (value: unknown): ConceptCellLook | undefined => {
     ...num("paddingY", raw.paddingY, 0, Number.POSITIVE_INFINITY),
     ...num("radius", raw.radius, 0, 999),
     ...(shadow ? { shadow } : {}),
+    ...(textAlign ? { textAlign } : {}),
   };
   return Object.keys(look).length > 0 ? look : undefined;
 };

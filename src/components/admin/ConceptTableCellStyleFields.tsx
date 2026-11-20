@@ -3,8 +3,13 @@ import type {
   ConceptCellLook,
   ConceptTableColumn,
 } from "../../../config/conceptTable.js";
-import { NumberField } from "./ConceptControls";
+import { ConceptField, ConceptSelect, NumberField } from "./ConceptControls";
 import { ConceptColorField } from "./ReviewConceptBrand";
+
+const textAlignment = (
+  value: string
+): NonNullable<ConceptCellLook["textAlign"]> =>
+  value === "center" || value === "right" ? value : "left";
 
 /** The appearance of the content in one column's cells. */
 export function ConceptTableCellStyleFields({
@@ -52,6 +57,18 @@ export function ConceptTableCellStyleFields({
           onChange={(fontWeight) => set({ fontWeight })}
           value={look.fontWeight ?? 400}
         />
+        <ConceptField label="Text alignment">
+          <ConceptSelect
+            label={`${fieldLabel} text alignment`}
+            onChange={(value) => set({ textAlign: textAlignment(value) })}
+            options={[
+              { label: "Left", value: "left" },
+              { label: "Center", value: "center" },
+              { label: "Right", value: "right" },
+            ]}
+            value={look.textAlign ?? "left"}
+          />
+        </ConceptField>
         {!box && column.kind === "progress" && (
           <>
             <ConceptColorField
