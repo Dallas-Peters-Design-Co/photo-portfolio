@@ -1,4 +1,4 @@
-import { ArrowDownWideNarrow, Trash2 } from "lucide-react";
+import { ArrowDownWideNarrow, Plus, Trash2 } from "lucide-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import {
@@ -48,6 +48,7 @@ export function ReviewPinList({
   image,
   firstNumber,
   selected,
+  onAddRecommendation,
   onSelect,
   onUpdate,
   onRemove,
@@ -61,6 +62,7 @@ export function ReviewPinList({
   image: ReviewImage | null;
   firstNumber: number;
   selected: string | null;
+  onAddRecommendation?: () => void;
   onSelect: (id: string) => void;
   onUpdate: (id: string, next: Partial<ReviewPin>) => void;
   onRemove: (id: string) => void;
@@ -118,32 +120,38 @@ export function ReviewPinList({
   const inReadingOrder = readingOrder(pins, image);
   const isInOrder = inReadingOrder.join() === ids.join();
 
-  if (pins.length === 0) {
-    return (
-      <p className="text-sm text-white/60">
-        No notes yet. Click a spot on the picture.
-      </p>
-    );
-  }
   return (
     <div className="space-y-2">
-      {pins.length > 1 ? (
-        <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
+        {pins.length > 1 ? (
           <p className="text-sm text-white/60">
             Drag a number to reorder. The pins renumber to match.
           </p>
-          <Button
-            disabled={isInOrder}
-            onClick={() => onReorder(inReadingOrder)}
-            title="Renumber the notes in the order the pins read down the picture"
-            type="button"
-            variant="ghost"
-          >
-            <ArrowDownWideNarrow size={14} />
-            Number top to bottom
-          </Button>
+        ) : (
+          <p className="text-sm text-white/60">
+            {pins.length === 0 ? "No notes yet." : null}
+          </p>
+        )}
+        <div className="flex items-center gap-2">
+          {onAddRecommendation ? (
+            <Button onClick={onAddRecommendation} type="button" variant="ghost">
+              <Plus size={14} /> Add recommendation
+            </Button>
+          ) : null}
+          {pins.length > 1 ? (
+            <Button
+              disabled={isInOrder}
+              onClick={() => onReorder(inReadingOrder)}
+              title="Renumber the notes in the order the pins read down the picture"
+              type="button"
+              variant="ghost"
+            >
+              <ArrowDownWideNarrow size={14} />
+              Number top to bottom
+            </Button>
+          ) : null}
         </div>
-      ) : null}
+      </div>
       <ol className="space-y-3">
         {shown.map((pin, i) => (
           // biome-ignore lint/a11y/noNoninteractiveElementInteractions: HTML5 drag needs its handlers on the dragged element; the keyboard path is the arrow keys on the number

@@ -130,11 +130,12 @@ export function ReviewPage() {
 function ReviewHeaderLinks({ review }: { review: ReviewRecord }) {
   const merge = hasMergeWriteup(review.doc.merge);
   const docs = review.designSystemUrl;
+  const pageDesigns = review.doc.screens.filter((screen) => screen.pageDesign);
   const brandGuide =
     review.brandKitId && review.brand
       ? `/admin/brand-kits/${encodeURIComponent(review.brandKitId)}/guide`
       : null;
-  if (!(merge || docs || brandGuide)) {
+  if (!(merge || docs || brandGuide || pageDesigns.length > 0)) {
     return null;
   }
   return (
@@ -152,6 +153,15 @@ function ReviewHeaderLinks({ review }: { review: ReviewRecord }) {
           Brand guide →
         </Link>
       ) : null}
+      {pageDesigns.map((screen) => (
+        <a
+          className="review-page__hero-link"
+          href={`#${reviewAnchor.screen(screen.id)}`}
+          key={screen.id}
+        >
+          Page design: {screen.title || "Untitled"} ↓
+        </a>
+      ))}
       {docs ? (
         <a
           className="review-page__hero-link"
@@ -174,7 +184,13 @@ function ReviewSheet({
   ownerName: string;
 }) {
   const { doc } = review;
-  const screens = doc.screens.filter((s) => s.image || s.pageDesign);
+  const screens = doc.screens.filter(
+    (screen) =>
+      screen.image ||
+      screen.pageDesign ||
+      screen.pins.length > 0 ||
+      !isRichTextEmpty(screen.note)
+  );
   const firstNumbers: number[] = [];
   let n = 1;
   for (const screen of screens) {
@@ -434,7 +450,54 @@ function Screen({
     );
   }
   if (!image) {
-    return null;
+    if (screen.pins.length === 0 && isRichTextEmpty(screen.note)) {
+      return null;
+    }
+    return (
+      <section
+        className="doc-band doc-band--split review-page__section--screen"
+        id={reviewAnchor.screen(screen.id)}
+      >
+        <h2 className="doc-band__title">{screen.title || "Screen"}</h2>
+        <div className="doc-band__body">
+          {isRichTextEmpty(screen.note) ? null : <Prose text={screen.note} />}
+          <ol className="review-page__notes">
+            {screen.pins.map((pin, i) => (
+              <li
+                className="review-page__note"
+                id={noteId(pin.id)}
+                key={pin.id}
+              >
+                <span
+                  className={`review-page__note-n review-page__note-n--${pin.kind}`}
+                >
+                  {firstNumber + i}
+                </span>
+                <div>
+                  <p className="review-page__note-title">
+                    {pin.title || "Note"}
+                    <span className="review-page__note-kind">
+                      {kindLabel(pin.kind)}
+                    </span>
+                  </p>
+                  {pin.body ? (
+                    <p className="review-page__note-body">{pin.body}</p>
+                  ) : null}
+                  <PinWcagLinks
+                    className="review-page__note-wcag"
+                    wcag={pin.wcag}
+                  />
+                  {pin.concepts?.map((concept) => (
+                    <ReviewConceptPreview concept={concept} key={concept.id} />
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+        <ScreenComments screenId={screen.id} />
+      </section>
+    );
   }
   // A pin on the picture brings its note to the top of the window, beside
   // the screenshot, and marks it for a moment so the eye lands on it.

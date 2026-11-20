@@ -226,6 +226,20 @@ export function ReviewScreenEditor({
     setSelected(pin.id);
   };
 
+  const addRecommendation = () => {
+    const pin: ReviewPin = {
+      body: "",
+      id: newItemId(),
+      kind: "recommendation",
+      title: "",
+      x: 0.5,
+      y: 0.5,
+    };
+    history.record();
+    patch({ pins: [...pins, pin] });
+    setSelected(pin.id);
+  };
+
   const movePin = (e: MouseEvent) => {
     const { id } = dragging.current;
     if (id === null) {
@@ -476,6 +490,7 @@ export function ReviewScreenEditor({
             conceptLimit={conceptLimit}
             firstNumber={firstNumber}
             image={screen.image}
+            onAddRecommendation={addRecommendation}
             onRemove={removePin}
             onReorder={(ids) => step({ pins: orderPins(pins, ids) })}
             onSelect={setSelected}
@@ -485,9 +500,25 @@ export function ReviewScreenEditor({
           />
         </div>
       ) : (
-        <p className="text-sm text-white/60">
-          Capture the page or upload a screenshot, then click it to add notes.
-        </p>
+        <div className="space-y-3">
+          <p className="text-sm text-white/60">
+            Add a written recommendation here without capturing or uploading a
+            screenshot.
+          </p>
+          <ReviewPinList
+            brandDoc={brandDoc}
+            conceptLimit={conceptLimit}
+            firstNumber={firstNumber}
+            image={null}
+            onAddRecommendation={addRecommendation}
+            onRemove={removePin}
+            onReorder={(ids) => step({ pins: orderPins(pins, ids) })}
+            onSelect={setSelected}
+            onUpdate={updatePin}
+            pins={pins}
+            selected={selected}
+          />
+        </div>
       )}
 
       <div className="space-y-2">

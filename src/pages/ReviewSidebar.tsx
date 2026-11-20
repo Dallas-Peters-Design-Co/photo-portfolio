@@ -48,7 +48,13 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
       });
     }
   }
-  const screens = doc.screens.filter((s) => s.image || s.pageDesign);
+  const screens = doc.screens.filter(
+    (screen) =>
+      screen.image ||
+      screen.pageDesign ||
+      screen.pins.length > 0 ||
+      !isRichTextEmpty(screen.note)
+  );
   for (const screen of screens) {
     let label = screen.title || "Screen";
     if (screen.pageDesign) {
