@@ -87,7 +87,7 @@
 }
 .bk-pretex-t {
 .button-ghost {
-  --button-ghost-background: var(--kit-hqrhrk, #f6f4f1);
+  --button-ghost-background: #ffffff00;
   --button-ghost-color: var(--kit-18u0jwu, #000609);
   --button-ghost-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-ghost-font-size: 15px;
@@ -2543,7 +2543,7 @@
 }
 .bk-viaskai {
 .button-ghost {
-  --button-ghost-background: var(--kit-hqrhrk, #f6f4f1);
+  --button-ghost-background: #ffffff00;
   --button-ghost-color: var(--kit-18u0jwu, #000609);
   --button-ghost-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --button-ghost-font-size: 15px;
