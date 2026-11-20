@@ -126,7 +126,11 @@ export function ReviewPage() {
 function ReviewHeaderLinks({ review }: { review: ReviewRecord }) {
   const merge = hasMergeWriteup(review.doc.merge);
   const docs = review.designSystemUrl;
-  if (!(merge || docs)) {
+  const brandGuide =
+    review.brandKitId && review.brand
+      ? `/admin/brand-kits/${encodeURIComponent(review.brandKitId)}/guide`
+      : null;
+  if (!(merge || docs || brandGuide)) {
     return null;
   }
   return (
@@ -137,6 +141,11 @@ function ReviewHeaderLinks({ review }: { review: ReviewRecord }) {
           to={`/review/${review.slug}/merge`}
         >
           Brand merge writeup →
+        </Link>
+      ) : null}
+      {brandGuide ? (
+        <Link className="review-page__hero-link" to={brandGuide}>
+          Brand guide →
         </Link>
       ) : null}
       {docs ? (

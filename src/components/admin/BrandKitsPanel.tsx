@@ -2,7 +2,6 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import PaintBoardIcon from "@hugeicons-pro/core-stroke-standard/PaintBoardIcon";
 import PlusSignIcon from "@hugeicons-pro/core-stroke-standard/PlusSignIcon";
 import { Fragment, useCallback, useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { EMPTY_KIT, MAX_KIT_NAME } from "../../../config/brandKit.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
@@ -31,24 +30,13 @@ import "./BrandKitsPanel.css";
 export function BrandKitsPanel() {
   const { error, isLoading, kits, refresh } = useBrandKits();
   const { confirm } = useConfirm();
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [openId, setOpenId] = useState<string | null>(() =>
-    searchParams.get("open")
-  );
+  const [openId, setOpenId] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
   /** Which brand is having a sub-brand added, if any. */
   const [parentFor, setParentFor] = useState<string | null>(null);
   const [subName, setSubName] = useState("");
 
   const open = kits.find((kit) => kit.id === openId) ?? null;
-  const close = () => {
-    setOpenId(null);
-    if (searchParams.has("open")) {
-      const next = new URLSearchParams(searchParams);
-      next.delete("open");
-      setSearchParams(next, { replace: true });
-    }
-  };
 
   const create = useCallback(async () => {
     const name = newName.trim();
@@ -120,7 +108,7 @@ export function BrandKitsPanel() {
         // the kit's own refresh after each autosave must not reset the edit.
         key={open.id}
         kit={open}
-        onClose={close}
+        onClose={() => setOpenId(null)}
         onSaved={() => void refresh()}
         /* The parent's *resolved* document, which is what a sub-brand inherits
            from — taken from the list rather than fetched, since the list already

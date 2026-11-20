@@ -1,8 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import SearchVisualIcon from "@hugeicons-pro/core-stroke-standard/SearchVisualIcon";
-import { ExternalLink, KeyRound, RotateCcw, ScanSearch } from "lucide-react";
+import { KeyRound, RotateCcw, ScanSearch } from "lucide-react";
 import type { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import type { ReviewRecord } from "../../services/reviewService";
 import { Button } from "../ui/button";
@@ -46,8 +45,6 @@ export function ReviewEditorPanel({
   setDraft: (update: (d: ReviewRecord) => ReviewRecord) => void;
 }) {
   const { kits } = useBrandKits();
-  const navigate = useNavigate();
-  const selectedKit = kits.find((kit) => kit.id === draft.brandKitId);
   // "" is the "no kit" choice.
   const kitItems = [
     { label: "None (site accent)", value: "" },
@@ -128,21 +125,6 @@ export function ReviewEditorPanel({
               ))}
             </SelectContent>
           </Select>
-          {selectedKit ? (
-            <Button
-              onClick={() =>
-                navigate(
-                  `/admin/brand-kits?open=${encodeURIComponent(selectedKit.id)}`
-                )
-              }
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              <ExternalLink aria-hidden size={14} />
-              Open {selectedKit.name}
-            </Button>
-          ) : null}
         </div>
         <div className="editor-shell__field">
           <Label htmlFor="review-slug">Address</Label>
