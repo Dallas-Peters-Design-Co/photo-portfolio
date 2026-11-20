@@ -714,8 +714,8 @@
 }
 .bk-pretex-t {
 .badge-active {
-  --badge-active-background: var(--kit-hnp52d, #2a50c0);
-  --badge-active-color: var(--kit-xoaop8, #fffefc);
+  --badge-active-background: #ffffff00;
+  --badge-active-color: var(--kit-hnp52d, #2a50c0);
   --badge-active-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-active-font-size: 14px;
   --badge-active-font-weight: 500;
@@ -728,7 +728,7 @@
   --badge-active-border-right-width: 2px;
   --badge-active-border-bottom-width: 2px;
   --badge-active-shadow: none;
-  --badge-active-icon-color: var(--kit-xoaop8, #fffefc);
+  --badge-active-icon-color: var(--kit-hnp52d, #2a50c0);
   --badge-active-icon-size: 9px;
   --badge-active-focus-ring-color: currentColor;
   --badge-active-focus-ring-width: 2px;
@@ -1412,20 +1412,20 @@
 .bk-pretex-t {
 .badge-current-stage-complete {
   --badge-current-stage-complete-background: #ffffff00;
-  --badge-current-stage-complete-color: var(--kit-hnp52d, #2a50c0);
+  --badge-current-stage-complete-color: var(--kit-uv4dhm, #006733);
   --badge-current-stage-complete-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-current-stage-complete-font-size: 14px;
   --badge-current-stage-complete-font-weight: 500;
   --badge-current-stage-complete-line-height: 1;
   --badge-current-stage-complete-padding: 4px 10px;
   --badge-current-stage-complete-radius: 8px;
-  --badge-current-stage-complete-border: 2px solid var(--kit-hnp52d, #2a50c0);
+  --badge-current-stage-complete-border: 2px solid var(--kit-uv4dhm, #006733);
   --badge-current-stage-complete-border-top-width: 2px;
   --badge-current-stage-complete-border-left-width: 2px;
   --badge-current-stage-complete-border-right-width: 2px;
   --badge-current-stage-complete-border-bottom-width: 2px;
   --badge-current-stage-complete-shadow: none;
-  --badge-current-stage-complete-icon-color: var(--kit-hnp52d, #2a50c0);
+  --badge-current-stage-complete-icon-color: var(--kit-uv4dhm, #006733);
   --badge-current-stage-complete-icon-size: 13px;
   --badge-current-stage-complete-focus-ring-color: currentColor;
   --badge-current-stage-complete-focus-ring-width: 2px;
@@ -4322,18 +4322,17 @@
   --group-list-item__item-2__item-1-background: transparent;
   --group-list-item__item-2__item-1-color: var(--kit-hnp52d, #2a50c0);
   --group-list-item__item-2__item-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --group-list-item__item-2__item-1-font-size: 17px;
+  --group-list-item__item-2__item-1-font-size: 16px;
   --group-list-item__item-2__item-1-font-weight: 600;
-  --group-list-item__item-2__item-1-line-height: 1.25;
+  --group-list-item__item-2__item-1-line-height: 1.4;
   --group-list-item__item-2__item-1-padding: 0px 0px;
-  --group-list-item__item-2__item-1-radius: 0px;
+  --group-list-item__item-2__item-1-radius: 8px;
   --group-list-item__item-2__item-1-border: none;
   --group-list-item__item-2__item-1-border-top-width: 1px;
   --group-list-item__item-2__item-1-border-left-width: 1px;
   --group-list-item__item-2__item-1-border-right-width: 1px;
   --group-list-item__item-2__item-1-border-bottom-width: 1px;
   --group-list-item__item-2__item-1-shadow: none;
-  --group-list-item__item-2__item-1-hover-color: var(--kit-l6h2ze, #1b201a);
   --group-list-item__item-2__item-1-focus-ring-color: currentColor;
   --group-list-item__item-2__item-1-focus-ring-width: 2px;
 
@@ -4354,7 +4353,7 @@
   box-shadow: var(--group-list-item__item-2__item-1-shadow);
 }
 
-.group-list-item__item-2__item-1 { text-decoration: underline; text-underline-offset: 0.2em; }
+.group-list-item__item-2__item-1 { cursor: pointer; }
 .group-list-item__item-2__item-1:hover {
   background: var(--group-list-item__item-2__item-1-hover-background, var(--group-list-item__item-2__item-1-background));
   color: var(--group-list-item__item-2__item-1-hover-color, var(--group-list-item__item-2__item-1-color));
@@ -5071,8 +5070,8 @@
 }
 .bk-viaskai {
 .badge-active {
-  --badge-active-background: var(--kit-hnp52d, #2a50c0);
-  --badge-active-color: var(--kit-xoaop8, #fffefc);
+  --badge-active-background: #ffffff00;
+  --badge-active-color: var(--kit-hnp52d, #2a50c0);
   --badge-active-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-active-font-size: 14px;
   --badge-active-font-weight: 500;
@@ -5085,7 +5084,7 @@
   --badge-active-border-right-width: 2px;
   --badge-active-border-bottom-width: 2px;
   --badge-active-shadow: none;
-  --badge-active-icon-color: var(--kit-xoaop8, #fffefc);
+  --badge-active-icon-color: var(--kit-hnp52d, #2a50c0);
   --badge-active-icon-size: 9px;
   --badge-active-focus-ring-color: currentColor;
   --badge-active-focus-ring-width: 2px;
@@ -5769,20 +5768,20 @@
 .bk-viaskai {
 .badge-current-stage-complete {
   --badge-current-stage-complete-background: #ffffff00;
-  --badge-current-stage-complete-color: var(--kit-hnp52d, #2a50c0);
+  --badge-current-stage-complete-color: var(--kit-uv4dhm, #006733);
   --badge-current-stage-complete-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-current-stage-complete-font-size: 14px;
   --badge-current-stage-complete-font-weight: 500;
   --badge-current-stage-complete-line-height: 1;
   --badge-current-stage-complete-padding: 4px 10px;
   --badge-current-stage-complete-radius: 8px;
-  --badge-current-stage-complete-border: 2px solid var(--kit-hnp52d, #2a50c0);
+  --badge-current-stage-complete-border: 2px solid var(--kit-uv4dhm, #006733);
   --badge-current-stage-complete-border-top-width: 2px;
   --badge-current-stage-complete-border-left-width: 2px;
   --badge-current-stage-complete-border-right-width: 2px;
   --badge-current-stage-complete-border-bottom-width: 2px;
   --badge-current-stage-complete-shadow: none;
-  --badge-current-stage-complete-icon-color: var(--kit-hnp52d, #2a50c0);
+  --badge-current-stage-complete-icon-color: var(--kit-uv4dhm, #006733);
   --badge-current-stage-complete-icon-size: 13px;
   --badge-current-stage-complete-focus-ring-color: currentColor;
   --badge-current-stage-complete-focus-ring-width: 2px;
@@ -8679,18 +8678,17 @@
   --group-list-item__item-2__item-1-background: transparent;
   --group-list-item__item-2__item-1-color: var(--kit-hnp52d, #2a50c0);
   --group-list-item__item-2__item-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --group-list-item__item-2__item-1-font-size: 17px;
+  --group-list-item__item-2__item-1-font-size: 16px;
   --group-list-item__item-2__item-1-font-weight: 600;
-  --group-list-item__item-2__item-1-line-height: 1.25;
+  --group-list-item__item-2__item-1-line-height: 1.4;
   --group-list-item__item-2__item-1-padding: 0px 0px;
-  --group-list-item__item-2__item-1-radius: 0px;
+  --group-list-item__item-2__item-1-radius: 8px;
   --group-list-item__item-2__item-1-border: none;
   --group-list-item__item-2__item-1-border-top-width: 1px;
   --group-list-item__item-2__item-1-border-left-width: 1px;
   --group-list-item__item-2__item-1-border-right-width: 1px;
   --group-list-item__item-2__item-1-border-bottom-width: 1px;
   --group-list-item__item-2__item-1-shadow: none;
-  --group-list-item__item-2__item-1-hover-color: var(--kit-l6h2ze, #1b201a);
   --group-list-item__item-2__item-1-focus-ring-color: currentColor;
   --group-list-item__item-2__item-1-focus-ring-width: 2px;
 
@@ -8711,7 +8709,7 @@
   box-shadow: var(--group-list-item__item-2__item-1-shadow);
 }
 
-.group-list-item__item-2__item-1 { text-decoration: underline; text-underline-offset: 0.2em; }
+.group-list-item__item-2__item-1 { cursor: pointer; }
 .group-list-item__item-2__item-1:hover {
   background: var(--group-list-item__item-2__item-1-hover-background, var(--group-list-item__item-2__item-1-background));
   color: var(--group-list-item__item-2__item-1-hover-color, var(--group-list-item__item-2__item-1-color));
