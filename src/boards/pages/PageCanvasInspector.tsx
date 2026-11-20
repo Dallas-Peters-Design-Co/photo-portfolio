@@ -1,6 +1,7 @@
 import { Trash2 } from "lucide-react";
 import { withStep } from "../../../config/conceptSteps.js";
 import { linkStyle } from "../../../config/conceptStyle.js";
+import { DEFAULT_FRAME_GRID } from "../../../config/pageFrameGrid.js";
 import { layerDestination, layerSlots } from "../../../config/pageLayerMove.js";
 import { workspaceGrid } from "../../../config/pageWorkspaceGrid.js";
 import { ConceptFlexFields } from "../../components/admin/ConceptFlexFields";
@@ -31,14 +32,23 @@ function PlacementFields({
   if (!element) {
     return null;
   }
+  const grid =
+    editor.page.grid ??
+    workspaceGrid(editor.page, editor.step?.elements ?? []) ??
+    DEFAULT_FRAME_GRID;
+  const saveGrid = (next: typeof grid) =>
+    editor.write({
+      ...editor.resolved,
+      grid: { ...next, enabled: true },
+    });
   if (box && editor.page.grid?.enabled) {
     return (
       <>
         <PageGridPlacement
           elements={editor.step?.elements ?? []}
-          grid={editor.page.grid}
+          grid={grid}
           id={element.id}
-          save={(grid) => editor.write({ ...editor.resolved, grid })}
+          save={saveGrid}
         />
         {element.kind === "panel" && (
           <PageNumber
@@ -56,17 +66,31 @@ function PlacementFields({
       ? (["x", "y", "width"] as const)
       : (["x", "y", "width", "height"] as const);
     return (
-      <div className="page-builder__numbers">
-        {fields.map((field) => (
-          <PageNumber
-            key={field}
-            label={field.toUpperCase()}
-            min={field === "width" || field === "height" ? 1 : 0}
-            onChange={(value) => setBox(element.id, { ...box, [field]: value })}
-            value={box[field]}
-          />
-        ))}
-      </div>
+      <>
+        <div className="page-builder__numbers">
+          {fields.map((field) => (
+            <PageNumber
+              key={field}
+              label={field.toUpperCase()}
+              min={field === "width" || field === "height" ? 1 : 0}
+              onChange={(value) =>
+                setBox(element.id, { ...box, [field]: value })
+              }
+              value={box[field]}
+            />
+          ))}
+        </div>
+        <h3>Grid placement</h3>
+        <p className="page-builder__hint">
+          Editing a grid value switches this frame to its custom grid.
+        </p>
+        <PageGridPlacement
+          elements={editor.step?.elements ?? []}
+          grid={grid}
+          id={element.id}
+          save={saveGrid}
+        />
+      </>
     );
   }
   if (element.kind !== "canvas" && element.kind !== "shader") {
