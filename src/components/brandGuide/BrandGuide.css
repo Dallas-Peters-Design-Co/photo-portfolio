@@ -472,8 +472,20 @@
 /* Component styles: a sample on the brand's ground, then its facts. */
 .guide-components {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: calc(var(--spacing) * 6);
+}
+
+@media (max-width: 60rem) {
+  .guide-components {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 38rem) {
+  .guide-components {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .guide-component {
