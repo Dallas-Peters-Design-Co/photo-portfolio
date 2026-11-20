@@ -235,9 +235,9 @@ export function BrandGuidePage() {
             <div className="guide-social__empty">
               <p className="guide-subhead">No social posts yet</p>
               <p>
-                Select a frame on a canvas board, then choose Social post in its
-                toolbar to add it to LinkedIn, X (Twitter), or Facebook. Saved
-                previews will appear here.
+                Select a frame on a canvas board and choose Add all platform
+                previews in its toolbar. LinkedIn, X, and Facebook versions will
+                appear here.
               </p>
             </div>
           )}
