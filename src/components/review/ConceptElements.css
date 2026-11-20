@@ -215,11 +215,18 @@
 }
 
 /* Side by side, cards share the row at a readable width (wrapping to a
-   new line below 10rem rather than squeezing their text), and stretch to
+   new line below 22rem rather than squeezing their text), and stretch to
    the tallest card so a row of them reads as one set. Stacked, they stay
    full width. Any concept container marks its direction (data-direction). */
 [data-direction="row"] > .review-concepts__card-preview,
 [data-direction="row"] > .concept-hover > .review-concepts__card-preview,
+[data-direction="row"] > .concept-flex-item[data-kind="card"] {
+  flex: 1 1 22rem;
+  align-self: stretch;
+  min-inline-size: min(100%, 22rem);
+  width: auto;
+}
+
 [data-direction="row"] > .concept-panel,
 [data-direction="row"] > .concept-hover > .concept-panel {
   flex: 1 1 10rem;
@@ -245,9 +252,14 @@
 [data-direction="row"][data-scroll]
   > .concept-hover
   > .review-concepts__card-preview,
+[data-direction="row"][data-scroll] > .concept-flex-item[data-kind="card"],
 [data-direction="row"][data-scroll] > .concept-panel,
 [data-direction="row"][data-scroll] > .concept-hover > .concept-panel {
   flex: 0 0 var(--concept-item-width, 280px);
+}
+
+[data-direction="row"][data-scroll] > .concept-flex-item[data-kind="card"] {
+  min-inline-size: var(--concept-item-width, 280px);
 }
 
 /*

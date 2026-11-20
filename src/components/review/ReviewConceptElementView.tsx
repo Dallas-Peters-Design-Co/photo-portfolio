@@ -649,6 +649,7 @@ export function ReviewConceptElementView({
     <div
       className="concept-flex-item"
       data-full-height={element.fullHeight || undefined}
+      data-kind={element.kind}
       style={{ flex: flexSize(element.flex) }}
     >
       {child}
