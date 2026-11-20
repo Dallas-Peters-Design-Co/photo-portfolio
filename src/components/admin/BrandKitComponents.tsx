@@ -15,6 +15,9 @@ import type { ConceptIconSvg } from "../../../config/conceptIcon.js";
 import { hasSlots } from "../../../config/conceptSlots.js";
 import {
   type ConceptStyle,
+  type ConceptStyleProp,
+  componentPropOptionsOf,
+  componentPropsOf,
   lookOf,
   MAX_CONCEPT_STYLES,
 } from "../../../config/conceptStyle.js";
@@ -28,15 +31,82 @@ import { useBrandKits } from "../../hooks/useBrandKits";
 import { rememberedOpen, rememberOpen } from "../../hooks/useRememberedOpen";
 import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { ComponentStyleClipboard } from "./ComponentStyleClipboard";
-import { ConceptSelect, ELEMENT_KINDS, kindLabel } from "./ConceptControls";
+import {
+  ConceptGroup,
+  ConceptSelect,
+  ELEMENT_KINDS,
+  kindLabel,
+} from "./ConceptControls";
 import { CanvasComponentKit } from "./ReviewCanvasComponents";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
 import { SortableList } from "./SortableList";
 import "./ReviewConceptsEditor.css";
 
 const NO_LINK = "none";
+
+const PROP_LABELS: Partial<Record<ConceptStyleProp, string>> = {
+  accentColor: "Accent color",
+  accordionExpanded: "Expanded by default",
+  avatarInitials: "Avatar initials",
+  avatarUrl: "Avatar image",
+  background: "Fill",
+  barHeight: "Bar height",
+  bodySize: "Body size",
+  borderBottomWidth: "Bottom border width",
+  borderColor: "Border color",
+  borderLeftWidth: "Left border width",
+  borderRightWidth: "Right border width",
+  borderTopWidth: "Top border width",
+  borderWidth: "Border width",
+  checked: "Checked",
+  checkSize: "Checkbox size",
+  color: "Text color",
+  dividers: "Dividers",
+  flex: "Flex sizing",
+  focus: "Focus style",
+  fontFamily: "Typeface",
+  fontId: "Font",
+  fontRef: "Font reference",
+  fontSize: "Text size",
+  fontWeight: "Text weight",
+  fullHeight: "Full height",
+  hover: "Hover style",
+  iconColor: "Icon color",
+  iconName: "Icon",
+  iconSize: "Icon size",
+  iconSvg: "Custom icon",
+  inputType: "Input type",
+  lineHeight: "Line height",
+  logoHeight: "Logo height",
+  logoUrl: "Logo",
+  menuLook: "Menu appearance",
+  options: "Options",
+  paddingX: "Horizontal padding",
+  paddingY: "Vertical padding",
+  panelCollapsed: "Collapsed state",
+  panelToggleSide: "Toggle position",
+  placeholder: "Placeholder",
+  progress: "Progress value",
+  radius: "Corners",
+  shadow: "Shadow",
+  showValue: "Show value",
+  slideFrom: "Panel slide direction",
+  summaryIconName: "Summary icon",
+  summaryIconSvg: "Custom summary icon",
+  tabLook: "Tab appearance",
+  tableContents: "Rows and columns",
+  text: "Text",
+  titleWeight: "Title weight",
+  toastAction: "Toast action",
+  toastClose: "Toast close button",
+  tooltip: "Tooltip",
+};
+
+const propLabel = (prop: ConceptStyleProp): string =>
+  PROP_LABELS[prop] ?? prop.replace(/[A-Z]/g, (letter) => ` ${letter}`).trim();
 
 /** The style as a React component and its CSS, on the clipboard. */
 const copySource = async (
@@ -153,7 +223,38 @@ function StyleEditor({
             element={sample}
             lookOnly
             onChange={changeLook}
+            styles={brand.componentStyles}
           />
+          <ConceptGroup compact name="Overridable props">
+            <p className="brand-kit__hint">
+              Choose what can change on an instance. Slots and their contents
+              stay editable.
+            </p>
+            {componentPropOptionsOf(style).map((prop) => {
+              const id = `${bodyId}-${prop}`;
+              const enabled = style.overridableProps?.includes(prop) ?? true;
+              return (
+                <label
+                  className="review-concepts__check"
+                  htmlFor={id}
+                  key={prop}
+                >
+                  <Checkbox
+                    checked={enabled}
+                    id={id}
+                    onChange={(event) => {
+                      const current = componentPropsOf(style);
+                      const next = event.currentTarget.checked
+                        ? [...current, prop]
+                        : current.filter((key) => key !== prop);
+                      onChange({ ...style, overridableProps: next });
+                    }}
+                  />
+                  <span>{propLabel(prop)}</span>
+                </label>
+              );
+            })}
+          </ConceptGroup>
         </div>
       ) : null}
       <footer className="brand-kit-components__footer">

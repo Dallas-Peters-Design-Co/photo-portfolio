@@ -26,28 +26,36 @@ type Weight = ReviewConceptElement["fontWeight"];
 export function CardTypeFields({
   element,
   onChange,
+  showBodySize = true,
+  showTitleWeight = true,
 }: {
   element: ReviewConceptElement;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
+  showBodySize?: boolean;
+  showTitleWeight?: boolean;
 }) {
   return (
     <>
-      <NumberField
-        label="Body size"
-        max={72}
-        onChange={(bodySize) => onChange({ bodySize })}
-        value={element.bodySize ?? element.fontSize}
-      />
-      <ConceptField label="Title weight">
-        <ConceptSelect
-          label="Title weight"
-          onChange={(weight) =>
-            onChange({ titleWeight: Number(weight) as Weight })
-          }
-          options={WEIGHTS}
-          value={String(element.titleWeight ?? 700)}
+      {showBodySize ? (
+        <NumberField
+          label="Body size"
+          max={72}
+          onChange={(bodySize) => onChange({ bodySize })}
+          value={element.bodySize ?? element.fontSize}
         />
-      </ConceptField>
+      ) : null}
+      {showTitleWeight ? (
+        <ConceptField label="Title weight">
+          <ConceptSelect
+            label="Title weight"
+            onChange={(weight) =>
+              onChange({ titleWeight: Number(weight) as Weight })
+            }
+            options={WEIGHTS}
+            value={String(element.titleWeight ?? 700)}
+          />
+        </ConceptField>
+      ) : null}
     </>
   );
 }

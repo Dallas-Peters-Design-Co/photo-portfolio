@@ -347,19 +347,28 @@
 
 .review-concepts__element-body {
   display: grid;
-  gap: calc(var(--spacing) * 3);
+  gap: calc(var(--spacing) * 2);
   min-width: 0;
 }
 
-/* A row name in a fixed column, so every row's fields start at one edge. */
+/* Component properties read as stacked inspector sections. */
 .review-concepts__group {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  gap: calc(var(--spacing) * 2);
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--spacing) * 1.5);
   align-items: start;
-  padding-block-start: calc(var(--spacing) * 3);
+  padding-block: calc(var(--spacing) * 2) 0;
   border-block-start: 1px solid
     color-mix(in oklch, currentColor 8%, transparent);
+}
+
+.review-concepts__element-body
+  .review-concepts__group
+  > .review-concepts__group-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--spacing) * 2);
+  align-items: start;
 }
 
 .review-concepts__group-name {
@@ -382,8 +391,8 @@
   display: flex;
   gap: calc(var(--spacing) * 2);
   align-items: center;
-  align-self: end;
-  height: calc(var(--spacing) * 7);
+  align-self: center;
+  min-height: calc(var(--spacing) * 7);
   font-size: var(--text-xs-ui);
 }
 

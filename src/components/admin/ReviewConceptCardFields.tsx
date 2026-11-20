@@ -41,17 +41,28 @@ type Patch = Partial<ReviewConceptElement>;
 const CUSTOM = "custom";
 
 /** The optional icon of a card or an input: which one, how big, what colour. */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the visibility options correspond directly to independently overridable icon props
 export function ElementIconGroup({
   brandDoc,
   element,
   lookOnly = false,
   onChange,
+  showColor = true,
+  showEndIcon = true,
+  showIcon = true,
+  showSize = true,
+  showSummaryIcon = true,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
   /** A kit style: its icon's size and colour are set even without an icon. */
   lookOnly?: boolean;
   onChange: (patch: Patch) => void;
+  showColor?: boolean;
+  showEndIcon?: boolean;
+  showIcon?: boolean;
+  showSize?: boolean;
+  showSummaryIcon?: boolean;
 }) {
   const kind = element.kind[0]?.toUpperCase() + element.kind.slice(1);
   // Buttons, badges and tags have a slot each side of their text.
@@ -60,7 +71,7 @@ export function ElementIconGroup({
   const twoSlots = takesEndIcon(element.kind);
   return (
     <ConceptGroup name={twoSlots ? "Icons" : "Icon"}>
-      {element.kind === "accordion" && (
+      {element.kind === "accordion" && showSummaryIcon && (
         <ConceptField label="Leading summary icon" wide>
           <IconPicker
             label="Leading summary icon"
@@ -77,22 +88,24 @@ export function ElementIconGroup({
           />
         </ConceptField>
       )}
-      <ConceptField label={twoSlots ? "Start icon" : singleIconLabel} wide>
-        <IconPicker
-          label={twoSlots ? `${kind} start icon` : `${kind} icon`}
-          library="full"
-          onChange={(icon, svg) =>
-            onChange({
-              iconName: icon ?? undefined,
-              iconSvg: svg as ConceptIconSvg | undefined,
-            })
-          }
-          size="sm"
-          svg={element.iconSvg}
-          value={conceptIconName(element.iconName)}
-        />
-      </ConceptField>
-      {twoSlots ? (
+      {showIcon ? (
+        <ConceptField label={twoSlots ? "Start icon" : singleIconLabel} wide>
+          <IconPicker
+            label={twoSlots ? `${kind} start icon` : `${kind} icon`}
+            library="full"
+            onChange={(icon, svg) =>
+              onChange({
+                iconName: icon ?? undefined,
+                iconSvg: svg as ConceptIconSvg | undefined,
+              })
+            }
+            size="sm"
+            svg={element.iconSvg}
+            value={conceptIconName(element.iconName)}
+          />
+        </ConceptField>
+      ) : null}
+      {twoSlots && showEndIcon ? (
         <ConceptField label="End icon" wide>
           <IconPicker
             label={`${kind} end icon`}
@@ -109,24 +122,34 @@ export function ElementIconGroup({
           />
         </ConceptField>
       ) : null}
-      {element.iconName ||
-      element.iconEndName ||
-      element.summaryIconName ||
-      lookOnly ? (
+      {(showSize &&
+        (element.iconName ||
+          element.iconEndName ||
+          element.summaryIconName ||
+          lookOnly)) ||
+      (showColor &&
+        (element.iconName ||
+          element.iconEndName ||
+          element.summaryIconName ||
+          lookOnly)) ? (
         <>
-          <NumberField
-            label="Icon size"
-            max={96}
-            onChange={(iconSize) => onChange({ iconSize })}
-            value={iconSizeOf(element)}
-          />
-          <ConceptColorField
-            ariaLabel={`${element.kind} icon color`}
-            brandDoc={brandDoc}
-            label="Icon color"
-            onChange={(iconColor) => onChange({ iconColor })}
-            value={element.iconColor ?? element.color}
-          />
+          {showSize ? (
+            <NumberField
+              label="Icon size"
+              max={96}
+              onChange={(iconSize) => onChange({ iconSize })}
+              value={iconSizeOf(element)}
+            />
+          ) : null}
+          {showColor ? (
+            <ConceptColorField
+              ariaLabel={`${element.kind} icon color`}
+              brandDoc={brandDoc}
+              label="Icon color"
+              onChange={(iconColor) => onChange({ iconColor })}
+              value={element.iconColor ?? element.color}
+            />
+          ) : null}
         </>
       ) : null}
     </ConceptGroup>
@@ -205,27 +228,35 @@ export function CheckboxGroup({
   brandDoc,
   element,
   onChange,
+  showAccent = true,
+  showSize = true,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
+  showAccent?: boolean;
+  showSize?: boolean;
 }) {
   return (
     <ConceptGroup compact name="Checkbox">
-      <ConceptColorField
-        ariaLabel="checkbox accent color"
-        brandDoc={brandDoc}
-        label="Accent"
-        onChange={(accentColor) => onChange({ accentColor })}
-        value={element.accentColor ?? "#3538cd"}
-      />
-      <NumberField
-        label="Box size"
-        max={40}
-        min={10}
-        onChange={(checkSize) => onChange({ checkSize })}
-        value={element.checkSize ?? 16}
-      />
+      {showAccent ? (
+        <ConceptColorField
+          ariaLabel="checkbox accent color"
+          brandDoc={brandDoc}
+          label="Accent"
+          onChange={(accentColor) => onChange({ accentColor })}
+          value={element.accentColor ?? "#3538cd"}
+        />
+      ) : null}
+      {showSize ? (
+        <NumberField
+          label="Box size"
+          max={40}
+          min={10}
+          onChange={(checkSize) => onChange({ checkSize })}
+          value={element.checkSize ?? 16}
+        />
+      ) : null}
     </ConceptGroup>
   );
 }
@@ -299,38 +330,50 @@ export function ToastGroup({
   brandDoc,
   element,
   onChange,
+  showAction = true,
+  showAccent = true,
+  showClose = true,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
+  showAction?: boolean;
+  showAccent?: boolean;
+  showClose?: boolean;
 }) {
   const closeId = useId();
   return (
     <ConceptGroup name="Toast">
-      <ConceptField label="Action">
-        <Input
-          aria-label="Toast action"
-          onChange={(event) => onChange({ toastAction: event.target.value })}
-          placeholder="None"
-          size="sm"
-          value={element.toastAction ?? ""}
+      {showAction ? (
+        <ConceptField label="Action">
+          <Input
+            aria-label="Toast action"
+            onChange={(event) => onChange({ toastAction: event.target.value })}
+            placeholder="None"
+            size="sm"
+            value={element.toastAction ?? ""}
+          />
+        </ConceptField>
+      ) : null}
+      {showAccent ? (
+        <ConceptColorField
+          ariaLabel="toast action color"
+          brandDoc={brandDoc}
+          label="Action color"
+          onChange={(accentColor) => onChange({ accentColor })}
+          value={element.accentColor ?? element.color}
         />
-      </ConceptField>
-      <ConceptColorField
-        ariaLabel="toast action color"
-        brandDoc={brandDoc}
-        label="Action color"
-        onChange={(accentColor) => onChange({ accentColor })}
-        value={element.accentColor ?? element.color}
-      />
-      <label className="review-concepts__check" htmlFor={closeId}>
-        <Checkbox
-          checked={element.toastClose !== false}
-          id={closeId}
-          onChange={(event) => onChange({ toastClose: event.target.checked })}
-        />
-        <span>Close button</span>
-      </label>
+      ) : null}
+      {showClose ? (
+        <label className="review-concepts__check" htmlFor={closeId}>
+          <Checkbox
+            checked={element.toastClose !== false}
+            id={closeId}
+            onChange={(event) => onChange({ toastClose: event.target.checked })}
+          />
+          <span>Close button</span>
+        </label>
+      ) : null}
     </ConceptGroup>
   );
 }
@@ -345,16 +388,24 @@ export function ProgressGroup({
   element,
   lookOnly = false,
   onChange,
+  showAccent = true,
+  showHeight = true,
+  showProgress = true,
+  showValue = true,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
   lookOnly?: boolean;
   onChange: (patch: Patch) => void;
+  showAccent?: boolean;
+  showHeight?: boolean;
+  showProgress?: boolean;
+  showValue?: boolean;
 }) {
   const valueId = useId();
   return (
     <ConceptGroup compact name="Progress">
-      {lookOnly ? null : (
+      {lookOnly || !showProgress ? null : (
         <NumberField
           label="Value %"
           max={PROGRESS_LIMITS.progress[1]}
@@ -363,28 +414,34 @@ export function ProgressGroup({
           value={element.progress ?? 60}
         />
       )}
-      <NumberField
-        label="Bar height"
-        max={PROGRESS_LIMITS.barHeight[1]}
-        min={PROGRESS_LIMITS.barHeight[0]}
-        onChange={(barHeight) => onChange({ barHeight })}
-        value={element.barHeight ?? 8}
-      />
-      <ConceptColorField
-        ariaLabel="progress bar color"
-        brandDoc={brandDoc}
-        label="Bar"
-        onChange={(accentColor) => onChange({ accentColor })}
-        value={element.accentColor ?? element.color}
-      />
-      <label className="review-concepts__check" htmlFor={valueId}>
-        <Checkbox
-          checked={element.showValue !== false}
-          id={valueId}
-          onChange={(event) => onChange({ showValue: event.target.checked })}
+      {showHeight ? (
+        <NumberField
+          label="Bar height"
+          max={PROGRESS_LIMITS.barHeight[1]}
+          min={PROGRESS_LIMITS.barHeight[0]}
+          onChange={(barHeight) => onChange({ barHeight })}
+          value={element.barHeight ?? 8}
         />
-        <span>Show %</span>
-      </label>
+      ) : null}
+      {showAccent ? (
+        <ConceptColorField
+          ariaLabel="progress bar color"
+          brandDoc={brandDoc}
+          label="Bar"
+          onChange={(accentColor) => onChange({ accentColor })}
+          value={element.accentColor ?? element.color}
+        />
+      ) : null}
+      {showValue ? (
+        <label className="review-concepts__check" htmlFor={valueId}>
+          <Checkbox
+            checked={element.showValue !== false}
+            id={valueId}
+            onChange={(event) => onChange({ showValue: event.target.checked })}
+          />
+          <span>Show %</span>
+        </label>
+      ) : null}
     </ConceptGroup>
   );
 }

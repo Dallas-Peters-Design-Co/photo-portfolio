@@ -11,15 +11,19 @@ export function LogoGroup({
   brandDoc,
   element,
   onChange,
+  showHeight = true,
+  showLogo = true,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
+  showHeight?: boolean;
+  showLogo?: boolean;
 }) {
   const logos = brandDoc?.logos ?? [];
   return (
     <ConceptGroup name="Logo">
-      {logos.length > 0 ? (
+      {showLogo && logos.length > 0 ? (
         <div className="review-concepts__logos">
           {logos.map((logo) => (
             <button
@@ -35,18 +39,21 @@ export function LogoGroup({
             </button>
           ))}
         </div>
-      ) : (
+      ) : null}
+      {showLogo && logos.length === 0 ? (
         <p className="review-concepts__hint">
           Add a logo to the brand kit to show it here.
         </p>
-      )}
-      <NumberField
-        label="Height"
-        max={160}
-        min={12}
-        onChange={(logoHeight) => onChange({ logoHeight })}
-        value={element.logoHeight ?? 32}
-      />
+      ) : null}
+      {showHeight ? (
+        <NumberField
+          label="Height"
+          max={160}
+          min={12}
+          onChange={(logoHeight) => onChange({ logoHeight })}
+          value={element.logoHeight ?? 32}
+        />
+      ) : null}
     </ConceptGroup>
   );
 }

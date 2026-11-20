@@ -298,6 +298,8 @@ export const ELEMENT_STYLE_KEYS = [
   "bodySize",
   "titleWeight",
   "iconColor",
+  "iconEndName",
+  "iconEndSvg",
   "iconSize",
   // A style may set an icon too ("Input / Search"); it is kept or overridden
   // as one choice with its drawing.
@@ -314,10 +316,12 @@ export const ELEMENT_STYLE_KEYS = [
   "summaryIconSvg",
   "panelCollapsed",
   "panelToggleSide",
+  "slideFrom",
   "tabLook",
   "menuLook",
   "hover",
   "focus",
+  "tooltip",
   "avatarUrl",
   "avatarInitials",
   // A Logo style sets which of the kit's logos, and at what height.

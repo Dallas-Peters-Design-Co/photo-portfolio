@@ -15,6 +15,7 @@ import {
   type SlideSide,
 } from "../../../config/conceptSlots.js";
 import { closeButton } from "../../../config/conceptStarters.js";
+import type { ConceptStyleProp } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -276,13 +277,16 @@ export function SlotFields({
  * A card's or panel's slots — header, body, footer — and whether lines
  * divide them. Each slot is its own layout with its own list of elements.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: kind-specific state controls sit beside slots that remain independently editable
 export function ConceptSlotFields({
   brandDoc,
+  canEditProp = () => true,
   depth,
   element,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
+  canEditProp?: (prop: ConceptStyleProp) => boolean;
   /** How many slots deep the card or panel itself sits. */
   depth: number;
   element: ReviewConceptElement;
@@ -290,22 +294,26 @@ export function ConceptSlotFields({
 }) {
   const dividersId = useId();
   const slots = element.slots ?? {};
+  const canEditAnyProp = (...props: ConceptStyleProp[]) =>
+    props.some(canEditProp);
   if (element.kind === "accordion") {
     return (
       <>
-        <ConceptField label="State">
-          <ConceptSelect
-            label="Accordion state"
-            onChange={(value) =>
-              onChange({ accordionExpanded: value === "expanded" })
-            }
-            options={[
-              { label: "Collapsed", value: "collapsed" },
-              { label: "Expanded", value: "expanded" },
-            ]}
-            value={element.accordionExpanded ? "expanded" : "collapsed"}
-          />
-        </ConceptField>
+        {canEditProp("accordionExpanded") ? (
+          <ConceptField label="State">
+            <ConceptSelect
+              label="Accordion state"
+              onChange={(value) =>
+                onChange({ accordionExpanded: value === "expanded" })
+              }
+              options={[
+                { label: "Collapsed", value: "collapsed" },
+                { label: "Expanded", value: "expanded" },
+              ]}
+              value={element.accordionExpanded ? "expanded" : "collapsed"}
+            />
+          </ConceptField>
+        ) : null}
         {(["header", "body"] as const).map((name) => {
           const label = name === "header" ? "Summary" : "Details";
           return (
@@ -329,64 +337,73 @@ export function ConceptSlotFields({
   }
   return (
     <>
-      <ConceptGroup name="Slots">
-        <label className="review-concepts__check" htmlFor={dividersId}>
-          <Checkbox
-            checked={element.dividers ?? element.kind === "buttonGroup"}
-            id={dividersId}
-            onChange={(event) => onChange({ dividers: event.target.checked })}
-          />
-          <span>
-            {element.kind === "buttonGroup"
-              ? "Lines between buttons"
-              : "Lines between slots"}
-          </span>
-        </label>
-      </ConceptGroup>
-      {element.kind === "panel" ? (
+      {canEditProp("dividers") ? (
+        <ConceptGroup name="Slots">
+          <label className="review-concepts__check" htmlFor={dividersId}>
+            <Checkbox
+              checked={element.dividers ?? element.kind === "buttonGroup"}
+              id={dividersId}
+              onChange={(event) => onChange({ dividers: event.target.checked })}
+            />
+            <span>
+              {element.kind === "buttonGroup"
+                ? "Lines between buttons"
+                : "Lines between slots"}
+            </span>
+          </label>
+        </ConceptGroup>
+      ) : null}
+      {element.kind === "panel" &&
+      canEditAnyProp("slideFrom", "panelToggleSide", "panelCollapsed") ? (
         <ConceptGroup name="Motion">
-          <ConceptField label="Appears" wide>
-            <ConceptSelect
-              label="How the panel appears"
-              onChange={(value) =>
-                onChange({
-                  slideFrom: SLIDE_SIDES.includes(value as SlideSide)
-                    ? (value as SlideSide)
-                    : undefined,
-                })
-              }
-              options={SLIDES}
-              value={element.slideFrom ?? "none"}
-            />
-          </ConceptField>
-          <ConceptField label="Toggle position" wide>
-            <ConceptSelect
-              label="Panel toggle position"
-              onChange={(value) =>
-                onChange({
-                  panelToggleSide: value === "left" ? "left" : "right",
-                })
-              }
-              options={[
-                { label: "Left", value: "left" },
-                { label: "Right", value: "right" },
-              ]}
-              value={element.panelToggleSide ?? "right"}
-            />
-          </ConceptField>
-          <ConceptField label="Initial state" wide>
-            <ConceptSelect
-              label="Panel initial state"
-              onChange={(value) =>
-                onChange({ panelCollapsed: value === "collapsed" })
-              }
-              options={[
-                { label: "Expanded", value: "expanded" },
-                { label: "Collapsed", value: "collapsed" },
-              ]}
-              value={element.panelCollapsed ? "collapsed" : "expanded"}
-            />
-          </ConceptField>
+          {canEditProp("slideFrom") ? (
+            <ConceptField label="Appears" wide>
+              <ConceptSelect
+                label="How the panel appears"
+                onChange={(value) =>
+                  onChange({
+                    slideFrom: SLIDE_SIDES.includes(value as SlideSide)
+                      ? (value as SlideSide)
+                      : undefined,
+                  })
+                }
+                options={SLIDES}
+                value={element.slideFrom ?? "none"}
+              />
+            </ConceptField>
+          ) : null}
+          {canEditProp("panelToggleSide") ? (
+            <ConceptField label="Toggle position" wide>
+              <ConceptSelect
+                label="Panel toggle position"
+                onChange={(value) =>
+                  onChange({
+                    panelToggleSide: value === "left" ? "left" : "right",
+                  })
+                }
+                options={[
+                  { label: "Left", value: "left" },
+                  { label: "Right", value: "right" },
+                ]}
+                value={element.panelToggleSide ?? "right"}
+              />
+            </ConceptField>
+          ) : null}
+          {canEditProp("panelCollapsed") ? (
+            <ConceptField label="Initial state" wide>
+              <ConceptSelect
+                label="Panel initial state"
+                onChange={(value) =>
+                  onChange({ panelCollapsed: value === "collapsed" })
+                }
+                options={[
+                  { label: "Expanded", value: "expanded" },
+                  { label: "Collapsed", value: "collapsed" },
+                ]}
+                value={element.panelCollapsed ? "collapsed" : "expanded"}
+              />
+            </ConceptField>
+          ) : null}
         </ConceptGroup>
       ) : null}
       {(element.kind === "panel" ? PANEL_SLOTS : SLOT_NAMES)

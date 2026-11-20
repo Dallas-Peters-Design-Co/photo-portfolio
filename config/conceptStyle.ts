@@ -1,4 +1,7 @@
-import { cleanIcon } from "./conceptKinds.js";
+import { takesFocus } from "./conceptFocus.js";
+import { takesHover } from "./conceptHover.js";
+import { cleanIcon, takesBox, takesIcon } from "./conceptKinds.js";
+import { takesMenu } from "./conceptMenu.js";
 import { type ConceptSlots, hasSlots, mapChildren } from "./conceptSlots.js";
 import {
   type ConceptCellLook,
@@ -57,11 +60,26 @@ export type ConceptStyleLook = Partial<
   tableHeader?: ConceptTableHeader;
 };
 
+/** A component prop exposed to the instance editors. */
+export type ConceptStyleProp =
+  | "text"
+  | "placeholder"
+  | "options"
+  | "inputType"
+  | "checked"
+  | "progress"
+  | "toastAction"
+  | "toastClose"
+  | "tableContents"
+  | ConceptStyleKey;
+
 export interface ConceptStyle {
   id: string;
   kind: ReviewConceptElementKind;
   look: ConceptStyleLook;
   name: string;
+  /** Props an instance may change; slots and their contents remain available. */
+  overridableProps?: ConceptStyleProp[];
 }
 
 export const MAX_CONCEPT_STYLES = 256;
@@ -70,6 +88,8 @@ const ICON_KEYS = new Set<ConceptStyleKey>([
   "summaryIconName",
   "summaryIconSvg",
   "iconColor",
+  "iconEndName",
+  "iconEndSvg",
   "iconName",
   "iconSize",
   "iconSvg",
@@ -78,6 +98,7 @@ const ICON_KEYS = new Set<ConceptStyleKey>([
 const REQUIRED_KEYS = new Set<ConceptStyleKey>([
   "background",
   "color",
+  "tooltip",
   "fontFamily",
   "fontSize",
   "fontWeight",
@@ -93,6 +114,88 @@ const LINKED_KEYS: readonly ReadonlySet<ConceptStyleKey>[] = [
   new Set<ConceptStyleKey>(["summaryIconName", "summaryIconSvg"]),
 ];
 const MAX_STYLE_NAME = 60;
+
+/** Props each style kind can offer to an instance. */
+const BASE_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
+  "fontFamily",
+  "fontId",
+  "fontRef",
+  "fontSize",
+  "fontWeight",
+  "lineHeight",
+  "flex",
+  "background",
+  "color",
+  "paddingX",
+  "paddingY",
+  "radius",
+];
+const BOX_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
+  "borderColor",
+  "borderWidth",
+  "borderTopWidth",
+  "borderLeftWidth",
+  "borderRightWidth",
+  "borderBottomWidth",
+  "shadow",
+];
+const ICON_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
+  "iconName",
+  "iconSvg",
+  "iconEndName",
+  "iconEndSvg",
+  "iconSize",
+  "iconColor",
+];
+const KIND_COMPONENT_PROPS: Partial<
+  Record<ReviewConceptElementKind, readonly ConceptStyleProp[]>
+> = {
+  accordion: ["accordionExpanded", "summaryIconName", "summaryIconSvg"],
+  avatar: ["avatarUrl", "avatarInitials"],
+  card: ["bodySize", "titleWeight", "fullHeight", "dividers"],
+  checkbox: ["accentColor", "checkSize", "checked"],
+  input: ["inputType", "placeholder"],
+  logo: ["logoUrl", "logoHeight"],
+  menu: ["menuLook", "options"],
+  panel: [
+    "fullHeight",
+    "panelCollapsed",
+    "panelToggleSide",
+    "slideFrom",
+    "dividers",
+  ],
+  progress: ["barHeight", "accentColor", "showValue", "progress"],
+  select: ["placeholder", "options"],
+  table: ["tableBorders", "tableHeader", "tableContents"],
+  tabs: ["tabLook", "options"],
+  textarea: ["placeholder"],
+  toast: ["toastAction", "toastClose"],
+  upload: ["placeholder"],
+};
+
+/** Props this kind of component can offer to an instance. */
+export const componentPropOptionsOf = (
+  style: ConceptStyle
+): ConceptStyleProp[] => {
+  const textKinds = new Set(["avatar", "logo", "navbar", "table"]);
+  const props = new Set<ConceptStyleProp>([
+    ...(textKinds.has(style.kind) ? [] : ["text" as const]),
+    ...BASE_COMPONENT_PROPS,
+    ...(takesBox(style.kind) ? BOX_COMPONENT_PROPS : []),
+    ...(takesHover(style.kind) ? ["hover" as const] : []),
+    ...(takesFocus(style.kind) ? ["focus" as const] : []),
+    ...(takesIcon(style.kind) ? ICON_COMPONENT_PROPS : []),
+    ...(takesMenu(style.kind) && style.kind !== "menu"
+      ? ["menuLook" as const]
+      : []),
+    ...(KIND_COMPONENT_PROPS[style.kind] ?? []),
+  ]);
+  return [...props];
+};
+
+/** Props shown as editable controls on an instance. */
+export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] =>
+  style.overridableProps ?? componentPropOptionsOf(style);
 
 /** An element's look: the part a style holds. */
 export const lookOf = (element: ReviewConceptElement): ConceptStyleLook => {
@@ -154,18 +257,32 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
     look.contents && hasSlots(element.kind) && element.slots
       ? { contents: element.slots }
       : {};
+  const cleanedLook = {
+    ...(look.iconName ? cleaned : iconless),
+    ...contents,
+    ...(look.groupContents && element.group
+      ? { groupContents: element.group }
+      : {}),
+    ...(tableContents ? { tableContents } : {}),
+  };
+  const props = componentPropOptionsOf({
+    id: raw.id,
+    kind: element.kind,
+    look: cleanedLook,
+    name,
+  });
+  const overridableProps = Array.isArray(raw.overridableProps)
+    ? raw.overridableProps.filter(
+        (key, index, all): key is ConceptStyleProp =>
+          props.includes(key as ConceptStyleProp) && all.indexOf(key) === index
+      )
+    : props;
   return {
     id: raw.id,
     kind: element.kind,
-    look: {
-      ...(look.iconName ? cleaned : iconless),
-      ...contents,
-      ...(look.groupContents && element.group
-        ? { groupContents: element.group }
-        : {}),
-      ...(tableContents ? { tableContents } : {}),
-    },
+    look: cleanedLook,
     name: name || "Untitled",
+    overridableProps,
   };
 };
 
@@ -178,6 +295,40 @@ export const cleanConceptStyles = (value: unknown): ConceptStyle[] =>
     )
     .slice(0, MAX_CONCEPT_STYLES);
 
+const keepsOwnStyleSetting = (
+  key: ConceptStyleKey,
+  style: ConceptStyle
+): boolean =>
+  (ICON_KEYS.has(key) || REQUIRED_KEYS.has(key)) &&
+  style.look[key] === undefined;
+
+const applyTableStyle = (
+  element: ReviewConceptElement,
+  style: ConceptStyle,
+  own: Set<ConceptStyleKey>,
+  overridable: Set<ConceptStyleProp>
+): ReviewConceptElement => {
+  if (element.kind !== "table") {
+    return element;
+  }
+  const table = tableOf(element);
+  const borders =
+    own.has("tableBorders") && overridable.has("tableBorders")
+      ? table.borders
+      : style.look.tableBorders;
+  const header =
+    own.has("tableHeader") && overridable.has("tableHeader")
+      ? table.header
+      : style.look.tableHeader;
+  const { borders: _b, header: _h, ...rest } = table;
+  element.table = {
+    ...rest,
+    ...(borders ? { borders } : {}),
+    ...(header ? { header } : {}),
+  };
+  return element;
+};
+
 /** The element as its style draws it, keeping the settings it set itself. */
 export const applyConceptStyle = (
   element: ReviewConceptElement,
@@ -188,34 +339,26 @@ export const applyConceptStyle = (
     return element;
   }
   const own = new Set(element.overrides);
+  const overridable = new Set(componentPropsOf(style));
   const next: Record<string, unknown> = { ...element };
   for (const key of ELEMENT_STYLE_KEYS) {
     // A style that sets no icon, or (incomplete) no basic setting, leaves
     // the element's own; its unset border and shadow mean "none".
-    const keepsOwn =
-      (ICON_KEYS.has(key) || REQUIRED_KEYS.has(key)) &&
-      style.look[key] === undefined;
-    if (!(own.has(key) || keepsOwn)) {
+    if (
+      !(
+        (own.has(key) && overridable.has(key)) ||
+        keepsOwnStyleSetting(key, style)
+      )
+    ) {
       next[key] = style.look[key];
     }
   }
-  const result = next as unknown as ReviewConceptElement;
-  if (result.kind === "table") {
-    // tableOf, so an older table (columns only in `options`) is styled too.
-    const table = tableOf(result);
-    const borders = own.has("tableBorders")
-      ? table.borders
-      : style.look.tableBorders;
-    const header = own.has("tableHeader")
-      ? table.header
-      : style.look.tableHeader;
-    const { borders: _b, header: _h, ...rest } = table;
-    result.table = {
-      ...rest,
-      ...(borders ? { borders } : {}),
-      ...(header ? { header } : {}),
-    };
-  }
+  const result = applyTableStyle(
+    next as unknown as ReviewConceptElement,
+    style,
+    own,
+    overridable
+  );
   // A style's optional settings it does not set mean "none", not "leave".
   for (const key of Object.keys(result) as (keyof ReviewConceptElement)[]) {
     if (result[key] === undefined) {

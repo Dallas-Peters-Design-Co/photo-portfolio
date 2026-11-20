@@ -296,266 +296,284 @@ export function ConceptTableFields({
   brandDoc,
   element,
   onChange,
+  showBorders = true,
+  showContents = true,
+  showHeader = true,
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
+  showBorders?: boolean;
+  showContents?: boolean;
+  showHeader?: boolean;
 }) {
   const table = tableOf(element);
   const borders = table.borders ?? DEFAULT_BORDERS;
   const set = (next: ConceptTable) => onChange({ table: next });
   return (
     <>
-      <ConceptGroup name="Columns">
-        <div className="review-concepts__table-editor">
-          {/* Dragged by the handle, or moved with its arrow keys; a column's
+      {showContents ? (
+        <ConceptGroup name="Columns">
+          <div className="review-concepts__table-editor">
+            {/* Dragged by the handle, or moved with its arrow keys; a column's
               position is its id, so the ids are renumbered after each move. */}
-          <SortableList
-            itemLabel={({ column }) => `column ${column.label || "untitled"}`}
-            items={table.columns.map((column, index) => ({
-              column,
-              id: String(index),
-              index,
-            }))}
-            onReorder={(ids) => set(reorderColumns(table, ids.map(Number)))}
-          >
-            {({ column, index }, { handle }) => (
-              <div className="review-concepts__table-column">
-                {handle}
-                <ConceptField label="Name">
-                  <Input
-                    aria-label={`Column ${index + 1} name`}
-                    onChange={(event) =>
+            <SortableList
+              itemLabel={({ column }) => `column ${column.label || "untitled"}`}
+              items={table.columns.map((column, index) => ({
+                column,
+                id: String(index),
+                index,
+              }))}
+              onReorder={(ids) => set(reorderColumns(table, ids.map(Number)))}
+            >
+              {({ column, index }, { handle }) => (
+                <div className="review-concepts__table-column">
+                  {handle}
+                  <ConceptField label="Name">
+                    <Input
+                      aria-label={`Column ${index + 1} name`}
+                      onChange={(event) =>
+                        set(
+                          updateColumn(table, index, {
+                            label: event.target.value,
+                          })
+                        )
+                      }
+                      size="sm"
+                      value={column.label}
+                    />
+                  </ConceptField>
+                  <ConceptField label="Cells">
+                    <ConceptSelect
+                      label={`Column ${index + 1} cells`}
+                      onChange={(kind) =>
+                        set(
+                          setColumnKind(table, index, kind as ConceptCellKind)
+                        )
+                      }
+                      options={KIND_OPTIONS}
+                      value={column.kind}
+                    />
+                  </ConceptField>
+                  {/* 0 is Auto: the column fits what is in it. */}
+                  <NumberField
+                    label="Width"
+                    max={COLUMN_WIDTH.max}
+                    onChange={(width) =>
                       set(
                         updateColumn(table, index, {
-                          label: event.target.value,
+                          width: width > 0 ? width : undefined,
                         })
                       )
                     }
-                    size="sm"
-                    value={column.label}
+                    value={column.width ?? 0}
                   />
-                </ConceptField>
-                <ConceptField label="Cells">
-                  <ConceptSelect
-                    label={`Column ${index + 1} cells`}
-                    onChange={(kind) =>
-                      set(setColumnKind(table, index, kind as ConceptCellKind))
-                    }
-                    options={KIND_OPTIONS}
-                    value={column.kind}
+                  <Button
+                    aria-label={`Remove column ${index + 1}`}
+                    disabled={table.columns.length <= 1}
+                    onClick={() => set(removeColumn(table, index))}
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 size={13} />
+                  </Button>
+                  <ColumnLook
+                    brandDoc={brandDoc}
+                    column={column}
+                    index={index}
+                    onChange={(patch) => set(updateColumn(table, index, patch))}
+                    textColor={element.color}
                   />
-                </ConceptField>
-                {/* 0 is Auto: the column fits what is in it. */}
-                <NumberField
-                  label="Width"
-                  max={COLUMN_WIDTH.max}
-                  onChange={(width) =>
-                    set(
-                      updateColumn(table, index, {
-                        width: width > 0 ? width : undefined,
-                      })
-                    )
-                  }
-                  value={column.width ?? 0}
-                />
-                <Button
-                  aria-label={`Remove column ${index + 1}`}
-                  disabled={table.columns.length <= 1}
-                  onClick={() => set(removeColumn(table, index))}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Trash2 size={13} />
-                </Button>
-                <ColumnLook
-                  brandDoc={brandDoc}
-                  column={column}
-                  index={index}
-                  onChange={(patch) => set(updateColumn(table, index, patch))}
-                  textColor={element.color}
-                />
-              </div>
-            )}
-          </SortableList>
-          <div>
-            <Button
-              disabled={table.columns.length >= MAX_TABLE_COLUMNS}
-              onClick={() => set(addColumn(table))}
-              size="xs"
-              type="button"
-              variant="outline"
-            >
-              <Plus size={13} /> Add column
-            </Button>
-          </div>
-        </div>
-      </ConceptGroup>
-
-      <ConceptGroup name="Rows">
-        <div className="review-concepts__table-editor">
-          {table.rows.map((row, rowIndex) => (
-            <div
-              className="review-concepts__table-row"
-              // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
-              key={rowIndex}
-            >
-              <div className="review-concepts__table-row-heading">
-                <strong>Row {rowIndex + 1}</strong>
-                <Button
-                  aria-label={`Remove row ${rowIndex + 1}`}
-                  onClick={() => set(removeRow(table, rowIndex))}
-                  size="icon-sm"
-                  type="button"
-                  variant="ghost"
-                >
-                  <Trash2 size={13} />
-                </Button>
-              </div>
-              <div className="review-concepts__table-cells">
-                {table.columns.map((column, index) => {
-                  const label = `Row ${rowIndex + 1}, ${column.label || `column ${index + 1}`}`;
-                  return (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: table cells follow column order
-                    <div className="review-concepts__table-cell" key={index}>
-                      <span className="review-concepts__table-caption">
-                        {column.label || `Column ${index + 1}`}
-                      </span>
-                      <CellInput
-                        column={column}
-                        icons={table.icons}
-                        label={label}
-                        onChange={(value) =>
-                          set(setCell(table, rowIndex, index, value))
-                        }
-                        onIcon={(name, svg) =>
-                          set(setIconCell(table, rowIndex, index, name, svg))
-                        }
-                        value={row[index] ?? ""}
-                      />
-                      <TableCellAppearance
-                        brandDoc={brandDoc}
-                        column={column}
-                        label={label}
-                        onChange={(cell) => {
-                          const cells = { ...column.cells };
-                          if (cell) {
-                            cells[rowIndex] = cell;
-                          } else {
-                            delete cells[rowIndex];
-                          }
-                          set(updateColumn(table, index, { cells }));
-                        }}
-                        row={rowIndex}
-                        textColor={element.color}
-                      />
-                      {column.kind !== "icon" && (
-                        <details className="review-concepts__table-icons">
-                          <summary aria-label={`${label} icons`}>Icons</summary>
-                          {(["start", "end"] as const).map((side) => {
-                            const item = tableItemIcon(
-                              cellColumn(column, rowIndex),
-                              rowIndex,
-                              side,
-                              table.icons
-                            );
-                            const position =
-                              side === "start"
-                                ? "Leading icon"
-                                : "Trailing icon";
-                            return (
-                              <ConceptField key={side} label={position}>
-                                <IconPicker
-                                  inline
-                                  label={`${label}, ${position}`}
-                                  library="full"
-                                  onChange={(icon, svg) =>
-                                    set(
-                                      setCellItemIcon(
-                                        table,
-                                        rowIndex,
-                                        index,
-                                        side,
-                                        icon,
-                                        svg as ConceptIconSvg | undefined
-                                      )
-                                    )
-                                  }
-                                  size="sm"
-                                  svg={item?.svg}
-                                  value={item?.name ?? null}
-                                />
-                              </ConceptField>
-                            );
-                          })}
-                        </details>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                </div>
+              )}
+            </SortableList>
+            <div>
+              <Button
+                disabled={table.columns.length >= MAX_TABLE_COLUMNS}
+                onClick={() => set(addColumn(table))}
+                size="xs"
+                type="button"
+                variant="outline"
+              >
+                <Plus size={13} /> Add column
+              </Button>
             </div>
-          ))}
-          <div>
-            <Button
-              disabled={table.rows.length >= MAX_TABLE_ROWS}
-              onClick={() => set(addRow(table))}
-              size="xs"
-              type="button"
-              variant="outline"
-            >
-              <Plus size={13} /> Add row
-            </Button>
           </div>
-        </div>
-      </ConceptGroup>
+        </ConceptGroup>
+      ) : null}
 
-      <ConceptGroup compact name="Header">
-        <ConceptColorField
-          allowNone
-          ariaLabel="Table header background"
-          brandDoc={brandDoc}
-          label="Background"
-          onChange={(background) => set(updateHeader(table, { background }))}
-          value={table.header?.background ?? "transparent"}
-        />
-        <ConceptColorField
-          allowNone
-          ariaLabel="Table header text color"
-          brandDoc={brandDoc}
-          label="Text"
-          onChange={(color) => set(updateHeader(table, { color }))}
-          value={table.header?.color ?? "transparent"}
-        />
-      </ConceptGroup>
+      {showContents ? (
+        <ConceptGroup name="Rows">
+          <div className="review-concepts__table-editor">
+            {table.rows.map((row, rowIndex) => (
+              <div
+                className="review-concepts__table-row"
+                // biome-ignore lint/suspicious/noArrayIndexKey: rows have no ids
+                key={rowIndex}
+              >
+                <div className="review-concepts__table-row-heading">
+                  <strong>Row {rowIndex + 1}</strong>
+                  <Button
+                    aria-label={`Remove row ${rowIndex + 1}`}
+                    onClick={() => set(removeRow(table, rowIndex))}
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 size={13} />
+                  </Button>
+                </div>
+                <div className="review-concepts__table-cells">
+                  {table.columns.map((column, index) => {
+                    const label = `Row ${rowIndex + 1}, ${column.label || `column ${index + 1}`}`;
+                    return (
+                      // biome-ignore lint/suspicious/noArrayIndexKey: table cells follow column order
+                      <div className="review-concepts__table-cell" key={index}>
+                        <span className="review-concepts__table-caption">
+                          {column.label || `Column ${index + 1}`}
+                        </span>
+                        <CellInput
+                          column={column}
+                          icons={table.icons}
+                          label={label}
+                          onChange={(value) =>
+                            set(setCell(table, rowIndex, index, value))
+                          }
+                          onIcon={(name, svg) =>
+                            set(setIconCell(table, rowIndex, index, name, svg))
+                          }
+                          value={row[index] ?? ""}
+                        />
+                        <TableCellAppearance
+                          brandDoc={brandDoc}
+                          column={column}
+                          label={label}
+                          onChange={(cell) => {
+                            const cells = { ...column.cells };
+                            if (cell) {
+                              cells[rowIndex] = cell;
+                            } else {
+                              delete cells[rowIndex];
+                            }
+                            set(updateColumn(table, index, { cells }));
+                          }}
+                          row={rowIndex}
+                          textColor={element.color}
+                        />
+                        {column.kind !== "icon" && (
+                          <details className="review-concepts__table-icons">
+                            <summary aria-label={`${label} icons`}>
+                              Icons
+                            </summary>
+                            {(["start", "end"] as const).map((side) => {
+                              const item = tableItemIcon(
+                                cellColumn(column, rowIndex),
+                                rowIndex,
+                                side,
+                                table.icons
+                              );
+                              const position =
+                                side === "start"
+                                  ? "Leading icon"
+                                  : "Trailing icon";
+                              return (
+                                <ConceptField key={side} label={position}>
+                                  <IconPicker
+                                    inline
+                                    label={`${label}, ${position}`}
+                                    library="full"
+                                    onChange={(icon, svg) =>
+                                      set(
+                                        setCellItemIcon(
+                                          table,
+                                          rowIndex,
+                                          index,
+                                          side,
+                                          icon,
+                                          svg as ConceptIconSvg | undefined
+                                        )
+                                      )
+                                    }
+                                    size="sm"
+                                    svg={item?.svg}
+                                    value={item?.name ?? null}
+                                  />
+                                </ConceptField>
+                              );
+                            })}
+                          </details>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+            <div>
+              <Button
+                disabled={table.rows.length >= MAX_TABLE_ROWS}
+                onClick={() => set(addRow(table))}
+                size="xs"
+                type="button"
+                variant="outline"
+              >
+                <Plus size={13} /> Add row
+              </Button>
+            </div>
+          </div>
+        </ConceptGroup>
+      ) : null}
 
-      <ConceptGroup compact name="Borders">
-        <ConceptField label="Lines">
-          <ConceptSelect
-            label="Table lines"
-            onChange={(lines) =>
-              set(updateBorders(table, { lines: lines as TableLines }))
-            }
-            options={LINE_OPTIONS}
-            value={borders.lines}
+      {showHeader ? (
+        <ConceptGroup compact name="Header">
+          <ConceptColorField
+            allowNone
+            ariaLabel="Table header background"
+            brandDoc={brandDoc}
+            label="Background"
+            onChange={(background) => set(updateHeader(table, { background }))}
+            value={table.header?.background ?? "transparent"}
           />
-        </ConceptField>
-        <NumberField
-          label="Width"
-          max={MAX_BORDER_WIDTH}
-          min={1}
-          onChange={(width) => set(updateBorders(table, { width }))}
-          value={borders.width}
-        />
-        <ConceptColorField
-          ariaLabel="Table line color"
-          brandDoc={brandDoc}
-          label="Color"
-          onChange={(color) => set(updateBorders(table, { color }))}
-          value={borders.color ?? "#d0d5dd"}
-        />
-      </ConceptGroup>
+          <ConceptColorField
+            allowNone
+            ariaLabel="Table header text color"
+            brandDoc={brandDoc}
+            label="Text"
+            onChange={(color) => set(updateHeader(table, { color }))}
+            value={table.header?.color ?? "transparent"}
+          />
+        </ConceptGroup>
+      ) : null}
+
+      {showBorders ? (
+        <ConceptGroup compact name="Borders">
+          <ConceptField label="Lines">
+            <ConceptSelect
+              label="Table lines"
+              onChange={(lines) =>
+                set(updateBorders(table, { lines: lines as TableLines }))
+              }
+              options={LINE_OPTIONS}
+              value={borders.lines}
+            />
+          </ConceptField>
+          <NumberField
+            label="Width"
+            max={MAX_BORDER_WIDTH}
+            min={1}
+            onChange={(width) => set(updateBorders(table, { width }))}
+            value={borders.width}
+          />
+          <ConceptColorField
+            ariaLabel="Table line color"
+            brandDoc={brandDoc}
+            label="Color"
+            onChange={(color) => set(updateBorders(table, { color }))}
+            value={borders.color ?? "#d0d5dd"}
+          />
+        </ConceptGroup>
+      ) : null}
     </>
   );
 }

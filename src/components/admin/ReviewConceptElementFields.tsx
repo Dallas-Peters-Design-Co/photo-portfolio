@@ -6,7 +6,11 @@ import { takesHover } from "../../../config/conceptHover.js";
 import { takesBox, takesIcon } from "../../../config/conceptKinds.js";
 import { takesMenu } from "../../../config/conceptMenu.js";
 import { hasSlots, MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
-import type { ConceptStyle } from "../../../config/conceptStyle.js";
+import {
+  type ConceptStyle,
+  type ConceptStyleProp,
+  componentPropsOf,
+} from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { useRememberedOpen } from "../../hooks/useRememberedOpen";
 import { iconLabel } from "../review/ConceptIcon";
@@ -87,19 +91,27 @@ const summaryOf = (element: ReviewConceptElement): string => {
 };
 
 function ContentGroup({
+  canEditProp,
   element,
   onChange,
 }: {
+  canEditProp: (prop: ConceptStyleProp) => boolean;
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
 }) {
   const checkedId = useId();
+  const supportsPlaceholder = ["input", "textarea", "select"].includes(
+    element.kind
+  );
+  const showPlaceholder =
+    canEditProp("placeholder") &&
+    (supportsPlaceholder || element.kind === "upload");
   return (
     <ConceptGroup name="Content">
-      <ReviewConceptContentField element={element} onChange={onChange} />
-      {element.kind === "input" ||
-      element.kind === "textarea" ||
-      element.kind === "select" ? (
+      {canEditProp("text") ? (
+        <ReviewConceptContentField element={element} onChange={onChange} />
+      ) : null}
+      {showPlaceholder && element.kind !== "upload" ? (
         <ConceptField label="Placeholder" wide>
           <Input
             aria-label="Placeholder"
@@ -109,7 +121,7 @@ function ContentGroup({
           />
         </ConceptField>
       ) : null}
-      {element.kind === "upload" ? (
+      {showPlaceholder && element.kind === "upload" ? (
         <ConceptField label="File after upload (leave empty before)" wide>
           <Input
             aria-label="File after upload"
@@ -120,7 +132,7 @@ function ContentGroup({
           />
         </ConceptField>
       ) : null}
-      {OPTION_KINDS.has(element.kind) ? (
+      {OPTION_KINDS.has(element.kind) && canEditProp("options") ? (
         <ConceptField label="Options, comma separated" wide>
           <Input
             aria-label="Options, comma separated"
@@ -138,7 +150,7 @@ function ContentGroup({
           />
         </ConceptField>
       ) : null}
-      {element.kind === "input" ? (
+      {element.kind === "input" && canEditProp("inputType") ? (
         <ConceptField label="Input type">
           <ConceptSelect
             label="Input type"
@@ -152,7 +164,7 @@ function ContentGroup({
           />
         </ConceptField>
       ) : null}
-      {element.kind === "checkbox" ? (
+      {element.kind === "checkbox" && canEditProp("checked") ? (
         <label className="review-concepts__check" htmlFor={checkedId}>
           <Checkbox
             checked={element.checked ?? false}
@@ -170,13 +182,18 @@ function ContentGroup({
  * What only some kinds have, above the shared look: a table's columns, rows,
  * header and borders; the content of the rest; a checkbox's box; an icon.
  */
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: each conditional is a separate component capability and prop gate
 function KindGroups({
   brandDoc,
+  canEditAnyProp,
+  canEditProp,
   element,
   lookOnly,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
+  canEditAnyProp: (...props: ConceptStyleProp[]) => boolean;
+  canEditProp: (prop: ConceptStyleProp) => boolean;
   element: ReviewConceptElement;
   lookOnly: boolean;
   onChange: (patch: Patch) => void;
@@ -184,11 +201,17 @@ function KindGroups({
   return (
     <>
       {/* A table's content is its columns and rows. */}
-      {element.kind === "table" ? (
+      {element.kind === "table" &&
+      (canEditProp("tableContents") ||
+        canEditProp("tableBorders") ||
+        canEditProp("tableHeader")) ? (
         <ConceptTableFields
           brandDoc={brandDoc}
           element={element}
           onChange={onChange}
+          showBorders={canEditProp("tableBorders")}
+          showContents={canEditProp("tableContents")}
+          showHeader={canEditProp("tableHeader")}
         />
       ) : null}
       {/* A logo is its picture and a navbar its slots: no text of their own. */}
@@ -197,55 +220,108 @@ function KindGroups({
       element.kind === "avatar" ||
       element.kind === "logo" ||
       element.kind === "navbar" ||
-      lookOnly ? null : (
-        <ContentGroup element={element} onChange={onChange} />
+      lookOnly ||
+      !canEditAnyProp(
+        "text",
+        "placeholder",
+        "options",
+        "inputType",
+        "checked"
+      ) ? null : (
+        <ContentGroup
+          canEditProp={canEditProp}
+          element={element}
+          onChange={onChange}
+        />
       )}
-      {takesHover(element.kind) ? (
+      {takesHover(element.kind) && canEditProp("hover") ? (
         <HoverGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
-      {takesFocus(element.kind) ? (
+      {takesFocus(element.kind) && canEditProp("focus") ? (
         <FocusGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
-      {element.kind === "toast" ? (
-        <ToastGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      {element.kind === "toast" &&
+      canEditAnyProp("toastAction", "toastClose", "accentColor") ? (
+        <ToastGroup
+          brandDoc={brandDoc}
+          element={element}
+          onChange={onChange}
+          showAccent={canEditProp("accentColor")}
+          showAction={canEditProp("toastAction")}
+          showClose={canEditProp("toastClose")}
+        />
       ) : null}
-      {element.kind === "avatar" ? (
+      {element.kind === "avatar" &&
+      canEditAnyProp("avatarUrl", "avatarInitials") ? (
         <ConceptAvatarFields
           element={element}
           key={element.id}
           onChange={onChange}
+          showImage={canEditProp("avatarUrl")}
+          showInitials={canEditProp("avatarInitials")}
         />
       ) : null}
-      {element.kind === "logo" ? (
-        <LogoGroup brandDoc={brandDoc} element={element} onChange={onChange} />
+      {element.kind === "logo" && canEditAnyProp("logoUrl", "logoHeight") ? (
+        <LogoGroup
+          brandDoc={brandDoc}
+          element={element}
+          onChange={onChange}
+          showHeight={canEditProp("logoHeight")}
+          showLogo={canEditProp("logoUrl")}
+        />
       ) : null}
-      {element.kind === "progress" ? (
+      {element.kind === "progress" &&
+      canEditAnyProp("progress", "barHeight", "accentColor", "showValue") ? (
         <ProgressGroup
           brandDoc={brandDoc}
           element={element}
           lookOnly={lookOnly}
           onChange={onChange}
+          showAccent={canEditProp("accentColor")}
+          showHeight={canEditProp("barHeight")}
+          showProgress={canEditProp("progress")}
+          showValue={canEditProp("showValue")}
         />
       ) : null}
-      {takesMenu(element.kind) ? (
+      {takesMenu(element.kind) && canEditProp("menuLook") ? (
         <MenuGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
-      {element.kind === "tabs" ? (
+      {element.kind === "tabs" && canEditProp("tabLook") ? (
         <TabsGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}
-      {element.kind === "checkbox" ? (
+      {element.kind === "checkbox" &&
+      canEditAnyProp("accentColor", "checkSize") ? (
         <CheckboxGroup
           brandDoc={brandDoc}
           element={element}
           onChange={onChange}
+          showAccent={canEditProp("accentColor")}
+          showSize={canEditProp("checkSize")}
         />
       ) : null}
-      {takesIcon(element.kind) ? (
+      {takesIcon(element.kind) &&
+      canEditAnyProp(
+        "iconName",
+        "iconSvg",
+        "iconEndName",
+        "iconEndSvg",
+        "summaryIconName",
+        "summaryIconSvg",
+        "iconSize",
+        "iconColor"
+      ) ? (
         <ElementIconGroup
           brandDoc={brandDoc}
           element={element}
           lookOnly={lookOnly}
           onChange={onChange}
+          showColor={canEditProp("iconColor")}
+          showEndIcon={canEditProp("iconEndName") || canEditProp("iconEndSvg")}
+          showIcon={canEditProp("iconName") || canEditProp("iconSvg")}
+          showSize={canEditProp("iconSize")}
+          showSummaryIcon={
+            canEditProp("summaryIconName") || canEditProp("summaryIconSvg")
+          }
         />
       ) : null}
     </>
@@ -255,11 +331,13 @@ function KindGroups({
 /** What a group or a card or panel holds, and how it lays it out. */
 function HolderFields({
   brandDoc,
+  canEditProp,
   depth,
   element,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
+  canEditProp: (prop: ConceptStyleProp) => boolean;
   depth: number;
   element: ReviewConceptElement;
   onChange: (patch: Patch) => void;
@@ -290,6 +368,7 @@ function HolderFields({
     ? wrap(
         <ConceptSlotFields
           brandDoc={brandDoc}
+          canEditProp={canEditProp}
           depth={depth}
           element={element}
           onChange={onChange}
@@ -346,6 +425,14 @@ export function ReviewConceptElementFields({
     depth === 0 || initiallyOpen
   );
   const bodyId = useId();
+  const linkedStyle = styles.find((style) => style.id === element.styleId);
+  const allowedProps = linkedStyle
+    ? new Set<ConceptStyleProp>(componentPropsOf(linkedStyle))
+    : null;
+  const canEditProp = (prop: ConceptStyleProp) =>
+    lookOnly || allowedProps === null || allowedProps.has(prop);
+  const canEditAnyProp = (...props: ConceptStyleProp[]) =>
+    props.some(canEditProp);
   // Picked in the preview: open, and if it's the one picked, scroll to it.
   const focus = useElementFocus();
   const section = useRef<HTMLElement>(null);
@@ -456,22 +543,24 @@ export function ReviewConceptElementFields({
       ref={section}
     >
       {!lookOnly && header}
-      {element.kind === "text" && !lookOnly ? (
+      {element.kind === "text" && !lookOnly && canEditProp("text") ? (
         <ReviewConceptContentField element={element} onChange={onChange} />
       ) : null}
       {open || lookOnly ? (
         <div className="review-concepts__element-body" id={bodyId}>
-          {!lookOnly && element.kind !== "tooltip" ? (
+          {!lookOnly && element.kind !== "tooltip" && canEditProp("tooltip") ? (
             <ConceptTooltipFields
               brandDoc={brandDoc}
               element={element}
               onChange={onChange}
             />
           ) : null}
-          <ConceptFlexFields
-            flex={element.flex}
-            onChange={(flex) => onChange({ flex })}
-          />
+          {canEditProp("flex") ? (
+            <ConceptFlexFields
+              flex={element.flex}
+              onChange={(flex) => onChange({ flex })}
+            />
+          ) : null}
           {gridColumns ? (
             <ConceptGridItemFields
               columns={gridColumns}
@@ -481,82 +570,131 @@ export function ReviewConceptElementFields({
           ) : null}
           <KindGroups
             brandDoc={brandDoc}
+            canEditAnyProp={canEditAnyProp}
+            canEditProp={canEditProp}
             element={element}
             lookOnly={lookOnly}
             onChange={onChange}
           />
-          <ConceptGroup compact name="Type">
-            <ConceptFontField
-              brandDoc={brandDoc}
-              family={element.fontFamily}
-              fontId={element.fontId}
-              fontRef={element.fontRef}
-              label="Typeface"
-              onChange={onChange}
-            />
-            <NumberField
-              label={SIZE_LABELS[element.kind] ?? "Size"}
-              max={72}
-              onChange={(fontSize) => onChange({ fontSize })}
-              value={element.fontSize}
-            />
-            {element.kind === "card" ? (
-              <CardTypeFields element={element} onChange={onChange} />
-            ) : null}
-            <ConceptField
-              label={element.kind === "card" ? "Body weight" : "Weight"}
-            >
-              <ConceptSelect
-                label="Weight"
-                onChange={(weight) =>
-                  onChange({
-                    fontWeight: Number(
-                      weight
-                    ) as ReviewConceptElement["fontWeight"],
-                  })
-                }
-                options={WEIGHTS}
-                value={String(element.fontWeight)}
-              />
-            </ConceptField>
-            <LineHeightField element={element} onChange={onChange} />
-          </ConceptGroup>
-          <BoxGroup element={element} onChange={onChange} />
-          {takesBox(element.kind) ? (
+          {canEditAnyProp(
+            "fontFamily",
+            "fontId",
+            "fontRef",
+            "fontSize",
+            "fontWeight",
+            "lineHeight",
+            "bodySize",
+            "titleWeight"
+          ) ? (
+            <ConceptGroup compact name="Type">
+              {canEditAnyProp("fontFamily", "fontId", "fontRef") ? (
+                <ConceptFontField
+                  brandDoc={brandDoc}
+                  family={element.fontFamily}
+                  fontId={element.fontId}
+                  fontRef={element.fontRef}
+                  label="Typeface"
+                  onChange={onChange}
+                />
+              ) : null}
+              {canEditProp("fontSize") ? (
+                <NumberField
+                  label={SIZE_LABELS[element.kind] ?? "Size"}
+                  max={72}
+                  onChange={(fontSize) => onChange({ fontSize })}
+                  value={element.fontSize}
+                />
+              ) : null}
+              {element.kind === "card" &&
+              (canEditProp("bodySize") || canEditProp("titleWeight")) ? (
+                <CardTypeFields
+                  element={element}
+                  onChange={onChange}
+                  showBodySize={canEditProp("bodySize")}
+                  showTitleWeight={canEditProp("titleWeight")}
+                />
+              ) : null}
+              {canEditProp("fontWeight") ? (
+                <ConceptField
+                  label={element.kind === "card" ? "Body weight" : "Weight"}
+                >
+                  <ConceptSelect
+                    label="Weight"
+                    onChange={(weight) =>
+                      onChange({
+                        fontWeight: Number(
+                          weight
+                        ) as ReviewConceptElement["fontWeight"],
+                      })
+                    }
+                    options={WEIGHTS}
+                    value={String(element.fontWeight)}
+                  />
+                </ConceptField>
+              ) : null}
+              {canEditProp("lineHeight") ? (
+                <LineHeightField element={element} onChange={onChange} />
+              ) : null}
+            </ConceptGroup>
+          ) : null}
+          <BoxGroup
+            element={element}
+            onChange={onChange}
+            showFullHeight={canEditProp("fullHeight")}
+            showPaddingX={canEditProp("paddingX")}
+            showPaddingY={canEditProp("paddingY")}
+            showRadius={canEditProp("radius")}
+          />
+          {takesBox(element.kind) && canEditProp("shadow") ? (
             <ShadowGroup
               brandDoc={brandDoc}
               element={element}
               onChange={onChange}
             />
           ) : null}
-          <ConceptGroup compact name="Color">
-            <ConceptColorField
-              ariaLabel={`${element.kind} text color`}
-              brandDoc={brandDoc}
-              label="Text"
-              onChange={(color) => onChange({ color })}
-              value={element.color}
-            />
-            <ConceptColorField
-              allowNone
-              ariaLabel={`${element.kind} background`}
-              brandDoc={brandDoc}
-              label={element.kind === "progress" ? "Track" : "Fill"}
-              onChange={(background) => onChange({ background })}
-              value={element.background}
-            />
-          </ConceptGroup>
-          {takesBox(element.kind) ? (
+          {canEditAnyProp("color", "background") ? (
+            <ConceptGroup compact name="Color">
+              {canEditProp("color") ? (
+                <ConceptColorField
+                  ariaLabel={`${element.kind} text color`}
+                  brandDoc={brandDoc}
+                  label="Text"
+                  onChange={(color) => onChange({ color })}
+                  value={element.color}
+                />
+              ) : null}
+              {canEditProp("background") ? (
+                <ConceptColorField
+                  allowNone
+                  ariaLabel={`${element.kind} background`}
+                  brandDoc={brandDoc}
+                  label={element.kind === "progress" ? "Track" : "Fill"}
+                  onChange={(background) => onChange({ background })}
+                  value={element.background}
+                />
+              ) : null}
+            </ConceptGroup>
+          ) : null}
+          {takesBox(element.kind) &&
+          canEditAnyProp(
+            "borderColor",
+            "borderWidth",
+            ...BORDER_WIDTH_FIELDS.map(([key]) => key)
+          ) ? (
             <ConceptGroup compact name="Border">
-              <ConceptColorField
-                allowNone
-                ariaLabel={`${element.kind} border color`}
-                brandDoc={brandDoc}
-                label="Color"
-                onChange={(borderColor) => onChange({ borderColor })}
-                value={element.borderColor ?? "transparent"}
-              />
-              {BORDER_WIDTH_FIELDS.map(([key, label]) => (
+              {canEditProp("borderColor") ? (
+                <ConceptColorField
+                  allowNone
+                  ariaLabel={`${element.kind} border color`}
+                  brandDoc={brandDoc}
+                  label="Color"
+                  onChange={(borderColor) => onChange({ borderColor })}
+                  value={element.borderColor ?? "transparent"}
+                />
+              ) : null}
+              {BORDER_WIDTH_FIELDS.filter(
+                ([key]) => canEditProp(key) || canEditProp("borderWidth")
+              ).map(([key, label]) => (
                 <NumberField
                   key={key}
                   label={label}
@@ -575,6 +713,7 @@ export function ReviewConceptElementFields({
           element.kind !== "group" ? null : (
             <HolderFields
               brandDoc={brandDoc}
+              canEditProp={canEditProp}
               depth={depth}
               element={element}
               onChange={onChange}
