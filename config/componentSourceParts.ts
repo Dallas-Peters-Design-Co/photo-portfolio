@@ -206,7 +206,8 @@ const slotsOf = (
   cls: string,
   draw: Draw,
   lead: string,
-  headerEnd = ""
+  headerEnd = "",
+  bodyLead = ""
 ): { css: string; jsx: string } => {
   const css: string[] = [];
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: each slot contributes optional lead, contents and close control in order
@@ -215,9 +216,11 @@ const slotsOf = (
     const filled = slot?.elements.length ? slot : undefined;
     const led = name === "header" && lead;
     const end = name === "header" ? headerEnd : "";
+    const slotLead = name === "body" ? bodyLead : "";
     if (
       !(
         led ||
+        slotLead ||
         filled ||
         end ||
         slot?.flex ||
@@ -232,13 +235,13 @@ const slotsOf = (
       : defaultStyle;
     const titleInLayout = element.kind === "panel" && Boolean(led);
     const items =
-      filled || titleInLayout
+      filled || titleInLayout || slotLead
         ? slotItems(
             slot ?? { elements: [] },
             `${cls}__${name}`,
             draw,
             css,
-            titleInLayout ? lead : ""
+            titleInLayout ? lead : slotLead
           )
         : "";
     const inner = [led && !titleInLayout ? lead : "", items, end]
@@ -315,20 +318,22 @@ export const cardMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
     ...(title.trim()
       ? ['  <strong className="@@__title">{title}</strong>']
       : []),
-    ...(body.trim() ? ['  <p className="@@__body">{children}</p>'] : []),
     "</div>",
   ].join("\n");
+  const bodyLead = body.trim()
+    ? '<p className="@@__lead @@__body">{children}</p>'
+    : "";
   return {
     css: `& { display: grid; gap: 6px; align-content: start; width: 100%; min-width: 0; ${el.fullHeight ? "box-sizing: border-box; height: 100%;" : ""} }
 ${HOVER_CSS}
 &__text { display: grid; gap: 6px; align-content: start; }
 &__icon { color: var(--&-icon-color, currentColor); }
 &__title { font-weight: var(--&-title-weight, bolder); }
-&__body { margin: 0; white-space: pre-line; opacity: 0.8; font-size: var(--&-body-size, inherit); }
+&__body { width: 100%; margin: 0; white-space: pre-line; opacity: 0.8; font-size: var(--&-body-size, inherit); }
 ${SLOTS_CSS}`,
     props: "title",
     tag: "article",
-    ...withSlots(el, draw, lead),
+    ...withSlots(el, draw, lead, "", bodyLead),
   };
 };
 
@@ -429,12 +434,13 @@ const withSlots = (
   el: ReviewConceptElement,
   draw: Draw,
   lead: string,
-  headerEnd = ""
+  headerEnd = "",
+  bodyLead = ""
 ): Pick<Markup, "body" | "childCss"> => {
   // The children's classes need the block's class now; "@@" holds its place
   // in this element's own markup and is resolved with the rest.
   const placeholder = "@@";
-  const drawn = slotsOf(el, placeholder, draw, lead, headerEnd);
+  const drawn = slotsOf(el, placeholder, draw, lead, headerEnd, bodyLead);
   return { body: drawn.jsx, childCss: drawn.css };
 };
 

@@ -53,14 +53,12 @@ function CardPreview({
   style: CSSProperties;
 }) {
   const card = splitCardText(element.text);
-  // The card's own icon, title and body lead its header slot, so whatever
-  // the header holds sits beside them, across the card's full width. With
-  // none of them, there is no lead, and the header holds only its elements.
-  // Blank text (a space typed to clear the title) counts as none.
+  // The card's icon and title lead its header slot, while supporting copy
+  // belongs to the body slot. Blank text counts as absent.
   const title = card.title.trim();
   const body = card.body.trim();
-  const hasLead = Boolean(element.iconName || title || body);
-  const lead = hasLead ? (
+  const hasHeaderLead = Boolean(element.iconName || title);
+  const lead = hasHeaderLead ? (
     <div className="concept-slot__lead review-concepts__card-text">
       {element.iconName ? (
         <ConceptIcon
@@ -75,13 +73,15 @@ function CardPreview({
           {card.title}
         </strong>
       ) : null}
-      {body ? (
-        // Cards saved before bodySize existed keep one size for both.
-        <p style={{ fontSize: element.bodySize ?? element.fontSize }}>
-          {card.body}
-        </p>
-      ) : null}
     </div>
+  ) : undefined;
+  const bodyLead = body ? (
+    <p
+      className="concept-slot__lead"
+      style={{ fontSize: element.bodySize ?? element.fontSize }}
+    >
+      {card.body}
+    </p>
   ) : undefined;
   return (
     <article
@@ -90,6 +90,7 @@ function CardPreview({
       style={style}
     >
       <ConceptSlotsView
+        bodyLead={bodyLead}
         dividers={element.dividers}
         draw={drawElement}
         lead={lead}

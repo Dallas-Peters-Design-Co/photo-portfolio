@@ -166,6 +166,7 @@ export function ConceptSlotsView({
   draw,
   slots = {},
   lead,
+  bodyLead,
   headerEnd,
   titleInLayout = false,
 }: {
@@ -178,10 +179,12 @@ export function ConceptSlotsView({
   draw: Draw;
   slots?: ConceptSlots;
   /**
-   * A card's icon, title and body, or a panel's title: the start of the
+   * A card's icon and title, or a panel's title: the start of the
    * header, which then spans the element even with nothing else in it.
    */
   lead?: ReactNode;
+  /** A card's supporting copy, kept in the body slot below its header. */
+  bodyLead?: ReactNode;
   /** A panel's close control, beside the header rather than over it. */
   headerEnd?: ReactNode;
   titleInLayout?: boolean;
@@ -192,18 +195,31 @@ export function ConceptSlotsView({
       data-bar={bar || undefined}
       data-dividers={dividers || undefined}
     >
-      {LAYOUT_SLOTS.map((name) => (
-        <Slot
-          draw={draw}
-          end={name === "header" ? headerEnd : undefined}
-          includeLead={name === "header" && titleInLayout}
-          key={name}
-          lead={name === "header" ? lead : undefined}
-          name={name}
-          slot={slots[name]}
-          spacer={bar && name === "body"}
-        />
-      ))}
+      {LAYOUT_SLOTS.map((name) => {
+        let slotLead: ReactNode;
+        if (name === "header") {
+          slotLead = lead;
+        } else if (name === "body") {
+          slotLead = bodyLead;
+        } else {
+          slotLead = null;
+        }
+        return (
+          <Slot
+            draw={draw}
+            end={name === "header" ? headerEnd : undefined}
+            includeLead={
+              (name === "header" && titleInLayout) ||
+              (name === "body" && Boolean(bodyLead))
+            }
+            key={name}
+            lead={slotLead}
+            name={name}
+            slot={slots[name]}
+            spacer={bar && name === "body"}
+          />
+        );
+      })}
     </div>
   );
 }

@@ -129,6 +129,7 @@
 }
 
 .review-concepts__card-preview p {
+  width: 100%;
   margin: 0;
   white-space: pre-line;
   opacity: 0.8;
