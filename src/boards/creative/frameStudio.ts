@@ -201,15 +201,14 @@ export const frameStudioProps = ({
       name,
       onApplyType: applyType,
       onBackground: (file: File, next: StudioRecipe) =>
-        void place(file, "background", next),
-      onOver: (file: File, next: StudioRecipe) =>
-        void place(file, "over", next),
+        place(file, "background", next),
+      onOver: (file: File, next: StudioRecipe) => place(file, "over", next),
       selectionCount: picked.length,
       size,
       snapshot,
       snapshotInPlace,
     },
-    onAdd: (file: File, next?: StudioRecipe) => void place(file, "fit", next),
+    onAdd: (file: File, next?: StudioRecipe) => place(file, "fit", next),
     onAddComposition: addComposition,
     tool: studio,
   };

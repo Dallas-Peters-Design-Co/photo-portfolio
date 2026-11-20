@@ -67,7 +67,8 @@ function FramePicture({
 function SocialPost({ post }: { post: GuidePost }) {
   const { data: board, error } = useSWR(
     ["guide-social-board", post.boardId],
-    () => boardsApi.get(post.boardId)
+    () => boardsApi.get(post.boardId),
+    { refreshInterval: 5000 }
   );
   const items = board?.items ?? [];
   const frame = items.find((i) => i.id === post.frameId && i.kind === "frame");
@@ -80,7 +81,10 @@ function SocialPost({ post }: { post: GuidePost }) {
         {frame?.body ? ` · ${frame.body}` : null}
       </figcaption>
       {frame ? (
-        <SocialPreview platform={post.platform}>
+        <SocialPreview
+          mediaAspectRatio={frame.width / frame.height}
+          platform={post.platform}
+        >
           {page ? (
             <PageDesignView fitToBounds page={page} />
           ) : (

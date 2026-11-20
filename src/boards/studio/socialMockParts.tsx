@@ -104,7 +104,12 @@ export function Media({
   const media = (
     <div
       className="social-mock__media"
-      style={{ aspectRatio, borderRadius: radius }}
+      style={{
+        aspectRatio: aspectRatio
+          ? `var(--social-preview-media-aspect, ${aspectRatio})`
+          : undefined,
+        borderRadius: radius,
+      }}
     >
       {children}
     </div>

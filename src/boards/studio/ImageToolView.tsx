@@ -128,7 +128,7 @@ export function ImageToolView({
   editing?: StudioEditing;
   /** Working for a frame in the editor: its size first, and a background button. */
   frame?: StudioFrame;
-  onAdd: (file: File, recipe: StudioRecipe) => void;
+  onAdd: (file: File, recipe: StudioRecipe) => Promise<void> | void;
   onResize?: (e: React.PointerEvent<HTMLElement>) => void;
   onResizeReset?: () => void;
   onValues: (values: StudioValues) => void;
@@ -226,7 +226,11 @@ export function ImageToolView({
 
   const where = frame ? "frame" : "board";
   /** Where a made picture goes, and saying so. */
-  const place = (file: File, recipe: StudioRecipe, asBackground: boolean) => {
+  const place = async (
+    file: File,
+    recipe: StudioRecipe,
+    asBackground: boolean
+  ) => {
     if (editing && !asBackground) {
       editing.onReplace(file, recipe);
       toast.success(
@@ -235,7 +239,7 @@ export function ImageToolView({
       return;
     }
     if (asBackground && frame) {
-      frame.onBackground(file, recipe);
+      await frame.onBackground(file, recipe);
       toast.success(`${tool.name} set as the frame's background`);
       return;
     }
@@ -243,11 +247,11 @@ export function ImageToolView({
     // over the whole frame, exactly, rather than fitted inside it.
     const frameSized = frame?.size?.w === size.w && frame?.size?.h === size.h;
     if ((inPlace || frameSized) && frame?.onOver) {
-      frame.onOver(file, recipe);
+      await frame.onOver(file, recipe);
       toast.success(`${tool.name} placed over the whole frame`);
       return;
     }
-    onAdd(file, recipe);
+    await onAdd(file, recipe);
     toast.success(`${tool.name} added to the ${where}`);
   };
 
@@ -272,7 +276,7 @@ export function ImageToolView({
           : null,
         source,
       });
-      place(file, recipe, asBackground);
+      await place(file, recipe, asBackground);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Couldn't add it");
     }

@@ -11,7 +11,7 @@ import {
   Share,
   ThumbsUp,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { SocialPreviewId } from "../../../config/socialPreview";
 import { isMorePreview, MORE_SPECS, moreMockFor } from "./SocialPreviewMore";
 import { BrandMark, useSocialBrand } from "./socialBrand";
@@ -330,9 +330,12 @@ const mockFor = (
 
 export function SocialPreview({
   children,
+  mediaAspectRatio,
   platform,
 }: {
   children: ReactNode;
+  /** Preserve the live artwork's full frame ratio in a feed post. */
+  mediaAspectRatio?: number;
   platform: SocialPreviewId;
 }) {
   if (platform === "artwork") {
@@ -342,6 +345,13 @@ export function SocialPreview({
     <section
       aria-label={`${platform} preview`}
       className="studio-social-preview"
+      style={
+        mediaAspectRatio
+          ? ({
+              "--social-preview-media-aspect": String(mediaAspectRatio),
+            } as CSSProperties)
+          : undefined
+      }
     >
       <Fit width={SPECS[platform].width}>{mockFor(platform, children)}</Fit>
     </section>

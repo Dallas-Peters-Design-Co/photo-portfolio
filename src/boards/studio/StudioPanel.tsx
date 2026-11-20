@@ -51,9 +51,9 @@ const DOCKS: { Icon: typeof PanelLeft; id: Dock; label: string }[] = [
 export interface StudioFrame {
   name: string;
   onApplyType: (scale: TypeScale) => void;
-  onBackground: (file: File, recipe: StudioRecipe) => void;
+  onBackground: (file: File, recipe: StudioRecipe) => Promise<void> | void;
   /** Over the whole frame, on top: for a picture made from the selection in place. */
-  onOver?: (file: File, recipe: StudioRecipe) => void;
+  onOver?: (file: File, recipe: StudioRecipe) => Promise<void> | void;
   /** How many layers are selected in the frame (0: the whole design). */
   selectionCount?: number;
   size: { h: number; w: number } | null;
@@ -113,7 +113,7 @@ export function StudioPanel({
   onAddComposition?: (composition: StudioComposition) => void;
   /** The selected canvas image, for Studio tools that take a picture as input. */
   selectedImage?: string | null;
-  onAdd: (file: File, recipe?: StudioRecipe) => void;
+  onAdd: (file: File, recipe?: StudioRecipe) => Promise<void> | void;
   onClose: () => void;
 }) {
   const brand = useActiveBrand();

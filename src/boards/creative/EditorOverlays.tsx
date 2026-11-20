@@ -25,7 +25,7 @@ export function EditorOverlays({
     /** A placed Studio picture being changed, or a shape being filled. */
     editing?: StudioEditing & { layerId: string };
     frame: StudioFrame;
-    onAdd: (file: File, recipe?: StudioRecipe) => void;
+    onAdd: (file: File, recipe?: StudioRecipe) => Promise<void> | void;
     onAddComposition?: (composition: StudioComposition) => void;
     tool: string;
   } | null;
