@@ -1050,7 +1050,10 @@ export const boardsApi = {
   },
 
   get: async (id: string): Promise<Board> => {
-    const res = await fetch(boardUrl(id), { headers: jsonHeaders() });
+    const res = await fetch(boardUrl(id), {
+      cache: "no-store",
+      headers: jsonHeaders(),
+    });
     if (!res.ok) {
       throw new Error(await readPageError(res, "Could not load board"));
     }

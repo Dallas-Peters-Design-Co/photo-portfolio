@@ -489,6 +489,7 @@ async function readOrSave(
   const member =
     session && role ? { email: session.email, userId: session.userId } : null;
   if (req.method === "GET") {
+    res.setHeader("Cache-Control", "private, no-store");
     return await handleGet(sql, user ?? member, id, res, user ? "admin" : role);
   }
   if (member && (role !== "editor" || "isPublic" in parseJsonBody(req.body))) {

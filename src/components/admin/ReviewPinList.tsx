@@ -73,6 +73,7 @@ export function ReviewPinList({
   const [dragOrder, setDragOrder] = useState<string[] | null>(null);
   const [grabbed, setGrabbed] = useState<string | null>(null);
   const dragged = useRef<string | null>(null);
+  const rowRefs = useRef(new Map<string, HTMLLIElement>());
   const shown = dragOrder
     ? dragOrder.flatMap((id) => pins.find((pin) => pin.id === id) ?? [])
     : pins;
@@ -84,6 +85,14 @@ export function ReviewPinList({
       setDragOrder(null);
     }
   }, [idKey]);
+
+  useEffect(() => {
+    if (selected) {
+      rowRefs.current
+        .get(selected)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selected]);
 
   const drop = () => {
     if (dragOrder && dragOrder.join() !== ids.join()) {
@@ -164,6 +173,13 @@ export function ReviewPinList({
               setDragOrder(ids);
             }}
             onDrop={(e) => e.preventDefault()}
+            ref={(node) => {
+              if (node) {
+                rowRefs.current.set(pin.id, node);
+              } else {
+                rowRefs.current.delete(pin.id);
+              }
+            }}
           >
             <div className="flex items-center gap-2">
               <button
