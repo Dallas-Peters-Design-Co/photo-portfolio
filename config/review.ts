@@ -143,6 +143,15 @@ export interface ReviewSection {
   /** Written by the UX audit, so Redo audit can replace it. */
   fromAudit?: true;
   id: string;
+  recommendations?: ReviewRecommendation[];
+  title: string;
+}
+
+/** A recommendation that belongs to a written section rather than a screenshot. */
+export interface ReviewRecommendation {
+  body: RichText;
+  concepts?: ReviewConcept[];
+  id: string;
   title: string;
 }
 
@@ -356,8 +365,53 @@ const cleanSection = (v: unknown): ReviewSection => {
     body: cleanRich(raw.body, MAX_DOC_BYTES / 8),
     ...(raw.fromAudit === true ? { fromAudit: true as const } : {}),
     id: str(raw.id, 64) || newItemId(),
+    ...(Array.isArray(raw.recommendations) && raw.recommendations.length > 0
+      ? {
+          recommendations: raw.recommendations
+            .slice(0, MAX_PINS)
+            .map(cleanSectionRecommendation),
+        }
+      : {}),
     title: str(raw.title, MAX_TITLE),
   };
+};
+
+const cleanSectionRecommendation = (v: unknown): ReviewRecommendation => {
+  const raw = (v ?? {}) as Partial<ReviewRecommendation>;
+  return {
+    body: cleanRich(raw.body, MAX_BODY),
+    ...(Array.isArray(raw.concepts)
+      ? {
+          concepts: raw.concepts
+            .slice(0, MAX_REVIEW_CONCEPTS)
+            .map(cleanConcept),
+        }
+      : {}),
+    id: str(raw.id, 64) || newItemId(),
+    title: str(raw.title, MAX_TITLE),
+  };
+};
+
+const capAttachedConcepts = (
+  sections: ReviewSection[],
+  screens: ReviewScreen[]
+) => {
+  let remaining = MAX_REVIEW_CONCEPTS;
+  for (const section of sections) {
+    for (const recommendation of section.recommendations ?? []) {
+      recommendation.concepts = (recommendation.concepts ?? []).slice(
+        0,
+        remaining
+      );
+      remaining -= recommendation.concepts.length;
+    }
+  }
+  for (const screen of screens) {
+    for (const pin of screen.pins) {
+      pin.concepts = (pin.concepts ?? []).slice(0, remaining);
+      remaining -= pin.concepts.length;
+    }
+  }
 };
 
 /** A document from the request or the database, bounded and typed. */
@@ -366,6 +420,9 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
   const screens = (Array.isArray(raw.screens) ? raw.screens : [])
     .slice(0, MAX_SCREENS)
     .map(cleanScreen);
+  const sections = (Array.isArray(raw.sections) ? raw.sections : [])
+    .slice(0, MAX_SECTIONS)
+    .map(cleanSection);
   let concepts = (Array.isArray(raw.concepts) ? raw.concepts : [])
     .slice(0, MAX_REVIEW_CONCEPTS)
     .map(cleanConcept);
@@ -384,13 +441,7 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
     }
   }
 
-  let remainingConcepts = MAX_REVIEW_CONCEPTS;
-  for (const screen of screens) {
-    for (const pin of screen.pins) {
-      pin.concepts = (pin.concepts ?? []).slice(0, remainingConcepts);
-      remainingConcepts -= pin.concepts.length;
-    }
-  }
+  capAttachedConcepts(sections, screens);
 
   return {
     boardId:
@@ -409,9 +460,7 @@ export const sanitizeReviewDoc = (value: unknown): ReviewDoc => {
     merge: cleanBrandMerge(raw.merge),
     screens,
     // Reviews written before sections existed have none, which is right.
-    sections: (Array.isArray(raw.sections) ? raw.sections : [])
-      .slice(0, MAX_SECTIONS)
-      .map(cleanSection),
+    sections,
     summary: cleanRich(raw.summary, MAX_DOC_BYTES / 4),
   };
 };

@@ -246,7 +246,11 @@ function ReviewSheet({
       <PriorityFixList doc={doc} />
 
       {doc.sections
-        .filter((section) => !isRichTextEmpty(section.body))
+        .filter(
+          (section) =>
+            !isRichTextEmpty(section.body) ||
+            (section.recommendations?.length ?? 0) > 0
+        )
         .map((section) => (
           <section
             className="doc-band doc-band--split"
@@ -255,7 +259,24 @@ function ReviewSheet({
           >
             <h2 className="doc-band__title">{section.title || "Section"}</h2>
             <div className="doc-band__body">
-              <Prose text={section.body} />
+              {isRichTextEmpty(section.body) ? null : (
+                <Prose text={section.body} />
+              )}
+              {section.recommendations?.map((recommendation) => (
+                <div
+                  className="review-page__section-recommendation"
+                  id={`review-recommendation-${recommendation.id}`}
+                  key={recommendation.id}
+                >
+                  <h3>{recommendation.title || "Recommendation"}</h3>
+                  {isRichTextEmpty(recommendation.body) ? null : (
+                    <Prose text={recommendation.body} />
+                  )}
+                  {recommendation.concepts?.map((concept) => (
+                    <ReviewConceptPreview concept={concept} key={concept.id} />
+                  ))}
+                </div>
+              ))}
             </div>
           </section>
         ))}
@@ -309,21 +330,19 @@ function PriorityFixList({ doc }: { doc: ReviewRecord["doc"] }) {
             <section className="review-page__priority-group" key={key}>
               <h3>{label}</h3>
               <ol>
-                {group.map(({ n, pin, screen }) => (
-                  <li key={pin.id}>
+                {group.map((fix) => (
+                  <li key={fix.id}>
                     <a
                       className="review-page__priority-link"
-                      href={`#${noteId(pin.id)}`}
+                      href={`#${fix.anchor}`}
                     >
                       <span className="review-page__priority-number">
-                        Note {n}
+                        {fix.label}
                       </span>
                       <span>
-                        <strong>
-                          {pin.title || pin.body || "Untitled fix"}
-                        </strong>
+                        <strong>{fix.title}</strong>
                         <span className="review-page__priority-screen">
-                          {screen.title || "Screen"}
+                          {fix.context}
                         </span>
                       </span>
                     </a>

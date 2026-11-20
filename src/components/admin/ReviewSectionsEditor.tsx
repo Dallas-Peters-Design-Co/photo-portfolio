@@ -1,10 +1,13 @@
-import { Plus, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
+import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { newItemId } from "../../../config/proposal.js";
 import type { ReviewSection, RichText } from "../../../config/review.js";
+import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { PageEditor } from "../../cms/PageEditor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { type CollapsedBlocks, EditorBlock } from "./EditorBlock";
+import { ReviewConceptsEditor } from "./ReviewConceptsEditor";
 import { toEditorDoc } from "./reviewEditing";
 import { SortableList } from "./SortableList";
 
@@ -19,18 +22,62 @@ const fieldsetTitleClass =
  * writes several at once; they are ordinary sections from then on.
  */
 export function ReviewSectionsEditor({
+  brandDoc,
   collapse,
   sections,
+  totalConcepts,
   onChange,
 }: {
+  brandDoc: BrandKitDoc | null;
   collapse: CollapsedBlocks;
   sections: ReviewSection[];
+  totalConcepts: number;
   /** Given the sections as they are when the change lands, never a copy
    * from an earlier render: a rich editor keeps the handler it started with. */
   onChange: (update: (prev: ReviewSection[]) => ReviewSection[]) => void;
 }) {
   const update = (id: string, patch: Partial<ReviewSection>) =>
     onChange((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+
+  const addRecommendation = (section: ReviewSection) =>
+    update(section.id, {
+      recommendations: [
+        ...(section.recommendations ?? []),
+        { body: "", id: newItemId(), title: "" },
+      ],
+    });
+
+  const updateRecommendation = (
+    sectionId: string,
+    recommendationId: string,
+    patch: Partial<NonNullable<ReviewSection["recommendations"]>[number]>
+  ) =>
+    onChange((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              recommendations: (section.recommendations ?? []).map((item) =>
+                item.id === recommendationId ? { ...item, ...patch } : item
+              ),
+            }
+          : section
+      )
+    );
+
+  const removeRecommendation = (sectionId: string, recommendationId: string) =>
+    onChange((prev) =>
+      prev.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              recommendations: (section.recommendations ?? []).filter(
+                (item) => item.id !== recommendationId
+              ),
+            }
+          : section
+      )
+    );
 
   const reorder = (ids: string[]) =>
     onChange((prev) =>
@@ -93,6 +140,79 @@ export function ReviewSectionsEditor({
                 }
                 value={toEditorDoc(section.body)}
               />
+              <div className="space-y-3 border-white/10 border-t pt-3">
+                <div className="flex items-center justify-between">
+                  <h4 className={fieldsetTitleClass}>Recommendations</h4>
+                  <Button
+                    onClick={() => addRecommendation(section)}
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Plus size={14} /> Add recommendation
+                  </Button>
+                </div>
+                {(section.recommendations ?? []).map((recommendation) => {
+                  const otherConcepts =
+                    totalConcepts - (recommendation.concepts?.length ?? 0);
+                  const conceptLimit = Math.max(
+                    0,
+                    MAX_REVIEW_CONCEPTS - otherConcepts
+                  );
+                  return (
+                    <div
+                      className="space-y-2 border border-white/10 p-3"
+                      key={recommendation.id}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Input
+                          aria-label="Recommendation title"
+                          onChange={(event) =>
+                            updateRecommendation(
+                              section.id,
+                              recommendation.id,
+                              {
+                                title: event.target.value,
+                              }
+                            )
+                          }
+                          placeholder="Recommendation title"
+                          size="lg"
+                          value={recommendation.title}
+                        />
+                        <Button
+                          aria-label="Remove recommendation"
+                          onClick={() =>
+                            removeRecommendation(section.id, recommendation.id)
+                          }
+                          size="icon"
+                          type="button"
+                          variant="ghost"
+                        >
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
+                      <PageEditor
+                        onChange={(body) =>
+                          updateRecommendation(section.id, recommendation.id, {
+                            body: body as RichText,
+                          })
+                        }
+                        value={toEditorDoc(recommendation.body)}
+                      />
+                      <ReviewConceptsEditor
+                        brandDoc={brandDoc}
+                        concepts={recommendation.concepts ?? []}
+                        maxConcepts={conceptLimit}
+                        onChange={(concepts) =>
+                          updateRecommendation(section.id, recommendation.id, {
+                            concepts,
+                          })
+                        }
+                      />
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </EditorBlock>
         )}

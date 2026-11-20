@@ -38,7 +38,10 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
     entries.push({ id: reviewAnchor.priorities, label: "Priority fixes" });
   }
   for (const section of doc.sections) {
-    if (!isRichTextEmpty(section.body)) {
+    if (
+      !isRichTextEmpty(section.body) ||
+      (section.recommendations?.length ?? 0) > 0
+    ) {
       entries.push({
         id: reviewAnchor.section(section.id),
         label: section.title || "Section",

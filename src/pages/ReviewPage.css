@@ -178,6 +178,20 @@
   line-height: var(--leading-prose);
 }
 
+.review-page__section-recommendation {
+  display: grid;
+  gap: calc(var(--spacing) * 3);
+  padding-block-start: calc(var(--spacing) * 4);
+  margin-block-start: calc(var(--spacing) * 6);
+  scroll-margin-block-start: calc(var(--spacing) * 8);
+  border-block-start: 1px solid var(--sheet-rule);
+}
+
+.review-page__section-recommendation h3 {
+  font-family: var(--font-display, var(--font-sans));
+  font-size: var(--text-lg);
+}
+
 .review-page__intro .page-content__paragraph,
 .review-page__intro .review-page__prose {
   max-width: 60ch;

@@ -229,9 +229,23 @@ export function ReviewEditor({
 
   // The number the first pin on each screen carries, so numbering runs on
   // across screens the way the page shows it.
+  const sectionConceptCount = draft.doc.sections.reduce(
+    (sum, section) =>
+      sum +
+      (section.recommendations ?? []).reduce(
+        (recommendationSum, recommendation) =>
+          recommendationSum + (recommendation.concepts?.length ?? 0),
+        0
+      ),
+    0
+  );
   const { stats, totalConcepts } = useMemo(
-    () => screenStats(draft.doc.screens, draft.doc.concepts.length),
-    [draft.doc.screens, draft.doc.concepts.length]
+    () =>
+      screenStats(
+        draft.doc.screens,
+        draft.doc.concepts.length + sectionConceptCount
+      ),
+    [draft.doc.screens, draft.doc.concepts.length, sectionConceptCount]
   );
 
   const collapse = useCollapsedBlocks(`review-editor-folded:${review.id}`);
@@ -385,6 +399,7 @@ export function ReviewEditor({
           </EditorBlock>
 
           <ReviewSectionsEditor
+            brandDoc={brandDoc}
             collapse={collapse}
             onChange={(update) =>
               setDraft((d) => ({
@@ -393,6 +408,7 @@ export function ReviewEditor({
               }))
             }
             sections={draft.doc.sections}
+            totalConcepts={totalConcepts}
           />
 
           <ReviewMergeEditor
