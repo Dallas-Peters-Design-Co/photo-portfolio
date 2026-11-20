@@ -1,7 +1,4 @@
-import { takesFocus } from "./conceptFocus.js";
-import { takesHover } from "./conceptHover.js";
-import { cleanIcon, takesBox, takesIcon } from "./conceptKinds.js";
-import { takesMenu } from "./conceptMenu.js";
+import { cleanIcon } from "./conceptKinds.js";
 import { type ConceptSlots, hasSlots, mapChildren } from "./conceptSlots.js";
 import {
   type ConceptCellLook,
@@ -115,31 +112,8 @@ const LINKED_KEYS: readonly ReadonlySet<ConceptStyleKey>[] = [
 ];
 const MAX_STYLE_NAME = 60;
 
-/** Props each style kind can offer to an instance. */
-const BASE_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
-  "fontFamily",
-  "fontId",
-  "fontRef",
-  "fontSize",
-  "fontWeight",
-  "lineHeight",
-  "flex",
-  "background",
-  "color",
-  "paddingX",
-  "paddingY",
-  "radius",
-];
-const BOX_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
-  "borderColor",
-  "borderWidth",
-  "borderTopWidth",
-  "borderLeftWidth",
-  "borderRightWidth",
-  "borderBottomWidth",
-  "shadow",
-];
-const ICON_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
+/** Only content or behaviour that makes sense to vary per instance. */
+const ICON_PROPS: readonly ConceptStyleProp[] = [
   "iconName",
   "iconSvg",
   "iconEndName",
@@ -147,51 +121,57 @@ const ICON_COMPONENT_PROPS: readonly ConceptStyleProp[] = [
   "iconSize",
   "iconColor",
 ];
-const KIND_COMPONENT_PROPS: Partial<
-  Record<ReviewConceptElementKind, readonly ConceptStyleProp[]>
+const BUTTON_PROPS: readonly ConceptStyleProp[] = ["text", ...ICON_PROPS];
+const KIND_COMPONENT_PROPS: Record<
+  ReviewConceptElementKind,
+  readonly ConceptStyleProp[]
 > = {
-  accordion: ["accordionExpanded", "summaryIconName", "summaryIconSvg"],
-  avatar: ["avatarUrl", "avatarInitials"],
-  card: ["bodySize", "titleWeight", "fullHeight", "dividers"],
-  checkbox: ["accentColor", "checkSize", "checked"],
-  input: ["inputType", "placeholder"],
-  logo: ["logoUrl", "logoHeight"],
-  menu: ["menuLook", "options"],
-  panel: [
-    "fullHeight",
-    "panelCollapsed",
-    "panelToggleSide",
-    "slideFrom",
-    "dividers",
+  accordion: [
+    "text",
+    "iconName",
+    "iconSvg",
+    "iconSize",
+    "iconColor",
+    "summaryIconName",
+    "summaryIconSvg",
   ],
-  progress: ["barHeight", "accentColor", "showValue", "progress"],
-  select: ["placeholder", "options"],
+  avatar: ["avatarUrl", "avatarInitials"],
+  badge: BUTTON_PROPS,
+  button: BUTTON_PROPS,
+  buttonGroup: [],
+  canvas: [],
+  card: ["text", "bodySize", "titleWeight", "fullHeight", "dividers"],
+  checkbox: ["text", "checked", "accentColor", "checkSize"],
+  dialog: ["text"],
+  divider: [],
+  group: [],
+  icon: ["iconName", "iconSvg", "iconSize", "iconColor"],
+  input: ["text"],
+  label: ["text"],
+  link: ["text"],
+  logo: ["logoUrl", "logoHeight"],
+  menu: ["text", "menuLook", "options"],
+  navbar: [],
+  orderedList: ["text"],
+  panel: ["slideFrom"],
+  progress: ["text", "barHeight", "accentColor", "showValue", "progress"],
+  select: ["text"],
+  shader: [],
+  skeleton: ["text"],
   table: ["tableBorders", "tableHeader", "tableContents"],
-  tabs: ["tabLook", "options"],
-  textarea: ["placeholder"],
-  toast: ["toastAction", "toastClose"],
-  upload: ["placeholder"],
+  tabs: ["text", "tabLook", "options"],
+  tag: BUTTON_PROPS,
+  text: ["text"],
+  textarea: ["text"],
+  toast: ["text", "toastAction", "toastClose"],
+  tooltip: ["text"],
+  upload: ["text"],
 };
 
 /** Props this kind of component can offer to an instance. */
 export const componentPropOptionsOf = (
   style: ConceptStyle
-): ConceptStyleProp[] => {
-  const textKinds = new Set(["avatar", "logo", "navbar", "table"]);
-  const props = new Set<ConceptStyleProp>([
-    ...(textKinds.has(style.kind) ? [] : ["text" as const]),
-    ...BASE_COMPONENT_PROPS,
-    ...(takesBox(style.kind) ? BOX_COMPONENT_PROPS : []),
-    ...(takesHover(style.kind) ? ["hover" as const] : []),
-    ...(takesFocus(style.kind) ? ["focus" as const] : []),
-    ...(takesIcon(style.kind) ? ICON_COMPONENT_PROPS : []),
-    ...(takesMenu(style.kind) && style.kind !== "menu"
-      ? ["menuLook" as const]
-      : []),
-    ...(KIND_COMPONENT_PROPS[style.kind] ?? []),
-  ]);
-  return [...props];
-};
+): ConceptStyleProp[] => [...KIND_COMPONENT_PROPS[style.kind]];
 
 /** Props shown as editable controls on an instance. */
 export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] =>
