@@ -4,6 +4,7 @@ import {
   type ReactNode,
   type SetStateAction,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -28,6 +29,7 @@ import {
 import { rememberComponents } from "../../boards/components/store";
 import { componentsApi } from "../../boards/creative/components/componentsApi";
 import { Button } from "../ui/button";
+import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
 import { useConfirm } from "./ConfirmProvider";
 import { ConceptColorField } from "./ReviewConceptBrand";
@@ -93,6 +95,7 @@ function PropRow({
   onChange: (next: BrandComponent) => void;
   prop: ComponentProp;
 }) {
+  const overrideId = useId();
   const value = propValue(component, prop, {});
   const sets = targetsOf(prop).length;
   return (
@@ -136,6 +139,21 @@ function PropRow({
           value={value || "#000000"}
         />
       )}
+      <label className="kit-canvas-components__override" htmlFor={overrideId}>
+        <Checkbox
+          aria-label={`Allow ${prop.name} to be changed on copies`}
+          checked={prop.overridable !== false}
+          id={overrideId}
+          onChange={(event) =>
+            onChange(
+              withProp(component, prop.id, {
+                overridable: event.currentTarget.checked,
+              })
+            )
+          }
+        />
+        Allow overrides
+      </label>
       <Button
         aria-label={`Remove the ${prop.name} property`}
         onClick={() => onChange(withoutProp(component, prop.id))}

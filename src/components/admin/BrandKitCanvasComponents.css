@@ -71,9 +71,17 @@
 
 .kit-canvas-components__prop {
   display: grid;
-  grid-template-columns: 9rem minmax(0, 12rem) minmax(0, 1fr) auto;
+  grid-template-columns: 9rem minmax(0, 12rem) minmax(0, 1fr) auto auto;
   gap: calc(var(--spacing) * 3);
   align-items: center;
+}
+
+.kit-canvas-components__override {
+  display: inline-flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+  font-size: var(--text-sm-ui);
+  white-space: nowrap;
 }
 
 .kit-canvas-components__prop-kind {

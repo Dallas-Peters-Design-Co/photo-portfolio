@@ -55,6 +55,8 @@ export interface ComponentProp {
   /** Other layers' fields set by the same value. */
   more?: PropTarget[];
   name: string;
+  /** Whether copies of this component may change this value. */
+  overridable?: boolean;
   type: "color" | "text";
 }
 
@@ -185,7 +187,7 @@ export const propValue = (
   prop: ComponentProp,
   values: Record<string, string>
 ): string => {
-  const own = values[prop.id];
+  const own = prop.overridable === false ? undefined : values[prop.id];
   if (own !== undefined) {
     return own;
   }
@@ -200,7 +202,7 @@ export const resolvedLayers = (
 ): ComponentLayer[] =>
   component.layers.map((layer) =>
     component.props
-      .filter((p) => values[p.id] !== undefined)
+      .filter((p) => p.overridable !== false && values[p.id] !== undefined)
       .flatMap((p) =>
         targetsOf(p)
           .filter((t) => t.lid === layer.lid)
@@ -352,6 +354,7 @@ export const startingProps = (draft: Draft): ComponentProp[] =>
       id: `text${k + 1}`,
       lid: l.lid,
       name: layerLabel(l),
+      overridable: true,
       type: "text" as const,
     }));
 

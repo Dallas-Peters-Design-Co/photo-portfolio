@@ -77,40 +77,42 @@ export function ComponentsSection({
             <ComponentIcon size={13} /> {component.name}
             {chosen.length > 1 ? ` · ${chosen.length} copies` : ""}
           </p>
-          {component.props.map((prop) => {
-            const values = instances.map((i) =>
-              propValue(component, prop, i?.props ?? {})
-            );
-            const mixed = new Set(values).size > 1;
-            const value = mixed ? "" : (values[0] ?? "");
-            return prop.type === "text" ? (
-              <label className="components__prop" key={prop.id}>
-                <span>{prop.name}</span>
-                <textarea
-                  className="creative__input components__text"
-                  onChange={(e) =>
-                    comps.setProp(chosen, prop.id, e.target.value)
-                  }
-                  placeholder={mixed ? "Mixed" : undefined}
-                  rows={Math.min(4, Math.max(1, value.split("\n").length))}
-                  value={value}
-                />
-              </label>
-            ) : (
-              <div
-                className="components__prop components__prop--color"
-                key={prop.id}
-              >
-                <span>{prop.name}</span>
-                <ColorWell
-                  bindPalette
-                  label={prop.name}
-                  onChange={(c) => comps.setProp(chosen, prop.id, c)}
-                  value={value || values[0] || "#000000"}
-                />
-              </div>
-            );
-          })}
+          {component.props
+            .filter((prop) => prop.overridable !== false)
+            .map((prop) => {
+              const values = instances.map((i) =>
+                propValue(component, prop, i?.props ?? {})
+              );
+              const mixed = new Set(values).size > 1;
+              const value = mixed ? "" : (values[0] ?? "");
+              return prop.type === "text" ? (
+                <label className="components__prop" key={prop.id}>
+                  <span>{prop.name}</span>
+                  <textarea
+                    className="creative__input components__text"
+                    onChange={(e) =>
+                      comps.setProp(chosen, prop.id, e.target.value)
+                    }
+                    placeholder={mixed ? "Mixed" : undefined}
+                    rows={Math.min(4, Math.max(1, value.split("\n").length))}
+                    value={value}
+                  />
+                </label>
+              ) : (
+                <div
+                  className="components__prop components__prop--color"
+                  key={prop.id}
+                >
+                  <span>{prop.name}</span>
+                  <ColorWell
+                    bindPalette
+                    label={prop.name}
+                    onChange={(c) => comps.setProp(chosen, prop.id, c)}
+                    value={value || values[0] || "#000000"}
+                  />
+                </div>
+              );
+            })}
           <AddProperty component={component} comps={comps} />
           <div className="components__actions">
             {only ? (

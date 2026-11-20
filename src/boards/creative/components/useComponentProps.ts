@@ -36,12 +36,20 @@ export const useComponentProps = (keep: (list: BrandComponent[]) => void) => {
    * like it (the same colour on the same kind of field) share it.
    */
   const addProp = useCallback(
-    (component: BrandComponent, prop: Omit<ComponentProp, "id">) => {
+    (
+      component: BrandComponent,
+      prop: Omit<ComponentProp, "id" | "overridable">
+    ) => {
       const more =
         prop.type === "color" ? alikeOf(component, prop.lid, prop.field) : [];
       return saveProps(component, [
         ...component.props,
-        { ...prop, id: shortId(), ...(more.length > 0 ? { more } : {}) },
+        {
+          ...prop,
+          id: shortId(),
+          overridable: true,
+          ...(more.length > 0 ? { more } : {}),
+        },
       ]);
     },
     [saveProps]

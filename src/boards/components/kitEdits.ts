@@ -37,7 +37,7 @@ export const withPropDefault = (
 export const withProp = (
   component: BrandComponent,
   propId: string,
-  patch: Partial<Pick<ComponentProp, "name">>
+  patch: Partial<Pick<ComponentProp, "name" | "overridable">>
 ): BrandComponent => ({
   ...component,
   props: component.props.map((p) => (p.id === propId ? { ...p, ...patch } : p)),

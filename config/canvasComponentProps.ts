@@ -63,5 +63,6 @@ export const cleanProps = (value: unknown): ComponentProp[] =>
           ? o.name.replace(/\0/g, "").trim()
           : ""
         ).slice(0, 40) || "Property",
+      overridable: o.overridable !== false,
       type: o.type as ComponentProp["type"],
     }));

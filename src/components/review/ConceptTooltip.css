@@ -24,6 +24,7 @@
 
 .concept-tooltip__bubble {
   display: inline-block;
+  width: max-content;
   max-width: 20rem;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
