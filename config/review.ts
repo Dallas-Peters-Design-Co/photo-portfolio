@@ -197,7 +197,7 @@ export const CAPTURE_WIDTHS = { desktop: 1440, mobile: 390 } as const;
 const MAX_SCREENS = 60;
 const BOARD_ID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const MAX_SECTIONS = 12;
+const MAX_SECTIONS = 22;
 const MAX_PINS = 60;
 const MAX_MARKS = 80;
 const MAX_PEN_POINTS = 400;
