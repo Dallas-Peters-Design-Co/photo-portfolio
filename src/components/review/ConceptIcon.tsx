@@ -6,6 +6,7 @@ import {
 } from "../../../config/conceptIcon.js";
 import { iconSizeOf } from "../../../config/conceptKinds.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
+import { useIconLibrary } from "../../cms/iconLibrary";
 import { iconFrom, useIconMap } from "../../cms/useIconMap";
 
 /**
@@ -25,8 +26,21 @@ export function ConceptIcon({
   /** The saved drawing; without one (older concepts) the name is looked up. */
   svg?: ConceptIconSvg;
 }) {
-  const map = useIconMap(!svg && Boolean(name));
-  const Icon = svg ?? iconFrom(map, conceptIconName(name));
+  const iconName = conceptIconName(name);
+  const map = useIconMap(!svg && Boolean(iconName));
+  const mappedIcon = iconFrom(map, iconName);
+  const isFilled = iconName?.startsWith("Filled") ?? false;
+  // Kit styles may use any icon from the full picker. Older styles only saved
+  // the name, so fall back to the matching pack when the curated map misses.
+  const library = useIconLibrary(
+    !svg && Boolean(iconName) && Boolean(map) && !mappedIcon,
+    isFilled ? "filled" : "stroke"
+  );
+  const libraryName = isFilled ? iconName?.slice("Filled".length) : iconName;
+  const Icon =
+    svg ??
+    mappedIcon ??
+    (libraryName ? library?.icons[libraryName] : undefined);
   return Icon ? (
     // Drawn in currentColor and coloured by CSS, so a hover rule can change
     // it; the library otherwise writes the colour into every stroke.

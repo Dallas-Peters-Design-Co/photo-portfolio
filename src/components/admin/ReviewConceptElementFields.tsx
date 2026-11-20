@@ -90,6 +90,33 @@ const summaryOf = (element: ReviewConceptElement): string => {
     : text;
 };
 
+function EditableContent({
+  canEditProp,
+  element,
+  onChange,
+}: {
+  canEditProp: (prop: ConceptStyleProp) => boolean;
+  element: ReviewConceptElement;
+  onChange: (patch: Patch) => void;
+}) {
+  const showCardTitle =
+    element.kind === "card" && (canEditProp("title") || canEditProp("text"));
+  const showCardBody =
+    element.kind === "card" && (canEditProp("body") || canEditProp("text"));
+  const showText =
+    element.kind === "card"
+      ? showCardTitle || showCardBody
+      : canEditProp("text");
+  return showText ? (
+    <ReviewConceptContentField
+      element={element}
+      onChange={onChange}
+      showBody={showCardBody}
+      showTitle={showCardTitle}
+    />
+  ) : null;
+}
+
 function ContentGroup({
   canEditProp,
   element,
@@ -108,9 +135,11 @@ function ContentGroup({
     (supportsPlaceholder || element.kind === "upload");
   return (
     <ConceptGroup name="Content">
-      {canEditProp("text") ? (
-        <ReviewConceptContentField element={element} onChange={onChange} />
-      ) : null}
+      <EditableContent
+        canEditProp={canEditProp}
+        element={element}
+        onChange={onChange}
+      />
       {showPlaceholder && element.kind !== "upload" ? (
         <ConceptField label="Placeholder" wide>
           <Input
@@ -223,6 +252,8 @@ function KindGroups({
       lookOnly ||
       !canEditAnyProp(
         "text",
+        "title",
+        "body",
         "placeholder",
         "options",
         "inputType",
@@ -426,11 +457,11 @@ export function ReviewConceptElementFields({
   );
   const bodyId = useId();
   const linkedStyle = styles.find((style) => style.id === element.styleId);
-  const allowedProps = linkedStyle
-    ? new Set<ConceptStyleProp>(componentPropsOf(linkedStyle))
-    : null;
+  const allowedProps = new Set<ConceptStyleProp>(
+    linkedStyle ? componentPropsOf(linkedStyle) : []
+  );
   const canEditProp = (prop: ConceptStyleProp) =>
-    lookOnly || allowedProps === null || allowedProps.has(prop);
+    lookOnly || allowedProps.has(prop);
   const canEditAnyProp = (...props: ConceptStyleProp[]) =>
     props.some(canEditProp);
   // Picked in the preview: open, and if it's the one picked, scroll to it.

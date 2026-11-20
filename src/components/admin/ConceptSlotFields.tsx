@@ -15,7 +15,11 @@ import {
   type SlideSide,
 } from "../../../config/conceptSlots.js";
 import { closeButton } from "../../../config/conceptStarters.js";
-import type { ConceptStyleProp } from "../../../config/conceptStyle.js";
+import {
+  type ConceptStyleProp,
+  type SlotStyleField,
+  slotStyleProp,
+} from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -75,31 +79,6 @@ const SLIDES = optionsOf([
 const gridColumnsOf = (layout: ConceptSlotLayout, slot: ConceptSlot) =>
   layout === "grid" ? (slot.columns ?? SLOT_DEFAULTS.columns) : undefined;
 
-function WrapField({
-  group = false,
-  slot,
-  onChange,
-}: {
-  group?: boolean;
-  slot: ConceptSlot;
-  onChange: (wrap: boolean) => void;
-}) {
-  const id = useId();
-  if (slot.layout !== "row") {
-    return null;
-  }
-  return (
-    <label className="review-concepts__check" htmlFor={id}>
-      <Checkbox
-        checked={slot.wrap ?? !group}
-        id={id}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      Wrap items
-    </label>
-  );
-}
-
 function slotDestination(
   id: string | undefined,
   group: boolean,
@@ -109,6 +88,129 @@ function slotDestination(
     return;
   }
   return { id, position: group ? ("inside" as const) : name };
+}
+
+function SlotLayoutControls({
+  group,
+  label,
+  layout,
+  onChange,
+  showSlotProp,
+  slot,
+}: {
+  group: boolean;
+  label: string;
+  layout: ConceptSlotLayout;
+  onChange: (patch: Partial<ConceptSlot>) => void;
+  showSlotProp: (field: SlotStyleField) => boolean;
+  slot: ConceptSlot;
+}) {
+  const fillId = useId();
+  const wrapId = useId();
+  const alignment = () => {
+    if (!showSlotProp("alignment")) {
+      return null;
+    }
+    if (layout === "grid") {
+      return (
+        <>
+          <ConceptField label="Align">
+            <ConceptSelect
+              label={`${label} align`}
+              onChange={(next) => onChange({ align: next as ConceptSlotAlign })}
+              options={ALIGNS}
+              value={slot.align ?? "start"}
+            />
+          </ConceptField>
+          <ConceptField label="Justify">
+            <ConceptSelect
+              label={`${label} justify`}
+              onChange={(next) =>
+                onChange({ justify: next as ConceptSlotJustify })
+              }
+              options={JUSTIFIES}
+              value={slot.justify ?? "start"}
+            />
+          </ConceptField>
+        </>
+      );
+    }
+    return (
+      <FlexAlignmentPicker
+        label={label}
+        layout={layout}
+        onChange={onChange}
+        slot={slot}
+      />
+    );
+  };
+
+  return (
+    <>
+      {showSlotProp("layout") ? (
+        <ConceptField label="Layout">
+          <ConceptSelect
+            label={`${label} layout`}
+            onChange={(next) => onChange({ layout: next as ConceptSlotLayout })}
+            options={LAYOUTS}
+            value={layout}
+          />
+        </ConceptField>
+      ) : null}
+      {showSlotProp("wrap") && layout === "row" ? (
+        <label className="review-concepts__check" htmlFor={wrapId}>
+          <Checkbox
+            checked={slot.wrap ?? !group}
+            id={wrapId}
+            onChange={(event) => onChange({ wrap: event.target.checked })}
+          />
+          Wrap items
+        </label>
+      ) : null}
+      {showSlotProp("columns") && layout === "grid" ? (
+        <NumberField
+          label="Columns"
+          max={SLOT_LIMITS.columns[1]}
+          min={SLOT_LIMITS.columns[0]}
+          onChange={(columns) => onChange({ columns })}
+          value={slot.columns ?? SLOT_DEFAULTS.columns}
+        />
+      ) : null}
+      {alignment()}
+      {showSlotProp("fill") ? (
+        <label className="review-concepts__check" htmlFor={fillId}>
+          <Checkbox
+            checked={slot.fill ?? false}
+            id={fillId}
+            onChange={(event) => onChange({ fill: event.target.checked })}
+          />
+          <span>Fill available width</span>
+        </label>
+      ) : null}
+      {showSlotProp("gap") ? (
+        <NumberField
+          label="Gap"
+          max={SLOT_LIMITS.gap[1]}
+          onChange={(gap) => onChange({ gap })}
+          value={slot.gap ?? SLOT_DEFAULTS.gap}
+        />
+      ) : null}
+      {showSlotProp("paddingX") ? (
+        <NumberField
+          label="Padding X"
+          onChange={(paddingX) => onChange({ paddingX })}
+          value={slot.paddingX ?? SLOT_DEFAULTS.paddingX}
+        />
+      ) : null}
+      {showSlotProp("paddingY") ? (
+        <NumberField
+          label="Padding Y"
+          onChange={(paddingY) => onChange({ paddingY })}
+          value={slot.paddingY ?? SLOT_DEFAULTS.paddingY}
+        />
+      ) : null}
+    </>
+  );
 }
 
 /** One slot: how it lays out what it holds, then what it holds. */
@@ -122,6 +224,7 @@ export function SlotFields({
   ownerId,
   name = "body",
   onChange,
+  showSlotProp,
   slot,
 }: {
   brandDoc?: BrandKitDoc | null;
@@ -136,14 +239,15 @@ export function SlotFields({
   ownerId?: string;
   name?: ConceptSlotName;
   onChange: (slot: ConceptSlot) => void;
+  showSlotProp?: (field: SlotStyleField) => boolean;
   slot: ConceptSlot;
 }) {
-  const fillId = useId();
   const fullId = useId();
   const label = named ?? `${SLOT_LABELS[name]} slot`;
   const set = (patch: Partial<ConceptSlot>) => onChange({ ...slot, ...patch });
   const middle = name === "body" ? 1 : 0;
   const layout = slot.layout ?? "column";
+  const show = showSlotProp ?? (() => true);
   return (
     <div className="review-concepts__slot">
       <ConceptGroup compact name={label}>
@@ -160,80 +264,13 @@ export function SlotFields({
             </label>
           </>
         ) : null}
-        <ConceptField label="Layout">
-          <ConceptSelect
-            label={`${label} layout`}
-            onChange={(next) => set({ layout: next as ConceptSlotLayout })}
-            options={LAYOUTS}
-            value={layout}
-          />
-        </ConceptField>
-        <WrapField
+        <SlotLayoutControls
           group={group}
-          onChange={(wrap) => set({ wrap })}
+          label={label}
+          layout={layout}
+          onChange={set}
+          showSlotProp={show}
           slot={slot}
-        />
-        {layout === "grid" ? (
-          <NumberField
-            label="Columns"
-            max={SLOT_LIMITS.columns[1]}
-            min={SLOT_LIMITS.columns[0]}
-            onChange={(columns) => set({ columns })}
-            value={slot.columns ?? SLOT_DEFAULTS.columns}
-          />
-        ) : null}
-        {layout === "grid" ? (
-          <>
-            <ConceptField label="Align">
-              <ConceptSelect
-                label={`${label} align`}
-                onChange={(next) => set({ align: next as ConceptSlotAlign })}
-                options={ALIGNS}
-                value={slot.align ?? "start"}
-              />
-            </ConceptField>
-            <ConceptField label="Justify">
-              <ConceptSelect
-                label={`${label} justify`}
-                onChange={(next) =>
-                  set({ justify: next as ConceptSlotJustify })
-                }
-                options={JUSTIFIES}
-                value={slot.justify ?? "start"}
-              />
-            </ConceptField>
-          </>
-        ) : (
-          <FlexAlignmentPicker
-            label={label}
-            layout={layout}
-            onChange={set}
-            slot={slot}
-          />
-        )}
-        <label className="review-concepts__check" htmlFor={fillId}>
-          <Checkbox
-            checked={slot.fill ?? false}
-            id={fillId}
-            onChange={(event) => set({ fill: event.target.checked })}
-          />
-          <span>Fill available width</span>
-        </label>
-        <NumberField
-          label="Gap"
-          max={SLOT_LIMITS.gap[1]}
-          onChange={(gap) => set({ gap })}
-          value={slot.gap ?? SLOT_DEFAULTS.gap}
-        />
-        <NumberField
-          label="Padding X"
-          onChange={(paddingX) => set({ paddingX })}
-          value={slot.paddingX ?? SLOT_DEFAULTS.paddingX}
-        />
-        <NumberField
-          label="Padding Y"
-          onChange={(paddingY) => set({ paddingY })}
-          value={slot.paddingY ?? SLOT_DEFAULTS.paddingY}
         />
       </ConceptGroup>
       {navbar ? (
@@ -296,6 +333,8 @@ export function ConceptSlotFields({
   const slots = element.slots ?? {};
   const canEditAnyProp = (...props: ConceptStyleProp[]) =>
     props.some(canEditProp);
+  const showSlotProp = (name: ConceptSlotName) => (field: SlotStyleField) =>
+    canEditProp(slotStyleProp(name, field));
   if (element.kind === "accordion") {
     return (
       <>
@@ -328,6 +367,7 @@ export function ConceptSlotFields({
                 onChange({ slots: { ...slots, [name]: slot } })
               }
               ownerId={element.id}
+              showSlotProp={showSlotProp(name)}
               slot={slots[name] ?? { elements: [] }}
             />
           );
@@ -420,6 +460,7 @@ export function ConceptSlotFields({
             navbar={element.kind === "navbar"}
             onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
             ownerId={element.id}
+            showSlotProp={showSlotProp(name)}
             slot={slots[name] ?? { elements: [] }}
           />
         ))}

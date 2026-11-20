@@ -54,6 +54,7 @@ const PROP_LABELS: Partial<Record<ConceptStyleProp, string>> = {
   avatarUrl: "Avatar image",
   background: "Fill",
   barHeight: "Bar height",
+  body: "Card body",
   bodySize: "Body size",
   borderBottomWidth: "Bottom border width",
   borderColor: "Border color",
@@ -101,14 +102,33 @@ const PROP_LABELS: Partial<Record<ConceptStyleProp, string>> = {
   tabLook: "Tab appearance",
   tableContents: "Rows and columns",
   text: "Text",
+  title: "Card title",
   titleWeight: "Title weight",
   toastAction: "Toast action",
   toastClose: "Toast close button",
   tooltip: "Tooltip",
 };
 
-const propLabel = (prop: ConceptStyleProp): string =>
-  PROP_LABELS[prop] ?? prop.replace(/[A-Z]/g, (letter) => ` ${letter}`).trim();
+const SLOT_PROP_LABEL =
+  /^(header|body|footer|hide)(Layout|Alignment|Columns|Wrap|Fill|Gap|PaddingX|PaddingY)$/;
+const SLOT_LABELS: Record<string, string> = {
+  body: "Body",
+  footer: "Footer",
+  header: "Header",
+  hide: "Close button",
+};
+
+const propLabel = (prop: ConceptStyleProp): string => {
+  const slotProp = SLOT_PROP_LABEL.exec(prop);
+  if (slotProp) {
+    const [, slot, field] = slotProp;
+    const label = field.replace(/([A-Z])/g, " $1").trim();
+    return `${SLOT_LABELS[slot]} ${label}`;
+  }
+  return (
+    PROP_LABELS[prop] ?? prop.replace(/[A-Z]/g, (letter) => ` ${letter}`).trim()
+  );
+};
 
 /** The style as a React component and its CSS, on the clipboard. */
 const copySource = async (

@@ -59,6 +59,8 @@ export type ConceptStyleLook = Partial<
 
 /** A component prop exposed to the instance editors. */
 export type ConceptStyleProp =
+  | "title"
+  | "body"
   | "text"
   | "placeholder"
   | "options"
@@ -68,7 +70,27 @@ export type ConceptStyleProp =
   | "toastAction"
   | "toastClose"
   | "tableContents"
+  | SlotStyleProp
   | ConceptStyleKey;
+
+export type SlotStyleField =
+  | "layout"
+  | "alignment"
+  | "columns"
+  | "wrap"
+  | "fill"
+  | "gap"
+  | "paddingX"
+  | "paddingY";
+
+export type SlotStyleProp =
+  `${"header" | "body" | "footer" | "hide"}${Capitalize<SlotStyleField>}`;
+
+export const slotStyleProp = (
+  slot: "header" | "body" | "footer" | "hide",
+  field: SlotStyleField
+): SlotStyleProp =>
+  `${slot}${field[0].toUpperCase()}${field.slice(1)}` as SlotStyleProp;
 
 export interface ConceptStyle {
   id: string;
@@ -140,7 +162,15 @@ const KIND_COMPONENT_PROPS: Record<
   button: BUTTON_PROPS,
   buttonGroup: [],
   canvas: [],
-  card: ["text", "bodySize", "titleWeight", "fullHeight", "dividers"],
+  card: [
+    "title",
+    "body",
+    "text",
+    "bodySize",
+    "titleWeight",
+    "fullHeight",
+    "dividers",
+  ],
   checkbox: ["text", "checked", "accentColor", "checkSize"],
   dialog: ["text"],
   divider: [],
@@ -168,10 +198,37 @@ const KIND_COMPONENT_PROPS: Record<
   upload: ["text"],
 };
 
+const SLOT_STYLE_FIELDS: readonly SlotStyleField[] = [
+  "layout",
+  "alignment",
+  "columns",
+  "wrap",
+  "fill",
+  "gap",
+  "paddingX",
+  "paddingY",
+];
+const SLOT_NAMES_BY_KIND: Partial<
+  Record<
+    ReviewConceptElementKind,
+    readonly ("header" | "body" | "footer" | "hide")[]
+  >
+> = {
+  accordion: ["header", "body"],
+  card: ["header", "body", "footer"],
+  navbar: ["header", "body", "footer"],
+  panel: ["header", "body", "footer", "hide"],
+};
+
 /** Props this kind of component can offer to an instance. */
 export const componentPropOptionsOf = (
   style: ConceptStyle
-): ConceptStyleProp[] => [...KIND_COMPONENT_PROPS[style.kind]];
+): ConceptStyleProp[] => [
+  ...KIND_COMPONENT_PROPS[style.kind],
+  ...(SLOT_NAMES_BY_KIND[style.kind] ?? []).flatMap((slot) =>
+    SLOT_STYLE_FIELDS.map((field) => slotStyleProp(slot, field))
+  ),
+];
 
 /** Props shown as editable controls on an instance. */
 export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] =>

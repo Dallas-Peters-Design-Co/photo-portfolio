@@ -14,9 +14,13 @@ import { ConceptField } from "./ConceptControls";
 export function ReviewConceptContentField({
   element,
   onChange,
+  showTitle = true,
+  showBody = true,
 }: {
   element: ReviewConceptElement;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
+  showTitle?: boolean;
+  showBody?: boolean;
 }) {
   if (element.kind === "text") {
     return (
@@ -71,26 +75,30 @@ export function ReviewConceptContentField({
     const { body, title } = splitCardText(element.text);
     return (
       <>
-        <ConceptField label="Card title" wide>
-          <Input
-            aria-label="Card title"
-            onChange={(event) =>
-              onChange({ text: joinCardText(event.target.value, body) })
-            }
-            size="sm"
-            value={title}
-          />
-        </ConceptField>
-        <label className="review-concepts__field review-concepts__field--full">
-          <span>Card body</span>
-          <textarea
-            onChange={(event) =>
-              onChange({ text: joinCardText(title, event.target.value) })
-            }
-            rows={3}
-            value={body}
-          />
-        </label>
+        {showTitle ? (
+          <ConceptField label="Card title" wide>
+            <Input
+              aria-label="Card title"
+              onChange={(event) =>
+                onChange({ text: joinCardText(event.target.value, body) })
+              }
+              size="sm"
+              value={title}
+            />
+          </ConceptField>
+        ) : null}
+        {showBody ? (
+          <label className="review-concepts__field review-concepts__field--full">
+            <span>Card body</span>
+            <textarea
+              onChange={(event) =>
+                onChange({ text: joinCardText(title, event.target.value) })
+              }
+              rows={3}
+              value={body}
+            />
+          </label>
+        ) : null}
       </>
     );
   }
