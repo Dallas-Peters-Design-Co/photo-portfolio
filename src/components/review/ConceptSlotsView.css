@@ -31,6 +31,14 @@
   align-items: center;
 }
 
+/* A card's title and status belong to the same top edge; centering a short
+   status pill against a tall title block makes it drift toward the body. */
+.review-concepts__card-preview
+  > .concept-slots
+  > .concept-slot[data-slot="header"][data-led] {
+  align-items: flex-start;
+}
+
 /* They keep their full width: the text wraps instead. Squeezed, a row of
    them wrapped, and an arrow dropped under its badge. */
 .concept-slot[data-led] > .concept-slot__items {
