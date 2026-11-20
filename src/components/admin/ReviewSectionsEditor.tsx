@@ -47,6 +47,36 @@ export function ReviewSectionsEditor({
       ],
     });
 
+  const addStandaloneRecommendation = () =>
+    onChange((prev) => {
+      const section = prev.find(
+        (item) => item.title.trim().toLowerCase() === "recommendations"
+      );
+      const recommendation = { body: "", id: newItemId(), title: "" };
+      if (section) {
+        return prev.map((item) =>
+          item.id === section.id
+            ? {
+                ...item,
+                recommendations: [
+                  ...(item.recommendations ?? []),
+                  recommendation,
+                ],
+              }
+            : item
+        );
+      }
+      return [
+        ...prev,
+        {
+          body: "",
+          id: newItemId(),
+          recommendations: [recommendation],
+          title: "Recommendations",
+        },
+      ];
+    });
+
   const updateRecommendation = (
     sectionId: string,
     recommendationId: string,
@@ -88,18 +118,27 @@ export function ReviewSectionsEditor({
     <section className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className={fieldsetTitleClass}>Sections</h3>
-        <Button
-          onClick={() =>
-            onChange((prev) => [
-              ...prev,
-              { body: "", id: newItemId(), title: "" },
-            ])
-          }
-          type="button"
-          variant="ghost"
-        >
-          <Plus size={14} /> Add section
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={addStandaloneRecommendation}
+            type="button"
+            variant="ghost"
+          >
+            <Plus size={14} /> Add recommendation
+          </Button>
+          <Button
+            onClick={() =>
+              onChange((prev) => [
+                ...prev,
+                { body: "", id: newItemId(), title: "" },
+              ])
+            }
+            type="button"
+            variant="ghost"
+          >
+            <Plus size={14} /> Add section
+          </Button>
+        </div>
       </div>
       <SortableList
         itemLabel={(s) => s.title || "section"}
