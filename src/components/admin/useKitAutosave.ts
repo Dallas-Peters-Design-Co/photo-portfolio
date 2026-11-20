@@ -33,6 +33,7 @@ export const useKitAutosave = ({
 }) => {
   const [state, setState] = useState<KitSaveState>("saved");
   const saved = useRef({ name: kit.name, print: printOf(kit.doc, kit.name) });
+  const expectedVersionId = useRef(kit.versionId);
   const latest = useRef({ doc, name });
   latest.current = { doc, name };
   const queue = useRef<Promise<boolean>>(Promise.resolve(true));
@@ -51,9 +52,11 @@ export const useKitAutosave = ({
       if (trimmed && trimmed !== saved.current.name) {
         await brandKitsApi.rename(kit.id, trimmed);
       }
-      await brandKitsApi.save(kit.id, sanitizeKitDoc(next), {
+      const savedKit = await brandKitsApi.save(kit.id, sanitizeKitDoc(next), {
         autosave: true,
+        expectedVersionId: expectedVersionId.current,
       });
+      expectedVersionId.current = savedKit.versionId;
       saved.current = { name: trimmed || saved.current.name, print };
       const { doc: now, name: nowName } = latest.current;
       setState(printOf(now, nowName) === print ? "saved" : "unsaved");

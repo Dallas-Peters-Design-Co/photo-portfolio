@@ -208,11 +208,17 @@ export const brandKitsApi = {
   save: async (
     id: string,
     doc: BrandKitDoc,
-    options: { autosave?: boolean } = {}
+    options: { autosave?: boolean; expectedVersionId?: string | null } = {}
   ): Promise<BrandKit> => {
     const res = await fetch(`${apiBase()}/api/brand-kits/${id}`, {
       body: JSON.stringify(
-        options.autosave ? { autosave: true, doc } : { doc }
+        options.autosave
+          ? {
+              autosave: true,
+              doc,
+              expectedVersionId: options.expectedVersionId,
+            }
+          : { doc }
       ),
       headers: jsonHeaders(),
       method: "PATCH",

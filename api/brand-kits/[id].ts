@@ -81,6 +81,12 @@ async function handlePatch(
   }
   const body = parseJsonBody(req.body) as Record<string, unknown>;
 
+  if (body.autosave === true && body.expectedVersionId !== existing.versionId) {
+    return res.status(409).json({
+      error: "This kit changed elsewhere. Reload it before saving.",
+    });
+  }
+
   if (body.componentStyle !== undefined) {
     const failure = await saveKitComponentStyle(
       sql,
