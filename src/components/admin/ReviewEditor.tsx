@@ -24,6 +24,7 @@ import { ReviewEditorActions, type SaveState } from "./ReviewEditorActions";
 import { ReviewEditorPanel } from "./ReviewEditorPanel";
 import { ReviewEditorScreen } from "./ReviewEditorScreen";
 import { ReviewMergeEditor } from "./ReviewMergeEditor";
+import type { DesignedPageSelection } from "./ReviewPageDesignPicker";
 import { ReviewRichText } from "./ReviewRichText";
 import { ReviewSectionsEditor } from "./ReviewSectionsEditor";
 import { ReviewSendPanel } from "./ReviewSendPanel";
@@ -278,6 +279,36 @@ export function ReviewEditor({
       ],
     });
 
+  const addDesignedScreen = ({ board, frame, page }: DesignedPageSelection) => {
+    const existingScreen = draft.doc.screens.find(
+      (item) => item.id === frame.id
+    );
+    const pageScreen: ReviewScreen = {
+      id: frame.id,
+      image: null,
+      marks: existingScreen?.marks ?? [],
+      note: existingScreen?.note ?? "",
+      pageDesign: page,
+      pins: existingScreen?.pins ?? [],
+      sourceUrl: "",
+      title: frame.body || "Page",
+      viewport: page.width <= 480 ? "mobile" : "desktop",
+    };
+    setDraft((current) => ({
+      ...current,
+      doc: {
+        ...current.doc,
+        boardId: current.doc.boardId ?? board.id,
+        screens: current.doc.screens.some((item) => item.id === frame.id)
+          ? current.doc.screens.map((item) =>
+              item.id === frame.id ? pageScreen : item
+            )
+          : [...current.doc.screens, pageScreen],
+      },
+    }));
+    toast.success("Designed screen added to the review.");
+  };
+
   const syncPageDesigns = async () => {
     const { boardId } = draft.doc;
     if (!boardId) {
@@ -496,6 +527,7 @@ export function ReviewEditor({
                       (stats.get(screen.id)?.concepts ?? 0)
                     }
                     firstNumber={stats.get(screen.id)?.firstNumber ?? 1}
+                    onAddDesignedScreen={addDesignedScreen}
                     onChange={updateScreen}
                     onRemove={removeScreen}
                     screen={screen}

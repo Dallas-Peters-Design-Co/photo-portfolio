@@ -33,6 +33,10 @@ import {
   SelectValue,
 } from "../ui/select";
 import { ReviewMarkupToolbar, type ReviewTool } from "./ReviewMarkupToolbar";
+import {
+  type DesignedPageSelection,
+  ReviewPageDesignPicker,
+} from "./ReviewPageDesignPicker";
 import { ReviewPinList } from "./ReviewPinList";
 import {
   captureLabelFor,
@@ -80,6 +84,7 @@ export function ReviewScreenEditor({
   brandDoc,
   onChange,
   onRemove,
+  onAddDesignedScreen,
 }: {
   screen: ReviewScreen;
   slug: string;
@@ -88,6 +93,7 @@ export function ReviewScreenEditor({
   /** Remaining concept slots for this screen after concepts on other screens. */
   conceptLimit?: number;
   brandDoc?: BrandKitDoc | null;
+  onAddDesignedScreen?: (selection: DesignedPageSelection) => void;
   onChange: ScreenUpdate;
   onRemove: () => void;
 }) {
@@ -369,6 +375,9 @@ export function ReviewScreenEditor({
           <Upload size={14} />
           {isUploading ? "Uploading…" : "Upload screenshot"}
         </Button>
+        {onAddDesignedScreen ? (
+          <ReviewPageDesignPicker onAdd={onAddDesignedScreen} />
+        ) : null}
         <AccessibilityScanButton
           live={live}
           onChange={onChange}
