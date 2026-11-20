@@ -217,6 +217,7 @@ export function PageCanvasEditor({
               setSelected(id);
               setPlaying(false);
             }}
+            onUngroup={editor.ungroupLayer}
             selected={selected}
           />
         </div>

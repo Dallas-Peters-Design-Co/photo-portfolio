@@ -312,6 +312,24 @@ export const usePageCanvas = (
     });
     setPlaying(false);
   };
+  const ungroupLayer = (id: string) => {
+    const group = all.find((item) => item.id === id && item.kind === "group");
+    if (!(group && step)) {
+      return;
+    }
+    const next = ungroupPageLayer(elements, id);
+    if (next === elements) {
+      return;
+    }
+    const groupIndex = elements.findIndex((item) => item.id === id);
+    const groupBox = groupIndex >= 0 ? boxOf(page, id, groupIndex) : undefined;
+    write({
+      ...resolved,
+      ...(groupBox ? ungroupPlacement(page, elements, group, groupBox) : {}),
+      concept: withStep(concept, at, { ...step, elements: next }),
+    });
+    setSelected(group.group?.elements[0]?.id ?? null);
+  };
   return {
     add,
     addStep,
@@ -365,20 +383,11 @@ export const usePageCanvas = (
     setSelected,
     step,
     steps,
+    ungroupLayer,
     ungroupSelected: () => {
-      if (!(element && step)) {
-        return;
+      if (element?.kind === "group") {
+        ungroupLayer(element.id);
       }
-      const next = ungroupPageLayer(elements, element.id);
-      if (next === elements) {
-        return;
-      }
-      write({
-        ...resolved,
-        ...(box ? ungroupPlacement(page, elements, element, box) : {}),
-        concept: withStep(concept, at, { ...step, elements: next }),
-      });
-      setSelected(element.group?.elements[0]?.id ?? null);
     },
     write,
   };

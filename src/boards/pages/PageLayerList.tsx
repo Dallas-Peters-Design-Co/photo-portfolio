@@ -1,5 +1,5 @@
 import { Collapsible } from "@base-ui/react/collapsible";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Ungroup } from "lucide-react";
 import { MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
 import { layerSlots } from "../../../config/pageLayerMove.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
@@ -12,6 +12,7 @@ interface LayerListProps {
   elements: ReviewConceptElement[];
   onChange: (elements: ReviewConceptElement[]) => void;
   onSelect: (id: string) => void;
+  onUngroup?: (id: string) => void;
   selected: string | null;
 }
 
@@ -21,6 +22,7 @@ export function PageLayerList({
   selected,
   onSelect,
   onChange,
+  onUngroup,
 }: LayerListProps) {
   const drag = useLayerDrag();
   const update = (item: ReviewConceptElement) =>
@@ -57,6 +59,7 @@ export function PageLayerList({
           <div
             className="page-builder__layer-row"
             {...drag.props(el.id, el.kind === "group")}
+            draggable={false}
           >
             {(drag.enabled || elements.length > 1) && handle}
             {hasChildren && (
@@ -76,6 +79,17 @@ export function PageLayerList({
               {el.kind}
               <span>{label}</span>
             </button>
+            {el.kind === "group" && onUngroup ? (
+              <button
+                aria-label={`Ungroup ${label}`}
+                className="page-builder__layer-ungroup"
+                onClick={() => onUngroup(el.id)}
+                title={`Ungroup ${label}`}
+                type="button"
+              >
+                <Ungroup aria-hidden size={14} />
+              </button>
+            ) : null}
           </div>
         );
         if (!hasChildren) {
@@ -117,6 +131,7 @@ export function PageLayerList({
                           })
                         }
                         onSelect={onSelect}
+                        onUngroup={onUngroup}
                         selected={selected}
                       />
                     </Collapsible.Panel>
@@ -134,6 +149,7 @@ export function PageLayerList({
                         })
                       }
                       onSelect={onSelect}
+                      onUngroup={onUngroup}
                       selected={selected}
                     />
                   </div>
