@@ -211,6 +211,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
           data-direction={concept.direction}
           data-scroll={concept.scroll || undefined}
           data-sequence
+          data-tooltip-boundary=""
           // Its entrances wait until it's on screen: played at page load,
           // they'd be over before anyone scrolled down to see them.
           data-waiting={seen ? undefined : ""}
@@ -233,6 +234,7 @@ export function ReviewConceptPreview({ concept }: { concept: ReviewConcept }) {
           className="review-page__concept-preview concept-canvas"
           data-direction={concept.direction}
           data-scroll={concept.scroll || undefined}
+          data-tooltip-boundary=""
           role="img"
           style={conceptFrameStyle(concept)}
         >

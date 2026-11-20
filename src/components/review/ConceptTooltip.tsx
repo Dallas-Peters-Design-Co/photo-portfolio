@@ -7,20 +7,26 @@ import {
   useRef,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { conceptFontStack } from "../../../config/conceptFont.js";
 import { shadowCss } from "../../../config/conceptShadow.js";
 import type { ConceptTooltip as TooltipConfig } from "../../../config/conceptTooltip.js";
 import { useConceptFont } from "./useConceptFont";
 import "./ConceptTooltip.css";
 
-/** Position the popup in the viewport, where the concept's clipping can't cut it off. */
+const tooltipBoundaryOf = (anchor: HTMLElement): HTMLElement =>
+  anchor.closest<HTMLElement>("[data-tooltip-boundary], .concept-canvas") ??
+  anchor.parentElement ??
+  anchor;
+
+/** Keep the popup inside its preview frame and translate to trigger coordinates. */
 const position = (
   anchor: DOMRect,
   bubble: DOMRect,
+  boundary: DOMRect,
   side: TooltipConfig["side"]
 ): CSSProperties => {
   const gap = 6;
+  const inset = 4;
   let x = anchor.left + (anchor.width - bubble.width) / 2;
   let y = anchor.top - bubble.height - gap;
   if (side === "bottom") {
@@ -30,13 +36,29 @@ const position = (
     x = side === "left" ? anchor.left - bubble.width - gap : anchor.right + gap;
     y = anchor.top + (anchor.height - bubble.height) / 2;
   }
+  if (y < boundary.top + inset) {
+    y = anchor.bottom + gap;
+  }
+  if (y + bubble.height > boundary.bottom - inset) {
+    y = anchor.top - bubble.height - gap;
+  }
+  x = Math.max(
+    boundary.left + inset,
+    Math.min(x, boundary.right - bubble.width - inset)
+  );
+  y = Math.max(
+    boundary.top + inset,
+    Math.min(y, boundary.bottom - bubble.height - inset)
+  );
   return {
-    left: Math.max(4, Math.min(x, window.innerWidth - bubble.width - 4)),
-    top: Math.max(4, Math.min(y, window.innerHeight - bubble.height - 4)),
+    left: x - anchor.left,
+    maxHeight: Math.max(0, boundary.height - inset * 2),
+    maxWidth: Math.max(0, boundary.width - inset * 2),
+    top: y - anchor.top,
   };
 };
 
-/** A tooltip anchors to any component and escapes the preview's clipping. */
+/** A tooltip anchors to a component and stays inside its preview frame. */
 export function ConceptTooltip({
   children,
   fill = false,
@@ -68,10 +90,12 @@ export function ConceptTooltip({
     }
     const update = () => {
       if (anchor.current && bubble.current) {
+        const boundary = tooltipBoundaryOf(anchor.current);
         setWhere(
           position(
             anchor.current.getBoundingClientRect(),
             bubble.current.getBoundingClientRect(),
+            boundary.getBoundingClientRect(),
             tooltip.side
           )
         );
@@ -81,6 +105,7 @@ export function ConceptTooltip({
     const observer = new ResizeObserver(update);
     observer.observe(anchor.current);
     observer.observe(bubble.current);
+    observer.observe(tooltipBoundaryOf(anchor.current));
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
     return () => {
@@ -129,39 +154,37 @@ export function ConceptTooltip({
         tabIndex={0}
       >
         {children}
+        {visible ? (
+          <div
+            className="concept-tooltip__bubble concept-tooltip__positioner"
+            data-side={tooltip.side}
+            id={id}
+            ref={bubble}
+            role="tooltip"
+            style={{
+              ...where,
+              background: look.background,
+              border: look.borderColor
+                ? `${look.borderWidth ?? 1}px solid ${look.borderColor}`
+                : undefined,
+              borderRadius: look.radius,
+              boxShadow: look.shadow ? shadowCss(look.shadow) : undefined,
+              color: look.color,
+              fontFamily: conceptFontStack(
+                look.fontFamily,
+                look.fontRef,
+                look.fontId
+              ),
+              fontSize: look.fontSize,
+              fontWeight: look.fontWeight,
+              lineHeight: look.lineHeight,
+              padding: `${look.paddingY}px ${look.paddingX}px`,
+            }}
+          >
+            {tooltip.text}
+          </div>
+        ) : null}
       </div>
-      {visible
-        ? createPortal(
-            <div
-              className="concept-tooltip__bubble concept-tooltip__positioner"
-              id={id}
-              ref={bubble}
-              role="tooltip"
-              style={{
-                ...where,
-                background: look.background,
-                border: look.borderColor
-                  ? `${look.borderWidth ?? 1}px solid ${look.borderColor}`
-                  : undefined,
-                borderRadius: look.radius,
-                boxShadow: look.shadow ? shadowCss(look.shadow) : undefined,
-                color: look.color,
-                fontFamily: conceptFontStack(
-                  look.fontFamily,
-                  look.fontRef,
-                  look.fontId
-                ),
-                fontSize: look.fontSize,
-                fontWeight: look.fontWeight,
-                lineHeight: look.lineHeight,
-                padding: `${look.paddingY}px ${look.paddingX}px`,
-              }}
-            >
-              {tooltip.text}
-            </div>,
-            document.body
-          )
-        : null}
     </>
   );
 }

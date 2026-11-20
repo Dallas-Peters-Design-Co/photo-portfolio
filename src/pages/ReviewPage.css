@@ -192,6 +192,14 @@
   font-size: var(--text-lg);
 }
 
+.review-page__sheet
+  section[id^="review-section-"].doc-band--split
+  > .doc-band__title {
+  min-width: 0;
+  font-size: clamp(1.5rem, 3vw, 3rem);
+  line-height: 1;
+}
+
 .review-page__intro .page-content__paragraph,
 .review-page__intro .review-page__prose {
   max-width: 60ch;
