@@ -30,6 +30,8 @@ import { MediaToolbar } from "./MediaToolbar";
 import { PageVideo } from "./videoNode";
 
 interface PageEditorProps {
+  ariaLabel?: string;
+  compact?: boolean;
   onChange: (doc: unknown) => void;
   /** TipTap document. */
   value: unknown;
@@ -44,7 +46,12 @@ const EMPTY_DOC = { content: [{ type: "paragraph" }], type: "doc" };
  * media lands in Blob storage and the document stores only a public URL — no
  * base64 payloads bloating the row.
  */
-export function PageEditor({ value, onChange }: PageEditorProps) {
+export function PageEditor({
+  ariaLabel,
+  compact = false,
+  value,
+  onChange,
+}: PageEditorProps) {
   const { prompt } = useConfirm();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isPicking, setIsPicking] = useState(false);
@@ -58,7 +65,8 @@ export function PageEditor({ value, onChange }: PageEditorProps) {
           // full width made every image look enormous and every line of text
           // twice as long as it publishes, so the width buttons were being
           // judged against a measure the reader never sees.
-          "prose-invert mx-auto max-w-2xl min-h-[320px] px-5 py-4 focus:outline-none text-white/85 leading-relaxed",
+          `prose-invert mx-auto max-w-2xl ${compact ? "min-h-40" : "min-h-[320px]"} px-5 py-4 focus:outline-none text-white/85 leading-relaxed`,
+        ...(ariaLabel ? { "aria-label": ariaLabel } : {}),
       },
     },
     extensions: [

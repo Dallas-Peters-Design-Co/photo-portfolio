@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { BrowserCapture } from "../../../config/nodes/browser.js";
-import { newItemId } from "../../../config/proposal.js";
+import { newItemId, richTextPlainText } from "../../../config/proposal.js";
 import {
   type MarkKind,
   PIN_KINDS,
@@ -421,7 +421,7 @@ export function BrowserNotes({
             placeholder="Details, and what to do about it"
             readOnly={readOnly}
             rows={3}
-            value={note.body}
+            value={richTextPlainText(note.body)}
           />
         </li>
       ))}

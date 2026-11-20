@@ -6,8 +6,10 @@ import {
   PIN_LABELS,
   type ReviewImage,
   type ReviewPin,
+  type RichText,
 } from "../../../config/review.js";
 import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
+import { PageEditor } from "../../cms/PageEditor";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -18,9 +20,9 @@ import {
   SelectValue,
 } from "../ui/select";
 import { PinWcagFields } from "./PinWcagFields";
-import { proposalLabelClass, proposalTextareaClass } from "./proposalStyles";
+import { proposalLabelClass } from "./proposalStyles";
 import { ReviewPinConcepts } from "./ReviewPinConcepts";
-import { readingOrder } from "./reviewEditing";
+import { readingOrder, toEditorDoc } from "./reviewEditing";
 
 /** The note kinds with their labels, so the closed menu shows "Issue", not "issue". */
 const KIND_ITEMS = PIN_KINDS.map((k) => ({ label: PIN_LABELS[k], value: k }));
@@ -248,20 +250,15 @@ export function ReviewPinList({
                 <Trash2 size={14} />
               </Button>
             </div>
-            <div className="space-y-1">
-              <label
-                className={proposalLabelClass}
-                htmlFor={`pin-body-${pin.id}`}
-              >
-                Note
-              </label>
-              <textarea
-                className={`${proposalTextareaClass} min-h-40`}
-                id={`pin-body-${pin.id}`}
-                onChange={(e) => onUpdate(pin.id, { body: e.target.value })}
-                onFocus={() => onSelect(pin.id)}
-                placeholder="What I'd change, and why"
-                value={pin.body}
+            <div className="space-y-1" onFocusCapture={() => onSelect(pin.id)}>
+              <p className={proposalLabelClass}>Note</p>
+              <PageEditor
+                ariaLabel={`Note ${firstNumber + i} text`}
+                compact
+                onChange={(body) =>
+                  onUpdate(pin.id, { body: body as RichText })
+                }
+                value={toEditorDoc(pin.body)}
               />
             </div>
             {pin.kind === "accessibility" ? (

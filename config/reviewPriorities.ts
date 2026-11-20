@@ -1,4 +1,4 @@
-import { isRichTextEmpty } from "./proposal.js";
+import { isRichTextEmpty, richTextPlainText } from "./proposal.js";
 import { numberPins, type PinKind, type ReviewDoc } from "./review.js";
 
 const COLON_SUFFIX = /:$/;
@@ -140,7 +140,8 @@ const auditSectionFixes = (section: ReviewDoc["sections"][number]) => {
 export const prioritizedFixes = (doc: ReviewDoc): PrioritizedFix[] => {
   const pinFixes = numberPins(doc).flatMap(({ n, pin, screen }) => {
     const priority = PRIORITY_BY_KIND[pin.kind];
-    const title = pin.title.trim() || pin.body.trim().split("\n")[0]?.trim();
+    const bodyText = richTextPlainText(pin.body).trim();
+    const title = pin.title.trim() || bodyText.split("\n")[0]?.trim();
     return priority && title
       ? [
           {

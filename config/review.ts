@@ -91,7 +91,7 @@ export interface PinWcag {
 }
 
 export interface ReviewPin {
-  body: string;
+  body: RichText;
   /** Small interface concepts attached to this note, usually a recommendation. */
   concepts?: ReviewConcept[];
   /** Written by the UX audit, so Redo audit can replace it. */
@@ -288,7 +288,7 @@ export const cleanPin = (v: unknown): ReviewPin => {
     ? (raw.kind as PinKind)
     : "issue";
   return {
-    body: str(raw.body, MAX_BODY),
+    body: cleanRich(raw.body, MAX_BODY),
     concepts: (Array.isArray(raw.concepts) ? raw.concepts : [])
       .slice(0, MAX_REVIEW_CONCEPTS)
       .map(cleanConcept),

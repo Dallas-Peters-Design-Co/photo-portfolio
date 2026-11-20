@@ -484,9 +484,11 @@ function Screen({
                       {kindLabel(pin.kind)}
                     </span>
                   </p>
-                  {pin.body ? (
-                    <p className="review-page__note-body">{pin.body}</p>
-                  ) : null}
+                  {isRichTextEmpty(pin.body) ? null : (
+                    <div className="review-page__note-body">
+                      <Prose text={pin.body} />
+                    </div>
+                  )}
                   <PinWcagLinks
                     className="review-page__note-wcag"
                     wcag={pin.wcag}
@@ -611,9 +613,11 @@ function Screen({
                     {kindLabel(pin.kind)}
                   </span>
                 </p>
-                {pin.body ? (
-                  <p className="review-page__note-body">{pin.body}</p>
-                ) : null}
+                {isRichTextEmpty(pin.body) ? null : (
+                  <div className="review-page__note-body">
+                    <Prose text={pin.body} />
+                  </div>
+                )}
                 <PinWcagLinks
                   className="review-page__note-wcag"
                   wcag={pin.wcag}

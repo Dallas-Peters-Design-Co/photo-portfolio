@@ -33,6 +33,45 @@ export const isEditorDoc = (value: unknown): value is EditorDoc =>
   (value as { type?: unknown }).type === "doc" &&
   Array.isArray((value as { content?: unknown }).content);
 
+/** Plain text for compact fields that cannot display a rich document inline. */
+const RICH_TEXT_BLOCKS = new Set([
+  "blockquote",
+  "bulletList",
+  "codeBlock",
+  "heading",
+  "listItem",
+  "orderedList",
+  "paragraph",
+]);
+
+export const richTextPlainText = (value: RichText): string => {
+  if (typeof value === "string") {
+    return value;
+  }
+  const textOf = (node: unknown): string => {
+    if (typeof node !== "object" || node === null) {
+      return "";
+    }
+    const item = node as {
+      content?: unknown[];
+      text?: unknown;
+      type?: unknown;
+    };
+    if (typeof item.text === "string") {
+      return item.text;
+    }
+    const children = Array.isArray(item.content)
+      ? item.content.map(textOf).filter(Boolean)
+      : [];
+    return children.join(
+      typeof item.type === "string" && RICH_TEXT_BLOCKS.has(item.type)
+        ? "\n"
+        : ""
+    );
+  };
+  return value.content.map(textOf).filter(Boolean).join("\n");
+};
+
 /** True when there is nothing to show: an empty string or a doc with no text. */
 export const isRichTextEmpty = (value: RichText): boolean => {
   if (typeof value === "string") {
