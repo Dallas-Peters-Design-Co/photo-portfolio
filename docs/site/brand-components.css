@@ -60,7 +60,7 @@
   --button-primary-border-bottom-width: 1px;
   --button-primary-shadow: 0px 0px 0px 2px color-mix(in srgb, var(--kit-hz1nhj, #00ab8c) 48%, transparent);
   --button-primary-icon-size: 17px;
-  --button-primary-hover-background: #486dca;
+  --button-primary-hover-background: #2ea68b;
   --button-primary-focus-ring-color: currentColor;
   --button-primary-focus-ring-width: 2px;
 
@@ -111,7 +111,7 @@
   --button-primary-diasabled-shadow: 0px 0px 0px 4px color-mix(in srgb, var(--kit-hz1nhj, #00ab8c) 19%, transparent);
   --button-primary-diasabled-icon-color: var(--kit-18u0jwu, #030503);
   --button-primary-diasabled-icon-size: 17px;
-  --button-primary-diasabled-hover-background: var(--kit-hnp52d, #2a50c0);
+  --button-primary-diasabled-hover-background: #00a36d1c;
   --button-primary-diasabled-focus-ring-color: currentColor;
   --button-primary-diasabled-focus-ring-width: 2px;
 
@@ -513,7 +513,7 @@
 }
 .bk-pretex-t {
 .buttonGroup-article-actions {
-  --buttonGroup-article-actions-background: transparent;
+  --buttonGroup-article-actions-background: #ffffff00;
   --buttonGroup-article-actions-color: var(--kit-18u0jwu, #030503);
   --buttonGroup-article-actions-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --buttonGroup-article-actions-font-size: 14px;
@@ -811,7 +811,7 @@
   --tag-needs-full-text-border-bottom-width: 1px;
   --tag-needs-full-text-shadow: none;
   --tag-needs-full-text-icon-color: var(--kit-hnp52d, #2a50c0);
-  --tag-needs-full-text-icon-size: 13px;
+  --tag-needs-full-text-icon-size: 14px;
   --tag-needs-full-text-focus-ring-color: currentColor;
   --tag-needs-full-text-focus-ring-width: 2px;
 
@@ -851,8 +851,8 @@
   --tag-ready-to-review-border-right-width: 1px;
   --tag-ready-to-review-border-bottom-width: 1px;
   --tag-ready-to-review-shadow: none;
-  --tag-ready-to-review-icon-color: var(--kit-74mwyq, #2b90d8);
-  --tag-ready-to-review-icon-size: 13px;
+  --tag-ready-to-review-icon-color: var(--kit-uv4dhm, #006733);
+  --tag-ready-to-review-icon-size: 14px;
   --tag-ready-to-review-focus-ring-color: currentColor;
   --tag-ready-to-review-focus-ring-width: 2px;
 
@@ -934,7 +934,7 @@
   --tag-reviewed-border-bottom-width: 1px;
   --tag-reviewed-shadow: none;
   --tag-reviewed-icon-color: var(--kit-uv4dhm, #006733);
-  --tag-reviewed-icon-size: 13px;
+  --tag-reviewed-icon-size: 14px;
   --tag-reviewed-focus-ring-color: currentColor;
   --tag-reviewed-focus-ring-width: 2px;
 
@@ -1207,7 +1207,7 @@
 .bk-pretex-t {
 .badge-info {
   --badge-info-background: #ffffff00;
-  --badge-info-color: var(--kit-18u0jwu, #030503);
+  --badge-info-color: var(--kit-hnp52d, #2a50c0);
   --badge-info-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-info-font-size: 14px;
   --badge-info-font-weight: 500;
@@ -2263,7 +2263,7 @@
 .table-primary tbody > tr:nth-child(2) > td:nth-child(2) .table-primary__item-label svg { width: 13px; height: 13px; color: var(--kit-13autsx, #3a3f39); }
 .table-primary tbody > tr:nth-child(2) > td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button, .table-primary__progress) { background: #ffffff00; border: 2px solid var(--kit-yr89bp, #a8a6a4); border-radius: 8px; color: var(--kit-13autsx, #3a3f39); font-size: 14px; font-weight: 500; line-height: 1; padding-block: 4px; padding-inline: 10px; }
 .table-primary tbody > tr:nth-child(1) > td:nth-child(3) { --table-primary-tint: var(--kit-18u0jwu, #030503); }
-.table-primary tbody > tr:nth-child(1) > td:nth-child(3) .table-primary__item-label svg { width: 13px; height: 13px; color: var(--kit-74mwyq, #2b90d8); }
+.table-primary tbody > tr:nth-child(1) > td:nth-child(3) .table-primary__item-label svg { width: 14px; height: 14px; color: var(--kit-uv4dhm, #006733); }
 .table-primary tbody > tr:nth-child(1) > td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button, .table-primary__progress) { background: transparent; border: 1px solid transparent; border-radius: 0px; color: var(--kit-18u0jwu, #030503); font-size: 14px; font-weight: 500; line-height: 1.25; padding-block: 0px; padding-inline: 0px; }
 .table-primary tbody > tr:nth-child(2) > td:nth-child(3) { --table-primary-tint: var(--kit-18u0jwu, #030503); }
 .table-primary tbody > tr:nth-child(2) > td:nth-child(3) .table-primary__item-label svg { width: 13px; height: 13px; color: var(--kit-uv4dhm, #006733); }
@@ -3780,9 +3780,9 @@
   --accordion-primary-background: var(--kit-xoaop8, #fffefc);
   --accordion-primary-color: var(--kit-18u0jwu, #030503);
   --accordion-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --accordion-primary-font-size: 14px;
-  --accordion-primary-font-weight: 500;
-  --accordion-primary-line-height: 1.25;
+  --accordion-primary-font-size: 16px;
+  --accordion-primary-font-weight: 600;
+  --accordion-primary-line-height: 1.35;
   --accordion-primary-padding: 8px 14px;
   --accordion-primary-radius: 6px;
   --accordion-primary-border: 1px solid var(--kit-17e2dceb-2877-475d-a85c-c2a066a2bded, #d3d3d0);
@@ -3841,7 +3841,7 @@
   --accordion-primary__body-1-color: var(--kit-l6h2ze, #1b201a);
   --accordion-primary__body-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --accordion-primary__body-1-font-size: 14px;
-  --accordion-primary__body-1-font-weight: 600;
+  --accordion-primary__body-1-font-weight: 500;
   --accordion-primary__body-1-line-height: 1.25;
   --accordion-primary__body-1-padding: 0px 0px;
   --accordion-primary__body-1-radius: 0px;
@@ -4097,11 +4097,11 @@
 }
 .bk-pretex-t {
 .upload-dropzone {
-  --upload-dropzone-background: var(--kit-b71e03ee-dca0-448c-804e-7eb0e3e2a769, #c9c9c4);
-  --upload-dropzone-color: var(--kit-18u0jwu, #030503);
+  --upload-dropzone-background: var(--kit-xoaop8, #fffefc);
+  --upload-dropzone-color: var(--kit-hnp52d, #2a50c0);
   --upload-dropzone-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --upload-dropzone-font-size: 14px;
-  --upload-dropzone-font-weight: 400;
+  --upload-dropzone-font-weight: 500;
   --upload-dropzone-line-height: 1.25;
   --upload-dropzone-padding: 8px 12px;
   --upload-dropzone-radius: 6px;
@@ -4416,7 +4416,7 @@
   --button-primary-border-bottom-width: 1px;
   --button-primary-shadow: 0px 0px 0px 2px color-mix(in srgb, var(--kit-hz1nhj, #00ab8c) 48%, transparent);
   --button-primary-icon-size: 17px;
-  --button-primary-hover-background: #486dca;
+  --button-primary-hover-background: #2ea68b;
   --button-primary-focus-ring-color: currentColor;
   --button-primary-focus-ring-width: 2px;
 
@@ -4467,7 +4467,7 @@
   --button-primary-diasabled-shadow: 0px 0px 0px 4px color-mix(in srgb, var(--kit-hz1nhj, #00ab8c) 19%, transparent);
   --button-primary-diasabled-icon-color: var(--kit-18u0jwu, #030503);
   --button-primary-diasabled-icon-size: 17px;
-  --button-primary-diasabled-hover-background: var(--kit-hnp52d, #2a50c0);
+  --button-primary-diasabled-hover-background: #00a36d1c;
   --button-primary-diasabled-focus-ring-color: currentColor;
   --button-primary-diasabled-focus-ring-width: 2px;
 
@@ -4869,7 +4869,7 @@
 }
 .bk-viaskai {
 .buttonGroup-article-actions {
-  --buttonGroup-article-actions-background: transparent;
+  --buttonGroup-article-actions-background: #ffffff00;
   --buttonGroup-article-actions-color: var(--kit-18u0jwu, #030503);
   --buttonGroup-article-actions-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --buttonGroup-article-actions-font-size: 14px;
@@ -5167,7 +5167,7 @@
   --tag-needs-full-text-border-bottom-width: 1px;
   --tag-needs-full-text-shadow: none;
   --tag-needs-full-text-icon-color: var(--kit-hnp52d, #2a50c0);
-  --tag-needs-full-text-icon-size: 13px;
+  --tag-needs-full-text-icon-size: 14px;
   --tag-needs-full-text-focus-ring-color: currentColor;
   --tag-needs-full-text-focus-ring-width: 2px;
 
@@ -5207,8 +5207,8 @@
   --tag-ready-to-review-border-right-width: 1px;
   --tag-ready-to-review-border-bottom-width: 1px;
   --tag-ready-to-review-shadow: none;
-  --tag-ready-to-review-icon-color: var(--kit-74mwyq, #2b90d8);
-  --tag-ready-to-review-icon-size: 13px;
+  --tag-ready-to-review-icon-color: var(--kit-uv4dhm, #006733);
+  --tag-ready-to-review-icon-size: 14px;
   --tag-ready-to-review-focus-ring-color: currentColor;
   --tag-ready-to-review-focus-ring-width: 2px;
 
@@ -5290,7 +5290,7 @@
   --tag-reviewed-border-bottom-width: 1px;
   --tag-reviewed-shadow: none;
   --tag-reviewed-icon-color: var(--kit-uv4dhm, #006733);
-  --tag-reviewed-icon-size: 13px;
+  --tag-reviewed-icon-size: 14px;
   --tag-reviewed-focus-ring-color: currentColor;
   --tag-reviewed-focus-ring-width: 2px;
 
@@ -5563,7 +5563,7 @@
 .bk-viaskai {
 .badge-info {
   --badge-info-background: #ffffff00;
-  --badge-info-color: var(--kit-18u0jwu, #030503);
+  --badge-info-color: var(--kit-hnp52d, #2a50c0);
   --badge-info-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --badge-info-font-size: 14px;
   --badge-info-font-weight: 500;
@@ -6619,7 +6619,7 @@
 .table-primary tbody > tr:nth-child(2) > td:nth-child(2) .table-primary__item-label svg { width: 13px; height: 13px; color: var(--kit-13autsx, #3a3f39); }
 .table-primary tbody > tr:nth-child(2) > td:nth-child(2) :is(.table-primary__tag, .table-primary__chip, .table-primary__button, .table-primary__progress) { background: #ffffff00; border: 2px solid var(--kit-yr89bp, #a8a6a4); border-radius: 8px; color: var(--kit-13autsx, #3a3f39); font-size: 14px; font-weight: 500; line-height: 1; padding-block: 4px; padding-inline: 10px; }
 .table-primary tbody > tr:nth-child(1) > td:nth-child(3) { --table-primary-tint: var(--kit-18u0jwu, #030503); }
-.table-primary tbody > tr:nth-child(1) > td:nth-child(3) .table-primary__item-label svg { width: 13px; height: 13px; color: var(--kit-74mwyq, #2b90d8); }
+.table-primary tbody > tr:nth-child(1) > td:nth-child(3) .table-primary__item-label svg { width: 14px; height: 14px; color: var(--kit-uv4dhm, #006733); }
 .table-primary tbody > tr:nth-child(1) > td:nth-child(3) :is(.table-primary__tag, .table-primary__chip, .table-primary__button, .table-primary__progress) { background: transparent; border: 1px solid transparent; border-radius: 0px; color: var(--kit-18u0jwu, #030503); font-size: 14px; font-weight: 500; line-height: 1.25; padding-block: 0px; padding-inline: 0px; }
 .table-primary tbody > tr:nth-child(2) > td:nth-child(3) { --table-primary-tint: var(--kit-18u0jwu, #030503); }
 .table-primary tbody > tr:nth-child(2) > td:nth-child(3) .table-primary__item-label svg { width: 13px; height: 13px; color: var(--kit-uv4dhm, #006733); }
@@ -8136,9 +8136,9 @@
   --accordion-primary-background: var(--kit-xoaop8, #fffefc);
   --accordion-primary-color: var(--kit-18u0jwu, #030503);
   --accordion-primary-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
-  --accordion-primary-font-size: 14px;
-  --accordion-primary-font-weight: 500;
-  --accordion-primary-line-height: 1.25;
+  --accordion-primary-font-size: 16px;
+  --accordion-primary-font-weight: 600;
+  --accordion-primary-line-height: 1.35;
   --accordion-primary-padding: 8px 14px;
   --accordion-primary-radius: 6px;
   --accordion-primary-border: 1px solid var(--kit-17e2dceb-2877-475d-a85c-c2a066a2bded, #d3d3d0);
@@ -8197,7 +8197,7 @@
   --accordion-primary__body-1-color: var(--kit-l6h2ze, #1b201a);
   --accordion-primary__body-1-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --accordion-primary__body-1-font-size: 14px;
-  --accordion-primary__body-1-font-weight: 600;
+  --accordion-primary__body-1-font-weight: 500;
   --accordion-primary__body-1-line-height: 1.25;
   --accordion-primary__body-1-padding: 0px 0px;
   --accordion-primary__body-1-radius: 0px;
@@ -8453,11 +8453,11 @@
 }
 .bk-viaskai {
 .upload-dropzone {
-  --upload-dropzone-background: var(--kit-b71e03ee-dca0-448c-804e-7eb0e3e2a769, #c9c9c4);
-  --upload-dropzone-color: var(--kit-18u0jwu, #030503);
+  --upload-dropzone-background: var(--kit-xoaop8, #fffefc);
+  --upload-dropzone-color: var(--kit-hnp52d, #2a50c0);
   --upload-dropzone-font-family: "General Sans", ui-sans-serif, system-ui, sans-serif;
   --upload-dropzone-font-size: 14px;
-  --upload-dropzone-font-weight: 400;
+  --upload-dropzone-font-weight: 500;
   --upload-dropzone-line-height: 1.25;
   --upload-dropzone-padding: 8px 12px;
   --upload-dropzone-radius: 6px;
