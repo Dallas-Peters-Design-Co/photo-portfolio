@@ -52,9 +52,9 @@ import {
 /**
  * Concepts in one whole review, across every note. 8 was too few: a review
  * with one sketch per recommendation reached it and the Add button went grey.
- * A concept is a few KB, so 48 keeps a full review well inside a request.
+ * A concept is a few KB, so 60 keeps a full review well inside a request.
  */
-export const MAX_REVIEW_CONCEPTS = 48;
+export const MAX_REVIEW_CONCEPTS = 60;
 
 /** A concept's `align` as the CSS `align-items` value it draws with. */
 export const ALIGN_ITEMS = {
@@ -551,7 +551,7 @@ export const cleanElement = (
     lineHeight: bounded(raw.lineHeight, 1, 2.4, 1.4),
     paddingX: bounded(raw.paddingX, 0, Number.POSITIVE_INFINITY, 16),
     paddingY: bounded(raw.paddingY, 0, Number.POSITIVE_INFINITY, 10),
-    radius: bounded(raw.radius, 0, 48, 4),
+    radius: bounded(raw.radius, 0, 60, 4),
     ...(kind === "card" ? cleanCard(raw) : {}),
     ...cleanBox(kind, raw),
     ...(kind === "checkbox" ? cleanCheckbox(raw) : {}),

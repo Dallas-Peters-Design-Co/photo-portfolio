@@ -148,8 +148,8 @@ describe("concepts across a review", () => {
       (total, pin) => total + (pin.concepts?.length ?? 0),
       0
     );
-    // 60 sent: the first 48 are kept, in order.
-    expect(kept).toBe(48);
+    // 60 sent: the first 60 are kept, in order.
+    expect(kept).toBe(60);
     expect(doc.screens[0]?.pins[8]?.concepts).toHaveLength(5);
     expect(doc.screens[0]?.pins[9]?.concepts).toHaveLength(3);
   });
