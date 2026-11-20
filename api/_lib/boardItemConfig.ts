@@ -384,7 +384,7 @@ export const MAX_DRAW_POINTS = 4000;
  * is chosen by whoever is drawing, and an unbounded array of coordinates is an
  * unbounded row.
  */
-const BORDER_SIDES = ["top", "right", "bottom", "left"];
+const BORDER_SIDES = ["top", "left", "right", "bottom"];
 
 /** An outline's path: the absolute commands type is written in, and numbers. */
 const VECTOR_PATH = /^[MLQCZ0-9.,\se+-]+$/;

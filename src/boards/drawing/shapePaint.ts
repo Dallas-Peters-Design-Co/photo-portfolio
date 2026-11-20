@@ -13,7 +13,7 @@ import type { DrawingConfig } from "./drawing";
  * bigger, so it can't push past its frame the way a separate bar could.
  */
 
-export const BORDER_SIDES = ["top", "right", "bottom", "left"] as const;
+export const BORDER_SIDES = ["top", "left", "right", "bottom"] as const;
 export type BorderSide = (typeof BORDER_SIDES)[number];
 
 /** The shapes a border can run along only some sides of. */
