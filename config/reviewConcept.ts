@@ -165,8 +165,13 @@ export interface ReviewConceptElement {
   barHeight?: number;
   /** Cards only: the body's type size. The title uses `fontSize`. */
   bodySize?: number;
+  borderBottomWidth?: number;
   /** Badges and cards: the outline colour; "transparent" draws none. */
   borderColor?: string;
+  borderLeftWidth?: number;
+  borderRightWidth?: number;
+  /** Optional per-side border widths in px; unset sides use borderWidth. */
+  borderTopWidth?: number;
   /** Badges and cards: the outline's width in px, 0–8. Default 1. */
   borderWidth?: number;
   /** A copy of a canvas component, drawn in the concept alongside other elements. */
@@ -285,6 +290,10 @@ export const ELEMENT_STYLE_KEYS = [
   "radius",
   "borderColor",
   "borderWidth",
+  "borderTopWidth",
+  "borderLeftWidth",
+  "borderRightWidth",
+  "borderBottomWidth",
   "shadow",
   "bodySize",
   "titleWeight",

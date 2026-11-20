@@ -109,6 +109,10 @@ const tokensOf = (el: ReviewConceptElement): [string, string][] => {
     ["padding", `${el.paddingY}px ${el.paddingX}px`],
     ["radius", px(el.radius)],
     ["border", border],
+    ["border-top-width", px(el.borderTopWidth ?? el.borderWidth ?? 1)],
+    ["border-left-width", px(el.borderLeftWidth ?? el.borderWidth ?? 1)],
+    ["border-right-width", px(el.borderRightWidth ?? el.borderWidth ?? 1)],
+    ["border-bottom-width", px(el.borderBottomWidth ?? el.borderWidth ?? 1)],
     ["shadow", boxed ? shadowCss(shadowOf(el)) : "none"],
     ["accent", el.accentColor],
     ["check-size", px(el.checkSize)],
@@ -406,6 +410,10 @@ const cssOf = (
     "padding: var(--&-padding);",
     "border-radius: var(--&-radius);",
     "border: var(--&-border);",
+    "border-top-width: var(--&-border-top-width);",
+    "border-left-width: var(--&-border-left-width);",
+    "border-right-width: var(--&-border-right-width);",
+    "border-bottom-width: var(--&-border-bottom-width);",
     "box-shadow: var(--&-shadow);",
   ].map((line) => `  ${line.replaceAll("--&-", `--${cls}-`)}`);
   // `&` stands for the block: `--&-x` is a token, a bare `&` is the selector.

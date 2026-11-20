@@ -65,6 +65,12 @@ const SIZE_LABELS: Partial<Record<ReviewConceptElement["kind"], string>> = {
 };
 
 const SUMMARY_LENGTH = 48;
+const BORDER_WIDTH_FIELDS = [
+  ["borderTopWidth", "Top"],
+  ["borderLeftWidth", "Left"],
+  ["borderRightWidth", "Right"],
+  ["borderBottomWidth", "Bottom"],
+] as const;
 
 /** What a folded element says about itself: its first line of text. */
 const summaryOf = (element: ReviewConceptElement): string => {
@@ -550,12 +556,16 @@ export function ReviewConceptElementFields({
                 onChange={(borderColor) => onChange({ borderColor })}
                 value={element.borderColor ?? "transparent"}
               />
-              <NumberField
-                label="Width"
-                max={8}
-                onChange={(borderWidth) => onChange({ borderWidth })}
-                value={element.borderWidth ?? 1}
-              />
+              {BORDER_WIDTH_FIELDS.map(([key, label]) => (
+                <NumberField
+                  key={key}
+                  label={label}
+                  max={8}
+                  min={0}
+                  onChange={(value) => onChange({ [key]: value })}
+                  value={element[key] ?? element.borderWidth ?? 1}
+                />
+              ))}
             </ConceptGroup>
           ) : null}
           {/* In the kit, a panel's or card's starting items are set here too

@@ -263,13 +263,44 @@ const boxOf = (element: ReviewConceptElement): CSSProperties => {
   if (!takesBox(element.kind)) {
     return {};
   }
-  let border: string | undefined;
-  if (element.borderColor) {
-    border = `${element.borderWidth ?? 1}px solid ${element.borderColor}`;
-  } else if (OUTLINED.has(element.kind)) {
-    border = FAINT_OUTLINE;
+  const {
+    borderBottomWidth,
+    borderColor,
+    borderLeftWidth,
+    borderRightWidth,
+    borderTopWidth,
+  } = element;
+  const hasSideWidths =
+    borderTopWidth !== undefined ||
+    borderLeftWidth !== undefined ||
+    borderRightWidth !== undefined ||
+    borderBottomWidth !== undefined;
+  if (!hasSideWidths) {
+    let border: string | undefined;
+    if (borderColor) {
+      border = `${element.borderWidth ?? 1}px solid ${borderColor}`;
+    } else if (OUTLINED.has(element.kind)) {
+      border = FAINT_OUTLINE;
+    }
+    return { border, boxShadow: shadowCss(shadowOf(element)) };
   }
-  return { border, boxShadow: shadowCss(shadowOf(element)) };
+  const faint = OUTLINED.has(element.kind)
+    ? "color-mix(in srgb, currentColor 25%, transparent)"
+    : "currentColor";
+  const sideBorder = (width: number | undefined): string => {
+    const resolvedWidth = width ?? element.borderWidth ?? 1;
+    const color = borderColor ?? faint;
+    return resolvedWidth === 0 || color === "transparent"
+      ? "none"
+      : `${resolvedWidth}px solid ${color}`;
+  };
+  return {
+    borderBottom: sideBorder(borderBottomWidth),
+    borderLeft: sideBorder(borderLeftWidth),
+    borderRight: sideBorder(borderRightWidth),
+    borderTop: sideBorder(borderTopWidth),
+    boxShadow: shadowCss(shadowOf(element)),
+  };
 };
 
 function ElementBody({ element }: { element: ReviewConceptElement }) {

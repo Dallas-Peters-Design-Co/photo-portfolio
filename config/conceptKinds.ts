@@ -117,7 +117,14 @@ export const cleanBox = (
   raw: Partial<ReviewConceptElement>
 ): Pick<
   ReviewConceptElement,
-  "borderColor" | "borderWidth" | "shadow" | "fullHeight"
+  | "borderColor"
+  | "borderWidth"
+  | "borderTopWidth"
+  | "borderLeftWidth"
+  | "borderRightWidth"
+  | "borderBottomWidth"
+  | "shadow"
+  | "fullHeight"
 > => {
   if (!takesBox(kind)) {
     return {};
@@ -134,6 +141,18 @@ export const cleanBox = (
       : {}),
     ...(typeof raw.borderWidth === "number"
       ? { borderWidth: bounded(raw.borderWidth, 0, 8, 1) }
+      : {}),
+    ...(typeof raw.borderTopWidth === "number"
+      ? { borderTopWidth: bounded(raw.borderTopWidth, 0, 8, 1) }
+      : {}),
+    ...(typeof raw.borderLeftWidth === "number"
+      ? { borderLeftWidth: bounded(raw.borderLeftWidth, 0, 8, 1) }
+      : {}),
+    ...(typeof raw.borderRightWidth === "number"
+      ? { borderRightWidth: bounded(raw.borderRightWidth, 0, 8, 1) }
+      : {}),
+    ...(typeof raw.borderBottomWidth === "number"
+      ? { borderBottomWidth: bounded(raw.borderBottomWidth, 0, 8, 1) }
       : {}),
     ...(shadow ? { shadow } : {}),
   };
