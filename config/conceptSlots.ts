@@ -86,6 +86,7 @@ export const SLOT_DEFAULTS = {
 /** The kinds that have slots. */
 const SLOT_KINDS = new Set<ReviewConceptElementKind>([
   "accordion",
+  "buttonGroup",
   "card",
   "panel",
   // A navbar's header, body and footer are its start, middle and end.

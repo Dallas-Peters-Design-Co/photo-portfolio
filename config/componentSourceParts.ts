@@ -286,6 +286,24 @@ ${SLOTS_CSS}`,
   };
 };
 
+/** A joined row of buttons; each button keeps its own kit style and props. */
+export const buttonGroupMarkup = (
+  el: ReviewConceptElement,
+  draw: Draw
+): Markup => ({
+  attrs: `role="group" aria-label=${JSON.stringify(el.text.trim() || "Actions")}`,
+  css: `& { display: inline-flex; max-width: 100%; min-width: 0; padding: 0; }
+&__slots { display: inline-flex; flex-direction: row; max-width: 100%; gap: 0; }
+&__slot[data-slot="body"] { flex-direction: row; flex-wrap: nowrap; gap: 0; padding: 0; }
+&__items[data-layout="row"] { flex-wrap: nowrap; gap: 0; }
+&__items[data-layout="row"] > * { border-radius: 0 !important; }
+&__items[data-layout="row"] > :first-child { border-start-start-radius: var(--&-radius) !important; border-end-start-radius: var(--&-radius) !important; }
+&__items[data-layout="row"] > :last-child { border-start-end-radius: var(--&-radius) !important; border-end-end-radius: var(--&-radius) !important; }
+&__items[data-layout="row"] > * + * { margin-inline-start: -1px; }`,
+  tag: "div",
+  ...withSlots(el, draw, ""),
+});
+
 export const cardMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   const { body, title } = splitCardText(el.text);
   const icon = svgJsx(el);

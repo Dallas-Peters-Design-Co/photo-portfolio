@@ -331,6 +331,23 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
     }
     case "button":
       return <ConceptIconText as="button" element={element} style={style} />;
+    case "buttonGroup":
+      return (
+        <fieldset
+          className="concept-button-group"
+          style={{
+            ...style,
+            border: style.border ?? 0,
+            margin: 0,
+            minInlineSize: 0,
+          }}
+        >
+          <legend className="concept-button-group__legend">
+            {element.text.trim() || "Actions"}
+          </legend>
+          <ConceptSlotsView draw={drawElement} slots={element.slots} />
+        </fieldset>
+      );
     case "input":
       return <InputPreview element={element} style={style} text={text} />;
     case "textarea":

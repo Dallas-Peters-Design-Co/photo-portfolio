@@ -26,6 +26,67 @@
   align-items: center;
 }
 
+/* Buttons in a group stay individually editable but read as one control. */
+.concept-button-group {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+:where(.concept-button-group > .concept-slots) {
+  display: inline-flex;
+  gap: 0;
+  max-width: 100%;
+}
+
+:where(
+  .concept-button-group > .concept-slots > .concept-slot[data-slot="body"]
+) {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 0;
+  padding: 0 !important;
+}
+
+:where(.concept-button-group .concept-slot__items[data-layout="row"]) {
+  flex-wrap: nowrap;
+  gap: 0 !important;
+}
+
+:where(.concept-button-group .concept-slot__items[data-layout="row"] > *) {
+  border-radius: 0 !important;
+}
+
+:where(
+  .concept-button-group .concept-slot__items[data-layout="row"] > :first-child
+) {
+  border-start-start-radius: inherit !important;
+  border-end-start-radius: inherit !important;
+}
+
+:where(
+  .concept-button-group .concept-slot__items[data-layout="row"] > :last-child
+) {
+  border-start-end-radius: inherit !important;
+  border-end-end-radius: inherit !important;
+}
+
+:where(.concept-button-group .concept-slot__items[data-layout="row"] > * + *) {
+  margin-inline-start: -1px;
+}
+
+.concept-button-group__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+}
+
 .review-concepts__card-preview {
   display: grid;
   gap: calc(var(--spacing) * 1.5);

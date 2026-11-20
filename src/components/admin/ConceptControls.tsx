@@ -163,6 +163,7 @@ export const ELEMENT_KINDS = optionsOf([
   ["text", "Text"],
   ["icon", "Icon"],
   ["button", "Button"],
+  ["buttonGroup", "Button group"],
   ["input", "Input"],
   ["textarea", "Text area"],
   ["select", "Select"],

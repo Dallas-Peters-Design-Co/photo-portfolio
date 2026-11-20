@@ -20,8 +20,15 @@ const WEIGHTS: Record<number, string> = {
   700: "bold",
 };
 
-const kindName = (kind: string): string =>
-  kind === "menu" ? "Dropdown menu" : kind[0]?.toUpperCase() + kind.slice(1);
+const kindName = (kind: string): string => {
+  if (kind === "menu") {
+    return "Dropdown menu";
+  }
+  if (kind === "buttonGroup") {
+    return "Button group";
+  }
+  return kind[0]?.toUpperCase() + kind.slice(1);
+};
 
 export const styleTitle = (style: ConceptStyle): string =>
   `${kindName(style.kind)} / ${style.name}`;

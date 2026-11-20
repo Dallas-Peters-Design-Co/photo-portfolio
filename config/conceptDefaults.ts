@@ -74,6 +74,7 @@ const ROUNDED_KINDS = new Set<ReviewConceptElementKind>([
   "upload",
   "panel",
   "button",
+  "buttonGroup",
   "icon",
   "input",
   "textarea",
@@ -88,6 +89,7 @@ const elementText: Record<ReviewConceptElementKind, string> = {
   avatar: "",
   badge: "New",
   button: "Get started",
+  buttonGroup: "Actions",
   canvas: "Canvas component",
   card: "Card title\nSupporting copy goes here.",
   checkbox: "I agree to the terms",
@@ -272,6 +274,24 @@ export const createConceptElement = (
               ],
             },
             header: { elements: [], layout: "row" },
+          },
+        }
+      : {}),
+    ...(kind === "buttonGroup"
+      ? {
+          paddingX: 0,
+          paddingY: 0,
+          radius: 6,
+          slots: {
+            body: {
+              elements: ["Previous", "Save draft", "Publish"].map((text) => ({
+                ...createConceptElement("button", brandDoc),
+                text,
+              })),
+              gap: 0,
+              layout: "row" as const,
+              wrap: false,
+            },
           },
         }
       : {}),

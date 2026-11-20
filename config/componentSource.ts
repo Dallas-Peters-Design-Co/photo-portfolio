@@ -8,6 +8,7 @@ import {
 } from "./componentSourceKinds.js";
 import {
   accordionMarkup,
+  buttonGroupMarkup,
   cardMarkup,
   checkboxMarkup,
   type Draw,
@@ -189,6 +190,7 @@ export function ${name}({ src = ${quote(el.avatarUrl ?? "")}, initials = ${quote
         props: "onClick",
         tag: "button",
       }),
+    buttonGroup: () => buttonGroupMarkup(el, draw),
     card: () => cardMarkup(el, draw),
     checkbox: () => checkboxMarkup(el, focusCss(el, "&:focus-within")),
     dialog: () => dialogMarkup(el, sampleText(el)),

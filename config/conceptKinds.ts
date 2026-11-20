@@ -97,6 +97,7 @@ const BOX_KINDS = new Set<ReviewConceptElementKind>([
   "tooltip",
   "badge",
   "button",
+  "buttonGroup",
   "card",
   "input",
   "navbar",
