@@ -126,11 +126,10 @@ export const CAPTURE_SCHEMA = {
 
 /**
  * Pages the sign-in agent captures: twelve unless asked, at most fifteen.
- * Each is shot at two widths, so fifteen pages is thirty screens, within a
- * review's forty.
+ * Each is shot at two widths, so fifteen pages is thirty review screens.
  */
 export const DEFAULT_AGENT_PAGES = 12;
-export const MAX_AGENT_PAGES = 30;
+export const MAX_AGENT_PAGES = 15;
 
 /** The client's brief, and how it changes what the agent visits first. */
 /**

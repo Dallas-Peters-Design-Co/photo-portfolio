@@ -37,7 +37,7 @@ const AGENT_PAGES = 12;
  * Pages for a capture with a brief: its flows are walked step by step, at
  * desktop width only past each area's first screen (api/_lib/reviewAgent.ts).
  */
-const BRIEF_AGENT_PAGES = 30;
+const BRIEF_AGENT_PAGES = 15;
 const TRAILING_HYPHENS = /-+$/;
 
 const two = (n: number) => String(n).padStart(2, "0");

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { hasMergeWriteup } from "../../config/brandMerge.js";
 import { isRichTextEmpty } from "../../config/proposal.js";
 import { PIN_KINDS, PIN_LABELS } from "../../config/review.js";
+import { prioritizedFixes } from "../../config/reviewPriorities.js";
 import type { ReviewRecord } from "../services/reviewService";
 import { type DocEntry, DocSidebar } from "./DocShell";
 import { ReviewPdfButton } from "./ReviewPdfButton";
@@ -18,6 +19,7 @@ import { LOGO_PATH, LOGO_TRANSFORM, LOGO_VIEW_BOX } from "./siteLogo";
 export const reviewAnchor = {
   comments: "review-comments",
   overview: "review-overview",
+  priorities: "review-priorities",
   screen: (id: string) => `review-screen-${id}`,
   section: (id: string) => `review-section-${id}`,
   summary: "review-summary",
@@ -32,6 +34,9 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
   if (!isRichTextEmpty(doc.summary)) {
     entries.push({ id: reviewAnchor.summary, label: "Findings" });
   }
+  if (prioritizedFixes(doc).length > 0) {
+    entries.push({ id: reviewAnchor.priorities, label: "Priority fixes" });
+  }
   for (const section of doc.sections) {
     if (!isRichTextEmpty(section.body)) {
       entries.push({
@@ -42,9 +47,13 @@ export const reviewContents = (review: ReviewRecord): DocEntry[] => {
   }
   const screens = doc.screens.filter((s) => s.image || s.pageDesign);
   for (const screen of screens) {
+    let label = screen.title || "Screen";
+    if (screen.pageDesign) {
+      label = screen.title ? `Page design: ${screen.title}` : "Page design";
+    }
     entries.push({
       id: reviewAnchor.screen(screen.id),
-      label: screen.title || "Screen",
+      label,
     });
   }
   entries.push({ id: reviewAnchor.comments, label: "Comments" });

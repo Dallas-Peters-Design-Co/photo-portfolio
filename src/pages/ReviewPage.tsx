@@ -10,6 +10,10 @@ import {
   textToBlocks,
 } from "../../config/proposal.js";
 import { PIN_LABELS, type ReviewScreen } from "../../config/review.js";
+import {
+  prioritizedFixes,
+  REVIEW_FIX_PRIORITIES,
+} from "../../config/reviewPriorities.js";
 import { PageDesignView } from "../boards/pages/PageDesignView";
 import { PageContent } from "../cms/PageContent";
 import { PinWcagLinks } from "../components/review/PinWcagLinks";
@@ -239,6 +243,8 @@ function ReviewSheet({
         </section>
       )}
 
+      <PriorityFixList doc={doc} />
+
       {doc.sections
         .filter((section) => !isRichTextEmpty(section.body))
         .map((section) => (
@@ -280,6 +286,55 @@ function ReviewSheet({
         </div>
       </section>
     </article>
+  );
+}
+
+function PriorityFixList({ doc }: { doc: ReviewRecord["doc"] }) {
+  const fixes = prioritizedFixes(doc);
+  if (fixes.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="doc-band doc-band--split" id={reviewAnchor.priorities}>
+      <h2 className="doc-band__title">Priority fixes</h2>
+      <div className="doc-band__body review-page__priority-fixes">
+        {REVIEW_FIX_PRIORITIES.map(({ key, label }) => {
+          const group = fixes.filter((fix) => fix.priority === key);
+          if (group.length === 0) {
+            return null;
+          }
+
+          return (
+            <section className="review-page__priority-group" key={key}>
+              <h3>{label}</h3>
+              <ol>
+                {group.map(({ n, pin, screen }) => (
+                  <li key={pin.id}>
+                    <a
+                      className="review-page__priority-link"
+                      href={`#${noteId(pin.id)}`}
+                    >
+                      <span className="review-page__priority-number">
+                        Note {n}
+                      </span>
+                      <span>
+                        <strong>
+                          {pin.title || pin.body || "Untitled fix"}
+                        </strong>
+                        <span className="review-page__priority-screen">
+                          {screen.title || "Screen"}
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
