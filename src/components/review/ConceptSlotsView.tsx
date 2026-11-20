@@ -166,7 +166,6 @@ export function ConceptSlotsView({
   draw,
   slots = {},
   lead,
-  bodyLead,
   headerEnd,
   titleInLayout = false,
 }: {
@@ -183,8 +182,6 @@ export function ConceptSlotsView({
    * header, which then spans the element even with nothing else in it.
    */
   lead?: ReactNode;
-  /** A card's supporting copy, kept in the body slot below its header. */
-  bodyLead?: ReactNode;
   /** A panel's close control, beside the header rather than over it. */
   headerEnd?: ReactNode;
   titleInLayout?: boolean;
@@ -199,8 +196,6 @@ export function ConceptSlotsView({
         let slotLead: ReactNode;
         if (name === "header") {
           slotLead = lead;
-        } else if (name === "body") {
-          slotLead = bodyLead;
         } else {
           slotLead = null;
         }
@@ -208,10 +203,7 @@ export function ConceptSlotsView({
           <Slot
             draw={draw}
             end={name === "header" ? headerEnd : undefined}
-            includeLead={
-              (name === "header" && titleInLayout) ||
-              (name === "body" && Boolean(bodyLead))
-            }
+            includeLead={name === "header" && titleInLayout}
             key={name}
             lead={slotLead}
             name={name}

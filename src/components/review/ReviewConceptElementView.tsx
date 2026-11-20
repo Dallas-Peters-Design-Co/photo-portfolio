@@ -53,36 +53,34 @@ function CardPreview({
   style: CSSProperties;
 }) {
   const card = splitCardText(element.text);
-  // The card's icon and title lead its header slot, while supporting copy
-  // belongs to the body slot. Blank text counts as absent.
+  // The card's title and supporting copy form its header lead. Child elements
+  // remain in the body slot. Blank text counts as absent.
   const title = card.title.trim();
   const body = card.body.trim();
   const hasHeaderLead = Boolean(element.iconName || title);
-  const lead = hasHeaderLead ? (
-    <div className="concept-slot__lead review-concepts__card-text">
-      {element.iconName ? (
-        <ConceptIcon
-          color={element.iconColor}
-          name={element.iconName}
-          size={iconSizeOf(element)}
-          svg={element.iconSvg}
-        />
-      ) : null}
-      {title ? (
-        <strong style={{ fontWeight: element.titleWeight }}>
-          {card.title}
-        </strong>
-      ) : null}
-    </div>
-  ) : undefined;
-  const bodyLead = body ? (
-    <p
-      className="concept-slot__lead"
-      style={{ fontSize: element.bodySize ?? element.fontSize }}
-    >
-      {card.body}
-    </p>
-  ) : undefined;
+  const lead =
+    hasHeaderLead || body ? (
+      <div className="concept-slot__lead review-concepts__card-text">
+        {element.iconName ? (
+          <ConceptIcon
+            color={element.iconColor}
+            name={element.iconName}
+            size={iconSizeOf(element)}
+            svg={element.iconSvg}
+          />
+        ) : null}
+        {title ? (
+          <strong style={{ fontWeight: element.titleWeight }}>
+            {card.title}
+          </strong>
+        ) : null}
+        {body ? (
+          <p style={{ fontSize: element.bodySize ?? element.fontSize }}>
+            {card.body}
+          </p>
+        ) : null}
+      </div>
+    ) : undefined;
   return (
     <article
       className="review-concepts__card-preview"
@@ -90,7 +88,6 @@ function CardPreview({
       style={style}
     >
       <ConceptSlotsView
-        bodyLead={bodyLead}
         dividers={element.dividers}
         draw={drawElement}
         lead={lead}
