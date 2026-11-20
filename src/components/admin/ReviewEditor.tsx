@@ -6,8 +6,10 @@ import { newItemId } from "../../../config/proposal.js";
 import type { ReviewDoc, ReviewScreen } from "../../../config/review.js";
 import { MAX_REVIEW_CONCEPTS } from "../../../config/reviewConcept.js";
 import { hasAudit } from "../../../config/reviewRedo.js";
+import { mergeScreens, reviewScreens } from "../../boards/review/publishReview";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { downloadReviewPdf } from "../../pages/pagePdf";
+import { boardsApi } from "../../services/portfolioService";
 import { type ReviewRecord, reviewsApi } from "../../services/reviewService";
 import { useSiteSettings } from "../../theme/SiteSettingsProvider";
 import { reviewAccentStyle } from "../review/ReviewMarkup";
@@ -79,6 +81,7 @@ export function ReviewEditor({
   const { settings } = useSiteSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isSyncingPages, setIsSyncingPages] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("saved");
   // What the server last confirmed, and the draft as it is right now, for
   // the timers and the unmount flush, which outlive the render they start in.
@@ -275,6 +278,34 @@ export function ReviewEditor({
       ],
     });
 
+  const syncPageDesigns = async () => {
+    const { boardId } = draft.doc;
+    if (!boardId) {
+      return;
+    }
+    setIsSyncingPages(true);
+    try {
+      const board = await boardsApi.get(boardId);
+      const pages = reviewScreens(board.items ?? [], draft.doc.screens).filter(
+        (screen) => screen.pageDesign
+      );
+      if (pages.length === 0) {
+        toast.error("No designed pages found on the linked board.");
+        return;
+      }
+      setDoc({ screens: mergeScreens(draft.doc.screens, pages) });
+      toast.success(
+        `${pages.length} ${pages.length === 1 ? "page" : "pages"} added to the review.`
+      );
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not sync page designs"
+      );
+    } finally {
+      setIsSyncingPages(false);
+    }
+  };
+
   const reorderScreens = (ids: string[]) =>
     setDraft((d) => ({
       ...d,
@@ -428,9 +459,21 @@ export function ReviewEditor({
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className={fieldsetTitleClass}>Screens</h3>
-              <Button onClick={addScreen} type="button" variant="ghost">
-                <Plus size={14} /> Add screen
-              </Button>
+              <div className="flex items-center gap-2">
+                {draft.doc.boardId ? (
+                  <Button
+                    disabled={isSyncingPages}
+                    onClick={() => void syncPageDesigns()}
+                    type="button"
+                    variant="ghost"
+                  >
+                    {isSyncingPages ? "Syncing pages…" : "Sync page designs"}
+                  </Button>
+                ) : null}
+                <Button onClick={addScreen} type="button" variant="ghost">
+                  <Plus size={14} /> Add screen
+                </Button>
+              </div>
             </div>
             <SortableList
               itemLabel={(s) => s.title || "screen"}
