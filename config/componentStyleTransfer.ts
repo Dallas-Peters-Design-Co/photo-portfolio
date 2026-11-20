@@ -129,9 +129,10 @@ export function newComponentStyleLook(
 ): ConceptStyleLook {
   const look = lookOf(element);
   if (element.group) {
-    look.groupContents = element.group.stateful
-      ? element.group
-      : slotLayout(element.group);
+    // A saved group style is a reusable component, so keep its children. The
+    // style clipboard uses slotLayout separately when it should copy layout
+    // without replacing the target's content.
+    look.groupContents = element.group;
   }
   if (element.slots) {
     look.contents = transferSlots(

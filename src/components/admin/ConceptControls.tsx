@@ -37,6 +37,7 @@ export function ConceptSelect({
   groups,
   label,
   onChange,
+  onOpenChange,
   options = [],
   placeholder,
   value,
@@ -44,6 +45,7 @@ export function ConceptSelect({
   groups?: ConceptOptionGroup[];
   label: string;
   onChange: (value: string) => void;
+  onOpenChange?: (open: boolean) => void;
   options?: ConceptOption[];
   placeholder?: string;
   value: string;
@@ -55,6 +57,7 @@ export function ConceptSelect({
   return (
     <Select
       items={items}
+      onOpenChange={onOpenChange}
       onValueChange={(next: string | null) => {
         if (next !== null) {
           onChange(next);

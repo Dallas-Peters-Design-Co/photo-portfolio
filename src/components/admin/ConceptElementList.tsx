@@ -1,5 +1,6 @@
 import { CornerLeftUp, GripVertical, Group, Ungroup } from "lucide-react";
 import type { ReactNode } from "react";
+import { useSWRConfig } from "swr";
 import type { BrandKitDoc } from "../../../config/brandKit.js";
 import { createConceptElement } from "../../../config/conceptDefaults.js";
 import {
@@ -168,8 +169,12 @@ function ElementList({
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
-  const { data: canvasComponents = [], error: canvasError } =
-    useReviewCanvasComponents();
+  const {
+    data: canvasComponents = [],
+    error: canvasError,
+    mutate: refreshCanvasComponents,
+  } = useReviewCanvasComponents();
+  const { mutate: refreshCache } = useSWRConfig();
   const limit = depth === 0 ? MAX_CONCEPT_ELEMENTS : MAX_SLOT_ELEMENTS;
   const full = elements.length >= limit;
   const drag = useLayerDrag();
@@ -234,16 +239,30 @@ function ElementList({
           )
     );
   };
+  const savedGroups = styles.filter((style) => style.kind === "group");
+  const otherStyles = styles.filter((style) => style.kind !== "group");
   const groups = [
     {
       label: "Components",
       options: ELEMENT_KINDS.map((option) => ({ ...option, disabled: full })),
     },
-    ...(styles.length > 0
+    ...(savedGroups.length > 0
       ? [
           {
-            label: "From the brand kit",
-            options: styles.map((style) => ({
+            label: "Saved groups",
+            options: savedGroups.map((style) => ({
+              disabled: full,
+              label: style.name,
+              value: `style:${style.id}`,
+            })),
+          },
+        ]
+      : []),
+    ...(otherStyles.length > 0
+      ? [
+          {
+            label: "Other brand kit styles",
+            options: otherStyles.map((style) => ({
               disabled: full,
               label: `${kindLabel(style.kind)} · ${style.name}`,
               value: `style:${style.id}`,
@@ -279,6 +298,14 @@ function ElementList({
               depth === 0 ? "Add a component" : `Add to ${label.toLowerCase()}`
             }
             onChange={add}
+            onOpenChange={(open) => {
+              if (open) {
+                void refreshCanvasComponents();
+                void refreshCache(
+                  (key) => Array.isArray(key) && key[0] === "brand-kits"
+                );
+              }
+            }}
             placeholder="+ Add component"
             value=""
           />
