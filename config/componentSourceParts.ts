@@ -300,9 +300,10 @@ export const buttonGroupMarkup = (
 &__items[data-layout="row"] > :first-child { border-start-start-radius: var(--&-radius) !important; border-end-start-radius: var(--&-radius) !important; }
 &__items[data-layout="row"] > :last-child { border-start-end-radius: var(--&-radius) !important; border-end-end-radius: var(--&-radius) !important; }
 &__items[data-layout="row"] > * + * { margin-inline-start: -1px; }
-&__slots[data-dividers] &__items[data-layout="row"] > * + * { border-inline-start: 1px solid color-mix(in srgb, currentColor 18%, transparent); }`,
+&__slots[data-dividers] &__items[data-layout="row"] > * + *,
+&__slots[data-dividers] &__items[data-layout="row"] > .concept-hover:nth-child(n + 2) > * { border-inline-start: 1px solid color-mix(in srgb, currentColor 35%, transparent) !important; }`,
   tag: "div",
-  ...withSlots(el, draw, ""),
+  ...withSlots({ ...el, dividers: el.dividers !== false }, draw, ""),
 });
 
 export const cardMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {

@@ -346,7 +346,7 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
             {element.text.trim() || "Actions"}
           </legend>
           <ConceptSlotsView
-            dividers={element.dividers}
+            dividers={element.dividers !== false}
             draw={drawElement}
             slots={element.slots}
           />

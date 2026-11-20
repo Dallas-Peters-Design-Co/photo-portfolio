@@ -279,6 +279,7 @@ export const createConceptElement = (
       : {}),
     ...(kind === "buttonGroup"
       ? {
+          dividers: true,
           paddingX: 0,
           paddingY: 0,
           radius: 6,

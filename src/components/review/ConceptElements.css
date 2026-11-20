@@ -83,7 +83,18 @@
     + *
 ) {
   border-inline-start: 1px solid
-    color-mix(in srgb, currentColor 18%, transparent);
+    color-mix(in srgb, currentColor 35%, transparent) !important;
+}
+
+:where(
+  .concept-button-group
+    > .concept-slots[data-dividers]
+    .concept-slot__items[data-layout="row"]
+    > .concept-hover:nth-child(n + 2)
+    > *
+) {
+  border-inline-start: 1px solid
+    color-mix(in srgb, currentColor 35%, transparent) !important;
 }
 
 .concept-button-group__legend {

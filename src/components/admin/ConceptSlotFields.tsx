@@ -322,7 +322,7 @@ export function ConceptSlotFields({
       <ConceptGroup name="Slots">
         <label className="review-concepts__check" htmlFor={dividersId}>
           <Checkbox
-            checked={element.dividers ?? false}
+            checked={element.dividers ?? element.kind === "buttonGroup"}
             id={dividersId}
             onChange={(event) => onChange({ dividers: event.target.checked })}
           />
