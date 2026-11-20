@@ -75,6 +75,17 @@
   margin-inline-start: -1px;
 }
 
+:where(
+  .concept-button-group
+    > .concept-slots[data-dividers]
+    .concept-slot__items[data-layout="row"]
+    > *
+    + *
+) {
+  border-inline-start: 1px solid
+    color-mix(in srgb, currentColor 18%, transparent);
+}
+
 .concept-button-group__legend {
   position: absolute;
   width: 1px;

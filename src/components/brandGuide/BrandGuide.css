@@ -493,7 +493,7 @@
   justify-content: center;
   min-height: 8rem;
   padding: calc(var(--spacing) * 6);
-  background: var(--guide-surface);
+  background: var(--guide-bg);
   border: 1px solid var(--guide-rule);
 }
 

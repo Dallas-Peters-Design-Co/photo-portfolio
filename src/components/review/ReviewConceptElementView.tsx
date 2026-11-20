@@ -345,7 +345,11 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
           <legend className="concept-button-group__legend">
             {element.text.trim() || "Actions"}
           </legend>
-          <ConceptSlotsView draw={drawElement} slots={element.slots} />
+          <ConceptSlotsView
+            dividers={element.dividers}
+            draw={drawElement}
+            slots={element.slots}
+          />
         </fieldset>
       );
     case "input":

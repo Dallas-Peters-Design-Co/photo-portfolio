@@ -326,7 +326,11 @@ export function ConceptSlotFields({
             id={dividersId}
             onChange={(event) => onChange({ dividers: event.target.checked })}
           />
-          <span>Lines between slots</span>
+          <span>
+            {element.kind === "buttonGroup"
+              ? "Lines between buttons"
+              : "Lines between slots"}
+          </span>
         </label>
       </ConceptGroup>
       {element.kind === "panel" ? (
