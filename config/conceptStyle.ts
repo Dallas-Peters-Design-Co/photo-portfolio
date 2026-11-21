@@ -71,6 +71,7 @@ export type ConceptStyleProp =
   | "toastAction"
   | "toastClose"
   | "tableContents"
+  | "headerText"
   | SlotStyleProp
   | ConceptStyleKey;
 
@@ -185,7 +186,7 @@ const KIND_COMPONENT_PROPS: Record<
   menu: ["text", "menuLook", "options"],
   navbar: [],
   orderedList: ["text"],
-  panel: ["direction", "panelToggleSide"],
+  panel: ["headerText", "direction", "panelToggleSide"],
   progress: ["text", "barHeight", "accentColor", "showValue", "progress"],
   select: ["text"],
   shader: [],

@@ -95,14 +95,16 @@ export function PageFrameGridFields({
             Use panel for a collapsible sidebar, 1fr for remaining space, or a
             size like 240px. Separate tracks with spaces.
           </p>
-          <PageNumber
-            label="Grid gap"
-            max={256}
-            onChange={(gap) => save({ ...grid, gap })}
-            value={grid.gap}
-          />
         </>
       )}
+      {grid?.enabled || workspace ? (
+        <PageNumber
+          label="Layout gap"
+          max={256}
+          onChange={(gap) => save({ ...current, enabled: true, gap })}
+          value={current.gap}
+        />
+      ) : null}
     </>
   );
 }

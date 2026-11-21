@@ -104,10 +104,12 @@ function EditableContent({
     element.kind === "card" && (canEditProp("title") || canEditProp("text"));
   const showCardBody =
     element.kind === "card" && (canEditProp("body") || canEditProp("text"));
-  const showText =
-    element.kind === "card"
-      ? showCardTitle || showCardBody
-      : canEditProp("text");
+  let showText = canEditProp("text");
+  if (element.kind === "card") {
+    showText = showCardTitle || showCardBody;
+  } else if (element.kind === "panel") {
+    showText = canEditProp("headerText");
+  }
   return showText ? (
     <ReviewConceptContentField
       element={element}
@@ -254,6 +256,7 @@ function KindGroups({
       lookOnly ||
       !canEditAnyProp(
         "text",
+        "headerText",
         "title",
         "body",
         "placeholder",

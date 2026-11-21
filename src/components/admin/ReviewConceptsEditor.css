@@ -69,6 +69,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: calc(var(--spacing) * 3) calc(var(--spacing) * 2);
   align-items: start;
+  max-inline-size: 48rem;
 }
 
 .review-concepts__field {
@@ -348,7 +349,9 @@
 .review-concepts__element-body {
   display: grid;
   gap: calc(var(--spacing) * 2);
+  max-inline-size: 52rem;
   min-width: 0;
+  container-type: inline-size;
 }
 
 /* Component properties read as stacked inspector sections. */
@@ -369,6 +372,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: calc(var(--spacing) * 2);
   align-items: start;
+  max-inline-size: 48rem;
 }
 
 .review-concepts__group-name {
@@ -445,11 +449,15 @@
    two columns and the row names above, rather than a row that overflows. */
 @container (max-width: 40rem) {
   .review-concepts__group-fields {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .review-concepts__group {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .review-concepts__control-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

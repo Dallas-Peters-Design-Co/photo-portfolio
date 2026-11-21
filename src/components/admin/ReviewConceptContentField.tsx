@@ -103,10 +103,12 @@ export function ReviewConceptContentField({
     );
   }
 
-  const label =
-    element.kind === "input" || element.kind === "textarea"
-      ? "Default value"
-      : "Content";
+  let label = "Content";
+  if (element.kind === "input" || element.kind === "textarea") {
+    label = "Default value";
+  } else if (element.kind === "panel") {
+    label = "Header text";
+  }
   return (
     <ConceptField label={label} wide>
       <Input
