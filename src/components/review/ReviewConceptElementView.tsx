@@ -45,6 +45,8 @@ const ShaderView = lazy(async () => ({
 
 const ICON_SUFFIX = /Icon$/;
 const LIST_ITEM_BREAK = /\r?\n/;
+const cssDimension = (value: CSSProperties["borderRadius"]): string =>
+  typeof value === "number" ? `${value}px` : (value ?? "0px");
 
 const orderedListItems = (text: string): { key: string; text: string }[] => {
   const occurrences = new Map<string, number>();
@@ -394,12 +396,15 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
       return (
         <fieldset
           className="concept-button-group"
-          style={{
-            ...style,
-            border: style.border ?? 0,
-            margin: 0,
-            minInlineSize: 0,
-          }}
+          style={
+            {
+              ...style,
+              "--concept-button-group-radius": cssDimension(style.borderRadius),
+              border: style.border ?? 0,
+              margin: 0,
+              minInlineSize: 0,
+            } as CSSProperties
+          }
         >
           <legend className="concept-button-group__legend">
             {element.text.trim() || "Actions"}

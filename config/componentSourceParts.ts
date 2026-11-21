@@ -300,11 +300,11 @@ export const buttonGroupMarkup = (
 &__slot[data-slot="body"] { flex-direction: row; flex-wrap: nowrap; gap: 0; padding: 0; }
 &__items[data-layout="row"] { flex-wrap: nowrap; gap: 0; }
 &__items[data-layout="row"] > * { border-radius: 0 !important; }
-&__items[data-layout="row"] > :first-child { border-start-start-radius: var(--&-radius) !important; border-end-start-radius: var(--&-radius) !important; }
-&__items[data-layout="row"] > :last-child { border-start-end-radius: var(--&-radius) !important; border-end-end-radius: var(--&-radius) !important; }
+&__items[data-layout="row"] button { border-radius: 0 !important; }
+&__items[data-layout="row"] > :first-child button { border-start-start-radius: var(--&-radius) !important; border-end-start-radius: var(--&-radius) !important; }
+&__items[data-layout="row"] > :last-child button { border-start-end-radius: var(--&-radius) !important; border-end-end-radius: var(--&-radius) !important; }
 &__items[data-layout="row"] > * + * { margin-inline-start: -1px; }
-&__slots[data-dividers] &__items[data-layout="row"] > * + *,
-&__slots[data-dividers] &__items[data-layout="row"] > .concept-hover:nth-child(n + 2) > * { border-inline-start: 1px solid color-mix(in srgb, currentColor 35%, transparent) !important; }`,
+&__slots[data-dividers] &__items[data-layout="row"] > :nth-child(n + 2) button { border-inline-start: 1px solid color-mix(in srgb, currentColor 35%, transparent) !important; }`,
   tag: "div",
   ...withSlots({ ...el, dividers: el.dividers !== false }, draw, ""),
 });

@@ -228,6 +228,7 @@ function KindGroups({
   lookOnly: boolean;
   onChange: (patch: Patch) => void;
 }) {
+  const accordionExpandedId = useId();
   return (
     <>
       {/* A table's content is its columns and rows. */}
@@ -266,6 +267,23 @@ function KindGroups({
           onChange={onChange}
         />
       )}
+      {element.kind === "accordion" && canEditProp("accordionExpanded") ? (
+        <ConceptGroup name="Behavior">
+          <label
+            className="review-concepts__check"
+            htmlFor={accordionExpandedId}
+          >
+            <Checkbox
+              checked={element.accordionExpanded ?? false}
+              id={accordionExpandedId}
+              onChange={(event) =>
+                onChange({ accordionExpanded: event.target.checked })
+              }
+            />
+            <span>Open by default</span>
+          </label>
+        </ConceptGroup>
+      ) : null}
       {takesHover(element.kind) && canEditProp("hover") ? (
         <HoverGroup brandDoc={brandDoc} element={element} onChange={onChange} />
       ) : null}

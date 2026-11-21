@@ -151,6 +151,7 @@ const KIND_COMPONENT_PROPS: Record<
 > = {
   accordion: [
     "text",
+    "accordionExpanded",
     "iconName",
     "iconSvg",
     "iconSize",

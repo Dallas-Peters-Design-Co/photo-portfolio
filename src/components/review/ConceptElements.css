@@ -57,18 +57,28 @@
   border-radius: 0 !important;
 }
 
-:where(
-  .concept-button-group .concept-slot__items[data-layout="row"] > :first-child
-) {
-  border-start-start-radius: inherit !important;
-  border-end-start-radius: inherit !important;
+:where(.concept-button-group .concept-slot__items[data-layout="row"] button) {
+  border-radius: 0 !important;
 }
 
 :where(
-  .concept-button-group .concept-slot__items[data-layout="row"] > :last-child
+  .concept-button-group
+    .concept-slot__items[data-layout="row"]
+    > :first-child
+    button
 ) {
-  border-start-end-radius: inherit !important;
-  border-end-end-radius: inherit !important;
+  border-start-start-radius: var(--concept-button-group-radius, 0px) !important;
+  border-end-start-radius: var(--concept-button-group-radius, 0px) !important;
+}
+
+:where(
+  .concept-button-group
+    .concept-slot__items[data-layout="row"]
+    > :last-child
+    button
+) {
+  border-start-end-radius: var(--concept-button-group-radius, 0px) !important;
+  border-end-end-radius: var(--concept-button-group-radius, 0px) !important;
 }
 
 :where(.concept-button-group .concept-slot__items[data-layout="row"] > * + *) {
@@ -79,22 +89,14 @@
   .concept-button-group
     > .concept-slots[data-dividers]
     .concept-slot__items[data-layout="row"]
-    > *
-    + *
+    > :nth-child(n + 2)
+    button
 ) {
   border-inline-start: 1px solid
-    color-mix(in srgb, currentColor 35%, transparent) !important;
-}
-
-:where(
-  .concept-button-group
-    > .concept-slots[data-dividers]
-    .concept-slot__items[data-layout="row"]
-    > .concept-hover:nth-child(n + 2)
-    > *
-) {
-  border-inline-start: 1px solid
-    color-mix(in srgb, currentColor 35%, transparent) !important;
+    var(
+      --concept-button-group-divider,
+      color-mix(in srgb, currentColor 35%, transparent)
+    ) !important;
 }
 
 .concept-button-group__legend {
