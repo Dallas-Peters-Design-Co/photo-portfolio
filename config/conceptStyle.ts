@@ -66,6 +66,7 @@ export type ConceptStyleProp =
   | "options"
   | "inputType"
   | "checked"
+  | "direction"
   | "progress"
   | "toastAction"
   | "toastClose"
@@ -183,7 +184,7 @@ const KIND_COMPONENT_PROPS: Record<
   menu: ["text", "menuLook", "options"],
   navbar: [],
   orderedList: ["text"],
-  panel: ["slideFrom"],
+  panel: ["direction"],
   progress: ["text", "barHeight", "accentColor", "showValue", "progress"],
   select: ["text"],
   shader: [],
@@ -308,12 +309,15 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
     look: cleanedLook,
     name,
   });
-  const overridableProps = Array.isArray(raw.overridableProps)
-    ? raw.overridableProps.filter(
-        (key, index, all): key is ConceptStyleProp =>
-          props.includes(key as ConceptStyleProp) && all.indexOf(key) === index
+  const cleanedProps = Array.isArray(raw.overridableProps)
+    ? raw.overridableProps.map((key) =>
+        element.kind === "panel" && key === "slideFrom" ? "direction" : key
       )
     : [];
+  const overridableProps = cleanedProps.filter(
+    (key, index, all): key is ConceptStyleProp =>
+      props.includes(key as ConceptStyleProp) && all.indexOf(key) === index
+  );
   return {
     id: raw.id,
     kind: element.kind,
@@ -379,11 +383,13 @@ export const applyConceptStyle = (
   const overridable = new Set(componentPropsOf(style));
   const next: Record<string, unknown> = { ...element };
   for (const key of ELEMENT_STYLE_KEYS) {
+    const ownProp =
+      key === "slideFrom" && overridable.has("direction") ? "direction" : key;
     // A style that sets no icon, or (incomplete) no basic setting, leaves
     // the element's own; its unset border and shadow mean "none".
     if (
       !(
-        (own.has(key) && overridable.has(key)) ||
+        (own.has(key) && (overridable.has(key) || overridable.has(ownProp))) ||
         keepsOwnStyleSetting(key, style)
       )
     ) {

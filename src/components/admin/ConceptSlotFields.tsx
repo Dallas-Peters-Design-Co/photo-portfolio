@@ -394,9 +394,14 @@ export function ConceptSlotFields({
         </ConceptGroup>
       ) : null}
       {element.kind === "panel" &&
-      canEditAnyProp("slideFrom", "panelToggleSide", "panelCollapsed") ? (
+      canEditAnyProp(
+        "direction",
+        "slideFrom",
+        "panelToggleSide",
+        "panelCollapsed"
+      ) ? (
         <ConceptGroup name="Motion">
-          {canEditProp("slideFrom") ? (
+          {canEditProp("direction") || canEditProp("slideFrom") ? (
             <ConceptField label="Appears" wide>
               <ConceptSelect
                 label="How the panel appears"
