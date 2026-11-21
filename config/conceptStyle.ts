@@ -1,5 +1,16 @@
 import { cleanIcon } from "./conceptKinds.js";
-import { type ConceptSlots, hasSlots, mapChildren } from "./conceptSlots.js";
+import {
+  type ConceptSlot,
+  type ConceptSlots,
+  hasSlots,
+  mapChildren,
+  SLOT_NAMES,
+  SLOT_STYLE_FIELD_KEYS,
+  SLOT_STYLE_FIELDS,
+  type SlotStyleProp,
+  slotStyleProp,
+} from "./conceptSlots.js";
+
 import {
   type ConceptCellLook,
   type ConceptTable,
@@ -74,25 +85,6 @@ export type ConceptStyleProp =
   | "headerText"
   | SlotStyleProp
   | ConceptStyleKey;
-
-export type SlotStyleField =
-  | "layout"
-  | "alignment"
-  | "columns"
-  | "wrap"
-  | "fill"
-  | "gap"
-  | "paddingX"
-  | "paddingY";
-
-export type SlotStyleProp =
-  `${"header" | "body" | "footer" | "hide"}${Capitalize<SlotStyleField>}`;
-
-export const slotStyleProp = (
-  slot: "header" | "body" | "footer" | "hide",
-  field: SlotStyleField
-): SlotStyleProp =>
-  `${slot}${field[0].toUpperCase()}${field.slice(1)}` as SlotStyleProp;
 
 export interface ConceptStyle {
   id: string;
@@ -201,16 +193,6 @@ const KIND_COMPONENT_PROPS: Record<
   upload: ["text"],
 };
 
-const SLOT_STYLE_FIELDS: readonly SlotStyleField[] = [
-  "layout",
-  "alignment",
-  "columns",
-  "wrap",
-  "fill",
-  "gap",
-  "paddingX",
-  "paddingY",
-];
 const SLOT_NAMES_BY_KIND: Partial<
   Record<
     ReviewConceptElementKind,
@@ -503,6 +485,99 @@ export const applyColumnStyles = (
   return { ...element, table: { ...element.table, columns } };
 };
 
+const slotWithStyle = (
+  name: (typeof SLOT_NAMES)[number],
+  current: ConceptSlot | undefined,
+  template: ConceptSlot,
+  props: Set<ConceptStyleProp>,
+  overrides: ReviewConceptElement["slotOverrides"]
+): ConceptSlot => {
+  const merged: Record<string, unknown> = {
+    ...current,
+    ...template,
+    elements: current?.elements ?? template.elements,
+  };
+  for (const field of SLOT_STYLE_FIELDS) {
+    const key = slotStyleProp(name, field);
+    const ownKey = SLOT_STYLE_FIELD_KEYS[field];
+    const keepOwn = props.has(key) && overrides?.[name]?.includes(field);
+    const source = keepOwn ? current : template;
+    if (source?.[ownKey] === undefined) {
+      delete merged[ownKey];
+    } else {
+      merged[ownKey] = source[ownKey];
+    }
+  }
+  if (current) {
+    merged.elements = current.elements.map((child, index) => {
+      const templateChild = template.elements[index];
+      if (
+        child.styleId ||
+        !templateChild?.styleId ||
+        child.kind !== templateChild.kind
+      ) {
+        return child;
+      }
+      return { ...child, styleId: templateChild.styleId };
+    });
+  }
+  return merged as unknown as ConceptSlot;
+};
+
+const slotsWithStyle = (
+  current: ReviewConceptElement["slots"],
+  template: ConceptSlots,
+  style: ConceptStyle,
+  overrides: ReviewConceptElement["slotOverrides"]
+): ReviewConceptElement["slots"] => {
+  const props = new Set(componentPropsOf(style));
+  return Object.fromEntries(
+    SLOT_NAMES.flatMap((name) => {
+      const templateSlot = template[name];
+      const currentSlot = current?.[name];
+      if (!templateSlot) {
+        return currentSlot ? [[name, currentSlot]] : [];
+      }
+      return [
+        [
+          name,
+          slotWithStyle(name, currentSlot, templateSlot, props, overrides),
+        ],
+      ];
+    })
+  ) as ReviewConceptElement["slots"];
+};
+
+const slotOverridesFromChange = (
+  element: ReviewConceptElement,
+  patch: Partial<ReviewConceptElement>
+): ReviewConceptElement["slotOverrides"] => {
+  if (!patch.slots) {
+    return undefined;
+  }
+  const nextOverrides = { ...element.slotOverrides };
+  let changed = false;
+  for (const name of SLOT_NAMES) {
+    const next = patch.slots[name];
+    if (!next) {
+      continue;
+    }
+    const previous = element.slots?.[name];
+    const fields = SLOT_STYLE_FIELDS.filter((field) => {
+      const key = SLOT_STYLE_FIELD_KEYS[field];
+      return key in next && !same(next[key], previous?.[key]);
+    });
+    if (fields.length === 0) {
+      continue;
+    }
+    nextOverrides[name] = [
+      ...new Set([...(nextOverrides[name] ?? []), ...fields]),
+    ];
+    changed = true;
+  }
+  return changed ? nextOverrides : undefined;
+};
+
 /**
  * An element as the kit draws it: its own style, then its columns', then
  * each element in its slots.
@@ -519,33 +594,16 @@ export const styleElement = (
   // look. Keep the instance's content, but let matching unlinked children
   // follow the child styles chosen in the kit.
   const templateSlots = componentStyle?.look.contents;
-  if (styled.slots && templateSlots) {
-    const slots = Object.fromEntries(
-      Object.entries(styled.slots).map(([name, slot]) => {
-        const template = templateSlots[name as keyof typeof templateSlots];
-        if (!(slot && template)) {
-          return [name, slot];
-        }
-        return [
-          name,
-          {
-            ...slot,
-            elements: slot.elements.map((child, index) => {
-              const templateChild = template.elements[index];
-              if (
-                child.styleId ||
-                !templateChild?.styleId ||
-                child.kind !== templateChild.kind
-              ) {
-                return child;
-              }
-              return { ...child, styleId: templateChild.styleId };
-            }),
-          },
-        ];
-      })
-    ) as ReviewConceptElement["slots"];
-    styled = { ...styled, slots };
+  if (componentStyle && templateSlots) {
+    styled = {
+      ...styled,
+      slots: slotsWithStyle(
+        styled.slots,
+        templateSlots,
+        componentStyle,
+        styled.slotOverrides
+      ),
+    };
   }
   const { tooltip } = styled;
   const tooltipStyle =
@@ -606,6 +664,7 @@ export const withOverrides = (
   if (!element.styleId) {
     return patch;
   }
+  const slotOverrides = slotOverridesFromChange(element, patch);
   const changed: ConceptStyleKey[] = ELEMENT_STYLE_KEYS.filter(
     (key) => key in patch && !same(patch[key], element[key])
   );
@@ -629,12 +688,16 @@ export const withOverrides = (
     }
   }
   if (changed.length === 0) {
-    return patch;
+    return slotOverrides ? { ...patch, slotOverrides } : patch;
   }
   const overrides = CONCEPT_STYLE_KEYS.filter(
     (key) => element.overrides?.includes(key) || changed.includes(key)
   );
-  return { ...patch, overrides };
+  return {
+    ...patch,
+    overrides,
+    ...(slotOverrides ? { slotOverrides } : {}),
+  };
 };
 
 /** The element and everything in its slots and group, each with a new id. */
@@ -687,7 +750,12 @@ export const linkStyle = (
   element: ReviewConceptElement,
   style: ConceptStyle | null
 ): ReviewConceptElement => {
-  const { overrides: _overrides, styleId: _styleId, ...rest } = element;
+  const {
+    overrides: _overrides,
+    slotOverrides: _slotOverrides,
+    styleId: _styleId,
+    ...rest
+  } = element;
   return style
     ? applyConceptStyle({ ...rest, styleId: style.id }, [style])
     : rest;

@@ -20,6 +20,34 @@ import type {
 export const SLOT_NAMES = ["header", "body", "footer", "hide"] as const;
 export type ConceptSlotName = (typeof SLOT_NAMES)[number];
 
+export type SlotStyleField =
+  | "layout"
+  | "alignment"
+  | "columns"
+  | "wrap"
+  | "fill"
+  | "gap"
+  | "paddingX"
+  | "paddingY";
+export type SlotStyleProp = `${ConceptSlotName}${Capitalize<SlotStyleField>}`;
+
+export const SLOT_STYLE_FIELDS: readonly SlotStyleField[] = [
+  "layout",
+  "alignment",
+  "columns",
+  "wrap",
+  "fill",
+  "gap",
+  "paddingX",
+  "paddingY",
+];
+
+export const slotStyleProp = (
+  slot: ConceptSlotName,
+  field: SlotStyleField
+): SlotStyleProp =>
+  `${slot}${field[0].toUpperCase()}${field.slice(1)}` as SlotStyleProp;
+
 /**
  * The slots laid out top to bottom. `hide` is a panel's own: what it holds
  * (a close button, an ✕) sits in the panel's top-right corner, and a click
@@ -82,6 +110,18 @@ export const SLOT_DEFAULTS = {
   paddingX: 0,
   paddingY: 0,
 } as const;
+
+export const SLOT_STYLE_FIELD_KEYS: Record<SlotStyleField, keyof ConceptSlot> =
+  {
+    alignment: "align",
+    columns: "columns",
+    fill: "fill",
+    gap: "gap",
+    layout: "layout",
+    paddingX: "paddingX",
+    paddingY: "paddingY",
+    wrap: "wrap",
+  };
 
 /** The kinds that have slots. */
 const SLOT_KINDS = new Set<ReviewConceptElementKind>([

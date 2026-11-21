@@ -13,13 +13,11 @@ import {
   SLOT_LIMITS,
   SLOT_NAMES,
   type SlideSide,
-} from "../../../config/conceptSlots.js";
-import { closeButton } from "../../../config/conceptStarters.js";
-import {
-  type ConceptStyleProp,
   type SlotStyleField,
   slotStyleProp,
-} from "../../../config/conceptStyle.js";
+} from "../../../config/conceptSlots.js";
+import { closeButton } from "../../../config/conceptStarters.js";
+import type { ConceptStyleProp } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";

@@ -23,13 +23,17 @@ import {
 import type { ConceptShadow } from "./conceptShadow.js";
 import {
   type ConceptSlot,
+  type ConceptSlotName,
   type ConceptSlots,
   cleanSlot,
   cleanSlots,
   hasSlots,
   MAX_GROUP_DEPTH,
   SLIDE_SIDES,
+  SLOT_NAMES,
+  SLOT_STYLE_FIELDS,
   type SlideSide,
+  type SlotStyleField,
 } from "./conceptSlots.js";
 import {
   type ConceptStep,
@@ -245,6 +249,8 @@ export interface ReviewConceptElement {
   /** Progress bars: whether the percentage shows beside the label. */
   showValue?: boolean;
   slideFrom?: SlideSide;
+  /** Slot layout fields this instance has changed from its linked kit style. */
+  slotOverrides?: Partial<Record<ConceptSlotName, SlotStyleField[]>>;
   /**
    * Cards and panels: header, body and footer, each with its own layout and
    * elements (see conceptSlots.ts).
@@ -341,7 +347,7 @@ export const STYLE_ID = /^[a-z0-9-]{1,64}$/i;
 
 const cleanLink = (
   raw: Partial<ReviewConceptElement>
-): Pick<ReviewConceptElement, "overrides" | "styleId"> => {
+): Pick<ReviewConceptElement, "overrides" | "slotOverrides" | "styleId"> => {
   if (typeof raw.styleId !== "string" || !STYLE_ID.test(raw.styleId)) {
     return {};
   }
@@ -350,8 +356,26 @@ const cleanLink = (
       CONCEPT_STYLE_KEYS.includes(key as ConceptStyleKey) &&
       all.indexOf(key) === index
   );
+  const rawSlotOverrides = raw.slotOverrides as
+    | Partial<Record<ConceptSlotName, unknown>>
+    | undefined;
+  const slotOverrides = Object.fromEntries(
+    SLOT_NAMES.flatMap((name) => {
+      const fields = rawSlotOverrides?.[name];
+      if (!Array.isArray(fields)) {
+        return [];
+      }
+      const valid = fields.filter(
+        (field, index, all): field is SlotStyleField =>
+          SLOT_STYLE_FIELDS.includes(field as SlotStyleField) &&
+          all.indexOf(field) === index
+      );
+      return valid.length > 0 ? [[name, valid]] : [];
+    })
+  ) as Partial<Record<ConceptSlotName, SlotStyleField[]>>;
   return {
     ...(overrides.length > 0 ? { overrides } : {}),
+    ...(Object.keys(slotOverrides).length > 0 ? { slotOverrides } : {}),
     styleId: raw.styleId,
   };
 };
