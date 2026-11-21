@@ -181,12 +181,13 @@ const kitStyles: ConceptStyle[] = [
   { id: "s1", kind: "button", look: {}, name: "Primary" },
   { id: "s2", kind: "badge", look: {}, name: "Warning" },
   { id: "s3", kind: "card", look: {}, name: "Plain" },
+  { id: "s4", kind: "button", look: { paddingX: 23 }, name: "Ghost" },
 ];
 
-function Kit() {
+function Kit({ initial = kitStyles }: { initial?: ConceptStyle[] } = {}) {
   const [doc, setDoc] = useState<BrandKitDoc>({
     ...EMPTY_KIT,
-    componentStyles: kitStyles,
+    componentStyles: initial,
   });
   saved = doc;
   return (
@@ -199,11 +200,19 @@ function Kit() {
   );
 }
 
-it("reorders a kit's styles from a style's handle, and keeps remove at the row's end", async () => {
+it("groups interleaved styles by kind and saves variant and group order", async () => {
   const host = document.createElement("div");
   host.style.width = "900px";
   document.body.append(host);
-  act(() => createRoot(host).render(<Kit />));
+  const root = createRoot(host);
+  act(() => root.render(<Kit />));
+  const variantNames = () =>
+    [
+      ...host.querySelectorAll<HTMLInputElement>(
+        '[aria-label="Button variants"] input[aria-label="Button style name"]'
+      ),
+    ].map((input) => input.value);
+  expect(variantNames()).toEqual(["Primary", "Ghost"]);
 
   const footer = host.querySelector(
     ".brand-kit-components__footer"
@@ -224,11 +233,36 @@ it("reorders a kit's styles from a style's handle, and keeps remove at the row's
   ) as HTMLElement;
   handle.focus();
   await userEvent.keyboard("{ArrowDown}");
-  expect(saved.componentStyles.map((style) => style.id)).toEqual([
+  expect(variantNames()).toEqual(["Ghost", "Primary"]);
+  const groupHandle = host.querySelector<HTMLButtonElement>(
+    '[aria-label^="Move Button group"]'
+  );
+  groupHandle?.focus();
+  await userEvent.keyboard("{ArrowDown}");
+  const reopened = sanitizeKitDoc(JSON.parse(JSON.stringify(saved)));
+  expect(reopened.componentStyles.map((style) => style.id)).toEqual([
     "s2",
+    "s4",
     "s1",
     "s3",
   ]);
+  expect(
+    reopened.componentStyles.find((style) => style.id === "s4")?.look.paddingX
+  ).toBe(23);
+  act(() =>
+    root.render(<Kit initial={reopened.componentStyles} key="reopened" />)
+  );
+  expect(variantNames()).toEqual(["Ghost", "Primary"]);
+  const add = host.querySelector<HTMLButtonElement>(
+    '[aria-label="Add Button variant"]'
+  );
+  if (!add) {
+    throw new Error("Missing Add Button variant");
+  }
+  await userEvent.click(add);
+  expect(variantNames()).toEqual(["Ghost", "Primary", "Variant 3"]);
+  act(() => root.unmount());
+  host.remove();
 });
 
 it("uses the kit button and saves the chosen tag style in a table slot", async () => {

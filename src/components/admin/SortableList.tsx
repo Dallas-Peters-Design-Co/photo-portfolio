@@ -52,6 +52,7 @@ export function SortableList<T extends { id: string }>({
   itemLabel,
   layout = "list",
   nativeDrag = false,
+  markDrop = false,
   items,
   onReorder,
 }: {
@@ -60,6 +61,8 @@ export function SortableList<T extends { id: string }>({
   itemLabel: (item: T) => string;
   layout?: "grid" | "list";
   nativeDrag?: boolean;
+  /** Keep expanded editors in place and mark the insertion edge until release. */
+  markDrop?: boolean;
   items: T[];
   onReorder: (ids: string[]) => void;
 }) {
@@ -77,18 +80,18 @@ export function SortableList<T extends { id: string }>({
 
   const wrapperOf = (id: string) =>
     list.current?.querySelector<HTMLElement>(
-      `[data-sortable-id="${CSS.escape(id)}"]`
+      `:scope > [data-sortable-id="${CSS.escape(id)}"]`
     ) ?? null;
 
   // Once the items have folded, the gap takes the dragged one's new height.
   // Measured once per pickup; the height does not change mid-drag.
-  const dragId = drag?.id;
+  const dragId = markDrop ? undefined : drag?.id;
   useLayoutEffect(() => {
     if (dragId === undefined) {
       return;
     }
     const wrapper = list.current?.querySelector<HTMLElement>(
-      `[data-sortable-id="${CSS.escape(dragId)}"]`
+      `:scope > [data-sortable-id="${CSS.escape(dragId)}"]`
     );
     setGapHeight(wrapper?.offsetHeight ?? 0);
   }, [dragId]);
@@ -203,6 +206,9 @@ export function SortableList<T extends { id: string }>({
     if (next.join() !== ids.join()) {
       onReorder(next);
     }
+    if (markDrop) {
+      return;
+    }
     // Unfolding moves everything; keep the dropped item in view.
     requestAnimationFrame(() =>
       wrapperOf(id)?.scrollIntoView({ block: "nearest" })
@@ -222,14 +228,14 @@ export function SortableList<T extends { id: string }>({
       requestAnimationFrame(() =>
         wrapperOf(id)
           ?.querySelector<HTMLButtonElement>(".sortable__handle")
-          ?.focus()
+          ?.focus({ preventScroll: markDrop })
       );
     }
   };
 
   // Each item's place on screen: the others in order around the gap.
   const placeOf = new Map<string, number>();
-  if (drag) {
+  if (drag && !markDrop) {
     let rank = 0;
     for (const id of ids) {
       if (id === drag.id) {
@@ -243,25 +249,32 @@ export function SortableList<T extends { id: string }>({
     }
   }
 
+  const target = drag && markDrop ? ids[drag.over] : undefined;
+  const edge = drag && drag.over < ids.indexOf(drag.id) ? "before" : "after";
+
   return (
     <div
       className={`sortable sortable--${layout} ${drag ? "sortable--dragging" : ""}`}
+      data-mark-drop={markDrop || undefined}
       ref={list}
     >
       {items.map((item) => {
-        const lifted = drag?.id === item.id;
+        const lifted = !markDrop && drag?.id === item.id;
         const style: CSSProperties | undefined = lifted
           ? { left: drag.left, top: drag.top, width: drag.width }
           : { order: placeOf.get(item.id) };
         return (
           <div
             className={`sortable__item ${lifted ? "sortable__item--lifted" : ""}`}
+            data-drop-edge={
+              target === item.id && target !== drag?.id ? edge : undefined
+            }
             data-sortable-id={item.id}
             key={item.id}
             style={style}
           >
             {children(item, {
-              compact: drag !== null,
+              compact: !markDrop && drag !== null,
               handle: (
                 <button
                   aria-label={`Move ${itemLabel(item)} (drag, or use the arrow keys)`}
@@ -269,7 +282,7 @@ export function SortableList<T extends { id: string }>({
                   draggable={nativeDrag || undefined}
                   onKeyDown={nudge(item.id)}
                   onLostPointerCapture={drop}
-                  onPointerCancel={drop}
+                  onPointerCancel={() => setDrag(null)}
                   onPointerDown={nativeDrag ? undefined : pickUp(item.id)}
                   onPointerMove={carry}
                   onPointerUp={drop}
@@ -287,7 +300,7 @@ export function SortableList<T extends { id: string }>({
           </div>
         );
       })}
-      {drag ? (
+      {drag && !markDrop ? (
         <div
           aria-hidden
           className="sortable__gap"

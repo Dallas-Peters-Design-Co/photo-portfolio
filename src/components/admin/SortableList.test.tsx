@@ -13,14 +13,19 @@ afterEach(async () => {
   host?.remove();
 });
 
-const mount = async (onReorder: (ids: string[]) => void) => {
+const mount = async (onReorder: (ids: string[]) => void, markDrop = false) => {
   host = document.createElement("div");
   host.style.width = "400px";
   document.body.append(host);
   root = createRoot(host);
   await act(() =>
     root?.render(
-      <SortableList itemLabel={(i) => i.id} items={ITEMS} onReorder={onReorder}>
+      <SortableList
+        itemLabel={(i) => i.id}
+        items={ITEMS}
+        markDrop={markDrop}
+        onReorder={onReorder}
+      >
         {(item, { compact, handle }) => (
           <EditorBlock
             collapsed={compact}
@@ -92,4 +97,37 @@ it("moves an item with the arrow keys on its handle", async () => {
     )
   );
   expect(orders).toEqual([["b", "a", "c"]]);
+});
+
+it("marks a drop between expanded variants without moving the scrolled page", async () => {
+  const orders: string[][] = [];
+  await mount((ids) => orders.push(ids), true);
+  if (!host) {
+    throw new Error("Missing list");
+  }
+  host.style.paddingBlock = "1200px";
+  const first = handleOf("a");
+  const second = handleOf("b");
+  const center = second.closest(".sortable__item")?.getBoundingClientRect();
+  if (!center) {
+    throw new Error("Missing target variant");
+  }
+  window.scrollBy(0, center.top + center.height / 2 - window.innerHeight / 2);
+  const scroll = window.scrollY;
+  expect(scroll).toBeGreaterThan(0);
+  const height = host.offsetHeight;
+  const y = window.innerHeight / 2 + 8;
+  await act(() =>
+    pointer("pointerdown", first, first.getBoundingClientRect().top)
+  );
+  await act(() => pointer("pointermove", first, y));
+  expect(
+    host.querySelector('[data-sortable-id="b"]')?.getAttribute("data-drop-edge")
+  ).toBe("after");
+  expect(host.offsetHeight).toBe(height);
+  expect(window.scrollY).toBe(scroll);
+  await act(() => pointer("pointerup", first, y));
+  await new Promise<void>((done) => requestAnimationFrame(() => done()));
+  expect(orders).toEqual([["b", "a", "c"]]);
+  expect(window.scrollY).toBe(scroll);
 });

@@ -80,7 +80,7 @@ it("inserts a linked kit component where it is dropped on a scaled page", async 
   const scale = sheet.getBoundingClientRect().width / 1200;
   await act(() =>
     page
-      .getByRole("button", { exact: true, name: "Primary button" })
+      .getByRole("button", { exact: true, name: "Insert Primary (Button)" })
       .dropTo(page.elementLocator(sheet), { targetPosition: { x: 100, y: 90 } })
   );
   const saved = cleanPageDesign(latest);

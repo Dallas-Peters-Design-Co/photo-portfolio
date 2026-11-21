@@ -114,7 +114,12 @@ export const usePageCanvas = (
     version: 1,
     width: Math.max(320, Math.min(4096, Math.round(frame.width * 2))),
   }));
-  const page = pageDesignOf(frame.config) ?? initial;
+  // The active kit may finish loading after the frame editor has opened.
+  // Only unsaved frames follow it; a saved frame owns its kit choice.
+  const page = pageDesignOf(frame.config) ?? {
+    ...initial,
+    kitId: brand?.kit?.id ?? null,
+  };
   const { data: canvasComponents = [], error: canvasError } =
     useKitCanvasComponents(page.kitId);
   const kit = brand?.kits.find((k) => k.id === page.kitId) ?? null;

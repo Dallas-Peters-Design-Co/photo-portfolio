@@ -478,12 +478,27 @@
 
 .brand-kit-components__head {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: calc(var(--spacing) * 2);
   align-items: center;
 }
 
-.brand-kit-components__kind {
+.brand-kit-components__variants {
+  display: grid;
+  gap: calc(var(--spacing) * 2);
+}
+
+.brand-kit-components__variants-head {
+  display: flex;
+  gap: calc(var(--spacing) * 2);
+  align-items: center;
+}
+
+.brand-kit-components__variants-head > button:last-child {
+  margin-inline-start: auto;
+}
+
+.brand-kit-components__variants-head > span {
   font-size: var(--text-micro-xs);
   color: color-mix(in oklch, currentColor 60%, transparent);
   text-transform: uppercase;

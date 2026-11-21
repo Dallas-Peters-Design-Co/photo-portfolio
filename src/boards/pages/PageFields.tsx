@@ -62,11 +62,13 @@ export function PageSelect({
   label,
   value,
   options,
+  onOpenChange,
   onChange,
 }: {
   label: string;
   value: string;
   options: { label: string; value: string }[];
+  onOpenChange?: (open: boolean) => void;
   onChange: (value: string) => void;
 }) {
   return (
@@ -74,6 +76,7 @@ export function PageSelect({
       <span>{label}</span>
       <Select
         items={options}
+        onOpenChange={onOpenChange}
         onValueChange={(next) => {
           if (next !== null) {
             onChange(next);

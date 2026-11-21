@@ -22,6 +22,7 @@ import {
   MAX_CONCEPT_STYLES,
 } from "../../../config/conceptStyle.js";
 import { withLinkedComponents } from "../../../config/kitComponentLink.js";
+import { groupKitVariants } from "../../../config/kitVariants.js";
 import { newItemId } from "../../../config/proposal.js";
 import {
   type ReviewConceptElement,
@@ -34,6 +35,7 @@ import { ReviewConceptElementView } from "../review/ReviewConceptElementView";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
 import { Input } from "../ui/input";
+import { BrandKitVariants } from "./BrandKitVariants";
 import { ComponentStyleClipboard } from "./ComponentStyleClipboard";
 import {
   ConceptGroup,
@@ -43,7 +45,6 @@ import {
 } from "./ConceptControls";
 import { CanvasComponentKit } from "./ReviewCanvasComponents";
 import { ReviewConceptElementFields } from "./ReviewConceptElementFields";
-import { SortableList } from "./SortableList";
 import "./ReviewConceptsEditor.css";
 
 const NO_LINK = "none";
@@ -214,9 +215,6 @@ function StyleEditor({
   return (
     <section className="brand-kit-components__style">
       <header className="brand-kit-components__head">
-        <span className="brand-kit-components__kind">
-          {kindLabel(style.kind)}
-        </span>
         <Input
           aria-label={`${kindLabel(style.kind)} style name`}
           onChange={(event) => onChange({ ...style, name: event.target.value })}
@@ -351,7 +349,8 @@ export function BrandKitComponents({
     source?.resolvedDoc ?? null
   );
   const following = Boolean(source) && doc.componentStyles.length === 0;
-  const styles = doc.componentStyles;
+  const groups = groupKitVariants(doc.componentStyles);
+  const styles = groups.flatMap((group) => group.variants);
   const inherited: ConceptStyle[] =
     styles.length === 0 ? effective.componentStyles : [];
   const set = (next: ConceptStyle[]) =>
@@ -394,7 +393,7 @@ export function BrandKitComponents({
         id,
         kind,
         look: lookOf(createConceptElement(kind, effective)),
-        name: count === 0 ? "Primary" : `Style ${count + 1}`,
+        name: count === 0 ? "Primary" : `Variant ${count + 1}`,
       },
     ]);
   };
@@ -470,19 +469,12 @@ export function BrandKitComponents({
         />
       </div>
       <CanvasComponentKit.Provider value={kitId}>
-        <SortableList
-          itemLabel={(style) => `${kindLabel(style.kind)} ${style.name}`}
-          items={styles}
-          layout="list"
-          onReorder={(ids) =>
-            set(
-              ids
-                .map((id) => styles.find((s) => s.id === id))
-                .filter((s): s is ConceptStyle => s !== undefined)
-            )
-          }
+        <BrandKitVariants
+          groups={groups}
+          onAdd={styles.length < MAX_CONCEPT_STYLES ? add : undefined}
+          onReorder={set}
         >
-          {(style, { compact, handle }) => (
+          {(style, handle) => (
             <StyleEditor
               brand={effective}
               handle={handle}
@@ -492,12 +484,11 @@ export function BrandKitComponents({
               onDuplicate={() => duplicate(style)}
               onRemove={() => set(styles.filter((s) => s.id !== style.id))}
               onToggle={() => toggle(style.id)}
-              // Folded while a style is dragged, so it is easy to carry.
-              open={open.has(style.id) && !compact}
+              open={open.has(style.id)}
               style={style}
             />
           )}
-        </SortableList>
+        </BrandKitVariants>
       </CanvasComponentKit.Provider>
     </div>
   );

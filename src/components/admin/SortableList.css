@@ -67,3 +67,15 @@
 .sortable--dragging {
   user-select: none;
 }
+
+.sortable[data-mark-drop] {
+  overflow-anchor: none;
+}
+
+.sortable__item[data-drop-edge="before"] {
+  box-shadow: 0 -2px currentColor;
+}
+
+.sortable__item[data-drop-edge="after"] {
+  box-shadow: 0 2px currentColor;
+}

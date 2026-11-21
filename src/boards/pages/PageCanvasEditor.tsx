@@ -23,6 +23,7 @@ import { PageCanvasInspector } from "./PageCanvasInspector";
 import { PageCanvasStage } from "./PageCanvasStage";
 import { PageDesignView } from "./PageDesignView";
 import { PageSelect } from "./PageFields";
+import { PageKitVariants } from "./PageKitVariants";
 import { LayerDragProvider } from "./PageLayerDrag";
 import { PageLayerList } from "./PageLayerList";
 import { libraryDrag, libraryDrop } from "./pageLibraryDrag";
@@ -122,20 +123,12 @@ export function PageCanvasEditor({
           value={page.kitId ?? NONE}
         />
         <h2>Components</h2>
-        {doc?.componentStyles.map((style) => (
-          <button
-            className="page-builder__insert"
-            disabled={elements.length >= MAX_CONCEPT_ELEMENTS || playing}
-            {...libraryDrag(style.id)}
-            key={style.id}
-            onClick={() => add(style.id)}
-            type="button"
-          >
-            <Plus size={14} />
-            {style.name}
-            <span>{style.kind}</span>
-          </button>
-        ))}
+        <PageKitVariants
+          disabled={elements.length >= MAX_CONCEPT_ELEMENTS || playing}
+          key={page.kitId}
+          onInsert={add}
+          styles={doc?.componentStyles ?? []}
+        />
         {canvasComponents.map((component) => (
           <button
             className="page-builder__insert"
