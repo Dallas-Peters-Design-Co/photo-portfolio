@@ -1,9 +1,11 @@
 import { Collapsible } from "@base-ui/react/collapsible";
 import { type CSSProperties, type ReactNode, useCallback, useRef } from "react";
+import { conceptFontStack } from "../../../config/conceptFont.js";
 import { panelHandleElements } from "../../../config/conceptSlots.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
 import { ConceptSlotsView } from "./ConceptSlotsView";
 import { PANEL_HIDDEN, useSequenceMarks } from "./conceptSequence";
+import { useConceptFont } from "./useConceptFont";
 
 export function ConceptPanelPreview({
   draw,
@@ -14,6 +16,8 @@ export function ConceptPanelPreview({
   element: ReviewConceptElement;
   style: CSSProperties;
 }) {
+  const face = element.headerTypeface;
+  useConceptFont(face?.fontFamily ?? "", face?.fontRef, face?.fontId);
   const root = useRef<HTMLDivElement>(null);
   const closing = useRef(false);
   const hide = panelHandleElements(element);
@@ -47,9 +51,27 @@ export function ConceptPanelPreview({
           <ConceptSlotsView
             dividers={element.dividers}
             draw={draw}
+            headerBackground={element.headerBackground}
             lead={
               element.text ? (
-                <strong className="concept-slot__lead">{element.text}</strong>
+                <strong
+                  className="concept-slot__lead"
+                  style={{
+                    color: element.headerColor,
+                    fontFamily:
+                      face &&
+                      conceptFontStack(
+                        face.fontFamily,
+                        face.fontRef,
+                        face.fontId
+                      ),
+                    fontSize: element.headerFontSize,
+                    fontWeight: element.headerFontWeight,
+                    lineHeight: element.headerLineHeight,
+                  }}
+                >
+                  {element.text}
+                </strong>
               ) : undefined
             }
             slots={element.slots}

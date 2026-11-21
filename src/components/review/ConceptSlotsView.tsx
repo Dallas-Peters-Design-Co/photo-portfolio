@@ -109,6 +109,7 @@ function Items({
  * elements sit together at the end, laid out the slot's way.
  */
 export function Slot({
+  background,
   draw,
   lead,
   end,
@@ -123,6 +124,7 @@ export function Slot({
   end?: ReactNode;
   includeLead?: boolean;
   spacer?: boolean;
+  background?: string;
   name: ConceptSlotName;
   slot?: ConceptSlot;
 }) {
@@ -138,6 +140,7 @@ export function Slot({
       data-led={(!includeLead && lead) || end ? true : undefined}
       data-slot={name}
       style={{
+        backgroundColor: background,
         flex: slot?.flex ? flexSize(slot.flex) : undefined,
         gap: slot?.gap ?? SLOT_DEFAULTS.gap,
         padding: slotPadding ?? (end ? "8px" : undefined),
@@ -167,6 +170,7 @@ export function ConceptSlotsView({
   slots = {},
   lead,
   headerEnd,
+  headerBackground,
   titleInLayout = false,
 }: {
   /**
@@ -184,6 +188,7 @@ export function ConceptSlotsView({
   lead?: ReactNode;
   /** A panel's close control, beside the header rather than over it. */
   headerEnd?: ReactNode;
+  headerBackground?: string;
   titleInLayout?: boolean;
 }) {
   return (
@@ -201,6 +206,7 @@ export function ConceptSlotsView({
         }
         return (
           <Slot
+            background={name === "header" ? headerBackground : undefined}
             draw={draw}
             end={name === "header" ? headerEnd : undefined}
             includeLead={name === "header" && titleInLayout}

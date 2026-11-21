@@ -75,6 +75,8 @@ const PROP_LABELS: Partial<Record<ConceptStyleProp, string>> = {
   fontSize: "Text size",
   fontWeight: "Text weight",
   fullHeight: "Full height",
+  headerBackground: "Header fill",
+  headerColor: "Header text color",
   headerText: "Header text",
   hover: "Hover style",
   iconColor: "Icon color",

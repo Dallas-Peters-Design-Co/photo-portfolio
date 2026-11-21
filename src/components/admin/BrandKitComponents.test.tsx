@@ -116,7 +116,7 @@ it("keeps the icon picked for a style", async () => {
   host.remove();
 });
 
-it("edits the panel's close button in the brand kit", async () => {
+it("styles a panel header and edits its close button in the brand kit", async () => {
   const panel = createConceptElement("panel");
   function PanelKit() {
     const [doc, setDoc] = useState<BrandKitDoc>({
@@ -146,6 +146,20 @@ it("edits the panel's close button in the brand kit", async () => {
   await act(() => root.render(<PanelKit />));
   await userEvent.click(
     host.querySelector('[aria-label="Open Panel Primary"]') as HTMLElement
+  );
+  const size = host.querySelector<HTMLInputElement>(
+    '[aria-label="Header font size"]'
+  );
+  const heading = host.querySelector<HTMLElement>(
+    ".brand-kit-components__sample .concept-slot__lead"
+  );
+  if (!(size && heading)) {
+    throw new Error("Missing panel header controls or preview");
+  }
+  await userEvent.fill(size, "26");
+  expect(getComputedStyle(heading).fontSize).toBe("26px");
+  expect(sanitizeKitDoc(saved).componentStyles[0]?.look.headerFontSize).toBe(
+    26
   );
   const button = [
     ...host.querySelectorAll<HTMLElement>('[aria-label="button"]'),

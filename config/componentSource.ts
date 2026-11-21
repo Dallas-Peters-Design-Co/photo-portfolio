@@ -117,6 +117,20 @@ const tokensOf = (el: ReviewConceptElement): [string, string][] => {
     ["accent", el.accentColor],
     ["check-size", px(el.checkSize)],
     ["bar-height", px(el.barHeight)],
+    [
+      "header-font-family",
+      el.headerTypeface &&
+        conceptFontStack(
+          el.headerTypeface.fontFamily,
+          el.headerTypeface.fontRef,
+          el.headerTypeface.fontId
+        ),
+    ],
+    ["header-font-size", px(el.headerFontSize)],
+    ["header-font-weight", el.headerFontWeight?.toString()],
+    ["header-line-height", el.headerLineHeight?.toString()],
+    ["header-color", el.headerColor],
+    ["header-background", el.headerBackground],
     ["body-size", px(el.bodySize)],
     ["title-weight", el.titleWeight ? String(el.titleWeight) : undefined],
     ["icon-color", el.iconColor],

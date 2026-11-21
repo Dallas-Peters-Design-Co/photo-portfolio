@@ -40,6 +40,7 @@ import { ConceptTableFields } from "./ConceptTableFields";
 import { ConceptTooltipFields } from "./ConceptTooltipFields";
 import { CardTypeFields, LineHeightField, WEIGHTS } from "./ConceptTypeFields";
 import { useElementFocus } from "./elementFocus";
+import { PanelHeaderFields } from "./PanelHeaderFields";
 import { ConceptColorField } from "./ReviewConceptBrand";
 import {
   CheckboxGroup,
@@ -233,6 +234,14 @@ function KindGroups({
   const accordionExpandedId = useId();
   return (
     <>
+      {element.kind === "panel" && (
+        <PanelHeaderFields
+          brandDoc={brandDoc}
+          canEditProp={canEditProp}
+          element={element}
+          onChange={onChange}
+        />
+      )}
       {/* A table's content is its columns and rows. */}
       {element.kind === "table" &&
       (canEditProp("tableContents") ||

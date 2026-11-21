@@ -44,7 +44,7 @@ import {
 import { type ConceptTable, cleanTable } from "./conceptTable.js";
 import { type ConceptTabLook, cleanTabLook } from "./conceptTabs.js";
 import { type ConceptTooltip, cleanTooltip } from "./conceptTooltip.js";
-import { bounded, cleanColor, str } from "./conceptValues.js";
+import { bounded, cleanColor, isHex, str } from "./conceptValues.js";
 import { isFontRef } from "./fontRef.js";
 import type { KitShader } from "./kitShaders.js";
 import { newItemId } from "./proposal.js";
@@ -205,6 +205,15 @@ export interface ReviewConceptElement {
    * column or grid, gap, alignment, padding), as a slot does.
    */
   group?: ConceptSlot;
+  headerBackground?: string;
+  headerColor?: string;
+  headerFontSize?: number;
+  headerFontWeight?: ReviewConceptElement["fontWeight"];
+  headerLineHeight?: number;
+  headerTypeface?: Pick<
+    ReviewConceptElement,
+    "fontFamily" | "fontId" | "fontRef"
+  >;
   /** How it changes under the pointer (see conceptHover.ts). */
   hover?: ConceptHover;
   /**
@@ -281,7 +290,17 @@ export interface ReviewConceptElement {
  * style sets. `tableBorders` and `tableHeader` stand for a table's borders and
  * header colours, which live inside `table`.
  */
+export const PANEL_HEADER_STYLE_KEYS = [
+  "headerTypeface",
+  "headerFontSize",
+  "headerFontWeight",
+  "headerLineHeight",
+  "headerColor",
+  "headerBackground",
+] as const;
+
 export const ELEMENT_STYLE_KEYS = [
+  ...PANEL_HEADER_STYLE_KEYS,
   "background",
   "color",
   "fontFamily",
@@ -451,6 +470,31 @@ const fontSelection = (
   };
 };
 
+const cleanPanelHeader = (raw: Partial<ReviewConceptElement>) => ({
+  ...(raw.headerTypeface && typeof raw.headerTypeface === "object"
+    ? {
+        headerTypeface: fontSelection(
+          raw.headerTypeface.fontFamily,
+          raw.headerTypeface.fontRef,
+          raw.headerTypeface.fontId
+        ),
+      }
+    : {}),
+  ...(typeof raw.headerFontSize === "number"
+    ? { headerFontSize: bounded(raw.headerFontSize, 10, 72, 16) }
+    : {}),
+  ...(FONT_WEIGHTS.includes(raw.headerFontWeight as 400)
+    ? { headerFontWeight: raw.headerFontWeight }
+    : {}),
+  ...(typeof raw.headerLineHeight === "number"
+    ? { headerLineHeight: bounded(raw.headerLineHeight, 1, 2.4, 1.4) }
+    : {}),
+  ...(isHex(raw.headerColor) ? { headerColor: raw.headerColor } : {}),
+  ...(isHex(raw.headerBackground) || raw.headerBackground === "transparent"
+    ? { headerBackground: raw.headerBackground }
+    : {}),
+});
+
 const cleanInputType = (value: unknown): ReviewConceptElement["inputType"] =>
   INPUT_TYPES.includes(value as (typeof INPUT_TYPES)[number])
     ? (value as ReviewConceptElement["inputType"])
@@ -498,6 +542,7 @@ const cleanHolder = (
   | "slideFrom"
   | "panelCollapsed"
   | "panelToggleSide"
+  | (typeof PANEL_HEADER_STYLE_KEYS)[number]
   | "accordionExpanded"
 > => {
   if (kind === "accordion" && typeof raw.accordionExpanded === "boolean") {
@@ -516,6 +561,7 @@ const cleanHolder = (
   }
   if (kind === "panel") {
     return {
+      ...cleanPanelHeader(raw),
       ...(raw.panelToggleSide === "left" || raw.panelToggleSide === "right"
         ? { panelToggleSide: raw.panelToggleSide }
         : {}),

@@ -344,7 +344,9 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
   const slotted = withSlots(
     el,
     draw,
-    el.text ? `<strong className="@@__lead">${escapeJsx(el.text)}</strong>` : ""
+    el.text
+      ? `<strong className="@@__lead @@__heading">${escapeJsx(el.text)}</strong>`
+      : ""
   );
   const label = JSON.stringify(el.text || "Panel");
   const handle =
@@ -371,6 +373,8 @@ export const panelMarkup = (el: ReviewConceptElement, draw: Draw): Markup => {
 ${el.fullHeight ? "&, &__inner, &__surface { box-sizing: border-box; height: 100%; }" : ""}
 &[data-toggle-side="left"] { flex-direction: row-reverse; }
 &[data-toggle-side="left"] > &__hide :is(svg:first-of-type, &__chevron) { scale: -1 1; }
+&__slot[data-slot="header"] { background-color: var(--&-header-background, transparent); }
+&__heading { color: var(--&-header-color, inherit); font-family: var(--&-header-font-family, inherit); font-size: var(--&-header-font-size, inherit); font-weight: var(--&-header-font-weight, bolder); line-height: var(--&-header-line-height, inherit); }
 &__surface { box-sizing: border-box; width: 100%; min-width: 0; background: var(--&-background); padding: var(--&-padding); border: var(--&-border); border-radius: var(--&-radius); box-shadow: var(--&-shadow); }
 &__inner { width: 100%; min-width: 0; transition: width 260ms ease, overflow 0s 260ms allow-discrete; }
 &__inner[data-starting-style], &__inner[data-ending-style], &__inner[data-panel-open="false"] { width: 0; overflow: clip; transition-delay: 0s; }
