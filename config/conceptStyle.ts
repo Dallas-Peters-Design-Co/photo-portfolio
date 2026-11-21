@@ -185,7 +185,7 @@ const KIND_COMPONENT_PROPS: Record<
   menu: ["text", "menuLook", "options"],
   navbar: [],
   orderedList: ["text"],
-  panel: ["direction"],
+  panel: ["direction", "panelToggleSide"],
   progress: ["text", "barHeight", "accentColor", "showValue", "progress"],
   select: ["text"],
   shader: [],
