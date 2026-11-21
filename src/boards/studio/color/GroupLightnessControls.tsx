@@ -36,7 +36,9 @@ export function GroupLightnessControls({
         <>
           {(["min", "max"] as const).map((end) => {
             const label =
-              end === "min" ? "Minimum lightness" : "Maximum lightness";
+              end === "min"
+                ? "First swatch lightness"
+                : "Last swatch lightness";
             const percent = Math.round(ramp[end] * 100);
             return (
               <label className="studio__field" key={end}>
@@ -45,8 +47,8 @@ export function GroupLightnessControls({
                 </span>
                 <input
                   aria-label={label}
-                  max={end === "max" ? 100 : Math.round(ramp.max * 100)}
-                  min={end === "min" ? 0 : Math.round(ramp.min * 100)}
+                  max={100}
+                  min={0}
                   onChange={(event) =>
                     onChange({
                       ...ramp,
@@ -68,8 +70,8 @@ export function GroupLightnessControls({
             Add shade
           </button>
           <span>
-            {group} runs from dark to light in bar order. Moving its hue shifts
-            every shade.
+            {group} interpolates evenly from the first swatch to the last in bar
+            order. Moving its hue shifts every shade.
           </span>
         </>
       ) : (

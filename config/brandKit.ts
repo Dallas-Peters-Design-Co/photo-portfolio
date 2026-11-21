@@ -46,7 +46,9 @@ export const MAX_RULE_TEXT = 300;
 export interface LightnessRamp {
   c: number;
   h: number;
+  /** Lightness of the group's last swatch; paired with `min` as endpoints. */
   max: number;
+  /** Lightness of the group's first swatch; these endpoints may be reversed. */
   min: number;
 }
 
@@ -59,7 +61,7 @@ function readLightnessRamp(value: unknown): LightnessRamp | undefined {
     typeof min !== "number" ||
     !(min >= 0 && min <= 1) ||
     typeof max !== "number" ||
-    !(max >= min && max <= 1) ||
+    !(max >= 0 && max <= 1) ||
     typeof h !== "number" ||
     !Number.isFinite(h) ||
     typeof c !== "number" ||
