@@ -221,15 +221,20 @@ const SLOT_NAMES_BY_KIND: Partial<
   panel: ["header", "body", "footer", "hide"],
 };
 
-/** Props this kind of component can offer to an instance. */
-export const componentPropOptionsOf = (
-  style: ConceptStyle
+/** Props a custom component of this kind can offer to an instance. */
+export const componentPropOptionsForKind = (
+  kind: ReviewConceptElementKind
 ): ConceptStyleProp[] => [
-  ...KIND_COMPONENT_PROPS[style.kind],
-  ...(SLOT_NAMES_BY_KIND[style.kind] ?? []).flatMap((slot) =>
+  ...KIND_COMPONENT_PROPS[kind],
+  ...(SLOT_NAMES_BY_KIND[kind] ?? []).flatMap((slot) =>
     SLOT_STYLE_FIELDS.map((field) => slotStyleProp(slot, field))
   ),
 ];
+
+/** Props a kit style may expose on an instance. */
+export const componentPropOptionsOf = (
+  style: ConceptStyle
+): ConceptStyleProp[] => componentPropOptionsForKind(style.kind);
 
 /** Props shown as editable controls on an instance. */
 export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] =>

@@ -9,6 +9,7 @@ import { hasSlots, MAX_SLOT_DEPTH } from "../../../config/conceptSlots.js";
 import {
   type ConceptStyle,
   type ConceptStyleProp,
+  componentPropOptionsForKind,
   componentPropsOf,
 } from "../../../config/conceptStyle.js";
 import type { ReviewConceptElement } from "../../../config/reviewConcept.js";
@@ -458,7 +459,9 @@ export function ReviewConceptElementFields({
   const bodyId = useId();
   const linkedStyle = styles.find((style) => style.id === element.styleId);
   const allowedProps = new Set<ConceptStyleProp>(
-    linkedStyle ? componentPropsOf(linkedStyle) : []
+    linkedStyle
+      ? componentPropsOf(linkedStyle)
+      : componentPropOptionsForKind(element.kind)
   );
   const canEditProp = (prop: ConceptStyleProp) =>
     lookOnly || allowedProps.has(prop);
