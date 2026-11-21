@@ -14,6 +14,7 @@ import {
   applyColumnStyles,
   type ConceptStyle,
   linkStyle,
+  styleElement,
 } from "./conceptStyle.js";
 import { refreshPalettePaints } from "./paletteBinding.js";
 import { newItemId } from "./proposal.js";
@@ -397,4 +398,7 @@ const buildStyleSample = (
 };
 
 export const styleSample = (style: ConceptStyle, brand: BrandKitDoc) =>
-  refreshPalettePaints(buildStyleSample(style, brand), brand.palette);
+  refreshPalettePaints(
+    styleElement(buildStyleSample(style, brand), brand.componentStyles),
+    brand.palette
+  );

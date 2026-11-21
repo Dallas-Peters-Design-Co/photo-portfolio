@@ -228,18 +228,34 @@ function ElementList({
       return;
     }
     const style = styles.find((s) => `style:${s.id}` === choice);
-    onChange(
-      style
-        ? [
-            ...elements,
-            fromStyle(createConceptElement(style.kind, brandDoc), style),
-          ]
-        : addConceptElement(
-            elements,
-            choice as ReviewConceptElementKind,
-            brandDoc
-          )
-    );
+    const kind = choice as ReviewConceptElementKind;
+    const matchingStyles = styles.filter((item) => item.kind === kind);
+    const existingStyle = [...elements]
+      .reverse()
+      .find((element) => element.kind === kind && element.styleId);
+    let inheritedStyle: ConceptStyle | undefined;
+    if (existingStyle) {
+      inheritedStyle = matchingStyles.find(
+        (item) => item.id === existingStyle.styleId
+      );
+    } else if (matchingStyles.length === 1) {
+      [inheritedStyle] = matchingStyles;
+    }
+    if (style) {
+      onChange([
+        ...elements,
+        fromStyle(createConceptElement(style.kind, brandDoc), style),
+      ]);
+      return;
+    }
+    if (inheritedStyle) {
+      onChange([
+        ...elements,
+        fromStyle(createConceptElement(kind, brandDoc), inheritedStyle),
+      ]);
+      return;
+    }
+    onChange(addConceptElement(elements, kind, brandDoc));
   };
   const savedGroups = styles.filter((style) => style.kind === "group");
   const otherStyles = styles.filter((style) => style.kind !== "group");
