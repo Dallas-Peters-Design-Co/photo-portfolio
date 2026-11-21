@@ -95,7 +95,7 @@
   border-inline-start: 1px solid
     var(
       --concept-button-group-divider,
-      color-mix(in srgb, currentColor 35%, transparent)
+      color-mix(in srgb, #000 30%, transparent)
     ) !important;
 }
 

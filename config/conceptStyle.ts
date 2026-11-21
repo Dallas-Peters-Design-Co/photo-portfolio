@@ -510,7 +510,42 @@ export const styleElement = (
   element: ReviewConceptElement,
   styles: ConceptStyle[]
 ): ReviewConceptElement => {
+  const componentStyle = styles.find(
+    (style) => style.id === element.styleId && style.kind === element.kind
+  );
   let styled = applyColumnStyles(applyConceptStyle(element, styles), styles);
+  // A composite style supplies the default child styles as well as its own
+  // look. Keep the instance's content, but let matching unlinked children
+  // follow the child styles chosen in the kit.
+  const templateSlots = componentStyle?.look.contents;
+  if (styled.slots && templateSlots) {
+    const slots = Object.fromEntries(
+      Object.entries(styled.slots).map(([name, slot]) => {
+        const template = templateSlots[name as keyof typeof templateSlots];
+        if (!(slot && template)) {
+          return [name, slot];
+        }
+        return [
+          name,
+          {
+            ...slot,
+            elements: slot.elements.map((child, index) => {
+              const templateChild = template.elements[index];
+              if (
+                child.styleId ||
+                !templateChild?.styleId ||
+                child.kind !== templateChild.kind
+              ) {
+                return child;
+              }
+              return { ...child, styleId: templateChild.styleId };
+            }),
+          },
+        ];
+      })
+    ) as ReviewConceptElement["slots"];
+    styled = { ...styled, slots };
+  }
   const { tooltip } = styled;
   const tooltipStyle =
     tooltip?.styleId &&

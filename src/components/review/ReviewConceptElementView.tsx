@@ -399,6 +399,7 @@ function ElementBody({ element }: { element: ReviewConceptElement }) {
           style={
             {
               ...style,
+              "--concept-button-group-divider": `color-mix(in srgb, ${style.color ?? "currentColor"} 35%, transparent)`,
               "--concept-button-group-radius": cssDimension(style.borderRadius),
               border: style.border ?? 0,
               margin: 0,

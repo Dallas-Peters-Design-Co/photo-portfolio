@@ -304,7 +304,7 @@ export const buttonGroupMarkup = (
 &__items[data-layout="row"] > :first-child button { border-start-start-radius: var(--&-radius) !important; border-end-start-radius: var(--&-radius) !important; }
 &__items[data-layout="row"] > :last-child button { border-start-end-radius: var(--&-radius) !important; border-end-end-radius: var(--&-radius) !important; }
 &__items[data-layout="row"] > * + * { margin-inline-start: -1px; }
-&__slots[data-dividers] &__items[data-layout="row"] > :nth-child(n + 2) button { border-inline-start: 1px solid color-mix(in srgb, currentColor 35%, transparent) !important; }`,
+&__slots[data-dividers] &__items[data-layout="row"] > :nth-child(n + 2) button { border-inline-start: 1px solid color-mix(in srgb, var(--&-color, currentColor) 35%, transparent) !important; }`,
   tag: "div",
   ...withSlots({ ...el, dividers: el.dividers !== false }, draw, ""),
 });
