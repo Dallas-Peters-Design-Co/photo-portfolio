@@ -120,11 +120,15 @@ const REQUIRED_KEYS = new Set<ConceptStyleKey>([
   "paddingY",
   "radius",
 ]);
-/** One choice each, kept or overridden whole. */
-const LINKED_KEYS: readonly ReadonlySet<ConceptStyleKey>[] = [
-  new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]),
+const ICON_CHOICES = [
   new Set<ConceptStyleKey>(["iconName", "iconSvg"]),
+  new Set<ConceptStyleKey>(["iconEndName", "iconEndSvg"]),
   new Set<ConceptStyleKey>(["summaryIconName", "summaryIconSvg"]),
+];
+/** One choice each, kept or overridden whole. */
+const LINKED_KEYS = [
+  new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]),
+  ...ICON_CHOICES,
 ];
 const MAX_STYLE_NAME = 60;
 
@@ -374,6 +378,15 @@ export const applyConceptStyle = (
   }
   const own = new Set(element.overrides);
   const overridable = new Set(componentPropsOf(style));
+  // The picker changes the name and drawing together, even when the kit
+  // exposes just one of those two fields.
+  for (const choice of ICON_CHOICES) {
+    if ([...choice].some((key) => overridable.has(key))) {
+      for (const key of choice) {
+        overridable.add(key);
+      }
+    }
+  }
   const next: Record<string, unknown> = { ...element };
   for (const key of ELEMENT_STYLE_KEYS) {
     const ownProp =

@@ -249,6 +249,7 @@ function KindGroups({
       ) : null}
       {/* A logo is its picture and a navbar its slots: no text of their own. */}
       {element.kind === "table" ||
+      element.kind === "icon" ||
       element.kind === "text" ||
       element.kind === "avatar" ||
       element.kind === "logo" ||
@@ -270,6 +271,9 @@ function KindGroups({
           onChange={onChange}
         />
       )}
+      {element.kind === "icon" && canEditAnyProp("iconName", "iconSvg") ? (
+        <ReviewConceptContentField element={element} onChange={onChange} />
+      ) : null}
       {element.kind === "accordion" && canEditProp("accordionExpanded") ? (
         <ConceptGroup name="Behavior">
           <label

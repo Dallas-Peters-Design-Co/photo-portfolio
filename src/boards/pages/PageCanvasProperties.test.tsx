@@ -26,6 +26,51 @@ afterEach(cleanup);
 
 const SELECT_LAYER = /^select\s*Choose an option/i;
 
+it("changes a custom Icon in a card header and reopens the saved drawing", async () => {
+  const card = {
+    ...createConceptElement("card"),
+    slots: { header: { elements: [createConceptElement("icon")] } },
+    text: "Workflow stage",
+  };
+  await mount({
+    boxes: {},
+    concept: { ...createConcept(), elements: [card] },
+    height: 450,
+    kitId: null,
+    version: 1,
+    width: 720,
+  });
+  await act(() =>
+    page
+      .getByRole("button", { exact: true, name: "Move Workflow stage" })
+      .click()
+  );
+  const toggle = host.querySelector<HTMLButtonElement>(
+    '.page-builder__inspector section[aria-label="icon"] .review-concepts__element-toggle'
+  );
+  await act(() => toggle?.click());
+  await act(() =>
+    page.getByRole("button", { exact: true, name: "Icon" }).click()
+  );
+  await act(() => page.getByPlaceholder("Search icons…").fill("Favourite"));
+  await act(() => page.getByTitle("Favourite", { exact: true }).click());
+  const saved = cleanPageDesign(latest);
+  if (!saved) {
+    throw new Error("Missing saved page");
+  }
+  const icon = saved.concept.elements[0]?.slots?.header?.elements[0];
+  expect(icon?.iconName).toBe("FavouriteIcon");
+  expect(icon?.iconSvg?.length).toBeGreaterThan(0);
+  const drawing = () =>
+    host.querySelector(".page-design__sheet svg")?.innerHTML;
+  const changed = drawing();
+  expect(changed).toBeTruthy();
+  await act(() => root.unmount());
+  host.remove();
+  await mount(saved);
+  expect(drawing()).toBe(changed);
+});
+
 it("edits the Select placeholder and keeps it when the page reopens", async () => {
   const select = createConceptElement("select");
   await mount({
