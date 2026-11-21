@@ -379,7 +379,6 @@ function KindGroups({
         <ElementIconGroup
           brandDoc={brandDoc}
           element={element}
-          lookOnly={lookOnly}
           onChange={onChange}
           showColor={canEditProp("iconColor")}
           showEndIcon={canEditProp("iconEndName") || canEditProp("iconEndSvg")}

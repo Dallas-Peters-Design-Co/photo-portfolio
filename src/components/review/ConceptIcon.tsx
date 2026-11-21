@@ -50,10 +50,10 @@ export function ConceptIcon({
       icon={Icon}
       size={size}
       strokeWidth={2}
-      style={{ color }}
+      style={{ color, flexShrink: 0 }}
     />
   ) : (
-    <span aria-hidden style={{ height: size, width: size }} />
+    <span aria-hidden style={{ flexShrink: 0, height: size, width: size }} />
   );
 }
 

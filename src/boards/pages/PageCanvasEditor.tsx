@@ -25,6 +25,7 @@ import { PageDesignView } from "./PageDesignView";
 import { PageSelect } from "./PageFields";
 import { LayerDragProvider } from "./PageLayerDrag";
 import { PageLayerList } from "./PageLayerList";
+import { libraryDrag, libraryDrop } from "./pageLibraryDrag";
 import { usePageCanvas } from "./usePageCanvas";
 import { usePageEditorDialog } from "./usePageEditorDialog";
 import "./PageCanvasEditor.css";
@@ -125,6 +126,7 @@ export function PageCanvasEditor({
           <button
             className="page-builder__insert"
             disabled={elements.length >= MAX_CONCEPT_ELEMENTS || playing}
+            {...libraryDrag(style.id)}
             key={style.id}
             onClick={() => add(style.id)}
             type="button"
@@ -138,6 +140,7 @@ export function PageCanvasEditor({
           <button
             className="page-builder__insert"
             disabled={elements.length >= MAX_CONCEPT_ELEMENTS || playing}
+            {...libraryDrag(`canvas:${component.id}`)}
             key={component.id}
             onClick={() => add(`canvas:${component.id}`)}
             type="button"
@@ -276,6 +279,18 @@ export function PageCanvasEditor({
           }}
         >
           <div
+            {...(playing
+              ? {}
+              : libraryDrop(Boolean(page.grid?.enabled), (value, placement) => {
+                  if (
+                    doc?.componentStyles.some((style) => style.id === value) ||
+                    canvasComponents.some(
+                      (component) => `canvas:${component.id}` === value
+                    )
+                  ) {
+                    add(value, undefined, placement);
+                  }
+                }))}
             className="page-builder__screen"
             style={{ maxWidth: page.width }}
           >

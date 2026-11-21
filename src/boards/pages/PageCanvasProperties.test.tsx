@@ -160,6 +160,7 @@ it("sets and removes a table button's icon independently of other rows", async (
     name: "Row 2, Action, Trailing icon",
   });
   await act(() => trailing.click());
+  await act(() => page.getByPlaceholder("Search icons…").fill("Favourite"));
   await act(() => page.getByTitle("Favourite", { exact: true }).click());
   const buttons = () =>
     host.querySelectorAll(".page-design__sheet .concept-table__button");

@@ -104,6 +104,24 @@ const searchIcons = (
 const iconSetOf = (name: string | null): IconSet =>
   name?.startsWith("Filled") ? "filled" : "stroke";
 
+function drawingFromLibrary(library: IconLibrary | null, name: string) {
+  return library?.icons[name];
+}
+
+function usePickerLibrary({
+  library,
+  open,
+  set,
+  svg,
+  value,
+}: Pick<IconPickerProps, "library" | "svg" | "value"> & {
+  open: boolean;
+  set: IconSet;
+}) {
+  const needsDrawing = Boolean(value && !svg && !resolveIcon(value));
+  return useIconLibrary(library === "full" && (open || needsDrawing), set);
+}
+
 function selectedDrawing(
   name: string | null,
   set: IconSet,
@@ -113,7 +131,10 @@ function selectedDrawing(
   if (curated || !name || set !== iconSetOf(name)) {
     return curated;
   }
-  return library?.icons[set === "filled" ? name.slice("Filled".length) : name];
+  return drawingFromLibrary(
+    library,
+    set === "filled" ? name.slice("Filled".length) : name
+  );
 }
 
 /**
@@ -160,12 +181,13 @@ export function IconPicker({
 
   const currentSet = iconSetOf(value);
   const [set, setIconSet] = useState<IconSet>(currentSet);
-  const full = useIconLibrary(library === "full" && open, set);
+  const activeSet = open ? set : currentSet;
+  const full = usePickerLibrary({ library, open, set: activeSet, svg, value });
   const storedName = (name: string) =>
     set === "filled" ? `Filled${name}` : name;
   const iconOf = (name: string) =>
-    full?.icons[name] ?? resolveIcon(storedName(name));
-  const Selected = svg ?? selectedDrawing(value, set, full);
+    drawingFromLibrary(full, name) ?? resolveIcon(storedName(name));
+  const Selected = svg ?? selectedDrawing(value, activeSet, full);
   const choose = (name: string | null) => {
     onChange(
       name ? storedName(name) : null,
@@ -209,17 +231,11 @@ export function IconPicker({
             long name ("More horizontal") wrapped over its own chevron. */}
         <span className="flex min-w-0 items-center gap-2 text-sm text-white/80">
           {Selected ? (
-            <>
-              <HugeiconsIcon className="shrink-0" icon={Selected} size={16} />
-              <span className="truncate text-sm text-white/90 uppercase">
-                {labelFor(value ?? "")}
-              </span>
-            </>
-          ) : (
-            <span className="truncate text-sm text-white/90 uppercase">
-              No icon
-            </span>
-          )}
+            <HugeiconsIcon className="shrink-0" icon={Selected} size={16} />
+          ) : null}
+          <span className="truncate text-sm text-white/90 uppercase">
+            {value ? labelFor(value) : "No icon"}
+          </span>
         </span>
         <HugeiconsIcon
           className={`shrink-0 text-white/90 transition-transform ${open ? "rotate-180" : ""}`}

@@ -206,6 +206,7 @@ function StyleEditor({
 }) {
   const bodyId = useId();
   const sample = styleSample(style, brand);
+  const editable = componentPropsOf(style);
   const changeLook = (patch: Partial<ReviewConceptElement>) =>
     onChange({ ...style, look: styleLook(sample, patch) });
   return (
@@ -257,7 +258,7 @@ function StyleEditor({
             </p>
             {componentPropOptionsOf(style).map((prop) => {
               const id = `${bodyId}-${prop}`;
-              const enabled = style.overridableProps?.includes(prop) ?? false;
+              const enabled = editable.includes(prop);
               return (
                 <label
                   className="review-concepts__check"
@@ -268,10 +269,9 @@ function StyleEditor({
                     checked={enabled}
                     id={id}
                     onChange={(event) => {
-                      const current = componentPropsOf(style);
                       const next = event.currentTarget.checked
-                        ? [...current, prop]
-                        : current.filter((key) => key !== prop);
+                        ? [...editable, prop]
+                        : editable.filter((key) => key !== prop);
                       onChange({ ...style, overridableProps: next });
                     }}
                   />

@@ -97,19 +97,10 @@ export interface ConceptStyle {
 }
 
 export const MAX_CONCEPT_STYLES = 256;
-/** Icon settings a style may leave unset; the element's own then stand. */
-const ICON_KEYS = new Set<ConceptStyleKey>([
-  "summaryIconName",
-  "summaryIconSvg",
+/** These settings keep the element's value when a style leaves them unset. */
+const INHERIT_IF_SET = new Set<ConceptStyleKey>([
   "iconColor",
-  "iconEndName",
-  "iconEndSvg",
-  "iconName",
   "iconSize",
-  "iconSvg",
-]);
-/** Settings every element has: never left blank by a style missing them. */
-const REQUIRED_KEYS = new Set<ConceptStyleKey>([
   "background",
   "color",
   "tooltip",
@@ -122,23 +113,25 @@ const REQUIRED_KEYS = new Set<ConceptStyleKey>([
   "radius",
 ]);
 const ICON_CHOICES = [
-  new Set<ConceptStyleKey>(["iconName", "iconSvg"]),
-  new Set<ConceptStyleKey>(["iconEndName", "iconEndSvg"]),
-  new Set<ConceptStyleKey>(["summaryIconName", "summaryIconSvg"]),
-];
+  ["iconName", "iconSvg"],
+  ["iconEndName", "iconEndSvg"],
+  ["summaryIconName", "summaryIconSvg"],
+] as const;
+
+function instanceProp(key: ConceptStyleProp): ConceptStyleProp {
+  return ICON_CHOICES.find(([, drawing]) => key === drawing)?.[0] ?? key;
+}
 /** One choice each, kept or overridden whole. */
 const LINKED_KEYS = [
   new Set<ConceptStyleKey>(["fontFamily", "fontId", "fontRef"]),
-  ...ICON_CHOICES,
+  ...ICON_CHOICES.map((pair) => new Set<ConceptStyleKey>(pair)),
 ];
 const MAX_STYLE_NAME = 60;
 
 /** Only content or behaviour that makes sense to vary per instance. */
 const ICON_PROPS: readonly ConceptStyleProp[] = [
   "iconName",
-  "iconSvg",
   "iconEndName",
-  "iconEndSvg",
   "iconSize",
   "iconColor",
 ];
@@ -151,11 +144,9 @@ const KIND_COMPONENT_PROPS: Record<
     "text",
     "accordionExpanded",
     "iconName",
-    "iconSvg",
     "iconSize",
     "iconColor",
     "summaryIconName",
-    "summaryIconSvg",
   ],
   avatar: ["avatarUrl", "avatarInitials"],
   badge: BUTTON_PROPS,
@@ -171,7 +162,6 @@ const KIND_COMPONENT_PROPS: Record<
     "fullHeight",
     "dividers",
     "iconName",
-    "iconSvg",
     "iconSize",
     "iconColor",
   ],
@@ -179,7 +169,7 @@ const KIND_COMPONENT_PROPS: Record<
   dialog: ["text"],
   divider: [],
   group: [],
-  icon: ["iconName", "iconSvg", "iconSize", "iconColor"],
+  icon: ["iconName", "iconSize", "iconColor"],
   input: ["text"],
   label: ["text"],
   link: ["text"],
@@ -235,8 +225,9 @@ export const componentPropOptionsOf = (
 ): ConceptStyleProp[] => componentPropOptionsForKind(style.kind);
 
 /** Props shown as editable controls on an instance. */
-export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] =>
-  style.overridableProps ?? [];
+export const componentPropsOf = (style: ConceptStyle): ConceptStyleProp[] => [
+  ...new Set(style.overridableProps?.map(instanceProp)),
+];
 
 /** An element's look: the part a style holds. */
 export const lookOf = (element: ReviewConceptElement): ConceptStyleLook => {
@@ -266,9 +257,6 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   const element = cleanElement({
     ...look,
     group: look.groupContents,
-    // A stand-in when the style sets no icon, so its icon size and colour
-    // survive cleaning (cleanIcon keeps them only beside an icon).
-    iconName: look.iconName ?? "StarIcon",
     kind: raw.kind,
     slots: look.contents,
     // A table's borders and header are checked by the table's own rules.
@@ -292,7 +280,7 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
       ? raw.name.trim().slice(0, MAX_STYLE_NAME)
       : "";
   const cleaned = lookOf(element);
-  // The stand-in is not the style's icon.
+  // A standalone icon element defaults to a star. A style can leave it unset.
   const { iconName: _name, iconSvg: _svg, ...iconless } = cleaned;
   const contents =
     look.contents && hasSlots(element.kind) && element.slots
@@ -314,7 +302,9 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   });
   const cleanedProps = Array.isArray(raw.overridableProps)
     ? raw.overridableProps.map((key) =>
-        element.kind === "panel" && key === "slideFrom" ? "direction" : key
+        element.kind === "panel" && key === "slideFrom"
+          ? "direction"
+          : instanceProp(key)
       )
     : [];
   const overridableProps = cleanedProps.filter(
@@ -342,9 +332,7 @@ export const cleanConceptStyles = (value: unknown): ConceptStyle[] =>
 const keepsOwnStyleSetting = (
   key: ConceptStyleKey,
   style: ConceptStyle
-): boolean =>
-  (ICON_KEYS.has(key) || REQUIRED_KEYS.has(key)) &&
-  style.look[key] === undefined;
+): boolean => INHERIT_IF_SET.has(key) && style.look[key] === undefined;
 
 const applyTableStyle = (
   element: ReviewConceptElement,
@@ -373,6 +361,29 @@ const applyTableStyle = (
   return element;
 };
 
+function withStyleIcons(
+  element: ReviewConceptElement,
+  look: ConceptStyleLook,
+  own: Set<ConceptStyleKey>,
+  overridable: Set<ConceptStyleProp>
+) {
+  const next: Record<string, unknown> = { ...element };
+  // Resolve the name and artwork together. Older instances can have just one
+  // override key, and a name-only kit icon must never reuse a different glyph.
+  for (const [name, drawing] of ICON_CHOICES) {
+    if (overridable.has(name) && (own.has(name) || own.has(drawing))) {
+      continue;
+    }
+    if (look[name]) {
+      next[name] = look[name];
+      next[drawing] =
+        look[drawing] ??
+        (element[name] === look[name] ? element[drawing] : undefined);
+    }
+  }
+  return next;
+}
+
 /** The element as its style draws it, keeping the settings it set itself. */
 export const applyConceptStyle = (
   element: ReviewConceptElement,
@@ -384,17 +395,13 @@ export const applyConceptStyle = (
   }
   const own = new Set(element.overrides);
   const overridable = new Set(componentPropsOf(style));
-  // The picker changes the name and drawing together, even when the kit
-  // exposes just one of those two fields.
-  for (const choice of ICON_CHOICES) {
-    if ([...choice].some((key) => overridable.has(key))) {
-      for (const key of choice) {
-        overridable.add(key);
-      }
-    }
-  }
-  const next: Record<string, unknown> = { ...element };
+  const next = withStyleIcons(element, style.look, own, overridable);
   for (const key of ELEMENT_STYLE_KEYS) {
+    if (
+      ICON_CHOICES.some(([name, drawing]) => key === name || key === drawing)
+    ) {
+      continue;
+    }
     const ownProp =
       key === "slideFrom" && overridable.has("direction") ? "direction" : key;
     // A style that sets no icon, or (incomplete) no basic setting, leaves

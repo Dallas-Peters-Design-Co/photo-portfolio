@@ -65,9 +65,6 @@ export const cleanIcon = (
     : null;
   const summaryIconName =
     kind === "accordion" ? conceptIconName(raw.summaryIconName) : null;
-  if (!(iconName || iconEndName || summaryIconName)) {
-    return {};
-  }
   const iconSvg = iconName ? cleanIconSvg(raw.iconSvg) : undefined;
   const iconEndSvg = iconEndName ? cleanIconSvg(raw.iconEndSvg) : undefined;
   return {

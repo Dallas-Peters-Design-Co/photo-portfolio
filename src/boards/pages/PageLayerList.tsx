@@ -50,7 +50,7 @@ export function PageLayerList({
         const slots = layerSlots(el.kind).flatMap((name) => {
           const slot = el.slots?.[name];
           return slot?.elements.length ||
-            (drag.dragging && depth < MAX_SLOT_DEPTH)
+            (drag.enabled && depth < MAX_SLOT_DEPTH)
             ? [{ name, slot: slot ?? { elements: [] } }]
             : [];
         });
@@ -73,6 +73,7 @@ export function PageLayerList({
             <button
               aria-pressed={selected === el.id}
               className="page-builder__layer"
+              draggable={drag.enabled}
               onClick={() => onSelect(el.id)}
               type="button"
             >
@@ -96,7 +97,12 @@ export function PageLayerList({
           return row;
         }
         return (
-          <Collapsible.Root defaultOpen>
+          <Collapsible.Root
+            defaultOpen={Boolean(
+              el.group?.elements.length ||
+                slots.some(({ slot }) => slot.elements.length > 0)
+            )}
+          >
             {row}
             <Collapsible.Panel keepMounted>
               <div hidden={compact}>

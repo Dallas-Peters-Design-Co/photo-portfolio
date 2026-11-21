@@ -49,6 +49,8 @@ import type { BoardItem } from "../../types";
 import { useActiveBrand } from "../brand/ActiveBrand";
 import { ungroupPlacement } from "./groupChildBoxes";
 
+import type { LibraryPlacement } from "./pageLibraryDrag";
+
 const createPageElement = (
   value: string,
   kind: ReviewConceptElementKind,
@@ -57,6 +59,43 @@ const createPageElement = (
   value === "stateful-component"
     ? createStatefulComponent(doc)
     : createConceptElement(kind, doc);
+
+function insertionBox(
+  page: PageDesign,
+  element: ReviewConceptElement,
+  count: number,
+  placement?: LibraryPlacement
+): PageBox {
+  const component = element.canvasComponent;
+  let width = Math.min(360, page.width - 48);
+  let height = element.kind === "navbar" ? 80 : 240;
+  if (element.kind === "navbar" || element.kind === "table") {
+    width = page.width - 48;
+  }
+  if (component) {
+    const scale = Math.min(
+      1,
+      (page.width - 48) / component.width,
+      (page.height - 48) / component.height
+    );
+    width = component.width * scale;
+    height = component.height * scale;
+  }
+  const nextBox = {
+    height: Math.min(height, page.height - 48),
+    width,
+    x: 24,
+    y: Math.min(24 + count * 48, Math.max(0, page.height - height - 24)),
+  };
+  if (placement) {
+    nextBox.x = Math.max(0, Math.min(placement.x, page.width - nextBox.width));
+    nextBox.y = Math.max(
+      0,
+      Math.min(placement.y, page.height - nextBox.height)
+    );
+  }
+  return nextBox;
+}
 
 export const usePageCanvas = (
   frame: BoardItem,
@@ -209,7 +248,11 @@ export const usePageCanvas = (
   };
   const setBox = (id: string, next: PageBox) =>
     write({ ...resolved, boxes: { ...page.boxes, [id]: next } });
-  const add = (value: string, shader?: KitShader) => {
+  const add = (
+    value: string,
+    shader?: KitShader,
+    placement?: LibraryPlacement
+  ) => {
     if (elements.length >= MAX_CONCEPT_ELEMENTS) {
       return;
     }
@@ -228,32 +271,18 @@ export const usePageCanvas = (
     if (style) {
       next = fromStyle(next, style);
     }
-    let width = Math.min(360, page.width - 48);
-    let height = next.kind === "navbar" ? 80 : 240;
-    if (next.kind === "navbar" || next.kind === "table") {
-      width = page.width - 48;
-    }
-    if (component) {
-      const scale = Math.min(
-        1,
-        (page.width - 48) / component.width,
-        (page.height - 48) / component.height
-      );
-      width = component.width * scale;
-      height = component.height * scale;
-    }
-    const nextBox = {
-      height: Math.min(height, page.height - 48),
-      width,
-      x: 24,
-      y: Math.min(
-        24 + elements.length * 48,
-        Math.max(0, page.height - height - 24)
-      ),
-    };
+    const nextBox = insertionBox(page, next, elements.length, placement);
     if (step) {
       write({
         ...resolved,
+        ...(page.grid && placement?.cell
+          ? {
+              grid: {
+                ...page.grid,
+                cells: { ...page.grid.cells, [next.id]: placement.cell },
+              },
+            }
+          : {}),
         boxes: { ...page.boxes, [next.id]: nextBox },
         concept: withStep(concept, at, {
           ...step,

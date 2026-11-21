@@ -41,11 +41,9 @@ type Patch = Partial<ReviewConceptElement>;
 const CUSTOM = "custom";
 
 /** The optional icon of a card or an input: which one, how big, what colour. */
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: the visibility options correspond directly to independently overridable icon props
 export function ElementIconGroup({
   brandDoc,
   element,
-  lookOnly = false,
   onChange,
   showColor = true,
   showEndIcon = true,
@@ -55,8 +53,6 @@ export function ElementIconGroup({
 }: {
   brandDoc?: BrandKitDoc | null;
   element: ReviewConceptElement;
-  /** A kit style: its icon's size and colour are set even without an icon. */
-  lookOnly?: boolean;
   onChange: (patch: Patch) => void;
   showColor?: boolean;
   showEndIcon?: boolean;
@@ -122,35 +118,22 @@ export function ElementIconGroup({
           />
         </ConceptField>
       ) : null}
-      {(showSize &&
-        (element.iconName ||
-          element.iconEndName ||
-          element.summaryIconName ||
-          lookOnly)) ||
-      (showColor &&
-        (element.iconName ||
-          element.iconEndName ||
-          element.summaryIconName ||
-          lookOnly)) ? (
-        <>
-          {showSize ? (
-            <NumberField
-              label="Icon size"
-              max={96}
-              onChange={(iconSize) => onChange({ iconSize })}
-              value={iconSizeOf(element)}
-            />
-          ) : null}
-          {showColor ? (
-            <ConceptColorField
-              ariaLabel={`${element.kind} icon color`}
-              brandDoc={brandDoc}
-              label="Icon color"
-              onChange={(iconColor) => onChange({ iconColor })}
-              value={element.iconColor ?? element.color}
-            />
-          ) : null}
-        </>
+      {showSize ? (
+        <NumberField
+          label="Icon size"
+          max={96}
+          onChange={(iconSize) => onChange({ iconSize })}
+          value={iconSizeOf(element)}
+        />
+      ) : null}
+      {showColor ? (
+        <ConceptColorField
+          ariaLabel={`${element.kind} icon color`}
+          brandDoc={brandDoc}
+          label="Icon color"
+          onChange={(iconColor) => onChange({ iconColor })}
+          value={element.iconColor ?? element.color}
+        />
       ) : null}
     </ConceptGroup>
   );

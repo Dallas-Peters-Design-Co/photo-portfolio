@@ -24,18 +24,19 @@ function loadIconLibrary(set: IconSet): Promise<IconLibrary> {
   const request = pack
     .then((exports) => {
       const icons: Record<string, IconSvgElement> = {};
+      const names: string[] = [];
       const seen = new Set<IconSvgElement>();
       for (const [name, icon] of Object.entries(exports)) {
-        if (
-          !(name.endsWith("Icon") && Array.isArray(icon)) ||
-          seen.has(icon as IconSvgElement)
-        ) {
+        if (!(name.endsWith("Icon") && Array.isArray(icon))) {
           continue;
         }
-        seen.add(icon as IconSvgElement);
         icons[name] = icon as IconSvgElement;
+        if (!seen.has(icon as IconSvgElement)) {
+          names.push(name);
+          seen.add(icon as IconSvgElement);
+        }
       }
-      return { icons, names: Object.keys(icons).sort() };
+      return { icons, names: names.sort() };
     })
     .catch((error: unknown) => {
       pending.delete(set);
