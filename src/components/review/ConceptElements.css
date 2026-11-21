@@ -142,6 +142,7 @@
 .concept-panel {
   position: relative;
   display: flex;
+  gap: 8px;
   align-items: flex-start;
   width: 100%;
   min-width: 0;
