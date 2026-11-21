@@ -221,6 +221,7 @@ export function SlotFields({
   navbar = false,
   label: named,
   listLabel,
+  showAllProps = false,
   ownerId,
   name = "body",
   onChange,
@@ -236,6 +237,8 @@ export function SlotFields({
   label?: string;
   /** What the list of elements is headed. */
   listLabel?: string;
+  /** Show all controls for children in the brand kit style editor. */
+  showAllProps?: boolean;
   ownerId?: string;
   name?: ConceptSlotName;
   onChange: (slot: ConceptSlot) => void;
@@ -305,6 +308,7 @@ export function SlotFields({
           (name === "hide" ? "Close button style" : `In the ${name}`)
         }
         onChange={(elements) => set({ elements })}
+        showAllProps={showAllProps}
       />
     </div>
   );
@@ -320,6 +324,7 @@ export function ConceptSlotFields({
   canEditProp = () => true,
   depth,
   element,
+  showAllProps = false,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
@@ -327,6 +332,8 @@ export function ConceptSlotFields({
   /** How many slots deep the card or panel itself sits. */
   depth: number;
   element: ReviewConceptElement;
+  /** Show all controls for slot children in the brand kit style editor. */
+  showAllProps?: boolean;
   onChange: (patch: Partial<ReviewConceptElement>) => void;
 }) {
   const dividersId = useId();
@@ -367,6 +374,7 @@ export function ConceptSlotFields({
                 onChange({ slots: { ...slots, [name]: slot } })
               }
               ownerId={element.id}
+              showAllProps={showAllProps}
               showSlotProp={showSlotProp(name)}
               slot={slots[name] ?? { elements: [] }}
             />
@@ -465,6 +473,7 @@ export function ConceptSlotFields({
             navbar={element.kind === "navbar"}
             onChange={(slot) => onChange({ slots: { ...slots, [name]: slot } })}
             ownerId={element.id}
+            showAllProps={showAllProps}
             showSlotProp={showSlotProp(name)}
             slot={slots[name] ?? { elements: [] }}
           />

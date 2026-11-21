@@ -39,6 +39,15 @@
 .ui-accordion__indicator {
   display: inline-flex;
   grid-column: 3;
+  transition: rotate 220ms ease;
+}
+.ui-accordion__panel {
+  height: var(--accordion-panel-height);
+  overflow: clip;
+  transition: height 220ms ease;
+}
+.ui-accordion__panel:is([data-starting-style], [data-ending-style]) {
+  height: 0;
 }
 .ui-accordion__summary > :not(.ui-accordion__heading) {
   position: relative;
@@ -50,4 +59,11 @@
 .ui-accordion__trigger:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-accordion__indicator,
+  .ui-accordion__panel {
+    transition: none;
+  }
 }

@@ -44,7 +44,9 @@ export function Accordion({
           </BaseAccordion.Header>
           {summary}
         </div>
-        <BaseAccordion.Panel>{children}</BaseAccordion.Panel>
+        <BaseAccordion.Panel className="ui-accordion__panel">
+          {children}
+        </BaseAccordion.Panel>
       </BaseAccordion.Item>
     </BaseAccordion.Root>
   );

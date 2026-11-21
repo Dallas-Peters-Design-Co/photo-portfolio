@@ -366,12 +366,14 @@ function HolderFields({
   canEditProp,
   depth,
   element,
+  showAllProps,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
   canEditProp: (prop: ConceptStyleProp) => boolean;
   depth: number;
   element: ReviewConceptElement;
+  showAllProps: boolean;
   onChange: (patch: Patch) => void;
 }) {
   const wrap = (body: ReactNode) => (
@@ -392,6 +394,7 @@ function HolderFields({
         listLabel="In the group"
         onChange={(group) => onChange({ group })}
         ownerId={element.id}
+        showAllProps={showAllProps}
         slot={element.group ?? { elements: [] }}
       />
     );
@@ -404,6 +407,7 @@ function HolderFields({
           depth={depth}
           element={element}
           onChange={onChange}
+          showAllProps={showAllProps}
         />
       )
     : null;
@@ -418,6 +422,7 @@ export function ReviewConceptElementFields({
   gridColumns,
   handle,
   lookOnly = false,
+  showAllProps = false,
   initiallyOpen = false,
   onChange,
   onDuplicate,
@@ -440,6 +445,8 @@ export function ReviewConceptElementFields({
    * colour, a table's header and borders), none of the content.
    */
   lookOnly?: boolean;
+  /** All controls for a component nested in a kit component's slots. */
+  showAllProps?: boolean;
   /** Open this control by default even when it sits in a slot. */
   initiallyOpen?: boolean;
   onChange: (patch: Patch) => void;
@@ -464,7 +471,7 @@ export function ReviewConceptElementFields({
       : componentPropOptionsForKind(element.kind)
   );
   const canEditProp = (prop: ConceptStyleProp) =>
-    lookOnly || allowedProps.has(prop);
+    lookOnly || showAllProps || allowedProps.has(prop);
   const canEditAnyProp = (...props: ConceptStyleProp[]) =>
     props.some(canEditProp);
   // Picked in the preview: open, and if it's the one picked, scroll to it.
@@ -751,6 +758,7 @@ export function ReviewConceptElementFields({
               depth={depth}
               element={element}
               onChange={onChange}
+              showAllProps={lookOnly || showAllProps}
             />
           )}
         </div>

@@ -567,13 +567,16 @@ export const accordionMarkup = (
 &__summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .5em; }
 &__summary > :not(&__disclosure) { position: relative; grid-area: 1 / 2; }
 &__label { display: flex; align-items: center; gap: .5em; text-align: start; }
-&__indicator { display: inline-flex; grid-column: 3; }
+&__indicator { display: inline-flex; grid-column: 3; transition: rotate 220ms ease; }
+&__panel { height: var(--accordion-panel-height); overflow: clip; transition: height 220ms ease; }
+&__panel:is([data-starting-style], [data-ending-style]) { height: 0; }
 &__disclosure { display: grid; grid-template-columns: subgrid; grid-area: 1 / 1 / 2 / -1; margin: 0; font: inherit; }
 &__trigger { width: 100%; min-height: 1.5em; display: grid; grid-template-columns: subgrid; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: .5em; font: inherit; color: inherit; border: 0; background: transparent; cursor: pointer; }
 &__trigger:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 &__trigger[aria-expanded="true"] > &__indicator, &__disclosure[open] > summary > &__indicator { rotate: 180deg; }
 &__icon { color: var(--&-icon-color, currentColor); }
 &__summary:has(> details:not([open])) + &__details { display: none; }
+@media (prefers-reduced-motion: reduce) { &__indicator, &__panel { transition: none; } }
 ${SLOTS_CSS}`,
     tag: "div",
     tsx: (name, cls) => `import { Accordion } from "@base-ui/react/accordion";
@@ -589,7 +592,7 @@ export function ${name}({ title = ${JSON.stringify(el.text)}, summary = (${summa
         <Accordion.Header className="${cls}__disclosure"><Accordion.Trigger aria-label={title || "Toggle details"} className="${cls}__trigger"><span className="${cls}__label">{leadingIcon}{title}</span>{icon && <span className="${cls}__indicator">{icon}</span>}</Accordion.Trigger></Accordion.Header>
         {summary}
       </div>
-      <Accordion.Panel>{details}</Accordion.Panel>
+      <Accordion.Panel className="${cls}__panel">{details}</Accordion.Panel>
     </Accordion.Item>
   </Accordion.Root>;
 }

@@ -158,6 +158,7 @@ function ElementList({
   initiallyOpen = false,
   destination,
   gridColumns,
+  showAllProps = false,
   onChange,
 }: {
   brandDoc?: BrandKitDoc | null;
@@ -168,6 +169,8 @@ function ElementList({
   initiallyOpen?: boolean;
   destination?: { id: string; position: DropPosition };
   gridColumns?: number;
+  /** Show all controls for a child while editing a kit component's slots. */
+  showAllProps?: boolean;
   onChange: (elements: ReviewConceptElement[]) => void;
 }) {
   const styles = brandDoc?.componentStyles ?? [];
@@ -387,6 +390,7 @@ function ElementList({
             onRemove={() =>
               onChange(elements.filter((item) => item.id !== element.id))
             }
+            showAllProps={showAllProps}
             styles={styles.filter((style) => style.kind === element.kind)}
           />
         </div>
