@@ -22,7 +22,8 @@
 }
 .page-design__component {
   position: relative;
-  min-height: min-content;
+  min-width: 0;
+  min-height: 0;
   overflow: visible;
 }
 /* A placed group uses its authored frame for alignment and paint. */
