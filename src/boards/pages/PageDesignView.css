@@ -37,6 +37,20 @@
   > .concept-tooltip__trigger {
   display: grid;
 }
+.page-design__component[data-group]
+  .concept-slot__items[data-layout="row"]
+  > .review-concepts__card-preview,
+.page-design__component[data-group]
+  .concept-slot__items[data-layout="row"]
+  > .concept-hover
+  > .review-concepts__card-preview,
+.page-design__component[data-group]
+  .concept-slot__items[data-layout="row"]
+  > .concept-flex-item[data-kind="card"] {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  width: auto;
+}
 .page-design__component > * {
   max-width: 100%;
 }
