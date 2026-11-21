@@ -165,6 +165,7 @@ export function Slot({
  */
 export function ConceptSlotsView({
   bar = false,
+  bodyDraw,
   dividers = false,
   draw,
   slots = {},
@@ -178,6 +179,7 @@ export function ConceptSlotsView({
    * end, the middle taking the free width.
    */
   bar?: boolean;
+  bodyDraw?: Draw;
   dividers?: boolean;
   draw: Draw;
   slots?: ConceptSlots;
@@ -207,7 +209,7 @@ export function ConceptSlotsView({
         return (
           <Slot
             background={name === "header" ? headerBackground : undefined}
-            draw={draw}
+            draw={name === "body" ? (bodyDraw ?? draw) : draw}
             end={name === "header" ? headerEnd : undefined}
             includeLead={name === "header" && titleInLayout}
             key={name}

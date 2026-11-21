@@ -23,9 +23,10 @@ import {
 } from "../../../config/conceptStyle.js";
 import { withLinkedComponents } from "../../../config/kitComponentLink.js";
 import { newItemId } from "../../../config/proposal.js";
-import type {
-  ReviewConceptElement,
-  ReviewConceptElementKind,
+import {
+  type ReviewConceptElement,
+  type ReviewConceptElementKind,
+  splitCardText,
 } from "../../../config/reviewConcept.js";
 import { useBrandKits } from "../../hooks/useBrandKits";
 import { rememberedOpen, rememberOpen } from "../../hooks/useRememberedOpen";
@@ -113,7 +114,7 @@ const PROP_LABELS: Partial<Record<ConceptStyleProp, string>> = {
 };
 
 const SLOT_PROP_LABEL =
-  /^(header|body|footer|hide)(Layout|Alignment|Columns|Wrap|Fill|Gap|PaddingX|PaddingY)$/;
+  /^(header|body|footer|hide)(Layout|Alignment|Columns|Wrap|Fill|Flex|Gap|PaddingX|PaddingY)$/;
 const SLOT_LABELS: Record<string, string> = {
   body: "Body",
   footer: "Footer",
@@ -167,6 +168,7 @@ const styleLook = (
   const next = { ...sample, ...patch };
   return {
     ...lookOf(next),
+    ...(next.kind === "card" && { cardBody: splitCardText(next.text).body }),
     ...(next.kind === "table" && next.table
       ? {
           tableContents: {

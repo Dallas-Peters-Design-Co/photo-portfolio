@@ -23,7 +23,7 @@ import type {
   ReviewConceptElement,
   ReviewConceptElementKind,
 } from "./reviewConcept.js";
-import { joinCardText, splitCardText } from "./reviewConcept.js";
+import { joinCardText } from "./reviewConcept.js";
 
 /**
  * Where new concept elements start: each kind's sample content and the look
@@ -377,7 +377,7 @@ const buildStyleSample = (
     } else {
       element.text =
         style.kind === "card"
-          ? joinCardText(name, splitCardText(element.text).body)
+          ? joinCardText(name, style.look.cardBody ?? "")
           : name;
     }
   }

@@ -26,6 +26,7 @@ export type SlotStyleField =
   | "columns"
   | "wrap"
   | "fill"
+  | "flex"
   | "gap"
   | "paddingX"
   | "paddingY";
@@ -37,6 +38,7 @@ export const SLOT_STYLE_FIELDS: readonly SlotStyleField[] = [
   "columns",
   "wrap",
   "fill",
+  "flex",
   "gap",
   "paddingX",
   "paddingY",
@@ -116,6 +118,7 @@ export const SLOT_STYLE_FIELD_KEYS: Record<SlotStyleField, keyof ConceptSlot> =
     alignment: "align",
     columns: "columns",
     fill: "fill",
+    flex: "flex",
     gap: "gap",
     layout: "layout",
     paddingX: "paddingX",
@@ -213,12 +216,23 @@ export const MAX_GROUP_DEPTH = 4;
  */
 export const mapChildren = (
   element: ReviewConceptElement,
-  map: (child: ReviewConceptElement) => ReviewConceptElement
+  map: (
+    child: ReviewConceptElement,
+    index: number,
+    slot: ConceptSlotName | "group"
+  ) => ReviewConceptElement
 ): ReviewConceptElement => ({
   ...element,
   ...(element.slots ? { slots: mapSlotElements(element.slots, map) } : {}),
   ...(element.group
-    ? { group: { ...element.group, elements: element.group.elements.map(map) } }
+    ? {
+        group: {
+          ...element.group,
+          elements: element.group.elements.map((child, index) =>
+            map(child, index, "group")
+          ),
+        },
+      }
     : {}),
 });
 
@@ -250,12 +264,23 @@ export const cleanSlots = (
 /** Every slot's elements, each changed by `map`; the rest of each slot kept. */
 export const mapSlotElements = (
   slots: ConceptSlots,
-  map: (element: ReviewConceptElement) => ReviewConceptElement
+  map: (
+    child: ReviewConceptElement,
+    index: number,
+    slot: ConceptSlotName
+  ) => ReviewConceptElement
 ): ConceptSlots =>
   Object.fromEntries(
     Object.entries(slots).map(([name, slot]) => [
       name,
-      slot ? { ...slot, elements: slot.elements.map(map) } : slot,
+      slot
+        ? {
+            ...slot,
+            elements: slot.elements.map((child, index) =>
+              map(child, index, name as ConceptSlotName)
+            ),
+          }
+        : slot,
     ])
   ) as ConceptSlots;
 

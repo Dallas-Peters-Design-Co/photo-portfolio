@@ -10,6 +10,7 @@ import { tableOf } from "./conceptTable.js";
 import {
   ELEMENT_STYLE_KEYS,
   type ReviewConceptElement,
+  splitCardText,
 } from "./reviewConcept.js";
 
 // These properties identify the content or control its behavior.
@@ -132,6 +133,9 @@ export function newComponentStyleLook(
   element: ReviewConceptElement
 ): ConceptStyleLook {
   const look = lookOf(element);
+  if (element.kind === "card") {
+    look.cardBody = splitCardText(element.text).body;
+  }
   if (element.group) {
     // A saved group style is a reusable component, so keep its children. The
     // style clipboard uses slotLayout separately when it should copy layout

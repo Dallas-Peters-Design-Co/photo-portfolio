@@ -1,6 +1,7 @@
 import { cleanIcon } from "./conceptKinds.js";
 import {
   type ConceptSlot,
+  type ConceptSlotName,
   type ConceptSlots,
   hasSlots,
   mapChildren,
@@ -35,7 +36,6 @@ import {
   type ReviewConceptElement,
   type ReviewConceptElementKind,
   STYLE_ID,
-  splitCardText,
 } from "./reviewConcept.js";
 
 /**
@@ -63,6 +63,8 @@ export type ConceptStyleLook = Partial<
    * already follows the style keeps its own, since they are its content.
    */
   contents?: ConceptSlots;
+  /** Default body copy for a new card. Its title comes from the style name. */
+  cardBody?: string;
   groupContents?: ReviewConceptElement["group"];
   tableContents?: Pick<ConceptTable, "columns" | "rows" | "icons">;
   tableBorders?: ConceptTableBorders;
@@ -214,8 +216,11 @@ export const componentPropOptionsForKind = (
   kind: ReviewConceptElementKind
 ): ConceptStyleProp[] => [
   ...KIND_COMPONENT_PROPS[kind],
+  "flex",
   ...(SLOT_NAMES_BY_KIND[kind] ?? []).flatMap((slot) =>
-    SLOT_STYLE_FIELDS.map((field) => slotStyleProp(slot, field))
+    SLOT_STYLE_FIELDS.filter(
+      (field) => field !== "flex" || kind === "navbar"
+    ).map((field) => slotStyleProp(slot, field))
   ),
 ];
 
@@ -289,6 +294,10 @@ const cleanStyle = (value: unknown): ConceptStyle | null => {
   const cleanedLook = {
     ...(look.iconName ? cleaned : iconless),
     ...contents,
+    ...(element.kind === "card" &&
+      typeof look.cardBody === "string" && {
+        cardBody: look.cardBody.slice(0, 500),
+      }),
     ...(look.groupContents && element.group
       ? { groupContents: element.group }
       : {}),
@@ -374,7 +383,7 @@ function withStyleIcons(
     if (overridable.has(name) && (own.has(name) || own.has(drawing))) {
       continue;
     }
-    if (look[name]) {
+    if (Object.hasOwn(look, name)) {
       next[name] = look[name];
       next[drawing] =
         look[drawing] ??
@@ -393,6 +402,13 @@ export const applyConceptStyle = (
   if (!style || style.kind !== element.kind) {
     return element;
   }
+  return applyLinkedStyle(element, style);
+};
+
+function applyLinkedStyle(
+  element: ReviewConceptElement,
+  style: ConceptStyle
+): ReviewConceptElement {
   const own = new Set(element.overrides);
   const overridable = new Set(componentPropsOf(style));
   const next = withStyleIcons(element, style.look, own, overridable);
@@ -428,7 +444,7 @@ export const applyConceptStyle = (
     }
   }
   return result;
-};
+}
 
 /** The part of a badge or button style a table cell draws with. */
 export const cellLookOf = (look: ConceptStyleLook): ConceptCellLook => ({
@@ -532,6 +548,9 @@ const slotWithStyle = (
     const ownKey = SLOT_STYLE_FIELD_KEYS[field];
     const keepOwn = props.has(key) && overrides?.[name]?.includes(field);
     const source = keepOwn ? current : template;
+    if (field === "alignment") {
+      merged.justify = source?.justify;
+    }
     if (source?.[ownKey] === undefined) {
       delete merged[ownKey];
     } else {
@@ -595,7 +614,12 @@ const slotOverridesFromChange = (
     const previous = element.slots?.[name];
     const fields = SLOT_STYLE_FIELDS.filter((field) => {
       const key = SLOT_STYLE_FIELD_KEYS[field];
-      return key in next && !same(next[key], previous?.[key]);
+      return (
+        (key in next && !same(next[key], previous?.[key])) ||
+        (field === "alignment" &&
+          "justify" in next &&
+          next.justify !== previous?.justify)
+      );
     });
     if (fields.length === 0) {
       continue;
@@ -608,18 +632,116 @@ const slotOverridesFromChange = (
   return changed ? nextOverrides : undefined;
 };
 
-/**
- * An element as the kit draws it: its own style, then its columns', then
- * each element in its slots.
- */
+/** Resolve the values authored on this child as defaults of the containing style.
+ * An instance can still override only the props exposed by the child's own style. */
+function composedStyle(
+  style: ConceptStyle,
+  template?: ReviewConceptElement
+): ConceptStyle {
+  if (
+    template?.styleId !== style.id ||
+    !(template.overrides?.length || template.slotOverrides)
+  ) {
+    return style;
+  }
+  const look = lookOf(template);
+  const settings = Object.fromEntries(
+    (template.overrides ?? []).map((key) => [key, look[key]])
+  );
+  const contents = { ...style.look.contents };
+  for (const name of SLOT_NAMES) {
+    const fields = template.slotOverrides?.[name];
+    const slot = template.slots?.[name];
+    if (slot && fields?.length) {
+      const keys = fields.flatMap((field) =>
+        field === "alignment"
+          ? (["align", "justify"] as const)
+          : [SLOT_STYLE_FIELD_KEYS[field]]
+      );
+      contents[name] = {
+        ...contents[name],
+        elements: contents[name]?.elements ?? [],
+        ...Object.fromEntries(keys.map((key) => [key, slot[key]])),
+      };
+    }
+  }
+  return {
+    ...style,
+    look: {
+      ...style.look,
+      ...settings,
+      ...(Object.keys(contents).length && { contents }),
+    },
+  };
+}
+
+function matchingChild(
+  children: ReviewConceptElement[] | undefined,
+  child: ReviewConceptElement,
+  index: number
+) {
+  if (!children) {
+    return;
+  }
+  const exact =
+    children.find((item) => item.id === child.id) ??
+    children.find((item) => item.id === child.templateChildId);
+  if (exact || child.templateChildId) {
+    return exact;
+  }
+  // Older placements used fresh ids without a reference to their kit child.
+  const candidate = children[index];
+  return candidate?.kind === child.kind && candidate.styleId === child.styleId
+    ? candidate
+    : undefined;
+}
+
+function childTemplates(
+  child: ReviewConceptElement,
+  index: number,
+  slot: ConceptSlotName | "group",
+  parents: ReviewConceptElement[],
+  style?: ConceptStyle
+) {
+  const matches: ReviewConceptElement[] = [];
+  let source = child;
+  // Follow the copied child's identity back through each containing kit style.
+  for (const parent of parents) {
+    const holder = slot === "group" ? parent.group : parent.slots?.[slot];
+    const match = matchingChild(holder?.elements, source, index);
+    if (match) {
+      matches.push(match);
+      source = match;
+    }
+  }
+  const base =
+    slot === "group" ? style?.look.groupContents : style?.look.contents?.[slot];
+  const match = matchingChild(base?.elements, source, index);
+  if (match) {
+    matches.push(match);
+  }
+  return matches;
+}
+
+/** Apply linked styles from the innermost kit component out to its placement. */
 export const styleElement = (
   element: ReviewConceptElement,
-  styles: ConceptStyle[]
+  styles: ConceptStyle[],
+  templates: ReviewConceptElement[] = []
 ): ReviewConceptElement => {
-  const componentStyle = styles.find(
+  const linked = styles.find(
     (style) => style.id === element.styleId && style.kind === element.kind
   );
-  let styled = applyColumnStyles(applyConceptStyle(element, styles), styles);
+  const componentStyle =
+    linked &&
+    templates.reduceRight(
+      (style, template) => composedStyle(style, template),
+      linked
+    );
+  let styled = applyColumnStyles(
+    componentStyle ? applyLinkedStyle(element, componentStyle) : element,
+    styles
+  );
   // A composite style supplies the default child styles as well as its own
   // look. Keep the instance's content, but let matching unlinked children
   // follow the child styles chosen in the kit.
@@ -651,7 +773,13 @@ export const styleElement = (
     };
   }
   return styled.slots || styled.group
-    ? mapChildren(styled, (child) => styleElement(child, styles))
+    ? mapChildren(styled, (child, index, slot) =>
+        styleElement(
+          child,
+          styles,
+          childTemplates(child, index, slot, templates, linked)
+        )
+      )
     : styled;
 };
 
@@ -732,7 +860,16 @@ export const withOverrides = (
 
 /** The element and everything in its slots and group, each with a new id. */
 const withNewIds = (element: ReviewConceptElement): ReviewConceptElement =>
-  mapChildren({ ...element, id: newItemId() }, withNewIds);
+  mapChildren(
+    {
+      ...element,
+      id: newItemId(),
+      overrides: undefined,
+      slotOverrides: undefined,
+      templateChildId: element.id,
+    },
+    withNewIds
+  );
 
 /**
  * A new element made from a style: its look, and the starting items the kit
@@ -759,7 +896,7 @@ export const fromStyle = (
         ...(usesPlaceholder ? { placeholder: name } : {}),
         text:
           style.kind === "card"
-            ? joinCardText(name, splitCardText(linked.text).body)
+            ? joinCardText(name, style.look.cardBody ?? "")
             : name,
       }
     : linked;
@@ -781,6 +918,7 @@ export const linkStyle = (
   style: ConceptStyle | null
 ): ReviewConceptElement => {
   const {
+    templateChildId: _templateChildId,
     overrides: _overrides,
     slotOverrides: _slotOverrides,
     styleId: _styleId,

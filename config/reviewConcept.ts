@@ -274,6 +274,8 @@ export interface ReviewConceptElement {
   tabLook?: ConceptTabLook;
   /** Tables only: typed columns and rows (see conceptTable.ts). */
   table?: ConceptTable;
+  /** Identifies this child in the parent kit component after insertion or reordering. */
+  templateChildId?: string;
   text: string;
   /** Cards only: the title's weight; without it, bolder than the body. */
   titleWeight?: 400 | 500 | 600 | 700;
@@ -590,6 +592,14 @@ const cleanElementFocus = (
   return focus ? { focus } : {};
 };
 
+function elementIdentity(raw: Partial<ReviewConceptElement>) {
+  const templateChildId = str(raw.templateChildId, 64);
+  return {
+    id: str(raw.id, 64) || newItemId(),
+    ...(templateChildId && { templateChildId }),
+  };
+}
+
 export const cleanElement = (
   value: unknown,
   /** How many slots deep this element sits. */
@@ -610,6 +620,7 @@ export const cleanElement = (
   const hover = takesHover(kind) ? cleanHover(raw.hover) : undefined;
   return {
     ...cleanStateName(raw.stateName),
+    ...elementIdentity(raw),
     ...cleanCanvas(raw, kind),
     ...cleanFlex(raw.flex),
     ...cleanGridPlacement(raw.gridPlacement),
@@ -619,7 +630,6 @@ export const cleanElement = (
     ...font,
     fontSize: bounded(raw.fontSize, 10, 72, 16),
     fontWeight,
-    id: str(raw.id, 64) || newItemId(),
     ...cleanIcon(kind, raw),
     kind,
     lineHeight: bounded(raw.lineHeight, 1, 2.4, 1.4),

@@ -60,6 +60,9 @@ export function StyleLink({ element, onLink, styles }: StyleLinkProps) {
       ...linked,
       look: {
         ...lookOf(element),
+        ...(linked.look.cardBody !== undefined && {
+          cardBody: linked.look.cardBody,
+        }),
         ...(linked.look.contents ? { contents: linked.look.contents } : {}),
         ...(linked.look.groupContents
           ? { groupContents: linked.look.groupContents }

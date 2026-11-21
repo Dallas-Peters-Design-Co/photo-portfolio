@@ -152,6 +152,22 @@
   min-width: 0;
 }
 
+/* Body groups occupy the padded column or grid cell. In a row they share
+   the remaining width with siblings; an explicit flex size still wins. */
+.concept-slot__items[data-layout="column"] > [data-fill-group] {
+  align-self: stretch;
+}
+.concept-slot__items[data-layout="row"] > [data-fill-group] {
+  flex: 1 1 0;
+}
+.concept-slot__items[data-layout="grid"] > [data-fill-group],
+.concept-grid-item:has(> [data-fill-group]) {
+  justify-self: stretch;
+}
+[data-fill-group] > .concept-tooltip__trigger {
+  display: grid;
+}
+
 .concept-group__disclosure {
   width: 100%;
   min-width: 0;

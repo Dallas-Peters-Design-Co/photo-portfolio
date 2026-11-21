@@ -11,7 +11,7 @@ import {
   createConceptElement,
   styleSample,
 } from "../../../config/conceptDefaults.js";
-import type { ConceptStyle } from "../../../config/conceptStyle.js";
+import { type ConceptStyle, fromStyle } from "../../../config/conceptStyle.js";
 import { componentsApi } from "../../boards/creative/components/componentsApi";
 import { BrandKitComponents } from "./BrandKitComponents";
 
@@ -372,5 +372,48 @@ it("saves a canvas component in a code card's starting slot", async () => {
     await act(() => root.unmount());
     host.remove();
     list.mockRestore();
+  }
+});
+
+it("saves multiline and empty card body defaults for the guide and new placements", async () => {
+  const host = document.createElement("div");
+  document.body.append(host);
+  const root = createRoot(host);
+  try {
+    await act(() => root.render(<OneCard />));
+    const open = host.querySelector<HTMLButtonElement>(
+      '[aria-label="Open Card Card"]'
+    );
+    if (open) {
+      await userEvent.click(open);
+    }
+    const body = host.querySelector<HTMLTextAreaElement>(
+      ".brand-kit-components__body textarea"
+    );
+    if (!body) {
+      throw new Error("Missing kit card body editor");
+    }
+    const expectSavedBody = (value: string) => {
+      const kit = sanitizeKitDoc(JSON.parse(JSON.stringify(saved)));
+      const [style] = kit.componentStyles;
+      if (!style) {
+        throw new Error("Missing card style");
+      }
+      expect(style.look.cardBody).toBe(value);
+      const text = value ? `Card\n${value}` : "Card";
+      expect(styleSample(style, kit).text).toBe(text);
+      expect(fromStyle(createConceptElement("card"), style).text).toBe(text);
+      expect(
+        host.querySelector(".brand-kit-components__sample")?.textContent
+      ).not.toContain("Supporting copy goes here.");
+    };
+    const copy = "Upload study documents.\nWord or RTF.";
+    await userEvent.fill(body, copy);
+    expectSavedBody(copy);
+    await userEvent.clear(body);
+    expectSavedBody("");
+  } finally {
+    await act(() => root.unmount());
+    host.remove();
   }
 });

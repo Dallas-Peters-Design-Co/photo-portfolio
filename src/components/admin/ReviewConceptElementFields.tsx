@@ -256,6 +256,15 @@ function KindGroups({
           showHeader={canEditProp("tableHeader")}
         />
       ) : null}
+      {lookOnly && element.kind === "card" && (
+        <ConceptGroup name="Content">
+          <ReviewConceptContentField
+            element={element}
+            onChange={onChange}
+            showTitle={false}
+          />
+        </ConceptGroup>
+      )}
       {/* A logo is its picture and a navbar its slots: no text of their own. */}
       {element.kind === "table" ||
       element.kind === "icon" ||

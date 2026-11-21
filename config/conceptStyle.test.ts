@@ -84,12 +84,14 @@ describe("a linked element", () => {
     });
   });
 
-  it("keeps the settings it set itself", () => {
+  it("keeps an instance's flex override when the kit exposes it", () => {
+    const flex = { basis: 120, grow: 1, shrink: 0 };
     const drawn = applyConceptStyle(
-      button({ overrides: ["background"], styleId: "primary" }),
-      [primary]
+      button({ flex, overrides: ["background", "flex"], styleId: "primary" }),
+      [{ ...primary, overridableProps: ["flex"] }]
     );
-    expect(drawn.background).toBe("#000000");
+    expect(drawn.flex).toEqual(flex);
+    expect(drawn.background).toBe(primary.look.background);
     expect(drawn.color).toBe("#ffffff");
   });
 

@@ -104,6 +104,7 @@ function CardPreview({
       style={style}
     >
       <ConceptSlotsView
+        bodyDraw={drawCardBodyElement}
         dividers={element.dividers}
         draw={drawElement}
         lead={lead}
@@ -628,21 +629,26 @@ function LogoPreview({
 /** An element as a concept draws it, with its hover look when it has one. */
 export function ReviewConceptElementView({
   element,
+  fillGroup = false,
 }: {
   element: ReviewConceptElement;
+  fillGroup?: boolean;
 }) {
   const marks = marksFor(element, useSequenceMarks());
   const child = (
     <ConceptTooltip
-      fill={[
-        "accordion",
-        "card",
-        "panel",
-        "table",
-        "navbar",
-        "progress",
-        "select",
-      ].includes(element.kind)}
+      fill={
+        fillGroup ||
+        [
+          "accordion",
+          "card",
+          "panel",
+          "table",
+          "navbar",
+          "progress",
+          "select",
+        ].includes(element.kind)
+      }
       fullHeight={element.fullHeight}
       tooltip={element.tooltip}
     >
@@ -651,12 +657,13 @@ export function ReviewConceptElementView({
       </ConceptHover>
     </ConceptTooltip>
   );
-  return element.flex ? (
+  return element.flex || fillGroup ? (
     <div
       className="concept-flex-item"
+      data-fill-group={fillGroup || undefined}
       data-full-height={element.fullHeight || undefined}
       data-kind={element.kind}
-      style={{ flex: flexSize(element.flex) }}
+      style={element.flex ? { flex: flexSize(element.flex) } : undefined}
     >
       {child}
     </div>
@@ -668,4 +675,12 @@ export function ReviewConceptElementView({
 /** How a slot draws each element it holds: as the element draws anywhere. */
 const drawElement = (element: ReviewConceptElement) => (
   <ReviewConceptElementView element={element} key={element.id} />
+);
+
+const drawCardBodyElement = (element: ReviewConceptElement) => (
+  <ReviewConceptElementView
+    element={element}
+    fillGroup={element.kind === "group"}
+    key={element.id}
+  />
 );

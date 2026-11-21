@@ -274,7 +274,7 @@ export function SlotFields({
           slot={slot}
         />
       </ConceptGroup>
-      {navbar ? (
+      {navbar && show("flex") ? (
         <ConceptFlexFields
           flex={slot.flex}
           grow={middle}

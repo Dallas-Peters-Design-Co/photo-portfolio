@@ -506,7 +506,61 @@
 
 .brand-kit-components__body {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: calc(var(--spacing) * 3);
+}
+
+.brand-kit-components__body .review-concepts__element-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: start;
+  max-inline-size: none;
+}
+
+.brand-kit-components__body .review-concepts__element-body > * {
+  flex: 1 0 100%;
+  min-inline-size: 0;
+}
+
+.brand-kit-components__body
+  .review-concepts__element-body
+  > .review-concepts__group {
+  flex: 1 1 max-content;
+  max-inline-size: 100%;
+}
+
+.brand-kit-components__body
+  .review-concepts__group
+  > .review-concepts__group-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: end;
+  max-inline-size: none;
+}
+
+.brand-kit-components__body .review-concepts__field {
+  max-inline-size: 100%;
+}
+
+.brand-kit-components__body .review-concepts__field--wide {
+  flex: 1 1 11rem;
+}
+
+.brand-kit-components__body
+  :is(
+    .review-concepts__table-editor,
+    .review-concepts__field--full,
+    .brand-kit__hint
+  ) {
+  flex-basis: 100%;
+}
+
+.brand-kit-components__body .review-concepts__slot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
 }
 
 /* Paper, as a concept preview is: a style is judged on the page it goes on. */
